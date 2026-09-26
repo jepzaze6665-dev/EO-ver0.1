@@ -1,0 +1,158 @@
+// Lore fragments and NPC dialogue. Dialogue is a function of world state, so NPCs
+// react to what the player has discovered and to the World State change.
+
+export const LORE = {
+  camp_journal: {
+    title: 'Torn Journal — Abandoned Camp',
+    text: 'Day 6. The fog rolled down from the ruins again. The wolves no longer flee from fire — their eyes glow violet now.\nDay 7. Heard singing from the crystals east of the river. Joren went to look. He has not returned.\n(The last page is signed: "Bram, woodcutter of Lumina")',
+  },
+  elder_tree: {
+    title: 'The Elder Tree',
+    text: 'Your palm meets warm bark. A heartbeat answers — slow, pained.\n"…the Warden sleeps… the Warden dreams… something black drinks from its heart…"\nFar to the north-east, beyond the ruins, a light flickers in response.',
+  },
+  crystal_song: {
+    title: 'Song of the Crystal',
+    text: 'The crystal hums in a rhythm you almost recognise. Where the song fades, it is replaced by a low violet whine — coming from the north, past the stone circle.\n(Something is hidden near the Stone Circle.)',
+  },
+  path_statue: {
+    title: 'Statue Inscription — Ancient Forest Path',
+    text: '"Here begins the Warden’s Road. Let none who carry darkness pass the Gate, for the Guardian remembers every blade."',
+  },
+  cave_mural: {
+    title: 'Cave Mural — The Warden’s Weakness',
+    text: 'A mural of a great antlered beast. Its chest holds a crystal heart. In the next panel, the beast crashes into a stone wall and kneels — the heart blazing, open.\n\n[Monster Knowledge] Guardian of the Forest: Weakness & Pattern revealed.',
+    reveal: [['guardian', 'weakness'], ['guardian', 'pattern']],
+  },
+  guardian_oath: {
+    title: 'Plaque — Oath of the Guardian',
+    text: '"I am root and crystal. I rise with the forest and fall with it. Should corruption take me, let a shadow sever the eclipse from my heart."',
+    reveal: [['guardian', 'level']],
+  },
+  court_tablet: {
+    title: 'Tablet — Crystal Wardens',
+    text: 'The crystal beasts were bred to guard the courtyard. Their armour is near-unbreakable from the front, but the core on their backs was left bare so that their keepers could calm them.\n\n[Monster Knowledge] Crystal Beast: Weakness revealed.',
+    reveal: [['crystal_beast', 'weakness'], ['crystal_beast', 'pattern']],
+  },
+  archive_record: {
+    title: 'Crystal Record — Sealed Archive',
+    text: 'The Guardian was bound to the forest by the first people of Lumina. The Valley beyond the northern thorns held their greater work: the Depths, sealed with the same crystal as the Guardian’s heart.\nWhen the Guardian sleeps, the thorns wither.',
+  },
+  valley_stone: {
+    title: 'Standing Stone — Ancient Valley',
+    text: '"A2 — The Valley of Wardens. Beneath us lie the Depths, where the eclipse was first born."\nThe stone is warm. The dungeon gate to the north pulses in answer.',
+  },
+};
+
+// returns { lines:[...], options:[{label, action}] }
+export function dialogueFor(id, g) {
+  const f = g.world.state.flags, q = g.quests;
+  const restored = f.guardianDefeated;
+  switch (id) {
+    case 'elder':
+      if (!restored && !q.isActive('whispers') && !q.isDone('whispers')) return {
+        lines: [
+          'Ah… you must be the swordsman the Guild sent. I am Maren, elder of Lumina.',
+          'A strange fog crept out of the Whispering Forest a month ago. The wolves turned savage, travelers vanished, and the old road north is choked with thorns.',
+          'The fog comes from the ruins beyond the river, where the Guardian of the Forest sleeps. Please — find out what is happening.',
+        ],
+        options: [{ label: 'Accept: Whispers in the Forest', action: 'quest:whispers' }, { label: 'Not yet', action: 'close' }],
+      };
+      if (!restored) return {
+        lines: f.shrineInvestigated
+          ? ['The shrine fragment… it resonates with the Guardian Gate. Beyond it the Guardian sleeps.', 'If it has been corrupted, you must free it. Learn its movements — it will leave its heart open after its heaviest blows.']
+          : ['Follow the road north through the forest and cross the river. The Ancient Ruins lie east, past the stone circle.', 'Something at the ruins’ shrine should tell us more.'],
+        options: [{ label: 'Farewell', action: 'close' }],
+      };
+      return {
+        lines: [
+          'The fog… it is gone. I can hear birds in the forest for the first time in a month!',
+          'You did not simply win a fight, child. You changed the forest itself. The thorns on the northern road have withered — the Ancient Valley is open again.',
+          'Our ancestors sealed something in that valley. Be careful… and thank you.',
+        ],
+        options: [{ label: 'Farewell', action: 'close' }],
+      };
+    case 'guide':
+      if (!q.isActive('first_steps') && !q.isDone('first_steps')) return {
+        lines: [
+          'Welcome to Lumina, Umbral Sword. Captain Aldric of the Adventurer Guild.',
+          'Your blade feeds on shadow. Each well-placed strike leaves a Shadow Mark — build three and you can unleash a SHADOW BREAK. [Q / Right Click]',
+          'And learn to dodge at the last instant [Space]. A Perfect Dodge slows the world and fuels your shadow.',
+        ],
+        options: [{ label: 'Accept: First Steps of Shadow', action: 'quest:first_steps' }, { label: 'Controls?', action: 'controls' }, { label: 'Later', action: 'close' }],
+      };
+      return {
+        lines: restored
+          ? ['Word travels fast — the Guardian is at peace! The Guild will want you for the Valley expedition.', 'Scout Wren is already up there. Look for her past the northern road.']
+          : ['Remember: enemies always show their intent — red on the ground means move, or dodge through it at the last moment.', 'Heavy attacks leave openings. That is when you break them.'],
+        options: [{ label: 'Controls?', action: 'controls' }, { label: 'Thanks', action: 'close' }],
+      };
+    case 'smith':
+      return {
+        lines: restored
+          ? ['Ha! The forge burns cleaner since the fog lifted. Bring me materials and I’ll make you something worthy of that valley.']
+          : ['Borin, smith of Lumina. Wolf fangs, goblin iron, crystal shards — bring them and I’ll forge blades that change how you fight.'],
+        options: [{ label: 'Forge equipment', action: 'smith' }, { label: 'Leave', action: 'close' }],
+      };
+    case 'merchant':
+      return {
+        lines: restored
+          ? ['Customers are coming back now that the road is safe! Take a look.']
+          : ['Potions, tonics, charms. Nobody goes into that forest without a few draughts.'],
+        options: [{ label: 'Trade', action: 'shop' }, { label: 'Leave', action: 'close' }],
+      };
+    case 'guard':
+      return {
+        lines: restored
+          ? ['Sunlight on the forest road! I never thought I’d see it again.', 'The wolves are calmer too. Still — the new paths up north are no place for the careless.']
+          : ['Halt— oh, you’re the Guild’s swordsman. The forest beyond this gate isn’t safe.', 'The fog makes the beasts savage. Stay on the path unless you’re looking for trouble.'],
+        options: [{ label: 'Farewell', action: 'close' }],
+      };
+    case 'child':
+      return {
+        lines: restored ? ['The trees are singing now! Mama says I can pick berries by the gate tomorrow!'] : ['Mama says not to go past the gate. The fog eats people.', 'Are you gonna fight the fog? With that big sword?'],
+        options: [{ label: 'Bye', action: 'close' }],
+      };
+    case 'villager':
+      return {
+        lines: restored
+          ? ['Bram came home this morning! He said the fog just… lifted, and he found his way out of the old camp.', 'Whatever you did out there — thank you.']
+          : ['My husband Bram went to cut wood by the old camp west of the entrance… he never came back.', 'If you find anything of his, please tell me.'],
+        options: [{ label: 'Farewell', action: 'close' }],
+      };
+    case 'wanderer':
+      g.knowledge.reveal('guardian', 'weakness');
+      g.world.setFlag('metWanderer');
+      return {
+        lines: [
+          '…You found this place. Few can hear the crystals anymore.',
+          'The Guardian was never your enemy. Something from the Depths poisons its heart. Strike when it kneels — shadow severs corruption.',
+          restored ? 'You have done it. The valley remembers you now. The Depths will not open for strength alone…' : 'When the Warden sleeps, the northern thorns will wither. Follow them.',
+        ],
+        options: [{ label: '…', action: 'close' }],
+      };
+    case 'scout':
+      return {
+        lines: [
+          'Scout Wren, Adventurer Guild. You’re the one who calmed the Guardian? Then you’re the reason I could get up here at all.',
+          'That gate to the north is a dungeon — the Sealed Depths. The runes don’t respond to anything I have.',
+          'The Guild will want to know. This valley is only the beginning.',
+        ],
+        options: [{ label: 'Farewell', action: 'close' }],
+      };
+  }
+  return { lines: ['…'], options: [{ label: 'Close', action: 'close' }] };
+}
+
+export const BOARD_TEXT = [
+  'LUMINA QUEST BOARD',
+  '• URGENT — Fog over the Whispering Forest. See Elder Maren.',
+  '• Wolf pelts wanted. Fangs bought by Borin the smith.',
+  '• Missing: Bram the woodcutter. Last seen near the old camp.',
+  '• Guild notice: travelers report a humming from the crystal glade.',
+];
+export const BOARD_TEXT_AFTER = [
+  'LUMINA QUEST BOARD',
+  '• The fog has lifted! Festival at the fountain tonight.',
+  '• GUILD: Volunteers wanted for the Ancient Valley expedition.',
+  '• Bram is home safe. Thank you, Umbral Sword.',
+];
