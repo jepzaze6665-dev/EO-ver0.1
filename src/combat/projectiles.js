@@ -1,6 +1,7 @@
 import { Pool } from '../core/pool.js';
 import { TEAM } from '../core/constants.js';
 import { TAU, angleTo, wrapAngle } from '../core/math.js';
+import { Assets } from '../core/assets.js';
 
 // Pooled projectiles for both teams (crystal shards, wraith orbs, crescent waves).
 export class Projectiles {
@@ -50,7 +51,7 @@ export class Projectiles {
       if (p.team === TEAM.ENEMY) {
         if (pl.dead) return;
         const d2 = (pl.x - p.x) ** 2 + (pl.y - 8 - p.y) ** 2;
-        if (d2 < (p.r + pl.radius) ** 2) {
+        if (d2 < (p.r + (pl.hurtRadius || pl.radius)) ** 2) {
           if (pl.invulnerable()) {
             if (!p.perfectDone && pl.canPerfect()) { p.perfectDone = true; pl.onPerfectDodge(p.owner); }
             return;
@@ -98,15 +99,9 @@ export class Projectiles {
         ctx.fillStyle = '#fff';
         ctx.beginPath(); ctx.arc(0, 0, r * 0.4, 0, TAU); ctx.fill();
       } else if (p.kind === 'wave') {
-        // Umbral crescent
-        ctx.globalCompositeOperation = 'lighter';
-        const s = p.r;
-        for (let i = 0; i < 3; i++) {
-          ctx.strokeStyle = i === 0 ? 'rgba(120,40,200,0.6)' : i === 1 ? 'rgba(190,110,255,0.8)' : 'rgba(255,230,255,0.9)';
-          ctx.lineWidth = [10, 5, 2][i];
-          ctx.beginPath(); ctx.arc(-s * 0.6, 0, s, -1.1, 1.1); ctx.stroke();
-        }
-        ctx.lineWidth = 1;
+        // Umbral crescent (hand-drawn slash strip)
+        const d = Assets.vfx.slash;
+        if (d) { ctx.globalAlpha = 0.95; ctx.scale(1.3, 1.3); ctx.drawImage(d.img, 3 * d.fw, 0, d.fw, d.fh, -d.fw / 2, -d.fh / 2, d.fw, d.fh); }
       } else if (p.kind === 'root') {
         ctx.fillStyle = '#3a5a2a';
         ctx.fillRect(-6, -3, 12, 6);

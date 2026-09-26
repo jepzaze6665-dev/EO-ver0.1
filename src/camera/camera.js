@@ -21,7 +21,9 @@ export class Camera {
 
   shake(amount) { this.trauma = Math.min(1, this.trauma + amount); }
 
-  punch(amount) { this.zoomPunch = Math.max(this.zoomPunch, amount); }
+  // Pixel-art rule: zoom stays an exact 1x (integer scaling only). A 'punch' is delivered
+  // as a short directional screen impulse instead of a fractional zoom.
+  punch(amount) { this.trauma = Math.min(1, this.trauma + amount * 1.6); }
 
   // cinematic pan to a point for `dur` seconds
   lookAt(x, y, dur) { this.focus = { x, y, t: dur }; }
@@ -42,14 +44,12 @@ export class Camera {
     this.x = damp(this.x, tx, speed, dt);
     this.y = damp(this.y, ty, speed, dt);
 
-    this.zoomPunch = damp(this.zoomPunch, 0, 5, dt);
-    this.baseZoom = damp(this.baseZoom, this.targetZoom, 3, dt);
-    this.zoom = this.baseZoom + this.zoomPunch;
+    this.zoom = 1;
 
     this.trauma = Math.max(0, this.trauma - dt * 1.6);
     const s = this.trauma * this.trauma;
-    this.shakeX = s * 14 * rand(-1, 1);
-    this.shakeY = s * 14 * rand(-1, 1);
+    this.shakeX = Math.round(s * 14 * rand(-1, 1)); // whole pixels only
+    this.shakeY = Math.round(s * 14 * rand(-1, 1));
     this.clampToBounds();
   }
 

@@ -280,17 +280,6 @@ export class VFX {
       }
       ctx.stroke();
     }
-    // big X slash
-    if (t < 0.45) {
-      const k = t / 0.45;
-      ctx.globalAlpha = 1 - k;
-      for (const d of [1, -1]) {
-        ctx.strokeStyle = 'rgb(160,70,255)'; ctx.lineWidth = 14 * (1 - k);
-        ctx.beginPath(); ctx.moveTo(b.x - 80, b.y - 10 - 50 * d); ctx.lineTo(b.x + 80, b.y - 10 + 50 * d); ctx.stroke();
-        ctx.strokeStyle = 'rgb(255,240,255)'; ctx.lineWidth = 4 * (1 - k);
-        ctx.beginPath(); ctx.moveTo(b.x - 80, b.y - 10 - 50 * d); ctx.lineTo(b.x + 80, b.y - 10 + 50 * d); ctx.stroke();
-      }
-    }
     ctx.restore();
   }
 

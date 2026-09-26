@@ -2,6 +2,7 @@ import { Entity } from '../core/entity.js';
 import { TEAM } from '../core/constants.js';
 import { angleTo, dir4, damp, clamp, rand, TAU, easeOutCubic } from '../core/math.js';
 import { PERFECT_WINDOW } from '../combat/combat.js';
+import { CHARACTER } from './characterConfig.js';
 
 const DODGE_TIME = 0.24, DODGE_DIST = 100, DODGE_IFRAMES = 0.28, DODGE_CHARGES = 2, DODGE_RECHARGE = 0.85;
 const HURT_IFRAMES = 0.55;
@@ -13,8 +14,9 @@ export class Player extends Entity {
     this.cls = classDef;
     this.sprites = sprites;
     this.team = TEAM.PLAYER;
-    this.radius = 9;
-    this.height = 56;
+    this.radius = CHARACTER.collisionRadius; // fixed feet collision, independent of animation
+    this.hurtRadius = CHARACTER.hurtRadius;
+    this.height = CHARACTER.bodyHeight;
     this.level = 10; this.exp = 0; this.gold = 120;
     this.shadow = 40; this.maxShadow = 100;
     this.marks = 0; this.maxMarks = 3;
@@ -369,7 +371,6 @@ export class Player extends Entity {
       this.sprites.draw(ctx, f, this.x, y, Math.max(0.25, 1 - this.deathT * 0.4));
       return;
     }
-    if (this.anim === 'idle') y += Math.sin(g.time * 3) > 0.6 ? -1 : 0;
     const f = this.currentFrame();
     const flicker = this.invulnT > 0 && !this.dodging && Math.floor(g.time * 20) % 2 === 0;
     this.sprites.draw(ctx, f, this.x, y, flicker ? 0.45 : 1);

@@ -281,7 +281,7 @@ export class Guardian extends Entity {
     this.pose = 'claw'; this.poseT = 0;
     this.x += Math.cos(this.facing) * 12; this.y += Math.sin(this.facing) * 12;
     this.strike(tel, 34, 240);
-    g.vfx.slash(this.x + Math.cos(this.facing) * 40, this.y - 40, this.facing, 70, 1.1, { color: this.phase === 3 ? '190,90,255' : '120,240,200', width: 9, life: 0.25 });
+    g.vfx.sprite('shards', this.x + Math.cos(this.facing) * 70, this.y - 30 + Math.sin(this.facing) * 50, this.facing, { scale: 1.3, life: 0.28 });
     g.camera.shake(0.25);
     g.audio.sfx('claw');
     yield this.wind(fast ? 0.25 : 0.55);

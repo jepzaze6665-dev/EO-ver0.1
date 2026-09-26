@@ -18,6 +18,7 @@ import { buildMonsterSprites } from '../monsters/monsterSprites.js';
 import { CLASSES } from '../skills/umbralSword.js';
 import { TILE, WORLD_W, WORLD_H, Z } from './constants.js';
 import { LORE } from '../world/narrative.js';
+import { validateSprites } from '../player/characterConfig.js';
 
 const STEP = 1 / 60;
 
@@ -38,6 +39,7 @@ export class Game {
     this.save = new SaveSystem(this);
     this.monsterSprites = buildMonsterSprites();
     this.playerSprites = new PlayerSprites();
+    this.spriteReport = validateSprites();
     this.state = 'boot';
     this.time = 0; this.playTime = 0;
     this.hitStop = 0; this.timeScale = 1; this.slowT = 0;
@@ -170,7 +172,6 @@ export class Game {
     this.stats.deaths++;
     this.audio.sfx('death');
     this.slowMo(0.3, 1.2);
-    this.camera.targetZoom = 1.3;
     this.after(1.6, () => this.ui.panels.death(), true);
   }
   respawn() {
@@ -192,7 +193,7 @@ export class Game {
     const w = this.world;
     this.hitStop = 0.6;
     this.camera.lookAt(boss.x, boss.y - 40, 3.5);
-    this.camera.targetZoom = 1.45;
+    this.camera.punch(0.12);
     this.vfx.flash('255,255,255', 0.9, 1.2);
     this.vfx.shards(boss.x, boss.y - 50, '#5af0ff', 60, 300);
     this.vfx.ring(boss.x, boss.y, 10, 260, { color: '150,250,255', life: 1.2, width: 8 });
@@ -283,7 +284,6 @@ export class Game {
   cameraTarget() {
     const p = this.player, gd = this.world.guardian;
     if (this.world.bossActive && gd && !gd.dead) {
-      this.camera.targetZoom = this.camera.targetZoom === 1 ? 0.88 : this.camera.targetZoom;
       return { x: p.x + (gd.x - p.x) * 0.35, y: p.y + (gd.y - 40 - p.y) * 0.35 };
     }
     return p;
@@ -352,6 +352,12 @@ export class Game {
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.fillStyle = 'rgba(0,0,0,0.6)';
     c.fillRect(0, this.canvas.height - 90, 900, 90);
+    // SPRITE VALIDATION (dev mode)
+    c.fillRect(this.canvas.width - 300, this.canvas.height - 40 - this.spriteReport.length * 18, 300, 40 + this.spriteReport.length * 18);
+    c.font = '14px monospace';
+    c.fillStyle = '#fff';
+    c.fillText('SPRITE VALIDATION', this.canvas.width - 290, this.canvas.height - 22 - this.spriteReport.length * 18);
+    this.spriteReport.forEach((r, i) => { c.fillStyle = r.ok ? '#9f9' : '#fc6'; c.fillText(`${r.name.padEnd(6)} ${r.ok ? '✓' : '⚠ ' + r.issues.join(', ')}  h${r.bodyHeight} feet±${r.feet}`, this.canvas.width - 290, this.canvas.height - 4 - (this.spriteReport.length - 1 - i) * 18); });
     c.fillStyle = '#9f9';
     c.font = '14px monospace';
     lines.forEach((l, i) => c.fillText(l, 10, this.canvas.height - 70 + i * 18));

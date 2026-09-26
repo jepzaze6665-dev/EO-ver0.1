@@ -155,13 +155,14 @@ export class Combat {
   enemyStrike(attacker, shape, power, extra = {}) {
     const p = this.game.player;
     if (p.dead) return false;
-    const hit = this.testShape(shape, p) || (p.dodging && p.dodgeOrigin && this.testShape(shape, { x: p.dodgeOrigin.x, y: p.dodgeOrigin.y, radius: p.radius }));
+    const hurt = { x: p.x, y: p.y, radius: p.hurtRadius || p.radius };
+    const hit = this.testShape(shape, hurt) || (p.dodging && p.dodgeOrigin && this.testShape(shape, { x: p.dodgeOrigin.x, y: p.dodgeOrigin.y, radius: hurt.radius }));
     if (!hit) return false;
     if (p.invulnerable()) {
       if (p.canPerfect()) p.onPerfectDodge(attacker);
       return false;
     }
-    if (!this.testShape(shape, p)) return false;
+    if (!this.testShape(shape, hurt)) return false;
     this.dealDamage(attacker, p, { power, knock: extra.knock ?? 160, knockAng: extra.knockAng, type: 'physical' });
     if (extra.onHit) extra.onHit(p);
     return true;

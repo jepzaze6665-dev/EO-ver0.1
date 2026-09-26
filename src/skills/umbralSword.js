@@ -12,7 +12,7 @@ const fwd = (p, a, d) => ({ x: p.x + Math.cos(a) * d, y: p.y - 12 + Math.sin(a) 
 
 function swing(p, g, a, o) {
   const c = fwd(p, a, 4);
-  g.vfx.slash(c.x, c.y, a, o.r, o.half, { width: o.width ?? 6, life: o.life ?? 0.2, flip: o.flip, color: o.color ?? V });
+  if (!o.noSprite) g.vfx.sprite('slash', p.x + Math.cos(a) * (o.r * 0.7), p.y - 14 + Math.sin(a) * (o.r * 0.7), a, { scale: o.r / 44, life: o.life ?? 0.2, flipY: !!o.flip });
   g.audio.sfx(o.sfx ?? 'swing');
 }
 
@@ -40,7 +40,6 @@ export const UmbralSword = {
       events: [[d.at, () => {
         let marked = false;
         swing(p, g, a, counter ? { r: 46, half: 1.5, width: 12, life: 0.3, sfx: 'counter' } : d.fx);
-        if (step === 2 || counter) g.vfx.sprite('slash', p.x + Math.cos(a) * 24, p.y - 14 + Math.sin(a) * 24, a, { scale: counter ? 1.1 : 0.85, life: 0.26 });
         if (counter) { p.counterT = 0; g.vfx.text(p.x, p.y - 64, 'COUNTER', { color: '#e0a0ff', size: 11 }); g.vfx.flash('150,60,255', 0.2, 6); }
         g.combat.spawnHitbox({
           owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: d.r + (counter ? 14 : 0), half: d.half + (counter ? 0.3 : 0),
@@ -65,7 +64,7 @@ export const UmbralSword = {
           name: 'shadow_slash', dur: 0.4, anim: 'shadowSlash', moveMul: 0.2, ang: a, cancelAt: 0.18,
           lunge: { dist: 48, t0: 0.04, t1: 0.14 },
           events: [[0.1, () => {
-            swing(p, g, a, { r: 44, half: 1.2, width: 8, life: 0.2, sfx: 'slash_heavy' });
+            swing(p, g, a, { r: 44, half: 1.2, life: 0.2, sfx: 'slash_heavy', noSprite: true });
             g.vfx.sprite('slash', p.x + Math.cos(a) * 34, p.y - 14 + Math.sin(a) * 34, a, { scale: 1.3, life: 0.3 });
             g.vfx.shadowSmoke(p.x, p.y, 6);
             g.combat.spawnHitbox({
@@ -84,7 +83,7 @@ export const UmbralSword = {
         const times = triple ? [0.07, 0.2, 0.33] : [0.07, 0.22];
         let marked = false;
         const ev = times.map((t, i) => [t, () => {
-          swing(p, g, a, { r: 36, half: 1.3, width: 5, flip: i % 2 === 1, life: 0.16, sfx: 'swing_fast' });
+          swing(p, g, a, { r: 36, life: 0.16, sfx: 'swing_fast', noSprite: true });
           g.vfx.sprite('twin', p.x + Math.cos(a) * 28, p.y - 14 + Math.sin(a) * 28, a, { scale: 1.05, life: 0.24, flipY: i % 2 === 1 });
           g.combat.spawnHitbox({
             owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 60, half: 1.1, power: 1.35, type: 'shadow', knock: 80, stagger: 14, hitStop: 0.05, shake: 0.12,
@@ -111,9 +110,8 @@ export const UmbralSword = {
             const len = Math.hypot(p.x - sx, p.y - sy);
             g.combat.spawnHitbox({
               owner: p, x: sx, y: sy - 8, ang: Math.atan2(p.y - sy, p.x - sx), shape: 'line', len: len + 10, width: 22, power: 1.3, type: 'shadow', knock: 60, stagger: 12, hitStop: 0.05,
-              onHit: (t) => { g.vfx.slash(t.x, t.y - 16, rand(0, TAU), 16, 1.6, { width: 5, life: 0.18, thin: true }); if (!marked) { marked = true; p.addMark(1); } },
+              onHit: (t) => { g.vfx.sprite('shards', t.x, t.y - 16, rand(0, TAU), { scale: 0.5, life: 0.2 }); if (!marked) { marked = true; p.addMark(1); } },
             });
-            g.vfx.beam(sx, sy - 12, Math.atan2(p.y - sy, p.x - sx), len, 4, { life: 0.25 });
             g.vfx.sprite('thrust', (sx + p.x) / 2, (sy + p.y) / 2 - 12, Math.atan2(p.y - sy, p.x - sx), { scale: Math.max(1, len / 80), life: 0.28 });
             if (p.mods.shadeBomb) {
               g.vfx.ring(sx, sy, 6, 50, { life: 0.4 });
@@ -136,7 +134,6 @@ export const UmbralSword = {
             [0.12, () => {
               g.audio.sfx('arc');
               const c = fwd(p, a, 0);
-              for (let i = 0; i < 4; i++) g.after(i * 0.055, () => g.vfx.slash(c.x, c.y, a, 34 + i * 30, 1.25, { width: 8 - i * 1.5, life: 0.24 }));
               for (let i = 0; i < 3; i++) g.after(i * 0.07, () => g.vfx.sprite('wave', c.x + Math.cos(a) * (40 + i * 42), c.y + Math.sin(a) * (40 + i * 42), a, { scale: 1.1 + i * 0.35, life: 0.3 }));
               g.combat.spawnHitbox({
                 owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'arcband', r0: 10, r: 40, half: 1.3, life: 0.28, power: 1.9, type: 'shadow', knock: 170, stagger: 20, hitStop: 0.05, shake: 0.22,
@@ -156,7 +153,6 @@ export const UmbralSword = {
           name: 'eclipse_sever', dur: 1.1, anim: 'eclipse', moveMul: 0, ang: a, cancelAt: 99, invuln: [0, 1.1], superArmor: true,
           start: () => {
             g.vfx.startEclipse(p.x, p.y, 1.0);
-            g.camera.targetZoom = 1.35;
             g.slowMo(0.55, 0.45);
             g.audio.sfx('ult_charge');
             g.vfx.flash('40,0,60', 0.35, 2);
@@ -173,10 +169,7 @@ export const UmbralSword = {
               g.hitStop = Math.max(g.hitStop, 0.16);
               g.vfx.flash('200,140,255', 0.5, 2.5);
               g.audio.sfx('ult_slash');
-              g.vfx.beam(p.x, p.y - 14, a, 230, 14, { life: 0.45 });
               g.vfx.sprite('eclipse', p.x + Math.cos(a) * 90, p.y - 14 + Math.sin(a) * 90, a, { scale: 2.8, life: 0.55, glow: 0.5 });
-              g.vfx.slash(p.x, p.y - 14, a, 70, 1.0, { width: 22, life: 0.4 });
-              g.vfx.slash(p.x, p.y - 14, a, 110, 0.6, { width: 14, life: 0.45, flip: true });
               g.vfx.ring(p.x, p.y, 20, 170, { life: 0.5, width: 6, fill: true });
               g.vfx.burst(p.x + Math.cos(a) * 80, p.y + Math.sin(a) * 80, '#c080ff', 50, 280);
               g.vfx.light(p.x + Math.cos(a) * 90, p.y + Math.sin(a) * 90, 200, '#c080ff', 0.6, 1);
@@ -209,7 +202,6 @@ export const UmbralSword = {
           p.consumeMarks(3);
           g.hitStop = Math.max(g.hitStop, 0.12);
           g.vfx.flash('120,40,200', 0.3, 5);
-          g.camera.targetZoom = 1.18;
           g.audio.sfx('break_charge');
           for (let i = 0; i < 3; i++) g.vfx.ring(p.x, p.y, 70 - i * 18, 4, { life: 0.14, color: '220,160,255', width: 2 });
         },

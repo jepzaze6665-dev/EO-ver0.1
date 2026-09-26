@@ -9,7 +9,12 @@ const ROOT = path.join(__dirname, '..');
 const OUT = path.join(ROOT, 'assets', 'player');
 fs.mkdirSync(OUT, { recursive: true });
 
-const SCALE = 0.42;
+// CHARACTER VISUAL STANDARD (shared by every animation)
+const STD = {
+  bodyHeight: 60,          // neutral-pose body height in game pixels (all sheets normalised to this)
+  canvas: [128, 128],      // every frame of every animation uses this canvas
+  pivot: [64, 120],        // feet-centre pivot inside the canvas (ground line y = 120)
+};
 // name -> [file, rows]
 const SHEETS = {
   walk: ['desgin/class cr/UB/UB WALK1.png', 4],
@@ -116,19 +121,19 @@ function analyseCell(img, x0, y0, cw, ch) {
   const { width: w, data } = img;
   let minx = 1e9, miny = 1e9, maxx = -1, maxy = -1;
   const darkXs = [];
-  let darkMaxY = -1;
+  let darkMaxY = -1, darkMinY = 1e9;
   for (let y = y0; y < y0 + ch; y++) for (let x = x0; x < x0 + cw; x++) {
     const i = (y * w + x) * 4;
     if (data[i + 3] < 40) continue;
     if (x < minx) minx = x; if (x > maxx) maxx = x; if (y < miny) miny = y; if (y > maxy) maxy = y;
     const r = data[i], g = data[i + 1], b = data[i + 2];
-    if (r + g + b < 110) { darkXs.push(x); if (y > darkMaxY) darkMaxY = y; }
+    if (r + g + b < 110) { darkXs.push(x); if (y > darkMaxY) darkMaxY = y; if (y < darkMinY) darkMinY = y; }
   }
   if (maxx < 0) return null;
   darkXs.sort((a, b) => a - b);
   const ax = darkXs.length ? darkXs[darkXs.length >> 1] : (minx + maxx) / 2;
   const ay = darkMaxY > 0 ? darkMaxY : maxy;
-  return { minx, miny, maxx, maxy, ax, ay };
+  return { minx, miny, maxx, maxy, ax, ay, bodyH: darkMaxY > 0 ? darkMaxY - darkMinY : maxy - miny };
 }
 
 function downscale(src, sx, sy, sw, sh, scale, clip) {
@@ -233,14 +238,37 @@ function sideRows(img, s, base) {
   return { right: l, left: l, flipLeft: false, flipRight: true };
 }
 
-const atlas = { scale: SCALE, cols: COLS, sheets: {} };
+// Frame validation: measures the output exactly like the game will draw it.
+function validate(sheet, rows) {
+  const [CW, CH] = STD.canvas, [PX, PY] = STD.pivot;
+  const heights = [], feet = [], centers = [];
+  for (let r = 0; r < rows; r++) for (let c = 0; c < COLS; c++) {
+    let t = 1e9, b = -1, xs = 0, n = 0;
+    for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) {
+      const i = ((r * CH + y) * sheet.width + c * CW + x) * 4, d = sheet.data;
+      if (d[i + 3] > 150 && d[i] + d[i + 1] + d[i + 2] < 200) { t = Math.min(t, y); b = Math.max(b, y); xs += x; n++; }
+    }
+    if (b < 0) continue;
+    if (c === 0 || c === COLS - 1) heights.push(b - t);
+    feet.push(b - PY); centers.push(xs / n - PX);
+  }
+  const med = (a) => a.slice().sort((p, q) => p - q)[a.length >> 1];
+  const h = med(heights), feetMax = Math.max(...feet.map(Math.abs)), centerMed = med(centers);
+  const issues = [];
+  if (Math.abs(h - STD.bodyHeight) > 4) issues.push('Scale Difference');
+  if (feetMax > 3) issues.push('Ground Offset');
+  if (Math.abs(centerMed) > 6) issues.push('Pivot Offset');
+  return { bodyHeight: h, feetMaxOffset: feetMax, centerOffset: Math.round(centerMed), ok: issues.length === 0, issues };
+}
+
+const [CW, CH] = STD.canvas, [PX, PY] = STD.pivot;
+const atlas = { standard: STD, cols: COLS, sheets: {}, validation: {} };
 for (const [name, [file, rows]] of Object.entries(SHEETS)) {
   const img = png.read(path.join(ROOT, file));
   removeBackground(img);
   const py = projection(img, true);
   const ys = blobSplits(py, rows, img.height) || splits(py, rows, img.height);
-  const cells = [];
-  let L = 0, R = 0, U = 0, D = 0;
+  const cells = [], neutral = [];
   for (let r = 0; r < rows; r++) for (let c = 0; c < COLS; c++) {
     const xs = c === 0 ? (cells.xs = (() => { const px = projection(img, false, ys[r], ys[r + 1]); return blobSplits(px, COLS, img.width) || splits(px, COLS, img.width); })()) : cells.xs;
     const x0 = xs[c], y0 = ys[r], w0 = xs[c + 1] - x0, h0 = ys[r + 1] - y0;
@@ -248,28 +276,24 @@ for (const [name, [file, rows]] of Object.entries(SHEETS)) {
     const a = analyseCell(img, x0, y0, w0, h0);
     if (a) Object.assign(a, { x0, y0, x1: x0 + w0, y1: y0 + h0 });
     cells.push(a);
-    if (!a) continue;
-    L = Math.max(L, a.ax - a.minx); R = Math.max(R, a.maxx - a.ax);
-    U = Math.max(U, a.ay - a.miny); D = Math.max(D, a.maxy - a.ay);
+    if (a && (c === 0 || c === COLS - 1) && r % 4 < 2) neutral.push(a.bodyH); // front/back neutral poses
   }
-  const pad = 2;
-  const fw = Math.ceil((L + R) * SCALE) + pad * 2, fh = Math.ceil((U + D) * SCALE) + pad * 2;
-  const ax = Math.round(L * SCALE) + pad, ay = Math.round(U * SCALE) + pad;
-  const sheet = png.create(fw * COLS, fh * rows);
+  // one measured factor per sheet: the neutral body always becomes STD.bodyHeight
+  neutral.sort((p, q) => p - q);
+  const scale = STD.bodyHeight / neutral[neutral.length >> 1];
+  const sheet = png.create(CW * COLS, CH * rows);
   cells.forEach((a, idx) => {
     if (!a) return;
     const r = Math.floor(idx / COLS), c = idx % COLS;
-    // source rect so that the anchor lands on (ax, ay) in the frame
-    const sx = a.ax - ax / SCALE, sy = a.ay - ay / SCALE;
-    const frame = downscale(img, sx, sy, fw / SCALE, fh / SCALE, SCALE, a);
-    blit(sheet, frame, c * fw, r * fh);
+    const frame = downscale(img, a.ax - PX / scale, a.ay - PY / scale, CW / scale, CH / scale, scale, a);
+    blit(sheet, frame, c * CW, r * CH);
   });
   png.write(path.join(OUT, name + '.png'), sheet);
-  const meta = { fw, fh, ax };
   const sides = [];
-  for (let base = 0; base < rows; base += 4) sides.push(sideRows(sheet, meta, base));
-  atlas.sheets[name] = { file: 'assets/player/' + name + '.png', fw, fh, rows, cols: COLS, ax, ay, sides };
-  console.log('   sides', JSON.stringify(sides));
-  console.log(name, fw + 'x' + fh, 'rows', rows);
+  for (let base = 0; base < rows; base += 4) sides.push(sideRows(sheet, { fw: CW, fh: CH, ax: PX }, base));
+  atlas.sheets[name] = { file: 'assets/player/' + name + '.png', fw: CW, fh: CH, rows, cols: COLS, ax: PX, ay: PY, sides, sourceScale: +scale.toFixed(4) };
+  const v = validate(sheet, rows);
+  atlas.validation[name] = v;
+  console.log(name.padEnd(6), 'scale', scale.toFixed(3), 'body', v.bodyHeight, 'feet±', v.feetMaxOffset, 'center', v.centerOffset, v.ok ? 'OK' : '⚠ ' + v.issues.join(', '));
 }
 fs.writeFileSync(path.join(OUT, 'atlas.json'), JSON.stringify(atlas, null, 1));
