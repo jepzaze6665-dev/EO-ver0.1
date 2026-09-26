@@ -125,6 +125,7 @@ export class Game {
     p.level = d.player.level; p.exp = d.player.exp; p.gold = d.player.gold;
     p.recomputeStats();
     p.hp = Math.min(p.maxHp, d.player.hp || p.maxHp); p.shadow = d.player.shadow ?? 40;
+    if (d.player.resources) p.resources.load(d.player.resources);
     this.world.applyState();
     const pos = this.world.map.findOpen(d.player.x, d.player.y, 6);
     p.x = pos.x; p.y = pos.y;
@@ -182,7 +183,8 @@ export class Game {
     let pos = w.regions.villageRespawn;
     const ws = w.state.lastWaystone && w.interactables.find((i) => i.id === w.state.lastWaystone);
     if (ws) pos = w.map.findOpen(ws.x, ws.y + 40, 3);
-    p.dead = false; p.hp = p.maxHp; p.shadow = 50; p.marks = 0;
+    p.dead = false; p.hp = p.maxHp; p.marks = 0;
+    for (const rid in p.resources.defs) p.resources.set(rid, p.resources.defs[rid].respawn ?? p.resources.defs[rid].start, 'respawn');
     p.x = pos.x; p.y = pos.y; p.invulnT = 2; p.kx = p.ky = 0;
     for (const m of w.monsters) { if (m.aggro) { m.aggro = false; m.x = m.home.x; m.y = m.home.y; m.hp = m.maxHp; m.setState('idle'); } }
     this.camera.targetZoom = 1;

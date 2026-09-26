@@ -3,6 +3,8 @@ import { TEAM } from '../core/constants.js';
 import { angleTo, dir4, damp, clamp, rand, TAU, easeOutCubic } from '../core/math.js';
 import { PERFECT_WINDOW } from '../combat/combat.js';
 import { CHARACTER } from './characterConfig.js';
+import { ResourcePool } from '../combat/resourceSystem.js';
+import { RESOURCES } from '../data/resources.js';
 
 const DODGE_TIME = 0.24, DODGE_DIST = 100, DODGE_IFRAMES = 0.28, DODGE_CHARGES = 2, DODGE_RECHARGE = 0.85;
 const HURT_IFRAMES = 0.55;
@@ -18,7 +20,11 @@ export class Player extends Entity {
     this.hurtRadius = CHARACTER.hurtRadius;
     this.height = CHARACTER.bodyHeight;
     this.level = 10; this.exp = 0; this.gold = 120;
-    this.shadow = 40; this.maxShadow = 100;
+    // generic resource pool — the class only names its resources, the rules live in data/resources.js
+    this.resources = new ResourcePool(classDef.resources || [classDef.resource], RESOURCES, {
+      stats: () => this.stats,
+      onChange: (e) => game.events && game.events.emit('resourceChanged', { entity: this, ...e }),
+    });
     this.marks = 0; this.maxMarks = 3;
     this.markPulse = 0; this.markIdle = 0;
     this.cooldowns = {};
@@ -75,9 +81,12 @@ export class Player extends Entity {
   }
 
   // ---------------- resources
-  gainShadow(n, raw = false) {
-    this.shadow = Math.min(this.maxShadow, this.shadow + (raw ? n : n * this.stats.shadowGain));
-  }
+  // primary-resource aliases (kept so older code, the HUD and v1 saves keep working)
+  get primaryResource() { return this.cls.resource; }
+  get shadow() { return this.resources.get(this.primaryResource); }
+  set shadow(v) { this.resources.set(this.primaryResource, v); }
+  get maxShadow() { return this.resources.max(this.primaryResource); }
+  gainShadow(n, raw = false) { this.resources.gain(this.primaryResource, n, { raw }); }
   addMark(n = 1) {
     const before = this.marks;
     this.marks = Math.min(this.maxMarks, this.marks + n);
@@ -181,11 +190,12 @@ export class Player extends Entity {
     const g = this.game;
     if (this.hurtT > 0 || this.status.has('stun')) return false;
     if ((this.cooldowns[skill.id] || 0) > 0) { g.ui.toast('Cooldown', 0.6); return false; }
-    if (this.shadow < skill.cost) { g.ui.toast('Not enough SHADOW', 0.8); g.audio.sfx('deny'); return false; }
+    const res = skill.costResource || this.primaryResource;
+    if (!this.resources.canAfford(res, skill.cost)) { g.ui.toast(`Not enough ${RESOURCES[res].label}`, 0.8); g.audio.sfx('deny'); return false; }
     if (this.action && !this.action.basic && this.action.t < (this.action.cancelAt ?? 0)) return false;
     if (this.dodging && !this.dodgeFromSkill && this.dodgeT < DODGE_TIME * 0.6) return false;
     this.dodging = false;
-    this.shadow -= skill.cost;
+    this.resources.spend(res, skill.cost, 'skill:' + skill.id);
     this.cooldowns[skill.id] = skill.cd * (1 - (this.stats.cdr || 0));
     this.startAction(skill.cast(this, g, this.aim));
     g.events.emit('skillUsed', skill.id);
@@ -230,13 +240,13 @@ export class Player extends Entity {
     this.perfectCooldown = Math.max(0, this.perfectCooldown - dt);
     this.comboTimer = Math.max(0, this.comboTimer - dt);
     for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
+    this.resources.update(dt, { inCombat: g.combat.inCombat });
     if (this.dodgeCharges < DODGE_CHARGES) {
       this.dodgeRecharge += dt;
       if (this.dodgeRecharge >= DODGE_RECHARGE) { this.dodgeRecharge = 0; this.dodgeCharges++; }
     }
     // resource regen out of combat, mark decay when idle
     if (!g.combat.inCombat) {
-      this.gainShadow(4 * dt, true);
       this.markIdle += dt;
       if (this.marks > 0 && this.markIdle > 12) { this.marks--; this.markIdle = 9.5; }
       if (g.time - this.lastHitTime > 6 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.02 * dt);

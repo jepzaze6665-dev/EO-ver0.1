@@ -4,6 +4,7 @@ import { clamp, TAU, easeOutCubic } from '../core/math.js';
 import { makeCanvas } from '../core/assets.js';
 import { RARITY_COLOR } from '../items/items.js';
 import { STAGGER_MAX } from '../boss/guardian.js';
+import { RESOURCES } from '../data/resources.js';
 
 const FONT = '"Trebuchet MS", "Segoe UI", sans-serif';
 const TITLE = 'Georgia, "Times New Roman", serif';
@@ -154,9 +155,11 @@ export class HUD {
     this.bar(ctx, bx + 26 * u, y + 25 * u, bw - 26 * u, 14 * u, p.hp / p.maxHp, '#ff5a6e', '#a01830', this.hpLag);
     this.text(ctx, `${Math.ceil(p.hp)} / ${p.maxHp}`, bx + bw - 4 * u, y + 36 * u, 10 * u, '#fff', { align: 'right' });
     // SHADOW
-    this.text(ctx, 'SHADOW', bx, y + 56 * u, 10 * u, '#c9a0ff');
-    this.bar(ctx, bx + 52 * u, y + 46 * u, bw - 52 * u, 11 * u, p.shadow / p.maxShadow, '#b070ff', '#4a1a90');
-    this.text(ctx, `${Math.floor(p.shadow)}`, bx + bw - 4 * u, y + 56 * u, 9 * u, '#fff', { align: 'right' });
+    // primary resource bar — label/colours come from resource data (works for any class)
+    const rid = p.primaryResource, rdef = RESOURCES[rid];
+    this.text(ctx, rdef.label, bx, y + 56 * u, 10 * u, rdef.colors[0]);
+    this.bar(ctx, bx + 52 * u, y + 46 * u, bw - 52 * u, 11 * u, p.resources.ratio(rid), rdef.colors[0], rdef.colors[1]);
+    this.text(ctx, `${Math.floor(p.resources.get(rid))}`, bx + bw - 4 * u, y + 56 * u, 9 * u, '#fff', { align: 'right' });
     // EXP (thin)
     this.bar(ctx, bx, y + 63 * u, bw, 4 * u, p.exp / p.expToNext(), '#ffe08a', '#b08a20');
     // SHADOW MARK
@@ -231,7 +234,7 @@ export class HUD {
           cdLeft = p.cooldowns[s.id] || 0;
           const full = s.cd * (1 - (p.stats.cdr || 0));
           cdPct = cdLeft / full;
-          ready = cdLeft <= 0 && p.shadow >= s.cost;
+          ready = cdLeft <= 0 && p.resources.canAfford(s.costResource || p.primaryResource, s.cost);
           label = String(s.cost);
         }
       }
@@ -251,7 +254,7 @@ export class HUD {
       // key binding
       ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(sx, sy, 15 * u, 15 * u);
       this.text(ctx, sl.key, sx + 7.5 * u, sy + 12 * u, 11 * u, '#ffe8a0', { align: 'center', stroke: false });
-      if (label && !sl.special) this.text(ctx, label, sx + size - 3 * u, sy + size - 4 * u, 9 * u, p.shadow >= +label ? '#c9a0ff' : '#ff6a6a', { align: 'right' });
+      if (label && !sl.special) this.text(ctx, label, sx + size - 3 * u, sy + size - 4 * u, 9 * u, p.resources.canAfford(sl.s.costResource || p.primaryResource, +label) ? '#c9a0ff' : '#ff6a6a', { align: 'right' });
       // hover tooltip
       const m = g.input.mouse, mx = m.x * g.renderer.dpr, my = m.y * g.renderer.dpr;
       if (mx > sx && mx < sx + size && my > sy && my < sy + size && sl.s) this.tooltip(ctx, sx, sy - 8 * u, sl.s, u);

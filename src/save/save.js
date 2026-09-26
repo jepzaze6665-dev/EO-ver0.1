@@ -25,7 +25,7 @@ export class SaveSystem {
       v: 1,
       savedAt: Date.now(),
       playTime: g.playTime,
-      player: { level: p.level, exp: p.exp, gold: p.gold, hp: p.hp, shadow: p.shadow, x: p.x, y: p.y },
+      player: { level: p.level, exp: p.exp, gold: p.gold, hp: p.hp, shadow: p.shadow, resources: p.resources.serialize(), x: p.x, y: p.y },
       inventory: g.inventory.serialize(),
       equipment: g.equipment.serialize(),
       quests: g.quests.serialize(),

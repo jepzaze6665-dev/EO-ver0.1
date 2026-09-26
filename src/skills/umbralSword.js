@@ -20,7 +20,8 @@ export const UmbralSword = {
   id: 'umbral_sword',
   stableId: 'class_umbral_sword',
   name: 'Umbral Sword',
-  resource: 'SHADOW',
+  resource: 'shadow_gauge', // primary resource (stable id → data/resources.js)
+  resources: ['shadow_gauge'],
   base: { hp: 250, atk: 20, def: 6, crit: 0.08, critDmg: 0, shadowDmg: 0, cdr: 0, speed: 152, shadowGain: 1, armorBreak: 1 },
   perLevel: { hp: 12, atk: 1.5, def: 0.5 },
 

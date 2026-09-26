@@ -130,7 +130,7 @@ export function interact(w, it) {
       if (!f.moonBlessing) {
         w.setFlag('moonBlessing');
         p.recomputeStats();
-        p.hp = p.maxHp; p.shadow = p.maxShadow;
+        p.hp = p.maxHp; for (const rid in p.resources.defs) p.resources.fill(rid);
         g.audio.sfx('shrine');
         g.vfx.ring(it.x, it.y, 4, 90, { color: '200,220,255', life: 0.8 });
         g.vfx.burst(p.x, p.y - 20, '#dfe8ff', 40, 150);
