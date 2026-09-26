@@ -6,6 +6,7 @@ import { CHARACTER } from './characterConfig.js';
 import { ResourcePool } from '../combat/resourceSystem.js';
 import { RESOURCES } from '../data/resources.js';
 import { SkillSystem } from '../combat/skillSystem.js';
+import { MARKS } from '../data/marks.js';
 
 const DODGE_TIME = 0.24, DODGE_DIST = 100, DODGE_IFRAMES = 0.28, DODGE_CHARGES = 2, DODGE_RECHARGE = 0.85;
 const HURT_IFRAMES = 0.55;
@@ -26,8 +27,9 @@ export class Player extends Entity {
       stats: () => this.stats,
       onChange: (e) => game.events && game.events.emit('resourceChanged', { entity: this, ...e }),
     });
-    this.marks = 0; this.maxMarks = 3;
-    this.markPulse = 0; this.markIdle = 0;
+    // class mark lives in the generic MarkSystem (game.marks); `marks` below is a convenience alias
+    this.markId = classDef.mark || null;
+    this.markPulse = 0;
     // generic skill pipeline: checks, costs, cooldowns and failure reasons live in combat/skillSystem.js
     this.skillSys = new SkillSystem(this, [...classDef.skills, classDef.special].filter(Boolean), {
       onUsed: (e) => game.events && game.events.emit('skillUsed', e),
@@ -92,11 +94,20 @@ export class Player extends Entity {
   set shadow(v) { this.resources.set(this.primaryResource, v); }
   get maxShadow() { return this.resources.max(this.primaryResource); }
   gainShadow(n, raw = false) { this.resources.gain(this.primaryResource, n, { raw }); }
+  // ---------------- marks (stacks stored in game.marks — see combat/markSystem.js)
+  markCount(id) { return this.game.marks ? this.game.marks.get(this, id) : 0; }
+  get marks() { return this.markId ? this.markCount(this.markId) : 0; }
+  set marks(v) { // used by respawn / tests: set the class mark to an exact stack count
+    if (!this.markId || !this.game.marks) return;
+    this.game.marks.consume(this, this.markId);
+    const n = Math.max(0, Math.min(this.maxMarks, Math.floor(v) || 0));
+    if (n) this.game.marks.apply(this, this.markId, { source: this, stacks: n, sourceClass: this.cls.id });
+  }
+  get maxMarks() { return this.markId ? MARKS[this.markId].maxStacks : 0; }
   addMark(n = 1) {
-    const before = this.marks;
-    this.marks = Math.min(this.maxMarks, this.marks + n);
-    this.markIdle = 0;
-    if (this.marks > before) {
+    if (!this.markId) return;
+    const r = this.game.marks.apply(this, this.markId, { source: this, stacks: n, sourceClass: this.cls.id });
+    if (r.added > 0) {
       this.markPulse = 1;
       this.game.audio.sfx(this.marks === 3 ? 'mark_full' : 'mark');
       this.game.vfx.burst(this.x, this.y - 64, '#c080ff', 8, 50);
@@ -104,10 +115,9 @@ export class Player extends Entity {
         this.game.vfx.text(this.x, this.y - 78, 'SHADOW BREAK READY  [Q]', { color: '#e8c0ff', size: 10, life: 1.4 });
         this.game.vfx.ring(this.x, this.y, 30, 6, { life: 0.3, color: '200,120,255', width: 2 });
       }
-      this.game.events.emit('markGained', this.marks);
     }
   }
-  consumeMarks(n) { this.marks = Math.max(0, this.marks - n); }
+  consumeMarks(n) { return this.markId ? this.game.marks.consume(this, this.markId, n) : 0; }
   reduceCooldowns(sec) { this.skillSys.cooldowns.reduceAll(sec); }
 
   // ---------------- defense
@@ -240,10 +250,8 @@ export class Player extends Entity {
       this.dodgeRecharge += dt;
       if (this.dodgeRecharge >= DODGE_RECHARGE) { this.dodgeRecharge = 0; this.dodgeCharges++; }
     }
-    // resource regen out of combat, mark decay when idle
+    // hp regen out of combat (resource regen and mark decay are handled by their systems)
     if (!g.combat.inCombat) {
-      this.markIdle += dt;
-      if (this.marks > 0 && this.markIdle > 12) { this.marks--; this.markIdle = 9.5; }
       if (g.time - this.lastHitTime > 6 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.02 * dt);
     }
 

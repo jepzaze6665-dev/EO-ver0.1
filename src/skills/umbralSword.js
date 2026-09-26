@@ -22,6 +22,7 @@ export const UmbralSword = {
   name: 'Umbral Sword',
   resource: 'shadow_gauge', // primary resource (stable id → data/resources.js)
   resources: ['shadow_gauge'],
+  mark: 'shadow_mark', // class mark (stable id → data/marks.js), stored in the generic MarkSystem
   base: { hp: 250, atk: 20, def: 6, crit: 0.08, critDmg: 0, shadowDmg: 0, cdr: 0, speed: 152, shadowGain: 1, armorBreak: 1 },
   perLevel: { hp: 12, atk: 1.5, def: 0.5 },
 
@@ -194,7 +195,7 @@ export const UmbralSword = {
   special: {
     id: 'shadow_break', name: 'Shadow Break', type: 'special', slot: 'Q', key: 'Q', icon: 'break',
     cost: 0, cooldown: 0.4, targeting: 'self', tags: ['burst', 'aoe', 'consumes-marks'],
-    requirements: [{ type: 'value', key: 'marks', min: 3, label: '3 Shadow Marks' }],
+    requirements: [{ type: 'mark', mark: 'shadow_mark', min: 3, label: '3 Shadow Marks' }],
     desc: 'Detonate 3 Shadow Marks: a massive burst around you. Devastating during a Weak Window.',
     cast(p, g, a) {
       const sigil = p.mods.sigil;

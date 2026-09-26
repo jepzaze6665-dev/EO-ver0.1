@@ -24,6 +24,8 @@ export const REQUIREMENTS = {
   value: (caster, r) => (caster[r.key] || 0) >= r.min,
   // { type: 'resource', resource: 'astral_charge', min: 50 }
   resource: (caster, r) => caster.resources.get(r.resource) >= r.min,
+  // { type: 'mark', mark: 'shadow_mark', min: 3 } — stacks the caster holds (caster.markCount)
+  mark: (caster, r) => (caster.markCount ? caster.markCount(r.mark) : 0) >= r.min,
 };
 
 export const MAX_CDR = 0.6; // cooldown reduction cap — prevents "no cooldown" builds

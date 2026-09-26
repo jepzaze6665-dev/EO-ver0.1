@@ -20,6 +20,8 @@ import { TILE, WORLD_W, WORLD_H, Z } from './constants.js';
 import { LORE } from '../world/narrative.js';
 import { validateSprites } from '../player/characterConfig.js';
 import { RESOURCES } from '../data/resources.js';
+import { MarkSystem } from '../combat/markSystem.js';
+import { MARKS } from '../data/marks.js';
 
 const STEP = 1 / 60;
 
@@ -57,7 +59,7 @@ export class Game {
     const ev = this.events;
     ev.on('kill', () => { this.stats.kills++; });
     ev.on('chestOpened', () => { this.stats.chests++; });
-    ev.on('markGained', (n) => { if (n >= 3) this.world.setFlag('tut_marks'); });
+    ev.on('targetMarked', (e) => { if (e.target === this.player && e.markId === 'shadow_mark' && e.stacks >= 3) this.world.setFlag('tut_marks'); });
     ev.on('perfectDodge', () => this.world.setFlag('tut_perfect'));
     ev.on('skillUsed', (e) => { if (e.skillId === 'shadow_break') this.world.setFlag('tut_break'); });
     // skill failures are reported as data; presenting them is the UI's job
@@ -81,6 +83,8 @@ export class Game {
     this.quests = new Quests(this);
     this.combat.clear();
     this.ui.hud.reset();
+    // generic marks on any entity (rules in data/marks.js); events go through the session bus
+    this.marks = new MarkSystem(MARKS, { onEvent: (name, data) => this.events.emit(name, data) });
     this.world = new World(this);
     this.player = new Player(this, CLASSES.umbral_sword, this.playerSprites);
     this.playTime = 0;
@@ -344,6 +348,7 @@ export class Game {
     this.player.update(sdt);
     this.world.update(sdt);
     this.combat.update(sdt);
+    this.marks.update(sdt, { inCombat: (e) => (e === this.player ? this.combat.inCombat : true) });
     this.vfx.update(sdt);
     this.camera.update(dt, this.cameraTarget(), this.player.dead ? null : this.mouseWorld());
     this.ui.update(dt);
@@ -356,7 +361,7 @@ export class Game {
     const lines = [
       `FPS ${this.fps}  scale ${this.renderer.scale}  view ${this.renderer.vw}x${this.renderer.vh}`,
       `pos ${(p.x / TILE).toFixed(1)}, ${(p.y / TILE).toFixed(1)}  zone ${w.currentZone} ${w.currentSub ? w.currentSub.name : ''}`,
-      `monsters ${w.monsters.length}  particles ${this.vfx.particles.count()}  proj ${this.combat.projectiles.pool.count()}  tele ${this.combat.telegraphs.list.length}`,
+      `monsters ${w.monsters.length}  particles ${this.vfx.particles.count()}  proj ${this.combat.projectiles.pool.count()}  tele ${this.combat.telegraphs.list.length}  marks ${this.marks.count()}`,
       `timeScale ${this.timeScale.toFixed(2)} hitStop ${this.hitStop.toFixed(2)}  flags ${Object.keys(w.state.flags).join(',')}`,
     ];
     c.save();

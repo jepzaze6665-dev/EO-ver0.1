@@ -5,6 +5,7 @@ import { makeCanvas } from '../core/assets.js';
 import { RARITY_COLOR } from '../items/items.js';
 import { STAGGER_MAX } from '../boss/guardian.js';
 import { RESOURCES } from '../data/resources.js';
+import { MARKS } from '../data/marks.js';
 
 const FONT = '"Trebuchet MS", "Segoe UI", sans-serif';
 const TITLE = 'Georgia, "Times New Roman", serif';
@@ -448,6 +449,16 @@ export class HUD {
     this.text(ctx, label, s.x, s.y - 5 * u, 12 * u, '#ffe8a0', { align: 'center', stroke: false });
   }
 
+  // generic marks (any class, any entity) read from the MarkSystem; colours come from data/marks.js
+  drawMarks(ctx, u, entity, x, y) {
+    const list = this.game.marks ? this.game.marks.list(entity) : [];
+    list.forEach((mk, i) => {
+      const disp = (MARKS[mk.id] && MARKS[mk.id].display) || {};
+      const col = mk.stacks >= mk.maxStacks ? disp.full || disp.color : disp.color;
+      this.text(ctx, '◆'.repeat(mk.stacks) + '◇'.repeat(Math.max(0, mk.maxStacks - mk.stacks)), x, y + i * 12 * u, 10 * u, col || '#c080ff', { align: 'center' });
+    });
+  }
+
   drawNameplates(ctx, u) {
     const g = this.game, kn = g.knowledge, p = g.player;
     for (const m of g.world.monsters) {
@@ -464,6 +475,7 @@ export class HUD {
         if (m.maxArmor) this.bar(ctx, s.x - w / 2, s.y + 2 * u, w, 3 * u, m.armor / m.maxArmor, '#9af8ff', '#3a90b0');
       }
       if (m.status.has('vulnerable')) this.text(ctx, 'VULNERABLE', s.x, s.y - 22 * u, 9 * u, '#9af8ff', { align: 'center' });
+      this.drawMarks(ctx, u, m, s.x, s.y + 14 * u);
     }
     for (const n of g.world.npcs) {
       if (n.secret && !g.world.map.secretsFound.has(n.secret)) continue;
@@ -478,8 +490,7 @@ export class HUD {
       this.text(ctx, d.name, s.x, s.y - 20 * u, 10 * u, '#e8dcc0', { align: 'center' });
       if (!d.dead) this.bar(ctx, s.x - 34 * u, s.y - 14 * u, 68 * u, 5 * u, d.hp / d.maxHp, '#ffb070', '#905020');
       if (d.dps) this.text(ctx, `DPS ${d.dps}`, s.x, s.y + 2 * u, 10 * u, '#ffd96a', { align: 'center' });
-      // generic marks (any class): entity.marks = [{id, stacks, maxStacks, color}]
-      (d.markList || []).forEach((mk, i) => this.text(ctx, '◆'.repeat(mk.stacks) + '◇'.repeat(mk.maxStacks - mk.stacks), s.x, s.y + (16 + i * 12) * u, 10 * u, mk.color || '#c080ff', { align: 'center' }));
+      this.drawMarks(ctx, u, d, s.x, s.y + 16 * u);
     }
     for (const b of g.world.breakables) {
       if (b.dead || b.hp >= b.maxHp) continue;
