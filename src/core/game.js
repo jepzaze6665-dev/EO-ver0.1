@@ -19,6 +19,7 @@ import { CLASSES } from '../skills/umbralSword.js';
 import { TILE, WORLD_W, WORLD_H, Z } from './constants.js';
 import { LORE } from '../world/narrative.js';
 import { validateSprites } from '../player/characterConfig.js';
+import { RESOURCES } from '../data/resources.js';
 
 const STEP = 1 / 60;
 
@@ -58,7 +59,14 @@ export class Game {
     ev.on('chestOpened', () => { this.stats.chests++; });
     ev.on('markGained', (n) => { if (n >= 3) this.world.setFlag('tut_marks'); });
     ev.on('perfectDodge', () => this.world.setFlag('tut_perfect'));
-    ev.on('shadowBreak', () => this.world.setFlag('tut_break'));
+    ev.on('skillUsed', (e) => { if (e.skillId === 'shadow_break') this.world.setFlag('tut_break'); });
+    // skill failures are reported as data; presenting them is the UI's job
+    ev.on('skillFailed', (e) => {
+      if (e.caster !== this.player) return;
+      if (e.reason === 'cooldown') this.ui.toast('Cooldown', 0.6);
+      else if (e.reason === 'resource') { this.ui.toast(`Not enough ${RESOURCES[e.resource].label}`, 0.8); this.audio.sfx('deny'); }
+      else if (e.reason === 'requirement') { this.ui.toast(`Need ${e.requirement.label || 'requirement'}`, 0.8); this.audio.sfx('deny'); }
+    });
   }
 
   // ---------------- lifecycle

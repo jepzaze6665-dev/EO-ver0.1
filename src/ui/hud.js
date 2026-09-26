@@ -231,10 +231,9 @@ export class HUD {
           ready = p.marks >= 3;
           if (ready) { ctx.strokeStyle = `rgba(230,180,255,${0.6 + 0.4 * Math.sin(g.time * 8)})`; ctx.lineWidth = 3 * u; ctx.strokeRect(sx - 1, sy - 1, size + 2, size + 2); }
         } else {
-          cdLeft = p.cooldowns[s.id] || 0;
-          const full = s.cd * (1 - (p.stats.cdr || 0));
-          cdPct = cdLeft / full;
-          ready = cdLeft <= 0 && p.resources.canAfford(s.costResource || p.primaryResource, s.cost);
+          cdLeft = p.skillSys.cooldowns.remaining(s.id);
+          cdPct = p.skillSys.cooldowns.ratio(s.id);
+          ready = cdLeft <= 0 && p.resources.canAfford(p.skillSys.costResource(s), s.cost);
           label = String(s.cost);
         }
       }
@@ -268,7 +267,7 @@ export class HUD {
     const h = (40 + lines.length * 15) * u;
     this.panel(ctx, x, y - h, w, h, 0.95);
     this.text(ctx, s.name, x + 8 * u, y - h + 18 * u, 13 * u, '#f0e0ff');
-    if (s.cd) this.text(ctx, `CD ${s.cd}s · ${s.cost} SHADOW`, x + w - 8 * u, y - h + 18 * u, 10 * u, '#b8a0d8', { align: 'right' });
+    if (s.cooldown > 1) this.text(ctx, `CD ${s.cooldown}s · ${s.cost} ${RESOURCES[s.costResource || this.game.player.primaryResource].label}`, x + w - 8 * u, y - h + 18 * u, 10 * u, '#b8a0d8', { align: 'right' });
     lines.forEach((l, i) => this.text(ctx, l, x + 8 * u, y - h + (36 + i * 15) * u, 11 * u, '#d8d0e8', { weight: 500, stroke: false }));
   }
 

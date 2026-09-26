@@ -57,7 +57,7 @@ export const UmbralSword = {
 
   skills: [
     {
-      slot: 1, id: 'shadow_slash', name: 'Shadow Slash', cd: 3.5, cost: 8, icon: 'slash',
+      slot: 1, id: 'shadow_slash', name: 'Shadow Slash', type: 'active', cooldown: 3.5, cost: 8, targeting: 'direction', tags: ['melee', 'shadow', 'mark'], icon: 'slash',
       desc: 'Lunge and cut the enemy in front. Builds 1 Shadow Mark.',
       cast(p, g, a) {
         let marked = false;
@@ -77,7 +77,7 @@ export const UmbralSword = {
       },
     },
     {
-      slot: 2, id: 'twin_fang', name: 'Twin Fang', cd: 6, cost: 12, icon: 'twin',
+      slot: 2, id: 'twin_fang', name: 'Twin Fang', type: 'active', cooldown: 6, cost: 12, targeting: 'direction', tags: ['melee', 'shadow', 'mark', 'multi-hit'], icon: 'twin',
       desc: 'Two rapid crossing cuts that shred through guards. Builds a Shadow Mark on hit.',
       cast(p, g, a) {
         const triple = p.mods.twinFangTriple;
@@ -95,7 +95,7 @@ export const UmbralSword = {
       },
     },
     {
-      slot: 3, id: 'shade_step', name: 'Shade Step', cd: 4.5, cost: 10, icon: 'step',
+      slot: 3, id: 'shade_step', name: 'Shade Step', type: 'active', cooldown: 4.5, cost: 10, targeting: 'direction', tags: ['dash', 'mobility', 'invulnerable', 'mark'], icon: 'step',
       desc: 'Dash through enemies as a shadow. Invulnerable; can trigger Perfect Dodge. Builds a Mark on hit.',
       cast(p, g, a) {
         const mv = g.input.moveVector();
@@ -125,7 +125,7 @@ export const UmbralSword = {
       },
     },
     {
-      slot: 4, id: 'shadow_arc', name: 'Shadow Arc', cd: 8, cost: 22, icon: 'arc',
+      slot: 4, id: 'shadow_arc', name: 'Shadow Arc', type: 'active', cooldown: 8, cost: 22, targeting: 'direction', tags: ['aoe', 'shadow'], icon: 'arc',
       desc: 'Release a wide crescent of shadow that sweeps through groups. Hitting 3+ enemies builds a Mark.',
       cast(p, g, a) {
         let hits = 0, marked = false;
@@ -147,7 +147,7 @@ export const UmbralSword = {
       },
     },
     {
-      slot: 5, id: 'eclipse_sever', name: 'Eclipse Sever', cd: 24, cost: 50, icon: 'eclipse', ultimate: true,
+      slot: 5, id: 'eclipse_sever', name: 'Eclipse Sever', type: 'ultimate', cooldown: 24, cost: 50, targeting: 'direction', tags: ['burst', 'shadow', 'consumes-marks'], icon: 'eclipse', ultimate: true,
       desc: 'ULTIMATE. Summon a black eclipse and sever everything ahead. Consumes all Shadow Marks for bonus damage.',
       cast(p, g, a) {
         return {
@@ -192,7 +192,9 @@ export const UmbralSword = {
 
   // ---------------- SHADOW BREAK (Q / right click) — needs 3 Marks
   special: {
-    id: 'shadow_break', name: 'Shadow Break', key: 'Q', icon: 'break',
+    id: 'shadow_break', name: 'Shadow Break', type: 'special', slot: 'Q', key: 'Q', icon: 'break',
+    cost: 0, cooldown: 0.4, targeting: 'self', tags: ['burst', 'aoe', 'consumes-marks'],
+    requirements: [{ type: 'value', key: 'marks', min: 3, label: '3 Shadow Marks' }],
     desc: 'Detonate 3 Shadow Marks: a massive burst around you. Devastating during a Weak Window.',
     cast(p, g, a) {
       const sigil = p.mods.sigil;

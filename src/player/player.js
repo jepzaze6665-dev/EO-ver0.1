@@ -5,6 +5,7 @@ import { PERFECT_WINDOW } from '../combat/combat.js';
 import { CHARACTER } from './characterConfig.js';
 import { ResourcePool } from '../combat/resourceSystem.js';
 import { RESOURCES } from '../data/resources.js';
+import { SkillSystem } from '../combat/skillSystem.js';
 
 const DODGE_TIME = 0.24, DODGE_DIST = 100, DODGE_IFRAMES = 0.28, DODGE_CHARGES = 2, DODGE_RECHARGE = 0.85;
 const HURT_IFRAMES = 0.55;
@@ -27,7 +28,11 @@ export class Player extends Entity {
     });
     this.marks = 0; this.maxMarks = 3;
     this.markPulse = 0; this.markIdle = 0;
-    this.cooldowns = {};
+    // generic skill pipeline: checks, costs, cooldowns and failure reasons live in combat/skillSystem.js
+    this.skillSys = new SkillSystem(this, [...classDef.skills, classDef.special].filter(Boolean), {
+      onUsed: (e) => game.events && game.events.emit('skillUsed', e),
+      onFailed: (e) => game.events && game.events.emit('skillFailed', e),
+    });
     this.mods = {};
     this.stats = { ...classDef.base };
     this.action = null;
@@ -103,7 +108,7 @@ export class Player extends Entity {
     }
   }
   consumeMarks(n) { this.marks = Math.max(0, this.marks - n); }
-  reduceCooldowns(sec) { for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - sec); }
+  reduceCooldowns(sec) { this.skillSys.cooldowns.reduceAll(sec); }
 
   // ---------------- defense
   invulnerable() {
@@ -186,32 +191,22 @@ export class Player extends Entity {
     return true;
   }
 
-  trySkill(skill) {
-    const g = this.game;
-    if (this.hurtT > 0 || this.status.has('stun')) return false;
-    if ((this.cooldowns[skill.id] || 0) > 0) { g.ui.toast('Cooldown', 0.6); return false; }
-    const res = skill.costResource || this.primaryResource;
-    if (!this.resources.canAfford(res, skill.cost)) { g.ui.toast(`Not enough ${RESOURCES[res].label}`, 0.8); g.audio.sfx('deny'); return false; }
+  // --- caster interface used by the generic SkillSystem ---
+  // Caster-state rules only (the pipeline handles cooldown / cost / requirements).
+  canAct(skill) {
+    if (this.dead || this.hurtT > 0 || this.status.has('stun')) return false;
     if (this.action && !this.action.basic && this.action.t < (this.action.cancelAt ?? 0)) return false;
     if (this.dodging && !this.dodgeFromSkill && this.dodgeT < DODGE_TIME * 0.6) return false;
-    this.dodging = false;
-    this.resources.spend(res, skill.cost, 'skill:' + skill.id);
-    this.cooldowns[skill.id] = skill.cd * (1 - (this.stats.cdr || 0));
-    this.startAction(skill.cast(this, g, this.aim));
-    g.events.emit('skillUsed', skill.id);
     return true;
   }
+  beforeCast() { this.dodging = false; }
 
-  tryBreak() {
-    const g = this.game;
-    if (this.marks < 3) { g.ui.toast('Need 3 Shadow Marks', 0.8); g.audio.sfx('deny'); return false; }
-    if (this.hurtT > 0) return false;
-    if (this.action && !this.action.basic && this.action.t < (this.action.cancelAt ?? 0)) return false;
-    this.dodging = false;
-    this.startAction(this.cls.special.cast(this, g, this.aim));
-    g.events.emit('shadowBreak');
-    return true;
+  trySkill(skill) {
+    const r = this.skillSys.use(skill.id, this, this.game, this.aim);
+    if (r.ok) this.startAction(r.result);
+    return r.ok;
   }
+  tryBreak() { return this.trySkill(this.cls.special); }
 
   tryAttack() {
     if (this.hurtT > 0 || this.dodging) return false;
@@ -239,7 +234,7 @@ export class Player extends Entity {
     this.counterT = Math.max(0, this.counterT - dt);
     this.perfectCooldown = Math.max(0, this.perfectCooldown - dt);
     this.comboTimer = Math.max(0, this.comboTimer - dt);
-    for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
+    this.skillSys.update(dt);
     this.resources.update(dt, { inCombat: g.combat.inCombat });
     if (this.dodgeCharges < DODGE_CHARGES) {
       this.dodgeRecharge += dt;

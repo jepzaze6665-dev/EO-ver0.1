@@ -89,9 +89,8 @@ export function fight(g, seconds, opts = {}) {
 export function counters(g) {
   const c = { perfect: 0, breaks: 0, weak: 0, ults: 0 };
   g.events.on('perfectDodge', () => c.perfect++);
-  g.events.on('shadowBreak', () => c.breaks++);
   g.events.on('bossWeak', () => c.weak++);
-  g.events.on('skillUsed', (id) => { if (id === 'eclipse_sever') c.ults++; });
+  g.events.on('skillUsed', (e) => { if (e.skillId === 'eclipse_sever') c.ults++; if (e.skillId === 'shadow_break') c.breaks++; });
   return c;
 }
 
