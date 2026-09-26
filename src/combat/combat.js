@@ -2,6 +2,7 @@ import { TEAM } from '../core/constants.js';
 import { angleTo, inCone, inLine, rand, TAU } from '../core/math.js';
 import { Telegraphs } from './telegraph.js';
 import { Projectiles } from './projectiles.js';
+import { computeDamage } from './damageSystem.js';
 
 // Class-agnostic combat resolver. Skills from any class spawn hitboxes described
 // as data; enemies resolve telegraphed strikes through enemyStrike(). All feedback
@@ -84,37 +85,19 @@ export class Combat {
     const g = this.game;
     const fromPlayer = src && src.team === TEAM.PLAYER;
     const ang = src ? angleTo(src.x, src.y, target.x, target.y) : rand(0, TAU);
-    let amount, crit = false, tags = [];
-
-    if (fromPlayer) {
-      const st = g.player.stats;
-      amount = opts.power * st.atk;
-      if (opts.type === 'shadow') amount *= 1 + st.shadowDmg;
-      amount *= g.player.status.damageMult();
-      const critChance = st.crit + (opts.critBonus || 0);
-      if (opts.forceCrit || Math.random() < critChance) { crit = true; amount *= 1.6 + st.critDmg; }
-      if (target.weakness && target.weakness.includes(opts.type)) { amount *= 1.2; tags.push('weak'); }
-      if (target.status.has('vulnerable')) {
-        amount *= 1.35 * (opts.breakBonus || 1);
-        tags.push('window');
-      }
-      // crystal armour: most damage is absorbed until the armour shatters; weak point bypasses it
-      if (target.armor > 0) {
-        const behind = target.weakPointHit ? target.weakPointHit(src.x, src.y) : false;
-        if (behind) { amount *= 1.6; tags.push('weakpoint'); }
-        else {
-          const armorDmg = amount * (opts.armorBreak || 1) * (st.armorBreak || 1);
-          target.armor = Math.max(0, target.armor - armorDmg);
-          amount *= 0.3;
-          tags.push('armored');
-          if (target.armor <= 0 && target.onArmorBreak) target.onArmorBreak();
-        }
-      }
-      amount = Math.max(1, amount - (target.defense || 0) * 0.5) * rand(0.92, 1.08);
-    } else {
-      amount = Math.max(1, (opts.power || 10) - g.player.stats.def * 0.5) * rand(0.92, 1.08);
+    // 1) CALCULATE — pure, data in / result out (combat/damageSystem.js)
+    const behind = src && target.armor > 0 && target.weakPointHit ? target.weakPointHit(src.x, src.y) : false;
+    const attacker = src && src.stats ? { stats: src.stats, damageMult: src.status ? src.status.damageMult() : 1 } : null;
+    const res = computeDamage(attacker, {
+      defense: target.defense, stats: target.stats, weakness: target.weakness,
+      vulnerable: target.status && target.status.has('vulnerable'), armor: target.armor,
+    }, { ...opts, weakPoint: behind });
+    const { amount, crit, tags } = res;
+    // 2) APPLY — state changes
+    if (res.armorDamage) {
+      target.armor = Math.max(0, target.armor - res.armorDamage);
+      if (target.armor <= 0 && target.onArmorBreak) target.onArmorBreak();
     }
-    amount = Math.round(amount);
     target.hp -= amount;
     target.flash = 0.12;
     this.lastCombatTime = g.time;
@@ -146,7 +129,12 @@ export class Combat {
       killed = true;
       if (target.onDeath) target.onDeath(src, opts);
     }
-    if (fromPlayer) g.events.emit('damageDealt', { target, amount, crit, killed, opts });
+    // 3) EVENTS — passives, quests, UI and (later) the network layer listen here
+    const ev = { source: src, target, amount, crit, killed, tags, type: opts.type, skillId: opts.skillId, opts };
+    g.events.emit('damageDealt', ev);
+    g.events.emit('damageTaken', ev);
+    if (opts.skillId) g.events.emit('skillHit', ev);
+    if (killed) g.events.emit('enemyKilled', ev);
     return { amount, crit, killed, tags };
   }
 

@@ -5,6 +5,7 @@ import { MONSTERS } from '../monsters/monsterTypes.js';
 import { Guardian } from '../boss/guardian.js';
 import { NPC } from './npc.js';
 import { Breakable } from '../exploration/breakable.js';
+import { TrainingDummy } from '../entities/trainingDummy.js';
 import { isAvailable, interact, promptFor } from '../exploration/interactables.js';
 import { dist, rand, randInt, TAU, pick } from '../core/math.js';
 import { Assets } from '../core/assets.js';
@@ -51,6 +52,11 @@ export class World {
     this.interactables.push({ id: 'crack_info', kind: 'crackInfo', x: 70.5 * TILE, y: 55.6 * TILE, radius: 40, prompt: 'Examine Cracked Stone' });
     this.interactables.push({ id: 'glyph_info', kind: 'glyphInfo', x: 150.4 * TILE, y: 109.5 * TILE, radius: 40, prompt: 'Examine Glyph' });
     this.makeBreakables();
+    // training yard beside the Adventurer Guild (class / combat testing)
+    this.dummies = [[29, 186], [32, 187.5], [35, 186]].map(([tx, ty]) => {
+      const pos = this.map.findOpen(tx * TILE, ty * TILE, 3);
+      return new TrainingDummy(game, pos.x, pos.y);
+    });
   }
 
   freshState() {
@@ -87,6 +93,7 @@ export class World {
     for (const m of this.monsters) if (!m.dead) out.push(m);
     if (this.guardian && !this.guardian.dead && this.guardian.hurtable) out.push(this.guardian);
     for (const b of this.breakables) if (!b.dead && b.hurtable) out.push(b);
+    for (const d of this.dummies) if (!d.dead) out.push(d);
     return out;
   }
   inSafeZone(p) { return this.map.zoneAt(p.x, p.y) === Z.VILLAGE; }
@@ -439,6 +446,7 @@ export class World {
   update(dt) {
     const g = this.game, p = g.player;
     for (const n of this.npcs) n.update(dt);
+    for (const d of this.dummies) d.update(dt);
     // monsters: simulate near the player (or anything in a fight)
     for (const m of this.monsters) {
       if (m.dead) { m.deathT += dt; continue; }

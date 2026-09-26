@@ -203,19 +203,16 @@ export const UmbralSword = {
           g.hitStop = Math.max(g.hitStop, 0.12);
           g.vfx.flash('120,40,200', 0.3, 5);
           g.audio.sfx('break_charge');
-          for (let i = 0; i < 3; i++) g.vfx.ring(p.x, p.y, 70 - i * 18, 4, { life: 0.14, color: '220,160,255', width: 2 });
+          g.vfx.sprite('wave', p.x, p.y - 16, -Math.PI / 2, { scale: 1.2, life: 0.14 }); // gathering shadow
         },
         events: [
           [0.14, () => {
             g.camera.targetZoom = 1;
             g.camera.punch(0.22);
             g.camera.shake(0.7);
-            g.vfx.startBreak(p.x, p.y);
             g.vfx.sprite('burst', p.x, p.y - 16, 0, { scale: 2.6, life: 0.5, glow: 0.55 });
             g.vfx.sprite('shards', p.x + Math.cos(a) * 60, p.y - 14 + Math.sin(a) * 60, a, { scale: 1.6, life: 0.4 });
             g.vfx.flash('230,190,255', 0.32, 3.5);
-            g.vfx.ring(p.x, p.y, 10, 130, { life: 0.45, width: 7, fill: true });
-            g.vfx.ring(p.x, p.y, 10, 90, { life: 0.35, width: 3, color: '255,240,255' });
             g.vfx.shards(p.x, p.y - 10, '#b060ff', 26, 220);
             g.vfx.burst(p.x, p.y - 10, '#d8a0ff', 40, 260);
             g.vfx.light(p.x, p.y, 220, '#b060ff', 0.5, 1);
@@ -229,7 +226,7 @@ export const UmbralSword = {
           }],
           [0.42, () => {
             if (!sigil) return;
-            g.vfx.ring(p.x, p.y, 40, 160, { life: 0.4, width: 5, color: '255,200,255' });
+            g.vfx.sprite('burst', p.x, p.y - 16, Math.PI / 4, { scale: 3.2, life: 0.4, glow: 0.4 });
             g.audio.sfx('boom_small');
             g.combat.spawnHitbox({ owner: p, x: p.x, y: p.y - 8, shape: 'ring', r0: 60, r: 165, power: 1.8, type: 'shadow', knock: 200, stagger: 30, hitStop: 0.06 });
           }],

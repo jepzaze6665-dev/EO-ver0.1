@@ -44,7 +44,15 @@ export function bot(g, i, opts = {}) {
   if (opts.god) p.hp = Math.max(p.hp, p.maxHp * 0.5);
 }
 
+// release every held key / buffered action so one step never leaks into the next
+export function releaseInput(g) {
+  g.input.down.clear();
+  g.input.clearAll();
+  g.player.vx = g.player.vy = 0;
+}
+
 export function goto(g, tx, ty) {
+  releaseInput(g);
   const p = g.player;
   const pos = g.world.map.findOpen(tx * TILE, ty * TILE, 5);
   p.x = pos.x; p.y = pos.y;
@@ -55,6 +63,7 @@ export function goto(g, tx, ty) {
 export function use(g, id) {
   const it = g.world.interactables.find((i) => i.id === id);
   if (!it) return { error: 'no ' + id };
+  releaseInput(g);
   const p = g.player;
   const pos = g.world.map.findOpen(it.x, it.y + 20, 3);
   p.x = pos.x; p.y = pos.y;
@@ -73,6 +82,7 @@ export function fight(g, seconds, opts = {}) {
     if (gd && g.world.bossActive) log.push(`${t}s boss=${Math.round((gd.hp / gd.maxHp) * 100)}% ph=${gd.phase} ${gd.state} | hp=${Math.round(p.hp)}/${p.maxHp} pots=${g.inventory.count('hp_potion')}`);
     if (p.dead || (opts.untilBossDead && gd && gd.dead) || (opts.until && opts.until())) break;
   }
+  releaseInput(g);
   return log;
 }
 
@@ -107,17 +117,22 @@ export function playthrough(g) {
   goto(g, 47, 150); g.simulate(1);
   ok('Whispering Forest', g.quests.active.whispers.done.enter);
   for (const [x, y] of [[38, 121], [20, 112], [54, 80], [66, 62]]) { goto(g, x, y); fight(g, 20, { god: true, until: () => g.quests.active.whispers.done.wolves }); if (g.quests.active.whispers.done.wolves) break; }
+  // keep fighting until the combat loop has produced a Perfect Dodge and a Shadow Break
+  const camps = [[29, 60], [66, 62], [54, 80], [86, 70], [18, 80], [58, 104], [110, 82]];
+  for (let k = 0; k < camps.length && (c.perfect === 0 || c.breaks === 0); k++) { goto(g, ...camps[k]); fight(g, 10, { god: true, until: () => c.perfect > 0 && c.breaks > 0 }); }
   ok('Fight + wolves 5/5', g.quests.active.whispers.done.wolves, `kills=${g.stats.kills}`);
   ok('Shadow Mark / Perfect Dodge / Shadow Break', c.breaks > 0 && c.perfect > 0, `perfect=${c.perfect} breaks=${c.breaks}`);
   use(g, 'crack_info'); g.ui.panels.close();
   const crack = w.breakables.find((b) => b.kind === 'crack');
   goto(g, 70.5, 57); g.simulate(6, (gg, i) => bot(gg, i, { god: true, target: crack, breakables: true }));
   ok('Hidden Area discovered', w.map.secretsFound.has(1));
-  use(g, 'ancient_shrine'); g.ui.panels.close();
-  use(g, 'gate_seal');
-  ok('Shrine + Gate', w.state.flags.shrineInvestigated && w.state.flags.gateOpened);
+  const diag = `panel=${g.ui.panels.current && g.ui.panels.current.name} dead=${g.player.dead} state=${g.state}`;
+  const us = use(g, 'ancient_shrine'); g.ui.panels.close();
+  const ug = use(g, 'gate_seal');
+  ok('Shrine + Gate', w.state.flags.shrineInvestigated && w.state.flags.gateOpened, `${diag} shrine=${JSON.stringify(us)} gate=${JSON.stringify(ug)}`);
   goto(g, 136, 60); for (let y = 60; y >= 50; y--) { g.player.y = y * 32; g.simulate(0.1); }
-  ok('Guardian discovered', w.state.flags.guardianDiscovered);
+  const trig = w.interactables.find((i) => i.id === 'trig_guardian');
+  ok('Guardian discovered', w.state.flags.guardianDiscovered, `pos=${(g.player.x / 32).toFixed(1)},${(g.player.y / 32).toFixed(1)} fired=${trig.fired} dead=${g.player.dead} panel=${g.ui.panels.current && g.ui.panels.current.name} hitStop=${g.hitStop.toFixed(2)} guardian=${w.guardian && w.guardian.state}`);
   g.player.level = 13; g.player.recomputeStats(); g.player.hp = g.player.maxHp;
   goto(g, 135, 37); g.simulate(3);
   const gd = w.guardian, phases = new Set();

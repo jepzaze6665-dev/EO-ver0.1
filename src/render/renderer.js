@@ -128,6 +128,7 @@ export class Renderer {
     for (const it of world.interactables) if (it.kind !== 'npc' && cam.visible(it.x, it.y, 40)) list.push({ y: it.y - 1, it });
     for (const n of world.npcs) if (!n.hidden && cam.visible(n.x, n.y) && (!n.secret || map.secretsFound.has(n.secret))) list.push({ y: n.y, e: n });
     for (const m of world.monsters) if (cam.visible(m.x, m.y, 80)) list.push({ y: m.y, e: m });
+    for (const d of world.dummies) if (cam.visible(d.x, d.y, 60)) list.push({ y: d.y, e: d });
     if (world.guardian && cam.visible(world.guardian.x, world.guardian.y, 200)) list.push({ y: world.guardian.y, e: world.guardian });
     for (const s of world.rootSpikes) list.push({ y: s.y, spike: s });
     const pl = game.player;

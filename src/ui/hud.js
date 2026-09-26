@@ -38,6 +38,12 @@ export class HUD {
     this.miniT = 0;
   }
 
+  // clear every transient message (new game / load must not show the previous session's banners)
+  reset() {
+    this.banners = []; this.toasts = []; this.notes = []; this.pickups = []; this.callouts = [];
+    this.title = null; this.bossBar = false; this.bossBarShow = 0; this.bossHpLag = 1; this.hpLag = 1;
+  }
+
   // ---------------- messages
   banner(title, sub, color = '#e8d0ff', dur = 3) { this.banners.push({ title, sub, color, t: 0, dur, kind: 'banner' }); }
   zone(name, sub, big) { this.banners.push({ title: name, sub, color: '#f0e6ff', t: 0, dur: big ? 4 : 2.6, kind: big ? 'zone' : 'zoneSmall' }); }
@@ -463,6 +469,15 @@ export class HUD {
       const s = this.toScreen(n.x, n.y - 50);
       this.text(ctx, n.name, s.x, s.y - 12 * u, 11 * u, '#bfe8ff', { align: 'center' });
       this.text(ctx, n.role, s.x, s.y, 9 * u, '#8aa8c0', { align: 'center' });
+    }
+    for (const d of g.world.dummies) {
+      if (Math.hypot(d.x - p.x, d.y - p.y) > 260) continue;
+      const s = this.toScreen(d.x, d.y - d.height - 10);
+      this.text(ctx, d.name, s.x, s.y - 20 * u, 10 * u, '#e8dcc0', { align: 'center' });
+      if (!d.dead) this.bar(ctx, s.x - 34 * u, s.y - 14 * u, 68 * u, 5 * u, d.hp / d.maxHp, '#ffb070', '#905020');
+      if (d.dps) this.text(ctx, `DPS ${d.dps}`, s.x, s.y + 2 * u, 10 * u, '#ffd96a', { align: 'center' });
+      // generic marks (any class): entity.marks = [{id, stacks, maxStacks, color}]
+      (d.markList || []).forEach((mk, i) => this.text(ctx, '◆'.repeat(mk.stacks) + '◇'.repeat(mk.maxStacks - mk.stacks), s.x, s.y + (16 + i * 12) * u, 10 * u, mk.color || '#c080ff', { align: 'center' }));
     }
     for (const b of g.world.breakables) {
       if (b.dead || b.hp >= b.maxHp) continue;

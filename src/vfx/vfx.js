@@ -18,7 +18,6 @@ export class VFX {
     this.sprites = new Pool(() => ({}), 40);
     this.screenFlash = { a: 0, color: '255,255,255', decay: 4 };
     this.eclipse = null; // ultimate black-sun effect
-    this.breakFx = null; // shadow break burst
   }
 
   // ---------------- spawners
@@ -108,7 +107,6 @@ export class VFX {
     Object.assign(g, { ...frame, x, y, life: o.life ?? 0.3, max: o.life ?? 0.3, alpha: o.alpha ?? 0.55 });
   }
   startEclipse(x, y, dur) { this.eclipse = { x, y, t: 0, dur }; }
-  startBreak(x, y) { this.breakFx = { x, y, t: 0 }; }
 
   // ---------------- update
   update(dt) {
@@ -125,7 +123,6 @@ export class VFX {
     this.texts.forEach((t) => { t.life -= dt; t.y += t.vy * dt; t.vy *= Math.exp(-2 * dt); if (t.life <= 0) t.active = false; });
     this.screenFlash.a = Math.max(0, this.screenFlash.a - dt * this.screenFlash.decay);
     if (this.eclipse) { this.eclipse.t += dt; if (this.eclipse.t > this.eclipse.dur) this.eclipse = null; }
-    if (this.breakFx) { this.breakFx.t += dt; if (this.breakFx.t > 0.9) this.breakFx = null; }
   }
 
   // ---------------- draw (world space, pixel scene)
@@ -230,7 +227,6 @@ export class VFX {
     });
     ctx.globalAlpha = 1;
     this.drawEclipse(ctx, time);
-    this.drawBreak(ctx, time);
   }
 
   drawEclipse(ctx, time) {
@@ -259,29 +255,7 @@ export class VFX {
     ctx.restore();
   }
 
-  drawBreak(ctx, time) {
-    const b = this.breakFx;
-    if (!b) return;
-    const t = b.t;
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    // fractured shadow sigil
-    const r = 20 + easeOutCubic(Math.min(1, t / 0.5)) * 90;
-    const a = Math.max(0, 1 - t / 0.9);
-    ctx.globalAlpha = a;
-    ctx.strokeStyle = 'rgb(200,120,255)';
-    ctx.lineWidth = 3;
-    for (let i = 0; i < 3; i++) {
-      ctx.beginPath();
-      for (let k = 0; k <= 3; k++) {
-        const ang = (k / 3) * TAU + i * 0.35 + t * 1.5;
-        const px = b.x + Math.cos(ang) * r * (1 - i * 0.18), py = b.y - 10 + Math.sin(ang) * r * 0.62 * (1 - i * 0.18);
-        k ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
-      }
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
+
 
   // ---------------- screen-space overlay (crisp text)
   drawScreen(ctx, toScreen, scale) {

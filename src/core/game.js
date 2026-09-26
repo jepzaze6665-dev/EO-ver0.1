@@ -72,6 +72,7 @@ export class Game {
     this.stats = { kills: 0, chests: 0, deaths: 0 };
     this.quests = new Quests(this);
     this.combat.clear();
+    this.ui.hud.reset();
     this.world = new World(this);
     this.player = new Player(this, CLASSES.umbral_sword, this.playerSprites);
     this.playTime = 0;
