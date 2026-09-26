@@ -1,0 +1,44 @@
+{
+ "slash": {
+  "file": "assets/vfx/slash.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6
+ },
+ "thrust": {
+  "file": "assets/vfx/thrust.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6
+ },
+ "twin": {
+  "file": "assets/vfx/twin.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6
+ },
+ "wave": {
+  "file": "assets/vfx/wave.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6
+ },
+ "burst": {
+  "file": "assets/vfx/burst.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6
+ },
+ "shards": {
+  "file": "assets/vfx/shards.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6
+ },
+ "eclipse": {
+  "file": "assets/vfx/eclipse.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6
+ }
+}

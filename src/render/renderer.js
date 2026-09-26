@@ -3,7 +3,7 @@ import { Z, TILE } from '../core/constants.js';
 import { TAU, clamp, lerp } from '../core/math.js';
 import { vnoise } from '../core/rng.js';
 import { drawSpecialProp } from './specialProps.js';
-import { drawInteractable } from '../exploration/interactables.js';
+import { drawInteractable, isAvailable } from '../exploration/interactables.js';
 
 // Two-canvas pipeline:
 //  scene  — low-res pixel canvas (world, entities, VFX, lighting, fog) upscaled with nearest-neighbour
@@ -119,7 +119,6 @@ export class Renderer {
     // ground decals (runes, circles, fallen logs)
     for (const p of props) if (p.layer === 'ground') this.drawProp(ctx, p, game, true);
     this.drawHazards(ctx, game);
-    game.combat.telegraphs.draw(ctx, t);
     game.vfx.drawBelow(ctx, t);
 
     // y-sorted objects
@@ -136,7 +135,7 @@ export class Renderer {
     list.sort((a, b) => a.y - b.y);
     for (const d of list) {
       if (d.p) this.drawProp(ctx, d.p, game, false);
-      else if (d.it) drawInteractable(ctx, world, d.it, t);
+      else if (d.it) { if (d.it.kind !== 'trigger' && d.it.kind !== 'crackInfo' && d.it.kind !== 'glyphInfo' && isAvailable(world, d.it)) this.drawHint(ctx, d.it, t); drawInteractable(ctx, world, d.it, t); }
       else if (d.spike) this.drawSpike(ctx, d.spike);
       else d.e.draw(ctx);
     }
@@ -146,6 +145,10 @@ export class Renderer {
     // ---------------- lighting (view space)
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.drawLighting(game, props);
+    // telegraphs go on top of the lighting so danger stays readable even in the darkest cave
+    ctx.setTransform(z, 0, 0, z, Math.round(ox), Math.round(oy));
+    game.combat.telegraphs.draw(ctx, t);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.drawAtmosphere(game);
 
     // ---------------- upscale to screen
@@ -198,6 +201,13 @@ export class Renderer {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(Math.round(p.x + Math.sin(t * 7) * 8), Math.round(p.y - 20 - Math.cos(t * 5) * 10), 2, 2);
     }
+  }
+
+  // subtle pulsing ground ring marks anything the player can interact with
+  drawHint(ctx, it, t) {
+    const a = 0.25 + 0.2 * Math.sin(t * 3 + it.x);
+    ctx.strokeStyle = it.kind === 'chest' || it.kind === 'resource' ? `rgba(255,210,120,${a})` : `rgba(140,230,255,${a})`;
+    ctx.beginPath(); ctx.ellipse(it.x, it.y, 13, 5, 0, 0, TAU); ctx.stroke();
   }
 
   drawSpike(ctx, s) {

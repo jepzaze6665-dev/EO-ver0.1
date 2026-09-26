@@ -30,7 +30,7 @@ export function buildRuins(b) {
   b.rect(125, 65, 125, 82, T.RUIN_WALL); b.rect(147, 65, 147, 82, T.RUIN_WALL);
   b.rect(125, 82, 133, 82, T.RUIN_WALL); b.rect(139, 82, 147, 82, T.RUIN_WALL);
   b.rect(134, 82, 138, 86, T.RUIN);
-  b.rect(134, 64, 138, 65, T.RUIN); // north doorway to the gate
+  b.rect(134, 64, 138, 65, T.STAIRS); // north doorway rises toward the gate
   b.subRect(126, 64, 146, 81, A.shrine);
 
   // broken walls around the courtyard (gaps keep it readable)
@@ -52,11 +52,11 @@ export function buildRuins(b) {
   // ----- props
   const edge = ['column_broken', 'pillar_broken', 'rubble_a', 'rubble_b', 'ruin_wall_c', 'rock_moss'];
   b.scatter(101, 66, 120, 118, edge, 14, { on: [T.MOSS_STONE, T.FOREST_FLOOR], solid: true, minGap: 4, keepClear: [[110, 82, 4], [108, 104, 4]] });
-  b.scatter(101, 66, 150, 120, ['grass_a', 'fern_a', 'pebble_a', 'twig_a', 'flower_c'], 70, { on: [T.MOSS_STONE, T.RUIN, T.FOREST_FLOOR] });
+  b.scatter(101, 66, 150, 120, ['grass_a', 'fern_a', 'pebble_a', 'flower_c'], 60, { on: [T.MOSS_STONE, T.RUIN, T.FOREST_FLOOR] });
   b.prop('arch_broken', 104, 70, {}); b.prop('ruin_statue_a', 114, 78, { solid: true }); b.prop('column_a', 106, 88, { solid: true });
   b.prop('ruin_wall_a', 112, 96, { solid: true, footprint: [[-1, 0], [0, 0], [1, 0]] });
   b.prop('tree_ancient_a', 116, 74, { solid: true }); b.prop('root_moss', 105, 100, {});
-  b.prop('stairs_a', 136, 84, { layer: 'ground' });
+  b.rect(134, 83, 138, 85, T.STAIRS); // shrine steps, flanked by the hall walls
 
   // courtyard: pillars on the rim only, centre open
   for (const [x, y] of [[124, 88], [148, 88], [124, 110], [148, 110], [130, 87], [142, 87]]) b.prop('column_a', x, y, { solid: true });
@@ -87,7 +87,7 @@ export function buildRuins(b) {
   b.prop('crystal_pedestal', 157, 106, { solid: true, secret: 4, light: { r: 50, color: '#5af0ff', a: 0.7 } });
   b.interact({ id: 'chest_archive', kind: 'chest', tx: 159, ty: 110, loot: [{ item: 'shadeweave', count: 1 }, { item: 'crystal_shard', count: 2 }], gold: 120, secret: 4, rare: true });
   b.interact({ id: 'lore_archive', kind: 'lore', tx: 156, ty: 106, lore: 'archive_record', prompt: 'Read Crystal Record', secret: 4 });
-  b.prop('stairs_b', 154, 113, { layer: 'ground', secret: 4 });
+  b.rect(153, 113, 156, 114, T.STAIRS);
 
 
   // spawns

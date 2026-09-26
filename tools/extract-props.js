@@ -7,7 +7,7 @@ const path = require('path');
 const png = require('./png.js');
 
 const ROOT = path.join(__dirname, '..');
-const SRC = path.join(ROOT, 'ของแมพ');
+const SRC = path.join(ROOT, 'desgin', 'Map', 'ของแมพ');
 const OUT = path.join(ROOT, 'assets', 'props');
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -162,6 +162,38 @@ function extract(entry) {
   return out;
 }
 
+// Consistency pass: one colour grade + one outline style for every prop.
+function grade(im) {
+  const d = im.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (!d[i + 3]) continue;
+    let r = d[i], g = d[i + 1], b = d[i + 2];
+    const l = 0.3 * r + 0.59 * g + 0.11 * b;
+    const sat = 0.84;                                  // tame overly bright colours
+    r = l + (r - l) * sat; g = l + (g - l) * sat; b = l + (b - l) * sat;
+    const shadow = Math.max(0, 1 - l / 110);           // cool, slightly violet shadows
+    r = r * 0.93 - 4 * shadow; g = g * 0.93 - 2 * shadow; b = b * 0.95 + 10 * shadow;
+    d[i] = Math.max(0, Math.min(255, r)); d[i + 1] = Math.max(0, Math.min(255, g)); d[i + 2] = Math.max(0, Math.min(255, b));
+  }
+}
+function outline(im) {
+  const pad = 1, w = im.width + 2, h = im.height + 2;
+  const out = png.create(w, h);
+  for (let y = 0; y < im.height; y++) im.data.copy(out.data, ((y + pad) * w + pad) * 4, y * im.width * 4, (y + 1) * im.width * 4);
+  const src = Buffer.from(out.data);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const o = (y * w + x) * 4;
+    if (src[o + 3] > 100) continue;
+    let n = false;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const X = x + dx, Y = y + dy;
+      if (X >= 0 && Y >= 0 && X < w && Y < h && src[(Y * w + X) * 4 + 3] > 160) { n = true; break; }
+    }
+    if (n) { out.data[o] = 10; out.data[o + 1] = 9; out.data[o + 2] = 18; out.data[o + 3] = 235; }
+  }
+  return out;
+}
+
 // simple shelf packing
 const items = [];
 for (const [name, entry] of Object.entries(MANIFEST)) {
@@ -169,6 +201,7 @@ for (const [name, entry] of Object.entries(MANIFEST)) {
   if (!im) { console.warn('MISSING', name); continue; }
   items.push({ name, im });
 }
+for (const it of items) { grade(it.im); it.im = outline(it.im); }
 items.sort((a, b) => b.im.height - a.im.height);
 const ATLAS_W = 1024;
 let x = 0, y = 0, rowH = 0;

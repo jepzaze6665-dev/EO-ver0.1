@@ -55,8 +55,8 @@ export class Telegraphs {
       this.path(ctx, t, p);
       ctx.fill();
       // outline
-      ctx.strokeStyle = `rgba(${t.color},${0.55 + pulse * 0.35 * p})`;
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = p > 0.75 && pulse > 0.5 ? 'rgba(255,245,235,0.95)' : `rgba(${t.color},${0.6 + pulse * 0.35 * p})`;
+      ctx.lineWidth = p > 0.75 ? 2.5 : 1.5;
       this.path(ctx, t, 1);
       ctx.stroke();
       ctx.restore();

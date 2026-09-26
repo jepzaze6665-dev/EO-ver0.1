@@ -150,8 +150,10 @@ export class Monster extends Entity {
           this.moveDir(ang + Math.PI, speed * 0.8, dt);
         } else if (dP > (this.def.attacks[0].range * 0.8)) {
           // wolves circle a little while approaching
-          const strafe = this.type === 'wolf' && dP < 140 ? Math.sin(this.animT * 1.3 + this.id) * 0.6 : 0;
-          this.moveDir(ang + strafe, speed, dt);
+          // wolves circle the player while their charge recharges, then commit
+          const circling = this.type === 'wolf' && dP < 150 && (this.cds.lunge || 0) > 0;
+          const side = this.id % 2 ? 1 : -1;
+          this.moveDir(circling ? ang + side * 1.25 : ang, circling ? speed * 0.8 : speed, dt);
         }
         this.turnTo(ang, dt, this.def.turn);
         break;
@@ -263,6 +265,7 @@ export class Monster extends Entity {
       }
       g.audio.sfx(atk.heavy ? 'slam' : 'enemy_swing');
       if (atk.shape.shape === 'ring') g.vfx.shards(this.x, this.y - 6, '#5af0ff', 14, 150);
+      if (atk.exposes) { this.status.add('vulnerable', atk.exposes); g.vfx.text(this.x, this.y - this.height - 8, 'CORE EXPOSED!', { color: '#ff9ad8', size: 10 }); }
       if (atk.opening) { this.status.add('vulnerable', atk.recover); g.vfx.text(this.x, this.y - this.height - 8, 'OPENING!', { color: '#ffe070', size: 10 }); }
       if (atk.blinkAfter) g.after(0.3, () => !this.dead && this.blink());
     } else if (atk.kind === 'dash') {
@@ -307,7 +310,10 @@ export class Monster extends Entity {
         else if (g.player.invulnerable() && Math.hypot(g.player.x - this.x, g.player.y - this.y) < this.radius + 20) this.dashHit = true;
       }
       if (Math.random() < 0.6) g.vfx.particle(this.x, this.y, { color: 'rgba(140,130,120,0.6)', life: 0.3, size: 3, vy: -10 });
-      if (this.stateT >= atk.dashTime) { this.phase = 'recover'; this.stateT = 0; }
+      if (this.stateT >= atk.dashTime) {
+        this.phase = 'recover'; this.stateT = 0;
+        if (atk.exposes) { this.status.add('vulnerable', atk.exposes); this.facing += Math.PI * 0.6; g.vfx.text(this.x, this.y - this.height - 8, 'CORE EXPOSED!', { color: '#ff9ad8', size: 10 }); }
+      }
       return;
     }
     // recover

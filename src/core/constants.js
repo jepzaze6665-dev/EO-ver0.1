@@ -27,6 +27,7 @@ export const T = {
   RUIN_WALL: 19,
   MOSS_STONE: 20,
   DEEP_WATER: 21,
+  STAIRS: 22, // walkable; rendered as steps rising toward the north
 };
 
 // Which tiles block movement

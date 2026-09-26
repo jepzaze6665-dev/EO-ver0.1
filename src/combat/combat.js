@@ -133,6 +133,7 @@ export class Combat {
       g.hitStop = Math.max(g.hitStop, (opts.hitStop ?? 0.05) * (crit ? 1.4 : 1));
       g.camera.shake(opts.shake ?? 0.12);
       g.audio.sfx(crit ? 'crit' : 'hit');
+      if (crit || opts.big) g.vfx.sprite('shards', hx, hy, ang, { scale: opts.big ? 0.9 : 0.55, life: 0.22 });
       if (tags.includes('weakpoint')) g.vfx.text(hx, hy - 30, 'WEAK POINT', { color: '#5af0ff', size: 10 });
       if (tags.includes('armored') && !target.armorWarned) { target.armorWarned = true; g.vfx.text(hx, hy - 30, 'ARMORED — strike its back', { color: '#9ad8ff', size: 9 }); }
     } else {

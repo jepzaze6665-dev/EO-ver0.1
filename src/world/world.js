@@ -241,7 +241,7 @@ export class World {
           g.ui.banner('TOTEM DESTROYED', 'The corruption here recedes', '#ffd98a');
           g.vfx.shards(it.x, it.y - 20, '#b060ff', 30, 200);
           g.audio.sfx('shatter');
-          this.interactables.push({ id: 'chest_totem', kind: 'chest', x: it.x, y: it.y + 4, radius: 34, loot: [{ item: 'shadow_tonic', count: 2 }, { item: 'hp_potion', count: 2 }], gold: 80 });
+          this.interactables.push({ id: 'chest_totem', kind: 'chest', x: it.x, y: it.y + 4, radius: 34, loot: [{ item: 'umbral_band', count: 1 }, { item: 'hp_potion', count: 2 }], gold: 80 });
         }
       }
     };

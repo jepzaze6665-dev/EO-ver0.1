@@ -94,3 +94,44 @@ export function toBoss(g) {
   goto(g, 135, 37);
   g.simulate(3);
 }
+
+// Full regression of the V1.5 test sequence. Returns [step, pass, detail] rows.
+export function playthrough(g) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame();
+  let w = g.world;
+  const c = counters(g);
+  ok('Lumina Village', w.map.zoneAt(g.player.x, g.player.y) === 1);
+  use(g, 'npc_elder'); g.ui.panels.dialogueAction('quest:whispers');
+  ok('Quest accepted', g.quests.isActive('whispers'));
+  goto(g, 47, 150); g.simulate(1);
+  ok('Whispering Forest', g.quests.active.whispers.done.enter);
+  for (const [x, y] of [[38, 121], [20, 112], [54, 80], [66, 62]]) { goto(g, x, y); fight(g, 20, { god: true, until: () => g.quests.active.whispers.done.wolves }); if (g.quests.active.whispers.done.wolves) break; }
+  ok('Fight + wolves 5/5', g.quests.active.whispers.done.wolves, `kills=${g.stats.kills}`);
+  ok('Shadow Mark / Perfect Dodge / Shadow Break', c.breaks > 0 && c.perfect > 0, `perfect=${c.perfect} breaks=${c.breaks}`);
+  use(g, 'crack_info'); g.ui.panels.close();
+  const crack = w.breakables.find((b) => b.kind === 'crack');
+  goto(g, 70.5, 57); g.simulate(6, (gg, i) => bot(gg, i, { god: true, target: crack, breakables: true }));
+  ok('Hidden Area discovered', w.map.secretsFound.has(1));
+  use(g, 'ancient_shrine'); g.ui.panels.close();
+  use(g, 'gate_seal');
+  ok('Shrine + Gate', w.state.flags.shrineInvestigated && w.state.flags.gateOpened);
+  goto(g, 136, 60); for (let y = 60; y >= 50; y--) { g.player.y = y * 32; g.simulate(0.1); }
+  ok('Guardian discovered', w.state.flags.guardianDiscovered);
+  g.player.level = 13; g.player.recomputeStats(); g.player.hp = g.player.maxHp;
+  goto(g, 135, 37); g.simulate(3);
+  const gd = w.guardian, phases = new Set();
+  for (let s = 0; s < 80 && !gd.dead; s++) { g.simulate(5, (gg, i) => bot(gg, i, { god: true })); phases.add(gd.phase); }
+  ok('Boss phases 1-2-3', phases.has(1) && phases.has(2) && phases.has(3), [...phases].join(','));
+  ok('Weak windows used', c.weak > 0, `weak=${c.weak}`);
+  ok('Guardian defeated', gd.dead);
+  g.simulate(9);
+  ok('World State changed', w.state.flags.guardianDefeated && w.map.style.restored && !w.map.isSolid(32, 37));
+  goto(g, 32, 40); for (let y = 40; y >= 26; y--) { g.player.y = y * 32; g.simulate(0.08); }
+  ok('Ancient Valley revealed', w.currentZone === 6 && g.quests.isDone('valley'));
+  ok('Save', g.save.save());
+  const lvl = g.player.level;
+  g.loadGame(); w = g.world;
+  ok('Load', g.world.state.flags.guardianDefeated && g.player.level === lvl && g.world.currentZone !== undefined);
+  return R;
+}

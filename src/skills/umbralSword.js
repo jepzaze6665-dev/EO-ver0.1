@@ -18,6 +18,7 @@ function swing(p, g, a, o) {
 
 export const UmbralSword = {
   id: 'umbral_sword',
+  stableId: 'class_umbral_sword',
   name: 'Umbral Sword',
   resource: 'SHADOW',
   base: { hp: 250, atk: 20, def: 6, crit: 0.08, critDmg: 0, shadowDmg: 0, cdr: 0, speed: 152, shadowGain: 1, armorBreak: 1 },
@@ -33,12 +34,13 @@ export const UmbralSword = {
     ];
     const d = defs[step];
     return {
-      name: 'basic' + step, basic: true, step, dur: d.dur, anim: counter ? 'counter' : d.anim, moveMul: 0.35,
+      name: 'basic' + step, basic: true, step, dur: d.dur, anim: counter ? 'counter' : d.anim, moveMul: 0.5,
       ang: a, cancelAt: 0.05, comboAt: d.at + 0.08,
       lunge: { dist: counter ? 40 : d.lunge, t0: 0, t1: 0.1 },
       events: [[d.at, () => {
         let marked = false;
         swing(p, g, a, counter ? { r: 46, half: 1.5, width: 12, life: 0.3, sfx: 'counter' } : d.fx);
+        if (step === 2 || counter) g.vfx.sprite('slash', p.x + Math.cos(a) * 24, p.y - 14 + Math.sin(a) * 24, a, { scale: counter ? 1.1 : 0.85, life: 0.26 });
         if (counter) { p.counterT = 0; g.vfx.text(p.x, p.y - 64, 'COUNTER', { color: '#e0a0ff', size: 11 }); g.vfx.flash('150,60,255', 0.2, 6); }
         g.combat.spawnHitbox({
           owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: d.r + (counter ? 14 : 0), half: d.half + (counter ? 0.3 : 0),
@@ -63,7 +65,8 @@ export const UmbralSword = {
           name: 'shadow_slash', dur: 0.4, anim: 'shadowSlash', moveMul: 0.2, ang: a, cancelAt: 0.18,
           lunge: { dist: 48, t0: 0.04, t1: 0.14 },
           events: [[0.1, () => {
-            swing(p, g, a, { r: 44, half: 1.2, width: 12, life: 0.26, sfx: 'slash_heavy' });
+            swing(p, g, a, { r: 44, half: 1.2, width: 8, life: 0.2, sfx: 'slash_heavy' });
+            g.vfx.sprite('slash', p.x + Math.cos(a) * 34, p.y - 14 + Math.sin(a) * 34, a, { scale: 1.3, life: 0.3 });
             g.vfx.shadowSmoke(p.x, p.y, 6);
             g.combat.spawnHitbox({
               owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 76, half: 0.8, power: 2.1, type: 'shadow', knock: 180, stagger: 25, hitStop: 0.07, shake: 0.2,
@@ -81,7 +84,8 @@ export const UmbralSword = {
         const times = triple ? [0.07, 0.2, 0.33] : [0.07, 0.22];
         let marked = false;
         const ev = times.map((t, i) => [t, () => {
-          swing(p, g, a, { r: 36, half: 1.3, width: 9, flip: i % 2 === 1, life: 0.2, sfx: 'swing_fast' });
+          swing(p, g, a, { r: 36, half: 1.3, width: 5, flip: i % 2 === 1, life: 0.16, sfx: 'swing_fast' });
+          g.vfx.sprite('twin', p.x + Math.cos(a) * 28, p.y - 14 + Math.sin(a) * 28, a, { scale: 1.05, life: 0.24, flipY: i % 2 === 1 });
           g.combat.spawnHitbox({
             owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 60, half: 1.1, power: 1.35, type: 'shadow', knock: 80, stagger: 14, hitStop: 0.05, shake: 0.12,
             onHit: () => { p.gainShadow(2); if (!marked) { marked = true; p.addMark(1); } },
@@ -109,7 +113,8 @@ export const UmbralSword = {
               owner: p, x: sx, y: sy - 8, ang: Math.atan2(p.y - sy, p.x - sx), shape: 'line', len: len + 10, width: 22, power: 1.3, type: 'shadow', knock: 60, stagger: 12, hitStop: 0.05,
               onHit: (t) => { g.vfx.slash(t.x, t.y - 16, rand(0, TAU), 16, 1.6, { width: 5, life: 0.18, thin: true }); if (!marked) { marked = true; p.addMark(1); } },
             });
-            g.vfx.beam(sx, sy - 12, Math.atan2(p.y - sy, p.x - sx), len, 5, { life: 0.3 });
+            g.vfx.beam(sx, sy - 12, Math.atan2(p.y - sy, p.x - sx), len, 4, { life: 0.25 });
+            g.vfx.sprite('thrust', (sx + p.x) / 2, (sy + p.y) / 2 - 12, Math.atan2(p.y - sy, p.x - sx), { scale: Math.max(1, len / 80), life: 0.28 });
             if (p.mods.shadeBomb) {
               g.vfx.ring(sx, sy, 6, 50, { life: 0.4 });
               g.combat.spawnHitbox({ owner: p, x: sx, y: sy, shape: 'circle', r: 54, delay: 0.35, power: 1.4, type: 'shadow', knock: 150, hitStop: 0.05,
@@ -131,7 +136,8 @@ export const UmbralSword = {
             [0.12, () => {
               g.audio.sfx('arc');
               const c = fwd(p, a, 0);
-              for (let i = 0; i < 4; i++) g.after(i * 0.055, () => g.vfx.slash(c.x, c.y, a, 34 + i * 30, 1.25, { width: 12 - i * 2, life: 0.28 }));
+              for (let i = 0; i < 4; i++) g.after(i * 0.055, () => g.vfx.slash(c.x, c.y, a, 34 + i * 30, 1.25, { width: 8 - i * 1.5, life: 0.24 }));
+              for (let i = 0; i < 3; i++) g.after(i * 0.07, () => g.vfx.sprite('wave', c.x + Math.cos(a) * (40 + i * 42), c.y + Math.sin(a) * (40 + i * 42), a, { scale: 1.1 + i * 0.35, life: 0.3 }));
               g.combat.spawnHitbox({
                 owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'arcband', r0: 10, r: 40, half: 1.3, life: 0.28, power: 1.9, type: 'shadow', knock: 170, stagger: 20, hitStop: 0.05, shake: 0.22,
                 grow: (hb, dt) => { hb.r = Math.min(155, hb.r + dt * 420); hb.r0 = Math.max(10, hb.r - 60); },
@@ -167,7 +173,8 @@ export const UmbralSword = {
               g.hitStop = Math.max(g.hitStop, 0.16);
               g.vfx.flash('200,140,255', 0.5, 2.5);
               g.audio.sfx('ult_slash');
-              g.vfx.beam(p.x, p.y - 14, a, 230, 18, { life: 0.5 });
+              g.vfx.beam(p.x, p.y - 14, a, 230, 14, { life: 0.45 });
+              g.vfx.sprite('eclipse', p.x + Math.cos(a) * 90, p.y - 14 + Math.sin(a) * 90, a, { scale: 2.8, life: 0.55, glow: 0.5 });
               g.vfx.slash(p.x, p.y - 14, a, 70, 1.0, { width: 22, life: 0.4 });
               g.vfx.slash(p.x, p.y - 14, a, 110, 0.6, { width: 14, life: 0.45, flip: true });
               g.vfx.ring(p.x, p.y, 20, 170, { life: 0.5, width: 6, fill: true });
@@ -195,6 +202,7 @@ export const UmbralSword = {
     desc: 'Detonate 3 Shadow Marks: a massive burst around you. Devastating during a Weak Window.',
     cast(p, g, a) {
       const sigil = p.mods.sigil;
+      const bandMult = p.mods.breakDmg || 1;
       return {
         name: 'shadow_break', dur: 0.66, anim: 'shadowBreak', moveMul: 0, ang: a, cancelAt: 0.4, invuln: [0, 0.35], superArmor: true,
         start: () => {
@@ -211,6 +219,8 @@ export const UmbralSword = {
             g.camera.punch(0.22);
             g.camera.shake(0.7);
             g.vfx.startBreak(p.x, p.y);
+            g.vfx.sprite('burst', p.x, p.y - 16, 0, { scale: 2.6, life: 0.5, glow: 0.55 });
+            g.vfx.sprite('shards', p.x + Math.cos(a) * 60, p.y - 14 + Math.sin(a) * 60, a, { scale: 1.6, life: 0.4 });
             g.vfx.flash('230,190,255', 0.32, 3.5);
             g.vfx.ring(p.x, p.y, 10, 130, { life: 0.45, width: 7, fill: true });
             g.vfx.ring(p.x, p.y, 10, 90, { life: 0.35, width: 3, color: '255,240,255' });
@@ -219,7 +229,7 @@ export const UmbralSword = {
             g.vfx.light(p.x, p.y, 220, '#b060ff', 0.5, 1);
             g.audio.sfx('break');
             g.vfx.text(p.x, p.y - 84, 'SHADOW BREAK', { color: '#f0d0ff', size: 14, life: 1.2 });
-            const mult = sigil ? 1.4 : 1;
+            const mult = (sigil ? 1.4 : 1) * bandMult;
             g.combat.spawnHitbox({ owner: p, x: p.x, y: p.y - 8, shape: 'circle', r: 112, power: 2.6 * mult, type: 'shadow', knock: 300, stagger: 60, hitStop: 0.16, shake: 0.4, big: true, breakBonus: 1.5 });
             g.combat.spawnHitbox({ owner: p, x: p.x, y: p.y - 8, ang: a, shape: 'cone', r: 170, half: 0.55, power: 1.2 * mult, type: 'shadow', knock: 200, stagger: 25, hitStop: 0.05, breakBonus: 1.5 });
             p.gainShadow(20, true);
@@ -244,6 +254,7 @@ export const UmbralSword = {
     p.reduceCooldowns(1.0);
     p.status.add('haste', 1.5, { mult: 1.3, refresh: true });
     p.counterT = 1.3;
+    if (p.mods.perfectBonus) { p.addMark(1); p.gainShadow(15, true); }
   },
 };
 

@@ -168,7 +168,7 @@ export function buildForest(b) {
   b.propPx('waterfall', 2.5 * TILE, 105 * TILE, { layer: 'y', waterfall: true, w: 3.5 * TILE, h: 16 * TILE });
   b.prop('rock_moss2', 9, 92, { solid: true }); b.prop('rock_l2', 11, 104, { solid: true });
   b.prop('cry_white_l', 4, 95, { dy: -4, light: { r: 36, color: '#bfe8ff', a: 0.6 }, sparkle: true });
-  b.interact({ id: 'chest_falls', kind: 'chest', tx: 2, ty: 95, loot: [{ item: 'shadow_tonic', count: 2 }, { item: 'moon_crystal', count: 1 }], gold: 60, secret: 2, rare: true });
+  b.interact({ id: 'chest_falls', kind: 'chest', tx: 2, ty: 95, loot: [{ item: 'veil_stillness', count: 1 }, { item: 'moon_crystal', count: 1 }], gold: 60, secret: 2, rare: true });
   b.interact({ id: 'trig_falls', kind: 'trigger', tx: 4, ty: 95, radius: 40, secret: 2, discover: 'Behind the Waterfall' });
 
   // ---- log bridge shortcut (push from north bank)

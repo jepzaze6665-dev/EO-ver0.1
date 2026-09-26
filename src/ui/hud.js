@@ -13,8 +13,13 @@ const MINI_COLORS = {
   [T.RUIN]: '#4f5664', [T.MOSS_STONE]: '#44574a', [T.ARENA]: '#5a6476', [T.WATER]: '#215a80', [T.DEEP_WATER]: '#133452',
   [T.SHALLOW]: '#357a8c', [T.BRIDGE]: '#9a7550', [T.SAND]: '#7b7050', [T.CORRUPT]: '#3a2450', [T.CAVE]: '#3a3149',
   [T.VALLEY]: '#6a8a48', [T.CANOPY]: '#10201a', [T.CLIFF]: '#2a2a30', [T.RUIN_WALL]: '#22252e', [T.CAVE_WALL]: '#16121e',
-  [T.BUILDING]: '#8a5a3a', [T.VOID]: '#05040a',
+  [T.BUILDING]: '#8a5a3a', [T.STAIRS]: '#5e6676', [T.VOID]: '#05040a',
 };
+
+const LANDMARKS = [
+  ['Elder Tree', 18, 73], ['Stone Circle', 66, 62], ['Crystal Glade', 77, 121], ['Silverfall', 6, 98], ['River Crossing', 50, 98],
+  ['Abandoned Camp', 20, 132], ['Ancient Shrine', 136, 69], ['Guardian Gate', 136, 57], ['Ruin Courtyard', 136, 99], ['Ancient Valley', 36, 6],
+];
 
 export class HUD {
   constructor(game) {
@@ -158,8 +163,8 @@ export class HUD {
       if (i < p.marks) {
         ctx.fillStyle = p.marks === 3 ? '#f0c8ff' : '#b060ff'; ctx.fill();
         ctx.shadowColor = '#b060ff'; ctx.shadowBlur = 10 * u; ctx.fill(); ctx.shadowBlur = 0;
-      } else { ctx.fillStyle = 'rgba(40,20,60,0.9)'; ctx.fill(); }
-      ctx.strokeStyle = '#5a3a8a'; ctx.lineWidth = 1.5; ctx.stroke();
+      } else { ctx.fillStyle = 'rgba(20,10,34,0.6)'; ctx.fill(); }
+      ctx.strokeStyle = i < p.marks ? '#3a1a5a' : '#9a78c8'; ctx.lineWidth = 1.5 * u; ctx.stroke();
     }
     this.text(ctx, `${p.marks} / 3`, x + 172 * u, my + 17 * u, 13 * u, p.marks === 3 ? '#f4d8ff' : '#b8a0d8', { align: 'right' });
     if (p.marks === 3) this.text(ctx, 'SHADOW BREAK READY — [Q]', x, my + 42 * u, 11 * u, `rgba(240,200,255,${0.6 + 0.4 * Math.sin(g.time * 6)})`);
@@ -193,6 +198,10 @@ export class HUD {
       ctx.fillRect(W / 2 - 22 * u + i * 24 * u, y - 18 * u, 20 * u, 4 * u);
     }
     this.text(ctx, 'DODGE [SPACE]', W / 2, y - 22 * u, 9 * u, '#9ab8c8', { align: 'center' });
+    if (p.marks >= 3) {
+      const k = 0.65 + 0.35 * Math.sin(g.time * 8);
+      this.text(ctx, '◆ ◆ ◆  SHADOW BREAK READY  —  [Q]', W / 2, y - 42 * u, 15 * u * (0.95 + k * 0.08), `rgba(240,200,255,${k})`, { align: 'center', font: TITLE });
+    }
     slots.forEach((sl, i) => {
       if (i === cls.skills.length) x += 14 * u;
       const sx = x, sy = y;
@@ -281,6 +290,8 @@ export class HUD {
       if (it.kind === 'waystone' && w.state.waystones[it.id]) out.push({ x: it.x, y: it.y, c: '#5af0ff', r: 1.8, diamond: true });
       if (it.kind === 'chest' && !w.state.chests[it.id] && w.map.revealed[w.map.idx(Math.floor(it.x / TILE), Math.floor(it.y / TILE))] && (!it.secret || w.map.secretsFound.has(it.secret))) out.push({ x: it.x, y: it.y, c: '#ffc050', r: 1.2 });
     }
+    // landmarks appear once their area has been discovered
+    for (const [name, lx, ly] of LANDMARKS) if (w.state.subs[name]) out.push({ x: lx * TILE, y: ly * TILE, c: '#f0e6c8', r: 1.1, diamond: true });
     if (w.guardian && f.guardianDiscovered && !f.guardianDefeated) out.push({ x: w.guardian.home.x, y: w.guardian.home.y, c: '#ff4060', r: 3, boss: true });
     const q = this.questTarget();
     if (q) out.push({ x: q.x, y: q.y, c: '#ffe070', r: 2.4, quest: true });

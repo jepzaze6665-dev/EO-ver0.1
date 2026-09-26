@@ -40,6 +40,16 @@ export const ITEMS = {
     stats: { hp: 60, def: 3 }, mods: { perfectHeal: true },
     desc: 'The Guardian’s crystal heart, now calm.', modText: 'Perfect Dodge restores 5% HP.',
   },
+  veil_stillness: {
+    name: 'Veil of Stillness', cat: 'Armor', slot: 'accessory', rarity: 'epic', icon: 'charm', color: '#9af8ff',
+    stats: { crit: 0.04 }, mods: { perfectBonus: true },
+    desc: 'A silver veil found behind Silverfall.', modText: 'Perfect Dodge grants +1 extra Shadow Mark and +15 SHADOW.',
+  },
+  umbral_band: {
+    name: 'Umbral Band', cat: 'Armor', slot: 'accessory', rarity: 'epic', icon: 'sigil', color: '#b070ff',
+    stats: { atk: 2 }, mods: { breakDmg: 1.3 },
+    desc: 'A ring of blackened iron that drinks shadow.', modText: 'Shadow Break damage +30%.',
+  },
   // ---- consumables
   hp_potion: { name: 'Healing Draught', cat: 'Consumable', rarity: 'common', icon: 'potion', color: '#e05060', desc: 'Restores 40% HP. [R]', price: 30, use: 'heal' },
   shadow_tonic: { name: 'Shadow Tonic', cat: 'Consumable', rarity: 'common', icon: 'potion', color: '#a060ff', desc: 'Restores 50 SHADOW. [F]', price: 40, use: 'shadow' },
@@ -48,6 +58,7 @@ export const ITEMS = {
   goblin_iron: { name: 'Goblin Iron', cat: 'Material', rarity: 'common', icon: 'ore', color: '#8a8a90', desc: 'Crude iron scraps.', sell: 12 },
   crystal_shard: { name: 'Crystal Shard', cat: 'Material', rarity: 'uncommon', icon: 'shard', color: '#5af0ff', desc: 'Humming shard of forest crystal.', sell: 18 },
   moon_crystal: { name: 'Moonlit Crystal', cat: 'Material', rarity: 'rare', icon: 'shard', color: '#d0a0ff', desc: 'Rare crystal grown in darkness.', sell: 60 },
+  guardian_heartwood: { name: 'Guardian Heartwood', cat: 'Material', rarity: 'legendary', icon: 'ore', color: '#7af0c0', desc: 'Living wood from the Guardian. A smith in the Valley may know its use.', sell: 200 },
   // ---- quest
   seal_fragment: { name: 'Ancient Seal Fragment', cat: 'Quest Item', rarity: 'quest', icon: 'rune', color: '#5af0ff', desc: 'Resonates with the sealed Guardian Gate.' },
 };

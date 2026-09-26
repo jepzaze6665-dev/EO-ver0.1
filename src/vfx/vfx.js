@@ -1,5 +1,6 @@
 import { Pool } from '../core/pool.js';
 import { rand, TAU, easeOutCubic, clamp } from '../core/math.js';
+import { Assets } from '../core/assets.js';
 
 // All transient visual effects, pooled. World-space effects draw into the pixel
 // scene; damage numbers and floating texts draw at screen resolution for clarity.
@@ -14,6 +15,7 @@ export class VFX {
     this.ghosts = new Pool(() => ({}), 40);
     this.lights = new Pool(() => ({}), 48);
     this.beams = new Pool(() => ({}), 12);
+    this.sprites = new Pool(() => ({}), 40);
     this.screenFlash = { a: 0, color: '255,255,255', decay: 4 };
     this.eclipse = null; // ultimate black-sun effect
     this.breakFx = null; // shadow break burst
@@ -77,6 +79,14 @@ export class VFX {
     Object.assign(b, { x, y, ang, len, width, life: o.life ?? 0.35, max: o.life ?? 0.35, color: o.color ?? '180,90,255' });
     return b;
   }
+  // Hand-drawn skill effect strip, rotated to the aim angle. follow: entity to stick to.
+  sprite(name, x, y, ang, o = {}) {
+    const def = Assets.vfx[name];
+    if (!def) return null;
+    const s = this.sprites.spawn();
+    Object.assign(s, { def, x, y, ang, scale: o.scale ?? 1, life: o.life ?? 0.32, max: o.life ?? 0.32, follow: o.follow ?? null, off: o.off ?? 0, glow: o.glow ?? 0.35, flipY: !!o.flipY });
+    return s;
+  }
   damage(x, y, amount, o = {}) {
     const n = this.numbers.spawn();
     Object.assign(n, { x: x + rand(-8, 8), y, text: String(amount), life: 0.9, max: 0.9, vy: -40, crit: !!o.crit, color: o.color || '#fff', big: !!o.big });
@@ -110,7 +120,7 @@ export class VFX {
       p.x += p.vx * dt; p.y += p.vy * dt;
     });
     const tick = (pool) => pool.forEach((o) => { o.life -= dt; if (o.life <= 0) o.active = false; });
-    tick(this.slashes); tick(this.rings); tick(this.ghosts); tick(this.lights); tick(this.beams);
+    tick(this.slashes); tick(this.rings); tick(this.sprites); tick(this.ghosts); tick(this.lights); tick(this.beams);
     this.numbers.forEach((n) => { n.life -= dt; n.y += n.vy * dt; n.vy *= Math.exp(-3 * dt); if (n.life <= 0) n.active = false; });
     this.texts.forEach((t) => { t.life -= dt; t.y += t.vy * dt; t.vy *= Math.exp(-2 * dt); if (t.life <= 0) t.active = false; });
     this.screenFlash.a = Math.max(0, this.screenFlash.a - dt * this.screenFlash.decay);
@@ -151,6 +161,24 @@ export class VFX {
     });
     ctx.globalAlpha = 1;
 
+    // hand-drawn skill sprites (normal pass keeps their dark outline, additive pass adds glow)
+    for (const pass of [0, 1]) {
+      if (pass) ctx.globalCompositeOperation = 'lighter';
+      this.sprites.forEach((s) => {
+        const d = s.def, t = 1 - s.life / s.max;
+        const f = Math.min(d.frames - 1, Math.floor(t * d.frames));
+        const x = s.follow ? s.follow.x + Math.cos(s.ang) * s.off : s.x;
+        const y = s.follow ? s.follow.y - 14 + Math.sin(s.ang) * s.off : s.y;
+        ctx.save();
+        ctx.globalAlpha = pass ? s.glow * (1 - t * 0.6) : 1;
+        ctx.translate(x, y);
+        ctx.rotate(s.ang);
+        if (s.flipY) ctx.scale(1, -1);
+        ctx.scale(s.scale, s.scale);
+        ctx.drawImage(d.img, f * d.fw, 0, d.fw, d.fh, -d.fw / 2, -d.fh / 2, d.fw, d.fh);
+        ctx.restore();
+      });
+    }
     ctx.globalCompositeOperation = 'lighter';
     // particles
     this.particles.forEach((p) => {

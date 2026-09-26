@@ -279,8 +279,8 @@ export class Player extends Entity {
     } else if (this.hurtT > 0) {
       this.vx = damp(this.vx, 0, 10, dt); this.vy = damp(this.vy, 0, 10, dt);
     } else {
-      if (this.action) { tvx *= this.action.moveMul ?? 0.3; tvy *= this.action.moveMul ?? 0.3; }
-      const accel = mv.x || mv.y ? 22 : 16;
+      if (this.action) { tvx *= this.action.moveMul ?? 0.4; tvy *= this.action.moveMul ?? 0.4; }
+      const accel = mv.x || mv.y ? 30 : 22; // quick start / quick stop, minimal inertia
       this.vx = damp(this.vx, tvx, accel, dt);
       this.vy = damp(this.vy, tvy, accel, dt);
       map.moveCircle(this, this.vx * dt, this.vy * dt);

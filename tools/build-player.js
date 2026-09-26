@@ -12,21 +12,21 @@ fs.mkdirSync(OUT, { recursive: true });
 const SCALE = 0.42;
 // name -> [file, rows]
 const SHEETS = {
-  walk: ['UB/UB WALK1.png', 4],
-  run: ['UB/UB WALK2', 4],
-  atk1: ['UB/UB ATK1', 4],
-  atk2: ['UB/UB ATK2', 4],
-  guard: ['UB/UB DF', 4],
-  hit: ['UB/UB HIT', 4],
-  pr: ['UB/UB PR', 4],
-  sk1: ['UB/UB SK1.png', 4],
-  sk2: ['UB/UB SK2.png', 4],
-  sk3: ['UB/UB SK3.PNG', 4],
-  sk4: ['UB/UB SK4.png', 4],
-  sk5: ['UB/UB SK5.png', 4],
-  sk6: ['UB/UB SK6.png', 4],
-  ult: ['UB/UB UT.png', 4],
-  vfx: ['UB/UB VFX', 8],
+  walk: ['desgin/class cr/UB/UB WALK1.png', 4],
+  run: ['desgin/class cr/UB/UB WALK2', 4],
+  atk1: ['desgin/class cr/UB/UB ATK1', 4],
+  atk2: ['desgin/class cr/UB/UB ATK2', 4],
+  guard: ['desgin/class cr/UB/UB DF', 4],
+  hit: ['desgin/class cr/UB/UB HIT', 4],
+  pr: ['desgin/class cr/UB/UB PR', 4],
+  sk1: ['desgin/class cr/UB/UB SK1.png', 4],
+  sk2: ['desgin/class cr/UB/UB SK2.png', 4],
+  sk3: ['desgin/class cr/UB/UB SK3.PNG', 4],
+  sk4: ['desgin/class cr/UB/UB SK4.png', 4],
+  sk5: ['desgin/class cr/UB/UB SK5.png', 4],
+  sk6: ['desgin/class cr/UB/UB SK6.png', 4],
+  ult: ['desgin/class cr/UB/UB UT.png', 4],
+  vfx: ['desgin/class cr/UB/UB VFX', 8],
 };
 const COLS = 6;
 

@@ -173,6 +173,23 @@ function bridgeFn(seed) {
   };
 }
 
+// Steps that share the ruin-floor stone palette: lit tread, dark riser, worn edges.
+function stairsFn(seed) {
+  const p = PAL.ruin.map(hex);
+  return (x, y) => {
+    const ly = y % 8, step = Math.floor(y / 8);
+    const worn = hash2(x >> 2, step, seed);
+    let c;
+    if (ly >= 6) c = mix(p[3], [0, 0, 0], 0.25);             // riser shadow
+    else if (ly === 0) c = mix(p[2], [255, 255, 255], 0.12); // nosing highlight
+    else c = mix(p[0], p[1], worn * 0.6 + step * 0.08);      // tread (lighter toward the top)
+    if (x === 0 || x === 31) c = p[3];
+    if (ly < 6 && (x + step * 5) % 11 === 0) c = mix(c, p[3], 0.5); // block joints
+    if (hash2(x, y, seed) > 0.95) c = mix(c, hex('#3f6a3c'), 0.5);
+    return c;
+  };
+}
+
 function wallTop(seed) {
   return stones(['#50566a', '#5c6377', '#727a90', '#23262f'], seed, 8, { moss: true });
 }
@@ -209,6 +226,7 @@ export function buildTileset() {
   add(T.CAVE_WALL, (s) => canopyFn(['#1d1826', '#262033', '#3a3050', '#0d0a13'], s));
   add(T.VOID, (s) => voidFn(s));
   add(T.BRIDGE, (s) => bridgeFn(s));
+  add(T.STAIRS, (s) => stairsFn(s));
   add(T.BUILDING, (s) => grassLike(PAL.dirt, s));
   add(T.RUIN_WALL, (s) => wallTop(s));
 

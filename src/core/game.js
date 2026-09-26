@@ -212,6 +212,7 @@ export class Game {
       this.player.gainExp(boss.def.exp);
       this.player.gold += 300;
       this.inventory.add('guardian_heart', 1);
+      this.inventory.add('guardian_heartwood', 1);
       this.vfx.flash('200,255,220', 0.6, 0.8);
       this.ui.banner('WORLD STATE UPDATED', 'Whispering Forest has changed.', '#a8f0c8', 5);
       this.quests.accept('valley');

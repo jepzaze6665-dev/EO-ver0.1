@@ -32,7 +32,7 @@ export const MONSTERS = {
     pattern: 'Spike Ring / Crystal Ram', desc: 'Crystal armour absorbs most damage. Its glowing core is on its back — it turns slowly.',
     attacks: [
       { id: 'ring', range: 72, min: 0, windup: 1.0, recover: 1.0, cd: 3.5, power: 26, shape: { shape: 'ring', r0: 22, r: 84 }, kind: 'strike', knock: 220 },
-      { id: 'ram', range: 130, min: 40, windup: 0.85, recover: 1.1, cd: 4, power: 30, shape: { shape: 'line', len: 130, width: 20 }, kind: 'dash', dashTime: 0.3 },
+      { id: 'ram', range: 130, min: 40, windup: 0.85, recover: 1.4, cd: 4, power: 30, shape: { shape: 'line', len: 130, width: 20 }, kind: 'dash', dashTime: 0.3, exposes: 1.4 },
     ],
   },
   crystal_alpha: {
