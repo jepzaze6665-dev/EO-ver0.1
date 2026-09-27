@@ -260,9 +260,8 @@ export class World {
     const g = this.game;
     g.ui.banner('SECRET DISCOVERED', name, '#e0b0ff');
     g.audio.sfx('secret');
-    g.player.gainExp(60);
     this.applyState();
-    g.events.emit('secret', id);
+    g.events.emit('secretFound', { id, name });
     g.save.dirty = true;
   }
 
@@ -288,7 +287,7 @@ export class World {
       if (!this.state.subs[sa.name]) {
         this.state.subs[sa.name] = true;
         if (sa.secret) this.discoverSecret(sa.secret, sa.name.toUpperCase());
-        else if (sa.zone !== Z.VILLAGE) { g.ui.subBanner(sa.name); g.player.gainExp(10); }
+        else if (sa.zone !== Z.VILLAGE) { g.ui.subBanner(sa.name); g.events.emit('areaDiscovered', { name: sa.name, zone: sa.zone }); }
         g.save.dirty = true;
       }
     }

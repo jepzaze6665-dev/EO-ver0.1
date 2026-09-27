@@ -58,9 +58,8 @@ export function interact(w, it) {
       g.ui.showLore(lore.title, lore.text);
       if (first) {
         g.audio.sfx('lore');
-        p.gainExp(25);
         for (const [type, field] of lore.reveal || []) g.knowledge.reveal(type, field);
-        g.events.emit('loreFound', it.lore);
+        g.events.emit('loreFound', { id: it.lore });
         g.save.dirty = true;
       }
       break;

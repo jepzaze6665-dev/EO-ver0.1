@@ -70,6 +70,14 @@ test('summoned adds give nothing (no infinite EXP / loot)', () => {
   eq(g.got.exp, 0); eq(g.got.gold, 0);
 });
 
+test('EXP sources: quest reward + exploration events use data values', () => {
+  const g = fakeGame();
+  g.events.emit('questCompleted', { id: 'q', reward: { exp: 80 } });
+  g.events.emit('secretFound', { id: 1 }); g.events.emit('areaDiscovered', {}); g.events.emit('loreFound', {});
+  g.events.emit('questCompleted', { id: 'q2', reward: {} });
+  eq(g.got.exp, 80 + 60 + 10 + 25);
+});
+
 console.log('monster foundation');
 const { Monster } = await import('../../src/monsters/monster.js');
 const { ELITE_MOD, CORRUPT_MOD, MONSTER_STATE } = await import('../../src/monsters/monsterTypes.js');
