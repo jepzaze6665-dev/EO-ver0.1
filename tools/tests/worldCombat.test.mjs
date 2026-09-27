@@ -75,7 +75,8 @@ test('EXP sources: quest reward + exploration events use data values', () => {
   g.events.emit('questCompleted', { id: 'q', reward: { exp: 80 } });
   g.events.emit('secretFound', { id: 1 }); g.events.emit('areaDiscovered', {}); g.events.emit('loreFound', {});
   g.events.emit('questCompleted', { id: 'q2', reward: {} });
-  eq(g.got.exp, 80 + 60 + 10 + 25);
+  g.events.emit('hiddenFound', { id: 'x', reward: { exp: 60, gold: 7 } });
+  eq(g.got.exp, 80 + 10 + 25 + 60, 'secretFound itself gives nothing; the hidden entry pays'); eq(g.got.gold, 7);
 });
 
 console.log('monster foundation');

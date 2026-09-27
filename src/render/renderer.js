@@ -123,6 +123,7 @@ export class Renderer {
     // ground decals (runes, circles, fallen logs)
     for (const p of props) if (p.layer === 'ground') this.drawProp(ctx, p, game, true);
     this.drawHazards(ctx, game);
+    game.world.hazardSys.draw(ctx, t);
     game.vfx.drawBelow(ctx, t);
 
     // y-sorted objects

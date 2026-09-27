@@ -20,6 +20,7 @@ export class LootSystem {
     this.rng = rng;
     game.events.on('enemyDefeated', (e) => this.onDefeated(e));
     game.events.on('questCompleted', (e) => this.giveReward(e.reward)); // quest gold + items (EXP: ExperienceSystem)
+    game.events.on('hiddenFound', (e) => this.giveReward(e.reward));
   }
   giveReward(r) {
     if (!r) return;

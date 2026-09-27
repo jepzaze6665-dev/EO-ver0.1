@@ -201,9 +201,9 @@ export function mechanicChecks(g, classId) {
   if (stealth) {
     g.newGame(classId); releaseInput(g); p = g.player;
     goto(g, 38, 121);
-    const foe = g.world.monsters.filter((m) => !m.dead).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+    const foe = g.world.monsters.filter((m) => !m.dead && g.world.onMap(m)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
     // out of lunge range (a monster right on top of you still sees you, by design: < 70 px)
-    p.x = foe.x + 240; p.y = foe.y; p.resources.set(rid, 100); p.skillSys.cooldowns.clear(stealth.id);
+    const spot = g.world.map.findOpen(foe.x + 240, foe.y, 4); p.x = spot.x; p.y = spot.y; p.resources.set(rid, 100); p.skillSys.cooldowns.clear(stealth.id);
     const casted = p.trySkill(stealth); g.simulate(0.15); const veiled = p.status.flag('stealth');
     foe.aggro = true; foe.setState('chase'); g.simulate(1.5);
     ok('Stealth: chasing monster loses track', !foe.aggro && foe.state !== 'chase', `${foe.type} state=${foe.state} aggro=${foe.aggro} cast=${casted} veiled=${veiled} dist=${Math.round(Math.hypot(foe.x - p.x, foe.y - p.y))} hurt=${p.hurtT.toFixed(2)} act=${p.action && p.action.name}`);
@@ -255,7 +255,7 @@ export function mechanicChecks(g, classId) {
     ok('Guard does not cover the back', flank.lost > open * 0.8 && flank.lost > blocked.lost * 2, `from behind ${flank.lost} (open ${open}, blocked ${blocked.lost})`);
     // taunt: an idle monster must come for the Guardian, and it hits 20% softer
     g.newGame(classId); releaseInput(g); p = g.player; goto(g, 38, 121);
-    const foe = g.world.monsters.filter((m) => !m.dead && m.type === 'wolf').sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+    const foe = g.world.monsters.filter((m) => !m.dead && m.type === 'wolf' && g.world.onMap(m)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
     foe.aggro = false; foe.setState('idle');
     p.cls.markTarget(p, g, foe);
     g.simulate(0.2);

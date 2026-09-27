@@ -11,7 +11,7 @@
 //  levelUp.restoreHp        : refill HP on level up
 //  levelUp.resource         : 'max' fill the class resource · 'respawn' raise it to its respawn value · 'none'
 //  expSources               : EXP for exploration events (monsters / bosses use their own expReward,
-//                             quests their reward.exp)
+//                             quests / hidden content their reward.exp)
 export const LEVELS = {
   start: { level: 1, gold: 120 },
   maxLevel: 30,
@@ -19,5 +19,5 @@ export const LEVELS = {
   table: {},
   statGrowth: 0.35,
   levelUp: { restoreHp: true, resource: 'respawn' },
-  expSources: { secretFound: 60, areaDiscovered: 10, loreFound: 25 },
+  expSources: { areaDiscovered: 10, loreFound: 25 },
 };

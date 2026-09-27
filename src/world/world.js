@@ -11,6 +11,7 @@ import { dist, rand, TAU, pick } from '../core/math.js';
 import { Assets } from '../core/assets.js';
 import { MapManager } from './mapManager.js';
 import { TransitionSystem } from './transitionSystem.js';
+import { HazardSystem } from './hazardSystem.js';
 import { MAPS } from '../maps/mapRegistry.js';
 
 const REVEAL_R = 10;
@@ -47,6 +48,7 @@ export class World {
     // separate maps (Lumina / A1 / A2 / A3 / Boss Arena / Valley) over the generated terrain + exits between them
     this.mapManager = new MapManager(map, MAPS);
     this.transitions = new TransitionSystem(this);
+    this.hazardSys = new HazardSystem(this, MAPS); // map hazards (maps/*.js content.hazards)
     this.mapId = null;
     this.suppressZoneBanner = false;
 
@@ -74,7 +76,7 @@ export class World {
   }
 
   freshState() {
-    return { flags: {}, chests: {}, lore: {}, waystones: {}, nodes: {}, subs: {}, secrets: [], lastWaystone: null, killed: {}, maps: {} };
+    return { flags: {}, chests: {}, lore: {}, waystones: {}, nodes: {}, subs: {}, secrets: [], lastWaystone: null, killed: {}, maps: {}, hidden: {} };
   }
 
   makeBreakables() {
@@ -244,7 +246,9 @@ export class World {
       if (!this.guardian) this.guardian = new Guardian(g, d.x, d.y);
       return;
     }
-    const corrupted = !d.tutorial && !this.state.flags.guardianDefeated && this.map.zoneAt(d.x, d.y) === Z.FOREST;
+    // corrupted beasts: maps that say so (A2 Deep Forest), until the Guardian falls; tutorial spawns never
+    const home = this.mapManager && this.mapManager.get(this.mapManager.idAt(d.x, d.y));
+    const corrupted = !d.tutorial && !this.state.flags.guardianDefeated && !!(home && home.corruptedMonsters);
     for (let i = 0; i < d.count; i++) {
       const a = rand(0, TAU), r = rand(0, d.radius * TILE);
       const pos = this.map.findOpen(d.x + Math.cos(a) * r, d.y + Math.sin(a) * r, 4);
@@ -523,6 +527,7 @@ export class World {
     }
     if (this.totemTick) this.totemTick();
     this.updateHazards(dt);
+    this.hazardSys.update(dt);
     // respawns
     for (const sp of this.spawnPoints) {
       if (!sp.active || sp.def.unique || sp.def.type === 'guardian') continue;

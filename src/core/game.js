@@ -22,6 +22,7 @@ import { SUMMONS } from '../data/summons.js';
 import { Progression } from '../progression/progression.js';
 import { ExperienceSystem } from '../progression/experienceSystem.js';
 import { LootSystem } from '../loot/lootSystem.js';
+import { HiddenSystem } from '../world/hiddenSystem.js';
 import { TargetSystem } from '../combat/targetSystem.js';
 import { changeClass } from '../progression/classChange.js';
 import { CLASS_TREE, TRIALS } from '../data/classTree.js';
@@ -154,6 +155,8 @@ export class Game {
     // enemyDefeated -> EXP / loot (rules in data/levels.js, data/lootTables.js)
     this.experience = new ExperienceSystem(this);
     this.loot = new LootSystem(this);
+    // hidden areas / triggers / rare events (data/hidden.js)
+    this.hidden = new HiddenSystem(this);
     // current target (Tab = nearest / cycle, click an enemy, or hit one); the HUD reads targets.current
     this.targets = new TargetSystem({
       candidates: () => this.world.hostiles().filter((e) => !e.isBreakable),
