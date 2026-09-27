@@ -265,14 +265,29 @@ export class Game {
     return r;
   }
   continueGame() { this.loadGame(); }
+  // saveGame / loadGame: the spec's API (storage + format live in save/)
+  saveGame() {
+    const ok = this.save.save();
+    this.ui.toast(ok ? 'Game saved' : this.save.lastError, 1.5);
+    return ok;
+  }
   loadGame() {
     const d = this.save.load();
-    if (!d) { this.ui.toast('No save found', 1.5); return; }
-    this.applySave(d);
+    if (!d) { this.ui.toast(this.save.lastError || 'No save found', 2); return false; }
+    try {
+      this.applySave(d);
+    } catch (e) {
+      console.error('load failed', e);
+      this.ui.toast('Save could not be loaded', 2.5);
+      this.boot(); // back to a clean title screen instead of a half-loaded world
+      return false;
+    }
+    if (this.save.usedBackup) this.ui.toast(this.save.lastError, 3);
     this.ui.panels.close(true);
     this.state = 'play';
     this.audio.init();
     this.ui.banner('WELCOME BACK', `${this.player.cls.name} · LV.${this.player.level}`, '#e8d0ff');
+    return true;
   }
   resetGame() {
     this.save.reset();

@@ -494,7 +494,7 @@ export class Panels {
     el.addEventListener('click', (e) => {
       const a = e.target.dataset.a;
       if (a === 'resume') this.close();
-      if (a === 'save') { g.save.save(); this.menu(); g.ui.toast('Game saved', 1.5); }
+      if (a === 'save') { g.saveGame(); this.menu(); }
       if (a === 'load') { this.close(); g.loadGame(); }
       if (a === 'reset') {
         if (e.target.dataset.confirm) { this.close(); g.resetGame(); }
