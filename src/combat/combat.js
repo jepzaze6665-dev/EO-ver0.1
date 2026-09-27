@@ -3,6 +3,7 @@ import { angleTo, inCone, inLine, rand, TAU } from '../core/math.js';
 import { Telegraphs } from './telegraph.js';
 import { Projectiles } from './projectiles.js';
 import { computeDamage } from './damageSystem.js';
+import { STATUSES } from '../data/statuses.js';
 
 // Class-agnostic combat resolver. Skills from any class spawn hitboxes described
 // as data; enemies resolve telegraphed strikes through enemyStrike(). All feedback
@@ -58,7 +59,22 @@ export class Combat {
     return false;
   }
 
+  // statuses queue their damage ticks and events; combat turns them into real damage + bus events
+  updateStatuses() {
+    const g = this.game, list = [g.player, ...g.world.hostiles()];
+    for (const e of list) {
+      if (!e || !e.status) continue;
+      for (const ev of e.status.drainEvents()) g.events.emit(ev.name, ev);
+      for (const t of e.status.drainTicks()) {
+        if (e.dead || !(t.amount > 0)) continue;
+        const d = STATUSES[t.id];
+        this.dealDamage(t.source && !t.source.dead ? t.source : null, e, { power: t.amount, flat: true, dot: true, type: t.type, statusId: t.id, color: d.display && d.display.color });
+      }
+    }
+  }
+
   update(dt) {
+    this.updateStatuses();
     this.telegraphs.update(dt);
     this.projectiles.update(dt);
     for (const hb of this.hitboxes) {
@@ -90,9 +106,13 @@ export class Combat {
     const attacker = src && src.stats ? { stats: src.stats, damageMult: src.status ? src.status.damageMult() : 1 } : null;
     const res = computeDamage(attacker, {
       defense: target.defense, stats: target.stats, weakness: target.weakness,
-      vulnerable: target.status && target.status.has('vulnerable'), armor: target.armor,
+      vulnerable: target.status && target.status.isVulnerable(), armor: target.armor,
+      damageTakenMult: target.status ? target.status.damageTakenMult() : 1,
     }, { ...opts, weakPoint: behind });
-    const { amount, crit, tags } = res;
+    const { crit, tags } = res;
+    // shields (status 'shield') soak damage before HP
+    const absorbed = target.status ? res.amount - target.status.absorb(res.amount) : 0;
+    const amount = res.amount - absorbed;
     // 2) APPLY — state changes
     if (res.armorDamage) {
       target.armor = Math.max(0, target.armor - res.armorDamage);
@@ -105,14 +125,19 @@ export class Combat {
     // knockback & stagger
     const kb = (opts.knock || 0) * (target.superArmor ? 0.15 : 1);
     if (kb > 0) target.knockback(opts.knockAng ?? ang, kb);
-    if (target.onHurt) target.onHurt(amount, src, opts, ang);
+    // DoT ticks skip hurt reactions (no stagger / i-frames); entities may still count them via onDot
+    if (opts.dot) { if (target.onDot) target.onDot(amount, src, opts); } else if (target.onHurt) target.onHurt(amount, src, opts, ang);
 
     // feedback
     const hx = target.x, hy = target.y - (target.height || 30) * 0.5;
     const col = fromPlayer ? (opts.type === 'shadow' ? '#c070ff' : '#e8ddff') : '#ff5050';
-    g.vfx.damage(hx, hy - 6, amount, { crit, color: fromPlayer ? (crit ? '#ffd24a' : '#ffffff') : '#ff6060', big: opts.big, tags });
-    g.vfx.spark(hx, hy, ang, col, crit ? 12 : 7);
-    if (fromPlayer) {
+    if (absorbed > 0) g.vfx.text(hx, hy - 18, `-${Math.round(absorbed)} SHIELD`, { color: '#fff0a0', size: 9 });
+    if (opts.dot) {
+      // damage-over-time tick: small number in the status colour, no hit stop / shake / spark
+      g.vfx.damage(hx, hy - 6, amount, { color: opts.color || '#ffb060', tags });
+    } else if (fromPlayer) {
+      g.vfx.damage(hx, hy - 6, amount, { crit, color: crit ? '#ffd24a' : '#ffffff', big: opts.big, tags });
+      g.vfx.spark(hx, hy, ang, col, crit ? 12 : 7);
       g.hitStop = Math.max(g.hitStop, (opts.hitStop ?? 0.05) * (crit ? 1.4 : 1));
       g.camera.shake(opts.shake ?? 0.12);
       g.audio.sfx(crit ? 'crit' : 'hit');
@@ -120,6 +145,8 @@ export class Combat {
       if (tags.includes('weakpoint')) g.vfx.text(hx, hy - 30, 'WEAK POINT', { color: '#5af0ff', size: 10 });
       if (tags.includes('armored') && !target.armorWarned) { target.armorWarned = true; g.vfx.text(hx, hy - 30, 'ARMORED — strike its back', { color: '#9ad8ff', size: 9 }); }
     } else {
+      g.vfx.damage(hx, hy - 6, amount, { crit, color: '#ff6060', big: opts.big, tags });
+      g.vfx.spark(hx, hy, ang, col, crit ? 12 : 7);
       g.audio.sfx('hurt');
     }
 

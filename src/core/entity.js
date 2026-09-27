@@ -16,7 +16,7 @@ export class Entity {
     this.dead = false;
     this.flash = 0;
     this.facing = 0;
-    this.status = new StatusSet();
+    this.status = new StatusSet(this); // generic status effects (rules in data/statuses.js)
     this.height = 40; // visual height for damage numbers / bars
     this.hurtable = true;
     this.mass = 1;

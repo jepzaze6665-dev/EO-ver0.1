@@ -115,7 +115,7 @@ export class Monster extends Entity {
     }
     if (this.corrupted && Math.random() < 0.06) g.vfx.particle(this.x + rand(-8, 8), this.y - rand(4, this.height), { color: '#9a40ff', vy: -20, life: 0.6, size: 2, add: true });
 
-    if (this.status.has('stun')) { this.moving = false; return; }
+    if (!this.status.canAct()) { this.moving = false; return; }
     const dP = dist(this.x, this.y, p.x, p.y);
     const speed = this.def.speed * this.mod.speed * this.status.moveMult();
     const detect = this.def.detect * this.mod.detect * (g.player.sprinting ? 1.15 : 1);

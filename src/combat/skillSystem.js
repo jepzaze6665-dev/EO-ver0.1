@@ -15,7 +15,7 @@ import { Cooldowns } from './cooldownSystem.js';
 // Caster interface (duck-typed): resources (ResourcePool), stats.cdr, primaryResource,
 //   canAct(skill) -> bool, and whatever fields REQUIREMENTS read.
 export const SKILL_FAIL = {
-  UNKNOWN: 'unknown', BUSY: 'busy', COOLDOWN: 'cooldown', REQUIREMENT: 'requirement', RESOURCE: 'resource',
+  UNKNOWN: 'unknown', BUSY: 'busy', SILENCED: 'silenced', COOLDOWN: 'cooldown', REQUIREMENT: 'requirement', RESOURCE: 'resource',
 };
 
 // Requirement checks are data -> predicate. New condition types register here, not in the pipeline.
@@ -56,6 +56,8 @@ export class SkillSystem {
     const s = this.skills[id];
     if (!s) return { ok: false, reason: SKILL_FAIL.UNKNOWN };
     if (this.caster.canAct && !this.caster.canAct(s)) return { ok: false, reason: SKILL_FAIL.BUSY, skill: s };
+    // status effects (silence) — any caster with a StatusSet; basic attacks are not skills-that-cast
+    if (this.caster.status && this.caster.status.canCast && !this.caster.status.canCast() && s.type !== 'basic') return { ok: false, reason: SKILL_FAIL.SILENCED, skill: s };
     if (!this.cooldowns.ready(id)) return { ok: false, reason: SKILL_FAIL.COOLDOWN, skill: s, remaining: this.cooldowns.remaining(id) };
     for (const r of s.requirements || []) {
       const check = REQUIREMENTS[r.type];

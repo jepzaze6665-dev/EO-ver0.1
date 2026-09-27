@@ -5,9 +5,11 @@
 //
 // attacker: { stats?: {atk, crit, critDmg, shadowDmg, magicDmg, armorBreak}, damageMult? }
 //           — no stats means a "flat" attacker (monsters): the hit's power is the raw damage.
-// target:   { defense?, stats?: {def}, weakness?: [], vulnerable?: bool, armor?: number }
+// target:   { defense?, stats?: {def}, weakness?: [], vulnerable?: bool, armor?: number,
+//             damageTakenMult?: number (statuses: curse > 1, damage reduction < 1) }
 // hit:      { power, type ('physical'|'shadow'|'magic'|...), critBonus?, forceCrit?,
-//             breakBonus?, armorBreak?, weakPoint?: bool (attacker is behind the target) }
+//             breakBonus?, armorBreak?, weakPoint?: bool (attacker is behind the target),
+//             flat?: bool (power is raw damage even with an attacker — damage-over-time ticks) }
 // roll:     () => number in [0,1)  — injectable so tests and a future server are deterministic
 
 export const DAMAGE_RULES = {
@@ -28,9 +30,9 @@ export function computeDamage(attacker, target, hit, roll = Math.random) {
   let amount, crit = false, armorDamage = 0;
   // invalid numbers (NaN, ±Infinity, negatives) are bad data: treat as 0, never as a default
   const num = (v, dflt) => (v === undefined ? dflt : Number.isFinite(v) ? Math.max(0, v) : 0);
-  const power = num(hit.power, st ? 1 : 10);
+  const power = num(hit.power, st && !hit.flat ? 1 : 10);
 
-  if (st) {
+  if (st && !hit.flat) {
     amount = power * num(st.atk, 0);
     // type bonus: stats.<type>Dmg (e.g. shadowDmg, magicDmg) — no class names in the core
     const typeBonus = st[(hit.type || 'physical') + 'Dmg'] || 0;
@@ -50,6 +52,7 @@ export function computeDamage(attacker, target, hit, roll = Math.random) {
       tags.push('armored');
     }
   }
+  amount *= num(target.damageTakenMult, 1);
   const def = target.defense ?? (target.stats ? target.stats.def : 0) ?? 0;
   amount = Math.max(R.minDamage, amount - def * R.defenseFactor);
   amount *= 1 + (roll() * 2 - 1) * R.variance;

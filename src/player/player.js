@@ -188,7 +188,7 @@ export class Player extends Entity {
   }
 
   tryDodge() {
-    if (this.dodgeCharges <= 0 || this.hurtT > 0) return false;
+    if (this.dodgeCharges <= 0 || this.hurtT > 0 || !this.status.canMove()) return false;
     if (this.action && this.action.t < (this.action.cancelAt ?? 0)) return false;
     const g = this.game, mv = g.input.moveVector();
     const ang = mv.x || mv.y ? Math.atan2(mv.y, mv.x) : this.aim;
@@ -204,7 +204,7 @@ export class Player extends Entity {
   // --- caster interface used by the generic SkillSystem ---
   // Caster-state rules only (the pipeline handles cooldown / cost / requirements).
   canAct(skill) {
-    if (this.dead || this.hurtT > 0 || this.status.has('stun')) return false;
+    if (this.dead || this.hurtT > 0 || !this.status.canAct()) return false;
     if (this.action && !this.action.basic && this.action.t < (this.action.cancelAt ?? 0)) return false;
     if (this.dodging && !this.dodgeFromSkill && this.dodgeT < DODGE_TIME * 0.6) return false;
     return true;
@@ -219,7 +219,7 @@ export class Player extends Entity {
   tryBreak() { return this.trySkill(this.cls.special); }
 
   tryAttack() {
-    if (this.hurtT > 0 || this.dodging) return false;
+    if (this.hurtT > 0 || this.dodging || !this.status.canAct()) return false;
     const a = this.action;
     if (a) {
       if (!a.basic || a.t < a.comboAt) return false;

@@ -29,7 +29,8 @@ export class Renderer {
 
   resize() {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const W = window.innerWidth, H = window.innerHeight;
+    // never 0: a hidden / minimised window reports 0x0 and drawImage() throws on empty canvases
+    const W = Math.max(1, window.innerWidth), H = Math.max(1, window.innerHeight);
     this.canvas.width = Math.floor(W * dpr);
     this.canvas.height = Math.floor(H * dpr);
     this.canvas.style.width = W + 'px';
@@ -37,7 +38,7 @@ export class Renderer {
     this.dpr = dpr;
     // integer pixel scale giving a virtual height of ~340-450 px
     this.scale = Math.max(1, Math.round((H * dpr) / 400));
-    const vw = Math.ceil(this.canvas.width / this.scale), vh = Math.ceil(this.canvas.height / this.scale);
+    const vw = Math.max(1, Math.ceil(this.canvas.width / this.scale)), vh = Math.max(1, Math.ceil(this.canvas.height / this.scale));
     this.scene.width = vw; this.scene.height = vh;
     this.light.width = vw; this.light.height = vh;
     this.sctx.imageSmoothingEnabled = false;

@@ -77,7 +77,7 @@ The combat core never references Umbral Sword directly: a class is a stat block 
 Unit tests (pure combat core, no browser):
 
 ```bash
-node tools/tests/run.mjs          # all unit tests
+node tools/tests/run.mjs          # all unit tests (combat, resource, skill, mark, status)
 ```
 
 In-game: a **training yard** with 3 Training Dummies (HP, DPS meter, auto-reset) stands west of the Lumina fountain.

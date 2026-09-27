@@ -36,6 +36,7 @@ export class TrainingDummy extends Entity {
     this.hits.push([this.game.time, amount]);
     if (this.hits.length > 200) this.hits.splice(0, this.hits.length - 200);
   }
+  onDot(amount) { this.onHurt(amount); } // damage-over-time ticks count for the DPS meter
   onDeath() {
     this.dead = true;
     this.respawnT = RESPAWN_AFTER;

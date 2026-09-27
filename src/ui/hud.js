@@ -6,6 +6,7 @@ import { RARITY_COLOR } from '../items/items.js';
 import { STAGGER_MAX } from '../boss/guardian.js';
 import { RESOURCES } from '../data/resources.js';
 import { MARKS } from '../data/marks.js';
+import { STATUSES } from '../data/statuses.js';
 
 const FONT = '"Trebuchet MS", "Segoe UI", sans-serif';
 const TITLE = 'Georgia, "Times New Roman", serif';
@@ -181,8 +182,11 @@ export class HUD {
     // status chips
     let sx = x;
     const chips = [];
-    if (p.status.has('surge')) chips.push(['SURGE', '#e0a0ff']);
-    if (p.status.has('haste')) chips.push(['HASTE', '#9af8ff']);
+    // any status with display data (data/statuses.js) — stacks shown as ×N
+    for (const st of p.status.list()) {
+      const disp = STATUSES[st.id].display;
+      if (disp) chips.push([st.stacks > 1 ? `${disp.label} ×${st.stacks}` : disp.label, disp.color]);
+    }
     if (p.counterT > 0) chips.push(['COUNTER READY', '#ffd070']);
     if (g.world.state.flags.moonBlessing) chips.push(['MOON BLESSING', '#dfe8ff']);
     for (const [label, col] of chips) {
@@ -459,6 +463,16 @@ export class HUD {
     });
   }
 
+  // short labels for debuffs on enemies (vulnerable has its own big label)
+  drawStatuses(ctx, u, entity, x, y) {
+    const parts = [];
+    for (const st of entity.status.list()) {
+      const disp = STATUSES[st.id].display;
+      if (disp && !STATUSES[st.id].vulnerable) parts.push([st.stacks > 1 ? `${disp.label}×${st.stacks}` : disp.label, disp.color]);
+    }
+    parts.forEach(([label, col], i) => this.text(ctx, label, x + (i - (parts.length - 1) / 2) * 52 * u, y, 8 * u, col, { align: 'center' }));
+  }
+
   drawNameplates(ctx, u) {
     const g = this.game, kn = g.knowledge, p = g.player;
     for (const m of g.world.monsters) {
@@ -476,6 +490,7 @@ export class HUD {
       }
       if (m.status.has('vulnerable')) this.text(ctx, 'VULNERABLE', s.x, s.y - 22 * u, 9 * u, '#9af8ff', { align: 'center' });
       this.drawMarks(ctx, u, m, s.x, s.y + 14 * u);
+      this.drawStatuses(ctx, u, m, s.x, s.y - 34 * u);
     }
     for (const n of g.world.npcs) {
       if (n.secret && !g.world.map.secretsFound.has(n.secret)) continue;
@@ -491,6 +506,7 @@ export class HUD {
       if (!d.dead) this.bar(ctx, s.x - 34 * u, s.y - 14 * u, 68 * u, 5 * u, d.hp / d.maxHp, '#ffb070', '#905020');
       if (d.dps) this.text(ctx, `DPS ${d.dps}`, s.x, s.y + 2 * u, 10 * u, '#ffd96a', { align: 'center' });
       this.drawMarks(ctx, u, d, s.x, s.y + 16 * u);
+      this.drawStatuses(ctx, u, d, s.x, s.y - 32 * u);
     }
     for (const b of g.world.breakables) {
       if (b.dead || b.hp >= b.maxHp) continue;
