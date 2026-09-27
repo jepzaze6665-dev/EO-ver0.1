@@ -19,6 +19,13 @@ export class LootSystem {
     this.game = game;
     this.rng = rng;
     game.events.on('enemyDefeated', (e) => this.onDefeated(e));
+    game.events.on('questCompleted', (e) => this.giveReward(e.reward)); // quest gold + items (EXP: ExperienceSystem)
+  }
+  giveReward(r) {
+    if (!r) return;
+    const g = this.game;
+    if (r.gold) g.player.addGold(r.gold);
+    for (const [id, n] of Object.entries(r.items || {})) g.inventory.add(id, n, true);
   }
   onDefeated(e) {
     if (e.summoned || !e.loot) return; // summoned adds (boss roots, ...) give nothing

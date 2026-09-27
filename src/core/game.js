@@ -76,6 +76,14 @@ export class Game {
     });
     ev.on('lootDropped', (e) => { if (e.gold) this.vfx.text(e.x, e.y - 10, `+${e.gold}G`, { color: '#ffd24a', size: 8, life: 0.8 }); });
     ev.on('chestOpened', () => { this.stats.chests++; });
+    // quest feedback (the Quest System only reports; rewards: ExperienceSystem + LootSystem)
+    ev.on('questAccepted', (e) => { this.ui.questBanner('NEW QUEST', e.quest.name); this.audio.sfx('quest'); });
+    ev.on('questUpdated', (e) => { if (e.done) this.ui.notify(this.quests.data[e.id].name, '✓ ' + e.text, '#a8f0b0'); });
+    ev.on('questCompleted', (e) => {
+      const r = e.reward;
+      this.ui.questBanner('QUEST COMPLETE', e.quest.name + (r.gold || r.exp ? `   +${r.gold || 0}G  +${r.exp || 0} EXP` : ''));
+      this.audio.sfx('quest_done');
+    });
     ev.on('itemCollected', (e) => { if (!e.silent) this.ui.pickup(ITEMS[e.id], e.n); });
     ev.on('inventoryFull', (e) => this.ui.toast(`${ITEMS[e.id].name}: inventory full`, 1.2));
     // hitting an enemy with nothing selected makes it the target
@@ -198,7 +206,8 @@ export class Game {
     this.state = 'play';
     this.audio.init();
     this.world.currentZone = Z.NONE;
-    this.after(3.2, () => this.ui.banner('ECLIPSE ONLINE', 'Talk to Elder Maren by the quest board  ·  [E] Interact', '#e8d0ff'));
+    for (const [id, q] of Object.entries(this.quests.data)) if (q.autoStart) this.quests.accept(id);
+    this.after(3.2, () => this.ui.banner('ECLIPSE ONLINE', 'Talk to Captain Aldric, the Village Guide  ·  [E] Interact', '#e8d0ff'));
     this.ui.notify('Tip', 'WASD move · Mouse aim · LMB attack · SPACE dodge', '#9ad8ff');
     this.save.dirty = true;
   }

@@ -341,20 +341,11 @@ export class HUD {
   }
 
   questTarget() {
-    const g = this.game, q = g.quests, f = g.world.state.flags, T_ = (x, y) => ({ x: x * TILE, y: y * TILE });
-    if (q.isActive('whispers')) {
-      const st = q.active.whispers;
-      if (!st.done.enter) return T_(47, 150);
-      if (!st.done.wolves) return T_(38, 121);
-      if (!st.done.shrine) return T_(136, 70);
-      if (!f.gateOpened) return T_(136, 58);
-      if (!st.done.discover) return T_(136, 52);
-      return T_(132.5, 28);
-    }
-    if (q.isActive('valley')) return T_(32, 26);
-    if (!q.isActive('whispers') && !q.isDone('whispers')) return T_(46, 172);
-    if (q.isActive('depths')) return null;
-    return null;
+    // read from the Quest System (objective markers are quest data)
+    const g = this.game, t = g.quests.target();
+    if (!t) return null;
+    if (t.npc) { const n = g.world.npcs.find((x) => x.id === t.npc); return n ? { x: n.x, y: n.y } : null; }
+    return { x: t.tx * TILE, y: t.ty * TILE };
   }
 
   drawMinimap(ctx, W, u) {

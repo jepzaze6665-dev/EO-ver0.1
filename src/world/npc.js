@@ -22,10 +22,7 @@ export class NPC {
   }
   faceTo(p) { this.flip = p.x < this.x; this.talkT = 3; }
   hasNews() {
-    const g = this.game, q = g.quests;
-    if (this.id === 'elder') return !q.isActive('whispers') && !q.isDone('whispers');
-    if (this.id === 'guide') return !q.isActive('first_steps') && !q.isDone('first_steps');
-    return false;
+    return this.game.quests.npcHasNews(this.id); // quest data decides (giver / turn-in), not the NPC
   }
   update(dt) {
     this.t += dt;

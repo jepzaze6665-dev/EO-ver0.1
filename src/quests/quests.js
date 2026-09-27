@@ -1,122 +1,135 @@
-import { Z } from '../core/constants.js';
+import { QUESTS } from '../data/quests.js';
+import { allMet } from '../progression/requirements.js';
 
-// Data-driven quests. Objective types: zone (enter zone), kill (type, count), flag (world flag set).
-export const QUESTS = {
-  first_steps: {
-    title: 'FIRST STEPS OF SHADOW', giver: 'Captain Aldric', side: true,
-    desc: 'Aldric wants proof you can survive the forest: master your class techniques.',
-    objectives: [
-      { id: 'mark', text: 'Build 3 Shadow Marks', classText: 'marks', type: 'flag', flag: 'tut_marks' },
-      { id: 'perfect', text: 'Perform a Perfect Dodge', classText: 'perfect', type: 'flag', flag: 'tut_perfect' },
-      { id: 'break', text: 'Unleash Shadow Break', classText: 'break', type: 'flag', flag: 'tut_break' },
-    ],
-    reward: { exp: 80, gold: 60, items: { shadow_tonic: 2 } },
-  },
-  whispers: {
-    title: 'WHISPERS IN THE FOREST', giver: 'Elder Maren',
-    desc: 'A fog has swallowed the Whispering Forest and the beasts have turned savage. Find the source.',
-    objectives: [
-      { id: 'enter', text: 'Enter Whispering Forest', type: 'zone', zone: Z.FOREST },
-      { id: 'wolves', text: 'Defeat Forest Wolves', type: 'kill', target: 'wolf', count: 5 },
-      { id: 'shrine', text: 'Investigate Ancient Shrine', type: 'flag', flag: 'shrineInvestigated' },
-      { id: 'discover', text: 'Discover Guardian', type: 'flag', flag: 'guardianDiscovered' },
-      { id: 'defeat', text: 'Defeat Guardian', type: 'flag', flag: 'guardianDefeated', finalizes: true },
-    ],
-    reward: { exp: 400, gold: 250, items: { hp_potion: 3 } },
-  },
-  valley: {
-    title: 'PATH TO ANCIENT VALLEY', giver: 'World',
-    desc: 'With the Guardian at peace, the thorns sealing the northern road have withered.',
-    objectives: [
-      { id: 'gd', text: 'Guardian Defeated', type: 'flag', flag: 'guardianDefeated' },
-      { id: 'fr', text: 'Forest Restored', type: 'flag', flag: 'forestRestored' },
-      { id: 'enter', text: 'Enter Ancient Valley', type: 'zone', zone: Z.VALLEY },
-    ],
-    reward: { exp: 200, gold: 100 },
-  },
-  depths: {
-    title: 'THE SEALED DEPTHS', giver: 'Scout Wren',
-    desc: 'An ancient dungeon lies sealed beneath the valley. Its lock answers to power not yet found.',
-    objectives: [
-      { id: 'find', text: 'Find a way to unseal the Depths', type: 'flag', flag: '__future__' },
-    ],
-    reward: {},
-  },
-};
+export { QUESTS }; // (UI panels import it from here)
 
+// QUEST SYSTEM — data in data/quests.js. Listens to game events, never looks inside combat / world / UI:
+//   enemyDefeated · bossDefeated · zoneEnter · flag · npcTalked · itemCollected   (objective progress)
+// and reports: questAccepted · questUpdated · questCompleted (rewards: ExperienceSystem + LootSystem; UI: game.js).
+// State per active quest: { progress: { objId: n }, done: { objId: true } } (saved as is).
 export class Quests {
-  constructor(game) {
+  constructor(game, data = QUESTS) {
     this.game = game;
-    this.active = {}; // id -> {progress:{objId: n}, done:{objId: bool}}
+    this.data = data;
+    this.active = {};
     this.completed = {};
-    game.events.on('zoneEnter', (z) => this.onEvent('zone', z));
-    game.events.on('enemyDefeated', (e) => { if (!e.summoned) this.onEvent('kill', e.type); });
-    game.events.on('flag', (f) => this.onEvent('flag', f));
+    const ev = game.events;
+    ev.on('enemyDefeated', (e) => { if (!e.summoned && !e.boss) this.onEvent('kill', { type: e.type }); });
+    ev.on('bossDefeated', (e) => this.onEvent('boss', { type: e.type }));
+    ev.on('zoneEnter', (z) => this.onEvent('reach', { zone: z }));
+    ev.on('flag', (f) => this.onEvent('flag', { flag: f }));
+    ev.on('npcTalked', (e) => this.onEvent('talk', { npc: e.id }));
+    ev.on('itemCollected', () => this.onEvent('collect', {}));
   }
   isActive(id) { return !!this.active[id]; }
   isDone(id) { return !!this.completed[id]; }
-  accept(id) {
-    if (this.active[id] || this.completed[id]) return;
-    const q = QUESTS[id];
-    this.active[id] = { progress: {}, done: {} };
-    this.game.ui.questBanner('NEW QUEST', q.title);
-    this.game.audio.sfx('quest');
-    // objectives that are already satisfied
-    const flags = this.game.world.state.flags;
+  context() {
+    const g = this.game;
+    return g.progression ? g.progression.context(g.player.cls.id) : { questsDone: new Set(Object.keys(this.completed)) };
+  }
+  canAccept(id) {
+    const q = this.data[id];
+    return !!q && !this.active[id] && !this.completed[id] && allMet(q.requirements, this.context());
+  }
+  // opts.npc: accepted by talking to that NPC (counts as its first 'talk' objective)
+  accept(id, opts = {}) {
+    if (!this.canAccept(id)) return false;
+    const q = this.data[id];
+    const st = this.active[id] = { progress: {}, done: {} };
+    this.game.events.emit('questAccepted', { id, quest: q });
+    // objectives already satisfied right now (flags set, standing in the zone, items owned, talking to the giver)
+    const first = q.objectives[0];
+    if (opts.npc && first && first.type === 'talk' && first.npc === opts.npc) this.markDone(id, first);
     for (const o of q.objectives) {
-      if (o.type === 'flag' && flags[o.flag]) this.active[id].done[o.id] = true;
-      if (o.type === 'zone' && this.game.world.currentZone === o.zone) this.active[id].done[o.id] = true;
+      if (st.done[o.id] || !this.unlocked(q, st, o)) continue;
+      if (o.type === 'flag' && this.game.world.state.flags[o.flag]) this.markDone(id, o);
+      else if (o.type === 'reach' && this.game.world.currentZone === o.zone) this.markDone(id, o);
+      else if (o.type === 'collect') this.updateCollect(id, o);
     }
     this.checkComplete(id);
     this.game.save.dirty = true;
+    return true;
   }
-  onEvent(type, value) {
+  // ordered quests: an objective counts only once every earlier one is done
+  unlocked(q, st, o) {
+    if (!q.ordered) return true;
+    for (const x of q.objectives) { if (x === o) return true; if (!st.done[x.id]) return false; }
+    return true;
+  }
+  current(id) {
+    const q = this.data[id], st = this.active[id];
+    return st ? q.objectives.find((o) => !st.done[o.id]) || null : null;
+  }
+  markDone(id, o) {
+    const st = this.active[id];
+    if (!st || st.done[o.id]) return;
+    st.done[o.id] = true;
+    this.game.events.emit('questUpdated', { id, objective: o.id, text: this.objText(o), done: true });
+  }
+  updateCollect(id, o) {
+    const st = this.active[id], have = Math.min(o.count, this.game.inventory.count(o.item));
+    if (have === (st.progress[o.id] || 0)) return;
+    st.progress[o.id] = have;
+    if (have >= o.count) this.markDone(id, o);
+    else this.game.events.emit('questUpdated', { id, objective: o.id, progress: have, count: o.count, done: false });
+  }
+  onEvent(type, v) {
     for (const [qid, st] of Object.entries(this.active)) {
-      const q = QUESTS[qid];
+      const q = this.data[qid];
       let changed = false;
       for (const o of q.objectives) {
-        if (st.done[o.id]) continue;
-        if (o.type === 'zone' && type === 'zone' && value === o.zone) { st.done[o.id] = true; changed = true; }
-        if (o.type === 'flag' && type === 'flag' && value === o.flag) { st.done[o.id] = true; changed = true; }
-        if (o.type === 'kill' && type === 'kill' && value === o.target) {
-          st.progress[o.id] = (st.progress[o.id] || 0) + 1;
-          if (st.progress[o.id] >= o.count) st.done[o.id] = true;
+        if (st.done[o.id] || o.type !== type || !this.unlocked(q, st, o)) continue;
+        if (type === 'kill' && (o.target === 'any' || o.target === v.type)) {
+          st.progress[o.id] = Math.min(o.count, (st.progress[o.id] || 0) + 1);
+          if (st.progress[o.id] >= o.count) this.markDone(qid, o);
+          else this.game.events.emit('questUpdated', { id: qid, objective: o.id, progress: st.progress[o.id], count: o.count, done: false });
           changed = true;
-        }
-        if (changed && st.done[o.id]) this.game.ui.notify(q.title, `✓ ${this.objText(o)}`, '#a8f0b0');
+        } else if (type === 'collect') { const before = st.progress[o.id]; this.updateCollect(qid, o); changed = before !== st.progress[o.id]; }
+        else if ((type === 'reach' && o.zone === v.zone) || (type === 'flag' && o.flag === v.flag)
+          || (type === 'talk' && o.npc === v.npc) || (type === 'boss' && o.boss === v.type)) { this.markDone(qid, o); changed = true; }
+        // one step per event in ordered quests (talking to the guide must not tick "talk" and "return" at once)
+        if (changed && q.ordered) break;
       }
-      // a finalizing objective (e.g. the boss) completes whatever the player skipped
-      if (q.objectives.some((o) => o.finalizes && st.done[o.id])) for (const o of q.objectives) st.done[o.id] = true;
+      // a finalizing objective (e.g. the boss) completes whatever the player skipped before it
+      const fin = q.objectives.findIndex((o) => o.finalizes && st.done[o.id]);
+      if (fin > 0) for (const o of q.objectives.slice(0, fin)) if (!st.done[o.id]) { st.done[o.id] = true; changed = true; }
       if (changed) { this.checkComplete(qid); this.game.save.dirty = true; }
     }
   }
   checkComplete(id) {
-    const q = QUESTS[id], st = this.active[id];
-    if (!st) return;
-    if (!q.objectives.every((o) => st.done[o.id])) return;
-    delete this.active[id];
+    const q = this.data[id], st = this.active[id];
+    if (!st || !q.objectives.every((o) => st.done[o.id])) return;
+    delete this.active[id]; // removed before rewards: a quest can never complete (or pay out) twice
     this.completed[id] = true;
-    const g = this.game, r = q.reward || {};
-    if (r.gold) g.player.addGold(r.gold);
-    for (const [it, n] of Object.entries(r.items || {})) g.inventory.add(it, n, true);
-    g.ui.questBanner('QUEST COMPLETE', q.title + (r.gold ? `   +${r.gold}G  +${r.exp} EXP` : ''));
-    g.audio.sfx('quest_done');
-    g.events.emit('questCompleted', { id, reward: r }); // EXP: ExperienceSystem
+    this.game.events.emit('questCompleted', { id, quest: q, reward: q.rewards || {} });
   }
   // objective text can be supplied by the player's class (tutorial steps differ per class)
   objText(o) {
     const tut = o.classText && this.game.player && this.game.player.cls.tutorial;
     return (tut && tut[o.classText]) || o.text;
   }
+  // NPC marker: a quest to offer, or an active quest waiting to be reported to it
+  npcHasNews(npcId) {
+    for (const [id, q] of Object.entries(this.data)) if (q.giver === npcId && this.canAccept(id)) return true;
+    for (const id of Object.keys(this.active)) { const o = this.current(id); if (o && o.type === 'talk' && o.npc === npcId && this.unlocked(this.data[id], this.active[id], o)) return true; }
+    return false;
+  }
+  // where the HUD / minimap should point: current objective of the first main quest, else a giver with a quest
+  target() {
+    const ids = Object.keys(this.active).sort((a, b) => (this.data[a].side ? 1 : 0) - (this.data[b].side ? 1 : 0));
+    for (const id of ids) { const o = this.current(id); if (o && o.marker) return { tx: o.marker[0], ty: o.marker[1] }; }
+    for (const [id, q] of Object.entries(this.data)) if (!q.side && q.giver && this.canAccept(id)) return { npc: q.giver };
+    return null;
+  }
   // tracker lines for the HUD
   tracker() {
     const out = [];
     for (const [qid, st] of Object.entries(this.active)) {
-      const q = QUESTS[qid];
+      const q = this.data[qid];
       out.push({
-        title: q.title, side: q.side,
+        title: q.name, side: q.side,
         lines: q.objectives.map((o) => ({
-          text: o.type === 'kill' ? `${o.text} ${Math.min(o.count, st.progress[o.id] || 0)}/${o.count}` : this.objText(o),
+          text: o.count ? `${this.objText(o)} ${Math.min(o.count, st.progress[o.id] || 0)}/${o.count}` : this.objText(o),
           done: !!st.done[o.id],
         })),
       });
@@ -125,5 +138,10 @@ export class Quests {
     return out.sort((a, b) => (a.side ? 1 : 0) - (b.side ? 1 : 0));
   }
   serialize() { return { active: this.active, completed: this.completed }; }
-  load(d) { this.active = JSON.parse(JSON.stringify(d.active || {})); this.completed = { ...(d.completed || {}) }; }
+  // unknown quest ids (removed content) are dropped
+  load(d) {
+    const known = (o) => Object.fromEntries(Object.entries(o || {}).filter(([id]) => this.data[id]));
+    this.active = JSON.parse(JSON.stringify(known(d.active)));
+    this.completed = { ...known(d.completed) };
+  }
 }

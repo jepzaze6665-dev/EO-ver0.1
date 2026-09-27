@@ -57,6 +57,17 @@ export function dialogueFor(id, g) {
         ],
         options: [{ label: 'Accept: Whispers in the Forest', action: 'quest:whispers' }, { label: 'Not yet', action: 'close' }],
       };
+      if (restored && q.isDone('whispers') && !f.elderThanked) {
+        g.world.setFlag('elderThanked');
+        return {
+          lines: [
+            'You have returned! The fog is gone — I can hear birds in the forest for the first time in a month.',
+            'You did not simply win a fight, child. You changed the forest itself. Lumina owes you more than this purse.',
+            'The thorns on the northern road have withered. Our ancestors sealed something in that valley… be careful.',
+          ],
+          options: [{ label: 'Farewell', action: 'close' }],
+        };
+      }
       if (!restored) return {
         lines: f.shrineInvestigated
           ? ['The shrine fragment… it resonates with the Guardian Gate. Beyond it the Guardian sleeps.', 'If it has been corrupted, you must free it. Learn its movements — it will leave its heart open after its heaviest blows.']
@@ -72,9 +83,24 @@ export function dialogueFor(id, g) {
         options: [{ label: 'Farewell', action: 'close' }],
       };
     case 'guide':
-      if (!q.isActive('first_steps') && !q.isDone('first_steps')) return {
+      // main quest "First Steps Beyond Lumina" (talking to Aldric is its first and last objective)
+      if (q.isActive('beyond_lumina')) {
+        const st = q.active.beyond_lumina;
+        return {
+          lines: st.done.exit
+            ? ['Still breathing? Good. Finish the hunt — five beasts — then come back and report.']
+            : [
+              `Welcome to Lumina, ${g.player.cls.name}. Captain Aldric, Adventurer Guild — I guide the new blood.`,
+              'Before the Guild trusts you with real work, prove you can survive out there.',
+              'Walk out the north gate into the Whispering Forest, put down five of the beasts roaming it, then come back to me.',
+            ],
+          options: [{ label: 'Controls?', action: 'controls' }, { label: 'On my way', action: 'close' }],
+        };
+      }
+      if (q.canAccept('first_steps')) return {
         lines: [
-          `Welcome to Lumina, ${g.player.cls.name}. Captain Aldric of the Adventurer Guild.`,
+          ...(q.isDone('beyond_lumina') ? ['You came back in one piece — the Guild will hear of it. Elder Maren by the quest board has need of someone like you.'] : []),
+          `Now, ${g.player.cls.name}: if you want to last, learn your craft.`,
           ...(g.player.cls.guideIntro || []),
           'And learn to dodge at the last instant [Space]. A Perfect Dodge slows the world and fuels your shadow.',
         ],

@@ -10,7 +10,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - Unit tests: `node tools/tests/run.mjs` (must print `ALL TEST FILES PASSED`).
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
   (combat / mechanics / Reaper / class-change checks, currently 101/101) and
-  `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (15-step full-game regression, any class).
+  `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
 - After editing `tools/testkit.js`, **reload the page**: `combatTest.js` imports it without a cache-busting query.
 
@@ -70,6 +70,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (idle/patrol/aggro/chase/attack/hit/return/dead), spec getters (name, attack, movementSpeed, aggroRange, attackRange,
   expReward, lootTable), `ELITE_MOD` (spawn `elite: true`, extra 'elite' loot roll), stuck-on-wall → RETURN (+ snap home),
   display levels for LV 1 (wolf 2 · goblin 4 · crystal beast 6 · alpha 8 · guardian 10 · wraith 12). EXP budget: one clear
-  before the boss ≈ LV 8, after boss + quests ≈ LV 10. Next: P5-7 (EXP sources / gold+inventory / quest foundation),
-  then maps split per the spec (P8-12). Monster display levels / zone "Lv." subtitles still show the old 5-15 range (fix in P4).
+  before the boss ≈ LV 8, after boss + quests ≈ LV 10. P5: all EXP via events (`expSources` in levels.js).
+  P6: `MAX_STACK` / `maxStackOf` (items.js), Inventory.add caps + returns added, `itemCollected` / `inventoryFull`; all
+  gold through addGold/removeGold/canAfford. P7: quest data in `src/data/quests.js` (name/description/giver/autoStart/
+  ordered/requirements/rewards; objectives kill·collect·talk·reach·boss·flag + `marker`), `src/quests/quests.js` is generic
+  (events questAccepted/Updated/Completed; NPC "!" + HUD arrow from data). Main quest `beyond_lumina` (auto on New Game,
+  Village Guide = Captain Aldric), `whispers` now ends with "Report to Elder Maren"; `first_steps` (side) needs
+  beyond_lumina. Next: P8 Lumina integration + the B map split (separate maps + transition system), then A1/A2/A3/arena. Monster display levels / zone "Lv." subtitles still show the old 5-15 range (fix in P4).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

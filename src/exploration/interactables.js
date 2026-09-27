@@ -38,6 +38,7 @@ export function interact(w, it) {
   switch (it.kind) {
     case 'npc':
       it.npc.faceTo(p);
+      g.events.emit('npcTalked', { id: it.npc.id }); // quests (talk / turn-in objectives) update before the dialogue opens
       g.ui.openDialogue(it.npc);
       break;
     case 'chest': {

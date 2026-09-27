@@ -161,6 +161,8 @@ export function playthrough(g, classId) {
   let w = g.world;
   const c = counters(g);
   ok('Lumina Village', w.map.zoneAt(g.player.x, g.player.y) === 1);
+  use(g, 'npc_guide'); g.ui.panels.close(true);
+  ok('Village Guide: First Steps Beyond Lumina', g.quests.isActive('beyond_lumina') && g.quests.active.beyond_lumina.done.talk);
   use(g, 'npc_elder'); g.ui.panels.dialogueAction('quest:whispers');
   ok('Quest accepted', g.quests.isActive('whispers'));
   goto(g, 47, 150); g.simulate(1);
@@ -194,6 +196,11 @@ export function playthrough(g, classId) {
   ok('World State changed', w.state.flags.guardianDefeated && w.map.style.restored && !w.map.isSolid(32, 37));
   goto(g, 32, 40); for (let y = 40; y >= 26; y--) { g.player.y = y * 32; g.simulate(0.08); }
   ok('Ancient Valley revealed', w.currentZone === 6 && g.quests.isDone('valley'));
+  // back to Lumina: report to the Elder + the Guide (turn-in objectives)
+  const beforeGold = g.player.gold;
+  use(g, 'npc_elder'); g.ui.panels.close(true);
+  use(g, 'npc_guide'); g.ui.panels.close(true);
+  ok('Back in Lumina: quests complete', g.quests.isDone('whispers') && g.quests.isDone('beyond_lumina') && g.player.gold > beforeGold, `gold +${g.player.gold - beforeGold}`);
   ok('Save', g.save.save());
   const lvl = g.player.level;
   g.loadGame(); w = g.world;

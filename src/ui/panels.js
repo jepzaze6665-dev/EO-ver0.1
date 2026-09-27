@@ -113,6 +113,7 @@ export class Panels {
 
   // ---------------- dialogue
   dialogue(npc) {
+    this.dialogueNpc = npc.id;
     const d = dialogueFor(npc.id, this.game);
     let i = 0;
     const el = this.show('dialogue', `
@@ -140,7 +141,7 @@ export class Panels {
   dialogueAction(a) {
     const g = this.game;
     if (a === 'close') return this.close();
-    if (a.startsWith('quest:')) { this.close(); g.quests.accept(a.slice(6)); return; }
+    if (a.startsWith('quest:')) { this.close(); g.quests.accept(a.slice(6), { npc: this.dialogueNpc }); return; }
     if (a === 'shop') return this.shop();
     if (a === 'smith') return this.smith();
     if (a === 'controls') return this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), null, true);
@@ -291,7 +292,7 @@ export class Panels {
       const found = Object.keys(g.world.state.lore);
       const quests = [...Object.keys(g.quests.active).map((q) => [q, false]), ...Object.keys(g.quests.completed).map((q) => [q, true])];
       body = `<div class="lore-layout">
-        <div><h3>Quests</h3>${quests.map(([q, done]) => `<div class="quest ${done ? 'done' : ''}"><b>${esc(QUESTS[q].title)}</b>${done ? ' ✓' : ''}<div class="muted small">${esc(QUESTS[q].desc)}</div></div>`).join('') || '<div class="muted">None</div>'}
+        <div><h3>Quests</h3>${quests.map(([q, done]) => `<div class="quest ${done ? 'done' : ''}"><b>${esc(QUESTS[q].name)}</b>${done ? ' ✓' : ''}<div class="muted small">${esc(QUESTS[q].description)}</div></div>`).join('') || '<div class="muted">None</div>'}
         <h3>Discoveries</h3><div class="muted">Secrets found: <b>${g.world.map.secretsFound.size} / 4</b> · Lore: <b>${found.length} / ${Object.keys(LORE).length}</b> · Areas: <b>${Object.keys(g.world.state.subs).filter((k) => !k.startsWith('zone')).length}</b></div></div>
         <div><h3>Lore Fragments</h3>${found.map((k) => `<details><summary>${esc(LORE[k].title)}</summary><p>${esc(LORE[k].text).replace(/\n/g, '<br>')}</p></details>`).join('') || '<div class="muted">Unread. Look for glowing pages, statues and strange objects.</div>'}</div>
       </div>`;
