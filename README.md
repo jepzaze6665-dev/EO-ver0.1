@@ -37,8 +37,21 @@ Any static server works too, e.g. `npx serve .` or `python -m http.server 5173`.
 6. **Ancient Ruins** (64×64) → investigate the shrine → Seal Fragment → open the **Guardian Gate**
 7. **Guardian of the Forest** — 3 phases, telegraphed attacks, weak windows (after smash / charge crash / full stagger), arena changes per phase, camera lock
 8. Victory → **WORLD STATE UPDATED**: fog lifts, corruption fades, trees/tiles change, monster spawns change, NPC dialogue changes, northern thorns wither
-9. **Ancient Valley — A2**: new area, new monster (Rune Wraith), locked dungeon → quest hook → *"YOUR JOURNEY HAS ONLY BEGUN."*
+9. **Valehaven — City 2** (the Ancient Valley): Route A ends here; the Sealed Depths door is the hook for the next content
 10. Save / Load / Reset (LocalStorage; autosave on progress)
+
+### V2.2 World Progression — Route A (every boss is a gate)
+
+```
+Lumina (City 1) ─► A1 Whispering Forest ─► [Boss A1 Hollow Fang] ─► A2 Deep Forest ─► [Boss A2 Grukk]
+                ─► A3 Ancient Ruins ─► [MAJOR BOSS: Guardian of the Forest, 3 phases + final attack] ─► City 2 Valehaven
+Route B (B1 → B2 → B3 → City 2): architecture / data only for now (data/routes.js, data/bosses.js `planned`)
+```
+- The road to the next map is **solid** (a glowing gate on the bridge / path) and its exit **locked** until the map's
+  boss falls. City 2 opens when **any** route's major boss falls (never both).
+- Route panel under the player frame (route · boss alive/defeated · next map locked/unlocked · why), boss bar
+  (area / major, phase, weak window), locked exits say what opens them, the world map [M] lists route progress.
+- Data: `src/data/bosses.js` · `src/data/routes.js` · `src/data/worldTriggers.js` · map `requires` / `gates` in `src/maps/*.js`.
 
 ## Architecture (`src/`)
 
@@ -52,8 +65,10 @@ skills/      Umbral Sword class definition (basic combo, 5 skills, Shadow Break,
 player/      player controller + sprite-sheet animation mapping
 status/      timed statuses (stun, vulnerable/weak window, haste, surge…)
 monsters/    data-driven monster types, AI state machine, placeholder sprite generator, Monster Knowledge
-boss/        Guardian of the Forest (generator-based attack patterns)
-world/       world manager & World State, NPCs, narrative (lore + state-dependent dialogue)
+boss/        bossSystem (encounters: HIDDEN→IDLE→ENGAGED⇄PHASE_CHANGE→DEFEATED/RESET, arena lock, rewards), bossState (pure
+             state machine), areaBoss (generic data-driven boss: strike/dash/leap/volley/pattern/nova/summon), guardian (Major Boss A3)
+world/       world manager & World State, worldProgression (bosses / unlocked maps / events), worldTriggerSystem,
+             gateSystem (boss gates + collision), transitions, NPCs, narrative (lore + state-dependent dialogue)
 maps/        tile grid, collision, chunk-cached renderer, procedural tileset, zone builders (village/forest/ruins/arena/valley)
 exploration/ interactables (chests, lore, waystones, levers, shrines…) and breakable secret walls
 quests/  items/  inventory/  equipment/  ui/ (canvas HUD + DOM panels)  save/  audio/ (WebAudio synth placeholders)  vfx/
@@ -117,6 +132,8 @@ const T = await import('/tools/testkit.js');
 T.playthrough(__game, 'astral_weaver');             // full 15-step regression for a class
 T.toBoss(__game);                                   // jump to the Guardian fight
 T.fight(__game, 300, { untilBossDead: true });      // bot plays the fight, returns a phase log
+T.routeA(__game, 'aegis_guardian');                 // V2.2: Lumina → A1 → Boss A1 → gate → A2 → Boss A2 → A3 → Major Boss → City 2 → save/load
+T.bossReset(__game);                                // dying in a boss fight resets the boss, nothing is lost
 ```
 
 **Combat test (Phase 7)** — checks the V2 test requirements inside the running game for every starting class

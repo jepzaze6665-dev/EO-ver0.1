@@ -51,7 +51,7 @@ export const ZONE_INFO = {
   [Z.RUINS]: { name: 'ANCIENT RUINS', sub: 'Lv. 5 – 8', music: 'ruins' },
   [Z.GATE]: { name: 'GUARDIAN GATE', sub: 'Something ancient stirs', music: 'gate' },
   [Z.ARENA]: { name: 'GUARDIAN ARENA', sub: 'Heart of the Forest', music: 'arena' },
-  [Z.VALLEY]: { name: 'ANCIENT VALLEY', sub: 'The world continues', music: 'valley' },
+  [Z.VALLEY]: { name: 'VALEHAVEN', sub: 'City 2 · Ancient Valley', safe: true, music: 'valley' },
   [Z.CAVE]: { name: 'HIDDEN CAVE', sub: 'Secret Area Discovered', music: 'cave' },
 };
 

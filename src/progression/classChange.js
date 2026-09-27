@@ -20,7 +20,7 @@ export function classChangeCheck(game, toId, { force = false } = {}) {
   if (!force && !prog.owns(toId)) return { ok: false, reason: 'locked' };
   if (p.dead) return { ok: false, reason: 'dead' };
   if (!CLASS_CHANGE_RULES.allowInCombat && game.combat.inCombat) return { ok: false, reason: 'combat' };
-  if (!CLASS_CHANGE_RULES.allowInBossFight && game.world.bossActive) return { ok: false, reason: 'boss' };
+  if (!CLASS_CHANGE_RULES.allowInBossFight && game.world.inBossFight()) return { ok: false, reason: 'boss' };
   return { ok: true };
 }
 

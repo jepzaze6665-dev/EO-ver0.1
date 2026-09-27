@@ -15,7 +15,7 @@ export class Projectiles {
     p.hit.clear();
     Object.assign(p, {
       x: 0, y: 0, vx: 0, vy: 0, r: 5, life: 2, age: 0, team: TEAM.ENEMY, power: 10, owner: null,
-      kind: 'shard', pierce: false, homing: 0, delay: 0, perfectDone: false, color: '#5af0ff',
+      kind: 'shard', pierce: false, homing: 0, delay: 0, perfectDone: false, color: '#5af0ff', dmgType: 'physical', status: null,
       knock: 120, onHit: null, wallStop: true, accel: 0, rot: 0,
     }, def);
     p.ang = Math.atan2(p.vy, p.vx);
@@ -69,7 +69,8 @@ export class Projectiles {
           if (!p.perfectDone && pl.canPerfect()) { p.perfectDone = true; pl.onPerfectDodge(p.owner); }
           return;
         }
-        g.combat.dealDamage(p.owner || { x: p.x - p.vx, y: p.y - p.vy, team: TEAM.ENEMY }, pl, { power: p.power, knock: p.knock });
+        const info = g.combat.dealDamage(p.owner || { x: p.x - p.vx, y: p.y - p.vy, team: TEAM.ENEMY }, pl, { power: p.power, knock: p.knock, type: p.dmgType || 'physical' });
+        if (p.status && !info.blocked && !pl.dead) for (const s of p.status) pl.status.add(s.id, s.dur, { source: p.owner }); // e.g. boss spears: poison
         if (!p.pierce) p.active = false;
       }
     } else {

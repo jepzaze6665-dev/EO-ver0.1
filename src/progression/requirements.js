@@ -3,10 +3,12 @@
 // rules run in unit tests and, later, on a server.
 //
 // ctx: { level, classId, questsDone: Set, flags: {}, items: (id) => count, secrets: number,
-//        records: { counterId: value } (for the class being checked), trialsPassed: Set }
+//        records: { counterId: value } (for the class being checked), trialsPassed: Set,
+//        bosses: Set (defeated boss ids), maps: Set (unlocked map ids), visited: Set (map ids), events: Set (world events) }
 // Each evaluator returns { met, have, need, label } — have/need drive progress bars in the UI.
 // Types (spec §25): level · quest (incl. hidden quests) · flag (world / exploration / secret conditions)
 //   counter (achievement / class record) · item · secrets (exploration) · trial · class · any · all
+// World progression (V2.2): boss_defeated · map_unlocked · map_visited · event (a world trigger / event that happened)
 import { CLASS_COUNTERS } from '../data/classTree.js';
 
 const num = (v) => (Number.isFinite(v) ? v : 0);
@@ -27,6 +29,11 @@ export const REQUIREMENT_TYPES = {
   secrets: (r, ctx) => ({ met: num(ctx.secrets) >= r.min, have: num(ctx.secrets), need: r.min, label: r.label || `Discover ${r.min} secret areas` }),
   trial: (r, ctx) => ({ met: !!(ctx.trialsPassed && ctx.trialsPassed.has(r.trial)), label: r.label || 'Pass the class trial' }),
   class: (r, ctx) => ({ met: ctx.classId === r.id, label: r.label || `Be a ${r.id}` }),
+  // { type: 'boss_defeated', boss: 'boss_a1' }  (requiredBossId is accepted too)
+  boss_defeated: (r, ctx) => { const id = r.boss || r.requiredBossId; return { met: !!(ctx.bosses && ctx.bosses.has(id)), label: r.label || `Defeat boss: ${id}` }; },
+  map_unlocked: (r, ctx) => ({ met: !!(ctx.maps && ctx.maps.has(r.map)), label: r.label || `Unlock map: ${r.map}` }),
+  map_visited: (r, ctx) => ({ met: !!(ctx.visited && ctx.visited.has(r.map)), label: r.label || `Visit map: ${r.map}` }),
+  event: (r, ctx) => ({ met: !!(ctx.events && ctx.events.has(r.id)), label: r.label || `Event: ${r.id}` }),
   any: (r, ctx) => { const sub = (r.of || []).map((x) => evaluate(x, ctx)); return { met: sub.some((s) => s.met), label: r.label || sub.map((s) => s.label).join(' OR '), sub }; },
   all: (r, ctx) => { const sub = (r.of || []).map((x) => evaluate(x, ctx)); return { met: sub.length > 0 && sub.every((s) => s.met), label: r.label || sub.map((s) => s.label).join(' AND '), sub }; },
 };

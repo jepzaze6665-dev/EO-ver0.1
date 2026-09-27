@@ -15,7 +15,7 @@ export class Quests {
     this.completed = {};
     const ev = game.events;
     ev.on('enemyDefeated', (e) => { if (!e.summoned && !e.boss) this.onEvent('kill', { type: e.type }); });
-    ev.on('bossDefeated', (e) => this.onEvent('boss', { type: e.type }));
+    ev.on('bossDefeated', (e) => this.onEvent('boss', { type: e.type, bossId: e.bossId }));
     ev.on('zoneEnter', (z) => this.onEvent('reach', { zone: z }));
     ev.on('mapEntered', (e) => this.onEvent('reach', { map: e.id }));
     ev.on('flag', (f) => this.onEvent('flag', { flag: f }));
@@ -87,7 +87,7 @@ export class Quests {
           changed = true;
         } else if (type === 'collect') { const before = st.progress[o.id]; this.updateCollect(qid, o); changed = before !== st.progress[o.id]; }
         else if ((type === 'reach' && ((o.zone !== undefined && o.zone === v.zone) || (o.map !== undefined && o.map === v.map))) || (type === 'flag' && o.flag === v.flag)
-          || (type === 'talk' && o.npc === v.npc) || (type === 'boss' && o.boss === v.type)) { this.markDone(qid, o); changed = true; }
+          || (type === 'talk' && o.npc === v.npc) || (type === 'boss' && (o.boss === v.type || (v.bossId && o.boss === v.bossId)))) { this.markDone(qid, o); changed = true; }
         // one step per event in ordered quests (talking to the guide must not tick "talk" and "return" at once)
         if (changed && q.ordered) break;
       }
@@ -117,7 +117,8 @@ export class Quests {
   }
   // where the HUD / minimap should point: current objective of the first main quest, else a giver with a quest
   target() {
-    const ids = Object.keys(this.active).sort((a, b) => (this.data[a].side ? 1 : 0) - (this.data[b].side ? 1 : 0));
+    const rank = (id) => (this.data[id].side ? 100 : 0) - (this.data[id].priority || 0);
+    const ids = Object.keys(this.active).sort((a, b) => rank(a) - rank(b));
     for (const id of ids) { const o = this.current(id); if (o && o.marker) return { tx: o.marker[0], ty: o.marker[1] }; }
     for (const [id, q] of Object.entries(this.data)) if (!q.side && q.giver && this.canAccept(id)) return { npc: q.giver };
     return null;

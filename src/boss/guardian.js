@@ -4,7 +4,8 @@ import { MONSTERS } from '../monsters/monsterTypes.js';
 import { Monster } from '../monsters/monster.js';
 import { angleTo, dist, rand, TAU, wrapAngle, clamp, pick, lerp, easeOutCubic } from '../core/math.js';
 
-// GUARDIAN OF THE FOREST — 3-phase boss.
+// GUARDIAN OF THE FOREST — 3-phase boss = Route A's Major Boss (data/bosses.js boss_a3; lifecycle: boss/bossSystem.js).
+// V2.2: a Final Attack at 12% HP in phase 3 — "Last Root of the Forest" (the whole arena erupts except near its heart).
 // Attacks are generator "moves": they yield seconds to wait, or a per-frame function
 // that returns true when finished. Weak Windows open after heavy attacks, charge
 // crashes and full stagger — the moment for Shadow Mark 3/3 -> Shadow Break -> Eclipse Sever.
@@ -79,6 +80,7 @@ export class Guardian extends Entity {
     this.x = this.home.x; this.y = this.home.y;
     this.hurtable = false;
     this.dead = false;
+    this.finalDone = false;
     for (const s of this.summons) if (!s.dead) { s.dead = true; s.deathT = 1; }
     this.summons = [];
     this.game.combat.telegraphs.cancelOwner(this);
@@ -98,7 +100,8 @@ export class Guardian extends Entity {
   onHurt(amount, src, opts) {
     const g = this.game;
     // damage gates: every phase must be played — HP cannot skip past a threshold before its transition
-    const floor = this.phase === 1 ? 0.69 : this.phase === 2 ? 0.29 : 0;
+    // (and in phase 3 not below 11% before the Final Attack has been seen)
+    const floor = this.phase === 1 ? 0.69 : this.phase === 2 ? 0.29 : this.finalDone ? 0 : 0.11;
     if (this.hp < this.maxHp * floor) this.hp = Math.ceil(this.maxHp * floor);
     if (this.state !== 'weak') {
       this.staggerMeter += (opts.stagger || 5) * (opts.big ? 1.2 : 1);
@@ -235,6 +238,8 @@ export class Guardian extends Entity {
     const g = this.game, p = g.player;
     if (p.dead) { this.pose = 'idle'; return; }
     const d = dist(this.x, this.y, p.x, p.y);
+    // final attack: once, when the enraged Guardian is almost down
+    if (this.phase === 3 && !this.finalDone && this.hp / this.maxHp <= 0.12) { this.finalDone = true; this.run(this.mFinal()); return; }
     const pool = [];
     const add = (id, w) => { if ((this.cds[id] || 0) <= 0 && this.lastMoves[0] !== id) pool.push([id, w]); };
     add('claw', d < 110 ? 5 : 0.5);
@@ -500,6 +505,28 @@ export class Guardian extends Entity {
     }
     yield 1.9;
     this.pose = 'idle';
+  }
+
+  // FINAL ATTACK — Last Root of the Forest: a strong, long telegraph over the whole arena with one safe ring:
+  // right next to the Guardian's heart. Readable, deadly if ignored, then its heart stays open for the finish.
+  *mFinal() {
+    const g = this.game;
+    let t = 0;
+    yield (dt) => { t += dt; this.pose = 'walk'; return this.stepToward(this.center.x, this.center.y - 10, 260, dt) < 10 || t > 2; };
+    this.pose = 'roar'; this.poseT = 0;
+    g.audio.sfx('roar');
+    g.camera.shake(0.9);
+    g.vfx.flash('255,60,200', 0.35, 1.2);
+    g.ui.callout('LAST ROOT OF THE FOREST', 'The arena erupts — get close to its heart!', '#ff90ff');
+    const tel = this.tele({ shape: 'ring', x: this.x, y: this.y, r0: 110, r: this.game.world.regions.arenaRadius, total: 2.4, color: '255,60,200' });
+    yield 2.4;
+    this.strike(tel, 58, 420);
+    g.vfx.ring(this.x, this.y, 110, this.game.world.regions.arenaRadius, { color: '255,90,220', life: 0.6, width: 14 });
+    g.vfx.shards(this.x, this.y - 40, '#ff80ff', 50, 320);
+    g.camera.shake(1);
+    g.audio.sfx('slam_big');
+    yield 0.6;
+    this.enterWeak(4, 'THE HEART IS OPEN');
   }
 
   // ---------------- render

@@ -43,7 +43,8 @@ export class Progression {
   record(classId, counter) { return (this.records[classId] || {})[counter] || 0; }
 
   // ---------------- requirements
-  context(classId) {
+  // what any requirement may read about the character + world (world/worldProgression.js adds bosses / maps / events)
+  baseContext() {
     const g = this.game, p = g.player;
     return {
       level: p.level, classId: p.cls.id,
@@ -51,6 +52,12 @@ export class Progression {
       flags: g.world.state.flags,
       items: (id) => g.inventory.count(id),
       secrets: g.world.map.secretsFound.size,
+    };
+  }
+  context(classId) {
+    const g = this.game;
+    return {
+      ...(g.worldProgress ? g.worldProgress.context() : this.baseContext()),
       records: this.records[classId] || {},
       trialsPassed: new Set(Object.entries(this.trials).filter(([, t]) => t.state === 'passed').map(([k]) => k)),
     };

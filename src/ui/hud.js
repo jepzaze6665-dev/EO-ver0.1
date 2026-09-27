@@ -4,11 +4,11 @@ import { TILE, T, Z } from '../core/constants.js';
 import { clamp, TAU, easeOutCubic } from '../core/math.js';
 import { makeCanvas } from '../core/assets.js';
 import { RARITY_COLOR } from '../items/items.js';
-import { STAGGER_MAX } from '../boss/guardian.js';
 import { RESOURCES } from '../data/resources.js';
 import { MARKS } from '../data/marks.js';
 import { STATUSES } from '../data/statuses.js';
 import { REQUIREMENTS } from '../combat/skillSystem.js';
+import { ROUTES } from '../data/routes.js';
 
 const FONT = '"Trebuchet MS", "Segoe UI", sans-serif';
 const TITLE = 'Georgia, "Times New Roman", serif';
@@ -77,8 +77,8 @@ export class HUD {
     this.bossBarShow = clamp(this.bossBarShow + (this.bossBar ? dt : -dt) * 3, 0, 1);
     const p = this.game.player;
     this.hpLag += (p.hp / p.maxHp - this.hpLag) * Math.min(1, dt * 3);
-    const gd = this.game.world.guardian;
-    if (gd) this.bossHpLag += (gd.hp / gd.maxHp - this.bossHpLag) * Math.min(1, dt * 2);
+    const bi = this.game.bosses && this.game.bosses.barInfo();
+    if (bi) this.bossHpLag += (bi.hp / bi.maxHp - this.bossHpLag) * Math.min(1, dt * 2);
   }
 
   // ---------------- draw
@@ -90,6 +90,7 @@ export class HUD {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.drawStealth(ctx, W, H);
     this.drawNameplates(ctx, u);
+    this.drawBossLabels(ctx, u);
     this.drawExits(ctx, u);
     g.vfx.drawScreen(ctx, (x, y) => this.toScreen(x, y), g.renderer.scale);
     this.drawPrompt(ctx, u);
@@ -97,6 +98,7 @@ export class HUD {
     this.drawSkillBar(ctx, W, H, u);
     this.drawMinimap(ctx, W, u);
     this.drawQuests(ctx, W, u);
+    this.drawRoute(ctx, u);
     this.drawBoss(ctx, W, u);
     this.drawTarget(ctx, W, u);
     this.drawPickups(ctx, H, u);
@@ -337,6 +339,8 @@ export class HUD {
     // landmarks appear once their area has been discovered
     for (const [name, lx, ly] of LANDMARKS) if (w.state.subs[name]) out.push({ x: lx * TILE, y: ly * TILE, c: '#f0e6c8', r: 1.1, diamond: true });
     if (w.guardian && f.guardianDiscovered && !f.guardianDefeated && w.onMap(w.guardian)) out.push({ x: w.guardian.home.x, y: w.guardian.home.y, c: '#ff4060', r: 3, boss: true });
+    // area bosses waiting in their arena (boss/bossSystem.js)
+    if (g.bosses) for (const enc of g.bosses.idleOnMap()) if (enc.def.impl === 'area') { const a = g.bosses.arenaPx(enc); out.push({ x: a.x, y: a.y, c: '#ff4060', r: 3, boss: true }); }
     const q = this.questTarget();
     if (q) out.push({ x: q.x, y: q.y, c: '#ffe070', r: 2.4, quest: true });
     return out;
@@ -429,15 +433,16 @@ export class HUD {
     const g = this.game, t = g.targets && g.targets.current;
     if (!t) return;
     const kn = g.knowledge;
-    const isMon = t.type && MONSTERS[t.type] && t !== g.world.guardian;
+    const isMon = t.type && MONSTERS[t.type] && t !== g.world.guardian && !t.isBoss;
     const name = isMon ? (kn.known(t.type) ? `${t.corrupted ? 'Corrupted ' : ''}${t.name}` : kn.nameFor(t.type)) : t.name || (t.def && t.def.name) || 'Target';
-    const lvl = t.type && MONSTERS[t.type] ? (kn.levelFor(t.type) === '??' ? '??' : t.level || MONSTERS[t.type].level) : null;
+    const lvl = t.isBoss && t.level ? t.level : t.type && MONSTERS[t.type] ? (kn.levelFor(t.type) === '??' ? '??' : t.level || MONSTERS[t.type].level) : null;
     // marker above the head
     const s = this.toScreen(t.x, t.y - (t.height || 30) * (t.scale || 1) - 26);
     const bob = Math.sin(g.time * 6) * 2 * u;
     ctx.fillStyle = '#ffd24a';
     ctx.beginPath(); ctx.moveTo(s.x - 6 * u, s.y - 10 * u + bob); ctx.lineTo(s.x + 6 * u, s.y - 10 * u + bob); ctx.lineTo(s.x, s.y - 2 * u + bob); ctx.closePath(); ctx.fill();
-    if (t === g.world.guardian && this.bossBarShow > 0) return;
+    const bi = g.bosses && g.bosses.barInfo();
+    if ((t === g.world.guardian || (bi && t === bi.entity)) && this.bossBarShow > 0) return;
     const w = Math.min(W * 0.3, 320 * u), x = W / 2 - w / 2, y = 22 * u;
     ctx.fillStyle = 'rgba(10,6,20,0.7)'; ctx.fillRect(x - 8 * u, y - 16 * u, w + 16 * u, 40 * u);
     this.text(ctx, lvl ? `${name}  Lv.${lvl}` : name, W / 2, y, 13 * u, '#f0e8e0', { align: 'center' });
@@ -445,34 +450,108 @@ export class HUD {
     this.text(ctx, `${Math.ceil(t.hp)} / ${Math.ceil(t.maxHp)}`, W / 2, y + 15 * u, 9 * u, '#fff', { align: 'center' });
   }
 
+  // boss bar (any boss — data from boss/bossSystem.js barInfo). Major bosses get a bigger, gold-framed bar.
   drawBoss(ctx, W, u) {
-    const gd = this.game.world.guardian;
-    if (!gd || this.bossBarShow <= 0) return;
+    const bi = this.game.bosses && this.game.bosses.barInfo();
+    if (!bi || this.bossBarShow <= 0) return;
+    const gd = bi.entity, major = bi.type === 'major';
     ctx.globalAlpha = this.bossBarShow;
-    const w = Math.min(W * 0.46, 720 * u), x = W / 2 - w / 2, y = 26 * u;
-    this.text(ctx, 'GUARDIAN OF THE FOREST', W / 2, y, 20 * u, gd.phase === 3 ? '#e8a0ff' : '#dffcff', { align: 'center', font: TITLE });
-    const pct = gd.hp / gd.maxHp;
-    this.bar(ctx, x, y + 10 * u, w, 18 * u, pct, gd.phase === 3 ? '#c050ff' : '#50e0b0', gd.phase === 3 ? '#50106a' : '#106a50', this.bossHpLag);
-    // phase ticks at 70% / 30%
+    const w = Math.min(W * (major ? 0.5 : 0.4), (major ? 760 : 600) * u), x = W / 2 - w / 2, y = 26 * u;
+    const last = bi.phase === bi.phaseCount && bi.phaseCount > 1;
+    const hi = last ? '#e8a0ff' : major ? '#ffe6a8' : '#ffe0d0';
+    this.text(ctx, major ? 'MAJOR BOSS' : 'AREA BOSS', W / 2, y - 14 * u, 9 * u, major ? '#ffd070' : '#ffb0a0', { align: 'center' });
+    this.text(ctx, bi.name, W / 2, y + (major ? 2 : 0) * u, (major ? 21 : 17) * u, hi, { align: 'center', font: TITLE });
+    const by = y + (major ? 12 : 9) * u, bh = (major ? 18 : 14) * u;
+    if (major) { ctx.strokeStyle = 'rgba(255,208,112,0.9)'; ctx.lineWidth = 2 * u; ctx.strokeRect(x - 3 * u, by - 3 * u, w + 6 * u, bh + 6 * u); }
+    const pct = bi.hp / bi.maxHp;
+    this.bar(ctx, x, by, w, bh, pct, last ? '#c050ff' : major ? '#50e0b0' : '#ff7050', last ? '#50106a' : major ? '#106a50' : '#801c10', this.bossHpLag);
+    // phase ticks (data: phases[].hpBelow)
     ctx.fillStyle = '#fff';
-    for (const t of [0.7, 0.3]) ctx.fillRect(x + w * t - 1, y + 8 * u, 2, 22 * u);
-    this.text(ctx, `${Math.round(pct * 100)}%`, x + w - 6 * u, y + 24 * u, 12 * u, '#fff', { align: 'right' });
-    this.text(ctx, ['', 'PHASE I', 'PHASE II', 'PHASE III — ENRAGED'][gd.phase], x + 6 * u, y + 24 * u, 11 * u, '#fff');
+    for (const t of bi.thresholds) ctx.fillRect(x + w * t - 1, by - 2 * u, 2, bh + 4 * u);
+    this.text(ctx, `${Math.round(pct * 100)}%`, x + w - 6 * u, by + bh - 4 * u, 11 * u, '#fff', { align: 'right' });
+    this.text(ctx, bi.phaseCount > 1 ? `${bi.phaseName}  (${bi.phase}/${bi.phaseCount})` : bi.phaseName, x + 6 * u, by + bh - 4 * u, 10 * u, '#fff');
+    this.text(ctx, `Lv.${bi.level}`, x - 8 * u, by + bh - 4 * u, 11 * u, '#ffd96a', { align: 'right' });
     // stagger / weak window
-    const weak = gd.status.has('vulnerable');
-    this.bar(ctx, x + w * 0.25, y + 32 * u, w * 0.5, 5 * u, weak ? (gd.weakT || 0) / 4 : gd.staggerMeter / STAGGER_MAX, weak ? '#9af8ff' : '#ffd070', weak ? '#3ab0d0' : '#a07020');
+    const weak = bi.weak;
+    this.bar(ctx, x + w * 0.25, by + bh + 4 * u, w * 0.5, 5 * u, weak ? bi.weakPct : bi.stagger, weak ? '#9af8ff' : '#ffd070', weak ? '#3ab0d0' : '#a07020');
+    this.drawStatuses(ctx, u, gd, W / 2, by + bh + 22 * u);
     // off-screen indicator
     const s = this.toScreen(gd.x, gd.y - 40), cw = this.game.canvas.width, ch = this.game.canvas.height;
     if (s.x < 0 || s.y < 0 || s.x > cw || s.y > ch) {
       const cx = cw / 2, cy = ch / 2, a = Math.atan2(s.y - cy, s.x - cx);
       const ex = clamp(cx + Math.cos(a) * cw, 40 * u, cw - 40 * u), ey = clamp(cy + Math.sin(a) * ch, 90 * u, ch - 90 * u);
       ctx.save(); ctx.translate(ex, ey); ctx.rotate(a);
-      ctx.fillStyle = gd.phase === 3 ? '#e070ff' : '#ff5060';
+      ctx.fillStyle = last ? '#e070ff' : '#ff5060';
       ctx.beginPath(); ctx.moveTo(16 * u, 0); ctx.lineTo(-8 * u, -11 * u); ctx.lineTo(-8 * u, 11 * u); ctx.closePath(); ctx.fill();
       ctx.restore();
     }
-    if (weak) this.text(ctx, 'WEAK WINDOW', W / 2, y + 52 * u, 13 * u, `rgba(150,250,255,${0.7 + 0.3 * Math.sin(this.game.time * 12)})`, { align: 'center' });
+    if (weak) this.text(ctx, 'WEAK WINDOW', W / 2, by + bh + 44 * u, 13 * u, `rgba(150,250,255,${0.7 + 0.3 * Math.sin(this.game.time * 12)})`, { align: 'center' });
     ctx.globalAlpha = 1;
+  }
+
+  // ROUTE PANEL (under the player frame): which route / map you are on, its boss, and whether the road ahead is open.
+  // Everything comes from the World Progression (world/worldProgression.js) + data/routes.js.
+  drawRoute(ctx, u) {
+    const g = this.game, wp = g.worldProgress, def = g.world.mapDef;
+    if (!wp || !def) return;
+    const x = 18 * u, y = 196 * u, w = 262 * u;
+    const lines = [];
+    const routeId = def.route || wp.currentRoute;
+    if (def.type === 'city' || !routeId) {
+      lines.push([`${def.name}`, '#ffd98a', 12, TITLE]);
+      for (const r of Object.values(ROUTES)) {
+        const st = wp.routeStatus(r.id);
+        lines.push([`${r.name} · ${r.sub}  ${!r.playable ? '— not surveyed yet' : st.complete ? '✓ COMPLETE' : '— open'}`, !r.playable ? '#8a80a8' : st.complete ? '#8af0a0' : '#e8e0f8', 10]);
+      }
+    } else {
+      const st = wp.routeStatus(routeId), r = st.route;
+      lines.push([`${r.name} · ${r.sub}`, '#ffd98a', 12, TITLE]);
+      const cur = def.parent || def.id;
+      const chips = st.steps.map((s) => ({ t: s.short + (s.bossDefeated ? ' ✓' : !s.unlocked ? ' ✕' : ''), c: s.id === cur ? '#ffe070' : s.bossDefeated ? '#8af0a0' : s.unlocked ? '#e8e0f8' : '#77708a' }));
+      chips.push({ t: `${(st.city && st.city.short) || 'City 2'}${st.city && st.city.unlocked ? '' : ' ✕'}`, c: st.city && st.city.unlocked ? '#ffe8b0' : '#77708a' });
+      lines.push(chips);
+      const here = st.steps.find((s) => s.id === cur);
+      if (here && here.boss) {
+        lines.push([`BOSS  ${here.boss.name}  ${here.bossDefeated ? 'DEFEATED ✓' : 'ALIVE'}`, here.bossDefeated ? '#8af0a0' : '#ff9a8a', 10]);
+        const i = st.steps.indexOf(here), nx = st.steps[i + 1] || st.city;
+        if (nx) {
+          lines.push([`NEXT  ${nx.short} ${nx.name}  ${nx.unlocked ? 'UNLOCKED' : 'LOCKED'}`, nx.unlocked ? '#bfe8ff' : '#c8a0a0', 10]);
+          if (!nx.unlocked && nx.lockReason) lines.push([`→ ${nx.lockReason}`, '#a898c0', 9]);
+        }
+      }
+    }
+    const h = (12 + lines.length * 16) * u;
+    this.panel(ctx, x, y, w, h, 0.55);
+    lines.forEach((l, i) => {
+      const ly = y + (18 + i * 16) * u;
+      if (Array.isArray(l) && typeof l[0] === 'object') {
+        let cx = x + 10 * u;
+        for (const c of l) { this.text(ctx, c.t, cx, ly, 10 * u, c.c); ctx.font = `700 ${Math.round(10 * u)}px ${FONT}`; cx += ctx.measureText(c.t).width + 12 * u; }
+      } else {
+        // long texts (lock reasons) shrink to fit the panel
+        let size = l[2] * u;
+        ctx.font = `600 ${Math.round(size)}px ${l[3] || FONT}`;
+        const tw = ctx.measureText(l[0]).width, room = w - 20 * u;
+        if (tw > room) size = Math.max(6 * u, size * (room / tw));
+        this.text(ctx, l[0], x + 10 * u, ly, size, l[1], { font: l[3] || FONT, weight: l[3] ? 700 : 600 });
+      }
+    });
+  }
+
+  // idle bosses: a label over the boss before the fight ("AREA BOSS · name · Lv") so the player knows what waits there
+  drawBossLabels(ctx, u) {
+    const g = this.game, p = g.player;
+    if (!g.bosses) return;
+    for (const enc of g.bosses.idleOnMap()) {
+      const e = enc.entity;
+      if (Math.hypot(e.x - p.x, e.y - p.y) > 520) continue;
+      const s = this.toScreen(e.x, e.y - (e.sprites ? e.sprites.ay * e.scale : e.height) - 10);
+      const major = enc.def.type === 'major';
+      this.text(ctx, major ? 'MAJOR BOSS' : 'AREA BOSS', s.x, s.y - 26 * u, 9 * u, major ? '#ffd070' : '#ffb0a0', { align: 'center' });
+      this.text(ctx, `${enc.def.name}  Lv.${enc.def.level}`, s.x, s.y - 12 * u, 12 * u, '#ffe0d0', { align: 'center', font: TITLE });
+      const lv = enc.def.recommendedLevel;
+      if (lv) this.text(ctx, `Recommended LV ${lv} · step into the ${enc.def.arena.name || 'arena'} to fight`, s.x, s.y + 2 * u, 9 * u, p.level >= lv ? '#bfe8ff' : '#ff9a8a', { align: 'center' });
+    }
   }
 
   drawPickups(ctx, H, u) {
@@ -529,8 +608,14 @@ export class HUD {
     for (const e of def.exits) {
       const c = w.mapManager.exitCenter(e), s = this.toScreen(c.x, c.y);
       if (s.x < -80 || s.y < -40 || s.x > cw + 80 || s.y > ch + 40) continue;
-      if (!w.transitions.isOpen(e)) continue;
       const to = w.mapManager.get(e.to);
+      if (!w.transitions.isOpen(e)) {
+        if (w.inBossFight()) continue;
+        this.text(ctx, `✕ ${to ? to.name : e.label} — LOCKED`, s.x, s.y, 9 * u, '#ff9a8a', { align: 'center' });
+        const why = w.transitions.lockReason(e);
+        if (why) this.text(ctx, why, s.x, s.y + 12 * u, 8 * u, '#c8b0b0', { align: 'center' });
+        continue;
+      }
       const bob = Math.sin(g.time * 3) * 2 * u;
       const dx = e.entry[0] * TILE - c.x, dy = e.entry[1] * TILE - c.y; // the way the exit leads
       const arrow = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? '▶' : '◀') : dy > 0 ? '▼' : '▲';
