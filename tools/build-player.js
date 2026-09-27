@@ -2,7 +2,7 @@
 // into clean alpha sprite strips + an atlas description consumed by src/player/playerSprites.js.
 // Every class preset is normalised to the SAME visual standard (body height, canvas, pivot).
 // Usage: node tools/build-player.js            (all classes)
-//        node tools/build-player.js aw         (one class: ub | aw | ag)
+//        node tools/build-player.js aw         (one class: ub | aw | ag | rp)
 const fs = require('fs');
 const path = require('path');
 const png = require('./png.js');
@@ -35,26 +35,41 @@ PRESETS.ub = { out: 'assets/player', sheets: {
   vfx: ['desgin/class cr/UB/UB VFX', 8],
 } };
 const AG = 'desgin/class cr/AG/';
-// Aegis Guardian: every base move comes from the AG NEW sheets (shield always visible, one design);
-// skill sheets (bash / sk1-6 / ult) already carry the shield. The old shield-less HIT is kept for death only.
+// Aegis Guardian — the "AG NEW" set: black / gold mantle, shield visible in every sheet (one design).
 const AGN = 'desgin/class cr/AG NEW/';
 PRESETS.ag = { out: 'assets/player/ag', sheets: {
   walk: [AGN + 'walk1.png', 4],
   idle: [AGN + 'image-ed9b37cb-d52f-423d-8a61-0495e5f3ce6d-0', 4],
-  atk1: [AGN + 'image-74d16551-eff0-4aa7-a63f-63c5253ddb09-0', 4],
-  atk2: [AGN + 'image-f159e3fd-7d4c-46c6-8f87-809fd6e45f24-0', 4],
-  guard: [AGN + 'image-c6d0a5e9-c7f9-4281-a1eb-eb3e57756505-0', 4],
-  parry: [AGN + 'image-ef3490e4-c6e6-44fc-bd6b-32847f006bac-0', 4],
-  counter: [AGN + 'image-f6f15f0d-b9df-4051-88cc-5bbc04e85f18-0', 4],
-  hit: [AG + 'AG HIT', 4],
-  bash: [AG + 'AG VFX', 4],
-  sk1: [AG + 'sk1.png', 4],
-  sk2: [AG + 'sk2', 4],
-  sk3: [AG + 'sk3', 4],
-  sk4: [AG + 'sk4', 4],
-  sk5: [AG + 'sk5', 4],
-  sk6: [AG + 'sk6', 4],
-  ult: [AG + 'ut', 4],
+  atk1: [AGN + 'atk1', 4],
+  atk2: [AGN + 'atk2', 4],
+  guard: [AGN + 'new', 4],
+  parry: [AGN + 'pary', 4],
+  hit: [AGN + 'hit', 4],
+  sk1: [AGN + 'sk1', 4],
+  sk2: [AGN + 'sk2', 4],
+  sk3: [AGN + 'sk3', 4],
+  sk4: [AGN + 'sk4', 4],
+  sk5: [AGN + 'sk5', 4],
+  sk6: [AGN + 'sk6', 4],
+  ult: [AGN + 'ut', 4],
+} };
+// Nightfall Reaper (Class 2 of Umbral Sword) — art ready; class data pending (Phase 15/16)
+const RP = 'desgin/class cr/RP/';
+PRESETS.rp = { out: 'assets/player/rp', sheets: {
+  walk: [RP + 'WALK1.PNG', 4],
+  idle: [RP + 'WALK2.PNG', 4],
+  atk1: [RP + 'ATK1', 4],
+  atk2: [RP + 'ATK2', 4],
+  dash: [RP + 'DASH', 4, { frames: 5 }], // 5 poses per row
+  hit: [RP + 'HIT', 4],
+  extra: [RP + 'เสริม', 4],
+  sk1: [RP + 'SK1', 4],
+  sk2: [RP + 'SK2', 4],
+  sk3: [RP + 'SK3', 4],
+  sk4: [RP + 'SK4', 4],
+  sk5: [RP + 'SK5', 4],
+  sk6: [RP + 'SK6', 4],
+  ult: [RP + 'UT', 4],
 } };
 const AW = 'desgin/class cr/AW/';
 PRESETS.aw = { out: 'assets/player/aw', sheets: {
@@ -328,7 +343,10 @@ function validate(sheet, rows) {
     feet.push(b - PY); centers.push(xs / n - PX);
   }
   const med = (a) => a.slice().sort((p, q) => p - q)[a.length >> 1];
-  const h = med(heights), feetMax = Math.max(...feet.map(Math.abs)), centerMed = med(centers);
+  // feet: 90th percentile, so one or two frames with a dark effect under the feet (a dome rim, shadow smoke)
+  // are not reported, while a real alignment error (many frames off the ground line) still is
+  const absFeet = feet.map(Math.abs).sort((p, q) => p - q);
+  const h = med(heights), feetMax = absFeet[Math.floor((absFeet.length - 1) * 0.9)], centerMed = med(centers);
   const issues = [];
   if (Math.abs(h - STD.bodyHeight) > 4) issues.push('Scale Difference');
   if (feetMax > 3) issues.push('Ground Offset');

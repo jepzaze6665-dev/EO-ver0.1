@@ -17,6 +17,14 @@ const SETS = {
     src: 'desgin/VFX/AG', detectRows: true, clean: true,
     names: { sk1: 'ag_bash', sk2: 'ag_crescent', sk3: 'ag_emblem', sk4: 'ag_beacon', sk5: 'ag_dome', sk6: 'ag_flash', sk7: 'ag_aegis' },
     rows: { sk3: 0, sk4: 0, sk5: 0, sk7: 0 }, // effects centred on the caster use the front view (row 0), not the side view
+    // the crescent frames of SK2 are drawn opening forward (bulging back at the swinger): mirror them so the
+    // arc bulges toward the target like every other slash; the lead-in arrow frames stay as drawn
+    mirrorFrames: { sk2: [2, 3, 4, 5] },
+  },
+  rp: {
+    src: 'desgin/VFX/RP', detectRows: true, clean: true,
+    names: { SK1: 'rp_crescent', SK2: 'rp_lance', SK3: 'rp_flames', SK4: 'rp_portal', SK5: 'rp_spear', SK6: 'rp_vortex', sk7: 'rp_blacksun' },
+    rows: { SK3: 0, SK4: 0, sk7: 0 }, // caster / target-centred effects: front view
   },
   aw: {
     src: 'desgin/VFX/AW', detectRows: true, clean: true,
@@ -149,6 +157,13 @@ function extractRow(img, file, set) {
       out.data[t] = acc[o] / a; out.data[t + 1] = acc[o + 1] / a; out.data[t + 2] = acc[o + 2] / a; out.data[t + 3] = Math.round(Math.min(1, a / n) * 255);
     }
   });
+  const mir = set.mirrorFrames && set.mirrorFrames[file];
+  if (mir) for (const k of mir) {
+    for (let Y = 0; Y < fh; Y++) for (let X = 0; X < fw / 2; X++) {
+      const a = (Y * out.width + k * fw + X) * 4, b = (Y * out.width + k * fw + (fw - 1 - X)) * 4;
+      for (let q = 0; q < 4; q++) { const t = out.data[a + q]; out.data[a + q] = out.data[b + q]; out.data[b + q] = t; }
+    }
+  }
   return { out, fw, fh };
 }
 

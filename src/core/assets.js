@@ -23,7 +23,7 @@ export async function loadJSON(src) {
 }
 
 // class presets (character sheets). Each preset = one atlas built by tools/build-player.js
-export const PLAYER_PRESETS = { ub: 'assets/player/atlas.json', aw: 'assets/player/aw/atlas.json', ag: 'assets/player/ag/atlas.json' };
+export const PLAYER_PRESETS = { ub: 'assets/player/atlas.json', aw: 'assets/player/aw/atlas.json', ag: 'assets/player/ag/atlas.json', rp: 'assets/player/rp/atlas.json' };
 
 export async function loadAll(onProgress) {
   Assets.data.atlases = {};

@@ -230,7 +230,11 @@ export class Panels {
         </div>`;
       const recs = Object.entries(rec).filter(([, v]) => v > 0).map(([k, v]) => `<div>${esc(CLASS_COUNTERS[k] ? CLASS_COUNTERS[k].label : k)} <b>${Math.floor(v)}</b></div>`).join('') || '<div class="muted">Nothing yet — fight!</div>';
       body = `<div class="class-layout">
-        <div><h3>${esc(p.cls.name)} <span class="muted small">Tier 1 · ${esc(p.cls.role || '')}</span></h3>
+        <div><h3>${esc(p.cls.name)} <span class="muted small">Tier ${(CLASS_TREE[p.cls.id] || {}).tier || 1} · ${esc(p.cls.role || '')}</span></h3>
+          ${p.cls.identity ? `<p class="identity">“${esc(p.cls.identity)}”</p>` : ''}
+          <div class="ratings">${Object.entries({ Difficulty: p.cls.difficulty, ...Object.fromEntries(Object.entries(p.cls.ratings || {}).map(([k, v]) => [k[0].toUpperCase() + k.slice(1), v])) }).filter(([, v]) => v).map(([k, v]) => `<div><span>${k}</span><i class="pips">${'<b></b>'.repeat(v)}${'<u></u>'.repeat(5 - v)}</i></div>`).join('')}</div>
+          <div class="sw"><div><h4>Strengths</h4>${(p.cls.strengths || []).map((x) => `<div class="small">+ ${esc(x)}</div>`).join('')}</div>
+          <div><h4>Weaknesses</h4>${(p.cls.weaknesses || []).map((x) => `<div class="small">− ${esc(x)}</div>`).join('')}</div></div>
           <p class="muted small">Class records are earned by playing this class. Meet a path's requirements, then pass its trial to unlock it.</p>
           <h3>Your Classes</h3>${[prog.startingClass, ...prog.unlocked].filter(Boolean).map((id) => {
             const node = CLASS_TREE[id], chk = classChangeCheck(g, id), cur = id === p.cls.id;

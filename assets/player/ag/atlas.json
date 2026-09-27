@@ -67,7 +67,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1813,
+   "sourceScale": 0.1648,
    "emptyFrames": []
   },
   "atk2": {
@@ -86,7 +86,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1829,
+   "sourceScale": 0.1835,
    "emptyFrames": []
   },
   "guard": {
@@ -105,7 +105,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1749,
+   "sourceScale": 0.1653,
    "emptyFrames": []
   },
   "parry": {
@@ -124,26 +124,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1754,
-   "emptyFrames": []
-  },
-  "counter": {
-   "file": "assets/player/ag/counter.png",
-   "fw": 160,
-   "fh": 160,
-   "rows": 4,
-   "cols": 6,
-   "ax": 80,
-   "ay": 140,
-   "sides": [
-    {
-     "right": 3,
-     "left": 2,
-     "flipLeft": false,
-     "flipRight": false
-    }
-   ],
-   "sourceScale": 0.176,
+   "sourceScale": 0.1639,
    "emptyFrames": []
   },
   "hit": {
@@ -162,11 +143,30 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2643,
+   "sourceScale": 0.1635,
    "emptyFrames": []
   },
-  "bash": {
-   "file": "assets/player/ag/bash.png",
+  "sk1": {
+   "file": "assets/player/ag/sk1.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 2,
+     "left": 3,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.1775,
+   "emptyFrames": []
+  },
+  "sk2": {
+   "file": "assets/player/ag/sk2.png",
    "fw": 160,
    "fh": 160,
    "rows": 4,
@@ -181,45 +181,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.3226,
-   "emptyFrames": []
-  },
-  "sk1": {
-   "file": "assets/player/ag/sk1.png",
-   "fw": 160,
-   "fh": 160,
-   "rows": 4,
-   "cols": 6,
-   "ax": 80,
-   "ay": 140,
-   "sides": [
-    {
-     "right": 3,
-     "left": 2,
-     "flipLeft": false,
-     "flipRight": false
-    }
-   ],
-   "sourceScale": 0.1749,
-   "emptyFrames": []
-  },
-  "sk2": {
-   "file": "assets/player/ag/sk2.png",
-   "fw": 160,
-   "fh": 160,
-   "rows": 4,
-   "cols": 6,
-   "ax": 80,
-   "ay": 140,
-   "sides": [
-    {
-     "right": 3,
-     "left": 2,
-     "flipLeft": false,
-     "flipRight": false
-    }
-   ],
-   "sourceScale": 0.1911,
+   "sourceScale": 0.1775,
    "emptyFrames": []
   },
   "sk3": {
@@ -238,7 +200,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1765,
+   "sourceScale": 0.1754,
    "emptyFrames": []
   },
   "sk4": {
@@ -257,7 +219,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1905,
+   "sourceScale": 0.2098,
    "emptyFrames": []
   },
   "sk5": {
@@ -271,12 +233,12 @@
    "sides": [
     {
      "right": 3,
-     "left": 3,
-     "flipLeft": true,
+     "left": 2,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1858,
+   "sourceScale": 0.177,
    "emptyFrames": []
   },
   "sk6": {
@@ -295,7 +257,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2007,
+   "sourceScale": 0.1667,
    "emptyFrames": []
   },
   "ult": {
@@ -308,13 +270,13 @@
    "ay": 140,
    "sides": [
     {
-     "right": 3,
+     "right": 2,
      "left": 2,
-     "flipLeft": false,
+     "flipLeft": true,
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1887,
+   "sourceScale": 0.2,
    "emptyFrames": []
   }
  },
@@ -355,28 +317,14 @@
    "issues": []
   },
   "parry": {
-   "bodyHeight": 59,
-   "feetMaxOffset": 1,
-   "centerOffset": 0,
-   "ok": true,
-   "issues": []
-  },
-  "counter": {
-   "bodyHeight": 59,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "hit": {
-   "bodyHeight": 59,
-   "feetMaxOffset": 1,
-   "centerOffset": 0,
-   "ok": true,
-   "issues": []
-  },
-  "bash": {
-   "bodyHeight": 59,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
@@ -399,7 +347,7 @@
   "sk3": {
    "bodyHeight": 58,
    "feetMaxOffset": 1,
-   "centerOffset": -1,
+   "centerOffset": 0,
    "ok": true,
    "issues": []
   },
@@ -411,7 +359,7 @@
    "issues": []
   },
   "sk5": {
-   "bodyHeight": 59,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,

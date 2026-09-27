@@ -308,7 +308,7 @@
  "validation": {
   "walk": {
    "bodyHeight": 58,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": -1,
    "ok": true,
    "issues": []
@@ -322,14 +322,14 @@
   },
   "atk1": {
    "bodyHeight": 58,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "atk2": {
    "bodyHeight": 58,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": 0,
    "ok": true,
    "issues": []
@@ -343,35 +343,35 @@
   },
   "hit": {
    "bodyHeight": 59,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "pr": {
    "bodyHeight": 58,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "sk1": {
    "bodyHeight": 59,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "sk2": {
    "bodyHeight": 58,
-   "feetMaxOffset": 3,
+   "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "sk3": {
    "bodyHeight": 59,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": -1,
    "ok": true,
    "issues": []
@@ -385,28 +385,28 @@
   },
   "sk5": {
    "bodyHeight": 59,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "sk6": {
    "bodyHeight": 58,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "ult": {
    "bodyHeight": 59,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "vfx": {
    "bodyHeight": 59,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": 0,
    "ok": true,
    "issues": []

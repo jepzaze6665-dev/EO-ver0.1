@@ -15,20 +15,20 @@ export const AG_ANIMS = {
   idle: { sheet: 'idle', cols: [0, 1, 2, 3, 4, 5], fps: 4, loop: true }, // breathing
   walk: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 8, loop: true, bob: 2 },
   run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 12, loop: true, bob: 3 },
-  atk1: { sheet: 'atk1', cols: [1, 1, 4] },       // sword cut -> thrust
-  atk2: { sheet: 'atk1', cols: [2, 2, 3] },       // shield bash -> shield high
-  atk3: { sheet: 'atk2', cols: [1, 2, 3, 4] },    // spinning slash
+  atk1: { sheet: 'atk1', cols: [1, 2] },          // overhead cut
+  atk2: { sheet: 'atk2', cols: [1, 2, 3] },       // thrust
+  atk3: { sheet: 'atk1', cols: [2, 3, 3, 4] },    // full sweeping arc
   dodge: { sheet: 'walk', cols: [2, 3, 4] },
   guard: { sheet: 'guard', cols: [3] },           // shield square to the front in all 4 directions
-  shieldBash: { sheet: 'bash', cols: [1, 2, 3, 4, 5] },
-  guardianSlash: { sheet: 'sk2', cols: [1, 2, 3, 4, 5] },
+  shieldBash: { sheet: 'sk1', cols: [1, 2, 3, 4] },
+  guardianSlash: { sheet: 'sk2', cols: [1, 2, 3, 4] },
   challenge: { sheet: 'sk4', cols: [1, 2, 3, 3, 4] },
   barrier: { sheet: 'sk5', cols: [1, 2, 3, 3, 4] },
-  counter: { sheet: 'counter', cols: [3, 3, 4, 4] }, // gold parry flash -> riposte thrust
-  perfectGuard: { sheet: 'sk1', cols: [2, 3, 4] },
-  ascension: { sheet: 'ult', cols: [1, 2, 3, 3, 4, 5] },
-  hurt: { sheet: 'guard', cols: [4] },            // braced behind the shield (keeps the shield on screen)
-  death: { sheet: 'hit', cols: [1, 2, 3, 3] },
+  counter: { sheet: 'sk6', cols: [3, 3, 4, 4] },  // golden flash on the shield -> riposte
+  perfectGuard: { sheet: 'parry', cols: [2, 3, 4] },
+  ascension: { sheet: 'ult', cols: [1, 2, 2, 3, 3, 4] },
+  hurt: { sheet: 'hit', cols: [2, 3] },
+  death: { sheet: 'hit', cols: [2, 3, 3] },
 };
 
 const front = (p, d) => ({ x: p.x + Math.cos(p.aim) * d, y: p.y - 14 + Math.sin(p.aim) * d });
@@ -42,6 +42,9 @@ export const AegisGuardian = {
   difficulty: 3,
   ratings: { damage: 2, range: 2, defense: 5, mobility: 2, support: 5 },
   description: 'The heart of the party\'s defence: taunts, blocks, and turns every perfect guard into a counter.',
+  identity: 'Stand in front. Take the blow. Answer it.',
+  strengths: ['Highest survivability: block, shields, damage reduction', 'Taunt and crowd control', 'Protects the party (barriers)'],
+  weaknesses: ['Lowest damage', 'Slow on its feet', 'Must face the danger to block it'],
   signatureWeapon: 'aegis_shield',
   preset: 'ag',
   anims: AG_ANIMS,

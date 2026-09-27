@@ -262,7 +262,7 @@
  "validation": {
   "walk": {
    "bodyHeight": 58,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": 0,
    "ok": true,
    "issues": []
@@ -276,14 +276,14 @@
   },
   "atk2": {
    "bodyHeight": 58,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "cast": {
    "bodyHeight": 58,
-   "feetMaxOffset": 1,
+   "feetMaxOffset": 0,
    "centerOffset": 0,
    "ok": true,
    "issues": []

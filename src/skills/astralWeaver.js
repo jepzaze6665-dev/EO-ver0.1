@@ -54,6 +54,9 @@ export const AstralWeaver = {
   difficulty: 4, // ★ out of 5
   ratings: { damage: 4, range: 5, defense: 2, mobility: 3, support: 4 },
   description: 'A mage who controls the battlefield with threads of starlight.',
+  identity: 'Weave threads, mark the stars, then make the sky collapse.',
+  strengths: ['Longest range of any class', 'Area control: threads slow, bind and mark', 'Huge payoff from Constellation Break / Thread Burst'],
+  weaknesses: ['Fragile up close', 'Needs setup before it can burst', 'Astral Charge fades out of combat'],
   signatureWeapon: 'celestial_loom',
   preset: 'aw',
   anims: AW_ANIMS,

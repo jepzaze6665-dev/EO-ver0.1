@@ -97,6 +97,55 @@
   "frames": 6,
   "set": "ag"
  },
+ "rp_crescent": {
+  "file": "assets/vfx/rp_crescent.png",
+  "fw": 132,
+  "fh": 128,
+  "frames": 6,
+  "set": "rp"
+ },
+ "rp_lance": {
+  "file": "assets/vfx/rp_lance.png",
+  "fw": 86,
+  "fh": 128,
+  "frames": 6,
+  "set": "rp"
+ },
+ "rp_flames": {
+  "file": "assets/vfx/rp_flames.png",
+  "fw": 86,
+  "fh": 128,
+  "frames": 6,
+  "set": "rp"
+ },
+ "rp_portal": {
+  "file": "assets/vfx/rp_portal.png",
+  "fw": 86,
+  "fh": 128,
+  "frames": 6,
+  "set": "rp"
+ },
+ "rp_spear": {
+  "file": "assets/vfx/rp_spear.png",
+  "fw": 86,
+  "fh": 128,
+  "frames": 6,
+  "set": "rp"
+ },
+ "rp_vortex": {
+  "file": "assets/vfx/rp_vortex.png",
+  "fw": 110,
+  "fh": 128,
+  "frames": 6,
+  "set": "rp"
+ },
+ "rp_blacksun": {
+  "file": "assets/vfx/rp_blacksun.png",
+  "fw": 90,
+  "fh": 128,
+  "frames": 6,
+  "set": "rp"
+ },
  "aw_needle": {
   "file": "assets/vfx/aw_needle.png",
   "fw": 86,
