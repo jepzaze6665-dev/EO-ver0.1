@@ -127,12 +127,23 @@ export class Combat {
     // 1) CALCULATE — pure, data in / result out (combat/damageSystem.js)
     const behind = src && target.armor > 0 && target.weakPointHit ? target.weakPointHit(src.x, src.y) : false;
     const attacker = src && src.stats ? { stats: src.stats, damageMult: src.status ? src.status.damageMult() : 1 } : null;
+    // flat attackers (monsters) still feel damage modifiers from statuses (taunted, surge...)
+    if (!attacker && src && src.status && opts.power !== undefined) opts = { ...opts, power: opts.power * src.status.damageMult() };
     const res = computeDamage(attacker, {
       defense: target.defense, stats: target.stats, weakness: target.weakness,
       vulnerable: target.status && target.status.isVulnerable(), armor: target.armor,
       damageTakenMult: target.status ? target.status.damageTakenMult() : 1,
     }, { ...opts, weakPoint: behind });
     const { crit, tags } = res;
+    // GUARD (combat/guardSystem.js): a blocking target reduces or negates the hit
+    const block = !opts.dot && src && target.tryBlock ? target.tryBlock(src, opts) : null;
+    if (block) {
+      res.amount = Math.round(res.amount * block.mult);
+      if (target.onBlock) target.onBlock(block, src, opts, ang);
+      g.events.emit('damageBlocked', { source: src, target, perfect: block.perfect, amount: res.amount });
+      if (block.perfect || res.amount <= 0) return { amount: 0, crit: false, killed: false, tags: ['blocked'], blocked: true };
+      opts = { ...opts, knock: (opts.knock || 0) * 0.25, blocked: true };
+    }
     // shields (status 'shield') soak damage before HP
     const absorbed = target.status ? res.amount - target.status.absorb(res.amount) : 0;
     const amount = res.amount - absorbed;
@@ -149,7 +160,7 @@ export class Combat {
     const kb = (opts.knock || 0) * (target.superArmor ? 0.15 : 1);
     if (kb > 0) target.knockback(opts.knockAng ?? ang, kb);
     // DoT ticks skip hurt reactions (no stagger / i-frames); entities may still count them via onDot
-    if (opts.dot) { if (target.onDot) target.onDot(amount, src, opts); } else if (target.onHurt) target.onHurt(amount, src, opts, ang);
+    if (opts.dot) { if (target.onDot) target.onDot(amount, src, opts); } else if (opts.blocked) { /* blocked: no stagger */ } else if (target.onHurt) target.onHurt(amount, src, opts, ang);
 
     // feedback
     const hx = target.x, hy = target.y - (target.height || 30) * 0.5;

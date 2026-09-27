@@ -99,14 +99,25 @@ export function classChecks(g, classId) {
   if (cls.enemyMark) {
     const m = cls.enemyMark, def = g.marks.defs[m];
     cls.markTarget(p, g, d); cls.markTarget(p, g, d);
-    ok('Mark stacks', g.marks.get(d, m) === 2, `${m}=${g.marks.get(d, m)}`);
+    ok('Mark stacks (up to its max)', g.marks.get(d, m) === Math.min(2, def.maxStacks), `${m}=${g.marks.get(d, m)} / max ${def.maxStacks}`);
     g.simulate(def.duration + 0.2);
     ok('Mark expires', g.marks.get(d, m) === 0, `after ${def.duration}s: ${g.marks.get(d, m)}`);
     const hpA = d.hp; log.length = 0;
-    for (let i = 0; i < def.maxStacks; i++) cls.markTarget(p, g, d);
-    g.simulate(0.3);
-    const trig = log.filter((l) => l.n === 'markTriggered').length;
-    ok('Mark triggers at max (Constellation Break)', trig === 1 && d.hp < hpA && g.marks.get(d, m) === 0, `triggers=${trig} bonus dmg=${hpA - d.hp}`);
+    if (def.onMax === 'trigger') {
+      for (let i = 0; i < def.maxStacks; i++) cls.markTarget(p, g, d);
+      g.simulate(0.3);
+      const trig = log.filter((l) => l.n === 'markTriggered').length;
+      ok('Mark triggers at max (Constellation Break)', trig === 1 && d.hp < hpA && g.marks.get(d, m) === 0, `triggers=${trig} bonus dmg=${hpA - d.hp}`);
+    } else {
+      // 'hold' marks are consumed by a skill tagged consumes-marks (e.g. Guardian Slash judgment)
+      const eater = cls.skills.find((s) => (s.tags || []).includes('consumes-marks') && s.type !== 'ultimate');
+      ({ p, d } = fresh());
+      cls.markTarget(p, g, d);
+      p.resources.set(rid, 100);
+      const hpB = d.hp;
+      cast(g, eater.id, d);
+      ok('Mark consumed by skill (bonus damage)', g.marks.get(d, m) === 0 && log.some((l) => l.n === 'damageDealt' && l.e.opts && l.e.opts.big), `${eater.id}: dmg=${hpB - d.hp}`);
+    }
   } else {
     const m = p.markId, max = p.maxMarks;
     p.addMark(1); p.addMark(1);
@@ -188,10 +199,11 @@ export function mechanicChecks(g, classId) {
     g.newGame(classId); releaseInput(g); p = g.player;
     goto(g, 38, 121);
     const foe = g.world.monsters.filter((m) => !m.dead).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
-    p.x = foe.x + 160; p.y = foe.y; foe.aggro = true; foe.setState('chase'); g.simulate(0.2);
-    p.resources.set(rid, 100); p.skillSys.cooldowns.clear(stealth.id);
-    p.trySkill(stealth); g.simulate(1.5);
-    ok('Stealth: chasing monster loses track', !foe.aggro && foe.state !== 'chase', `${foe.type} state=${foe.state} aggro=${foe.aggro}`);
+    // out of lunge range (a monster right on top of you still sees you, by design: < 70 px)
+    p.x = foe.x + 240; p.y = foe.y; p.resources.set(rid, 100); p.skillSys.cooldowns.clear(stealth.id);
+    const casted = p.trySkill(stealth); g.simulate(0.15); const veiled = p.status.flag('stealth');
+    foe.aggro = true; foe.setState('chase'); g.simulate(1.5);
+    ok('Stealth: chasing monster loses track', !foe.aggro && foe.state !== 'chase', `${foe.type} state=${foe.state} aggro=${foe.aggro} cast=${casted} veiled=${veiled} dist=${Math.round(Math.hypot(foe.x - p.x, foe.y - p.y))} hurt=${p.hurtT.toFixed(2)} act=${p.action && p.action.name}`);
     // ambush vs a normal hit on a dummy (same attack, deterministic enough over 6 samples)
     const hitOn = (veil) => {
       ({ p, d } = atDummy(g, classId));
@@ -216,6 +228,35 @@ export function mechanicChecks(g, classId) {
     g.simulate(0.05, () => aim(g, d.x, d.y));
     p.trySkill(blade); g.simulate(1.2, () => aim(g, d.x, d.y));
     ok('Phantom Edge: out and back (2 hits), 1 mark', hits.length === 2 && p.marks === 1, `hits=${hits.length} marks=${p.marks}`);
+  }
+
+  // Guard System (classes with guard data): block, perfect guard + counter, flank hits, taunt
+  if (p.cls.guard) {
+    const gd = p.cls.guard;
+    const hitFrom = (dx, raiseAgo) => {
+      ({ p, d } = atDummy(g, classId));
+      p.hp = p.maxHp; p.invulnT = 0;
+      aim(g, p.x + 100, p.y); g.simulate(STEP * 2, () => aim(g, p.x + 100, p.y)); // face east
+      p.guardState.active = true; p.guardState.since = g.time - raiseAgo;
+      const foe = { x: p.x + dx, y: p.y, team: 2, dead: false };
+      const g0 = p.resources.get(rid), hp0 = p.hp;
+      g.combat.dealDamage(foe, p, { power: 40, type: 'physical', knock: 100 });
+      return { lost: hp0 - p.hp, gauge: p.resources.get(rid) - g0, action: p.action && p.action.name };
+    };
+    const open = (() => { ({ p, d } = atDummy(g, classId)); p.invulnT = 0; const hp0 = p.hp; g.combat.dealDamage({ x: p.x + 40, y: p.y, team: 2 }, p, { power: 40, type: 'physical' }); return hp0 - p.hp; })();
+    const blocked = hitFrom(40, 1);
+    ok('Guard: frontal hit reduced + gauge', blocked.lost > 0 && blocked.lost < open * (1 - gd.reduction) + 2 && blocked.gauge > 0, `open ${open} -> blocked ${blocked.lost}, gauge +${blocked.gauge}`);
+    const perfect = hitFrom(40, 0.05);
+    ok('Perfect Guard: no damage, counter, big gauge', perfect.lost === 0 && perfect.action === 'guard_counter' && perfect.gauge >= 25, `lost ${perfect.lost}, action ${perfect.action}, gauge +${perfect.gauge}`);
+    const flank = hitFrom(-40, 1);
+    ok('Guard does not cover the back', flank.lost > open * 0.8 && flank.lost > blocked.lost * 2, `from behind ${flank.lost} (open ${open}, blocked ${blocked.lost})`);
+    // taunt: an idle monster must come for the Guardian, and it hits 20% softer
+    g.newGame(classId); releaseInput(g); p = g.player; goto(g, 38, 121);
+    const foe = g.world.monsters.filter((m) => !m.dead && m.type === 'wolf').sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+    foe.aggro = false; foe.setState('idle');
+    p.cls.markTarget(p, g, foe);
+    g.simulate(0.2);
+    ok('Taunt: monster is forced to engage', (foe.state === 'chase' || foe.state === 'attack') && foe.aggro && foe.status.damageMult() < 1, `state=${foe.state} dmgMult=${foe.status.damageMult()}`);
   }
 
   // Counter (status 'counter_ready' from a Perfect Dodge): next basic attack consumes it with a forced crit

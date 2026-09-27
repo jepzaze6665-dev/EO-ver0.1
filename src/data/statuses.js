@@ -9,7 +9,7 @@
 //  modifiers  : moveMult / damageMult (dealt) / damageTakenMult — multiplied per stack when perStack
 //               values in `data` passed to add() (e.g. { mult: 1.3 }) override `mult`
 //  flags      : cannotAct (no move/attack/skill), cannotMove, cannotCast (no skills),
-//               stealth (monsters lose track / hold their attacks)
+//               stealth (monsters lose track / hold their attacks), taunted (monster must chase its taunter)
 //  dot        : { interval, damage, type } — damage per tick per stack (data.damage overrides)
 //  absorb     : shield — data.amount points of damage absorbed before HP
 //  vulnerable : target takes the weak-window bonus from combat/damageSystem.js
@@ -21,6 +21,8 @@ export const STATUSES = {
   silence: { id: 'silence', category: 'control', maxStacks: 1, stacking: 'longest', flags: ['cannotCast'], display: { label: 'SILENCE', color: '#c0b0ff' } },
   slow: { id: 'slow', category: 'debuff', maxStacks: 1, stacking: 'longest', modifiers: { moveMult: 0.6 }, display: { label: 'SLOW', color: '#8ab8ff' } },
   // ---- debuffs
+  // taunt: the monster must fight the taunter and hits 20% softer
+  taunted: { id: 'taunted', category: 'debuff', maxStacks: 1, stacking: 'refresh', flags: ['taunted'], modifiers: { damageMult: 0.8 }, display: { label: 'TAUNTED', color: '#ffd070' } },
   vulnerable: { id: 'vulnerable', category: 'debuff', maxStacks: 1, stacking: 'longest', vulnerable: true, display: { label: 'VULNERABLE', color: '#9af8ff' } },
   curse: { id: 'curse', category: 'debuff', maxStacks: 3, stacking: 'stack', perStack: true, modifiers: { damageTakenMult: 1.06 }, display: { label: 'CURSE', color: '#d070ff' } },
   // ---- damage over time

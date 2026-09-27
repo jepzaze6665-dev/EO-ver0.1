@@ -48,6 +48,55 @@
   "frames": 6,
   "set": "ub"
  },
+ "ag_bash": {
+  "file": "assets/vfx/ag_bash.png",
+  "fw": 100,
+  "fh": 128,
+  "frames": 6,
+  "set": "ag"
+ },
+ "ag_crescent": {
+  "file": "assets/vfx/ag_crescent.png",
+  "fw": 86,
+  "fh": 128,
+  "frames": 6,
+  "set": "ag"
+ },
+ "ag_emblem": {
+  "file": "assets/vfx/ag_emblem.png",
+  "fw": 98,
+  "fh": 128,
+  "frames": 6,
+  "set": "ag"
+ },
+ "ag_beacon": {
+  "file": "assets/vfx/ag_beacon.png",
+  "fw": 126,
+  "fh": 128,
+  "frames": 6,
+  "set": "ag"
+ },
+ "ag_dome": {
+  "file": "assets/vfx/ag_dome.png",
+  "fw": 94,
+  "fh": 128,
+  "frames": 6,
+  "set": "ag"
+ },
+ "ag_flash": {
+  "file": "assets/vfx/ag_flash.png",
+  "fw": 86,
+  "fh": 128,
+  "frames": 6,
+  "set": "ag"
+ },
+ "ag_aegis": {
+  "file": "assets/vfx/ag_aegis.png",
+  "fw": 90,
+  "fh": 128,
+  "frames": 6,
+  "set": "ag"
+ },
  "aw_needle": {
   "file": "assets/vfx/aw_needle.png",
   "fw": 86,

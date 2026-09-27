@@ -19,6 +19,10 @@ export const ITEMS = {
     name: 'Celestial Loom', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'staff', color: '#8ad8ff',
     stats: { atk: 0 }, desc: 'A gilded staff that spins starlight into thread. Signature weapon of the Astral Weaver.',
   },
+  aegis_shield: {
+    name: 'Aegis Shield & Blade', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'shield', color: '#ffd070',
+    stats: { atk: 0 }, desc: 'A knight longsword and the gilded Aegis shield. Signature weapon of the Aegis Guardian.',
+  },
   // ---- armor
   umbral_cloak: {
     name: 'Umbral Cloak', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#7a50c0',
@@ -32,6 +36,10 @@ export const ITEMS = {
   astral_robe: {
     name: 'Astral Robe', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#5a7ad8',
     stats: { def: 0, hp: 0 }, desc: 'Night-blue robe embroidered with gold constellations.',
+  },
+  aegis_plate: {
+    name: 'Aegis Plate', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#c8d0e0',
+    stats: { def: 0, hp: 0 }, desc: 'Polished silver plate under a midnight-blue mantle.',
   },
   // ---- accessories
   eclipse_sigil: {

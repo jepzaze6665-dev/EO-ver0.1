@@ -8,6 +8,7 @@ import { RESOURCES } from '../data/resources.js';
 import { SkillSystem } from '../combat/skillSystem.js';
 import { MARKS } from '../data/marks.js';
 import { Loadout } from './loadout.js';
+import { evaluateBlock } from '../combat/guardSystem.js';
 
 const DODGE_TIME = 0.24, DODGE_DIST = 100, DODGE_IFRAMES = 0.28, DODGE_CHARGES = 2, DODGE_RECHARGE = 0.85;
 const HURT_IFRAMES = 0.55;
@@ -47,6 +48,7 @@ export class Player extends Entity {
     this.dodgeCharges = DODGE_CHARGES; this.dodgeRecharge = 0;
     this.dodging = false; this.dodgeStart = -9; this.dodgeOrigin = null; this.dodgeAng = 0; this.dodgeT = 0;
     this.invulnT = 0; this.hurtT = 0;
+    this.guardState = { active: false, since: -9, releasedAt: -9 }; // Guard System (classes with guard data)
     this.perfectCooldown = 0;
     this.anim = 'idle'; this.animT = 0;
     this.aim = 0; this.facing = Math.PI / 2;
@@ -134,6 +136,50 @@ export class Player extends Entity {
   consumeMarks(n) { return this.markId ? this.game.marks.consume(this, this.markId, n) : 0; }
   reduceCooldowns(sec) { this.skillSys.cooldowns.reduceAll(sec); }
 
+  // ---------------- guard (combat/guardSystem.js; rules in the class data: guard {...})
+  setGuard(on) {
+    const g = this.game, st = this.guardState, gd = this.cls.guard;
+    if (!gd) return false;
+    if (on && !st.active) {
+      if (this.dead || this.hurtT > 0 || this.dodging || !this.status.canAct()) return false;
+      if (g.time - st.releasedAt < (gd.recover || 0)) return false; // no perfect-guard spamming
+      if (this.action && this.action.t < (this.action.cancelAt ?? 0)) return false;
+      this.endAction(true);
+      st.active = true; st.since = g.time;
+      g.events.emit('guardStarted', { player: this });
+      return true;
+    }
+    if (!on && st.active) {
+      st.active = false; st.releasedAt = g.time;
+      g.events.emit('guardEnded', { player: this });
+    }
+    return false;
+  }
+  // called by combat.dealDamage for every incoming hit
+  tryBlock(src) {
+    if (!this.cls.guard || !this.guardState.active || this.dead) return null;
+    return evaluateBlock(this.cls.guard, this.guardState, this.aim, src.x - this.x, src.y - this.y, this.game.time);
+  }
+  onBlock(res, src, opts, ang) {
+    const g = this.game, fx = this.x + Math.cos(this.aim) * 16, fy = this.y - 16 + Math.sin(this.aim) * 16;
+    if (res.perfect) {
+      g.events.emit('perfectGuard', { player: this, source: src });
+      g.vfx.text(this.x, this.y - 72, 'PERFECT GUARD', { color: '#fff0b0', size: 13, life: 1.2 });
+      g.audio.sfx('perfect_guard');
+      g.slowMo(0.25, 0.4);
+      g.camera.punch(0.08);
+      this.setGuard(false);
+      if (this.cls.onPerfectGuard) this.cls.onPerfectGuard(this, g, src);
+    } else {
+      g.events.emit('guardBlocked', { player: this, source: src });
+      g.audio.sfx('block');
+      g.vfx.text(fx, fy - 20, 'BLOCK', { color: '#ffe8a0', size: 9 });
+      g.camera.shake(0.12);
+      if (this.cls.onGuardBlock) this.cls.onGuardBlock(this, g, src);
+    }
+    if (this.cls.guard.fx) g.vfx.sprite(this.cls.guard.fx, fx, fy, 0, { scale: res.perfect ? 0.9 : 0.55, life: 0.25, glow: 0.5 });
+  }
+
   // ---------------- defense
   invulnerable() {
     return this.invulnT > 0 || this.dodging || (this.action && this.action.invuln && this.action.t >= this.action.invuln[0] && this.action.t <= this.action.invuln[1]);
@@ -170,6 +216,7 @@ export class Player extends Entity {
   }
   onDeath() {
     this.dead = true;
+    this.guardState.active = false;
     this.deathT = 0;
     this.endAction(true);
     this.game.onPlayerDeath();
@@ -223,11 +270,11 @@ export class Player extends Entity {
     if (this.dodging && !this.dodgeFromSkill && this.dodgeT < DODGE_TIME * 0.6) return false;
     return true;
   }
-  beforeCast() { this.dodging = false; }
+  beforeCast() { this.dodging = false; if (this.guardState.active) this.setGuard(false); }
 
   trySkill(skill) {
     const r = this.skillSys.use(skill.id, this, this.game, this.aim);
-    if (r.ok) this.startAction(r.result);
+    if (r.ok && r.result) this.startAction(r.result); // some skills (a held guard) have no action timeline
     return r.ok;
   }
   tryBreak() { return this.trySkill(this.cls.special); }
@@ -243,7 +290,7 @@ export class Player extends Entity {
   }
 
   tryAttack() {
-    if (this.hurtT > 0 || this.dodging || !this.status.canAct()) return false;
+    if (this.hurtT > 0 || this.dodging || this.guardState.active || !this.status.canAct()) return false;
     const a = this.action;
     if (a) {
       if (!a.basic || a.t < a.comboAt) return false;
@@ -288,7 +335,9 @@ export class Player extends Entity {
     if (g.controlsEnabled()) {
       if (input.pressed('Space')) input.pushBuffer('dodge');
       if (input.mouse.leftPressed || (input.mouse.left && !this.action)) input.pushBuffer('attack');
-      if (input.pressed('KeyQ') || input.mouse.rightPressed) input.pushBuffer('break');
+      // classes with guard data HOLD Q / right-click to guard; the others tap it for their special
+      if (this.cls.guard) this.setGuard(input.isDown('KeyQ') || input.mouse.right);
+      else if (input.pressed('KeyQ') || input.mouse.rightPressed) input.pushBuffer('break');
       for (let i = 1; i <= 5; i++) if (input.pressed('Digit' + i)) input.pushBuffer('skill' + i);
       if (input.pressed('KeyR')) g.inventory.quickUse('hp_potion');
       if (input.pressed('KeyF')) g.inventory.quickUse('shadow_tonic');
@@ -320,6 +369,7 @@ export class Player extends Entity {
       this.vx = damp(this.vx, 0, 10, dt); this.vy = damp(this.vy, 0, 10, dt);
     } else {
       if (this.action) { tvx *= this.action.moveMul ?? 0.4; tvy *= this.action.moveMul ?? 0.4; }
+      else if (this.guardState.active) { tvx *= this.cls.guard.moveMul ?? 0.4; tvy *= this.cls.guard.moveMul ?? 0.4; }
       const accel = mv.x || mv.y ? 30 : 22; // quick start / quick stop, minimal inertia
       this.vx = damp(this.vx, tvx, accel, dt);
       this.vy = damp(this.vy, tvy, accel, dt);
@@ -348,6 +398,8 @@ export class Player extends Entity {
       this.facing = a.ang ?? this.facing;
     } else if (this.dodging) {
       this.facing = this.dodgeAng;
+    } else if (this.guardState.active) {
+      this.facing = this.aim; // the guard faces the mouse
     } else if (this.moving) {
       this.facing = Math.atan2(this.vy, this.vx);
     }
@@ -357,6 +409,7 @@ export class Player extends Entity {
     if (this.hurtT > 0) { anim = 'hurt'; at = 1 - this.hurtT / 0.2; }
     else if (this.action) { anim = this.action.anim; at = this.action.t / this.action.dur; }
     else if (this.dodging) { anim = 'dodge'; at = this.dodgeT / DODGE_TIME; }
+    else if (this.guardState.active) { anim = 'guard'; at = 0; }
     else if (this.moving) { anim = this.sprinting ? 'run' : 'walk'; at = this.animT; }
     else { anim = 'idle'; at = 0; }
     if (anim !== this.anim) { this.anim = anim; this.animT = 0; }

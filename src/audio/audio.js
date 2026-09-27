@@ -67,6 +67,10 @@ export class Audio {
       case 'dodge': case 'dash': N(0.18, { freq: 800, slide: 3, vol: 0.14, q: 3 }); break;
       case 'perfect': Tn(660, 0.35, { type: 'triangle', vol: 0.2 }); Tn(990, 0.45, { type: 'triangle', vol: 0.16, delay: 0.06 }); Tn(1320, 0.6, { type: 'sine', vol: 0.12, delay: 0.12 }); break;
       case 'mark': Tn(520, 0.12, { type: 'triangle', vol: 0.14, slide: 1.3 }); break;
+      // ---- Aegis Guardian
+      case 'block': N(0.1, { freq: 2600, vol: 0.22, q: 6 }); Tn(620, 0.12, { type: 'square', vol: 0.07, slide: 0.8 }); break;
+      case 'perfect_guard': Tn(1040, 0.3, { type: 'triangle', vol: 0.18 }); Tn(1560, 0.45, { type: 'sine', vol: 0.13, delay: 0.04 }); N(0.12, { freq: 4000, vol: 0.2, q: 8 }); break;
+      case 'taunt': Tn(160, 0.4, { type: 'sawtooth', vol: 0.12, slide: 1.4 }); Tn(320, 0.35, { type: 'triangle', vol: 0.1, delay: 0.05 }); break;
       // ---- Astral Weaver
       case 'star': Tn(1320, 0.12, { type: 'triangle', vol: 0.1, slide: 1.4 }); N(0.08, { freq: 5000, vol: 0.08, q: 4 }); break;
       case 'thread': Tn(740, 0.25, { type: 'sine', vol: 0.12, slide: 1.2 }); Tn(1110, 0.3, { type: 'sine', vol: 0.07, delay: 0.05 }); break;

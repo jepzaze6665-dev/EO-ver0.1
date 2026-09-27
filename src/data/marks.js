@@ -15,6 +15,12 @@ export const MARKS = {
     onMax: 'hold', clearOnDeath: true, tags: ['self', 'burst'],
     display: { color: '#c080ff', full: '#f0c8ff' },
   },
+  // Aegis Guardian: taunt mark on enemies (the class also applies the 'taunted' status)
+  guardian_mark: {
+    id: 'guardian_mark', name: 'Guardian Mark', maxStacks: 1, duration: 8, refreshOnStack: true,
+    idleDecay: null, onMax: 'hold', clearOnDeath: true, tags: ['enemy', 'taunt', 'holy'],
+    display: { color: '#ffd070', full: '#fff0b0' },
+  },
   // Phase 6 (Astral Weaver): placed on enemies, 3 stacks -> Constellation Break
   star_mark: {
     id: 'star_mark', name: 'Star Mark', maxStacks: 3, duration: 6, refreshOnStack: true,

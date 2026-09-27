@@ -10,9 +10,14 @@ const png = require('./png.js');
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(ROOT, 'assets', 'vfx');
 fs.mkdirSync(OUT, { recursive: true });
-const SCALE = 0.5, COLS = 6, ROW = 3;
+const SCALE = 0.5, COLS = 6, ROW = 3, ROW_DEFAULT = ROW;
 const SETS = {
   ub: { src: 'desgin/VFX/UB', detectRows: false, names: { sk1: 'slash', sk2: 'thrust', sk3: 'twin', sk4: 'wave', sk5: 'burst', sk6: 'shards', sk7: 'eclipse' } },
+  ag: {
+    src: 'desgin/VFX/AG', detectRows: true, clean: true,
+    names: { sk1: 'ag_bash', sk2: 'ag_crescent', sk3: 'ag_emblem', sk4: 'ag_beacon', sk5: 'ag_dome', sk6: 'ag_flash', sk7: 'ag_aegis' },
+    rows: { sk3: 0, sk4: 0, sk5: 0, sk7: 0 }, // effects centred on the caster use the front view (row 0), not the side view
+  },
   aw: {
     src: 'desgin/VFX/AW', detectRows: true, clean: true,
     names: { SK1: 'aw_needle', SK2: 'aw_star', SK3: 'aw_comet', SK4: 'aw_sigil', SK5: 'aw_nova', SK6: 'aw_orb', UT: 'aw_starfall' },
@@ -60,6 +65,7 @@ function cleanFrame(out, x0, fw, fh) {
 // is enlarged to fit the widest effect, so nothing is sliced by a grid line.
 const SOFT_FLOOR = 18, DUST = 14, CUT_FEATHER = 8;
 function extractRow(img, file, set) {
+  const ROW = set.rows && set.rows[file] !== undefined ? set.rows[file] : ROW_DEFAULT;
   const W = img.width, H = img.height, d = img.data, cw = W / COLS;
   const A = new Uint8Array(W * H);
   const strip = (set.stripLabel && set.stripLabel[file]) || 0;

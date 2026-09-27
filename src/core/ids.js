@@ -1,7 +1,7 @@
 // Stable content IDs (never renumbered). Saves and future content reference these,
 // internal short keys stay as lookup handles. Add new classes/maps/bosses here.
 export const IDS = {
-  classes: { class_umbral_sword: 'umbral_sword', class_astral_weaver: 'astral_weaver' /* class 2: future */ },
+  classes: { class_umbral_sword: 'umbral_sword', class_astral_weaver: 'astral_weaver', class_aegis_guardian: 'aegis_guardian' /* class 2: future */ },
   maps: {
     map_lumina_village: 1, map_whispering_forest: 2, map_ancient_ruins: 3, map_guardian_gate: 4,
     map_guardian_arena: 5, map_ancient_valley: 6, map_hidden_cave: 7,

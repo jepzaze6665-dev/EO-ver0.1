@@ -16,6 +16,15 @@ export const RESOURCES = {
     gainStat: 'shadowGain',
     colors: ['#b070ff', '#4a1a90'],
   },
+  // Aegis Guardian: built by blocking (guard) and being hit by taunted foes, spent on protection
+  guard_gauge: {
+    id: 'guard_gauge', name: 'Guard Gauge', label: 'GUARD',
+    max: 100, start: 0, respawn: 0,
+    regen: { inCombat: 0, outOfCombat: 0 },
+    decay: { inCombat: 0, outOfCombat: 8, delay: 4 },
+    gainStat: 'guardGain',
+    colors: ['#ffd070', '#8a6a20'],
+  },
   // Phase 6 (Astral Weaver) — defined now so the pool is proven to be class-agnostic.
   astral_charge: {
     id: 'astral_charge', name: 'Astral Charge', label: 'ASTRAL',

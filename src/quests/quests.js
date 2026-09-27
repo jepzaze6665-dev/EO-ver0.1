@@ -7,7 +7,7 @@ export const QUESTS = {
     desc: 'Aldric wants proof you can survive the forest: master your class techniques.',
     objectives: [
       { id: 'mark', text: 'Build 3 Shadow Marks', classText: 'marks', type: 'flag', flag: 'tut_marks' },
-      { id: 'perfect', text: 'Perform a Perfect Dodge', type: 'flag', flag: 'tut_perfect' },
+      { id: 'perfect', text: 'Perform a Perfect Dodge', classText: 'perfect', type: 'flag', flag: 'tut_perfect' },
       { id: 'break', text: 'Unleash Shadow Break', classText: 'break', type: 'flag', flag: 'tut_break' },
     ],
     reward: { exp: 80, gold: 60, items: { shadow_tonic: 2 } },

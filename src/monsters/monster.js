@@ -119,6 +119,8 @@ export class Monster extends Entity {
     const dP = dist(this.x, this.y, p.x, p.y);
     const speed = this.def.speed * this.mod.speed * this.status.moveMult();
     const detect = this.def.detect * this.mod.detect * (g.player.sprinting ? 1.15 : 1);
+    // taunt (status flag): drop everything and fight the taunter
+    if (this.status.flag('taunted') && !p.dead && (this.state === 'idle' || this.state === 'patrol' || this.state === 'return' || this.state === 'alert')) { this.aggro = true; this.setState('chase'); }
     this.moving = false;
     this.stateT += dt;
 
@@ -140,7 +142,7 @@ export class Monster extends Entity {
       case 'chase': {
         if (p.dead || g.world.inSafeZone(p)) { this.setState('return'); break; }
         // stealth (status flag): lose track unless the player is right next to us, never commit an attack
-        const hidden = p.status.flag('stealth');
+        const hidden = p.status.flag('stealth') && !this.status.flag('taunted');
         if (hidden && dP > 70) {
           this.aggro = false; this.setState('return');
           g.vfx.text(this.x, this.y - this.height - 10, '?', { color: '#c8b8e8', size: 13, life: 0.8 }); // lost track

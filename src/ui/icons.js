@@ -12,6 +12,36 @@ export function icon(name, color = '#b070ff') {
   g.lineJoin = 'round';
   const glow = (col, w, fn) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); fn(); g.stroke(); };
   switch (name) {
+    // ---- Aegis Guardian
+    case 'shield': case 'guard':
+      g.fillStyle = '#2a4a8a'; g.beginPath(); g.moveTo(16, 3); g.lineTo(27, 8); g.lineTo(25, 20); g.lineTo(16, 29); g.lineTo(7, 20); g.lineTo(5, 8); g.closePath(); g.fill();
+      g.strokeStyle = '#ffd070'; g.lineWidth = 2; g.stroke();
+      glow('#fff0b0', 1.5, () => { g.moveTo(16, 8); g.lineTo(16, 24); g.moveTo(10, 14); g.lineTo(22, 14); });
+      break;
+    case 'shield_bash':
+      g.fillStyle = '#2a4a8a'; g.beginPath(); g.moveTo(10, 5); g.lineTo(19, 9); g.lineTo(17, 20); g.lineTo(10, 27); g.lineTo(4, 20); g.lineTo(3, 9); g.closePath(); g.fill();
+      g.strokeStyle = '#ffd070'; g.lineWidth = 2; g.stroke();
+      for (let i = 0; i < 3; i++) glow('#9ad8ff', 2, () => { g.moveTo(21, 9 + i * 7); g.lineTo(29, 7 + i * 8); });
+      break;
+    case 'guardian_slash':
+      glow('#8a6a20', 6, () => g.arc(10, 26, 20, -1.3, 0.1));
+      glow('#ffd070', 3, () => g.arc(10, 26, 20, -1.3, 0.1));
+      glow('#9ad8ff', 1.5, () => g.arc(10, 26, 15, -1.2, 0));
+      break;
+    case 'challenge':
+      for (let i = 0; i < 3; i++) glow(['#8a6a20', '#ffd070', '#fff0b0'][i], 2, () => g.ellipse(16, 22, 6 + i * 5, 3 + i * 2.2, 0, 0, 7));
+      glow('#fff0b0', 2, () => { g.moveTo(16, 4); g.lineTo(16, 18); });
+      break;
+    case 'barrier':
+      g.fillStyle = 'rgba(140,200,255,0.45)'; g.beginPath(); g.arc(16, 24, 13, Math.PI, 0); g.closePath(); g.fill();
+      glow('#ffd070', 2, () => g.arc(16, 24, 13, Math.PI, 0));
+      glow('#ffd070', 2, () => { g.moveTo(3, 24); g.lineTo(29, 24); });
+      break;
+    case 'aegis':
+      g.fillStyle = 'rgba(120,180,255,0.35)'; g.beginPath(); g.arc(16, 16, 14, 0, 7); g.fill();
+      g.fillStyle = '#2a4a8a'; g.beginPath(); g.moveTo(16, 6); g.lineTo(24, 10); g.lineTo(22, 19); g.lineTo(16, 26); g.lineTo(10, 19); g.lineTo(8, 10); g.closePath(); g.fill();
+      g.strokeStyle = '#ffd070'; g.lineWidth = 2; g.stroke();
+      break;
     // ---- Umbral Sword (loadout skills)
     case 'veil_shadow':
       g.fillStyle = 'rgba(90,40,150,0.5)'; g.beginPath(); g.arc(16, 17, 12, 0, 7); g.fill();

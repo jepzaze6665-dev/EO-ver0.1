@@ -4,7 +4,7 @@ const TILE = 32;
 
 export function bot(g, i, opts = {}) {
   const p = g.player, inp = g.input;
-  ['KeyA', 'KeyD', 'KeyW', 'KeyS'].forEach((k) => inp.down.delete(k));
+  ['KeyA', 'KeyD', 'KeyW', 'KeyS', 'KeyQ'].forEach((k) => inp.down.delete(k));
   if (p.dead) return;
   const press = (a) => {
     if (Math.cos(a) > 0.3) inp.down.add('KeyD');
@@ -17,6 +17,14 @@ export function bot(g, i, opts = {}) {
     if (t.resolved) continue;
     const rem = t.total - t.time;
     if (rem < (opts.dodgeLead ?? 0.1) && rem > 0 && g.combat.testShape(t, p)) {
+      // guard classes raise the guard toward the attacker at the last moment (-> Perfect Guard)
+      if (p.cls.guard && t.owner && !t.owner.dead) {
+        const r = g.renderer, cam = g.camera;
+        inp.mouse.x = ((t.owner.x - cam.left) * cam.zoom * r.scale) / r.dpr;
+        inp.mouse.y = ((t.owner.y - 12 - cam.top) * cam.zoom * r.scale) / r.dpr;
+        inp.down.add('KeyQ');
+        return;
+      }
       press(Math.atan2(p.y - t.y, p.x - t.x));
       inp.pushBuffer('dodge');
       return;
@@ -51,9 +59,11 @@ export function bot(g, i, opts = {}) {
   if (d > reach) press(Math.atan2(tgt.y - p.y, tgt.x - p.x));
   if (d < reach + 30 && i % (opts.apm || 5) === 0) {
     inp.pushBuffer('attack');
-    if (i % 60 === 0) inp.pushBuffer('skill1');
-    if (i % 90 === 0) inp.pushBuffer('skill2');
-    if (i % 150 === 0) inp.pushBuffer('skill4');
+    // any class: fire the first slotted skill (keys 1-4) that is ready, affordable and allowed
+    if (i % 20 === 0) {
+      const b = p.loadout.bindings().find((x) => x.key !== '5' && p.skillSys.canUse(x.skill.id).ok);
+      if (b) inp.pushBuffer('skill' + b.key);
+    }
     if (p.marks >= 3) inp.pushBuffer('break');
     if (tgt.status && tgt.status.has('vulnerable') && p.shadow >= 50) inp.pushBuffer('skill5');
   }
@@ -108,6 +118,7 @@ export function fight(g, seconds, opts = {}) {
 export function counters(g) {
   const c = { perfect: 0, breaks: 0, weak: 0, ults: 0, constellations: 0, threads: 0 };
   g.events.on('perfectDodge', () => c.perfect++);
+  g.events.on('perfectGuard', () => c.perfect++); // guard classes: Perfect Guard is their perfect-timing mechanic
   g.events.on('bossWeak', () => c.weak++);
   g.events.on('markTriggered', (e) => { if (e.source === g.player) c.constellations++; });
   g.events.on('threadCreated', () => c.threads++);

@@ -66,6 +66,7 @@ export class Game {
     ev.on('targetMarked', (e) => { if (e.target === this.player && e.stacks >= e.maxStacks) this.world.setFlag('tut_marks'); });
     ev.on('markTriggered', (e) => { if (e.source === this.player) this.world.setFlag('tut_marks'); });
     ev.on('perfectDodge', () => this.world.setFlag('tut_perfect'));
+    ev.on('perfectGuard', () => this.world.setFlag('tut_perfect'));
     ev.on('skillUsed', (e) => { const tut = this.player && this.player.cls.tutorial; if (e.caster === this.player && tut && e.skillId === tut.breakSkill) this.world.setFlag('tut_break'); });
     // stealth feedback for the player (any status carrying the 'stealth' flag, any class)
     const stealthy = (id) => (STATUSES[id].flags || []).includes('stealth');

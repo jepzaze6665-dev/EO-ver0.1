@@ -194,6 +194,7 @@ export class HUD {
       const disp = STATUSES[st.id].display;
       if (disp) chips.push([st.stacks > 1 ? `${disp.label} ×${st.stacks}` : disp.label, disp.color]);
     }
+    if (p.guardState && p.guardState.active) chips.push(['GUARDING', '#ffe8a0']);
     if (g.world.state.flags.moonBlessing) chips.push(['MOON BLESSING', '#dfe8ff']);
     for (const [label, col] of chips) {
       ctx.font = `700 ${Math.round(9 * u)}px ${FONT}`;

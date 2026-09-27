@@ -65,12 +65,13 @@ quests/  items/  inventory/  equipment/  ui/ (canvas HUD + DOM panels)  save/  a
 |---|---|---|---|
 | **Astral Weaver** | Ranged magic · control | Astral Charge (builds, decays out of combat) | Astral Threads + Star Marks on enemies → Constellation Break |
 | **Umbral Sword** | Melee assassin · burst | Shadow Gauge | Shadow Marks on self → Shadow Break · Shadow Veil (stealth → Ambush) · Phantom Edge |
+| **Aegis Guardian** | Tank · protector · crowd control | Guard Gauge (fills by blocking) | Hold Q/RMB to **guard**; Perfect Guard → counter · Guardian Mark (taunt, −20% dmg) → Guardian Slash judgment · Holy Barrier · Aegis Ascension |
 
 **Skill loadout:** keys 1-4 are chosen per character in the **Skills** tab (`I` → Skills; locked in combat, saved);
 key 5 is the ultimate and Q the class special. Umbral Sword knows 6 actives for 4 slots.
 
 Class data lives in `src/skills/<class>.js` and is registered in `src/skills/classes.js`. Core systems used by every class:
-`combat/damageSystem` · `resourceSystem` · `skillSystem` · `markSystem` · `threadSystem` · `status/status`
+`combat/damageSystem` · `resourceSystem` · `skillSystem` · `markSystem` · `threadSystem` · `guardSystem` · `status/status`
 (rules in `src/data/*.js`). Saves store the class id; old saves load as Umbral Sword.
 
 The combat core never references Umbral Sword directly: a class is a stat block + a basic combo + skills that return
@@ -78,10 +79,10 @@ The combat core never references Umbral Sword directly: a class is a stat block 
 
 ## Assets & pipeline
 
-- `desgin/class cr/UB|AW/` — class sheets (6 columns × 4 directions). `node tools/build-player.js [ub|aw]` removes the checkerboard
+- `desgin/class cr/UB|AW|AG/` — class sheets (6 columns × 4 directions). `node tools/build-player.js [ub|aw|ag]` removes the checkerboard
   background, splits cells by detecting character blobs, aligns frames on the feet, auto-detects which side row faces
   left/right, normalises every class to the same body height / pivot, and writes `assets/player[/aw]/*.png` + `atlas.json`.
-- `desgin/VFX/UB|AW/` — skill effect sheets. `node tools/build-vfx.js` writes right-facing strips to `assets/vfx/` (AW: `aw_*`). **To replace art:** drop new sheets with the same layout and rerun.
+- `desgin/VFX/UB|AW|AG/` — skill effect sheets. `node tools/build-vfx.js` writes strips to `assets/vfx/` (AW: `aw_*`, AG: `ag_*`; directional effects use the right-facing row, caster-centred ones the front row). **To replace art:** drop new sheets with the same layout and rerun.
 - `ของแมพ/*.png` — asset sets. `node tools/extract-props.js` cuts ~218 props (trees, rocks, crystals, ruins, village
   buildings…) into `assets/props/props.png` + `props.json`.
 - Monsters, NPCs, tiles, icons and the Guardian are procedural placeholders generated at startup with the same frame
@@ -92,7 +93,7 @@ The combat core never references Umbral Sword directly: a class is a stat block 
 Unit tests (pure combat core, no browser):
 
 ```bash
-node tools/tests/run.mjs          # all unit tests (combat, resource, skill, mark, status, thread, sprites, loadout)
+node tools/tests/run.mjs          # all unit tests (combat, resource, skill, mark, status, thread, guard, sprites, loadout, syntax)
 ```
 
 In-game: a **training yard** with 3 Training Dummies (HP, DPS meter, auto-reset) stands west of the Lumina fountain.

@@ -2,7 +2,7 @@
 // into clean alpha sprite strips + an atlas description consumed by src/player/playerSprites.js.
 // Every class preset is normalised to the SAME visual standard (body height, canvas, pivot).
 // Usage: node tools/build-player.js            (all classes)
-//        node tools/build-player.js aw         (one class: ub | aw)
+//        node tools/build-player.js aw         (one class: ub | aw | ag)
 const fs = require('fs');
 const path = require('path');
 const png = require('./png.js');
@@ -33,6 +33,24 @@ PRESETS.ub = { out: 'assets/player', sheets: {
   sk6: ['desgin/class cr/UB/UB SK6.png', 4, { frames: 5 }], // the explosion frame is drawn double-wide: 5 frames per row
   ult: ['desgin/class cr/UB/UB UT.png', 4],
   vfx: ['desgin/class cr/UB/UB VFX', 8],
+} };
+const AG = 'desgin/class cr/AG/';
+PRESETS.ag = { out: 'assets/player/ag', sheets: {
+  walk: [AG + 'AG walk1.png', 4],
+  run: [AG + 'AG walk2', 4],
+  atk1: [AG + 'AG ATK1', 4],
+  atk2: [AG + 'AG ATK2', 4],
+  guard: [AG + 'AG DF.PNG', 4],
+  hit: [AG + 'AG HIT', 4],
+  pr: [AG + 'AG PR', 4],
+  bash: [AG + 'AG VFX', 4],
+  sk1: [AG + 'sk1.png', 4],
+  sk2: [AG + 'sk2', 4],
+  sk3: [AG + 'sk3', 4],
+  sk4: [AG + 'sk4', 4],
+  sk5: [AG + 'sk5', 4],
+  sk6: [AG + 'sk6', 4],
+  ult: [AG + 'ut', 4],
 } };
 const AW = 'desgin/class cr/AW/';
 PRESETS.aw = { out: 'assets/player/aw', sheets: {
