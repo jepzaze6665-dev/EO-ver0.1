@@ -161,6 +161,7 @@ export function mapTour(g, classId = 'umbral_sword') {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, mm = w.mapManager, p = g.player;
+  w.transitions.autoConfirm = true; // boss gate asks first — the tour just walks through
   ok('New Game starts on Lumina', w.mapId === 'lumina');
   for (const f of ['ruinsGate', 'logBridge', 'bramble', 'gateOpened', 'guardianDefeated']) w.setFlag(f);
   w.applyState();
@@ -215,6 +216,18 @@ export function mapTour(g, classId = 'umbral_sword') {
     }
   }
   ok('Everything reachable on foot from each map spawn', !unreachable.length, unreachable.join(', '));
+  // boss entrance asks first: "Not yet" puts you back outside, "Enter" goes in
+  g.newGame(classId);
+  const w1 = g.world; w1.setFlag('gateOpened'); w1.applyState();
+  goto(g, 135, 51); g.simulate(0.2);
+  releaseInput(g); g.player.y = 47.6 * TILE; g.simulate(0.1);
+  const asked = g.ui.panels.current && g.ui.panels.current.name === 'confirm';
+  g.ui.panels.close(); g.simulate(0.2);
+  const declined = w1.mapId === 'a3' && !w1.transitions.exitAt(w1.mapDef, g.player.x, g.player.y);
+  g.simulate(0.8); g.player.y = 47.6 * TILE; g.simulate(0.1);
+  if (g.ui.panels.current && g.ui.panels.current.advance) g.ui.panels.current.advance();
+  g.simulate(0.2);
+  ok('Boss gate: asks, "Not yet" steps back, "Enter" goes in', asked && declined && w1.mapId === 'arena', `asked=${asked} declined=${declined} map=${w1.mapId}`);
   // locks: sealed gate + boss fight
   g.newGame(classId);
   const w2 = g.world, a3 = w2.mapManager.get('a3').exits.find((e) => e.id === 'arena_gate');

@@ -147,6 +147,22 @@ export class Panels {
     if (a === 'controls') return this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), null, true);
   }
 
+  // ---------------- yes / no (e.g. entering a boss arena). [E] = yes, [Esc] = no
+  confirm(title, body, yesLabel, noLabel, onYes, onNo) {
+    const el = this.show('confirm', `
+      <div class="panel lore">
+        <h2>${esc(title)}</h2>
+        <div class="body">${esc(body).replace(/\n/g, '<br>')}</div>
+        <button class="yes">${esc(yesLabel)} [E]</button> <button class="no">${esc(noLabel)} [Esc]</button>
+      </div>`);
+    let done = false;
+    const answer = (yes) => { if (done) return; done = true; this.close(); (yes ? onYes : onNo)(); };
+    this.current.advance = () => answer(true);
+    this.current.onClose = () => answer(false); // Esc / close
+    el.querySelector('.yes').onclick = () => answer(true);
+    el.querySelector('.no').onclick = () => answer(false);
+  }
+
   // ---------------- lore / text
   textPanel(title, body, onClose, html = false) {
     const el = this.show('text', `

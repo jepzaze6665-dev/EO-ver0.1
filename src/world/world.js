@@ -58,9 +58,14 @@ export class World {
       this.interactables.push({ id: 'npc_' + n.id, kind: 'npc', x: npc.x, y: npc.y, radius: 38, npc, secret: n.secret || 0 });
     }
     for (const it of builder.interactables) this.interactables.push(it);
-    // content owned by the map files (maps/*.js `content`): signs, extra spawns
+    // content owned by the map files (maps/*.js `content`): NPCs, signs, extra spawns
     for (const d of MAPS) {
       const c = d.content || {};
+      for (const n of c.npcs || []) {
+        const npc = new NPC(game, { ...n, x: (n.tx + 0.5) * TILE, y: (n.ty + 0.7) * TILE });
+        this.npcs.push(npc);
+        this.interactables.push({ id: 'npc_' + n.id, kind: 'npc', x: npc.x, y: npc.y, radius: 38, npc });
+      }
       for (const it of c.interactables || []) this.interactables.push({ radius: 34, ...it, x: (it.tx + 0.5) * TILE, y: (it.ty + 0.6) * TILE, mapId: d.id });
       for (const s of c.spawns || []) this.spawnPoints.push({ def: { radius: 2, count: 1, ...s, x: (s.tx + 0.5) * TILE, y: (s.ty + 0.5) * TILE }, alive: [], respawnT: 0, active: false });
     }
@@ -252,7 +257,7 @@ export class World {
     for (let i = 0; i < d.count; i++) {
       const a = rand(0, TAU), r = rand(0, d.radius * TILE);
       const pos = this.map.findOpen(d.x + Math.cos(a) * r, d.y + Math.sin(a) * r, 4);
-      const m = new Monster(g, d.type, pos.x, pos.y, { spawn: sp, corrupted, elite: !!d.elite });
+      const m = new Monster(g, d.type, pos.x, pos.y, { spawn: sp, corrupted, elite: !!d.elite, areaMod: home && home.monsterMod });
       sp.alive.push(m);
       this.monsters.push(m);
     }

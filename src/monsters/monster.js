@@ -16,11 +16,12 @@ export class Monster extends Entity {
     this.def = d;
     this.corrupted = !!opts.corrupted && (typeId === 'wolf' || typeId === 'goblin');
     this.elite = !!opts.elite;
-    // stat modifiers multiply together (corrupted × elite)
-    const mods = [this.corrupted && CORRUPT_MOD, this.elite && ELITE_MOD].filter(Boolean);
+    // stat modifiers multiply together (corrupted × elite × the map's own monsterMod, e.g. A3 ruins)
+    const mods = [this.corrupted && CORRUPT_MOD, this.elite && ELITE_MOD, opts.areaMod].filter(Boolean);
     const cm = { hp: 1, detect: 1, power: 1, speed: 1, exp: 1, scale: 1 };
     for (const m of mods) for (const k in cm) cm[k] *= m[k] ?? 1;
     this.mod = cm;
+    this.level = d.level + (this.elite ? ELITE_MOD.level || 0 : 0) + ((opts.areaMod && opts.areaMod.level) || 0);
     this.team = TEAM.ENEMY;
     this.maxHp = this.hp = Math.round(d.hp * cm.hp);
     this.defense = d.def;

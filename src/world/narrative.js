@@ -165,6 +165,22 @@ export function dialogueFor(id, g) {
         ],
         options: [{ label: 'Farewell', action: 'close' }],
       };
+    // A3 — wounded Guild scout in the ruins courtyard (the last warning before the boss)
+    case 'kael':
+      if (restored) return {
+        lines: ['You came back out of that arena on your own feet. I’ll be telling this story for years.', 'Go on — Lumina will want to hear it from you.'],
+        options: [{ label: 'Farewell', action: 'close' }],
+      };
+      return {
+        lines: [
+          'Easy… I’m Kael, Guild scout. The ruins woke up when the fog came — those pylons fire across the rooms. Count the rhythm, then cross.',
+          f.shrineInvestigated
+            ? 'You have the seal fragment? Then the gate north of the shrine will open for you. The Guardian sleeps behind it.'
+            : 'The shrine up ahead holds a fragment of the old seal. A crystal beast bigger than any I have seen guards it.',
+          'If you face the Guardian: watch the ground, it always shows what is coming. After its heaviest blows its heart lies open — that is your moment.',
+        ],
+        options: [{ label: 'I will be careful', action: 'close' }],
+      };
   }
   return { lines: ['…'], options: [{ label: 'Close', action: 'close' }] };
 }

@@ -45,11 +45,12 @@ test('conditions + chance (rare event foundation)', () => {
 });
 test('map hazards: known kinds, statuses exist, inside their map', () => {
   for (const m of MAPS) for (const hz of (m.content && m.content.hazards) || []) {
-    ok(['miasma', 'thorns'].includes(hz.kind), hz.id);
+    ok(['miasma', 'thorns', 'beam'].includes(hz.kind), hz.id);
     for (const s of hz.statuses || []) ok(STATUSES[s.id], `${hz.id}: ${s.id}`);
-    ok(hz.r > 0 && hz.tx >= 0 && hz.ty >= 0, hz.id);
+    ok((hz.kind === 'beam' ? hz.len > 0 : hz.r > 0) && hz.tx >= 0 && hz.ty >= 0, hz.id);
   }
   ok(MAPS.find((m) => m.id === 'a2').content.hazards.length >= 2, 'A2 has hazards');
+  ok(MAPS.find((m) => m.id === 'a3').content.hazards.some((h) => h.kind === 'beam'), 'A3 has rune wards');
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -6,6 +6,8 @@ import { TAU, rand } from '../core/math.js';
 // dodging, perfect dodges and guards work against them like against any attack.
 //   miasma { tx, ty, r (tiles), interval, statuses: [{ id, dur }] }        standing inside applies the statuses
 //   thorns { tx, ty, r (tiles), period, windup, power, root? (seconds) }   telegraphed eruption every `period`
+//   beam   { tx, ty, len (tiles), angle (rad), width (px), period, windup, power }  rune-ward pylons at both
+//          ends fire a telegraphed line across a room on a rhythm — time the crossing (or dodge through)
 //   while  { flag?, notFlag? }                                              active only while the world flags match
 // The Guardian's own arena hazards stay in world.js (they follow the boss phases).
 export class HazardSystem {
@@ -39,6 +41,19 @@ export class HazardSystem {
           g.vfx.burst(p.x, p.y - 8, '#8adf50', 6, 50);
         }
         if (Math.random() < 0.12) g.vfx.particle(h.x + rand(-h.r, h.r) * 0.8, h.y + rand(-h.r, h.r) * 0.5, { color: '#7ad050', vy: -18, life: 1, size: 2, add: true });
+      } else if (h.kind === 'beam') {
+        h.t += dt;
+        h.glow = Math.max(0, (h.glow || 0) - dt * 3);
+        if (h.t < h.period) continue;
+        h.t = 0;
+        const tel = g.combat.telegraphs.add({ shape: 'line', x: h.x, y: h.y, ang: h.angle || 0, len: h.len * TILE, width: h.width || 12, total: h.windup, color: '120,220,255', owner: h });
+        tel.onResolve = () => {
+          h.glow = 1;
+          g.combat.enemyStrike(h.src, tel, h.power, { knock: 90, knockAng: (h.angle || 0) + Math.PI / 2 });
+          const ex = h.x + Math.cos(h.angle || 0) * h.len * TILE, ey = h.y + Math.sin(h.angle || 0) * h.len * TILE;
+          for (let i = 0; i <= 6; i++) g.vfx.burst(h.x + (ex - h.x) * (i / 6), h.y + (ey - h.y) * (i / 6), '#8ae8ff', 3, 60);
+          g.audio.sfx('shatter');
+        };
       } else if (h.kind === 'thorns') {
         h.t += dt;
         if (h.t < h.period) continue;
@@ -65,6 +80,21 @@ export class HazardSystem {
         for (let i = 0; i < 4; i++) { // bubbles
           const a = i * 1.7 + h.x, k = (t * 0.6 + i * 0.25) % 1;
           ctx.beginPath(); ctx.arc(h.x + Math.cos(a) * h.r * 0.5, h.y + Math.sin(a) * h.r * 0.3, 1 + k * 2, 0, TAU); ctx.fill();
+        }
+      } else if (h.kind === 'beam') {
+        // the two rune pylons; they brighten as the beam charges and flash when it fires
+        const a = h.angle || 0, ex = h.x + Math.cos(a) * h.len * TILE, ey = h.y + Math.sin(a) * h.len * TILE;
+        const charge = Math.max(0, (h.t - (h.period - h.windup - 0.6)) / (h.windup + 0.6));
+        const lit = Math.max(charge, h.glow || 0);
+        for (const [px, py] of [[h.x, h.y], [ex, ey]]) {
+          ctx.fillStyle = `rgba(90,200,255,${0.25 + lit * 0.6})`;
+          ctx.beginPath(); ctx.ellipse(px, py - 10, 5 + lit * 3, 9 + lit * 3, 0, 0, TAU); ctx.fill();
+          ctx.fillStyle = '#cff6ff';
+          ctx.fillRect(px - 1, py - 14, 2, 8);
+        }
+        if (h.glow > 0) {
+          ctx.strokeStyle = `rgba(170,240,255,${h.glow})`; ctx.lineWidth = (h.width || 12) * h.glow;
+          ctx.beginPath(); ctx.moveTo(h.x, h.y); ctx.lineTo(ex, ey); ctx.stroke(); ctx.lineWidth = 1;
         }
       } else if (h.kind === 'thorns') {
         ctx.fillStyle = 'rgba(40,50,25,0.55)';

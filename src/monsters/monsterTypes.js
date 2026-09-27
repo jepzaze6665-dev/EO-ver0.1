@@ -69,9 +69,9 @@ export const MONSTERS = {
 // Corrupted variants (before the Guardian falls): tougher, more aggressive, purple eyes.
 export const CORRUPT_MOD = { hp: 1.2, detect: 1.35, power: 1.1, speed: 1.08 };
 
-// Elite variants (spawn data `elite: true`): a simple mini-threat for later areas — bigger, tougher,
+// Elite variants (spawn data `elite: true`): a simple mini-threat for later areas — bigger, much tougher (hp ×4),
 // more EXP and an extra roll on the 'elite' loot table. Multiplies with CORRUPT_MOD.
-export const ELITE_MOD = { hp: 2.5, detect: 1.2, power: 1.3, speed: 1.05, exp: 3, scale: 1.2, loot: 'elite' };
+export const ELITE_MOD = { hp: 4, detect: 1.2, power: 1.3, speed: 1.05, exp: 3, scale: 1.2, loot: 'elite', level: 2 };
 
 // AI states (spec names). RETURN = walking home after a leash / lost target / stuck on a wall.
 export const MONSTER_STATE = {
