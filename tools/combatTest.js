@@ -159,9 +159,83 @@ export function classChecks(g, classId) {
   return rows;
 }
 
+// ---------------- Phase 9: loadout + skill-mechanic checks in the live game (any class, driven by skill tags)
+export function mechanicChecks(g, classId) {
+  const rows = [], ok = (name, pass, detail = '') => rows.push({ class: classId, test: name, pass: !!pass, detail });
+  let { p, d } = atDummy(g, classId);
+  const pool = p.loadout.pool(), rid = p.primaryResource;
+
+  // Loadout: every pool skill, put on key 4, is what key 4 actually casts
+  const casted = [];
+  for (const s of pool) {
+    ({ p, d } = atDummy(g, classId));
+    p.loadout.assign(3, s.id);
+    p.resources.set(rid, 100);
+    let used = null;
+    g.events.on('skillUsed', (e) => { if (e.caster === p && !used) used = e.skillId; });
+    if ((s.requirements || []).some((r) => r.key === 'threadCount')) g.threads.create(p, 'astral_thread', { x: p.x - 40, y: p.y }, { x: p.x + 40, y: p.y });
+    g.simulate(0.6, (gg, i) => { aim(g, d.x, d.y); if (i === 1) gg.input.pushBuffer('skill4'); });
+    casted.push(used === s.id ? s.id : `${s.id}≠${used}`);
+  }
+  ok('Loadout: key 4 casts whatever is slotted', casted.every((c) => !c.includes('≠')), casted.join(' '));
+  ({ p, d } = atDummy(g, classId));
+  const inFight = (() => { g.combat.lastCombatTime = g.time; const r = p.setSkillSlot(0, pool[pool.length - 1].id); return !r; })();
+  ok('Loadout: locked during combat', inFight, 'setSkillSlot refused while in combat');
+
+  // Stealth skills (tag 'stealth'): monsters lose track, first hit is an ambush, stealth is consumed
+  const stealth = pool.find((s) => (s.tags || []).includes('stealth'));
+  if (stealth) {
+    g.newGame(classId); releaseInput(g); p = g.player;
+    goto(g, 38, 121);
+    const foe = g.world.monsters.filter((m) => !m.dead).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+    p.x = foe.x + 160; p.y = foe.y; foe.aggro = true; foe.setState('chase'); g.simulate(0.2);
+    p.resources.set(rid, 100); p.skillSys.cooldowns.clear(stealth.id);
+    p.trySkill(stealth); g.simulate(1.5);
+    ok('Stealth: chasing monster loses track', !foe.aggro && foe.state !== 'chase', `${foe.type} state=${foe.state} aggro=${foe.aggro}`);
+    // ambush vs a normal hit on a dummy (same attack, deterministic enough over 6 samples)
+    const hitOn = (veil) => {
+      ({ p, d } = atDummy(g, classId));
+      if (veil) { p.resources.set(rid, 100); p.trySkill(stealth); g.simulate(0.4); }
+      let first = null;
+      g.events.on('damageDealt', (e) => { if (e.source === p && first === null) first = e.amount; });
+      g.simulate(0.5, (gg, i) => { aim(g, d.x, d.y); if (i === 1) gg.input.pushBuffer('attack'); });
+      return { first, veiledAfter: p.status.flag('stealth') };
+    };
+    let normal = 0, amb = 0, consumed = true;
+    for (let k = 0; k < 6; k++) { normal += hitOn(false).first || 0; const a = hitOn(true); amb += a.first || 0; if (a.veiledAfter) consumed = false; }
+    ok('Stealth: ambush hit is stronger', amb > normal * 1.3, `avg normal ${(normal / 6).toFixed(1)} vs ambush ${(amb / 6).toFixed(1)}`);
+    ok('Stealth: consumed by the first hit', consumed);
+  }
+
+  // Returning blades (tag 'pierce' + 'ranged' with a mark): hits twice, marks once
+  const blade = pool.find((s) => s.id === 'phantom_edge');
+  if (blade) {
+    ({ p, d } = atDummy(g, classId, 120));
+    p.resources.set(rid, 100);
+    const hits = []; g.events.on('damageDealt', (e) => { if (e.target === d) hits.push(e.amount); });
+    g.simulate(0.05, () => aim(g, d.x, d.y));
+    p.trySkill(blade); g.simulate(1.2, () => aim(g, d.x, d.y));
+    ok('Phantom Edge: out and back (2 hits), 1 mark', hits.length === 2 && p.marks === 1, `hits=${hits.length} marks=${p.marks}`);
+  }
+
+  // Counter (status 'counter_ready' from a Perfect Dodge): next basic attack consumes it with a forced crit
+  if (classId === 'umbral_sword') {
+    ({ p, d } = atDummy(g, classId));
+    p.cls.onPerfectDodge(p, g);
+    const had = p.status.has('counter_ready');
+    let crit = null; g.events.on('damageDealt', (e) => { if (e.source === p && crit === null) crit = e.crit; });
+    g.simulate(0.5, (gg, i) => { aim(g, d.x, d.y); if (i === 1) gg.input.pushBuffer('attack'); });
+    ok('Counter: Perfect Dodge → counter_ready → forced crit, consumed', had && crit === true && !p.status.has('counter_ready'), `status=${had} crit=${crit}`);
+  }
+  releaseInput(g);
+  return rows;
+}
+
 // ---------------- balance report: dummy DPS (30 s bot) + a real boss fight (no god mode)
-export function balance(g, classId) {
+// loadout: optional [id,id,id,id] for keys 1-4 (compare builds of the same class)
+export function balance(g, classId, loadout) {
   const { p } = atDummy(g, classId, 140);
+  if (loadout) p.loadout.load(loadout);
   let dmg = 0;
   g.events.on('damageDealt', (e) => { if (e.source === p || (e.opts && e.opts.dot)) dmg += e.amount; });
   const uses = {};
@@ -171,6 +245,7 @@ export function balance(g, classId) {
   // boss: same level/gear rules as the playthrough, real damage taken
   toBoss(g, classId);
   const pl = g.player; pl.level = 13; pl.recomputeStats(); pl.hp = pl.maxHp;
+  if (loadout) pl.loadout.load(loadout);
   goto(g, 135, 37); g.simulate(3);
   const gd = g.world.guardian;
   let t = 0, dmgTaken = 0;
@@ -178,12 +253,12 @@ export function balance(g, classId) {
   const pots0 = g.inventory.count('hp_potion');
   while (t < 300 && !gd.dead && !pl.dead) { g.simulate(5, (gg, i) => bot(gg, i, {})); t += 5; }
   releaseInput(g);
-  return { class: classId, dummyDPS: dps, bossResult: gd.dead ? 'WIN' : pl.dead ? 'DIED' : 'TIMEOUT', bossTime: t + 's', bossPhase: gd.phase, dmgTaken: Math.round(dmgTaken), potionsUsed: pots0 - g.inventory.count('hp_potion'), skillUses: JSON.stringify(uses) };
+  return { class: classId, loadout: p.loadout.serialize().join(','), dummyDPS: dps, bossResult: gd.dead ? 'WIN' : pl.dead ? 'DIED' : 'TIMEOUT', bossTime: t + 's', bossPhase: gd.phase, dmgTaken: Math.round(dmgTaken), potionsUsed: pots0 - g.inventory.count('hp_potion'), skillUses: JSON.stringify(uses) };
 }
 
 export function runAll(g, { withBalance = true } = {}) {
   const rows = [], bal = [];
-  for (const c of STARTING_CLASSES) rows.push(...classChecks(g, c));
+  for (const c of STARTING_CLASSES) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
   if (withBalance) for (const c of STARTING_CLASSES) bal.push(balance(g, c));
   return { passed: rows.filter((r) => r.pass).length, total: rows.length, rows, balance: bal };
 }

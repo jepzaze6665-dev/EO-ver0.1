@@ -87,6 +87,7 @@ export class HUD {
     this.u = u;
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.drawStealth(ctx, W, H);
     this.drawNameplates(ctx, u);
     g.vfx.drawScreen(ctx, (x, y) => this.toScreen(x, y), g.renderer.scale);
     this.drawPrompt(ctx, u);
@@ -201,6 +202,17 @@ export class HUD {
       this.text(ctx, label, sx + 5 * u, my + 62 * u, 9 * u, col, { stroke: false });
       sx += w + 4 * u;
     }
+  }
+
+  // stealth: dark violet vignette around the screen edges while the player is hidden
+  drawStealth(ctx, W, H) {
+    const k = this.game.player.stealthK || 0;
+    if (k < 0.02) return;
+    const gr = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.72);
+    gr.addColorStop(0, 'rgba(40,10,70,0)');
+    gr.addColorStop(1, `rgba(40,10,70,${0.55 * k})`);
+    ctx.fillStyle = gr;
+    ctx.fillRect(0, 0, W, H);
   }
 
   drawSkillBar(ctx, W, H, u) {

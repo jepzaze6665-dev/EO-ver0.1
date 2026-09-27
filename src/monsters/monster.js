@@ -141,7 +141,11 @@ export class Monster extends Entity {
         if (p.dead || g.world.inSafeZone(p)) { this.setState('return'); break; }
         // stealth (status flag): lose track unless the player is right next to us, never commit an attack
         const hidden = p.status.flag('stealth');
-        if (hidden && dP > 70) { this.aggro = false; this.setState('return'); break; }
+        if (hidden && dP > 70) {
+          this.aggro = false; this.setState('return');
+          g.vfx.text(this.x, this.y - this.height - 10, '?', { color: '#c8b8e8', size: 13, life: 0.8 }); // lost track
+          break;
+        }
         const fromHome = dist(this.x, this.y, this.home.x, this.home.y);
         if (fromHome > this.def.leash && !this.summoned) { this.setState('return'); break; }
         const ang = angleTo(this.x, this.y, p.x, p.y);

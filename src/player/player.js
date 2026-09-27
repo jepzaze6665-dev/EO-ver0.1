@@ -259,6 +259,8 @@ export class Player extends Entity {
   update(dt) {
     const g = this.game, input = g.input, map = g.world.map;
     this.status.update(dt);
+    // stealth blend 0..1 (status flag 'stealth') — fades smoothly so entering / leaving is readable
+    this.stealthK = damp(this.stealthK || 0, this.status.flag('stealth') ? 1 : 0, 10, dt);
     this.flash = Math.max(0, this.flash - dt);
     this.markPulse = Math.max(0, this.markPulse - dt * 2);
     if (this.dead) { this.deathT += dt; return; }
@@ -370,6 +372,8 @@ export class Player extends Entity {
         g.audio.sfx('step');
       }
     }
+    // stealthed: faint shadow wisps drifting off the body
+    if (this.stealthK > 0.5 && Math.random() < 0.25) g.vfx.shadowSmoke(this.x + rand(-6, 6), this.y - rand(0, 20), 1, { vy: -25 });
     // idle aura while the class mark is full (colours from data/marks.js)
     if (this.markId && this.marks >= this.maxMarks && Math.random() < 0.35) {
       const a2 = rand(0, TAU);
@@ -395,7 +399,8 @@ export class Player extends Entity {
   draw(ctx) {
     const g = this.game;
     // shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    const sk = this.stealthK || 0; // stealth: body fades to ~35%, shadow almost gone
+    ctx.fillStyle = `rgba(0,0,0,${0.35 * (1 - sk * 0.7)})`;
     ctx.beginPath(); ctx.ellipse(this.x, this.y, 12, 4.5, 0, 0, TAU); ctx.fill();
     if (this.markId && this.marks >= this.maxMarks) {
       ctx.fillStyle = MARKS[this.markId].display.color;
@@ -410,7 +415,14 @@ export class Player extends Entity {
     }
     const f = this.currentFrame();
     const flicker = this.invulnT > 0 && !this.dodging && Math.floor(g.time * 20) % 2 === 0;
-    this.sprites.draw(ctx, f, this.x, y, flicker ? 0.45 : 1);
+    const bodyA = (flicker ? 0.45 : 1) * (1 - sk * (0.65 + 0.08 * Math.sin(g.time * 5)));
+    this.sprites.draw(ctx, f, this.x, y, bodyA);
+    if (sk > 0.05) {
+      // shadow-tinted shimmer over the faded body (class ghost colour)
+      ctx.globalCompositeOperation = 'lighter';
+      this.sprites.draw(ctx, this.currentFrame('ghost'), this.x + Math.sin(g.time * 7) * 1.5, y, sk * (0.22 + 0.1 * Math.sin(g.time * 9)));
+      ctx.globalCompositeOperation = 'source-over';
+    }
     if (this.flash > 0) {
       const ff = this.currentFrame('flash');
       this.sprites.draw(ctx, ff, this.x, y, Math.min(1, this.flash * 8) * 0.8);

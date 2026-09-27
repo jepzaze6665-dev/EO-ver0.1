@@ -24,6 +24,7 @@ import { validateSprites } from '../player/characterConfig.js';
 import { RESOURCES } from '../data/resources.js';
 import { MarkSystem } from '../combat/markSystem.js';
 import { MARKS } from '../data/marks.js';
+import { STATUSES } from '../data/statuses.js';
 
 const STEP = 1 / 60;
 
@@ -66,6 +67,19 @@ export class Game {
     ev.on('markTriggered', (e) => { if (e.source === this.player) this.world.setFlag('tut_marks'); });
     ev.on('perfectDodge', () => this.world.setFlag('tut_perfect'));
     ev.on('skillUsed', (e) => { const tut = this.player && this.player.cls.tutorial; if (e.caster === this.player && tut && e.skillId === tut.breakSkill) this.world.setFlag('tut_break'); });
+    // stealth feedback for the player (any status carrying the 'stealth' flag, any class)
+    const stealthy = (id) => (STATUSES[id].flags || []).includes('stealth');
+    ev.on('statusApplied', (e) => {
+      if (e.target !== this.player || !stealthy(e.id)) return;
+      this.vfx.text(this.player.x, this.player.y - 72, 'VEILED', { color: '#d8c0ff', size: 11 });
+    });
+    const reveal = (e) => {
+      if (e.target !== this.player || !stealthy(e.id) || this.player.dead) return;
+      this.vfx.text(this.player.x, this.player.y - 72, 'REVEALED', { color: '#a898c8', size: 9 });
+      this.vfx.shadowSmoke(this.player.x, this.player.y, 8);
+    };
+    ev.on('statusExpired', reveal);
+    ev.on('statusRemoved', reveal);
     // skill failures are reported as data; presenting them is the UI's job
     ev.on('skillFailed', (e) => {
       if (e.caster !== this.player) return;
