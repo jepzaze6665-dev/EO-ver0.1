@@ -104,3 +104,14 @@ T.playthrough(__game, 'astral_weaver');             // full 15-step regression f
 T.toBoss(__game);                                   // jump to the Guardian fight
 T.fight(__game, 300, { untilBossDead: true });      // bot plays the fight, returns a phase log
 ```
+
+**Combat test (Phase 7)** — checks the V2 test requirements inside the running game for every starting class
+(damage = HP loss, resource gain / exact cost / never negative, cooldown + anti-spam, mark stack / expire / trigger,
+thread create / expire / trigger, 45 s stress run: no NaN / infinite damage / infinite resource / runaway objects)
+and prints a balance report (30 s dummy DPS + a real Guardian fight without god mode):
+
+```js
+const C = await import('/tools/combatTest.js');
+const r = C.runAll(__game);   // r.passed / r.total
+console.table(r.rows); console.table(r.balance);
+```

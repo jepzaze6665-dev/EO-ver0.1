@@ -3,24 +3,24 @@
  "standard": {
   "bodyHeight": 60,
   "canvas": [
-   128,
-   128
+   160,
+   160
   ],
   "pivot": [
-   64,
-   120
+   80,
+   140
   ]
  },
  "cols": 6,
  "sheets": {
   "walk": {
    "file": "assets/player/walk.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 3,
@@ -33,12 +33,12 @@
   },
   "run": {
    "file": "assets/player/run.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 3,
@@ -51,12 +51,12 @@
   },
   "atk1": {
    "file": "assets/player/atk1.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -69,12 +69,12 @@
   },
   "atk2": {
    "file": "assets/player/atk2.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 3,
@@ -87,12 +87,12 @@
   },
   "guard": {
    "file": "assets/player/guard.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 3,
@@ -105,12 +105,12 @@
   },
   "hit": {
    "file": "assets/player/hit.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 3,
@@ -123,12 +123,12 @@
   },
   "pr": {
    "file": "assets/player/pr.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 3,
@@ -141,12 +141,12 @@
   },
   "sk1": {
    "file": "assets/player/sk1.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -159,12 +159,12 @@
   },
   "sk2": {
    "file": "assets/player/sk2.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -177,12 +177,12 @@
   },
   "sk3": {
    "file": "assets/player/sk3.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 3,
@@ -195,12 +195,12 @@
   },
   "sk4": {
    "file": "assets/player/sk4.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -213,12 +213,12 @@
   },
   "sk5": {
    "file": "assets/player/sk5.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 3,
@@ -231,12 +231,12 @@
   },
   "sk6": {
    "file": "assets/player/sk6.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 3,
@@ -249,12 +249,12 @@
   },
   "ult": {
    "file": "assets/player/ult.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -267,12 +267,12 @@
   },
   "vfx": {
    "file": "assets/player/vfx.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 8,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 3,
@@ -292,21 +292,21 @@
  },
  "validation": {
   "walk": {
-   "bodyHeight": 59,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "run": {
-   "bodyHeight": 59,
-   "feetMaxOffset": 1,
-   "centerOffset": -2,
+   "bodyHeight": 58,
+   "feetMaxOffset": 0,
+   "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "atk1": {
-   "bodyHeight": 56,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": -1,
    "ok": true,
@@ -320,21 +320,21 @@
    "issues": []
   },
   "guard": {
-   "bodyHeight": 59,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "hit": {
-   "bodyHeight": 60,
+   "bodyHeight": 59,
    "feetMaxOffset": 1,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "pr": {
-   "bodyHeight": 59,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": -1,
    "ok": true,
@@ -369,14 +369,14 @@
    "issues": []
   },
   "sk5": {
-   "bodyHeight": 60,
+   "bodyHeight": 59,
    "feetMaxOffset": 1,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "sk6": {
-   "bodyHeight": 61,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": -1,
    "ok": true,
@@ -390,7 +390,7 @@
    "issues": []
   },
   "vfx": {
-   "bodyHeight": 58,
+   "bodyHeight": 59,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,

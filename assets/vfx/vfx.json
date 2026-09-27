@@ -50,49 +50,49 @@
  },
  "aw_needle": {
   "file": "assets/vfx/aw_needle.png",
-  "fw": 85,
+  "fw": 86,
   "fh": 128,
   "frames": 6,
   "set": "aw"
  },
  "aw_star": {
   "file": "assets/vfx/aw_star.png",
-  "fw": 85,
+  "fw": 142,
   "fh": 128,
   "frames": 6,
   "set": "aw"
  },
  "aw_comet": {
   "file": "assets/vfx/aw_comet.png",
-  "fw": 85,
+  "fw": 86,
   "fh": 128,
   "frames": 6,
   "set": "aw"
  },
  "aw_sigil": {
   "file": "assets/vfx/aw_sigil.png",
-  "fw": 85,
+  "fw": 94,
   "fh": 128,
   "frames": 6,
   "set": "aw"
  },
  "aw_nova": {
   "file": "assets/vfx/aw_nova.png",
-  "fw": 85,
+  "fw": 116,
   "fh": 128,
   "frames": 6,
   "set": "aw"
  },
  "aw_orb": {
   "file": "assets/vfx/aw_orb.png",
-  "fw": 85,
+  "fw": 94,
   "fh": 128,
   "frames": 6,
   "set": "aw"
  },
  "aw_starfall": {
   "file": "assets/vfx/aw_starfall.png",
-  "fw": 85,
+  "fw": 110,
   "fh": 128,
   "frames": 6,
   "set": "aw"

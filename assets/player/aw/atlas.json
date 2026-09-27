@@ -3,24 +3,24 @@
  "standard": {
   "bodyHeight": 60,
   "canvas": [
-   128,
-   128
+   160,
+   160
   ],
   "pivot": [
-   64,
-   120
+   80,
+   140
   ]
  },
  "cols": 6,
  "sheets": {
   "walk": {
    "file": "assets/player/aw/walk.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -33,12 +33,12 @@
   },
   "atk1": {
    "file": "assets/player/aw/atk1.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -51,12 +51,12 @@
   },
   "atk2": {
    "file": "assets/player/aw/atk2.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -69,12 +69,12 @@
   },
   "cast": {
    "file": "assets/player/aw/cast.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -87,12 +87,12 @@
   },
   "hit": {
    "file": "assets/player/aw/hit.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -105,12 +105,12 @@
   },
   "sk1": {
    "file": "assets/player/aw/sk1.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -123,12 +123,12 @@
   },
   "sk2": {
    "file": "assets/player/aw/sk2.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -141,12 +141,12 @@
   },
   "sk3": {
    "file": "assets/player/aw/sk3.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -159,12 +159,12 @@
   },
   "sk4": {
    "file": "assets/player/aw/sk4.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -177,12 +177,12 @@
   },
   "sk5": {
    "file": "assets/player/aw/sk5.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -195,12 +195,12 @@
   },
   "sk6": {
    "file": "assets/player/aw/sk6.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 2,
@@ -213,12 +213,12 @@
   },
   "ult": {
    "file": "assets/player/aw/ult.png",
-   "fw": 128,
-   "fh": 128,
+   "fw": 160,
+   "fh": 160,
    "rows": 4,
    "cols": 6,
-   "ax": 64,
-   "ay": 120,
+   "ax": 80,
+   "ay": 140,
    "sides": [
     {
      "right": 3,
@@ -234,21 +234,21 @@
   "walk": {
    "bodyHeight": 58,
    "feetMaxOffset": 1,
-   "centerOffset": -1,
+   "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "atk1": {
    "bodyHeight": 58,
    "feetMaxOffset": 1,
-   "centerOffset": -1,
+   "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "atk2": {
    "bodyHeight": 58,
    "feetMaxOffset": 1,
-   "centerOffset": -1,
+   "centerOffset": 0,
    "ok": true,
    "issues": []
   },
@@ -260,7 +260,7 @@
    "issues": []
   },
   "hit": {
-   "bodyHeight": 59,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
@@ -281,21 +281,21 @@
    "issues": []
   },
   "sk3": {
-   "bodyHeight": 56,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "sk4": {
-   "bodyHeight": 57,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
-   "centerOffset": -1,
+   "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "sk5": {
-   "bodyHeight": 57,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
@@ -304,14 +304,14 @@
   "sk6": {
    "bodyHeight": 58,
    "feetMaxOffset": 1,
-   "centerOffset": -1,
+   "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "ult": {
-   "bodyHeight": 57,
+   "bodyHeight": 59,
    "feetMaxOffset": 1,
-   "centerOffset": -1,
+   "centerOffset": 0,
    "ok": true,
    "issues": []
   }

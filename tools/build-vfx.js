@@ -53,10 +53,110 @@ function cleanFrame(out, x0, fw, fh) {
   for (let p = 0; p < fw * fh; p++) if (lab[p] >= 0 && sizes[lab[p]] < 12) out.data[(((p / fw) | 0) * W + x0 + (p % fw)) * 4 + 3] = 0;
 }
 
+// ---- component-based extraction (AW-style sheets: frames wider than their grid cell) ----
+// 1) faint pixels fade smoothly (no hard alpha threshold ring); 2) every blob of glow belongs to one
+// frame (nearest cell centre); 3) blobs that join two frames are cut at the emptiest column between
+// them and the cut is feathered; 4) each frame keeps its cell centre as pivot, and the output frame
+// is enlarged to fit the widest effect, so nothing is sliced by a grid line.
+const SOFT_FLOOR = 18, DUST = 14, CUT_FEATHER = 8;
+function extractRow(img, file, set) {
+  const W = img.width, H = img.height, d = img.data, cw = W / COLS;
+  const A = new Uint8Array(W * H);
+  const strip = (set.stripLabel && set.stripLabel[file]) || 0;
+  for (let p = 0; p < W * H; p++) {
+    const x = p % W;
+    const a = x < strip ? 0 : d[p * 4 + 3];
+    A[p] = a <= SOFT_FLOOR ? 0 : Math.round(((a - SOFT_FLOOR) / (255 - SOFT_FLOOR)) * 255);
+  }
+  const runs = detectRows(img), rowC = runs.map(([a, b]) => (a + b) / 2);
+  const nearestRow = (y) => { let k = 0; rowC.forEach((c, i) => { if (Math.abs(c - y) < Math.abs(rowC[k] - y)) k = i; }); return k; };
+  // label blobs (8-connected)
+  const lab = new Int32Array(W * H).fill(-1), comps = [];
+  for (let p0 = 0; p0 < W * H; p0++) {
+    if (lab[p0] >= 0 || !A[p0]) continue;
+    const c = { n: 0, sx: 0, sy: 0, minx: 1e9, maxx: -1 }, id = comps.length, st = [p0];
+    comps.push(c); lab[p0] = id;
+    while (st.length) {
+      const q = st.pop(), qx = q % W, qy = (q / W) | 0;
+      c.n++; c.sx += qx; c.sy += qy; if (qx < c.minx) c.minx = qx; if (qx > c.maxx) c.maxx = qx;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const nx = qx + dx, ny = qy + dy;
+        if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+        const r = ny * W + nx;
+        if (lab[r] < 0 && A[r]) { lab[r] = id; st.push(r); }
+      }
+    }
+  }
+  // pixels of the wanted (right-facing) row
+  const inRow = (l, y) => (comps[l].n >= DUST) && nearestRow(comps[l].n > 4000 ? y : comps[l].sy / comps[l].n) === ROW;
+  // column projection of that row -> cut lines at the emptiest column near each grid boundary
+  const proj = new Float64Array(W);
+  for (let p = 0; p < W * H; p++) { const l = lab[p]; if (l >= 0 && inRow(l, (p / W) | 0)) proj[p % W] += A[p]; }
+  const cuts = [0];
+  for (let k = 1; k < COLS; k++) {
+    let best = Math.round(k * cw), bv = Infinity;
+    for (let x = Math.round((k - 0.35) * cw); x <= Math.round((k + 0.35) * cw); x++) { const v = proj[x] * 1000 + Math.abs(x - k * cw); if (v < bv) { bv = v; best = x; } }
+    cuts.push(best);
+  }
+  cuts.push(W);
+  const colOfX = (x) => { let k = 0; while (k < COLS - 1 && x >= cuts[k + 1]) k++; return k; };
+  // blob -> frame: whole blob by centroid, unless it crosses a cut (then per pixel, feathered)
+  const owner = comps.map((c) => (colOfX(c.minx) === colOfX(c.maxx) ? colOfX(c.sx / c.n) : -2));
+  const frames = [...Array(COLS)].map(() => ({ px: [], minx: 1e9, maxx: -1, miny: 1e9, maxy: -1 }));
+  for (let p = 0; p < W * H; p++) {
+    const l = lab[p]; if (l < 0) continue;
+    const x = p % W, y = (p / W) | 0;
+    if (!inRow(l, y)) continue;
+    let k = owner[l], a = A[p];
+    if (k === -2) {
+      k = colOfX(x);
+      const dist = Math.min(k > 0 ? x - cuts[k] : Infinity, k < COLS - 1 ? cuts[k + 1] - 1 - x : Infinity);
+      a = Math.round(a * Math.min(1, dist / CUT_FEATHER));
+    }
+    if (!a) continue;
+    const f = frames[k];
+    f.px.push(p, a);
+    if (x < f.minx) f.minx = x; if (x > f.maxx) f.maxx = x; if (y < f.miny) f.miny = y; if (y > f.maxy) f.maxy = y;
+  }
+  // common frame size around each cell centre / the row centre
+  const cy = rowC[ROW];
+  let hw = cw / 2, hh = H / 8;
+  frames.forEach((f, k) => { if (f.maxx < 0) return; const cx = (k + 0.5) * cw; hw = Math.max(hw, cx - f.minx + 2, f.maxx - cx + 3); hh = Math.max(hh, cy - f.miny + 2, f.maxy - cy + 3); });
+  const fw = Math.ceil(hw * SCALE) * 2, fh = Math.ceil(hh * SCALE) * 2;
+  const out = png.create(fw * COLS, fh);
+  frames.forEach((f, k) => {
+    // accumulate owned pixels into 2x2 output blocks (premultiplied)
+    const acc = new Float64Array(fw * fh * 4);
+    const ox = (k + 0.5) * cw - fw / 2 / SCALE, oy = cy - fh / 2 / SCALE;
+    for (let i = 0; i < f.px.length; i += 2) {
+      const p = f.px[i], a = f.px[i + 1] / 255, x = p % W, y = (p / W) | 0;
+      const X = Math.floor((x - ox) * SCALE), Y = Math.floor((y - oy) * SCALE);
+      if (X < 0 || Y < 0 || X >= fw || Y >= fh) continue;
+      const o = (Y * fw + X) * 4;
+      acc[o] += d[p * 4] * a; acc[o + 1] += d[p * 4 + 1] * a; acc[o + 2] += d[p * 4 + 2] * a; acc[o + 3] += a;
+    }
+    const n = 1 / (SCALE * SCALE);
+    for (let Y = 0; Y < fh; Y++) for (let X = 0; X < fw; X++) {
+      const o = (Y * fw + X) * 4, a = acc[o + 3];
+      if (a <= 0.02) continue;
+      const t = (Y * out.width + k * fw + X) * 4;
+      out.data[t] = acc[o] / a; out.data[t + 1] = acc[o + 1] / a; out.data[t + 2] = acc[o + 2] / a; out.data[t + 3] = Math.round(Math.min(1, a / n) * 255);
+    }
+  });
+  return { out, fw, fh };
+}
+
 const meta = {};
 for (const [setName, set] of Object.entries(SETS)) {
   for (const [file, name] of Object.entries(set.names)) {
     const img = png.read(path.join(ROOT, set.src, file));
+    if (set.detectRows) {
+      const { out, fw, fh } = extractRow(img, file, set);
+      png.write(path.join(OUT, name + '.png'), out);
+      meta[name] = { file: 'assets/vfx/' + name + '.png', fw, fh, frames: COLS, set: setName };
+      console.log(setName, name.padEnd(12), fw + 'x' + fh);
+      continue;
+    }
     const cw = img.width / COLS, ch = img.height / 4;
     let y0 = ROW * ch, clipY0 = 0, clipY1 = img.height;
     if (set.detectRows) {

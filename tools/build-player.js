@@ -12,8 +12,8 @@ const ROOT = path.join(__dirname, '..');
 // CHARACTER VISUAL STANDARD (shared by every animation)
 const STD = {
   bodyHeight: 60,          // neutral-pose body height in game pixels (all sheets normalised to this)
-  canvas: [128, 128],      // every frame of every animation uses this canvas
-  pivot: [64, 120],        // feet-centre pivot inside the canvas (ground line y = 120)
+  canvas: [160, 160],      // every frame of every animation uses this canvas (room for staff swings / magic circles)
+  pivot: [80, 140],        // feet-centre pivot inside the canvas (ground line y = 140, 20 px below for floor effects)
 };
 // class preset -> output folder + sheets (name -> [file, rows])
 const PRESETS = {};
@@ -152,17 +152,25 @@ function analyseCell(img, x0, y0, cw, ch) {
   return { minx, miny, maxx, maxy, ax, ay, bodyH: darkMaxY > 0 ? darkMaxY - darkMinY : maxy - miny };
 }
 
+// FEATHER: effects that cross a source cell border fade out over this many output px
+// instead of ending on a hard straight line.
+const FEATHER = 4;
 function downscale(src, sx, sy, sw, sh, scale, clip) {
   const dw = Math.max(1, Math.round(sw * scale)), dh = Math.max(1, Math.round(sh * scale));
   const out = png.create(dw, dh);
-  const inv = 1 / scale;
+  const inv = 1 / scale, F = FEATHER * inv;
+  // only real cell borders feather (not the outer edge of the sheet)
+  const fx0 = clip.x0 > 0, fy0 = clip.y0 > 0, fx1 = clip.x1 < src.width, fy1 = clip.y1 < src.height;
   for (let y = 0; y < dh; y++) for (let x = 0; x < dw; x++) {
     const fx0 = sx + x * inv, fy0 = sy + y * inv;
     let r = 0, g = 0, b = 0, a = 0, n = 0;
     for (let yy = Math.floor(fy0); yy < Math.floor(fy0 + inv); yy++) for (let xx = Math.floor(fx0); xx < Math.floor(fx0 + inv); xx++) {
       n++;
       if (xx < clip.x0 || yy < clip.y0 || xx >= clip.x1 || yy >= clip.y1) continue;
-      const i = (yy * src.width + xx) * 4, al = src.data[i + 3] / 255;
+      let edge = Infinity;
+      if (fx0) edge = Math.min(edge, xx - clip.x0); if (fx1) edge = Math.min(edge, clip.x1 - 1 - xx);
+      if (fy0) edge = Math.min(edge, yy - clip.y0); if (fy1) edge = Math.min(edge, clip.y1 - 1 - yy);
+      const i = (yy * src.width + xx) * 4, al = (src.data[i + 3] / 255) * Math.min(1, edge / F);
       r += src.data[i] * al; g += src.data[i + 1] * al; b += src.data[i + 2] * al; a += al;
     }
     const o = (y * dw + x) * 4;
@@ -172,6 +180,16 @@ function downscale(src, sx, sy, sw, sh, scale, clip) {
     }
   }
   return out;
+}
+
+// height of the dark body (same rule as validate()) in one downscaled frame
+function darkHeight(f) {
+  let t = 1e9, b = -1;
+  for (let y = 0; y < f.height; y++) for (let x = 0; x < f.width; x++) {
+    const i = (y * f.width + x) * 4, d = f.data;
+    if (d[i + 3] > 150 && d[i] + d[i + 1] + d[i + 2] < 200) { if (y < t) t = y; if (y > b) b = y; }
+  }
+  return b < 0 ? 0 : b - t;
 }
 
 function blit(dst, src, dx, dy) {
@@ -211,11 +229,30 @@ function blobSplits(count, n, len) {
     }
   }
   runs = runs.filter(([a, b]) => b - a > 12);
+  // detached sparks / projectiles make extra runs: merge the lightest run into its closest neighbour
+  const mass = (r) => { let m = 0; for (let i = r[0]; i <= r[1]; i++) m += count[i]; return m; };
+  while (runs.length > n) {
+    let k = 0;
+    runs.forEach((r, i) => { if (mass(r) < mass(runs[k])) k = i; });
+    const gl = k > 0 ? runs[k][0] - runs[k - 1][1] : Infinity, gr = k < runs.length - 1 ? runs[k + 1][0] - runs[k][1] : Infinity;
+    const j = gl <= gr ? k - 1 : k + 1, lo = Math.min(j, k);
+    runs.splice(lo, 2, [runs[lo][0], runs[lo + 1][1]]);
+  }
   if (runs.length !== n) return null;
   const out = [0];
   for (let k = 0; k < n - 1; k++) out.push(Math.round((runs[k][1] + runs[k + 1][0]) / 2));
   out.push(len);
   return out;
+}
+// column projection of the character BODY only (dark robe / hair) — bright skill effects that reach
+// into neighbouring cells or float between frames never move the frame boundaries
+function bodyProjection(img, a0, a1) {
+  const count = new Float64Array(img.width);
+  for (let y = a0; y < a1; y++) for (let x = 0; x < img.width; x++) {
+    const i = (y * img.width + x) * 4, d = img.data;
+    if (d[i + 3] >= 200 && d[i] + d[i + 1] + d[i + 2] < 150) count[x]++;
+  }
+  return count;
 }
 function projection(img, horizontal, a0, a1) {
   const n = horizontal ? img.height : img.width, count = new Float64Array(n);
@@ -265,7 +302,7 @@ function validate(sheet, rows) {
       if (d[i + 3] > 150 && d[i] + d[i + 1] + d[i + 2] < 200) { t = Math.min(t, y); b = Math.max(b, y); xs += x; n++; }
     }
     if (b < 0) continue;
-    if (c === 0 || c === COLS - 1) heights.push(b - t);
+    if ((c === 0 || c === COLS - 1) && r % 4 < 2) heights.push(b - t); // neutral front/back poses — the same frames the scale is measured on
     feet.push(b - PY); centers.push(xs / n - PX);
   }
   const med = (a) => a.slice().sort((p, q) => p - q)[a.length >> 1];
@@ -275,6 +312,87 @@ function validate(sheet, rows) {
   if (feetMax > 3) issues.push('Ground Offset');
   if (Math.abs(centerMed) > 6) issues.push('Pivot Offset');
   return { bodyHeight: h, feetMaxOffset: feetMax, centerOffset: Math.round(centerMed), ok: issues.length === 0, issues };
+}
+
+// Splits one row band into frames by OWNERSHIP instead of straight cuts: every connected blob of
+// pixels belongs to the frame whose character body it contains (or, for loose effects such as
+// magic circles, sparks and constellations, the frame its centre falls in). A frame may therefore
+// be wider than its grid cell and effects are never sliced. Returns one cropped RGBA image per frame.
+function componentFrames(img, y0, y1, xs) {
+  const W = img.width, H = y1 - y0, d = img.data;
+  const lab = new Int32Array(W * H).fill(-1), comps = [];
+  const at = (x, y) => ((y0 + y) * W + x) * 4;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const p = y * W + x;
+    if (lab[p] >= 0 || d[at(x, y) + 3] < 40) continue;
+    const id = comps.length, c = { n: 0, sx: 0, dark: new Float64Array(COLS), dx: new Float64Array(COLS), dy: new Float64Array(COLS), dMin: 1e9, dMax: -1, minx: x, maxx: x, miny: y, maxy: y };
+    comps.push(c);
+    const st = [p]; lab[p] = id;
+    while (st.length) {
+      const q = st.pop(), qx = q % W, qy = (q / W) | 0, i = at(qx, qy);
+      c.n++; c.sx += qx;
+      if (qx < c.minx) c.minx = qx; if (qx > c.maxx) c.maxx = qx; if (qy < c.miny) c.miny = qy; if (qy > c.maxy) c.maxy = qy;
+      if (d[i + 3] >= 200 && d[i] + d[i + 1] + d[i + 2] < 150) {
+        let k = 0; while (k < COLS - 1 && qx >= xs[k + 1]) k++;
+        c.dark[k]++; c.dx[k] += qx; c.dy[k] += qy;
+      }
+      if (d[i + 3] >= 40 && d[i] + d[i + 1] + d[i + 2] < 110) { if (qy < c.dMin) c.dMin = qy; if (qy > c.dMax) c.dMax = qy; }
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const nx = qx + dx, ny = qy + dy;
+        if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+        const r = ny * W + nx;
+        if (lab[r] < 0 && d[at(nx, ny) + 3] >= 40) { lab[r] = id; st.push(r); }
+      }
+    }
+  }
+  // owner: the cell holding most of the blob's body pixels, else the cell containing its centre.
+  // A blob that contains SEVERAL bodies (an effect touching two frames) is split per pixel:
+  // each pixel goes to the nearest body centre (owner = -2 marks such blobs).
+  const BODY_MIN = 200;
+  const bodies = comps.map((c) => { const b = []; c.dark.forEach((m, k) => { if (m >= BODY_MIN) b.push({ k, x: c.dx[k] / m, y: c.dy[k] / m }); }); return b; });
+  const owner = comps.map((c, i) => {
+    if (c.n < 6) return -1; // dust
+    if (bodies[i].length > 1) return -2;
+    let best = -1, bm = 29;
+    c.dark.forEach((m, k) => { if (m > bm) { bm = m; best = k; } });
+    if (best >= 0) return best;
+    const cx = c.sx / c.n; let k = 0; while (k < COLS - 1 && cx >= xs[k + 1]) k++; return k;
+  });
+  const pixelOwner = (l, x, y) => {
+    const o = owner[l];
+    if (o !== -2) return o;
+    let best = -1, bd = Infinity;
+    for (const b of bodies[l]) { const dd = (b.x - x) ** 2 + (b.y - y) ** 2; if (dd < bd) { bd = dd; best = b.k; } }
+    return best;
+  };
+  const owns = (l, k) => l >= 0 && (owner[l] === k || (owner[l] === -2 && bodies[l].some((b) => b.k === k)));
+  const frames = [];
+  for (let k = 0; k < COLS; k++) {
+    let minx = 1e9, maxx = -1, miny = 1e9, maxy = -1;
+    let bTop = 1e9, bBot = -1; // body extent (for the scale / ground measurement)
+    comps.forEach((c, i) => {
+      if (!owns(i, k)) return;
+      minx = Math.min(minx, c.minx); maxx = Math.max(maxx, c.maxx); miny = Math.min(miny, c.miny); maxy = Math.max(maxy, c.maxy);
+      if (owner[i] >= 0 && c.dark[k] >= BODY_MIN) { bTop = Math.min(bTop, c.dMin); bBot = Math.max(bBot, c.dMax); }
+    });
+    if (maxx < 0) { frames.push(null); continue; }
+    minx = Math.max(0, minx - 2); miny = Math.max(0, miny - 2); maxx = Math.min(W - 1, maxx + 2); maxy = Math.min(H - 1, maxy + 2);
+    const fw = maxx - minx + 1, fh = maxy - miny + 1, f = png.create(fw, fh);
+    for (let y = 0; y < fh; y++) for (let x = 0; x < fw; x++) {
+      const sx = minx + x, sy = miny + y, l = lab[sy * W + sx];
+      let own = l >= 0 && owns(l, k) && pixelOwner(l, sx, sy) === k;
+      if (l < 0 && d[at(sx, sy) + 3] > 0) { // soft fringe (alpha < 40): keep if it touches an owned pixel
+        for (let dy = -1; dy <= 1 && !own; dy++) for (let dx = -1; dx <= 1 && !own; dx++) {
+          const nx = sx + dx, ny = sy + dy;
+          if (nx >= 0 && ny >= 0 && nx < W && ny < H) { const m = lab[ny * W + nx]; if (owns(m, k) && pixelOwner(m, nx, ny) === k) own = true; }
+        }
+      }
+      if (own) d.copy(f.data, (y * fw + x) * 4, at(sx, sy), at(sx, sy) + 4);
+    }
+    if (bBot >= 0) f.body = { top: bTop - miny, bottom: bBot - miny };
+    frames.push(f);
+  }
+  return frames;
 }
 
 const [CW, CH] = STD.canvas, [PX, PY] = STD.pivot;
@@ -290,14 +408,19 @@ for (const [name, [file, rows]] of Object.entries(SHEETS)) {
   const py = projection(img, true);
   const ys = blobSplits(py, rows, img.height) || splits(py, rows, img.height);
   const cells = [], neutral = [];
-  for (let r = 0; r < rows; r++) for (let c = 0; c < COLS; c++) {
-    const xs = c === 0 ? (cells.xs = (() => { const px = projection(img, false, ys[r], ys[r + 1]); return blobSplits(px, COLS, img.width) || splits(px, COLS, img.width); })()) : cells.xs;
-    const x0 = xs[c], y0 = ys[r], w0 = xs[c + 1] - x0, h0 = ys[r + 1] - y0;
-    applyMask(img, x0, y0, w0, h0, cellMask(img, x0, y0, w0, h0));
-    const a = analyseCell(img, x0, y0, w0, h0);
-    if (a) Object.assign(a, { x0, y0, x1: x0 + w0, y1: y0 + h0 });
-    cells.push(a);
-    if (a && (c === 0 || c === COLS - 1) && r % 4 < 2) neutral.push(a.bodyH); // front/back neutral poses
+  for (let r = 0; r < rows; r++) {
+    const bx = bodyProjection(img, ys[r], ys[r + 1]), px = projection(img, false, ys[r], ys[r + 1]);
+    const xs = blobSplits(bx, COLS, img.width) || blobSplits(px, COLS, img.width) || splits(px, COLS, img.width);
+    const frames = componentFrames(img, ys[r], ys[r + 1], xs);
+    for (let c = 0; c < COLS; c++) {
+      const f = frames[c];
+      const a = f && analyseCell(f, 0, 0, f.width, f.height);
+      if (a) Object.assign(a, { img: f, x0: 0, y0: 0, x1: f.width, y1: f.height });
+      // body-only metrics: loose dark specks from effects never change the scale or the ground line
+      if (a && f.body) { a.bodyH = f.body.bottom - f.body.top; }
+      cells.push(a);
+      if (a && (c === 0 || c === COLS - 1) && r % 4 < 2) neutral.push(a.bodyH); // front/back neutral poses
+    }
   }
   // one measured factor per sheet: the neutral body always becomes STD.bodyHeight
   neutral.sort((p, q) => p - q);
@@ -306,7 +429,17 @@ for (const [name, [file, rows]] of Object.entries(SHEETS)) {
   cells.forEach((a, idx) => {
     if (!a) return;
     const r = Math.floor(idx / COLS), c = idx % COLS;
-    const frame = downscale(img, a.ax - PX / scale, a.ay - PY / scale, CW / scale, CH / scale, scale, a);
+    // Sampling phase: a downscale can average a 1-px outline away depending on where the sampling
+    // blocks fall. Try 8 sub-pixel vertical phases (feet move < 1 px) and keep the one that preserves
+    // the most body outline; ties go to the smallest shift. Result is independent of canvas size.
+    const inv = 1 / scale, sx = Math.round(a.ax - PX * inv), sy0 = a.ay - PY * inv;
+    let frame = null, bestH = -1, bestShift = Infinity;
+    for (let k = 0; k < 8; k++) {
+      const shift = (k / 8 - 0.5) * inv;
+      const f = downscale(a.img, sx, sy0 + shift, CW * inv, CH * inv, scale, a);
+      const h = darkHeight(f);
+      if (h > bestH || (h === bestH && Math.abs(shift) < bestShift)) { frame = f; bestH = h; bestShift = Math.abs(shift); }
+    }
     blit(sheet, frame, c * CW, r * CH);
   });
   png.write(path.join(OUT, name + '.png'), sheet);

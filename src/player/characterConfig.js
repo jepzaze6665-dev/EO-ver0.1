@@ -8,8 +8,8 @@ import { Assets } from '../core/assets.js';
 //  - hitboxes:  come from skill/attack data (offset, radius/shape, direction, active time)
 export const CHARACTER = {
   characterScale: 1,        // integer only — drawn 1:1 into the pixel scene
-  spriteCanvas: [128, 128], // every frame
-  pivot: [64, 120],         // x = centre, y = feet (ground line)
+  spriteCanvas: [160, 160], // every frame (tools/build-player.js STD.canvas)
+  pivot: [80, 140],         // x = centre, y = feet (ground line)
   bodyHeight: 60,           // neutral-pose body height the build normalises to
   collisionRadius: 7,       // ~14 x 10 px feet footprint
   hurtRadius: 9,
