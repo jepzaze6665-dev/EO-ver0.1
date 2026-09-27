@@ -56,6 +56,12 @@ export class World {
       this.interactables.push({ id: 'npc_' + n.id, kind: 'npc', x: npc.x, y: npc.y, radius: 38, npc, secret: n.secret || 0 });
     }
     for (const it of builder.interactables) this.interactables.push(it);
+    // content owned by the map files (maps/*.js `content`): signs, extra spawns
+    for (const d of MAPS) {
+      const c = d.content || {};
+      for (const it of c.interactables || []) this.interactables.push({ radius: 34, ...it, x: (it.tx + 0.5) * TILE, y: (it.ty + 0.6) * TILE, mapId: d.id });
+      for (const s of c.spawns || []) this.spawnPoints.push({ def: { radius: 2, count: 1, ...s, x: (s.tx + 0.5) * TILE, y: (s.ty + 0.5) * TILE }, alive: [], respawnT: 0, active: false });
+    }
     // examine prompts for the breakable secrets
     this.interactables.push({ id: 'crack_info', kind: 'crackInfo', x: 70.5 * TILE, y: 55.6 * TILE, radius: 40, prompt: 'Examine Cracked Stone' });
     this.interactables.push({ id: 'glyph_info', kind: 'glyphInfo', x: 150.4 * TILE, y: 109.5 * TILE, radius: 40, prompt: 'Examine Glyph' });
@@ -172,6 +178,10 @@ export class World {
       for (let y = lb.ty0; y <= lb.ty1; y++) for (let x = lb.tx0; x <= lb.tx1; x++) {
         const t = m.get(x, y);
         if (t === T.WATER || t === T.DEEP_WATER || t === T.SAND) m.set(x, y, T.BRIDGE);
+      }
+      // the fallen log reaches both banks (the rows just outside the water were left as rock)
+      for (const y of [lb.ty0 - 3, lb.ty0 - 2, lb.ty0 - 1, lb.ty0, lb.ty1, lb.ty1 + 1]) for (let x = lb.tx0; x <= lb.tx1; x++) {
+        if (m.isTerrainSolid(x, y) && !m.blocker[m.idx(x, y)]) m.set(x, y, T.FOREST_FLOOR);
       }
       const up = this.propById.log_upright;
       if (up && up.visible) { up.visible = false; m.setPropSolid(up, false); up.solid = false; }
@@ -337,7 +347,9 @@ export class World {
       if (!this.state.subs[sa.name]) {
         this.state.subs[sa.name] = true;
         if (sa.secret) this.discoverSecret(sa.secret, sa.name.toUpperCase());
-        else if (sa.zone !== Z.VILLAGE) { g.ui.subBanner(sa.name); g.events.emit('areaDiscovered', { name: sa.name, zone: sa.zone }); }
+        else if (sa.zone !== Z.VILLAGE) {
+          const optional = this.mapDef && this.mapDef.content && this.mapDef.content.optional === sa.name;
+          g.ui.subBanner(optional ? `${sa.name} · Optional Area` : sa.name); g.events.emit('areaDiscovered', { name: sa.name, zone: sa.zone }); }
         g.save.dirty = true;
       }
     }

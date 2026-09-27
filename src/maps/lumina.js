@@ -24,6 +24,7 @@ export function buildLumina(b) {
   b.line([[35, 176], [41, 172], [48, 170]], 2, T.DIRT);
   b.line([[48, 170], [56, 172], [62, 176]], 2, T.DIRT);
   b.line([[66, 172], [65, 164], [64, 158]], 2, T.DIRT); // NE lane to bramble shortcut
+  b.rect(64, 157, 65, 160, T.DIRT); // keep the lane open where it meets the forest (the line left a wall at row 159)
   b.disc(48, 182, 7.5, T.COBBLE, { noise: 0.6 });
   b.subDisc(48, 182, 9, sq);
   b.subRect(42, 158, 54, 166, gate);

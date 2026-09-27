@@ -84,7 +84,7 @@ export function interact(w, it) {
       break;
     case 'sign':
       if (it.text === 'board') g.ui.showLore('Quest Board', (f.guardianDefeated ? BOARD_TEXT_AFTER : BOARD_TEXT).join('\n'));
-      else g.ui.showLore('Sign', it.text);
+      else g.ui.showLore(it.title || 'Sign', it.text);
       break;
     case 'shrine':
       if (!f.shrineInvestigated) {

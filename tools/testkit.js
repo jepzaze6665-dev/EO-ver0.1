@@ -162,7 +162,7 @@ export function mapTour(g, classId = 'umbral_sword') {
   g.newGame(classId);
   const w = g.world, mm = w.mapManager, p = g.player;
   ok('New Game starts on Lumina', w.mapId === 'lumina');
-  for (const f of ['ruinsGate', 'logBridge', 'gateOpened', 'guardianDefeated']) w.setFlag(f);
+  for (const f of ['ruinsGate', 'logBridge', 'bramble', 'gateOpened', 'guardianDefeated']) w.setFlag(f);
   w.applyState();
   const events = [];
   g.events.on('mapEntered', (e) => events.push(e.id));
@@ -191,6 +191,30 @@ export function mapTour(g, classId = 'umbral_sword') {
   // every exit leads to a map that has an exit back
   const noBack = mm.list.flatMap((d) => d.exits.filter((e) => !mm.get(e.to).exits.some((b) => b.to === d.id)).map((e) => `${d.id}.${e.id}`));
   ok('Every exit has a way back', !noBack.length, noBack.join(','));
+  // on foot: from each map's spawn every exit and every visible object must be reachable (flags above all open)
+  const unreachable = [];
+  for (const def of mm.list) {
+    w.changeMap(def.id, { silent: true });
+    const m = w.map, seen = new Uint8Array(m.w * m.h), sp = m.findOpen(def.spawn[0] * TILE, def.spawn[1] * TILE, 4);
+    const q = [[Math.floor(sp.x / TILE), Math.floor(sp.y / TILE)]];
+    seen[q[0][1] * m.w + q[0][0]] = 1;
+    while (q.length) {
+      const [x, y] = q.pop();
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx, ny = y + dy;
+        if (!m.inBounds(nx, ny) || seen[ny * m.w + nx] || m.isSolid(nx, ny)) continue;
+        seen[ny * m.w + nx] = 1; q.push([nx, ny]);
+      }
+    }
+    const near = (px, py, r) => { const t = Math.ceil(r / TILE); const cx = Math.floor(px / TILE), cy = Math.floor(py / TILE);
+      for (let y = cy - t; y <= cy + t; y++) for (let x = cx - t; x <= cx + t; x++) if (m.inBounds(x, y) && seen[y * m.w + x]) return true; return false; };
+    for (const e of def.exits) { let hit = false; for (let y = e.rect[1]; y <= e.rect[3]; y++) for (let x = e.rect[0]; x <= e.rect[2]; x++) if (m.inBounds(x, y) && seen[y * m.w + x]) hit = true; if (!hit) unreachable.push(`${def.id} exit ${e.id}`); }
+    for (const it of w.interactables) {
+      if (!w.onMap(it) || it.secret || ['trigger', 'crackInfo', 'glyphInfo'].includes(it.kind)) continue;
+      if (!near(it.x, it.y, it.radius || 34)) unreachable.push(`${def.id} ${it.kind}:${it.id}`);
+    }
+  }
+  ok('Everything reachable on foot from each map spawn', !unreachable.length, unreachable.join(', '));
   // locks: sealed gate + boss fight
   g.newGame(classId);
   const w2 = g.world, a3 = w2.mapManager.get('a3').exits.find((e) => e.id === 'arena_gate');
@@ -203,6 +227,29 @@ export function mapTour(g, classId = 'umbral_sword') {
   // other maps' monsters are frozen / not hostile
   ok('Only this map is hostile', w2.hostiles().every((h) => w2.onMap(h)));
   g.newGame(classId);
+  return R;
+}
+
+// V2.1 A1 combat loop: guide -> walk out of Lumina -> fight in A1 only -> EXP / gold / loot -> back to the guide.
+export function a1Loop(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, q = g.quests;
+  use(g, 'npc_guide'); g.ui.panels.close(true);
+  goto(g, 47.5, 163); g.input.down.add('KeyW'); g.simulate(1.6); g.input.down.delete('KeyW');
+  ok('Walked out of Lumina into A1', w.mapId === 'a1' && q.active.beyond_lumina.done.exit, w.mapId);
+  const start = { lv: p.level, gold: p.gold, items: Object.values(g.inventory.items).reduce((a, b) => a + b, 0) };
+  let kills = 0, targeted = 0; g.events.on('enemyDefeated', () => kills++); g.events.on('targetChanged', (e) => { if (e.target) targeted++; });
+  for (const [x, y] of [[47, 144], [38, 121], [20, 112], [22, 131], [58, 104]]) {
+    if (q.active.beyond_lumina && q.active.beyond_lumina.done.hunt) break;
+    goto(g, x, y); fight(g, 25, { god: true, until: () => q.active.beyond_lumina.done.hunt });
+  }
+  ok('Fought only on A1', w.mapId === 'a1', w.mapId);
+  ok('Targeted + defeated 5 monsters', q.active.beyond_lumina && q.active.beyond_lumina.done.hunt && targeted > 0, `kills=${kills} targeted=${targeted}`);
+  const items = Object.values(g.inventory.items).reduce((a, b) => a + b, 0);
+  ok('EXP / gold / loot gained', p.level > start.lv && p.gold > start.gold && items >= start.items, `LV${start.lv}->${p.level} gold ${start.gold}->${p.gold} items ${start.items}->${items}`);
+  use(g, 'npc_guide'); g.ui.panels.close(true);
+  ok('Returned to the guide: quest complete', q.isDone('beyond_lumina') && w.mapId === 'lumina', `map=${w.mapId}`);
   return R;
 }
 

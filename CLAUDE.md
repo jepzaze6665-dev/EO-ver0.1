@@ -11,7 +11,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
   (combat / mechanics / Reaper / class-change checks, currently 101/101) and
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
-  and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops).
+  and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
+  each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
 - After editing `tools/testkit.js`, **reload the page**: `combatTest.js` imports it without a cache-busting query.
 
@@ -47,6 +48,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - `node -e "..."` with complex quoting can hang (waits on stdin) → write edit scripts to a file
   (scratchpad) and run them with `</dev/null`; prefer the Write/Edit tools.
 - Never `git stash` / `git checkout --` a file with uncommitted work without checking first.
+- Bash heredocs here eat backslashes (a written `\\n` arrives as `\n`, a `\n` as a real newline): write JS that
+  contains escapes with Write/Edit,
+  or check the result with `node --check`.
 
 ## Status (update this section at the end of each phase)
 - Done: V1 vertical slice; V2 phases 1-14 — combat foundation, resources, skills/cooldowns, marks, statuses,
@@ -84,6 +88,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   map is walkable (`WorldMap.isSolid` + `activeArea`; `isTerrainSolid` ignores maps), simulated, hostile, drawn (other
   maps masked black) and on the minimap. Teleports / load / respawn: `world.syncMapToPlayer()`. Events mapExited/
   mapEntered; save stores `player.map`; quest `reach {map}`. A1 = forest south of the river (y ≥ 98), A2 = north +
-  Hidden Cave, A3 = ruins + gate. Next: P9 A1 content (tutorial combat, sign/NPC, spawn review), P10 A2, P11 A3 (elite),
+  Hidden Cave, A3 = ruins + gate. P9: map files can own content (`content.interactables` / `content.spawns`,
+  `content.optional` = Optional Area sub-banner); A1 = tutorial area: Hunter's Notice (combat basics) + 2 Crystal Glade
+  warnings (Optional Area, Lv.6 beasts). Fixed V1 terrain bugs found by the reachability test: log bridge never touched
+  its banks, Bramble Lane was walled off from the village. Next: P10 A2, P11 A3 (elite),
   P12 arena, P13 UI, P14 save, P15 debug, P16 polish. Monster display levels / zone "Lv." subtitles still show the old 5-15 range (fix in P4).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).
