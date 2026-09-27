@@ -70,5 +70,26 @@ test('summoned adds give nothing (no infinite EXP / loot)', () => {
   eq(g.got.exp, 0); eq(g.got.gold, 0);
 });
 
+console.log('monster foundation');
+const { Monster } = await import('../../src/monsters/monster.js');
+const { ELITE_MOD, CORRUPT_MOD, MONSTER_STATE } = await import('../../src/monsters/monsterTypes.js');
+const mon = (type, opts) => new Monster({ monsterSprites: {} }, type, 100, 100, opts);
+test('spec fields come from data (name, hp, attack, defense, speed, ranges, exp, loot, state)', () => {
+  const m = mon('wolf');
+  eq(m.name, 'Forest Wolf'); eq(m.hp, 70); eq(m.maxHp, 70); eq(m.attack, 18); eq(m.defense, 2);
+  eq(m.movementSpeed, 128); eq(m.aggroRange, 150); eq(m.attackRange, 125); eq(m.expReward, 18); eq(m.lootTable, 'wolf');
+  eq(m.state, MONSTER_STATE.IDLE); ok(typeof m.id === 'number', 'id');
+});
+test('elite: tougher, more EXP, extra loot roll; stacks with corrupted', () => {
+  const e = mon('goblin', { elite: true });
+  eq(e.maxHp, Math.round(130 * ELITE_MOD.hp)); eq(e.expReward, 30 * ELITE_MOD.exp); ok(e.name.startsWith('Elite'), e.name);
+  eq(JSON.stringify(e.lootTable), JSON.stringify(['goblin', 'elite'])); ok(LOOT_TABLES.elite, 'elite table');
+  const ce = mon('goblin', { elite: true, corrupted: true });
+  eq(ce.maxHp, Math.round(130 * ELITE_MOD.hp * CORRUPT_MOD.hp)); eq(ce.mod.power, ELITE_MOD.power * CORRUPT_MOD.power);
+});
+test('display levels fit a LV 1 start (field monsters below the boss)', () => {
+  for (const t of ['wolf', 'goblin', 'crystal_beast']) ok(MONSTERS[t].level < MONSTERS.guardian.level && MONSTERS[t].level <= 6, t);
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

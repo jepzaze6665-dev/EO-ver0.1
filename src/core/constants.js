@@ -47,8 +47,8 @@ export const Z = {
 
 export const ZONE_INFO = {
   [Z.VILLAGE]: { name: 'LUMINA VILLAGE', sub: 'Safe Zone', safe: true, music: 'village' },
-  [Z.FOREST]: { name: 'WHISPERING FOREST', sub: 'Lv. 5 – 9', music: 'forest' },
-  [Z.RUINS]: { name: 'ANCIENT RUINS', sub: 'Lv. 8 – 11', music: 'ruins' },
+  [Z.FOREST]: { name: 'WHISPERING FOREST', sub: 'Lv. 1 – 5', music: 'forest' },
+  [Z.RUINS]: { name: 'ANCIENT RUINS', sub: 'Lv. 5 – 8', music: 'ruins' },
   [Z.GATE]: { name: 'GUARDIAN GATE', sub: 'Something ancient stirs', music: 'gate' },
   [Z.ARENA]: { name: 'GUARDIAN ARENA', sub: 'Heart of the Forest', music: 'arena' },
   [Z.VALLEY]: { name: 'ANCIENT VALLEY — A2', sub: 'The world continues', music: 'valley' },

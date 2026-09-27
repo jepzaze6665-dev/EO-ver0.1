@@ -190,7 +190,7 @@ export class World {
     for (let i = 0; i < d.count; i++) {
       const a = rand(0, TAU), r = rand(0, d.radius * TILE);
       const pos = this.map.findOpen(d.x + Math.cos(a) * r, d.y + Math.sin(a) * r, 4);
-      const m = new Monster(g, d.type, pos.x, pos.y, { spawn: sp, corrupted });
+      const m = new Monster(g, d.type, pos.x, pos.y, { spawn: sp, corrupted, elite: !!d.elite });
       sp.alive.push(m);
       this.monsters.push(m);
     }
@@ -201,8 +201,8 @@ export class World {
   onMonsterKilled(m, src) {
     const g = this.game, d = m.def;
     g.events.emit('enemyDefeated', {
-      entity: m, type: m.type, name: d.name, source: src, x: m.x, y: m.y,
-      summoned: !!m.summoned, boss: false, miniBoss: !!d.miniBoss, exp: d.exp, loot: d.loot,
+      entity: m, type: m.type, name: m.name, source: src, x: m.x, y: m.y,
+      summoned: !!m.summoned, boss: false, elite: m.elite, miniBoss: !!d.miniBoss, exp: m.expReward, loot: m.lootTable,
     });
     g.vfx.burst(m.x, m.y - m.height * 0.5, m.corrupted ? '#b060ff' : '#c8c0b0', 18, 120);
     g.vfx.shadowSmoke(m.x, m.y, 8);
@@ -228,7 +228,7 @@ export class World {
         const a = rand(0, TAU);
         const pos = this.map.findOpen(it.x + Math.cos(a) * 110, it.y + Math.sin(a) * 110, 4);
         const m = new Monster(g, type, pos.x, pos.y, { corrupted: true, summoned: false });
-        m.aggro = true; m.setState('alert');
+        m.aggro = true; m.setState('aggro');
         g.vfx.burst(pos.x, pos.y - 10, '#b060ff', 20, 120);
         this.monsters.push(m);
         return m;

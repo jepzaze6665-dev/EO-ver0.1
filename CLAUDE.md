@@ -66,6 +66,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   for the boss). P3: monster deaths emit `enemyDefeated` (world.js) → `ExperienceSystem`
   (`src/progression/experienceSystem.js`), `LootSystem` (`src/loot/lootSystem.js`, tables in `src/data/lootTables.js`,
   monsters name `loot: '<table>'`), quests, knowledge; boss reward = same event, once; `player.addGold/removeGold/canAfford`;
-  `src/combat/targetSystem.js` (Tab nearest/cycle, click, auto on hit; HUD target frame). Next: P4 monster foundation
-  (LV 1 balance, display levels), then P5-7, maps split per the spec (P8-12). Monster display levels / zone "Lv." subtitles still show the old 5-15 range (fix in P4).
+  `src/combat/targetSystem.js` (Tab nearest/cycle, click, auto on hit; HUD target frame). P4: monster states = `MONSTER_STATE`
+  (idle/patrol/aggro/chase/attack/hit/return/dead), spec getters (name, attack, movementSpeed, aggroRange, attackRange,
+  expReward, lootTable), `ELITE_MOD` (spawn `elite: true`, extra 'elite' loot roll), stuck-on-wall → RETURN (+ snap home),
+  display levels for LV 1 (wolf 2 · goblin 4 · crystal beast 6 · alpha 8 · guardian 10 · wraith 12). EXP budget: one clear
+  before the boss ≈ LV 8, after boss + quests ≈ LV 10. Next: P5-7 (EXP sources / gold+inventory / quest foundation),
+  then maps split per the spec (P8-12). Monster display levels / zone "Lv." subtitles still show the old 5-15 range (fix in P4).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

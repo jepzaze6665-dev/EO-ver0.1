@@ -431,7 +431,8 @@ export class HUD {
     const g = this.game, t = g.targets && g.targets.current;
     if (!t) return;
     const kn = g.knowledge;
-    const name = t.type && MONSTERS[t.type] ? kn.nameFor(t.type) : t.name || 'Target';
+    const isMon = t.type && MONSTERS[t.type] && t !== g.world.guardian;
+    const name = isMon ? (kn.known(t.type) ? `${t.corrupted ? 'Corrupted ' : ''}${t.name}` : kn.nameFor(t.type)) : t.name || (t.def && t.def.name) || 'Target';
     const lvl = t.type && MONSTERS[t.type] ? kn.levelFor(t.type) : null;
     // marker above the head
     const s = this.toScreen(t.x, t.y - (t.height || 30) * (t.scale || 1) - 26);
@@ -529,9 +530,9 @@ export class HUD {
       const d = Math.hypot(m.x - p.x, m.y - p.y);
       if (d > 260 && m.showBar <= 0) continue;
       const s = this.toScreen(m.x, m.y - m.height * (m.scale || 1) - 8);
-      const w = 64 * u * (m.def.miniBoss ? 1.6 : 1);
-      const name = kn.nameFor(m.type), lvl = kn.levelFor(m.type);
-      const col = !kn.known(m.type) ? '#b0a8c0' : m.corrupted ? '#e0a0ff' : m.def.miniBoss ? '#ffb080' : '#f0e8e0';
+      const w = 64 * u * (m.def.miniBoss ? 1.6 : m.elite ? 1.3 : 1);
+      const name = kn.known(m.type) ? m.name : kn.nameFor(m.type), lvl = kn.levelFor(m.type);
+      const col = !kn.known(m.type) ? '#b0a8c0' : m.elite ? '#ffc860' : m.corrupted ? '#e0a0ff' : m.def.miniBoss ? '#ffb080' : '#f0e8e0';
       this.text(ctx, `${m.corrupted && kn.known(m.type) ? 'Corrupted ' : ''}${name}  Lv.${lvl}`, s.x, s.y - 8 * u, 10 * u, col, { align: 'center' });
       if (m.hp < m.maxHp || m.showBar > 0) {
         this.bar(ctx, s.x - w / 2, s.y - 4 * u, w, 5 * u, m.hp / m.maxHp, '#ff6070', '#901828');

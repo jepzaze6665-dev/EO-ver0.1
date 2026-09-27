@@ -1,11 +1,12 @@
 import { Entity } from '../core/entity.js';
 import { TEAM } from '../core/constants.js';
-import { MONSTERS, CORRUPT_MOD } from './monsterTypes.js';
+import { MONSTERS, CORRUPT_MOD, ELITE_MOD, MONSTER_STATE as S } from './monsterTypes.js';
 import { flashOf } from './monsterSprites.js';
 import { angleTo, wrapAngle, rand, TAU, dist, clamp, pick } from '../core/math.js';
 
-// Generic monster with a data-driven attack list and the state machine:
-// IDLE -> PATROL -> DETECT -> CHASE -> ATTACK -> (HURT) -> DEATH, plus RETURN when leashed.
+// Generic monster with a data-driven attack list and the state machine (names in MONSTER_STATE):
+// IDLE -> PATROL -> AGGRO -> CHASE -> ATTACK -> (HIT) -> DEAD, plus RETURN when leashed / lost / stuck.
+// Stats come from data (monsterTypes.js) × modifiers (corrupted, elite); drops from data/lootTables.js.
 export class Monster extends Entity {
   constructor(game, typeId, x, y, opts = {}) {
     super(x, y);
@@ -14,7 +15,11 @@ export class Monster extends Entity {
     this.type = typeId;
     this.def = d;
     this.corrupted = !!opts.corrupted && (typeId === 'wolf' || typeId === 'goblin');
-    const cm = this.corrupted ? CORRUPT_MOD : { hp: 1, detect: 1, power: 1, speed: 1 };
+    this.elite = !!opts.elite;
+    // stat modifiers multiply together (corrupted × elite)
+    const mods = [this.corrupted && CORRUPT_MOD, this.elite && ELITE_MOD].filter(Boolean);
+    const cm = { hp: 1, detect: 1, power: 1, speed: 1, exp: 1, scale: 1 };
+    for (const m of mods) for (const k in cm) cm[k] *= m[k] ?? 1;
     this.mod = cm;
     this.team = TEAM.ENEMY;
     this.maxHp = this.hp = Math.round(d.hp * cm.hp);
@@ -25,13 +30,14 @@ export class Monster extends Entity {
     this.armor = this.maxArmor = d.armor || 0;
     this.weakness = d.weakness;
     this.superArmor = !!d.superArmor;
-    this.scale = d.scale || 1;
+    this.scale = (d.scale || 1) * cm.scale;
     const sk = d.sprite + (this.corrupted ? 'C' : '');
     this.sprites = game.monsterSprites[sk] || game.monsterSprites[d.sprite];
     this.home = { x, y };
     this.spawnRef = opts.spawn || null;
-    this.state = 'idle';
+    this.state = S.IDLE;
     this.stateT = rand(0.5, 2);
+    this.stuckT = 0; this.lastPos = { x, y };
     this.facing = rand(0, TAU);
     this.cds = {};
     this.stagger = 0;
@@ -44,6 +50,15 @@ export class Monster extends Entity {
     this.summoned = !!opts.summoned;
     this.showBar = 0;
   }
+  // spec field names (read-only views of the data; gameplay keeps using def / mod)
+  get name() { return (this.elite ? 'Elite ' : '') + this.def.name; }
+  get attack() { return Math.max(...this.def.attacks.map((a) => a.power)) * this.mod.power; }
+  get movementSpeed() { return this.def.speed * this.mod.speed; }
+  get aggroRange() { return this.def.detect * this.mod.detect; }
+  get attackRange() { return Math.max(...this.def.attacks.map((a) => a.range)); }
+  get expReward() { return Math.round(this.def.exp * this.mod.exp); }
+  get lootTable() { return this.elite && ELITE_MOD.loot ? [this.def.loot, ELITE_MOD.loot] : this.def.loot; }
+
   weakPointHit(ax, ay) {
     if (!this.def.weakPoint) return false;
     const toAttacker = angleTo(this.x, this.y, ax, ay);
@@ -68,7 +83,7 @@ export class Monster extends Entity {
     this.showBar = 4;
     this.aggro = true;
     g.knowledge.encounter(this.type);
-    if (this.state === 'idle' || this.state === 'patrol' || this.state === 'return') this.setState('chase');
+    if (this.state === S.IDLE || this.state === S.PATROL || this.state === S.RETURN) this.setState(S.CHASE);
     this.stagger += opts.stagger || 5;
     const canStagger = !this.superArmor && !(this.cur && this.cur.heavy && this.phase === 'windup' && this.stagger < this.def.staggerMax * 2);
     if (this.stagger >= this.def.staggerMax && canStagger) {
@@ -78,18 +93,19 @@ export class Monster extends Entity {
     }
     if (this.type === 'wraith') {
       this.hitCount = (this.hitCount || 0) + 1;
-      if (this.hitCount >= 4 && this.state !== 'attack') { this.hitCount = 0; this.blink(); }
+      if (this.hitCount >= 4 && this.state !== S.ATTACK) { this.hitCount = 0; this.blink(); }
     }
   }
   interrupt(t) {
     this.game.combat.telegraphs.cancelOwner(this);
     this.cur = null;
-    this.setState('hurt');
+    this.setState(S.HIT);
     this.hurtLen = t;
   }
   onDeath(src) {
     this.dead = true;
     this.deathT = 0;
+    this.state = S.DEAD;
     this.game.combat.telegraphs.cancelOwner(this);
     this.game.world.onMonsterKilled(this, src);
   }
@@ -120,36 +136,38 @@ export class Monster extends Entity {
     const speed = this.def.speed * this.mod.speed * this.status.moveMult();
     const detect = this.def.detect * this.mod.detect * (g.player.sprinting ? 1.15 : 1);
     // taunt (status flag): drop everything and fight the taunter
-    if (this.status.flag('taunted') && !p.dead && (this.state === 'idle' || this.state === 'patrol' || this.state === 'return' || this.state === 'alert')) { this.aggro = true; this.setState('chase'); }
+    if (this.status.flag('taunted') && !p.dead && (this.state === S.IDLE || this.state === S.PATROL || this.state === S.RETURN || this.state === S.AGGRO)) { this.aggro = true; this.setState(S.CHASE); }
     this.moving = false;
     this.stateT += dt;
 
     switch (this.state) {
-      case 'idle':
-        if (this.stateT > 2.5) { this.patrolTarget = this.pickPatrol(); this.setState('patrol'); }
+      case S.IDLE:
+        if (this.stateT > 2.5) { this.patrolTarget = this.pickPatrol(); this.setState(S.PATROL); }
         this.lookForPlayer(dP, detect);
         break;
-      case 'patrol': {
+      case S.PATROL: {
         const t = this.patrolTarget;
-        if (!t || this.moveTo(t.x, t.y, speed * 0.45, dt) < 6 || this.stateT > 5) this.setState('idle');
+        if (!t || this.moveTo(t.x, t.y, speed * 0.45, dt) < 6 || this.stateT > 5) this.setState(S.IDLE);
         this.lookForPlayer(dP, detect);
         break;
       }
-      case 'alert':
+      case S.AGGRO:
         this.turnTo(angleTo(this.x, this.y, p.x, p.y), dt, 10);
-        if (this.stateT > 0.4) this.setState('chase');
+        if (this.stateT > 0.4) this.setState(S.CHASE);
         break;
-      case 'chase': {
-        if (p.dead || g.world.inSafeZone(p)) { this.setState('return'); break; }
+      case S.CHASE: {
+        if (p.dead || g.world.inSafeZone(p)) { this.setState(S.RETURN); break; }
         // stealth (status flag): lose track unless the player is right next to us, never commit an attack
         const hidden = p.status.flag('stealth') && !this.status.flag('taunted');
         if (hidden && dP > 70) {
-          this.aggro = false; this.setState('return');
+          this.aggro = false; this.setState(S.RETURN);
           g.vfx.text(this.x, this.y - this.height - 10, '?', { color: '#c8b8e8', size: 13, life: 0.8 }); // lost track
           break;
         }
         const fromHome = dist(this.x, this.y, this.home.x, this.home.y);
-        if (fromHome > this.def.leash && !this.summoned) { this.setState('return'); break; }
+        if (fromHome > this.def.leash && !this.summoned) { this.setState(S.RETURN); break; }
+        // stuck on a wall (trying to move but not getting closer for a while) -> give up and go home
+        if (this.stuckT > 2.5 && !this.summoned) { this.stuckT = 0; this.aggro = false; this.setState(S.RETURN); break; }
         const ang = angleTo(this.x, this.y, p.x, p.y);
         const atk = hidden ? null : this.chooseAttack(dP);
         if (atk) { this.startAttack(atk); break; }
@@ -167,19 +185,29 @@ export class Monster extends Entity {
         this.turnTo(ang, dt, this.def.turn);
         break;
       }
-      case 'attack':
+      case S.ATTACK:
         this.updateAttack(dt);
         break;
-      case 'hurt':
-        if (this.stateT > (this.hurtLen || 0.35)) this.setState('chase');
+      case S.HIT:
+        if (this.stateT > (this.hurtLen || 0.35)) this.setState(S.CHASE);
         break;
-      case 'return': {
+      case S.RETURN: {
         const d2 = this.moveTo(this.home.x, this.home.y, speed * 0.9, dt);
         this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.3 * dt);
-        if (d2 < 10 || this.stateT > 8) { this.aggro = false; this.setState('idle'); }
+        if (d2 < 10 || this.stateT > 8) {
+          // could not walk home (blocked): snap back so it never stays wedged in a wall
+          if (d2 >= 10) { const pos = map.findOpen(this.home.x, this.home.y, 4); this.x = pos.x; this.y = pos.y; }
+          this.aggro = false; this.setState(S.IDLE);
+        }
         break;
       }
     }
+    // stuck detection: moving in CHASE but barely changing position
+    if (this.state === S.CHASE && this.moving) {
+      const moved = dist(this.x, this.y, this.lastPos.x, this.lastPos.y);
+      this.stuckT = moved < speed * dt * 0.15 ? this.stuckT + dt : Math.max(0, this.stuckT - dt * 2);
+    } else this.stuckT = 0;
+    this.lastPos.x = this.x; this.lastPos.y = this.y;
     // separation from other monsters
     for (const o of g.world.monsters) {
       if (o === this || o.dead) continue;
@@ -197,12 +225,12 @@ export class Monster extends Entity {
     if (p.dead || g.world.inSafeZone(p)) return;
     if (p.status.flag('stealth')) detect *= 0.3; // a stealthed player is only noticed up close
     if (dP < detect && g.world.map.lineOfSight(this.x, this.y - 8, p.x, p.y - 8)) {
-      this.setState('alert');
+      this.setState(S.AGGRO);
       this.aggro = true;
       g.knowledge.encounter(this.type);
       g.vfx.text(this.x, this.y - this.height - 10, '!', { color: '#ff5050', size: 14, life: 0.6 });
       // alert pack mates
-      for (const o of g.world.monsters) if (o !== this && !o.dead && !o.aggro && dist(o.x, o.y, this.x, this.y) < 150) { o.aggro = true; o.setState('alert'); }
+      for (const o of g.world.monsters) if (o !== this && !o.dead && !o.aggro && dist(o.x, o.y, this.x, this.y) < 150) { o.aggro = true; o.setState(S.AGGRO); }
     }
   }
 
@@ -248,7 +276,7 @@ export class Monster extends Entity {
     const g = this.game, p = g.player;
     this.cur = atk;
     this.phase = 'windup';
-    this.setState('attack');
+    this.setState(S.ATTACK);
     if (this.def.turn >= 3) this.facing = angleTo(this.x, this.y, p.x, p.y);
     const ang = this.facing;
     const s = atk.shape;
@@ -296,7 +324,7 @@ export class Monster extends Entity {
 
   updateAttack(dt) {
     const g = this.game, atk = this.cur;
-    if (!atk) { this.setState('chase'); return; }
+    if (!atk) { this.setState(S.CHASE); return; }
     if (this.phase === 'windup') {
       // light tracking during early windup for fast monsters
       if (this.def.turn >= 8 && this.stateT < atk.windup * 0.35 && atk.kind !== 'dash') {
@@ -331,7 +359,7 @@ export class Monster extends Entity {
       this.cds[atk.id] = atk.cd;
       for (const a of this.def.attacks) this.cds[a.id] = Math.max(this.cds[a.id] || 0, 0.4);
       this.cur = null;
-      this.setState('chase');
+      this.setState(S.CHASE);
     }
   }
 
@@ -360,8 +388,8 @@ export class Monster extends Entity {
     const set = this.frameSet();
     let fr;
     if (this.dead) fr = set.hurt[0];
-    else if (this.state === 'hurt' || this.status.has('stun')) fr = set.hurt[0];
-    else if (this.state === 'attack') {
+    else if (this.state === S.HIT || this.status.has('stun')) fr = set.hurt[0];
+    else if (this.state === S.ATTACK) {
       if (this.phase === 'windup') fr = set.windup[0];
       else if (this.phase === 'active') fr = set.attack[0];
       else fr = set.attack[Math.min(set.attack.length - 1, this.stateT > 0.15 ? 1 : 0)];

@@ -22,7 +22,8 @@ export class LootSystem {
   }
   onDefeated(e) {
     if (e.summoned || !e.loot) return; // summoned adds (boss roots, ...) give nothing
-    const g = this.game, r = rollLoot(e.loot, this.rng);
+    const g = this.game, r = { gold: 0, items: [] };
+    for (const id of [].concat(e.loot)) { const x = rollLoot(id, this.rng); r.gold += x.gold; r.items.push(...x.items); } // elites roll 2 tables
     if (r.gold) g.player.addGold(r.gold);
     for (const it of r.items) g.inventory.add(it.item, it.count);
     g.events.emit('lootDropped', { x: e.x, y: e.y, source: e.type, gold: r.gold, items: r.items });

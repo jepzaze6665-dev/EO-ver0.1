@@ -5,7 +5,7 @@
 // Knowledge fields feed the Monster Knowledge codex (revealed by fighting / lore).
 export const MONSTERS = {
   wolf: {
-    name: 'Forest Wolf', level: 5, hp: 70, def: 2, speed: 128, radius: 10, height: 30, mass: 0.8,
+    name: 'Forest Wolf', level: 2, hp: 70, def: 2, speed: 128, radius: 10, height: 30, mass: 0.8,
     detect: 150, leash: 520, exp: 18, loot: 'wolf', weakness: ['shadow'], sprite: 'wolf', staggerMax: 18, turn: 12,
     pattern: 'Charge / Bite', desc: 'Hunts in packs. Watch for the crouch before the lunge.',
     attacks: [
@@ -14,7 +14,7 @@ export const MONSTERS = {
     ],
   },
   goblin: {
-    name: 'Forest Goblin', level: 6, hp: 130, def: 5, speed: 82, radius: 11, height: 40, mass: 1.1,
+    name: 'Forest Goblin', level: 4, hp: 130, def: 5, speed: 82, radius: 11, height: 40, mass: 1.1,
     detect: 140, leash: 480, exp: 30, loot: 'goblin', weakness: ['physical'], sprite: 'goblin', staggerMax: 30, turn: 8,
     pattern: 'Swipe / Overhead Slam', desc: 'Raises its club high before a heavy slam — it is exposed afterwards.',
     attacks: [
@@ -23,7 +23,7 @@ export const MONSTERS = {
     ],
   },
   crystal_beast: {
-    name: 'Crystal Beast', level: 8, hp: 240, def: 10, armor: 120, speed: 56, radius: 18, height: 44, mass: 2.5,
+    name: 'Crystal Beast', level: 6, hp: 240, def: 10, armor: 120, speed: 56, radius: 18, height: 44, mass: 2.5,
     detect: 130, leash: 420, exp: 50, loot: 'crystal_beast', weakness: ['shadow'], sprite: 'crystal_beast', staggerMax: 60, turn: 1.6,
     superArmor: true, weakPoint: true,
     pattern: 'Spike Ring / Crystal Ram', desc: 'Crystal armour absorbs most damage. Its glowing core is on its back — it turns slowly.',
@@ -33,7 +33,7 @@ export const MONSTERS = {
     ],
   },
   crystal_alpha: {
-    name: 'Amethyst Behemoth', level: 12, hp: 720, def: 12, armor: 260, speed: 64, radius: 24, height: 56, mass: 5, scale: 1.45,
+    name: 'Amethyst Behemoth', level: 8, hp: 720, def: 12, armor: 260, speed: 64, radius: 24, height: 56, mass: 5, scale: 1.45,
     detect: 190, leash: 400, exp: 240, loot: 'crystal_alpha', weakness: ['physical'], sprite: 'crystal_alpha', staggerMax: 140, turn: 1.8,
     superArmor: true, weakPoint: true, miniBoss: true,
     pattern: 'Spike Ring / Ram / Shard Barrage', desc: 'Guardian of the hidden cave. Break its amethyst armour, then punish the core.',
@@ -50,7 +50,7 @@ export const MONSTERS = {
     attacks: [{ id: 'snap', range: 32, min: 0, windup: 0.4, recover: 0.5, cd: 1.3, power: 12, shape: { shape: 'cone', r: 36, half: 0.8 }, kind: 'strike' }],
   },
   wraith: {
-    name: 'Rune Wraith', level: 13, hp: 180, def: 6, speed: 90, radius: 11, height: 44, mass: 0.9, float: true,
+    name: 'Rune Wraith', level: 12, hp: 180, def: 6, speed: 90, radius: 11, height: 44, mass: 0.9, float: true,
     detect: 200, leash: 520, exp: 70, loot: 'wraith', weakness: ['physical'], sprite: 'wraith', staggerMax: 25, turn: 10,
     pattern: 'Rune Orbs / Blink', desc: 'A remnant of the valley wardens. Keeps its distance and blinks away when pressed.',
     keepAway: 110,
@@ -60,7 +60,7 @@ export const MONSTERS = {
     ],
   },
   guardian: {
-    name: 'Guardian of the Forest', level: 15, hp: 12000, def: 18, radius: 30, height: 90, boss: true,
+    name: 'Guardian of the Forest', level: 10, hp: 12000, def: 18, radius: 30, height: 90, boss: true,
     exp: 500, loot: 'guardian', weakness: ['shadow'],
     pattern: 'Claw / Charge / Leap / Smash · Roots / Crystals / Summon · Enrage', desc: 'An ancient warden bound to the forest heart. Its crystal core is exposed after its heaviest attacks.',
   },
@@ -68,3 +68,12 @@ export const MONSTERS = {
 
 // Corrupted variants (before the Guardian falls): tougher, more aggressive, purple eyes.
 export const CORRUPT_MOD = { hp: 1.2, detect: 1.35, power: 1.1, speed: 1.08 };
+
+// Elite variants (spawn data `elite: true`): a simple mini-threat for later areas — bigger, tougher,
+// more EXP and an extra roll on the 'elite' loot table. Multiplies with CORRUPT_MOD.
+export const ELITE_MOD = { hp: 2.5, detect: 1.2, power: 1.3, speed: 1.05, exp: 3, scale: 1.2, loot: 'elite' };
+
+// AI states (spec names). RETURN = walking home after a leash / lost target / stuck on a wall.
+export const MONSTER_STATE = {
+  IDLE: 'idle', PATROL: 'patrol', AGGRO: 'aggro', CHASE: 'chase', ATTACK: 'attack', HIT: 'hit', RETURN: 'return', DEAD: 'dead',
+};

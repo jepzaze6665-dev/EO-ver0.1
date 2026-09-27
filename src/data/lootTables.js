@@ -10,5 +10,6 @@ export const LOOT_TABLES = {
   crystal_alpha: { gold: [60, 90], drops: [{ item: 'moon_crystal', chance: 1 }, { item: 'crystal_shard', chance: 1, count: 3 }] },
   thornling: { gold: [0, 2], drops: [] },
   wraith: { gold: [15, 30], drops: [{ item: 'moon_crystal', chance: 0.25 }] },
+  elite: { gold: [20, 40], drops: [{ item: 'hp_potion', chance: 0.5 }, { item: 'shadow_tonic', chance: 0.25 }] }, // extra roll for elites
   guardian: { gold: [300, 300], drops: [{ item: 'guardian_heart', chance: 1 }, { item: 'guardian_heartwood', chance: 1 }] },
 };
