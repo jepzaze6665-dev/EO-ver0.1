@@ -17,7 +17,7 @@ export const AW_ANIMS = {
   walk: { sheet: 'walk', cols: [1, 2, 3, 4, 5], fps: 9, loop: true },
   run: { sheet: 'walk', cols: [1, 2, 3, 4, 5], fps: 13, loop: true },
   atk1: { sheet: 'atk1', cols: [1, 2, 3, 4] },
-  atk2: { sheet: 'atk2', cols: [1, 2, 3, 4] },
+  atk2: { sheet: 'atk2', cols: [1, 2, 3, 3] }, // col 4 of AW3 is an effect-only frame (no character)
   atk3: { sheet: 'cast', cols: [1, 2, 3, 4, 5] },
   dodge: { sheet: 'sk3', cols: [2, 3, 4] },
   starNeedle: { sheet: 'sk1', cols: [1, 2, 3, 4, 5] },

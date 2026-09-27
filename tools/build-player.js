@@ -30,7 +30,7 @@ PRESETS.ub = { out: 'assets/player', sheets: {
   sk3: ['desgin/class cr/UB/UB SK3.PNG', 4],
   sk4: ['desgin/class cr/UB/UB SK4.png', 4],
   sk5: ['desgin/class cr/UB/UB SK5.png', 4],
-  sk6: ['desgin/class cr/UB/UB SK6.png', 4],
+  sk6: ['desgin/class cr/UB/UB SK6.png', 4, { frames: 5 }], // the explosion frame is drawn double-wide: 5 frames per row
   ult: ['desgin/class cr/UB/UB UT.png', 4],
   vfx: ['desgin/class cr/UB/UB VFX', 8],
 } };
@@ -318,14 +318,14 @@ function validate(sheet, rows) {
 // pixels belongs to the frame whose character body it contains (or, for loose effects such as
 // magic circles, sparks and constellations, the frame its centre falls in). A frame may therefore
 // be wider than its grid cell and effects are never sliced. Returns one cropped RGBA image per frame.
-function componentFrames(img, y0, y1, xs) {
+function componentFrames(img, y0, y1, xs, n = COLS) {
   const W = img.width, H = y1 - y0, d = img.data;
   const lab = new Int32Array(W * H).fill(-1), comps = [];
   const at = (x, y) => ((y0 + y) * W + x) * 4;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const p = y * W + x;
     if (lab[p] >= 0 || d[at(x, y) + 3] < 40) continue;
-    const id = comps.length, c = { n: 0, sx: 0, dark: new Float64Array(COLS), dx: new Float64Array(COLS), dy: new Float64Array(COLS), dMin: 1e9, dMax: -1, minx: x, maxx: x, miny: y, maxy: y };
+    const id = comps.length, c = { n: 0, sx: 0, dark: new Float64Array(n), dx: new Float64Array(n), dy: new Float64Array(n), dMin: 1e9, dMax: -1, minx: x, maxx: x, miny: y, maxy: y };
     comps.push(c);
     const st = [p]; lab[p] = id;
     while (st.length) {
@@ -333,7 +333,7 @@ function componentFrames(img, y0, y1, xs) {
       c.n++; c.sx += qx;
       if (qx < c.minx) c.minx = qx; if (qx > c.maxx) c.maxx = qx; if (qy < c.miny) c.miny = qy; if (qy > c.maxy) c.maxy = qy;
       if (d[i + 3] >= 200 && d[i] + d[i + 1] + d[i + 2] < 150) {
-        let k = 0; while (k < COLS - 1 && qx >= xs[k + 1]) k++;
+        let k = 0; while (k < n - 1 && qx >= xs[k + 1]) k++;
         c.dark[k]++; c.dx[k] += qx; c.dy[k] += qy;
       }
       if (d[i + 3] >= 40 && d[i] + d[i + 1] + d[i + 2] < 110) { if (qy < c.dMin) c.dMin = qy; if (qy > c.dMax) c.dMax = qy; }
@@ -356,7 +356,7 @@ function componentFrames(img, y0, y1, xs) {
     let best = -1, bm = 29;
     c.dark.forEach((m, k) => { if (m > bm) { bm = m; best = k; } });
     if (best >= 0) return best;
-    const cx = c.sx / c.n; let k = 0; while (k < COLS - 1 && cx >= xs[k + 1]) k++; return k;
+    const cx = c.sx / c.n; let k = 0; while (k < n - 1 && cx >= xs[k + 1]) k++; return k;
   });
   const pixelOwner = (l, x, y) => {
     const o = owner[l];
@@ -367,7 +367,7 @@ function componentFrames(img, y0, y1, xs) {
   };
   const owns = (l, k) => l >= 0 && (owner[l] === k || (owner[l] === -2 && bodies[l].some((b) => b.k === k)));
   const frames = [];
-  for (let k = 0; k < COLS; k++) {
+  for (let k = 0; k < n; k++) {
     let minx = 1e9, maxx = -1, miny = 1e9, maxy = -1;
     let bTop = 1e9, bBot = -1; // body extent (for the scale / ground measurement)
     comps.forEach((c, i) => {
@@ -402,7 +402,8 @@ const OUT = path.join(ROOT, outRel);
 fs.mkdirSync(OUT, { recursive: true });
 console.log('== preset', key, '->', outRel);
 const atlas = { preset: key, standard: STD, cols: COLS, sheets: {}, validation: {} };
-for (const [name, [file, rows]] of Object.entries(SHEETS)) {
+for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
+  const n = opt.frames || COLS; // frames actually drawn per row in the source (output is always COLS wide)
   const img = png.read(path.join(ROOT, file));
   removeBackground(img);
   const py = projection(img, true);
@@ -410,8 +411,9 @@ for (const [name, [file, rows]] of Object.entries(SHEETS)) {
   const cells = [], neutral = [];
   for (let r = 0; r < rows; r++) {
     const bx = bodyProjection(img, ys[r], ys[r + 1]), px = projection(img, false, ys[r], ys[r + 1]);
-    const xs = blobSplits(bx, COLS, img.width) || blobSplits(px, COLS, img.width) || splits(px, COLS, img.width);
-    const frames = componentFrames(img, ys[r], ys[r + 1], xs);
+    const xs = blobSplits(bx, n, img.width) || blobSplits(px, n, img.width) || splits(px, n, img.width);
+    const frames = componentFrames(img, ys[r], ys[r + 1], xs, n);
+    while (frames.length < COLS) frames.push(frames[frames.length - 1]); // short rows: hold the last pose
     for (let c = 0; c < COLS; c++) {
       const f = frames[c];
       const a = f && analyseCell(f, 0, 0, f.width, f.height);
@@ -446,6 +448,14 @@ for (const [name, [file, rows]] of Object.entries(SHEETS)) {
   const sides = [];
   for (let base = 0; base < rows; base += 4) sides.push(sideRows(sheet, { fw: CW, fh: CH, ax: PX }, base));
   atlas.sheets[name] = { file: outRel + '/' + name + '.png', fw: CW, fh: CH, rows, cols: COLS, ax: PX, ay: PY, sides, sourceScale: +scale.toFixed(4) };
+  // frames with (almost) no character body: animations must never show them (tools/tests/sprites.test.mjs)
+  atlas.sheets[name].emptyFrames = [];
+  for (let r = 0; r < rows; r++) for (let c = 0; c < COLS; c++) {
+    let cnt = 0;
+    for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) { const i = ((r * CH + y) * sheet.width + c * CW + x) * 4, dd = sheet.data; if (dd[i + 3] > 150 && dd[i] + dd[i + 1] + dd[i + 2] < 200) cnt++; }
+    if (cnt < 300) atlas.sheets[name].emptyFrames.push([r, c]);
+  }
+  if (atlas.sheets[name].emptyFrames.length) console.log('   empty frames in', name, JSON.stringify(atlas.sheets[name].emptyFrames));
   const v = validate(sheet, rows);
   atlas.validation[name] = v;
   console.log(name.padEnd(6), 'scale', scale.toFixed(3), 'body', v.bodyHeight, 'feet±', v.feetMaxOffset, 'center', v.centerOffset, v.ok ? 'OK' : '⚠ ' + v.issues.join(', '));

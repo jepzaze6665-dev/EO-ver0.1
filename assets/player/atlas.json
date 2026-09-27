@@ -29,7 +29,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.3822
+   "sourceScale": 0.3822,
+   "emptyFrames": []
   },
   "run": {
    "file": "assets/player/run.png",
@@ -47,7 +48,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.3922
+   "sourceScale": 0.3922,
+   "emptyFrames": []
   },
   "atk1": {
    "file": "assets/player/atk1.png",
@@ -65,7 +67,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.3125
+   "sourceScale": 0.3125,
+   "emptyFrames": []
   },
   "atk2": {
    "file": "assets/player/atk2.png",
@@ -83,7 +86,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.3175
+   "sourceScale": 0.3175,
+   "emptyFrames": []
   },
   "guard": {
    "file": "assets/player/guard.png",
@@ -101,7 +105,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2791
+   "sourceScale": 0.2791,
+   "emptyFrames": []
   },
   "hit": {
    "file": "assets/player/hit.png",
@@ -119,7 +124,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2899
+   "sourceScale": 0.2899,
+   "emptyFrames": []
   },
   "pr": {
    "file": "assets/player/pr.png",
@@ -137,7 +143,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.3141
+   "sourceScale": 0.3141,
+   "emptyFrames": []
   },
   "sk1": {
    "file": "assets/player/sk1.png",
@@ -155,7 +162,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.3125
+   "sourceScale": 0.3125,
+   "emptyFrames": []
   },
   "sk2": {
    "file": "assets/player/sk2.png",
@@ -173,7 +181,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.3125
+   "sourceScale": 0.3125,
+   "emptyFrames": []
   },
   "sk3": {
    "file": "assets/player/sk3.png",
@@ -191,7 +200,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.3109
+   "sourceScale": 0.3109,
+   "emptyFrames": []
   },
   "sk4": {
    "file": "assets/player/sk4.png",
@@ -209,7 +219,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2778
+   "sourceScale": 0.2778,
+   "emptyFrames": []
   },
   "sk5": {
    "file": "assets/player/sk5.png",
@@ -227,7 +238,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.3593
+   "sourceScale": 0.3593,
+   "emptyFrames": []
   },
   "sk6": {
    "file": "assets/player/sk6.png",
@@ -245,7 +257,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.339
+   "sourceScale": 0.339,
+   "emptyFrames": []
   },
   "ult": {
    "file": "assets/player/ult.png",
@@ -263,7 +276,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.375
+   "sourceScale": 0.375,
+   "emptyFrames": []
   },
   "vfx": {
    "file": "assets/player/vfx.png",
@@ -287,7 +301,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.4724
+   "sourceScale": 0.4724,
+   "emptyFrames": []
   }
  },
  "validation": {

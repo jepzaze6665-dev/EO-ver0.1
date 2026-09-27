@@ -29,7 +29,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2069
+   "sourceScale": 0.2069,
+   "emptyFrames": []
   },
   "atk1": {
    "file": "assets/player/aw/atk1.png",
@@ -47,7 +48,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2069
+   "sourceScale": 0.2069,
+   "emptyFrames": []
   },
   "atk2": {
    "file": "assets/player/aw/atk2.png",
@@ -65,7 +67,25 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2083
+   "sourceScale": 0.2083,
+   "emptyFrames": [
+    [
+     0,
+     4
+    ],
+    [
+     1,
+     4
+    ],
+    [
+     2,
+     4
+    ],
+    [
+     3,
+     4
+    ]
+   ]
   },
   "cast": {
    "file": "assets/player/aw/cast.png",
@@ -83,7 +103,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2076
+   "sourceScale": 0.2076,
+   "emptyFrames": []
   },
   "hit": {
    "file": "assets/player/aw/hit.png",
@@ -101,7 +122,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2076
+   "sourceScale": 0.2076,
+   "emptyFrames": []
   },
   "sk1": {
    "file": "assets/player/aw/sk1.png",
@@ -119,7 +141,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2091
+   "sourceScale": 0.2091,
+   "emptyFrames": []
   },
   "sk2": {
    "file": "assets/player/aw/sk2.png",
@@ -137,7 +160,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2264
+   "sourceScale": 0.2264,
+   "emptyFrames": []
   },
   "sk3": {
    "file": "assets/player/aw/sk3.png",
@@ -155,7 +179,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2198
+   "sourceScale": 0.2198,
+   "emptyFrames": []
   },
   "sk4": {
    "file": "assets/player/aw/sk4.png",
@@ -173,7 +198,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2135
+   "sourceScale": 0.2135,
+   "emptyFrames": []
   },
   "sk5": {
    "file": "assets/player/aw/sk5.png",
@@ -191,7 +217,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.212
+   "sourceScale": 0.212,
+   "emptyFrames": []
   },
   "sk6": {
    "file": "assets/player/aw/sk6.png",
@@ -209,7 +236,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2174
+   "sourceScale": 0.2174,
+   "emptyFrames": []
   },
   "ult": {
    "file": "assets/player/aw/ult.png",
@@ -227,7 +255,8 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2927
+   "sourceScale": 0.2927,
+   "emptyFrames": []
   }
  },
  "validation": {

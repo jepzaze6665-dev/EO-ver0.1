@@ -19,7 +19,7 @@ export const ANIMS = {
   twinFang: { sheet: 'sk3', cols: [1, 2, 3, 4, 5] },
   aura: { sheet: 'sk4', cols: [1, 2, 3, 4, 5] },
   shadowArc: { sheet: 'sk5', cols: [1, 2, 3, 4, 5] },
-  shadowBreak: { sheet: 'sk6', cols: [1, 2, 3, 4, 5] },
+  shadowBreak: { sheet: 'sk6', cols: [1, 2, 3, 3, 4] }, // sk6 has 5 source frames (explosion held)
   eclipse: { sheet: 'ult', cols: [1, 2, 3, 3, 4, 4, 5] },
   counter: { sheet: 'pr', cols: [1, 2, 3, 4, 5] },
   guard: { sheet: 'guard', cols: [1, 2, 3, 4, 5] },
