@@ -9,7 +9,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - `node server.js` → http://localhost:5173 (Claude preview config name: `eclipse-online`, `autoPort` on, see `.claude/launch.json`).
 - Unit tests: `node tools/tests/run.mjs` (must print `ALL TEST FILES PASSED`).
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
-  (combat / mechanics / Reaper / class-change checks, currently 101/101) and
+  (combat / mechanics / Reaper / class-change checks, currently 101/101),
+  `const L = await import('/tools/checklist.js'); L.runChecklist(__game, classId)` (spec TEST 1-31) and
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
@@ -112,5 +113,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   adapter later), `src/save/saveData.js` (pure: SAVE_VERSION 2, v1→v2 migration, parse + validate/repair) and
   `src/save/save.js` (snapshot, backup key `..._backup`, falls back to it when the main save is damaged, `lastError`,
   no save while dead / in a boss fight); `game.saveGame()` / `game.loadGame()` (returns false + toast on failure).
-  Verified: save → real page reload → load = identical state. Next: P15 debug, P16 polish.
+  Verified: save → real page reload → load = identical state. P15: F3 overlay moved to `src/ui/debugOverlay.js`
+  (`__game.debugInfo()` from the console: map, pos, HP/LV/EXP/class/resource/gold, target, enemies on the map, effects,
+  quest state, boss); spec TEST 1-31 = `tools/checklist.js` (`L.runChecklist(__game, classId)`, 31/31 for all 4 classes).
+  Next: P16 vertical slice polish.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

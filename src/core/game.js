@@ -36,6 +36,7 @@ import { MarkSystem } from '../combat/markSystem.js';
 import { MARKS } from '../data/marks.js';
 import { STATUSES } from '../data/statuses.js';
 import { ITEMS } from '../items/items.js';
+import { drawDebug, debugInfo } from '../ui/debugOverlay.js';
 
 const STEP = 1 / 60;
 
@@ -502,28 +503,7 @@ export class Game {
     this.save.update(dt);
   }
 
-  drawDebug(c) {
-    const p = this.player, w = this.world;
-    const lines = [
-      `FPS ${this.fps}  scale ${this.renderer.scale}  view ${this.renderer.vw}x${this.renderer.vh}`,
-      `map ${w.mapId}  pos ${(p.x / TILE).toFixed(1)}, ${(p.y / TILE).toFixed(1)}  zone ${w.currentZone} ${w.currentSub ? w.currentSub.name : ''}`,
-      `monsters ${w.monsters.length}  particles ${this.vfx.particles.count()}  proj ${this.combat.projectiles.pool.count()}  tele ${this.combat.telegraphs.list.length}  marks ${this.marks.count()}  threads ${this.threads.count()}  summons ${this.summons.count()}`,
-      `target ${this.targets.current ? `${this.targets.current.name || this.targets.current.type} ${Math.ceil(this.targets.current.hp)}/${this.targets.current.maxHp}` : '-'}  LV ${p.level} ${p.cls.id} HP ${Math.ceil(p.hp)}/${p.maxHp}`,
-      `timeScale ${this.timeScale.toFixed(2)} hitStop ${this.hitStop.toFixed(2)}  flags ${Object.keys(w.state.flags).join(',')}`,
-    ];
-    c.save();
-    c.setTransform(1, 0, 0, 1, 0, 0);
-    c.fillStyle = 'rgba(0,0,0,0.6)';
-    c.fillRect(0, this.canvas.height - 108, 900, 108);
-    // SPRITE VALIDATION (dev mode)
-    c.fillRect(this.canvas.width - 300, this.canvas.height - 40 - this.spriteReport.length * 18, 300, 40 + this.spriteReport.length * 18);
-    c.font = '14px monospace';
-    c.fillStyle = '#fff';
-    c.fillText('SPRITE VALIDATION', this.canvas.width - 290, this.canvas.height - 22 - this.spriteReport.length * 18);
-    this.spriteReport.forEach((r, i) => { c.fillStyle = r.ok ? '#9f9' : '#fc6'; c.fillText(`${r.name.padEnd(6)} ${r.ok ? '✓' : '⚠ ' + r.issues.join(', ')}  h${r.bodyHeight} feet±${r.feet}`, this.canvas.width - 290, this.canvas.height - 4 - (this.spriteReport.length - 1 - i) * 18); });
-    c.fillStyle = '#9f9';
-    c.font = '14px monospace';
-    lines.forEach((l, i) => c.fillText(l, 10, this.canvas.height - 88 + i * 18));
-    c.restore();
-  }
+  // F3 debug overlay (ui/debugOverlay.js); debugInfo() is also handy from the console
+  drawDebug(c) { drawDebug(this, c); }
+  debugInfo() { return debugInfo(this); }
 }
