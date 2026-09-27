@@ -26,6 +26,9 @@ export const REQUIREMENTS = {
   resource: (caster, r) => caster.resources.get(r.resource) >= r.min,
   // { type: 'mark', mark: 'shadow_mark', min: 3 } — stacks the caster holds (caster.markCount)
   mark: (caster, r) => (caster.markCount ? caster.markCount(r.mark) : 0) >= r.min,
+  // { type: 'markedFoe', mark: 'reaper_mark', range: 320, min?: 1 } — foes within range carrying that mark
+  //   (caster.markedFoes(markId, range) -> list)
+  markedFoe: (caster, r) => (caster.markedFoes ? caster.markedFoes(r.mark, r.range).length : 0) >= (r.min || 1),
 };
 
 export const MAX_CDR = 0.6; // cooldown reduction cap — prevents "no cooldown" builds

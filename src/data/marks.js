@@ -21,6 +21,13 @@ export const MARKS = {
     idleDecay: null, onMax: 'hold', clearOnDeath: true, tags: ['enemy', 'taunt', 'holy'],
     display: { color: '#ffd070', full: '#fff0b0' },
   },
+  // Nightfall Reaper: Shadow Mark on enemies (up to 3). Held until a skill consumes it -> Mark Explosion;
+  // Reaper's Step teleports to a marked foe.
+  reaper_mark: {
+    id: 'reaper_mark', name: 'Shadow Mark', maxStacks: 3, duration: 8, refreshOnStack: true,
+    idleDecay: null, onMax: 'hold', clearOnDeath: true, tags: ['enemy', 'shadow', 'reaper'],
+    display: { color: '#a070ff', full: '#e8c8ff' },
+  },
   // Phase 6 (Astral Weaver): placed on enemies, 3 stacks -> Constellation Break
   star_mark: {
     id: 'star_mark', name: 'Star Mark', maxStacks: 3, duration: 6, refreshOnStack: true,

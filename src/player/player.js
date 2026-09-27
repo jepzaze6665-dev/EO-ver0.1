@@ -69,11 +69,17 @@ export class Player extends Entity {
     const eq = this.game.equipment;
     if (eq) eq.applyTo(s, mods);
     if (this.game.world && this.game.world.state.flags.moonBlessing) { s.crit += 0.05; s.shadowGain += 0.1; }
+    // resource tiers (data/resources.js "tiers"): e.g. a high Nightfall Gauge adds shadow damage / crit
+    if (this.resources) for (const [k, v] of Object.entries(this.resources.tierStats())) s[k] = (s[k] || 0) + v;
+    this.resTier = this.resources ? this.resources.tier(this.primaryResource) : -1;
     this.stats = s;
     this.mods = mods;
-    const ratio = this.maxHp ? this.hp / this.maxHp : 1;
-    this.maxHp = Math.round(s.hp);
-    this.hp = Math.min(this.maxHp, Math.round(this.maxHp * ratio));
+    const maxHp = Math.round(s.hp);
+    if (maxHp !== this.maxHp) { // keep the HP ratio when max HP changes (level, gear); otherwise HP is untouched
+      const ratio = this.maxHp ? this.hp / this.maxHp : 1;
+      this.maxHp = maxHp;
+      this.hp = Math.min(this.maxHp, Math.round(this.maxHp * ratio));
+    }
   }
   expToNext() { return Math.round(120 * Math.pow(1.28, this.level - 10)); }
   gainExp(n) {
@@ -104,6 +110,12 @@ export class Player extends Entity {
   gainResource(n, raw = false) { this.resources.gain(this.primaryResource, n, { raw }); } // class-neutral name
   // threads this player has woven (ThreadSystem) — read by skill requirements and the HUD
   get threadCount() { return this.game.threads ? this.game.threads.count(this) : 0; }
+  // foes within range carrying a mark (any class's enemy mark) — read by 'markedFoe' skill requirements
+  markedFoes(markId, range = Infinity) {
+    const g = this.game;
+    if (!g.marks || !g.world) return [];
+    return g.world.hostiles().filter((m) => !m.dead && !m.isBreakable && g.marks.get(m, markId) > 0 && Math.hypot(m.x - this.x, m.y - this.y) <= range);
+  }
   // movement trail in the class VFX theme (shadow smoke / stardust)
   trailFx(n) {
     const g = this.game, th = this.cls.theme || {};
@@ -327,6 +339,13 @@ export class Player extends Entity {
     this.comboTimer = Math.max(0, this.comboTimer - dt);
     this.skillSys.update(dt);
     this.resources.update(dt, { inCombat: g.combat.inCombat });
+    // resource tier crossed (data tiers): refresh stats and tell the class / HUD
+    const tier = this.resources.tier(this.primaryResource);
+    if (tier !== this.resTier) {
+      const before = this.resTier;
+      this.recomputeStats();
+      g.events.emit('resourceTier', { entity: this, resource: this.primaryResource, tier, before, def: this.resources.tierDef(this.primaryResource) });
+    }
     if (this.dodgeCharges < DODGE_CHARGES) {
       this.dodgeRecharge += dt;
       if (this.dodgeRecharge >= DODGE_RECHARGE) { this.dodgeRecharge = 0; this.dodgeCharges++; }

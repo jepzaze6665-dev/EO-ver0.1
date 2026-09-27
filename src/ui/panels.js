@@ -8,6 +8,9 @@ import { RESOURCES } from '../data/resources.js';
 import { CLASS_COUNTERS, CLASS_TREE } from '../data/classTree.js';
 import { classChangeCheck } from '../progression/classChange.js';
 
+// class passives (class data: passives [{ name, desc }]) — codex + Skills tab
+const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>Passives</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">passive</span><div class="small">${esc(x.desc)}</div></div></div>`).join('')}` : '');
+
 // DOM overlays. They only exist while open (no DOM churn during combat) and pause the game.
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -207,7 +210,7 @@ export class Panels {
           <p class="muted small">Keys <b>1-4</b> are yours to choose. <b>5</b> is always the ultimate and <b>Q</b> the class special. Changes are locked while in combat.</p>
           ${lo.pool().map((s) => card(s, `<div class="slot-btns">${[0, 1, 2, 3].map((i) => `<button data-slot="${i}" data-skill="${s.id}" class="${lo.slots[i] === s.id ? 'on' : ''}">${i + 1}</button>`).join('')}</div>`)).join('')}
         </div>
-        <div><h3>Fixed</h3>${[lo.ultimate(), p.cls.special].filter(Boolean).map((s) => card(s, `<div class="muted small">Key ${s.ultimate ? '5' : 'Q'}</div>`)).join('')}</div>
+        <div><h3>Fixed</h3>${[lo.ultimate(), p.cls.special].filter(Boolean).map((s) => card(s, `<div class="muted small">Key ${s.ultimate ? '5' : 'Q'}</div>`)).join('')}${passiveRows(p.cls)}</div>
       </div>`;
     } else if (this.invTab === 'class') {
       // CLASS UI (generic): lineage tree + codex of the selected class + path card (requirements / trial)
@@ -246,7 +249,7 @@ export class Panels {
       const ratings = selCls ? `<div class="ratings">${Object.entries({ Difficulty: selCls.difficulty, ...Object.fromEntries(Object.entries(selCls.ratings || {}).map(([k, v]) => [k[0].toUpperCase() + k.slice(1), v])) }).filter(([, v]) => v).map(([k, v]) => `<div><span>${k}</span><i class="pips">${'<b></b>'.repeat(v)}${'<u></u>'.repeat(5 - v)}</i></div>`).join('')}</div>` : '';
       const sw = selCls && selCls.strengths ? `<div class="sw"><div><h4>Strengths</h4>${selCls.strengths.map((x) => `<div class="small">+ ${esc(x)}</div>`).join('')}</div><div><h4>Weaknesses</h4>${(selCls.weaknesses || []).map((x) => `<div class="small">− ${esc(x)}</div>`).join('')}</div></div>` : '';
       const skillRow = (s, key) => `<div class="cx-skill"><img src="${iconURL(s.icon)}"><div><b>${esc(s.name)}</b> <span class="muted small">${key ? '[' + key + '] · ' : ''}${s.type}${s.cooldown ? ' · CD ' + s.cooldown + 's' : ''}${s.cost ? ' · ' + s.cost + ' ' + RESOURCES[s.costResource || selCls.resource].label : ''}</span><div class="small">${esc(s.desc || '')}</div></div></div>`;
-      const skills = selCls ? `<h4>Skills</h4>${selCls.skills.map((s) => skillRow(s, s.ultimate ? '5' : '')).join('')}${selCls.special ? skillRow(selCls.special, 'Q') : ''}` : `<p class="muted small">Skills are revealed when this class arrives (Class 2 content).</p>`;
+      const skills = selCls ? `<h4>Skills</h4>${selCls.skills.map((s) => skillRow(s, s.ultimate ? '5' : '')).join('')}${selCls.special ? skillRow(selCls.special, 'Q') : ''}${passiveRows(selCls)}` : `<p class="muted small">Skills are revealed when this class arrives (Class 2 content).</p>`;
       const res = selCls ? RESOURCES[selCls.resource].name : selNode.resource || '—';
       const codex = `<div class="codex"><h3>${esc(src.name)} <span class="muted small">Tier ${selNode.tier} · ${esc(src.role || '')}</span></h3>
           ${selCls && selCls.identity ? `<p class="identity">“${esc(selCls.identity)}”</p>` : ''}

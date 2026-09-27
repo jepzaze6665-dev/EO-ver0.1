@@ -3,7 +3,7 @@
 import { evaluate, allMet, matches } from '../../src/progression/requirements.js';
 import { Progression } from '../../src/progression/progression.js';
 import { CLASS_TREE, CLASS_COUNTERS, TRIALS } from '../../src/data/classTree.js';
-import { CLASSES } from '../../src/skills/classes.js';
+import { CLASSES, STARTING_CLASSES } from '../../src/skills/classes.js';
 import { EventBus } from '../../src/core/events.js';
 
 let pass = 0, fail = 0;
@@ -60,7 +60,9 @@ test('tree: parents exist, trials exist, counters exist, starting classes are pl
     for (const r of n.requirements || []) if (r.type === 'counter') ok(CLASS_COUNTERS[r.counter], `${n.id}: counter ${r.counter}`);
     if (n.playable) ok(CLASSES[n.id], `${n.id} is playable but has no class data`);
   }
-  for (const id of Object.keys(CLASSES)) ok(CLASS_TREE[id] && CLASS_TREE[id].tier === 1, `${id} missing from the tree`);
+  for (const id of Object.keys(CLASSES)) ok(CLASS_TREE[id] && CLASS_TREE[id].playable, `${id} missing from the tree (or not playable)`);
+  for (const id of STARTING_CLASSES) ok(CLASS_TREE[id].tier === 1, `${id}: starting classes are tier 1`);
+  ok(CLASS_TREE.nightfall_reaper.playable && CLASSES.nightfall_reaper, 'Nightfall Reaper is the first playable Class 2');
   ok(Object.values(CLASS_TREE).filter((n) => n.tier === 2).length === 9, '9 Class 2 paths (spec)');
 });
 
@@ -126,7 +128,9 @@ test('lineage (tree view): root + children with states; hidden nodes left out un
   g.progression.unlock('nightfall_reaper');
   const st = Object.fromEntries(g.progression.lineage().map((t) => [t.node.id, t.state]));
   ok(st.umbral_sword === 'current', 'root is current');
-  ok(st.nightfall_reaper === 'unlocked', 'unlocked (not playable yet): ' + st.nightfall_reaper);
+  ok(st.nightfall_reaper === 'owned', 'unlocked + playable -> owned: ' + st.nightfall_reaper);
+  CLASS_TREE.nightfall_reaper.playable = false;
+  try { ok(g.progression.lineage().find((t) => t.node.id === 'nightfall_reaper').state === 'unlocked', 'unlocked but not playable -> unlocked'); } finally { CLASS_TREE.nightfall_reaper.playable = true; }
   ok(st.duskrunner === 'ready', 'requirements met -> trial ready: ' + st.duskrunner);
   ok(st.blade_of_echoes === 'locked', 'locked');
   ok(!('astral_weaver' in st), 'other lineages are not part of this tree');

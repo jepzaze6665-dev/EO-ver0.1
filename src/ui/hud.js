@@ -164,6 +164,14 @@ export class HUD {
     this.text(ctx, rdef.label, bx, y + 56 * u, 10 * u, rdef.colors[0]);
     this.bar(ctx, bx + 52 * u, y + 46 * u, bw - 52 * u, 11 * u, p.resources.ratio(rid), rdef.colors[0], rdef.colors[1]);
     this.text(ctx, `${Math.floor(p.resources.get(rid))}`, bx + bw - 4 * u, y + 56 * u, 9 * u, '#fff', { align: 'right' });
+    // resource tiers (data tiers): a tick at each threshold + the active tier's name
+    if (rdef.tiers) {
+      const x0 = bx + 52 * u, w0 = bw - 52 * u, max = p.resources.max(rid);
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      for (const tr of rdef.tiers) ctx.fillRect(Math.round(x0 + w0 * (tr.at / max)), y + 44 * u, Math.max(1, 1.5 * u), 15 * u);
+      const td = p.resources.tierDef(rid);
+      if (td) this.text(ctx, td.label, x0 + 4 * u, y + 56 * u, 8 * u, `rgba(255,240,255,${0.75 + 0.25 * Math.sin(g.time * 6)})`);
+    }
     // EXP (thin)
     this.bar(ctx, bx, y + 63 * u, bw, 4 * u, p.exp / p.expToNext(), '#ffe08a', '#b08a20');
     // class counter (Shadow Marks / Astral Threads / ...) — the class says what to show

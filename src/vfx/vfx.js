@@ -79,11 +79,13 @@ export class VFX {
     return b;
   }
   // Hand-drawn skill effect strip, rotated to the aim angle. follow: entity to stick to.
+  // ground: drawn under the characters (a decal such as a shadow pool), squashed by `squash` for perspective.
+  // frame: hold that frame of the strip for the whole life (fades in / out) instead of playing it once.
   sprite(name, x, y, ang, o = {}) {
     const def = Assets.vfx[name];
     if (!def) return null;
     const s = this.sprites.spawn();
-    Object.assign(s, { def, x, y, ang, scale: o.scale ?? 1, life: o.life ?? 0.32, max: o.life ?? 0.32, follow: o.follow ?? null, off: o.off ?? 0, glow: o.glow ?? 0.35, flipY: !!o.flipY });
+    Object.assign(s, { def, x, y, ang, scale: o.scale ?? 1, life: o.life ?? 0.32, max: o.life ?? 0.32, follow: o.follow ?? null, off: o.off ?? 0, glow: o.glow ?? 0.35, flipY: !!o.flipY, ground: !!o.ground, squash: o.squash ?? 1, alpha: o.alpha ?? 1, frame: o.frame ?? -1 });
     return s;
   }
   damage(x, y, amount, o = {}) {
@@ -143,6 +145,34 @@ export class VFX {
       ctx.fillStyle = `rgba(10,0,20,${0.45 * p})`;
       ctx.beginPath(); ctx.ellipse(e.x, e.y, 90 * p, 50 * p, 0, 0, TAU); ctx.fill();
     }
+    this.drawSprites(ctx, true);
+  }
+
+  // hand-drawn skill sprites (normal pass keeps their dark outline, additive pass adds glow)
+  drawSprites(ctx, ground) {
+    for (const pass of [0, 1]) {
+      if (pass) ctx.globalCompositeOperation = 'lighter';
+      this.sprites.forEach((s) => {
+        if (s.ground !== ground) return;
+        const d = s.def, t = 1 - s.life / s.max;
+        const held = s.frame >= 0;
+        const f = held ? Math.min(d.frames - 1, s.frame) : Math.min(d.frames - 1, Math.floor(t * d.frames));
+        const x = s.follow ? s.follow.x + Math.cos(s.ang) * s.off : s.x;
+        const y = s.follow ? s.follow.y - 14 + Math.sin(s.ang) * s.off : s.y;
+        const fade = held ? Math.min(1, s.life / 0.4, (s.max - s.life) / 0.25) : 1;
+        ctx.save();
+        ctx.globalAlpha = (pass ? s.glow * (held ? 1 : 1 - t * 0.6) : 1) * s.alpha * fade;
+        ctx.translate(x, y);
+        if (s.squash !== 1) ctx.scale(1, s.squash);
+        ctx.rotate(s.ang);
+        if (s.flipY) ctx.scale(1, -1);
+        ctx.scale(s.scale, s.scale);
+        ctx.drawImage(d.img, f * d.fw, 0, d.fw, d.fh, -d.fw / 2, -d.fh / 2, d.fw, d.fh);
+        ctx.restore();
+      });
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
   }
 
   drawAbove(ctx, time) {
@@ -158,24 +188,7 @@ export class VFX {
     });
     ctx.globalAlpha = 1;
 
-    // hand-drawn skill sprites (normal pass keeps their dark outline, additive pass adds glow)
-    for (const pass of [0, 1]) {
-      if (pass) ctx.globalCompositeOperation = 'lighter';
-      this.sprites.forEach((s) => {
-        const d = s.def, t = 1 - s.life / s.max;
-        const f = Math.min(d.frames - 1, Math.floor(t * d.frames));
-        const x = s.follow ? s.follow.x + Math.cos(s.ang) * s.off : s.x;
-        const y = s.follow ? s.follow.y - 14 + Math.sin(s.ang) * s.off : s.y;
-        ctx.save();
-        ctx.globalAlpha = pass ? s.glow * (1 - t * 0.6) : 1;
-        ctx.translate(x, y);
-        ctx.rotate(s.ang);
-        if (s.flipY) ctx.scale(1, -1);
-        ctx.scale(s.scale, s.scale);
-        ctx.drawImage(d.img, f * d.fw, 0, d.fw, d.fh, -d.fw / 2, -d.fh / 2, d.fw, d.fh);
-        ctx.restore();
-      });
-    }
+    this.drawSprites(ctx, false);
     ctx.globalCompositeOperation = 'lighter';
     // particles
     this.particles.forEach((p) => {

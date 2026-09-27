@@ -17,6 +17,8 @@ import { PlayerSprites } from '../player/playerSprites.js';
 import { buildMonsterSprites } from '../monsters/monsterSprites.js';
 import { CLASSES, DEFAULT_CLASS } from '../skills/classes.js';
 import { ThreadSystem } from '../combat/threadSystem.js';
+import { SummonSystem } from '../combat/summonSystem.js';
+import { SUMMONS } from '../data/summons.js';
 import { Progression } from '../progression/progression.js';
 import { changeClass } from '../progression/classChange.js';
 import { CLASS_TREE, TRIALS } from '../data/classTree.js';
@@ -127,6 +129,8 @@ export class Game {
     this.marks = new MarkSystem(MARKS, { onEvent: (name, data) => this.events.emit(name, data) });
     // generic threads between anchors (rules in data/threads.js)
     this.threads = new ThreadSystem(THREADS, { onEvent: (name, data) => this.events.emit(name, data) });
+    // generic owned summons (rules in data/summons.js) — e.g. the Nightfall Reaper's Shadow Doppel
+    this.summons = new SummonSystem(SUMMONS, { onEvent: (name, data) => this.events.emit(name, data) });
     this.world = new World(this);
     this.player = new Player(this, cls, this.spritesFor(cls));
     this.progression.startingClass = classId;
@@ -413,6 +417,7 @@ export class Game {
       targets: (owner) => (owner === this.player ? this.world.hostiles().filter((e) => !e.isBreakable) : [this.player]),
       onTouch: (th, target, first) => this.combat.threadTouch(th, target, first),
     });
+    this.summons.update(sdt);
     this.vfx.update(sdt);
     this.camera.update(dt, this.cameraTarget(), this.player.dead ? null : this.mouseWorld());
     this.ui.update(dt);
@@ -425,7 +430,7 @@ export class Game {
     const lines = [
       `FPS ${this.fps}  scale ${this.renderer.scale}  view ${this.renderer.vw}x${this.renderer.vh}`,
       `pos ${(p.x / TILE).toFixed(1)}, ${(p.y / TILE).toFixed(1)}  zone ${w.currentZone} ${w.currentSub ? w.currentSub.name : ''}`,
-      `monsters ${w.monsters.length}  particles ${this.vfx.particles.count()}  proj ${this.combat.projectiles.pool.count()}  tele ${this.combat.telegraphs.list.length}  marks ${this.marks.count()}  threads ${this.threads.count()}`,
+      `monsters ${w.monsters.length}  particles ${this.vfx.particles.count()}  proj ${this.combat.projectiles.pool.count()}  tele ${this.combat.telegraphs.list.length}  marks ${this.marks.count()}  threads ${this.threads.count()}  summons ${this.summons.count()}`,
       `timeScale ${this.timeScale.toFixed(2)} hitStop ${this.hitStop.toFixed(2)}  flags ${Object.keys(w.state.flags).join(',')}`,
     ];
     c.save();

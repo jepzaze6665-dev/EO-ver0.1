@@ -141,8 +141,8 @@
  },
  "rp_blacksun": {
   "file": "assets/vfx/rp_blacksun.png",
-  "fw": 90,
-  "fh": 128,
+  "fw": 110,
+  "fh": 142,
   "frames": 6,
   "set": "rp"
  },

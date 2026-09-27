@@ -47,6 +47,7 @@ export function changeClass(game, toId, opts = {}) {
   // anything the old class left in the world
   game.marks.clearEntity(old);
   for (const th of [...game.threads.list]) if (th.owner === old) game.threads.expire(th, 'classChanged');
+  if (game.summons) game.summons.clearOwner(old, 'classChanged');
 
   game.player = p;
   game.classId = toId;

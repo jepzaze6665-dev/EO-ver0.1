@@ -6,11 +6,11 @@ Owner is a solo **beginner** developer who writes in **Thai** → answer in Thai
 Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) when the owner asks.
 
 ## Run / test
-- `node server.js` → http://localhost:5173 (Claude preview config name: `eo`, see `.claude/launch.json`).
+- `node server.js` → http://localhost:5173 (Claude preview config name: `eclipse-online`, `autoPort` on, see `.claude/launch.json`).
 - Unit tests: `node tools/tests/run.mjs` (must print `ALL TEST FILES PASSED`).
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
-  (combat / mechanics / class-change checks, currently 75/75) and
-  `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'aegis_guardian')` (15-step full-game regression).
+  (combat / mechanics / Reaper / class-change checks, currently 101/101) and
+  `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (15-step full-game regression, any class).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
 - After editing `tools/testkit.js`, **reload the page**: `combatTest.js` imports it without a cache-busting query.
 
@@ -18,10 +18,12 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - Core systems never name a class. Classes are **data + behaviour** calling core systems; passives react to
   bus events through the class's `on: { eventName(p, g, e) {} }` hooks.
 - Pipeline: calculate (pure) → apply → feedback → events. Gameplay state is separate from DOM/UI (server-ready).
-- Core (`src/combat/`, `src/status/`, `src/progression/`): damageSystem (pure), resourceSystem, skillSystem
-  (+ cooldownSystem, REQUIREMENTS), markSystem, threadSystem, guardSystem, StatusSet; rules live in `src/data/*.js`
-  (resources, marks, statuses, threads, classTree).
-- Classes: `src/skills/{umbralSword,astralWeaver,aegisGuardian}.js`, registry `src/skills/classes.js`.
+- Core (`src/combat/`, `src/status/`, `src/progression/`): damageSystem (pure, incl. execute stats), resourceSystem
+  (+ resource `tiers` → stat bonuses), skillSystem (+ cooldownSystem, REQUIREMENTS incl. `markedFoe`), markSystem,
+  threadSystem, summonSystem, guardSystem, StatusSet; rules live in `src/data/*.js` (resources, marks, statuses, threads,
+  summons, classTree). Hitboxes may carry `powerFor(target)` (per-target power); VFX sprites support `ground` / `frame`.
+- Classes: `src/skills/{umbralSword,astralWeaver,aegisGuardian,nightfallReaper}.js`, registry `src/skills/classes.js`
+  (`STARTING_CLASSES` = the 3 tier-1 classes; Class 2 is reached only by class change). Passives for the codex: `passives`.
   Skill loadout (keys 1-4 chosen, 5 = ultimate, Q = special): `src/player/loadout.js`.
 - Progression: `src/data/classTree.js` (tree, class-record counters as event filters, trials),
   `src/progression/{requirements,progression,classChange}.js`. Secret classes / awakenings = data only
@@ -49,9 +51,12 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - Done: V1 vertical slice; V2 phases 1-14 — combat foundation, resources, skills/cooldowns, marks, statuses,
   Astral Weaver + threads, combat tests, Umbral Sword refinement (Shadow Veil, Phantom Edge, loadout),
   Aegis Guardian + guard system (new AG art), class progression (records, requirements, trials), class change,
-  class UI (tree + codex).
-- Balance (bot, dummy DPS): Umbral ≈ 153-158, Astral ≈ 132, Aegis ≈ 92-95 (takes the least damage); all beat the Guardian solo.
-- **Next: Phase 15-16 — first playable Class 2 = Nightfall Reaper (UB)**. Art + VFX are built (preset `rp`,
-  VFX `rp_*`). **Waiting for the owner's class data** (identity, resource, core mechanic, 4-6 skills,
-  ultimate = black sun art, Q special + passive, unlock conditions) — or the owner says "ออกแบบให้เลย" (design it).
+  class UI (tree + codex); Phase 15-16 — Nightfall Reaper (first playable Class 2, owner's design): Nightfall Gauge
+  (tiers 50 DUSK / 80 NIGHTFALL), Shadow Mark on enemies (`reaper_mark`, hold → Mark Explosion), skills Reaper's Arc,
+  Phantom Reap, Shadow Doppel (SummonSystem clone), Nightfall Zone; Q = Reaper's Step; ult Funeral Eclipse; passives
+  Death Harvest (enemyKilled) + Bloodless Night (execute stats). Unlock: UB lineage, 20 Shadow Breaks + Trial of the Long Night.
+- Balance (bot, dummy DPS over 3 dummies): Umbral ≈ 158-160, Astral ≈ 134, Aegis ≈ 92, Reaper ≈ 188-201 (its single-target
+  DPS ≈ Umbral's; the extra is AoE on the 2nd dummy); all beat the Guardian solo.
+- **Next: Phase 17** — owner decides: the next Class 2 (Duskrunner / Blade of Echoes / AW / AG paths — needs their class
+  data, same format as the Reaper's), or polish. Unused RP art: `sk6` (anim `harvest`) is mapped but no skill plays it yet.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

@@ -3,10 +3,14 @@
 // audio or global game state, so the exact same code can later run on a server
 // (server-authoritative combat) or in unit tests (tools/tests/combat.test.mjs).
 //
-// attacker: { stats?: {atk, crit, critDmg, shadowDmg, magicDmg, armorBreak}, damageMult? }
+// attacker: { stats?: {atk, crit, critDmg, shadowDmg, magicDmg, armorBreak,
+//                     executeDmg, executeAt, executeType}, damageMult? }
 //           — no stats means a "flat" attacker (monsters): the hit's power is the raw damage.
+//           execute*: bonus damage against targets below `executeAt` of their max HP (only hits of
+//           `executeType` when set) — e.g. a reaper passive. Never applies to damage-over-time ticks.
 // target:   { defense?, stats?: {def}, weakness?: [], vulnerable?: bool, armor?: number,
-//             damageTakenMult?: number (statuses: curse > 1, damage reduction < 1) }
+//             damageTakenMult?: number (statuses: curse > 1, damage reduction < 1),
+//             hpRatio?: number (hp / maxHp, read by execute bonuses) }
 // hit:      { power, type ('physical'|'shadow'|'magic'|...), critBonus?, forceCrit?,
 //             breakBonus?, armorBreak?, weakPoint?: bool (attacker is behind the target),
 //             flat?: bool (power is raw damage even with an attacker — damage-over-time ticks) }
@@ -20,6 +24,7 @@ export const DAMAGE_RULES = {
   armorAbsorb: 0.3,       // share of damage that passes through intact armour
   defenseFactor: 0.5,
   variance: 0.08,         // ±8 %
+  executeAt: 0.35,        // default "low HP" line for execute bonuses
   minDamage: 1,
 };
 
@@ -38,6 +43,10 @@ export function computeDamage(attacker, target, hit, roll = Math.random) {
     const typeBonus = st[(hit.type || 'physical') + 'Dmg'] || 0;
     amount *= 1 + typeBonus;
     amount *= attacker.damageMult || 1;
+    if (st.executeDmg > 0 && !hit.dot && target.hpRatio < (st.executeAt || R.executeAt) && (!st.executeType || st.executeType === (hit.type || 'physical'))) {
+      amount *= 1 + st.executeDmg;
+      tags.push('execute');
+    }
     if (hit.forceCrit || roll() < (st.crit || 0) + (hit.critBonus || 0)) { crit = true; amount *= R.critBase + (st.critDmg || 0); }
   } else {
     amount = power;

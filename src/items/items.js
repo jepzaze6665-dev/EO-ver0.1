@@ -19,6 +19,10 @@ export const ITEMS = {
     name: 'Celestial Loom', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'staff', color: '#8ad8ff',
     stats: { atk: 0 }, desc: 'A gilded staff that spins starlight into thread. Signature weapon of the Astral Weaver.',
   },
+  reaper_scythe: {
+    name: 'Reaper Scythe', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'scythe', color: '#9a5cff',
+    stats: { atk: 2 }, desc: 'A shadow scythe that hungers for marked souls. Signature weapon of the Nightfall Reaper.',
+  },
   aegis_shield: {
     name: 'Aegis Shield & Blade', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'shield', color: '#ffd070',
     stats: { atk: 0 }, desc: 'A knight longsword and the gilded Aegis shield. Signature weapon of the Aegis Guardian.',
@@ -36,6 +40,10 @@ export const ITEMS = {
   astral_robe: {
     name: 'Astral Robe', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#5a7ad8',
     stats: { def: 0, hp: 0 }, desc: 'Night-blue robe embroidered with gold constellations.',
+  },
+  reaper_shroud: {
+    name: 'Reaper Shroud', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#5a2aa0',
+    stats: { def: 1, hp: 10 }, desc: 'Tattered night given form. Worn by those who walk the Long Night.',
   },
   aegis_plate: {
     name: 'Aegis Plate', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#c8d0e0',

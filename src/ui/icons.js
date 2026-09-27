@@ -42,6 +42,44 @@ export function icon(name, color = '#b070ff') {
       g.fillStyle = '#2a4a8a'; g.beginPath(); g.moveTo(16, 6); g.lineTo(24, 10); g.lineTo(22, 19); g.lineTo(16, 26); g.lineTo(10, 19); g.lineTo(8, 10); g.closePath(); g.fill();
       g.strokeStyle = '#ffd070'; g.lineWidth = 2; g.stroke();
       break;
+    // ---- Nightfall Reaper
+    case 'scythe':
+      glow('#2a2030', 4, () => { g.moveTo(9, 29); g.lineTo(21, 5); });
+      glow('#7a6a8a', 2, () => { g.moveTo(9, 29); g.lineTo(21, 5); });
+      glow('#3a1a6a', 5, () => { g.moveTo(21, 5); g.quadraticCurveTo(8, 3, 3, 14); });
+      glow(color, 2.5, () => { g.moveTo(21, 5); g.quadraticCurveTo(8, 3, 3, 14); });
+      break;
+    case 'reaper_arc':
+      g.fillStyle = 'rgba(60,20,110,0.55)'; g.beginPath(); g.arc(16, 16, 13, 0, 7); g.fill();
+      for (let i = 0; i < 3; i++) glow(['#3a1a6a', '#9a5cff', '#f0d8ff'][i], 4 - i * 1.2, () => g.arc(16, 16, 12 - i, i * 0.9, i * 0.9 + 4.6));
+      g.fillStyle = '#e8c8ff'; g.beginPath(); g.moveTo(16, 12); g.lineTo(19, 16); g.lineTo(16, 20); g.lineTo(13, 16); g.closePath(); g.fill();
+      break;
+    case 'phantom_reap':
+      for (let i = 0; i < 3; i++) glow(`rgba(150,90,255,${0.3 + i * 0.25})`, 2, () => { g.moveTo(3 + i * 4, 26 - i * 2); g.lineTo(18 + i * 4, 18 - i * 2); });
+      glow('#3a1a6a', 5, () => g.arc(22, 20, 9, -2.4, 0.2));
+      glow('#e0c0ff', 2.5, () => g.arc(22, 20, 9, -2.4, 0.2));
+      break;
+    case 'doppel':
+      g.fillStyle = 'rgba(150,100,255,0.45)'; g.beginPath(); g.arc(20, 11, 5, 0, 7); g.fill(); g.fillRect(15, 15, 10, 13);
+      g.fillStyle = '#140a20'; g.beginPath(); g.arc(12, 11, 5, 0, 7); g.fill(); g.fillRect(7, 15, 10, 13);
+      glow('#b080ff', 1.5, () => { g.arc(12, 11, 5, 0, 7); });
+      break;
+    case 'nightfall_zone':
+      g.fillStyle = 'rgba(70,20,130,0.6)'; g.beginPath(); g.ellipse(16, 22, 14, 7, 0, 0, 7); g.fill();
+      glow('#b080ff', 2, () => g.ellipse(16, 22, 14, 7, 0, 0, 7));
+      for (let i = 0; i < 4; i++) glow('#e0c8ff', 1.5, () => { g.moveTo(8 + i * 5.5, 20); g.lineTo(8 + i * 5.5, 8 + (i % 2) * 4); });
+      break;
+    case 'reaper_step':
+      g.fillStyle = '#140a20'; g.beginPath(); g.arc(22, 12, 5, 0, 7); g.fill(); g.fillRect(17, 16, 10, 12);
+      for (let i = 0; i < 3; i++) glow(`rgba(150,90,255,${0.25 + i * 0.2})`, 2, () => g.arc(9 + i, 18, 3 + i * 2, 0, 7));
+      g.fillStyle = '#e8c8ff'; g.beginPath(); g.moveTo(9, 10); g.lineTo(12, 14); g.lineTo(9, 18); g.lineTo(6, 14); g.closePath(); g.fill();
+      break;
+    case 'funeral_eclipse':
+      g.fillStyle = '#5a2aa0'; g.beginPath(); g.arc(16, 12, 10, 0, 7); g.fill();
+      g.fillStyle = '#05000a'; g.beginPath(); g.arc(16, 12, 7, 0, 7); g.fill();
+      glow('#fff', 1.2, () => g.arc(16, 12, 7, 0, 7));
+      for (let i = 0; i < 5; i++) glow('#9a5cff', 2, () => { g.moveTo(5 + i * 5.5, 30); g.lineTo(6 + i * 5.5, 23 - (i % 2) * 3); });
+      break;
     // ---- Umbral Sword (loadout skills)
     case 'veil_shadow':
       g.fillStyle = 'rgba(90,40,150,0.5)'; g.beginPath(); g.arc(16, 17, 12, 0, 7); g.fill();

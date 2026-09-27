@@ -9,6 +9,8 @@ import { STARTING_CLASSES, CLASSES } from '../src/skills/classes.js';
 import { CLASS_TREE } from '../src/data/classTree.js';
 
 const STEP = 1 / 60;
+// every playable class that is not a starting class (Class 2+) — tested the same way
+const ADVANCED = Object.keys(CLASSES).filter((id) => !STARTING_CLASSES.includes(id));
 
 // aim the mouse at a world point
 function aim(g, x, y) {
@@ -28,7 +30,7 @@ function atDummy(g, classId, dist) {
   g.camera.snap(p.x, p.y);
   g.simulate(0.2);
   for (const t of g.world.dummies) t.reset();
-  g.marks.clearAll(); g.threads.clearAll();
+  g.marks.clearAll(); g.threads.clearAll(); g.summons.clearAll();
   return { p, d };
 }
 // cast a skill through the real pipeline (SkillSystem -> action timeline -> game loop)
@@ -273,6 +275,78 @@ export function mechanicChecks(g, classId) {
   return rows;
 }
 
+// ---------------- Phase 15-16: Nightfall Reaper in the live game (gauge tiers, clone, zone, step, execute, harvest)
+export function reaperChecks(g) {
+  const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'nightfall_reaper', test: name, pass: !!pass, detail });
+  const M = 'reaper_mark', R = CLASSES.nightfall_reaper;
+  let { p, d } = atDummy(g, 'nightfall_reaper');
+  const rid = p.primaryResource;
+
+  // gauge tiers -> stats
+  const base = { ...p.stats };
+  p.resources.set(rid, 85); g.simulate(STEP * 2);
+  const hi = { ...p.stats };
+  p.resources.set(rid, 0); g.combat.lastCombatTime = -99; g.simulate(STEP * 2);
+  ok('Gauge tiers: NIGHTFALL adds shadow dmg / crit / area, drops back at 0', hi.shadowDmg >= base.shadowDmg + 0.2 - 1e-9 && hi.crit > base.crit && hi.aoe > 0 && p.stats.shadowDmg === base.shadowDmg, `shadowDmg ${base.shadowDmg} -> ${hi.shadowDmg} -> ${p.stats.shadowDmg}`);
+
+  // Shadow Doppel: one clone, copies Reaper's Arc, expires
+  ({ p, d } = atDummy(g, 'nightfall_reaper'));
+  p.resources.set(rid, 100);
+  cast(g, 'shadow_doppel', d);
+  const clone = g.summons.forOwner(p)[0];
+  ok('Shadow Doppel: clone summoned', g.summons.count(p) === 1 && clone, `summons=${g.summons.count(p)}`);
+  let hits = 0; g.events.on('damageDealt', (e) => { if (e.target === d && e.source === p) hits++; });
+  p.skillSys.cooldowns.clear('reapers_arc'); g.simulate(1.2); hits = 0; // let the arrival spin + auto attacks settle
+  const before = hits; cast(g, 'reapers_arc', d);
+  ok("Shadow Doppel: clone copies Reaper's Arc (2 hits from 1 cast)", hits - before >= 2, `hits on dummy after one cast: ${hits - before}`);
+  g.simulate(g.summons.defs.shadow_doppel.duration);
+  ok('Shadow Doppel: clone expires', g.summons.count(p) === 0);
+
+  // Nightfall Zone on the dummy: slow + marks during, root after the collapse
+  ({ p, d } = atDummy(g, 'nightfall_reaper'));
+  cast(g, 'nightfall_zone', d);
+  g.simulate(0.9);
+  const slowed = d.status.has('slow'), marked = g.marks.get(d, M);
+  g.simulate(3.0, () => aim(g, d.x, d.y));
+  ok('Nightfall Zone: slows + marks, collapse roots', slowed && marked > 0 && d.status.has('root'), `slow=${slowed} marks=${marked} root=${d.status.has('root')}`);
+
+  // Reaper's Step: refused without a marked foe; teleports behind the marked dummy and detonates its marks
+  ({ p, d } = atDummy(g, 'nightfall_reaper', 150));
+  const refused = !p.trySkill(p.cls.special);
+  R.markTarget(p, g, d, 3);
+  const y0 = p.y; aim(g, d.x, d.y); g.simulate(STEP);
+  const stepped = p.trySkill(p.cls.special); g.simulate(0.5, () => aim(g, d.x, d.y));
+  ok("Reaper's Step: needs a mark, teleports past the target, detonates", refused && stepped && y0 > d.y && p.y < d.y && g.marks.get(d, M) === 0, `refused=${refused} stepped=${stepped} y ${Math.round(y0)} -> ${Math.round(p.y)} (dummy ${Math.round(d.y)}) marks=${g.marks.get(d, M)}`);
+
+  // Bloodless Night: execute tag on low-HP targets only
+  ({ p, d } = atDummy(g, 'nightfall_reaper'));
+  const tagAt = (ratio) => { d.hp = d.maxHp * ratio; return g.combat.dealDamage(p, d, { power: 1, type: 'shadow', knock: 0 }).tags.includes('execute'); };
+  ok('Bloodless Night: bonus shadow damage under 35% HP only', !tagAt(0.9) && tagAt(0.3));
+
+  // Death Harvest: a nearby death -> gauge + haste
+  ({ p, d } = atDummy(g, 'nightfall_reaper'));
+  const g0 = p.resources.get(rid); d.hp = 1;
+  g.combat.dealDamage(p, d, { power: 5, type: 'shadow', knock: 0 }); g.simulate(STEP);
+  ok('Death Harvest: kill nearby -> gauge + haste', d.dead && p.resources.get(rid) - g0 >= R.charge.harvest && p.status.has('haste'), `gauge +${(p.resources.get(rid) - g0).toFixed(1)} haste=${p.status.has('haste')}`);
+
+  // Funeral Eclipse: spends the whole gauge and executes a low-HP foe
+  ({ p, d } = atDummy(g, 'nightfall_reaper'));
+  let killed = 0, emptied = false; g.events.on('enemyKilled', (e) => { if (e.target === d) killed++; });
+  g.events.on('resourceChanged', (e) => { if (e.entity === p && e.reason === 'skill:funeral_eclipse' && e.value === 0) emptied = true; });
+  p.resources.set(rid, 100); d.hp = d.maxHp * 0.18; d.sinceHit = 0; // under the 20% execute line (a 3000-HP dummy)
+  cast(g, 'funeral_eclipse', d); idle(g); g.simulate(0.3);
+  ok('Funeral Eclipse: spends all gauge, executes, summons a clone', killed === 1 && emptied && g.summons.count(p) === 1, `killed=${killed} emptied=${emptied} gauge after (harvest refills)=${p.resources.get(rid).toFixed(1)} clones=${g.summons.count(p)}`);
+
+  // real class change: Umbral Sword -> Nightfall Reaper (unlocked through progression) and it fights
+  g.newGame('umbral_sword'); releaseInput(g);
+  g.progression.unlock('nightfall_reaper'); g.combat.lastCombatTime = -99;
+  const r = g.changeClass('nightfall_reaper');
+  const np = g.player;
+  ok('Class change Umbral Sword -> Nightfall Reaper', r.ok && np.cls.id === 'nightfall_reaper' && np.sprites.preset === 'rp' && np.primaryResource === 'nightfall_gauge' && g.equipment.slots.weapon === 'reaper_scythe', `${np.cls.id} ${np.sprites.preset} ${g.equipment.slots.weapon}`);
+  releaseInput(g);
+  return rows;
+}
+
 // ---------------- Phase 13: class change, proven with a mock Class 2 registered from data only
 export function classChangeChecks(g) {
   const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'class_change', test: name, pass: !!pass, detail });
@@ -356,8 +430,8 @@ export function balance(g, classId, loadout, botOpts = {}) {
 
 export function runAll(g, { withBalance = true } = {}) {
   const rows = [], bal = [];
-  for (const c of STARTING_CLASSES) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
-  rows.push(...classChangeChecks(g));
-  if (withBalance) for (const c of STARTING_CLASSES) bal.push(balance(g, c));
+  for (const c of [...STARTING_CLASSES, ...ADVANCED]) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
+  rows.push(...reaperChecks(g), ...classChangeChecks(g));
+  if (withBalance) for (const c of [...STARTING_CLASSES, ...ADVANCED]) bal.push(balance(g, c));
   return { passed: rows.filter((r) => r.pass).length, total: rows.length, rows, balance: bal };
 }

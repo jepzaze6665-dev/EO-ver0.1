@@ -35,6 +35,21 @@ export class ResourcePool {
     return Math.max(1, m);
   }
   ratio(id) { return this.get(id) / this.max(id); }
+  // resource tiers (data: tiers [{ at, label, stats }]) — index of the highest tier reached, -1 = none
+  tier(id) {
+    const t = this.defs[id] && this.defs[id].tiers;
+    if (!t) return -1;
+    let k = -1;
+    t.forEach((x, i) => { if (this.get(id) >= x.at) k = i; });
+    return k;
+  }
+  tierDef(id) { const k = this.tier(id); return k >= 0 ? this.defs[id].tiers[k] : null; }
+  // summed stat bonuses of every resource's current tier (added on top of the character's stats)
+  tierStats() {
+    const out = {};
+    for (const id in this.defs) { const t = this.tierDef(id); if (t) for (const [k, v] of Object.entries(t.stats || {})) out[k] = (out[k] || 0) + v; }
+    return out;
+  }
   mult(id, kind) {
     let m = 1;
     for (const mod of this.modifiers) if (mod.resource === id && mod.kind === kind) m *= mod.value;

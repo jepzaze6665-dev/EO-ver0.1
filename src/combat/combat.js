@@ -110,7 +110,8 @@ export class Combat {
         if (!this.testShape(hb, t)) continue;
         hb.hit.add(t);
         hb.hits++;
-        const info = this.dealDamage(hb.owner, t, hb);
+        // powerFor(target, hb): optional per-target power (e.g. bonus against marked targets)
+        const info = this.dealDamage(hb.owner, t, hb.powerFor ? { ...hb, power: hb.powerFor(t, hb) } : hb);
         if (hb.onHit) hb.onHit(t, info, hb);
       }
       hb.life -= dt;
@@ -133,6 +134,7 @@ export class Combat {
       defense: target.defense, stats: target.stats, weakness: target.weakness,
       vulnerable: target.status && target.status.isVulnerable(), armor: target.armor,
       damageTakenMult: target.status ? target.status.damageTakenMult() : 1,
+      hpRatio: target.maxHp ? target.hp / target.maxHp : 1,
     }, { ...opts, weakPoint: behind });
     const { crit, tags } = res;
     // GUARD (combat/guardSystem.js): a blocking target reduces or negates the hit
@@ -179,6 +181,7 @@ export class Combat {
       g.audio.sfx(crit ? 'crit' : 'hit');
       if (crit || opts.big) g.vfx.sprite('shards', hx, hy, ang, { scale: opts.big ? 0.9 : 0.55, life: 0.22 });
       if (tags.includes('weakpoint')) g.vfx.text(hx, hy - 30, 'WEAK POINT', { color: '#5af0ff', size: 10 });
+      if (tags.includes('execute') && !target.executeShown) { target.executeShown = true; g.vfx.text(hx, hy - 30, 'LOW HP — EXECUTE', { color: '#e0a0ff', size: 9 }); }
       if (tags.includes('armored') && !target.armorWarned) { target.armorWarned = true; g.vfx.text(hx, hy - 30, 'ARMORED — strike its back', { color: '#9ad8ff', size: 9 }); }
     } else {
       g.vfx.damage(hx, hy - 6, amount, { crit, color: '#ff6060', big: opts.big, tags });

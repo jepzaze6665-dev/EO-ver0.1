@@ -33,7 +33,9 @@ const SETS = {
   },
 };
 
-// vertical runs of opaque pixels = the direction rows
+// vertical runs of opaque pixels = the direction rows. Runs shorter than MIN_ROW are stray bits of an effect
+// (a spear tip, the rim above a black sun), not a row: they are skipped so row indices stay right
+const MIN_ROW = 20;
 function detectRows(img) {
   const c = new Array(img.height).fill(0);
   for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width; x++) if (img.data[(y * img.width + x) * 4 + 3] > 120) c[y]++;
@@ -41,7 +43,7 @@ function detectRows(img) {
   for (let y = 0; y <= img.height; y++) {
     const o = y < img.height && c[y] > 2;
     if (o && s < 0) s = y;
-    if (!o && s >= 0) { if (y - s > 8) runs.push([s, y]); s = -1; }
+    if (!o && s >= 0) { if (y - s >= MIN_ROW) runs.push([s, y]); s = -1; }
   }
   return runs;
 }

@@ -1,6 +1,6 @@
 import { makeCanvas } from '../core/assets.js';
 import { Z, TILE } from '../core/constants.js';
-import { TAU, clamp, lerp } from '../core/math.js';
+import { TAU, clamp, lerp, dir4 } from '../core/math.js';
 import { vnoise } from '../core/rng.js';
 import { drawSpecialProp } from './specialProps.js';
 import { drawInteractable, isAvailable } from '../exploration/interactables.js';
@@ -133,6 +133,7 @@ export class Renderer {
     for (const d of world.dummies) if (cam.visible(d.x, d.y, 60)) list.push({ y: d.y, e: d });
     if (world.guardian && cam.visible(world.guardian.x, world.guardian.y, 200)) list.push({ y: world.guardian.y, e: world.guardian });
     for (const s of world.rootSpikes) list.push({ y: s.y, spike: s });
+    if (game.summons) for (const s of game.summons.list) if (cam.visible(s.x, s.y, 60)) list.push({ y: s.y, summon: s });
     const pl = game.player;
     list.push({ y: pl.y, e: pl, isPlayer: true });
     list.sort((a, b) => a.y - b.y);
@@ -140,6 +141,7 @@ export class Renderer {
       if (d.p) this.drawProp(ctx, d.p, game, false);
       else if (d.it) { if (d.it.kind !== 'trigger' && d.it.kind !== 'crackInfo' && d.it.kind !== 'glyphInfo' && isAvailable(world, d.it)) this.drawHint(ctx, d.it, t); drawInteractable(ctx, world, d.it, t); }
       else if (d.spike) this.drawSpike(ctx, d.spike);
+      else if (d.summon) this.drawSummon(ctx, d.summon, game);
       else d.e.draw(ctx);
     }
     this.drawThreads(ctx, game, t);
@@ -212,6 +214,24 @@ export class Renderer {
     const a = 0.25 + 0.2 * Math.sin(t * 3 + it.x);
     ctx.strokeStyle = it.kind === 'chest' || it.kind === 'resource' ? `rgba(255,210,120,${a})` : `rgba(140,230,255,${a})`;
     ctx.beginPath(); ctx.ellipse(it.x, it.y, 13, 5, 0, 0, TAU); ctx.stroke();
+  }
+
+  // Summons (SummonSystem): drawn with their owner's sprites — dark body + a glow in the owner's ghost colour.
+  // Fades in on arrival and out over its last half second; alpha / glow come from data/summons.js.
+  drawSummon(ctx, s, game) {
+    const spr = s.owner.sprites, vis = game.summons.defs[s.type].visual || {};
+    if (!spr) return;
+    const fade = Math.min(1, s.t / 0.25, (s.duration - s.t) / 0.5);
+    const moving = !s.anim && s.busy <= 0 && Math.hypot(s.owner.vx || 0, s.owner.vy || 0) > 20;
+    const anim = s.anim || (moving ? 'walk' : 'idle'), ad = spr.anims[anim];
+    const t = s.anim ? s.animT / s.animDur : ad && ad.loop ? game.time : 0;
+    const dir = dir4(s.facing);
+    ctx.fillStyle = `rgba(0,0,0,${0.25 * fade})`;
+    ctx.beginPath(); ctx.ellipse(s.x, s.y, 11, 4, 0, 0, TAU); ctx.fill();
+    spr.draw(ctx, spr.frame(anim, t, dir), s.x, s.y, (vis.alpha ?? 0.7) * fade);
+    ctx.globalCompositeOperation = 'lighter';
+    spr.draw(ctx, spr.frame(anim, t, dir, 'ghost'), s.x, s.y, (vis.glow ?? 0.35) * fade * (0.8 + 0.2 * Math.sin(game.time * 9)));
+    ctx.globalCompositeOperation = 'source-over';
   }
 
   // Threads (ThreadSystem): a shimmering line between the two anchors + star nodes.

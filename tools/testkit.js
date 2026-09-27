@@ -76,7 +76,9 @@ export function bot(g, i, opts = {}) {
       const b = p.loadout.bindings().find((x) => x.key !== '5' && !(x.skill.tags || []).some((t) => t === 'dash' || t === 'mobility') && p.skillSys.canUse(x.skill.id).ok);
       if (b) inp.pushBuffer('skill' + b.key);
     }
-    if (p.marks >= 3) inp.pushBuffer('break');
+    // finisher specials gated by requirements (Shadow Break: 3 marks, Reaper's Step: a marked foe) fire when allowed
+    const sp = p.cls.special;
+    if (p.marks >= 3 || (sp && (sp.requirements || []).length && p.skillSys.canUse(sp.id).ok)) inp.pushBuffer('break');
     if (tgt.status && tgt.status.has('vulnerable') && p.shadow >= 50) inp.pushBuffer('skill5');
   }
   if (p.hp < p.maxHp * 0.35) g.inventory.quickUse('hp_potion');

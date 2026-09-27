@@ -4,7 +4,7 @@
 //
 // Node:   { id, name, tier, parent, role, resource, description, playable, trial, requirements, hidden, hint }
 //   tier       : 1 starting class · 2 Class 2 · 3 Awakening · 4 Secret (any tier may be hidden)
-//   playable   : false until the class data exists in skills/classes.js (Phase 15/16)
+//   playable   : false until the class data exists in skills/classes.js (Nightfall Reaper: playable since Phase 15-16)
 //   hidden     : not shown (not even as "???") until `reveal` requirements are met -> secret classes
 //   requirements: see progression/requirements.js (level, quest, flag, counter, item, secrets, trial,
 //                 class, any, all). The node's trial must also be passed before it unlocks.
@@ -60,8 +60,8 @@ export const CLASS_TREE = {
 
   // ---------------- tier 2 — Umbral Sword
   nightfall_reaper: {
-    id: 'nightfall_reaper', name: 'Nightfall Reaper', tier: 2, parent: 'umbral_sword', playable: false, resource: 'Nightfall Gauge',
-    role: 'Burst Assassin', description: 'Harvests marked foes in a single devastating night.',
+    id: 'nightfall_reaper', name: 'Nightfall Reaper', tier: 2, parent: 'umbral_sword', playable: true, resource: 'Nightfall Gauge',
+    role: 'AoE DPS · Assassin · Execute', description: 'Harvests marked foes in a single devastating night.',
     requirements: [...CLASS2_BASE, { type: 'counter', counter: 'shadow_breaks', min: 20 }],
     trial: 'trial_nightfall_reaper',
   },
