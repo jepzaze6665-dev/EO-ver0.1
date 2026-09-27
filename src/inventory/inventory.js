@@ -1,7 +1,8 @@
 import { RESOURCES } from '../data/resources.js';
-import { ITEMS } from '../items/items.js';
+import { ITEMS, maxStackOf } from '../items/items.js';
 
-// Stack-based inventory + village storage.
+// Stack-based inventory + village storage. Counts never go negative or above the item's max stack.
+// Events: 'itemCollected' { id, n, total, silent } (quests / UI), 'inventoryFull' { id, lost }.
 export class Inventory {
   constructor(game) {
     this.game = game;
@@ -10,16 +11,22 @@ export class Inventory {
     this.potionCd = 0;
   }
   count(id) { return this.items[id] || 0; }
+  space(id) { return Math.max(0, maxStackOf(id) - this.count(id)); }
+  canAdd(id, n = 1) { return !!ITEMS[id] && this.space(id) >= n; }
+  // returns how many were actually added (0 when full / unknown / n <= 0)
   add(id, n = 1, silent = false) {
-    if (!ITEMS[id]) return;
-    this.items[id] = (this.items[id] || 0) + n;
-    if (!silent) {
-      this.game.ui.pickup(ITEMS[id], n);
-      this.game.events.emit('itemGained', { id, n });
-    }
+    n = Math.floor(n);
+    if (!ITEMS[id] || !(n > 0)) return 0;
+    const added = Math.min(n, this.space(id));
+    if (added < n) this.game.events.emit('inventoryFull', { id, lost: n - added });
+    if (!added) return 0;
+    this.items[id] = this.count(id) + added;
+    this.game.events.emit('itemCollected', { id, n: added, total: this.items[id], silent });
+    return added;
   }
   remove(id, n = 1) {
-    if ((this.items[id] || 0) < n) return false;
+    n = Math.floor(n);
+    if (!(n > 0) || (this.items[id] || 0) < n) return false;
     this.items[id] -= n;
     if (this.items[id] <= 0) delete this.items[id];
     return true;
@@ -31,11 +38,12 @@ export class Inventory {
       .map(([id, n]) => ({ id, n, def: ITEMS[id] }));
   }
   deposit(id, n = 1) {
+    if (!(n > 0)) return;
     if (!this.remove(id, n)) return;
     this.storage[id] = (this.storage[id] || 0) + n;
   }
   withdraw(id, n = 1) {
-    if ((this.storage[id] || 0) < n) return;
+    if (!(n > 0) || (this.storage[id] || 0) < n || this.space(id) < n) return;
     this.storage[id] -= n;
     if (this.storage[id] <= 0) delete this.storage[id];
     this.items[id] = (this.items[id] || 0) + n;
@@ -65,5 +73,10 @@ export class Inventory {
   update(dt) { this.potionCd = Math.max(0, this.potionCd - dt); }
 
   serialize() { return { items: this.items, storage: this.storage }; }
-  load(d) { this.items = { ...(d.items || {}) }; this.storage = { ...(d.storage || {}) }; }
+  // loaded data is cleaned: unknown ids dropped, counts whole numbers within 0..maxStack (storage: no stack cap)
+  load(d) {
+    const clean = (src, cap) => Object.fromEntries(Object.entries(src || {})
+      .filter(([id, n]) => ITEMS[id] && n > 0).map(([id, n]) => [id, cap ? Math.min(Math.floor(n), maxStackOf(id)) : Math.floor(n)]));
+    this.items = clean(d.items, true); this.storage = clean(d.storage, false);
+  }
 }

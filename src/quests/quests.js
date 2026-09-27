@@ -97,7 +97,7 @@ export class Quests {
     delete this.active[id];
     this.completed[id] = true;
     const g = this.game, r = q.reward || {};
-    if (r.gold) g.player.gold += r.gold;
+    if (r.gold) g.player.addGold(r.gold);
     for (const [it, n] of Object.entries(r.items || {})) g.inventory.add(it, n, true);
     g.ui.questBanner('QUEST COMPLETE', q.title + (r.gold ? `   +${r.gold}G  +${r.exp} EXP` : ''));
     g.audio.sfx('quest_done');

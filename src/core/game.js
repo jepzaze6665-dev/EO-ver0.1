@@ -34,6 +34,7 @@ import { RESOURCES } from '../data/resources.js';
 import { MarkSystem } from '../combat/markSystem.js';
 import { MARKS } from '../data/marks.js';
 import { STATUSES } from '../data/statuses.js';
+import { ITEMS } from '../items/items.js';
 
 const STEP = 1 / 60;
 
@@ -75,6 +76,8 @@ export class Game {
     });
     ev.on('lootDropped', (e) => { if (e.gold) this.vfx.text(e.x, e.y - 10, `+${e.gold}G`, { color: '#ffd24a', size: 8, life: 0.8 }); });
     ev.on('chestOpened', () => { this.stats.chests++; });
+    ev.on('itemCollected', (e) => { if (!e.silent) this.ui.pickup(ITEMS[e.id], e.n); });
+    ev.on('inventoryFull', (e) => this.ui.toast(`${ITEMS[e.id].name}: inventory full`, 1.2));
     // hitting an enemy with nothing selected makes it the target
     ev.on('damageDealt', (e) => { if (e.source === this.player && !e.killed && !this.targets.current && !e.target.isBreakable) this.targets.set(e.target); });
     // tutorial 'marks' step, for any class: a self mark reaching max, or our mark triggering on an enemy

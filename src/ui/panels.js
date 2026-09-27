@@ -337,7 +337,7 @@ export class Panels {
       <div class="panel">
         <h2>Lysa's Goods <span class="gold-inline">${p.gold} G</span></h2>
         <h3>Buy</h3>
-        ${SHOP.map((id) => { const d = ITEMS[id]; return `<div class="row"><img src="${iconURL(d.icon, d.color)}"><div class="grow"><b style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</b><div class="muted small">${esc(d.modText || d.desc)}</div></div><button data-buy="${id}" ${p.gold < d.price ? 'disabled' : ''}>${d.price} G</button></div>`; }).join('')}
+        ${SHOP.map((id) => { const d = ITEMS[id]; return `<div class="row"><img src="${iconURL(d.icon, d.color)}"><div class="grow"><b style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</b><div class="muted small">${esc(d.modText || d.desc)}</div></div><button data-buy="${id}" ${!p.canAfford(d.price) ? 'disabled' : ''}>${d.price} G</button></div>`; }).join('')}
         <h3>Sell materials</h3>
         ${sellable.map(({ id, n, def }) => `<div class="row"><img src="${iconURL(def.icon, def.color)}"><div class="grow">${esc(def.name)} ×${n}</div><button data-sell="${id}">+${def.sell} G</button></div>`).join('') || '<div class="muted">No materials to sell.</div>'}
         <button class="close">Close</button>
@@ -345,13 +345,13 @@ export class Panels {
     el.addEventListener('click', (e) => {
       const t = e.target;
       if (t.classList.contains('close')) return this.close();
-      if (t.dataset.buy) { const d = ITEMS[t.dataset.buy]; if (p.gold >= d.price) { p.gold -= d.price; g.inventory.add(t.dataset.buy, 1); g.audio.sfx('chest'); } this.shop(); }
-      if (t.dataset.sell) { const d = ITEMS[t.dataset.sell]; if (g.inventory.remove(t.dataset.sell, 1)) { p.gold += d.sell; g.audio.sfx('gather'); } this.shop(); }
+      if (t.dataset.buy) { const d = ITEMS[t.dataset.buy]; if (!g.inventory.canAdd(t.dataset.buy)) g.ui.toast('Inventory full', 1); else if (p.removeGold(d.price)) { g.inventory.add(t.dataset.buy, 1); g.audio.sfx('chest'); } this.shop(); }
+      if (t.dataset.sell) { const d = ITEMS[t.dataset.sell]; if (g.inventory.remove(t.dataset.sell, 1)) { p.addGold(d.sell); g.audio.sfx('gather'); } this.shop(); }
     });
   }
   smith() {
     const g = this.game, p = g.player, inv = g.inventory;
-    const can = (r) => p.gold >= r.gold && Object.entries(r.mats).every(([m, n]) => inv.has(m, n));
+    const can = (r) => p.canAfford(r.gold) && inv.canAdd(r.out) && Object.entries(r.mats).every(([m, n]) => inv.has(m, n));
     const owned = (id) => inv.has(id) || Object.values(g.equipment.slots).includes(id);
     const el = this.show('smith', `
       <div class="panel">
@@ -369,8 +369,7 @@ export class Panels {
       if (t.classList.contains('close')) return this.close();
       if (t.dataset.craft !== undefined) {
         const r = RECIPES[+t.dataset.craft];
-        if (!can(r)) return;
-        p.gold -= r.gold;
+        if (!can(r) || !p.removeGold(r.gold)) return;
         for (const [m, n] of Object.entries(r.mats)) inv.remove(m, n);
         inv.add(r.out, 1);
         g.audio.sfx('levelup');
