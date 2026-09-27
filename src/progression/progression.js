@@ -13,6 +13,8 @@ export class Progression {
     this.records = {};
     this.trials = {};
     this.unlocked = [];
+    this.startingClass = null; // chosen at character creation
+    this.history = [];        // class changes: { from, to, level }
     this.wire();
   }
 
@@ -118,12 +120,17 @@ export class Progression {
     return out;
   }
 
-  serialize() { return { records: this.records, trials: this.trials, unlocked: this.unlocked }; }
+  // classes this character may change into: its starting class + everything unlocked
+  owns(classId) { return classId === this.startingClass || this.unlocked.includes(classId); }
+
+  serialize() { return { records: this.records, trials: this.trials, unlocked: this.unlocked, startingClass: this.startingClass, history: this.history }; }
   load(d) {
     if (!d) return;
     this.records = JSON.parse(JSON.stringify(d.records || {}));
     this.trials = JSON.parse(JSON.stringify(d.trials || {}));
     this.unlocked = (d.unlocked || []).filter((id) => CLASS_TREE[id]);
+    this.startingClass = CLASS_TREE[d.startingClass] ? d.startingClass : null;
+    this.history = Array.isArray(d.history) ? d.history.slice(-50) : [];
   }
 }
 export { evaluate };

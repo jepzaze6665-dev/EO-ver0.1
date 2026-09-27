@@ -5,7 +5,8 @@ import { QUESTS } from '../quests/quests.js';
 import { TILE, T } from '../core/constants.js';
 import { CLASSES, STARTING_CLASSES } from '../skills/classes.js';
 import { RESOURCES } from '../data/resources.js';
-import { CLASS_COUNTERS } from '../data/classTree.js';
+import { CLASS_COUNTERS, CLASS_TREE } from '../data/classTree.js';
+import { classChangeCheck } from '../progression/classChange.js';
 
 // DOM overlays. They only exist while open (no DOM churn during combat) and pause the game.
 const $ = (sel) => document.querySelector(sel);
@@ -224,13 +225,19 @@ export class Panels {
           <div class="path-head"><b>${esc(x.node.name)}</b> <span class="muted small">${esc(x.node.role || '')}</span></div>
           <div class="small">${esc(x.node.description || '')}</div>
           <div class="muted small">Resource: ${esc(x.node.resource || '—')}${x.node.playable ? '' : ' · <i>arrives with Class 2 (not playable yet)</i>'}</div>
-          ${x.unlocked ? '<div class="req ok">✦ UNLOCKED — Class Change comes in the next phase</div>' : x.reqs.map(reqRow).join('')}
+          ${x.unlocked ? `<div class="req ok">✦ UNLOCKED — ${x.node.playable ? 'change to it under Your Classes' : 'playable when its Class 2 content arrives'}</div>` : x.reqs.map(reqRow).join('')}
           ${trialBox(x)}
         </div>`;
       const recs = Object.entries(rec).filter(([, v]) => v > 0).map(([k, v]) => `<div>${esc(CLASS_COUNTERS[k] ? CLASS_COUNTERS[k].label : k)} <b>${Math.floor(v)}</b></div>`).join('') || '<div class="muted">Nothing yet — fight!</div>';
       body = `<div class="class-layout">
         <div><h3>${esc(p.cls.name)} <span class="muted small">Tier 1 · ${esc(p.cls.role || '')}</span></h3>
           <p class="muted small">Class records are earned by playing this class. Meet a path's requirements, then pass its trial to unlock it.</p>
+          <h3>Your Classes</h3>${[prog.startingClass, ...prog.unlocked].filter(Boolean).map((id) => {
+            const node = CLASS_TREE[id], chk = classChangeCheck(g, id), cur = id === p.cls.id;
+            const why = { not_playable: 'arrives with Class 2 content', combat: 'leave combat first', boss: 'not during a boss fight', dead: '' }[chk.reason] || '';
+            return `<div class="owned ${cur ? 'cur' : ''}"><b>${esc(node.name)}</b> <span class="muted small">Tier ${node.tier}</span>
+              ${cur ? '<span class="tag-cur">CURRENT</span>' : chk.ok ? `<button data-change="${id}">Change class</button>` : `<span class="muted small">${why}</span>`}</div>`;
+          }).join('')}
           <h3>Class Records</h3><div class="records">${recs}</div></div>
         <div><h3>Class 2 Paths</h3>${prog.paths().map(card).join('') || '<div class="muted">No further paths.</div>'}</div>
       </div>`;
@@ -263,7 +270,7 @@ export class Panels {
         <div class="content">${body}</div>
       </div>`);
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],[data-slot],[data-trial],[data-abandon],.x');
+      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],[data-slot],[data-trial],[data-abandon],[data-change],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
       if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
@@ -275,6 +282,7 @@ export class Panels {
       else if (t.dataset.slot) { g.player.setSkillSlot(+t.dataset.slot, t.dataset.skill); this.inventory(); }
       else if (t.dataset.trial) { const r = g.progression.startTrial(t.dataset.trial); if (!r.ok) g.ui.toast(r.reason === 'busy' ? 'Finish your current trial first' : 'Requirements not met', 1.2); this.inventory(); }
       else if (t.dataset.abandon) { g.progression.abandonTrial(t.dataset.abandon); this.inventory(); }
+      else if (t.dataset.change) { const r = g.changeClass(t.dataset.change); if (r.ok) this.close(); else g.ui.toast('Cannot change class: ' + r.reason, 1.4); }
     });
   }
   itemDetail(id) {

@@ -73,7 +73,10 @@ key 5 is the ultimate and Q the class special. Umbral Sword knows 6 actives for 
 **Class progression** (`I` → Class): each class keeps *class records* (Constellation Breaks, Perfect Guards,
 Shadow Breaks…, counted from game events). Every Class 2 path (3 per class, 9 total) has requirements — level,
 quest, class records — and a **class trial**; passing it unlocks the path. Class 2 classes are not playable yet
-(Class Change is the next phase). Tree, counters and trials: `src/data/classTree.js`; generic requirement types
+(they become selectable once their class data exists). **Class Change** (`Class` tab → Your Classes): the
+character can switch to any class it owns — its starting class + every unlocked one — outside combat; level,
+EXP, gold, inventory, quests and class records stay, the preset / resource / skills / passives / signature gear
+change (`src/progression/classChange.js`). Tree, counters and trials: `src/data/classTree.js`; generic requirement types
 (level · quest · flag · counter · item · secrets · trial · class · any · all, with hidden conditions for secret
 classes): `src/progression/requirements.js`.
 

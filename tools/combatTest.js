@@ -5,7 +5,8 @@
 // Unit tests (node tools/tests/run.mjs) check each system in isolation; this file checks that the
 // systems still behave when wired together inside the running game loop.
 import { bot, releaseInput, goto, toBoss } from './testkit.js';
-import { STARTING_CLASSES } from '../src/skills/classes.js';
+import { STARTING_CLASSES, CLASSES } from '../src/skills/classes.js';
+import { CLASS_TREE } from '../src/data/classTree.js';
 
 const STEP = 1 / 60;
 
@@ -272,6 +273,60 @@ export function mechanicChecks(g, classId) {
   return rows;
 }
 
+// ---------------- Phase 13: class change, proven with a mock Class 2 registered from data only
+export function classChangeChecks(g) {
+  const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'class_change', test: name, pass: !!pass, detail });
+  const base = CLASSES.umbral_sword;
+  CLASSES.mock_class2 = { ...base, id: 'mock_class2', stableId: 'class_mock_class2', name: 'Mock Class 2' };
+  CLASS_TREE.mock_class2 = { id: 'mock_class2', name: 'Mock Class 2', tier: 2, parent: 'astral_weaver', playable: true, requirements: [], trial: null };
+  try {
+    let { p, d } = atDummy(g, 'astral_weaver');
+    p.level = 14; p.exp = 33; p.gold = 777; p.recomputeStats(); p.hp = Math.round(p.maxHp / 2);
+    g.threads.create(p, 'astral_thread', { x: p.x, y: p.y }, { x: p.x + 80, y: p.y });
+    const listeners = (n) => (g.events.map.get(n) || []).length;
+    const hooksBefore = listeners('threadTouched') + listeners('markTriggered');
+    g.combat.lastCombatTime = -99;
+    ok('Locked class refused', g.changeClass('mock_class2').reason === 'locked');
+    g.progression.unlock('mock_class2');
+    g.combat.lastCombatTime = g.time;
+    ok('Refused in combat', g.changeClass('mock_class2').reason === 'combat');
+    g.combat.lastCombatTime = -99;
+    g.progression.unlock('stormcaller');
+    ok('Unlocked but not playable yet (real Class 2) refused', g.changeClass('stormcaller').reason === 'not_playable');
+    const before = { x: p.x, y: p.y, level: p.level, exp: p.exp, gold: p.gold, ratio: p.hp / p.maxHp };
+    const r = g.changeClass('mock_class2');
+    const np = g.player;
+    ok('Class changed', r.ok && np.cls.id === 'mock_class2' && np !== p, np.cls.id);
+    ok('New preset / resource / skills / loadout', np.sprites.preset === base.preset && np.primaryResource === base.resource && np.skillSys.get(base.skills[0].id) && np.loadout.serialize().join() === (base.defaultLoadout || []).join(), `preset ${np.sprites.preset}, ${np.primaryResource}`);
+    ok('Kept level / EXP / gold / position / HP ratio', np.level === before.level && np.exp === before.exp && np.gold === before.gold && np.x === before.x && Math.abs(np.hp / np.maxHp - before.ratio) < 0.02, `LV${np.level} gold ${np.gold} hp ${np.hp}/${np.maxHp}`);
+    ok('Old class passives detached', listeners('threadTouched') + listeners('markTriggered') < hooksBefore, `hooks ${hooksBefore} -> ${listeners('threadTouched') + listeners('markTriggered')}`);
+    ok('Old class threads removed', g.threads.count() === 0);
+    ok('Signature gear swapped, old gear kept', g.equipment.slots.weapon === base.startingGear.weapon && g.inventory.has('celestial_loom'), g.equipment.slots.weapon);
+    ok('History + classChanged recorded', g.progression.history.length > 0 && g.progression.history.slice(-1)[0].to === 'mock_class2');
+    // the new class fights
+    releaseInput(g); np.x = d.x; np.y = d.y + 30; const hp0 = d.hp;
+    g.simulate(0.6, (gg, i) => { aim(g, d.x, d.y); if (i === 1) gg.input.pushBuffer('attack'); });
+    ok('New class deals damage', d.hp < hp0, `dummy ${hp0} -> ${d.hp}`);
+    // save / load keeps the new class and the ownership
+    g.combat.lastCombatTime = -99;
+    const saved = g.save.save(); g.loadGame();
+    ok('Save / load keeps the changed class', saved && g.player.cls.id === 'mock_class2' && g.progression.owns('mock_class2') && g.progression.owns('astral_weaver'), g.player.cls.id);
+    // and back to the starting class
+    g.combat.lastCombatTime = -99;
+    const back = g.changeClass('astral_weaver');
+    ok('Can return to the starting class', back.ok && g.player.cls.id === 'astral_weaver' && g.player.primaryResource === 'astral_charge');
+    // a starting class switch through the dev path gives a working guard
+    g.combat.lastCombatTime = -99;
+    g.changeClass('aegis_guardian', { force: true });
+    g.player.setGuard(true);
+    ok('Aegis after a change: guard works', g.player.guardState.active && g.player.tryBlock({ x: g.player.x + Math.cos(g.player.aim) * 30, y: g.player.y + Math.sin(g.player.aim) * 30 }) !== null);
+  } finally {
+    delete CLASSES.mock_class2; delete CLASS_TREE.mock_class2;
+    g.newGame('astral_weaver');
+  }
+  return rows;
+}
+
 // ---------------- balance report: dummy DPS (30 s bot) + a real boss fight (no god mode)
 // loadout: optional [id,id,id,id] for keys 1-4 (compare builds of the same class)
 export function balance(g, classId, loadout, botOpts = {}) {
@@ -302,6 +357,7 @@ export function balance(g, classId, loadout, botOpts = {}) {
 export function runAll(g, { withBalance = true } = {}) {
   const rows = [], bal = [];
   for (const c of STARTING_CLASSES) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
+  rows.push(...classChangeChecks(g));
   if (withBalance) for (const c of STARTING_CLASSES) bal.push(balance(g, c));
   return { passed: rows.filter((r) => r.pass).length, total: rows.length, rows, balance: bal };
 }

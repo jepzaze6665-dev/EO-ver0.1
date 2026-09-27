@@ -40,7 +40,7 @@ export class Player extends Entity {
     // which skills sit on keys 1-4 (key 5 = ultimate) — chosen in the Skills tab, saved with the character
     this.loadout = new Loadout(classDef);
     // class passives listen to core events (markTriggered, threadTouched, ...) — no class checks in the core
-    for (const [name, fn] of Object.entries(classDef.on || {})) game.events.on(name, (e) => fn(this, game, e));
+    this.unsubs = Object.entries(classDef.on || {}).map(([name, fn]) => game.events.on(name, (e) => fn(this, game, e)));
     this.mods = {};
     this.stats = { ...classDef.base };
     this.action = null;
@@ -135,6 +135,15 @@ export class Player extends Entity {
   }
   consumeMarks(n) { return this.markId ? this.game.marks.consume(this, this.markId, n) : 0; }
   reduceCooldowns(sec) { this.skillSys.cooldowns.reduceAll(sec); }
+
+  // class change: detach this character's class from the world (passive listeners, guard, action)
+  dispose() {
+    for (const off of this.unsubs || []) off();
+    this.unsubs = [];
+    if (this.guardState.active) this.setGuard(false);
+    this.endAction(true);
+    this.disposed = true;
+  }
 
   // ---------------- guard (combat/guardSystem.js; rules in the class data: guard {...})
   setGuard(on) {

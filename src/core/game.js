@@ -18,6 +18,7 @@ import { buildMonsterSprites } from '../monsters/monsterSprites.js';
 import { CLASSES, DEFAULT_CLASS } from '../skills/classes.js';
 import { ThreadSystem } from '../combat/threadSystem.js';
 import { Progression } from '../progression/progression.js';
+import { changeClass } from '../progression/classChange.js';
 import { CLASS_TREE, TRIALS } from '../data/classTree.js';
 const TRIALS_TITLE = (id) => (TRIALS[id] ? TRIALS[id].title : id);
 import { THREADS } from '../data/threads.js';
@@ -128,6 +129,8 @@ export class Game {
     this.threads = new ThreadSystem(THREADS, { onEvent: (name, data) => this.events.emit(name, data) });
     this.world = new World(this);
     this.player = new Player(this, cls, this.spritesFor(cls));
+    this.progression.startingClass = classId;
+    this.validateSprites = validateSprites;
     this.spriteReport = validateSprites(cls.preset || 'ub');
     this.playTime = 0;
     this.hitStop = 0; this.timeScale = 1;
@@ -173,6 +176,7 @@ export class Game {
     this.equipment.load(d.equipment);
     this.quests.load(d.quests);
     this.progression.load(d.progression);
+    if (!this.progression.startingClass) this.progression.startingClass = this.player.cls.id; // saves before Phase 13
     this.knowledge.load(d.knowledge);
     this.stats = { kills: 0, chests: 0, deaths: 0, ...(d.stats || {}) };
     this.playTime = d.playTime || 0;
@@ -187,6 +191,18 @@ export class Game {
     p.x = pos.x; p.y = pos.y;
     this.camera.snap(p.x, p.y);
     this.world.currentZone = Z.NONE;
+  }
+  // Class Change (progression/classChange.js) + feedback. opts.force: dev / tests only
+  changeClass(toId, opts) {
+    const r = changeClass(this, toId, opts);
+    if (!r.ok) return r;
+    const p = r.player;
+    this.vfx.ring(p.x, p.y, 10, 90, { life: 0.6, color: '255,220,140', width: 3 });
+    this.vfx.burst(p.x, p.y - 20, (p.cls.theme && p.cls.theme.color) || '#ffd96a', 40, 200);
+    this.vfx.flash('255,240,200', 0.35, 3);
+    this.audio.sfx('levelup');
+    this.ui.banner('CLASS CHANGE', `${p.cls.name} · LV.${p.level}`, (p.cls.theme && p.cls.theme.color) || '#ffd96a');
+    return r;
   }
   continueGame() { this.loadGame(); }
   loadGame() {
