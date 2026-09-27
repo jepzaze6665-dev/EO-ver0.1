@@ -58,7 +58,7 @@ export class Guardian extends Entity {
     g.audio.sfx('roar');
     g.audio.music('boss');
     g.vfx.ring(this.x, this.y, 20, 200, { life: 0.9, color: '120,240,255', width: 5 });
-    g.ui.bossTitle('GUARDIAN OF THE FOREST', 'Warden of the Whispering Heart');
+    g.ui.bossTitle(this.def.name.toUpperCase(), this.def.title);
     this.run(this.introMove());
   }
   *introMove() {
@@ -172,6 +172,33 @@ export class Guardian extends Entity {
     g.onBossDefeated(this);
   }
 
+  // Heartwood Ward: every living Thornling tethers the Guardian (-50% damage taken) — the adds must be dealt with
+  // (AoE, taunt + guard, control), the fight can't be won by pure single-target damage
+  livingSummons() { return this.summons.filter((s) => !s.dead); }
+  updateWard() {
+    const g = this.game, n = this.livingSummons().length, warded = this.status.has('heartwood_ward');
+    if (n && !this.dead) {
+      this.status.add('heartwood_ward', 1, { refresh: true });
+      if (!warded) { g.ui.callout('HEARTWOOD WARD', 'The Thornlings shield the Guardian — cut them down!', '#7af0a0'); g.events.emit('bossWarded', { boss: this, adds: n }); }
+    } else if (warded) {
+      this.status.remove('heartwood_ward');
+      g.vfx.ring(this.x, this.y, 10, 120, { color: '140,255,160', life: 0.5 });
+      g.events.emit('bossWardBroken', { boss: this });
+    }
+  }
+
+  // Boss UI snapshot — the HUD draws this and never reads boss internals (logic / presentation split)
+  hudState() {
+    const weak = this.status.has('vulnerable'), P3 = this.phase === 3;
+    return {
+      name: this.def.name.toUpperCase(), hp: this.hp, maxHp: this.maxHp,
+      phase: this.phase, phaseLabel: ['', 'PHASE I', 'PHASE II', 'PHASE III — ENRAGED'][this.phase], phaseMarks: [0.7, 0.3],
+      color: P3 ? ['#c050ff', '#50106a'] : ['#50e0b0', '#106a50'], titleColor: P3 ? '#e8a0ff' : '#dffcff',
+      meter: weak ? { pct: (this.weakT || 0) / 4, color: ['#9af8ff', '#3ab0d0'] } : { pct: this.staggerMeter / STAGGER_MAX, color: ['#ffd070', '#a07020'] },
+      tags: [this.status.has('heartwood_ward') && { label: `WARDED ×${this.livingSummons().length}`, color: '#7af0a0' }, weak && { label: 'CORE EXPOSED', color: '#9af8ff' }].filter(Boolean),
+    };
+  }
+
   // ---------------- helpers
   tele(def) { return this.game.combat.telegraphs.add({ owner: this, color: this.phase === 3 ? '220,70,255' : '255,60,60', ...def }); }
   strike(shape, power, knock = 180, extra = {}) { return this.game.combat.enemyStrike(this, shape, power * (this.phase === 3 ? 1.1 : 1), { knock, ...extra }); }
@@ -198,6 +225,7 @@ export class Guardian extends Entity {
     this.walking = false;
     if (this.dead) { this.deathT += dt; if (Math.random() < 0.5) g.vfx.particle(this.x + rand(-40, 40), this.y - rand(0, 80), { color: pick(['#5af0ff', '#7af0a0', '#ffffff']), vy: -rand(20, 60), life: 1, size: 2, add: true }); return; }
     this.status.update(dt);
+    this.updateWard();
     if (this.state === 'dormant') {
       if (Math.random() < 0.05) g.vfx.particle(this.x + rand(-30, 30), this.y - 60, { color: '#5af0ff', vy: -10, life: 1.2, size: 2, add: true });
       return;
@@ -505,6 +533,12 @@ export class Guardian extends Entity {
   // ---------------- render
   draw(ctx) {
     const g = this.game, t = this.animT;
+    // ward tethers from each living Thornling
+    if (!this.dead) for (const s of this.livingSummons()) {
+      ctx.strokeStyle = `rgba(140,255,160,${0.35 + 0.25 * Math.sin(t * 6 + s.x)})`; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(s.x, s.y - 10); ctx.quadraticCurveTo((s.x + this.x) / 2, Math.min(s.y, this.y) - 60, this.x, this.y - 60); ctx.stroke();
+      ctx.lineWidth = 1;
+    }
     const P3 = this.phase === 3;
     const x = Math.round(this.x), y = Math.round(this.y);
     let alpha = 1;

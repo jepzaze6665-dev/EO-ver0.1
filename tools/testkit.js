@@ -243,6 +243,32 @@ export function mapTour(g, classId = 'umbral_sword') {
   return R;
 }
 
+// V2.1 Major Boss Arena: arena map, Boss UI snapshot, exits locked in the fight, Heartwood Ward (adds shield the boss),
+// reward exactly once. Returns [step, pass, detail] rows.
+export function bossArena(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  toBoss(g, classId);
+  const w = g.world, gd = w.guardian, p = g.player;
+  p.setLevel(10); p.hp = p.maxHp; goto(g, 135, 37); g.simulate(5.5, () => { p.hp = p.maxHp; });
+  ok('Fight starts in the arena map', w.mapId === 'arena' && w.bossActive && ['fight', 'weak'].includes(gd.state) && w.boss === gd, `${w.mapId} ${gd.state}`);
+  const s = gd.hudState();
+  ok('Boss UI snapshot (name / HP / phase)', s.name && s.maxHp === gd.maxHp && s.phaseLabel && Array.isArray(s.tags), s.name);
+  ok('Exits locked during the fight', w.mapDef.exits.every((e) => !w.transitions.isOpen(e)));
+  const hit = () => { const h0 = gd.hp; g.combat.dealDamage(p, gd, { power: 2, noCrit: true }); return h0 - gd.hp; };
+  const base = hit() + hit() + hit();
+  gd.phase = 2; gd.run(gd.mSummon()); g.simulate(1.7, () => { p.hp = p.maxHp; p.invulnT = 1; });
+  const warded = hit() + hit() + hit();
+  ok('Heartwood Ward: adds shield the Guardian', gd.status.has('heartwood_ward') && warded < base * 0.7, `3 hits: ${base} -> ${warded} with ${gd.livingSummons().length} adds`);
+  for (const a of gd.livingSummons()) g.combat.dealDamage(p, a, { power: 999 });
+  g.simulate(0.2, () => { p.hp = p.maxHp; });
+  ok('Ward breaks when the adds die', !gd.status.has('heartwood_ward'));
+  let rewards = 0; g.events.on('enemyDefeated', (e) => { if (e.boss) rewards++; });
+  const gold0 = p.gold; gd.phase = 3; gd.hp = 1; g.combat.dealDamage(p, gd, { power: 99 }); // phase 3: no damage gate left
+  g.simulate(6, () => { p.hp = p.maxHp; });
+  ok('Boss defeated: reward once, exits open, quest follow-up', gd.dead && rewards === 1 && p.gold >= gold0 + 300 && g.inventory.has('guardian_heart') && !w.bossActive && g.quests.isActive('valley') && w.mapDef.exits.every((e) => w.transitions.isOpen(e)), `rewards=${rewards} gold+${p.gold - gold0}`);
+  return R;
+}
+
 // V2.1 A1 combat loop: guide -> walk out of Lumina -> fight in A1 only -> EXP / gold / loot -> back to the guide.
 export function a1Loop(g, classId = 'umbral_sword') {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);

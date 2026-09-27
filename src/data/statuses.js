@@ -36,6 +36,8 @@ export const STATUSES = {
   surge: { id: 'surge', category: 'buff', maxStacks: 1, stacking: 'longest', modifiers: { damageMult: 1.15 }, display: { label: 'SURGE', color: '#e0a0ff' } },
   // ---- defense
   shield: { id: 'shield', category: 'defense', maxStacks: 1, stacking: 'refresh', absorb: true, display: { label: 'SHIELD', color: '#fff0a0' } },
+  // boss mechanic: Thornlings tether the Guardian while they live (boss/guardian.js) — kill / control the adds
+  heartwood_ward: { id: 'heartwood_ward', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.5 }, display: { label: 'WARDED', color: '#7af0a0' } },
   damage_reduction: { id: 'damage_reduction', category: 'defense', maxStacks: 1, stacking: 'longest', modifiers: { damageTakenMult: 0.8 }, display: { label: 'GUARD', color: '#c8d8ff' } },
 };
 

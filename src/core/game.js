@@ -332,7 +332,8 @@ export class Game {
     this.combat.telegraphs.clear();
     this.combat.projectiles.clear();
     this.after(1.2, () => {
-      this.ui.callout('GUARDIAN DEFEATED', 'The corruption is severed from its heart', '#dffcff');
+      const d = boss.def.defeat || {};
+      if (d.callout) this.ui.callout(d.callout[0], d.callout[1], '#dffcff');
       this.audio.sfx('victory');
       this.vfx.burst(boss.x, boss.y - 60, '#9af8ff', 80, 260);
     }, true);
@@ -340,11 +341,12 @@ export class Game {
       this.camera.targetZoom = 1;
       const first = !w.state.killed.guardian; // boss rewards are given once per character
       w.onGuardianDefeated();
-      if (first) this.events.emit('enemyDefeated', { entity: boss, type: 'guardian', name: boss.def.name, source: this.player, x: boss.x, y: boss.y, summoned: false, boss: true, exp: boss.def.exp, loot: boss.def.loot });
-      this.events.emit('bossDefeated', { entity: boss, type: 'guardian', first });
+      if (first) this.events.emit('enemyDefeated', { entity: boss, type: boss.type, name: boss.def.name, source: this.player, x: boss.x, y: boss.y, summoned: false, boss: true, exp: boss.def.exp, loot: boss.def.loot });
+      this.events.emit('bossDefeated', { entity: boss, type: boss.type, first });
       this.vfx.flash('200,255,220', 0.6, 0.8);
-      this.ui.banner('WORLD STATE UPDATED', 'Whispering Forest has changed.', '#a8f0c8', 5);
-      this.quests.accept('valley');
+      const d = boss.def.defeat || {};
+      if (d.banner) this.ui.banner(d.banner[0], d.banner[1], '#a8f0c8', 5);
+      if (d.startQuest) this.quests.accept(d.startQuest);
       this.save.dirty = true;
     }, true);
   }

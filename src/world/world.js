@@ -108,6 +108,9 @@ export class World {
   }
 
   // ---------------- queries
+  // the boss the Boss UI follows (the current map's boss: maps/*.js `boss`)
+  get boss() { return this.guardian && this.mapDef && this.mapDef.boss === this.guardian.type ? this.guardian : null; }
+
   // ---------------- maps
   get mapDef() { return this.mapId ? this.mapManager.get(this.mapId) : null; }
   // is an entity / object on the current map? (its map is fixed where it was placed: home / spawn position)

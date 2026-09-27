@@ -60,9 +60,15 @@ export const MONSTERS = {
     ],
   },
   guardian: {
-    name: 'Guardian of the Forest', level: 10, hp: 12000, def: 18, radius: 30, height: 90, boss: true,
+    name: 'Guardian of the Forest', title: 'Warden of the Whispering Heart', level: 10, hp: 12000, def: 18, radius: 30, height: 90, boss: true,
     exp: 500, loot: 'guardian', weakness: ['shadow'],
-    pattern: 'Claw / Charge / Leap / Smash · Roots / Crystals / Summon · Enrage', desc: 'An ancient warden bound to the forest heart. Its crystal core is exposed after its heaviest attacks.',
+    // victory presentation + what the world does next (game.onBossDefeated)
+    defeat: {
+      callout: ['GUARDIAN DEFEATED', 'The corruption is severed from its heart'],
+      banner: ['WORLD STATE UPDATED', 'Whispering Forest has changed.'],
+      startQuest: 'valley',
+    },
+    pattern: 'Claw / Charge / Leap / Smash · Roots / Crystals / Summon (Heartwood Ward) · Enrage', desc: 'An ancient warden bound to the forest heart. Its crystal core is exposed after its heaviest attacks.',
   },
 };
 

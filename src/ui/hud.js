@@ -4,7 +4,6 @@ import { TILE, T, Z } from '../core/constants.js';
 import { clamp, TAU, easeOutCubic } from '../core/math.js';
 import { makeCanvas } from '../core/assets.js';
 import { RARITY_COLOR } from '../items/items.js';
-import { STAGGER_MAX } from '../boss/guardian.js';
 import { RESOURCES } from '../data/resources.js';
 import { MARKS } from '../data/marks.js';
 import { STATUSES } from '../data/statuses.js';
@@ -77,7 +76,7 @@ export class HUD {
     this.bossBarShow = clamp(this.bossBarShow + (this.bossBar ? dt : -dt) * 3, 0, 1);
     const p = this.game.player;
     this.hpLag += (p.hp / p.maxHp - this.hpLag) * Math.min(1, dt * 3);
-    const gd = this.game.world.guardian;
+    const gd = this.game.world.boss;
     if (gd) this.bossHpLag += (gd.hp / gd.maxHp - this.bossHpLag) * Math.min(1, dt * 2);
   }
 
@@ -437,7 +436,7 @@ export class HUD {
     const bob = Math.sin(g.time * 6) * 2 * u;
     ctx.fillStyle = '#ffd24a';
     ctx.beginPath(); ctx.moveTo(s.x - 6 * u, s.y - 10 * u + bob); ctx.lineTo(s.x + 6 * u, s.y - 10 * u + bob); ctx.lineTo(s.x, s.y - 2 * u + bob); ctx.closePath(); ctx.fill();
-    if (t === g.world.guardian && this.bossBarShow > 0) return;
+    if (t === g.world.boss && this.bossBarShow > 0) return;
     const w = Math.min(W * 0.3, 320 * u), x = W / 2 - w / 2, y = 22 * u;
     ctx.fillStyle = 'rgba(10,6,20,0.7)'; ctx.fillRect(x - 8 * u, y - 16 * u, w + 16 * u, 40 * u);
     this.text(ctx, lvl ? `${name}  Lv.${lvl}` : name, W / 2, y, 13 * u, '#f0e8e0', { align: 'center' });
@@ -445,22 +444,23 @@ export class HUD {
     this.text(ctx, `${Math.ceil(t.hp)} / ${Math.ceil(t.maxHp)}`, W / 2, y + 15 * u, 9 * u, '#fff', { align: 'center' });
   }
 
+  // BOSS UI — presentation only: draws the boss's hudState() snapshot (boss logic never draws its own bar)
   drawBoss(ctx, W, u) {
-    const gd = this.game.world.guardian;
-    if (!gd || this.bossBarShow <= 0) return;
+    const gd = this.game.world.boss;
+    if (!gd || !gd.hudState || this.bossBarShow <= 0) return;
+    const b = gd.hudState();
     ctx.globalAlpha = this.bossBarShow;
     const w = Math.min(W * 0.46, 720 * u), x = W / 2 - w / 2, y = 26 * u;
-    this.text(ctx, 'GUARDIAN OF THE FOREST', W / 2, y, 20 * u, gd.phase === 3 ? '#e8a0ff' : '#dffcff', { align: 'center', font: TITLE });
-    const pct = gd.hp / gd.maxHp;
-    this.bar(ctx, x, y + 10 * u, w, 18 * u, pct, gd.phase === 3 ? '#c050ff' : '#50e0b0', gd.phase === 3 ? '#50106a' : '#106a50', this.bossHpLag);
-    // phase ticks at 70% / 30%
+    this.text(ctx, b.name, W / 2, y, 20 * u, b.titleColor, { align: 'center', font: TITLE });
+    const pct = b.hp / b.maxHp;
+    this.bar(ctx, x, y + 10 * u, w, 18 * u, pct, b.color[0], b.color[1], this.bossHpLag);
     ctx.fillStyle = '#fff';
-    for (const t of [0.7, 0.3]) ctx.fillRect(x + w * t - 1, y + 8 * u, 2, 22 * u);
+    for (const t of b.phaseMarks || []) ctx.fillRect(x + w * t - 1, y + 8 * u, 2, 22 * u);
     this.text(ctx, `${Math.round(pct * 100)}%`, x + w - 6 * u, y + 24 * u, 12 * u, '#fff', { align: 'right' });
-    this.text(ctx, ['', 'PHASE I', 'PHASE II', 'PHASE III — ENRAGED'][gd.phase], x + 6 * u, y + 24 * u, 11 * u, '#fff');
-    // stagger / weak window
-    const weak = gd.status.has('vulnerable');
-    this.bar(ctx, x + w * 0.25, y + 32 * u, w * 0.5, 5 * u, weak ? (gd.weakT || 0) / 4 : gd.staggerMeter / STAGGER_MAX, weak ? '#9af8ff' : '#ffd070', weak ? '#3ab0d0' : '#a07020');
+    this.text(ctx, b.phaseLabel || '', x + 6 * u, y + 24 * u, 11 * u, '#fff');
+    if (b.meter) this.bar(ctx, x + w * 0.25, y + 32 * u, w * 0.5, 5 * u, b.meter.pct, b.meter.color[0], b.meter.color[1]);
+    (b.tags || []).forEach((tg, i) => this.text(ctx, tg.label, W / 2 + (i - ((b.tags.length - 1) / 2)) * 150 * u, y + 52 * u, 12 * u, tg.color, { align: 'center' }));
+    const weak = (b.tags || []).some((tg) => tg.label === 'CORE EXPOSED');
     // off-screen indicator
     const s = this.toScreen(gd.x, gd.y - 40), cw = this.game.canvas.width, ch = this.game.canvas.height;
     if (s.x < 0 || s.y < 0 || s.x > cw || s.y > ch) {
@@ -471,7 +471,7 @@ export class HUD {
       ctx.beginPath(); ctx.moveTo(16 * u, 0); ctx.lineTo(-8 * u, -11 * u); ctx.lineTo(-8 * u, 11 * u); ctx.closePath(); ctx.fill();
       ctx.restore();
     }
-    if (weak) this.text(ctx, 'WEAK WINDOW', W / 2, y + 52 * u, 13 * u, `rgba(150,250,255,${0.7 + 0.3 * Math.sin(this.game.time * 12)})`, { align: 'center' });
+    if (weak) this.text(ctx, 'WEAK WINDOW', W / 2, y + 70 * u, 13 * u, `rgba(150,250,255,${0.7 + 0.3 * Math.sin(this.game.time * 12)})`, { align: 'center' });
     ctx.globalAlpha = 1;
   }
 
