@@ -118,5 +118,26 @@ test('SECRET CLASS by data registration: invisible until revealed, then a normal
   } finally { delete CLASS_TREE.mock_secret; }
 });
 
+test('lineage (tree view): root + children with states; hidden nodes left out until revealed', () => {
+  const g = fakeGame('umbral_sword', 13);
+  g.progression.startingClass = 'umbral_sword';
+  g.quests.completed.whispers = true;
+  for (let i = 0; i < 15; i++) g.events.emit('perfectDodge', {});
+  g.progression.unlock('nightfall_reaper');
+  const st = Object.fromEntries(g.progression.lineage().map((t) => [t.node.id, t.state]));
+  ok(st.umbral_sword === 'current', 'root is current');
+  ok(st.nightfall_reaper === 'unlocked', 'unlocked (not playable yet): ' + st.nightfall_reaper);
+  ok(st.duskrunner === 'ready', 'requirements met -> trial ready: ' + st.duskrunner);
+  ok(st.blade_of_echoes === 'locked', 'locked');
+  ok(!('astral_weaver' in st), 'other lineages are not part of this tree');
+  CLASS_TREE.mock_secret2 = { id: 'mock_secret2', name: 'X', tier: 3, parent: 'duskrunner', hidden: true, reveal: [{ type: 'flag', flag: 'x' }], requirements: [] };
+  try {
+    ok(!g.progression.lineage().some((t) => t.node.id === 'mock_secret2'), 'hidden grandchild invisible');
+    g.world.state.flags.x = true;
+    const t = g.progression.lineage().find((y) => y.node.id === 'mock_secret2');
+    ok(t && t.depth === 2 && t.state === 'future', 'revealed as a deeper (future) node');
+  } finally { delete CLASS_TREE.mock_secret2; }
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

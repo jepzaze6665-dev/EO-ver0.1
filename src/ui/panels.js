@@ -210,8 +210,11 @@ export class Panels {
         <div><h3>Fixed</h3>${[lo.ultimate(), p.cls.special].filter(Boolean).map((s) => card(s, `<div class="muted small">Key ${s.ultimate ? '5' : 'Q'}</div>`)).join('')}</div>
       </div>`;
     } else if (this.invTab === 'class') {
-      // class tree from data/classTree.js: next-tier paths, requirement checklist, trial, unlock state
+      // CLASS UI (generic): lineage tree + codex of the selected class + path card (requirements / trial)
       const p = g.player, prog = g.progression, rec = prog.records[p.cls.id] || {};
+      const tree = prog.lineage();
+      if (!this.classSel || !tree.some((t) => t.node.id === this.classSel)) this.classSel = p.cls.id;
+      const selId = this.classSel, selNode = CLASS_TREE[selId], selCls = CLASSES[selId];
       const bar = (have, need) => need ? `<span class="req-bar"><i style="width:${Math.min(100, (have / need) * 100)}%"></i></span><span class="muted small">${Math.floor(have)}/${need}</span>` : '';
       const reqRow = (r) => `<div class="req ${r.met ? 'ok' : ''}">${r.met ? '✓' : '○'} ${esc(r.label)} ${r.need ? bar(r.have, r.need) : ''}</div>`;
       const trialBox = (x) => {
@@ -221,30 +224,52 @@ export class Panels {
         if (t.state === 'active') return `<div class="trial active"><b>${esc(t.def.title)}</b>${t.objectives.map((o) => reqRow({ met: o.have >= o.count, label: CLASS_COUNTERS[o.counter].label, have: Math.max(0, o.have), need: o.count })).join('')}<button data-abandon="${t.id}">Abandon trial</button></div>`;
         return `<div class="trial"><b>${esc(t.def.title)}</b>${t.def.objectives.map((o) => `<div class="muted small">• ${CLASS_COUNTERS[o.counter].label} ×${o.count}</div>`).join('')}<button data-trial="${x.node.id}" ${x.ready ? '' : 'disabled'}>${x.ready ? 'Begin trial' : 'Requirements not met'}</button></div>`;
       };
-      const card = (x) => `<div class="path-card ${x.unlocked ? 'unlocked' : ''}">
-          <div class="path-head"><b>${esc(x.node.name)}</b> <span class="muted small">${esc(x.node.role || '')}</span></div>
-          <div class="small">${esc(x.node.description || '')}</div>
-          <div class="muted small">Resource: ${esc(x.node.resource || '—')}${x.node.playable ? '' : ' · <i>arrives with Class 2 (not playable yet)</i>'}</div>
-          ${x.unlocked ? `<div class="req ok">✦ UNLOCKED — ${x.node.playable ? 'change to it under Your Classes' : 'playable when its Class 2 content arrives'}</div>` : x.reqs.map(reqRow).join('')}
-          ${trialBox(x)}
-        </div>`;
+
+      // ---- tree (SVG): one column per tier, children fanned out beside their parent
+      const STATE_LABEL = { current: 'CURRENT', owned: 'OWNED', unlocked: 'UNLOCKED', ready: 'TRIAL READY', locked: 'LOCKED', future: '—' };
+      const cols = {}; for (const t of tree) (cols[t.depth] ||= []).push(t);
+      const NW = 168, NH = 44, GX = 70, H = Math.max(...Object.values(cols).map((c) => c.length)) * (NH + 12) + 12;
+      const pos = {};
+      for (const [d, list] of Object.entries(cols)) list.forEach((t, i) => { pos[t.node.id] = { x: 10 + d * (NW + GX), y: 6 + (i + 0.5) * (H / list.length) - NH / 2 }; });
+      const W = 20 + (Object.keys(cols).length) * (NW + GX) - GX;
+      const lines = tree.filter((t) => t.node.parent && pos[t.node.parent]).map((t) => {
+        const a = pos[t.node.parent], b = pos[t.node.id], x1 = a.x + NW, y1 = a.y + NH / 2, x2 = b.x, y2 = b.y + NH / 2, mx = (x1 + x2) / 2;
+        return `<path class="edge ${t.state}" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}"/>`;
+      }).join('');
+      const nodes = tree.map((t) => { const q = pos[t.node.id]; return `<g class="tnode ${t.state} ${t.node.id === selId ? 'sel' : ''}" data-node="${t.node.id}" transform="translate(${q.x},${q.y})">
+          <rect width="${NW}" height="${NH}" rx="6"/><text x="10" y="18" class="tn">${esc(t.node.name)}</text>
+          <text x="10" y="34" class="ts">Tier ${t.node.tier} · ${STATE_LABEL[t.state]}</text></g>`; }).join('');
+      const treeSvg = `<svg class="class-tree" viewBox="0 0 ${W} ${H + 12}" width="${W}" height="${H + 12}">${lines}${nodes}</svg>`;
+
+      // ---- codex of the selected class
+      const src = selCls || selNode;
+      const ratings = selCls ? `<div class="ratings">${Object.entries({ Difficulty: selCls.difficulty, ...Object.fromEntries(Object.entries(selCls.ratings || {}).map(([k, v]) => [k[0].toUpperCase() + k.slice(1), v])) }).filter(([, v]) => v).map(([k, v]) => `<div><span>${k}</span><i class="pips">${'<b></b>'.repeat(v)}${'<u></u>'.repeat(5 - v)}</i></div>`).join('')}</div>` : '';
+      const sw = selCls && selCls.strengths ? `<div class="sw"><div><h4>Strengths</h4>${selCls.strengths.map((x) => `<div class="small">+ ${esc(x)}</div>`).join('')}</div><div><h4>Weaknesses</h4>${(selCls.weaknesses || []).map((x) => `<div class="small">− ${esc(x)}</div>`).join('')}</div></div>` : '';
+      const skillRow = (s, key) => `<div class="cx-skill"><img src="${iconURL(s.icon)}"><div><b>${esc(s.name)}</b> <span class="muted small">${key ? '[' + key + '] · ' : ''}${s.type}${s.cooldown ? ' · CD ' + s.cooldown + 's' : ''}${s.cost ? ' · ' + s.cost + ' ' + RESOURCES[s.costResource || selCls.resource].label : ''}</span><div class="small">${esc(s.desc || '')}</div></div></div>`;
+      const skills = selCls ? `<h4>Skills</h4>${selCls.skills.map((s) => skillRow(s, s.ultimate ? '5' : '')).join('')}${selCls.special ? skillRow(selCls.special, 'Q') : ''}` : `<p class="muted small">Skills are revealed when this class arrives (Class 2 content).</p>`;
+      const res = selCls ? RESOURCES[selCls.resource].name : selNode.resource || '—';
+      const codex = `<div class="codex"><h3>${esc(src.name)} <span class="muted small">Tier ${selNode.tier} · ${esc(src.role || '')}</span></h3>
+          ${selCls && selCls.identity ? `<p class="identity">“${esc(selCls.identity)}”</p>` : ''}
+          <div class="small">${esc(src.description || '')}</div>
+          <div class="muted small">Resource: <b>${esc(res)}</b></div>
+          ${ratings}${sw}${skills}</div>`;
+
+      // ---- right side: path card for a reachable class, otherwise your classes + records
+      const path = prog.paths().find((x) => x.node.id === selId);
+      const card = path ? `<div class="path-card ${path.unlocked ? 'unlocked' : ''}"><div class="path-head"><b>Path to ${esc(path.node.name)}</b></div>
+          ${path.unlocked ? `<div class="req ok">✦ UNLOCKED — ${path.node.playable ? 'change to it under Your Classes' : 'playable when its Class 2 content arrives'}</div>` : path.reqs.map(reqRow).join('')}
+          ${trialBox(path)}</div>` : '';
+      const owned = [prog.startingClass, ...prog.unlocked].filter(Boolean).map((id) => {
+        const node = CLASS_TREE[id], chk = classChangeCheck(g, id), cur = id === p.cls.id;
+        const why = { not_playable: 'arrives with Class 2 content', combat: 'leave combat first', boss: 'not during a boss fight', dead: '' }[chk.reason] || '';
+        return `<div class="owned ${cur ? 'cur' : ''}"><b>${esc(node.name)}</b> <span class="muted small">Tier ${node.tier}</span>
+          ${cur ? '<span class="tag-cur">CURRENT</span>' : chk.ok ? `<button data-change="${id}">Change class</button>` : `<span class="muted small">${why}</span>`}</div>`;
+      }).join('');
       const recs = Object.entries(rec).filter(([, v]) => v > 0).map(([k, v]) => `<div>${esc(CLASS_COUNTERS[k] ? CLASS_COUNTERS[k].label : k)} <b>${Math.floor(v)}</b></div>`).join('') || '<div class="muted">Nothing yet — fight!</div>';
-      body = `<div class="class-layout">
-        <div><h3>${esc(p.cls.name)} <span class="muted small">Tier ${(CLASS_TREE[p.cls.id] || {}).tier || 1} · ${esc(p.cls.role || '')}</span></h3>
-          ${p.cls.identity ? `<p class="identity">“${esc(p.cls.identity)}”</p>` : ''}
-          <div class="ratings">${Object.entries({ Difficulty: p.cls.difficulty, ...Object.fromEntries(Object.entries(p.cls.ratings || {}).map(([k, v]) => [k[0].toUpperCase() + k.slice(1), v])) }).filter(([, v]) => v).map(([k, v]) => `<div><span>${k}</span><i class="pips">${'<b></b>'.repeat(v)}${'<u></u>'.repeat(5 - v)}</i></div>`).join('')}</div>
-          <div class="sw"><div><h4>Strengths</h4>${(p.cls.strengths || []).map((x) => `<div class="small">+ ${esc(x)}</div>`).join('')}</div>
-          <div><h4>Weaknesses</h4>${(p.cls.weaknesses || []).map((x) => `<div class="small">− ${esc(x)}</div>`).join('')}</div></div>
-          <p class="muted small">Class records are earned by playing this class. Meet a path's requirements, then pass its trial to unlock it.</p>
-          <h3>Your Classes</h3>${[prog.startingClass, ...prog.unlocked].filter(Boolean).map((id) => {
-            const node = CLASS_TREE[id], chk = classChangeCheck(g, id), cur = id === p.cls.id;
-            const why = { not_playable: 'arrives with Class 2 content', combat: 'leave combat first', boss: 'not during a boss fight', dead: '' }[chk.reason] || '';
-            return `<div class="owned ${cur ? 'cur' : ''}"><b>${esc(node.name)}</b> <span class="muted small">Tier ${node.tier}</span>
-              ${cur ? '<span class="tag-cur">CURRENT</span>' : chk.ok ? `<button data-change="${id}">Change class</button>` : `<span class="muted small">${why}</span>`}</div>`;
-          }).join('')}
-          <h3>Class Records</h3><div class="records">${recs}</div></div>
-        <div><h3>Class 2 Paths</h3>${prog.paths().map(card).join('') || '<div class="muted">No further paths.</div>'}</div>
-      </div>`;
+      body = `<div class="tree-wrap">${treeSvg}<div class="muted small">Click a class to read about it. Meet a path's requirements, then pass its trial to unlock it.</div></div>
+        <div class="class-layout">${codex}
+          <div>${card}<h3>Your Classes</h3>${owned}<h3>Class Records <span class="muted small">(${esc(p.cls.name)})</span></h3><div class="records">${recs}</div></div>
+        </div>`;
     } else if (this.invTab === 'knowledge') {
       const list = g.knowledge.view();
       body = `<div class="know">${list.map((e) => `
@@ -274,7 +299,7 @@ export class Panels {
         <div class="content">${body}</div>
       </div>`);
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],[data-slot],[data-trial],[data-abandon],[data-change],.x');
+      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],[data-slot],[data-trial],[data-abandon],[data-change],[data-node],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
       if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
@@ -286,6 +311,7 @@ export class Panels {
       else if (t.dataset.slot) { g.player.setSkillSlot(+t.dataset.slot, t.dataset.skill); this.inventory(); }
       else if (t.dataset.trial) { const r = g.progression.startTrial(t.dataset.trial); if (!r.ok) g.ui.toast(r.reason === 'busy' ? 'Finish your current trial first' : 'Requirements not met', 1.2); this.inventory(); }
       else if (t.dataset.abandon) { g.progression.abandonTrial(t.dataset.abandon); this.inventory(); }
+      else if (t.dataset.node) { this.classSel = t.dataset.node; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.change) { const r = g.changeClass(t.dataset.change); if (r.ok) this.close(); else g.ui.toast('Cannot change class: ' + r.reason, 1.4); }
     });
   }

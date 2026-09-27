@@ -70,6 +70,28 @@ export class Progression {
       });
   }
 
+  // the whole lineage of the current class for the tree view: root (tier 1 ancestor) + every descendant.
+  // state: current · owned (can change into) · unlocked · ready (trial can start) · locked · future (deeper tier)
+  // hidden nodes (secret classes) are left out until their reveal conditions are met.
+  lineage() {
+    const cur = this.game.player.cls.id;
+    let root = cur;
+    while (CLASS_TREE[root] && CLASS_TREE[root].parent) root = CLASS_TREE[root].parent;
+    const ctx = this.context(cur), readyIds = new Set(this.paths().filter((x) => x.ready).map((x) => x.node.id));
+    const out = [];
+    const visit = (id, depth) => {
+      const n = CLASS_TREE[id];
+      if (!n) return;
+      if (n.hidden && !(n.reveal && evaluateAll(n.reveal, ctx).every((r) => r.met))) return;
+      const state = id === cur ? 'current' : this.owns(id) ? (n.playable ? 'owned' : 'unlocked')
+        : readyIds.has(id) ? 'ready' : n.parent === cur ? 'locked' : 'future';
+      out.push({ node: n, depth, state });
+      for (const c of Object.values(CLASS_TREE)) if (c.parent === id) visit(c.id, depth + 1);
+    };
+    visit(root, 0);
+    return out;
+  }
+
   // ---------------- trials
   trialView(id) {
     const t = this.trials[id], def = TRIALS[id];

@@ -52,6 +52,22 @@
   .title-wrap.compact .logo { font-size: clamp(32px, 5vw, 60px); }
   .title-wrap.compact .tag { margin: 8px 0 16px; }
   .overlay.title { overflow-y: auto; }
+  .tree-wrap { overflow-x: auto; margin-bottom: 10px; }
+  .class-tree .edge { fill: none; stroke: rgba(170,150,220,.35); stroke-width: 2; }
+  .class-tree .edge.owned, .class-tree .edge.unlocked, .class-tree .edge.ready { stroke: #ffd96a; }
+  .class-tree .tnode { cursor: pointer; }
+  .class-tree .tnode rect { fill: rgba(24,14,40,.95); stroke: rgba(170,150,220,.5); stroke-width: 1.5; }
+  .class-tree .tnode.current rect { stroke: #ffd96a; stroke-width: 2.5; }
+  .class-tree .tnode.owned rect, .class-tree .tnode.unlocked rect { stroke: #a8f0b0; }
+  .class-tree .tnode.ready rect { stroke: #c89aff; stroke-dasharray: 5 3; }
+  .class-tree .tnode.future rect, .class-tree .tnode.locked rect { opacity: .7; }
+  .class-tree .tnode.sel rect { fill: rgba(80,50,130,.95); }
+  .class-tree .tnode:hover rect { stroke: #fff; }
+  .class-tree .tn { fill: #f0e4ff; font: 700 13px 'Trebuchet MS', sans-serif; }
+  .class-tree .ts { fill: #a898c8; font: 10px 'Trebuchet MS', sans-serif; letter-spacing: 1px; }
+  .cx-skill { display: flex; gap: 8px; margin: 5px 0; } .cx-skill img { width: 32px; height: 32px; flex: none; }
+  .codex { font-size: 13px; } .cx-skill b { font-size: 13px; color: #f0e4ff; }
+  .codex h4 { margin: 8px 0 3px; color: #d8c8ff; font-size: 13px; }
   .class-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 18px; }
   .identity { font-style: italic; color: #e0d4ff; font-size: 13px; margin: 4px 0 8px; }
   .ratings div { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #a898c8; margin: 2px 0; }
