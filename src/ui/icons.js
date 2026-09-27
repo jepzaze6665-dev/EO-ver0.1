@@ -12,6 +12,39 @@ export function icon(name, color = '#b070ff') {
   g.lineJoin = 'round';
   const glow = (col, w, fn) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); fn(); g.stroke(); };
   switch (name) {
+    // ---- Astral Weaver
+    case 'needle':
+      glow('#1a3a7a', 5, () => { g.moveTo(4, 28); g.lineTo(28, 4); });
+      glow('#8ad8ff', 2.5, () => { g.moveTo(4, 28); g.lineTo(28, 4); });
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(26, 6, 3, 0, 7); g.fill();
+      break;
+    case 'thread':
+      glow('#2a5aaa', 4, () => { g.moveTo(5, 24); g.quadraticCurveTo(16, 4, 27, 20); });
+      glow('#bfe8ff', 1.5, () => { g.moveTo(5, 24); g.quadraticCurveTo(16, 4, 27, 20); });
+      g.fillStyle = '#fff'; for (const [x, y] of [[5, 24], [27, 20]]) { g.beginPath(); g.arc(x, y, 2.5, 0, 7); g.fill(); }
+      break;
+    case 'comet':
+      for (let i = 0; i < 4; i++) { g.fillStyle = `rgba(120,200,255,${0.15 + i * 0.2})`; g.beginPath(); g.arc(6 + i * 5, 22 - i * 3, 2 + i, 0, 7); g.fill(); }
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(26, 9, 4, 0, 7); g.fill();
+      break;
+    case 'burst':
+      for (let i = 0; i < 8; i++) { const a = (i / 8) * 6.283; glow(i % 2 ? '#8ad8ff' : '#e8f8ff', 2, () => { g.moveTo(16 + Math.cos(a) * 5, 16 + Math.sin(a) * 5); g.lineTo(16 + Math.cos(a) * 14, 16 + Math.sin(a) * 14); }); }
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(16, 16, 4, 0, 7); g.fill();
+      break;
+    case 'starfall':
+      for (const [x, y, r] of [[8, 8, 2], [16, 12, 3], [24, 7, 2]]) { glow('#8ad8ff', 1.5, () => { g.moveTo(x, y - 6); g.lineTo(x, y + 6); }); g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y + 6, r, 0, 7); g.fill(); }
+      g.fillStyle = '#3a6ad8'; g.beginPath(); g.ellipse(16, 27, 12, 3, 0, 0, 7); g.fill();
+      break;
+    case 'veil':
+      glow('#2a5aaa', 4, () => g.arc(16, 16, 12, 0, 7));
+      glow('#bfe8ff', 1.5, () => g.arc(16, 16, 12, 0, 7));
+      g.fillStyle = 'rgba(138,216,255,0.35)'; g.beginPath(); g.arc(16, 16, 11, 0, 7); g.fill();
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(16, 16, 3, 0, 7); g.fill();
+      break;
+    case 'staff':
+      glow('#8a6a30', 3, () => { g.moveTo(8, 28); g.lineTo(22, 10); });
+      g.fillStyle = '#8ad8ff'; g.beginPath(); g.moveTo(24, 3); g.lineTo(29, 8); g.lineTo(24, 13); g.lineTo(19, 8); g.closePath(); g.fill();
+      break;
     case 'slash':
       glow('#5a2a90', 6, () => g.arc(10, 26, 20, -1.3, 0.1));
       glow('#c080ff', 3, () => g.arc(10, 26, 20, -1.3, 0.1));

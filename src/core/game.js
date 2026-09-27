@@ -15,7 +15,9 @@ import { World } from '../world/world.js';
 import { Player } from '../player/player.js';
 import { PlayerSprites } from '../player/playerSprites.js';
 import { buildMonsterSprites } from '../monsters/monsterSprites.js';
-import { CLASSES } from '../skills/umbralSword.js';
+import { CLASSES, DEFAULT_CLASS } from '../skills/classes.js';
+import { ThreadSystem } from '../combat/threadSystem.js';
+import { THREADS } from '../data/threads.js';
 import { TILE, WORLD_W, WORLD_H, Z } from './constants.js';
 import { LORE } from '../world/narrative.js';
 import { validateSprites } from '../player/characterConfig.js';
@@ -41,8 +43,8 @@ export class Game {
     this.ui = new UI(this);
     this.save = new SaveSystem(this);
     this.monsterSprites = buildMonsterSprites();
-    this.playerSprites = new PlayerSprites();
-    this.spriteReport = validateSprites();
+    this.spriteCache = {}; // class preset -> PlayerSprites (built once)
+    this.classId = DEFAULT_CLASS;
     this.state = 'boot';
     this.time = 0; this.playTime = 0;
     this.hitStop = 0; this.timeScale = 1; this.slowT = 0;
@@ -59,9 +61,11 @@ export class Game {
     const ev = this.events;
     ev.on('kill', () => { this.stats.kills++; });
     ev.on('chestOpened', () => { this.stats.chests++; });
-    ev.on('targetMarked', (e) => { if (e.target === this.player && e.markId === 'shadow_mark' && e.stacks >= 3) this.world.setFlag('tut_marks'); });
+    // tutorial 'marks' step, for any class: a self mark reaching max, or our mark triggering on an enemy
+    ev.on('targetMarked', (e) => { if (e.target === this.player && e.stacks >= e.maxStacks) this.world.setFlag('tut_marks'); });
+    ev.on('markTriggered', (e) => { if (e.source === this.player) this.world.setFlag('tut_marks'); });
     ev.on('perfectDodge', () => this.world.setFlag('tut_perfect'));
-    ev.on('skillUsed', (e) => { if (e.skillId === 'shadow_break') this.world.setFlag('tut_break'); });
+    ev.on('skillUsed', (e) => { const tut = this.player && this.player.cls.tutorial; if (e.caster === this.player && tut && e.skillId === tut.breakSkill) this.world.setFlag('tut_break'); });
     // skill failures are reported as data; presenting them is the UI's job
     ev.on('skillFailed', (e) => {
       if (e.caster !== this.player) return;
@@ -73,9 +77,19 @@ export class Game {
   }
 
   // ---------------- lifecycle
-  setupSession() {
+  spritesFor(cls) {
+    const key = cls.preset || 'ub';
+    if (!this.spriteCache[key]) this.spriteCache[key] = new PlayerSprites(key, cls.anims, cls.theme && cls.theme.ghost);
+    return this.spriteCache[key];
+  }
+
+  setupSession(classId = this.classId) {
+    if (!CLASSES[classId]) { console.warn(`Unknown class "${classId}", using ${DEFAULT_CLASS}`); classId = DEFAULT_CLASS; }
+    this.classId = classId;
+    const cls = CLASSES[classId];
     this.inventory = new Inventory(this);
     this.equipment = new Equipment(this);
+    if (cls.startingGear) this.equipment.slots = { accessory: null, ...cls.startingGear };
     this.knowledge = new Knowledge(this);
     // fresh event bus per session so listeners never accumulate
     this.events = new EventBus();
@@ -86,8 +100,11 @@ export class Game {
     this.ui.hud.reset();
     // generic marks on any entity (rules in data/marks.js); events go through the session bus
     this.marks = new MarkSystem(MARKS, { onEvent: (name, data) => this.events.emit(name, data) });
+    // generic threads between anchors (rules in data/threads.js)
+    this.threads = new ThreadSystem(THREADS, { onEvent: (name, data) => this.events.emit(name, data) });
     this.world = new World(this);
-    this.player = new Player(this, CLASSES.umbral_sword, this.playerSprites);
+    this.player = new Player(this, cls, this.spritesFor(cls));
+    this.spriteReport = validateSprites(cls.preset || 'ub');
     this.playTime = 0;
     this.hitStop = 0; this.timeScale = 1;
     this.timers = [];
@@ -106,9 +123,9 @@ export class Game {
     if (!this.looping) { this.looping = true; requestAnimationFrame((t) => this.frame(t)); }
   }
 
-  newGame() {
+  newGame(classId = this.classId) {
     this.save.reset();
-    this.setupSession();
+    this.setupSession(classId);
     this.world.applyState();
     const s = this.world.regions.playerSpawn;
     this.player.x = s.x; this.player.y = s.y;
@@ -126,7 +143,7 @@ export class Game {
   }
 
   applySave(d) {
-    this.setupSession();
+    this.setupSession(d.player.classId || DEFAULT_CLASS); // v1 saves have no class -> Umbral Sword
     this.world.load(d.world);
     this.inventory.load(d.inventory);
     this.equipment.load(d.equipment);
@@ -153,7 +170,7 @@ export class Game {
     this.ui.panels.close(true);
     this.state = 'play';
     this.audio.init();
-    this.ui.banner('WELCOME BACK', `Umbral Sword · LV.${this.player.level}`, '#e8d0ff');
+    this.ui.banner('WELCOME BACK', `${this.player.cls.name} · LV.${this.player.level}`, '#e8d0ff');
   }
   resetGame() {
     this.save.reset();
@@ -350,6 +367,10 @@ export class Game {
     this.world.update(sdt);
     this.combat.update(sdt);
     this.marks.update(sdt, { inCombat: (e) => (e === this.player ? this.combat.inCombat : true) });
+    this.threads.update(sdt, {
+      targets: (owner) => (owner === this.player ? this.world.hostiles().filter((e) => !e.isBreakable) : [this.player]),
+      onTouch: (th, target, first) => this.combat.threadTouch(th, target, first),
+    });
     this.vfx.update(sdt);
     this.camera.update(dt, this.cameraTarget(), this.player.dead ? null : this.mouseWorld());
     this.ui.update(dt);
@@ -362,7 +383,7 @@ export class Game {
     const lines = [
       `FPS ${this.fps}  scale ${this.renderer.scale}  view ${this.renderer.vw}x${this.renderer.vh}`,
       `pos ${(p.x / TILE).toFixed(1)}, ${(p.y / TILE).toFixed(1)}  zone ${w.currentZone} ${w.currentSub ? w.currentSub.name : ''}`,
-      `monsters ${w.monsters.length}  particles ${this.vfx.particles.count()}  proj ${this.combat.projectiles.pool.count()}  tele ${this.combat.telegraphs.list.length}  marks ${this.marks.count()}`,
+      `monsters ${w.monsters.length}  particles ${this.vfx.particles.count()}  proj ${this.combat.projectiles.pool.count()}  tele ${this.combat.telegraphs.list.length}  marks ${this.marks.count()}  threads ${this.threads.count()}`,
       `timeScale ${this.timeScale.toFixed(2)} hitStop ${this.hitStop.toFixed(2)}  flags ${Object.keys(w.state.flags).join(',')}`,
     ];
     c.save();

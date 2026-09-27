@@ -59,14 +59,26 @@ exploration/ interactables (chests, lore, waystones, levers, shrines…) and bre
 quests/  items/  inventory/  equipment/  ui/ (canvas HUD + DOM panels)  save/  audio/ (WebAudio synth placeholders)  vfx/
 ```
 
+### Classes (choose on New Game)
+
+| Class | Role | Resource | Mechanic |
+|---|---|---|---|
+| **Astral Weaver** | Ranged magic · control | Astral Charge (builds, decays out of combat) | Astral Threads + Star Marks on enemies → Constellation Break |
+| **Umbral Sword** | Melee assassin · burst | Shadow Gauge | Shadow Marks on self → Shadow Break |
+
+Class data lives in `src/skills/<class>.js` and is registered in `src/skills/classes.js`. Core systems used by every class:
+`combat/damageSystem` · `resourceSystem` · `skillSystem` · `markSystem` · `threadSystem` · `status/status`
+(rules in `src/data/*.js`). Saves store the class id; old saves load as Umbral Sword.
+
 The combat core never references Umbral Sword directly: a class is a stat block + a basic combo + skills that return
 *actions* (timelines of hitbox/VFX events). Enemies use the same hitbox shapes through telegraphs.
 
 ## Assets & pipeline
 
-- `UB/` — Umbral Sword sheets (6 columns × 4 directions). `node tools/build-player.js` removes the checkerboard
+- `desgin/class cr/UB|AW/` — class sheets (6 columns × 4 directions). `node tools/build-player.js [ub|aw]` removes the checkerboard
   background, splits cells by detecting character blobs, aligns frames on the feet, auto-detects which side row faces
-  left/right, and writes `assets/player/*.png` + `atlas.json`. **To replace art:** drop new sheets with the same layout and rerun.
+  left/right, normalises every class to the same body height / pivot, and writes `assets/player[/aw]/*.png` + `atlas.json`.
+- `desgin/VFX/UB|AW/` — skill effect sheets. `node tools/build-vfx.js` writes right-facing strips to `assets/vfx/` (AW: `aw_*`). **To replace art:** drop new sheets with the same layout and rerun.
 - `ของแมพ/*.png` — asset sets. `node tools/extract-props.js` cuts ~218 props (trees, rocks, crystals, ruins, village
   buildings…) into `assets/props/props.png` + `props.json`.
 - Monsters, NPCs, tiles, icons and the Guardian are procedural placeholders generated at startup with the same frame
@@ -77,7 +89,7 @@ The combat core never references Umbral Sword directly: a class is a stat block 
 Unit tests (pure combat core, no browser):
 
 ```bash
-node tools/tests/run.mjs          # all unit tests (combat, resource, skill, mark, status)
+node tools/tests/run.mjs          # all unit tests (combat, resource, skill, mark, status, thread)
 ```
 
 In-game: a **training yard** with 3 Training Dummies (HP, DPS meter, auto-reset) stands west of the Lumina fountain.
@@ -88,6 +100,7 @@ real game through a deterministic `game.simulate(seconds)` hook. From the dev-to
 
 ```js
 const T = await import('/tools/testkit.js');
+T.playthrough(__game, 'astral_weaver');             // full 15-step regression for a class
 T.toBoss(__game);                                   // jump to the Guardian fight
 T.fight(__game, 300, { untilBossDead: true });      // bot plays the fight, returns a phase log
 ```

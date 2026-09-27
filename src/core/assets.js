@@ -22,13 +22,17 @@ export async function loadJSON(src) {
   return r.json();
 }
 
+// class presets (character sheets). Each preset = one atlas built by tools/build-player.js
+export const PLAYER_PRESETS = { ub: 'assets/player/atlas.json', aw: 'assets/player/aw/atlas.json' };
+
 export async function loadAll(onProgress) {
-  const atlas = await loadJSON('assets/player/atlas.json');
-  Assets.data.playerAtlas = atlas;
+  Assets.data.atlases = {};
+  for (const [key, src] of Object.entries(PLAYER_PRESETS)) Assets.data.atlases[key] = await loadJSON(src);
+  Assets.data.playerAtlas = Assets.data.atlases.ub; // v1 alias
   const propMeta = await loadJSON('assets/props/props.json');
   const vfxMeta = await loadJSON('assets/vfx/vfx.json');
   const jobs = [];
-  for (const [name, s] of Object.entries(atlas.sheets)) jobs.push(['player_' + name, s.file]);
+  for (const [key, atlas] of Object.entries(Assets.data.atlases)) for (const [name, s] of Object.entries(atlas.sheets)) jobs.push([`player_${key}_${name}`, s.file]);
   jobs.push(['props', 'assets/props/props.png']);
   for (const [name, v] of Object.entries(vfxMeta)) jobs.push(['vfx_' + name, v.file]);
   let done = 0;

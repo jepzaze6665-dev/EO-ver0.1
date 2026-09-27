@@ -1,11 +1,11 @@
 import { Assets, makeCanvas } from '../core/assets.js';
 
-// Wraps the Umbral Sword sheets (assets/player/*.png + atlas.json).
+// Wraps one class preset's sheets (atlas from tools/build-player.js) + that class's animation table.
 // Sheet layout: 6 columns; each 4-row group = [down, up, side, side]. Which side row faces right/left
 // (or needs mirroring) is detected at build time and stored in atlas.json "sides".
 // To swap in new art, export sheets with the same grid + anchor and update atlas.json.
 
-// animation name -> sheet + column sequence
+// animation name -> sheet + column sequence (Umbral Sword table; other classes pass their own)
 export const ANIMS = {
   idle: { sheet: 'walk', cols: [0] },
   walk: { sheet: 'walk', cols: [1, 2, 3, 4, 5], fps: 10, loop: true },
@@ -28,18 +28,23 @@ export const ANIMS = {
 };
 
 export class PlayerSprites {
-  constructor() {
-    const atlas = Assets.data.playerAtlas;
+  constructor(preset = 'ub', anims = ANIMS, ghostColor = '#8a3aff') {
+    const atlas = Assets.data.atlases[preset];
+    if (!atlas) throw new Error(`Unknown character preset "${preset}"`);
+    this.preset = preset;
+    this.anims = anims;
     this.sheets = {};
     for (const [name, s] of Object.entries(atlas.sheets)) {
-      const img = Assets.images['player_' + name];
-      this.sheets[name] = { ...s, img, flash: tint(img, '#ffffff'), ghost: tint(img, '#8a3aff') };
+      const img = Assets.images[`player_${preset}_${name}`];
+      this.sheets[name] = { ...s, img, flash: tint(img, '#ffffff'), ghost: tint(img, ghostColor) };
     }
+    // every animation must point at a sheet that exists (catches typos at load, not mid-fight)
+    for (const [k, a] of Object.entries(anims)) if (!this.sheets[a.sheet]) throw new Error(`Animation "${k}" uses missing sheet "${a.sheet}" (${preset})`);
   }
 
   // returns a drawable frame descriptor
   frame(animName, t, dir, variant = 'img') {
-    const a = ANIMS[animName] || ANIMS.idle;
+    const a = this.anims[animName] || this.anims.idle;
     const s = this.sheets[a.sheet];
     let idx;
     if (a.fps) idx = Math.floor(t * a.fps) % a.cols.length;

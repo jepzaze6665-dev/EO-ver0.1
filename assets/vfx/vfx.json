@@ -3,42 +3,98 @@
   "file": "assets/vfx/slash.png",
   "fw": 85,
   "fh": 128,
-  "frames": 6
+  "frames": 6,
+  "set": "ub"
  },
  "thrust": {
   "file": "assets/vfx/thrust.png",
   "fw": 85,
   "fh": 128,
-  "frames": 6
+  "frames": 6,
+  "set": "ub"
  },
  "twin": {
   "file": "assets/vfx/twin.png",
   "fw": 85,
   "fh": 128,
-  "frames": 6
+  "frames": 6,
+  "set": "ub"
  },
  "wave": {
   "file": "assets/vfx/wave.png",
   "fw": 85,
   "fh": 128,
-  "frames": 6
+  "frames": 6,
+  "set": "ub"
  },
  "burst": {
   "file": "assets/vfx/burst.png",
   "fw": 85,
   "fh": 128,
-  "frames": 6
+  "frames": 6,
+  "set": "ub"
  },
  "shards": {
   "file": "assets/vfx/shards.png",
   "fw": 85,
   "fh": 128,
-  "frames": 6
+  "frames": 6,
+  "set": "ub"
  },
  "eclipse": {
   "file": "assets/vfx/eclipse.png",
   "fw": 85,
   "fh": 128,
-  "frames": 6
+  "frames": 6,
+  "set": "ub"
+ },
+ "aw_needle": {
+  "file": "assets/vfx/aw_needle.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6,
+  "set": "aw"
+ },
+ "aw_star": {
+  "file": "assets/vfx/aw_star.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6,
+  "set": "aw"
+ },
+ "aw_comet": {
+  "file": "assets/vfx/aw_comet.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6,
+  "set": "aw"
+ },
+ "aw_sigil": {
+  "file": "assets/vfx/aw_sigil.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6,
+  "set": "aw"
+ },
+ "aw_nova": {
+  "file": "assets/vfx/aw_nova.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6,
+  "set": "aw"
+ },
+ "aw_orb": {
+  "file": "assets/vfx/aw_orb.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6,
+  "set": "aw"
+ },
+ "aw_starfall": {
+  "file": "assets/vfx/aw_starfall.png",
+  "fw": 85,
+  "fh": 128,
+  "frames": 6,
+  "set": "aw"
  }
 }

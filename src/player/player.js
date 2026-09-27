@@ -35,6 +35,8 @@ export class Player extends Entity {
       onUsed: (e) => game.events && game.events.emit('skillUsed', e),
       onFailed: (e) => game.events && game.events.emit('skillFailed', e),
     });
+    // class passives listen to core events (markTriggered, threadTouched, ...) — no class checks in the core
+    for (const [name, fn] of Object.entries(classDef.on || {})) game.events.on(name, (e) => fn(this, game, e));
     this.mods = {};
     this.stats = { ...classDef.base };
     this.action = null;
@@ -82,7 +84,7 @@ export class Player extends Entity {
       this.hp = this.maxHp;
       this.game.vfx.ring(this.x, this.y, 10, 60, { color: '255,220,120', life: 0.6 });
       this.game.vfx.burst(this.x, this.y - 20, '#ffe08a', 30, 140);
-      this.game.ui.banner('LEVEL UP', `Umbral Sword  LV.${this.level}`, '#ffd96a');
+      this.game.ui.banner('LEVEL UP', `${this.cls.name}  LV.${this.level}`, '#ffd96a');
       this.game.audio.sfx('levelup');
     }
   }
@@ -94,6 +96,15 @@ export class Player extends Entity {
   set shadow(v) { this.resources.set(this.primaryResource, v); }
   get maxShadow() { return this.resources.max(this.primaryResource); }
   gainShadow(n, raw = false) { this.resources.gain(this.primaryResource, n, { raw }); }
+  gainResource(n, raw = false) { this.resources.gain(this.primaryResource, n, { raw }); } // class-neutral name
+  // threads this player has woven (ThreadSystem) — read by skill requirements and the HUD
+  get threadCount() { return this.game.threads ? this.game.threads.count(this) : 0; }
+  // movement trail in the class VFX theme (shadow smoke / stardust)
+  trailFx(n) {
+    const g = this.game, th = this.cls.theme || {};
+    if (th.trail === 'stardust') for (let i = 0; i < n; i++) g.vfx.particle(this.x + rand(-6, 6), this.y - rand(0, 30), { color: th.color, life: 0.4, size: 2, vy: -20, drag: 3, add: true });
+    else g.vfx.shadowSmoke(this.x, this.y, n);
+  }
   // ---------------- marks (stacks stored in game.marks — see combat/markSystem.js)
   markCount(id) { return this.game.marks ? this.game.marks.get(this, id) : 0; }
   get marks() { return this.markId ? this.markCount(this.markId) : 0; }
@@ -197,7 +208,7 @@ export class Player extends Entity {
     this.beginDodge(ang);
     this.facing = ang;
     g.audio.sfx('dodge');
-    g.vfx.shadowSmoke(this.x, this.y, 5);
+    this.trailFx(5);
     return true;
   }
 
@@ -288,7 +299,7 @@ export class Player extends Entity {
       const step = (f1 - f0) * dist;
       map.moveCircle(this, Math.cos(this.dodgeAng) * step, Math.sin(this.dodgeAng) * step);
       this.vx = this.vy = 0;
-      if (Math.random() < 0.7) g.vfx.shadowSmoke(this.x, this.y, 1);
+      if (Math.random() < 0.7) this.trailFx(1);
       this.stepGhost(dt, 0.035);
       if (this.dodgeT >= dur) { this.dodging = false; if (!this.dodgeFromSkill) this.invulnT = Math.max(this.invulnT, DODGE_IFRAMES - dur); }
     } else if (this.hurtT > 0) {

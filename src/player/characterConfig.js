@@ -7,7 +7,6 @@ import { Assets } from '../core/assets.js';
 //  - hurtbox:   same root circle (enemy strikes test against it)
 //  - hitboxes:  come from skill/attack data (offset, radius/shape, direction, active time)
 export const CHARACTER = {
-  id: 'class_umbral_sword',
   characterScale: 1,        // integer only — drawn 1:1 into the pixel scene
   spriteCanvas: [128, 128], // every frame
   pivot: [64, 120],         // x = centre, y = feet (ground line)
@@ -17,8 +16,8 @@ export const CHARACTER = {
 };
 
 // Validates the loaded atlas against the standard (dev-mode report + console warnings).
-export function validateSprites() {
-  const atlas = Assets.data.playerAtlas;
+export function validateSprites(preset = 'ub') {
+  const atlas = Assets.data.atlases[preset];
   const rows = [];
   for (const [name, s] of Object.entries(atlas.sheets)) {
     const v = (atlas.validation || {})[name] || {};

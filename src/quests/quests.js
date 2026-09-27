@@ -4,11 +4,11 @@ import { Z } from '../core/constants.js';
 export const QUESTS = {
   first_steps: {
     title: 'FIRST STEPS OF SHADOW', giver: 'Captain Aldric', side: true,
-    desc: 'Aldric wants proof you can survive the forest: master the Umbral techniques.',
+    desc: 'Aldric wants proof you can survive the forest: master your class techniques.',
     objectives: [
-      { id: 'mark', text: 'Build 3 Shadow Marks', type: 'flag', flag: 'tut_marks' },
+      { id: 'mark', text: 'Build 3 Shadow Marks', classText: 'marks', type: 'flag', flag: 'tut_marks' },
       { id: 'perfect', text: 'Perform a Perfect Dodge', type: 'flag', flag: 'tut_perfect' },
-      { id: 'break', text: 'Unleash Shadow Break', type: 'flag', flag: 'tut_break' },
+      { id: 'break', text: 'Unleash Shadow Break', classText: 'break', type: 'flag', flag: 'tut_break' },
     ],
     reward: { exp: 80, gold: 60, items: { shadow_tonic: 2 } },
   },
@@ -83,7 +83,7 @@ export class Quests {
           if (st.progress[o.id] >= o.count) st.done[o.id] = true;
           changed = true;
         }
-        if (changed && st.done[o.id]) this.game.ui.notify(q.title, `✓ ${o.text}`, '#a8f0b0');
+        if (changed && st.done[o.id]) this.game.ui.notify(q.title, `✓ ${this.objText(o)}`, '#a8f0b0');
       }
       // a finalizing objective (e.g. the boss) completes whatever the player skipped
       if (q.objectives.some((o) => o.finalizes && st.done[o.id])) for (const o of q.objectives) st.done[o.id] = true;
@@ -104,6 +104,11 @@ export class Quests {
     g.audio.sfx('quest_done');
     g.events.emit('questComplete', id);
   }
+  // objective text can be supplied by the player's class (tutorial steps differ per class)
+  objText(o) {
+    const tut = o.classText && this.game.player && this.game.player.cls.tutorial;
+    return (tut && tut[o.classText]) || o.text;
+  }
   // tracker lines for the HUD
   tracker() {
     const out = [];
@@ -112,7 +117,7 @@ export class Quests {
       out.push({
         title: q.title, side: q.side,
         lines: q.objectives.map((o) => ({
-          text: o.type === 'kill' ? `${o.text} ${Math.min(o.count, st.progress[o.id] || 0)}/${o.count}` : o.text,
+          text: o.type === 'kill' ? `${o.text} ${Math.min(o.count, st.progress[o.id] || 0)}/${o.count}` : this.objText(o),
           done: !!st.done[o.id],
         })),
       });

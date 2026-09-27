@@ -67,6 +67,11 @@ export class Audio {
       case 'dodge': case 'dash': N(0.18, { freq: 800, slide: 3, vol: 0.14, q: 3 }); break;
       case 'perfect': Tn(660, 0.35, { type: 'triangle', vol: 0.2 }); Tn(990, 0.45, { type: 'triangle', vol: 0.16, delay: 0.06 }); Tn(1320, 0.6, { type: 'sine', vol: 0.12, delay: 0.12 }); break;
       case 'mark': Tn(520, 0.12, { type: 'triangle', vol: 0.14, slide: 1.3 }); break;
+      // ---- Astral Weaver
+      case 'star': Tn(1320, 0.12, { type: 'triangle', vol: 0.1, slide: 1.4 }); N(0.08, { freq: 5000, vol: 0.08, q: 4 }); break;
+      case 'thread': Tn(740, 0.25, { type: 'sine', vol: 0.12, slide: 1.2 }); Tn(1110, 0.3, { type: 'sine', vol: 0.07, delay: 0.05 }); break;
+      case 'thread_burst': N(0.3, { freq: 1600, vol: 0.28, slide: 0.4 }); Tn(990, 0.3, { type: 'triangle', vol: 0.14, slide: 0.6 }); Tn(1480, 0.4, { type: 'sine', vol: 0.1, delay: 0.06 }); break;
+      case 'constellation': Tn(880, 0.3, { type: 'triangle', vol: 0.16 }); Tn(1320, 0.4, { type: 'triangle', vol: 0.13, delay: 0.06 }); Tn(1760, 0.55, { type: 'sine', vol: 0.1, delay: 0.12 }); N(0.2, { freq: 3000, vol: 0.12 }); break;
       case 'mark_full': Tn(520, 0.12, { type: 'triangle', vol: 0.14 }); Tn(780, 0.3, { type: 'triangle', vol: 0.16, delay: 0.07 }); break;
       case 'break_charge': Tn(120, 0.18, { type: 'sawtooth', vol: 0.2, slide: 2 }); break;
       case 'break': Tn(70, 0.8, { type: 'sine', vol: 0.5, slide: 0.4 }); N(0.6, { freq: 500, vol: 0.4, type: 'lowpass', slide: 0.3 }); Tn(440, 0.5, { type: 'sawtooth', vol: 0.08, slide: 0.25 }); break;

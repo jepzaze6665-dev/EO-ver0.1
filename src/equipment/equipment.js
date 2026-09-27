@@ -41,5 +41,6 @@ export class Equipment {
     }
   }
   serialize() { return { ...this.slots }; }
-  load(d) { if (d) this.slots = { weapon: 'umbral_sword', armor: 'umbral_cloak', accessory: null, ...d }; }
+  // class starting gear is the default; saved slots override it
+  load(d) { if (d) this.slots = { ...this.slots, ...d }; }
 }

@@ -7,6 +7,7 @@ import { STAGGER_MAX } from '../boss/guardian.js';
 import { RESOURCES } from '../data/resources.js';
 import { MARKS } from '../data/marks.js';
 import { STATUSES } from '../data/statuses.js';
+import { REQUIREMENTS } from '../combat/skillSystem.js';
 
 const FONT = '"Trebuchet MS", "Segoe UI", sans-serif';
 const TITLE = 'Georgia, "Times New Roman", serif';
@@ -147,10 +148,10 @@ export class HUD {
     const sc = ps / 34;
     ctx.drawImage(f.img, f.sx + f.ax - 16, f.sy + f.ay - 64, 32, 34, x + 2, y + 2, 32 * sc - 4, 34 * sc - 4);
     ctx.restore();
-    ctx.strokeStyle = '#8a5ad8'; ctx.lineWidth = 2 * u; ctx.strokeRect(x, y, ps, ps);
+    ctx.strokeStyle = (p.cls.theme && p.cls.theme.color) || '#8a5ad8'; ctx.lineWidth = 2 * u; ctx.strokeRect(x, y, ps, ps);
     // name + level
     const bx = x + ps + 10 * u, bw = 250 * u;
-    this.text(ctx, 'Umbral Sword', bx, y + 16 * u, 16 * u, '#efe4ff', { font: TITLE });
+    this.text(ctx, p.cls.name, bx, y + 16 * u, 16 * u, '#efe4ff', { font: TITLE });
     this.text(ctx, `LV.${p.level}`, bx + bw, y + 16 * u, 15 * u, '#ffd96a', { align: 'right' });
     // HP
     this.text(ctx, 'HP', bx, y + 36 * u, 11 * u, '#ff9aa8');
@@ -164,21 +165,26 @@ export class HUD {
     this.text(ctx, `${Math.floor(p.resources.get(rid))}`, bx + bw - 4 * u, y + 56 * u, 9 * u, '#fff', { align: 'right' });
     // EXP (thin)
     this.bar(ctx, bx, y + 63 * u, bw, 4 * u, p.exp / p.expToNext(), '#ffe08a', '#b08a20');
-    // SHADOW MARK
+    // class counter (Shadow Marks / Astral Threads / ...) — the class says what to show
     const my = y + ps + 22 * u;
-    this.panel(ctx, x, my - 16 * u, 180 * u, 40 * u, 0.75);
-    this.text(ctx, 'SHADOW MARK', x + 8 * u, my - 2 * u, 10 * u, '#d8b8ff');
-    for (let i = 0; i < 3; i++) {
-      const cx = x + 20 * u + i * 26 * u, cy = my + 12 * u, r = 8 * u * (i < p.marks && p.markPulse > 0 && i === p.marks - 1 ? 1 + p.markPulse * 0.5 : 1);
-      ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r * 0.8, cy); ctx.lineTo(cx, cy + r); ctx.lineTo(cx - r * 0.8, cy); ctx.closePath();
-      if (i < p.marks) {
-        ctx.fillStyle = p.marks === 3 ? '#f0c8ff' : '#b060ff'; ctx.fill();
-        ctx.shadowColor = '#b060ff'; ctx.shadowBlur = 10 * u; ctx.fill(); ctx.shadowBlur = 0;
-      } else { ctx.fillStyle = 'rgba(20,10,34,0.6)'; ctx.fill(); }
-      ctx.strokeStyle = i < p.marks ? '#3a1a5a' : '#9a78c8'; ctx.lineWidth = 1.5 * u; ctx.stroke();
+    const hc = p.cls.hudCounter ? p.cls.hudCounter(p) : null;
+    if (hc) {
+      const full = hc.value >= hc.max;
+      this.panel(ctx, x, my - 16 * u, 180 * u, 40 * u, 0.75);
+      this.text(ctx, hc.label, x + 8 * u, my - 2 * u, 10 * u, hc.full);
+      for (let i = 0; i < hc.max; i++) {
+        const on = i < hc.value;
+        const cx = x + 20 * u + i * 26 * u, cy = my + 12 * u, r = 8 * u * (on && p.markPulse > 0 && i === hc.value - 1 ? 1 + p.markPulse * 0.5 : 1);
+        ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r * 0.8, cy); ctx.lineTo(cx, cy + r); ctx.lineTo(cx - r * 0.8, cy); ctx.closePath();
+        if (on) {
+          ctx.fillStyle = full ? hc.full : hc.color; ctx.fill();
+          ctx.shadowColor = hc.color; ctx.shadowBlur = 10 * u; ctx.fill(); ctx.shadowBlur = 0;
+        } else { ctx.fillStyle = 'rgba(20,10,34,0.6)'; ctx.fill(); }
+        ctx.strokeStyle = on ? 'rgba(20,10,40,0.9)' : 'rgba(170,160,210,0.8)'; ctx.lineWidth = 1.5 * u; ctx.stroke();
+      }
+      this.text(ctx, `${hc.value} / ${hc.max}`, x + 172 * u, my + 17 * u, 13 * u, full ? hc.full : '#b8b0d8', { align: 'right' });
+      if (hc.ready && hc.readyText) this.text(ctx, hc.readyText, x, my + 42 * u, 11 * u, `rgba(240,220,255,${0.6 + 0.4 * Math.sin(g.time * 6)})`);
     }
-    this.text(ctx, `${p.marks} / 3`, x + 172 * u, my + 17 * u, 13 * u, p.marks === 3 ? '#f4d8ff' : '#b8a0d8', { align: 'right' });
-    if (p.marks === 3) this.text(ctx, 'SHADOW BREAK READY — [Q]', x, my + 42 * u, 11 * u, `rgba(240,200,255,${0.6 + 0.4 * Math.sin(g.time * 6)})`);
     // status chips
     let sx = x;
     const chips = [];
@@ -212,9 +218,10 @@ export class HUD {
       ctx.fillRect(W / 2 - 22 * u + i * 24 * u, y - 18 * u, 20 * u, 4 * u);
     }
     this.text(ctx, 'DODGE [SPACE]', W / 2, y - 22 * u, 9 * u, '#9ab8c8', { align: 'center' });
-    if (p.marks >= 3) {
+    const hc = cls.hudCounter ? cls.hudCounter(p) : null;
+    if (hc && hc.ready && hc.readyText) {
       const k = 0.65 + 0.35 * Math.sin(g.time * 8);
-      this.text(ctx, '◆ ◆ ◆  SHADOW BREAK READY  —  [Q]', W / 2, y - 42 * u, 15 * u * (0.95 + k * 0.08), `rgba(240,200,255,${k})`, { align: 'center', font: TITLE });
+      this.text(ctx, `◆ ◆ ◆  ${hc.readyText.replace(' — ', '  —  ')}`, W / 2, y - 42 * u, 15 * u * (0.95 + k * 0.08), `rgba(240,220,255,${k})`, { align: 'center', font: TITLE });
     }
     slots.forEach((sl, i) => {
       if (i === cls.skills.length) x += 14 * u;
@@ -232,15 +239,13 @@ export class HUD {
         const s = sl.s;
         ctx.imageSmoothingEnabled = true;
         ctx.drawImage(icon(s.icon), sx + 5 * u, sy + 5 * u, size - 10 * u, size - 10 * u);
-        if (sl.special) {
-          ready = p.marks >= 3;
-          if (ready) { ctx.strokeStyle = `rgba(230,180,255,${0.6 + 0.4 * Math.sin(g.time * 8)})`; ctx.lineWidth = 3 * u; ctx.strokeRect(sx - 1, sy - 1, size + 2, size + 2); }
-        } else {
-          cdLeft = p.skillSys.cooldowns.remaining(s.id);
-          cdPct = p.skillSys.cooldowns.ratio(s.id);
-          ready = cdLeft <= 0 && p.resources.canAfford(p.skillSys.costResource(s), s.cost);
-          label = String(s.cost);
-        }
+        // same readiness rules as the SkillSystem: cooldown, cost and data requirements
+        const reqOk = (s.requirements || []).every((r) => REQUIREMENTS[r.type] && REQUIREMENTS[r.type](p, r));
+        cdLeft = p.skillSys.cooldowns.remaining(s.id);
+        cdPct = cdLeft > 0.5 ? p.skillSys.cooldowns.ratio(s.id) : 0;
+        ready = cdLeft <= 0 && reqOk && (!s.cost || p.resources.canAfford(p.skillSys.costResource(s), s.cost));
+        if (s.cost) label = String(s.cost);
+        if (sl.special && ready && (s.requirements || []).length) { ctx.strokeStyle = `rgba(230,200,255,${0.6 + 0.4 * Math.sin(g.time * 8)})`; ctx.lineWidth = 3 * u; ctx.strokeRect(sx - 1, sy - 1, size + 2, size + 2); }
       }
       if (!ready) { ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(sx, sy, size, size); }
       if (cdPct > 0) {

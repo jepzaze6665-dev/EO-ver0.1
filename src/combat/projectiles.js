@@ -43,35 +43,46 @@ export class Projectiles {
       p.x += p.vx * dt; p.y += p.vy * dt;
       p.ang = Math.atan2(p.vy, p.vx);
       p.rot += dt * 10;
-      if (p.wallStop && map.blocksShot(p.x, p.y)) {
+      // targets are tested BEFORE walls: things embedded in walls (cracks, wall-bound foes) stay hittable
+      this.hitTargets(p, g, pl);
+      if (p.active && p.wallStop && map.blocksShot(p.x, p.y)) {
+        // a shot that strikes a wall also strikes what is built into that wall (cracked walls, seals)
+        if (p.team !== TEAM.ENEMY) {
+          const wallThing = g.world.breakables.find((b) => !b.dead && b.hurtable && !p.hit.has(b) && Math.hypot(b.x - p.x, b.y - p.y) < b.radius + 40);
+          if (wallThing) { p.hit.add(wallThing); const info = g.combat.dealDamage(p.owner, wallThing, p); if (p.onHit) p.onHit(wallThing, info, p); }
+        }
         g.vfx.burst(p.x, p.y, p.color, 6, 60);
         p.active = false;
         return;
       }
-      if (p.team === TEAM.ENEMY) {
-        if (pl.dead) return;
-        const d2 = (pl.x - p.x) ** 2 + (pl.y - 8 - p.y) ** 2;
-        if (d2 < (p.r + (pl.hurtRadius || pl.radius)) ** 2) {
-          if (pl.invulnerable()) {
-            if (!p.perfectDone && pl.canPerfect()) { p.perfectDone = true; pl.onPerfectDodge(p.owner); }
-            return;
-          }
-          g.combat.dealDamage(p.owner || { x: p.x - p.vx, y: p.y - p.vy, team: TEAM.ENEMY }, pl, { power: p.power, knock: p.knock });
-          if (!p.pierce) p.active = false;
+      if (p.active && p.trail && Math.random() < 0.6) g.vfx.particle(p.x, p.y, { color: p.color, life: 0.3, size: 2, vx: -p.vx * 0.05, vy: -p.vy * 0.05, add: true });
+    });
+  }
+
+  // one projectile vs its opposing team (player for enemy shots, hostiles for player shots)
+  hitTargets(p, g, pl) {
+    if (p.team === TEAM.ENEMY) {
+      if (pl.dead) return;
+      const d2 = (pl.x - p.x) ** 2 + (pl.y - 8 - p.y) ** 2;
+      if (d2 < (p.r + (pl.hurtRadius || pl.radius)) ** 2) {
+        if (pl.invulnerable()) {
+          if (!p.perfectDone && pl.canPerfect()) { p.perfectDone = true; pl.onPerfectDodge(p.owner); }
+          return;
         }
-      } else {
-        for (const t of g.world.hostiles()) {
-          if (t.dead || p.hit.has(t)) continue;
-          if ((t.x - p.x) ** 2 + (t.y - 10 - p.y) ** 2 < (p.r + t.radius) ** 2) {
-            p.hit.add(t);
-            const info = g.combat.dealDamage(p.owner, t, p);
-            if (p.onHit) p.onHit(t, info, p);
-            if (!p.pierce) { p.active = false; break; }
-          }
+        g.combat.dealDamage(p.owner || { x: p.x - p.vx, y: p.y - p.vy, team: TEAM.ENEMY }, pl, { power: p.power, knock: p.knock });
+        if (!p.pierce) p.active = false;
+      }
+    } else {
+      for (const t of g.world.hostiles()) {
+        if (t.dead || p.hit.has(t)) continue;
+        if ((t.x - p.x) ** 2 + (t.y - 10 - p.y) ** 2 < (p.r + t.radius) ** 2) {
+          p.hit.add(t);
+          const info = g.combat.dealDamage(p.owner, t, p);
+          if (p.onHit) p.onHit(t, info, p);
+          if (!p.pierce) { p.active = false; break; }
         }
       }
-      if (p.trail && Math.random() < 0.6) g.vfx.particle(p.x, p.y, { color: p.color, life: 0.3, size: 2, vx: -p.vx * 0.05, vy: -p.vy * 0.05, add: true });
-    });
+    }
   }
 
   draw(ctx, time) {
@@ -102,6 +113,17 @@ export class Projectiles {
         // Umbral crescent (hand-drawn slash strip)
         const d = Assets.vfx.slash;
         if (d) { ctx.globalAlpha = 0.95; ctx.scale(1.3, 1.3); ctx.drawImage(d.img, 3 * d.fw, 0, d.fw, d.fh, -d.fw / 2, -d.fh / 2, d.fw, d.fh); }
+      } else if (p.kind === 'sprite') {
+        // hand-drawn VFX strip (right-facing, rotated by ang): frames loop at fps
+        const d = Assets.vfx[p.sprite];
+        if (d) {
+          const fr = p.frames || [2];
+          const f = fr[Math.floor(p.age * (p.fps || 12)) % fr.length];
+          const s = p.scale || 1;
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.drawImage(d.img, f * d.fw, 0, d.fw, d.fh, -d.fw * s / 2, -d.fh * s / 2, d.fw * s, d.fh * s);
+          ctx.globalCompositeOperation = 'source-over';
+        }
       } else if (p.kind === 'root') {
         ctx.fillStyle = '#3a5a2a';
         ctx.fillRect(-6, -3, 12, 6);

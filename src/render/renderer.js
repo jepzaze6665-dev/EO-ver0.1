@@ -141,6 +141,7 @@ export class Renderer {
       else if (d.spike) this.drawSpike(ctx, d.spike);
       else d.e.draw(ctx);
     }
+    this.drawThreads(ctx, game, t);
     game.combat.projectiles.draw(ctx, t);
     game.vfx.drawAbove(ctx, t);
 
@@ -210,6 +211,38 @@ export class Renderer {
     const a = 0.25 + 0.2 * Math.sin(t * 3 + it.x);
     ctx.strokeStyle = it.kind === 'chest' || it.kind === 'resource' ? `rgba(255,210,120,${a})` : `rgba(140,230,255,${a})`;
     ctx.beginPath(); ctx.ellipse(it.x, it.y, 13, 5, 0, 0, TAU); ctx.stroke();
+  }
+
+  // Threads (ThreadSystem): a shimmering line between the two anchors + star nodes.
+  // Fades in, fades out over its last second; colours come from data/threads.js.
+  drawThreads(ctx, game, t) {
+    const sys = game.threads;
+    if (!sys || !sys.list.length) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const th of sys.list) {
+      const v = sys.defs[th.type].visual, [a, b] = sys.ends(th);
+      const fade = Math.min(1, th.t * 6, (th.duration - th.t) / 1);
+      const ay = a.y - 8, by = b.y - (a === b ? 8 : b.entity ? 14 : 8);
+      const wob = Math.sin(t * 9 + th.id) * 1.5;
+      const mx = (a.x + b.x) / 2 + wob, my = (ay + by) / 2 + wob;
+      ctx.strokeStyle = `rgba(${v.glow},${0.28 * fade})`; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(a.x, ay); ctx.quadraticCurveTo(mx, my, b.x, by); ctx.stroke();
+      ctx.strokeStyle = v.core; ctx.globalAlpha = 0.85 * fade; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(a.x, ay); ctx.quadraticCurveTo(mx, my, b.x, by); ctx.stroke();
+      // travelling sparkles
+      for (let i = 0; i < 3; i++) {
+        const k = (t * 0.7 + i / 3 + th.id * 0.13) % 1;
+        const x = (1 - k) * (1 - k) * a.x + 2 * (1 - k) * k * mx + k * k * b.x, y = (1 - k) * (1 - k) * ay + 2 * (1 - k) * k * my + k * k * by;
+        ctx.fillStyle = v.core; ctx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 2, 2);
+      }
+      for (const [x, y] of [[a.x, ay], [b.x, by]]) {
+        ctx.fillStyle = v.color; ctx.globalAlpha = 0.9 * fade;
+        ctx.beginPath(); ctx.moveTo(x, y - 4); ctx.lineTo(x + 3, y); ctx.lineTo(x, y + 4); ctx.lineTo(x - 3, y); ctx.closePath(); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
   }
 
   drawSpike(ctx, s) {
@@ -291,6 +324,7 @@ export class Renderer {
     for (const pr of props) if (pr.light && pr.visible) push(pr.x, pr.y + (pr.light.oy || -10), pr.light.r, pr.light.color, pr.light.a ?? 0.6, pr.light.flicker);
     game.vfx.lights.forEach((l) => push(l.x, l.y, l.r * (l.life / l.max), l.color, l.a * (l.life / l.max)));
     game.combat.projectiles.pool.forEach((pj) => push(pj.x, pj.y, 26, pj.color, 0.5));
+    if (game.threads) for (const th of game.threads.list) { const [a, b] = game.threads.ends(th); push((a.x + b.x) / 2, (a.y + b.y) / 2, 40 + Math.hypot(b.x - a.x, b.y - a.y) * 0.35, game.threads.defs[th.type].visual.color, 0.45); }
     const gd = game.world.guardian;
     if (gd && !gd.dead) push(gd.x, gd.y - 60, gd.status.has('vulnerable') ? 110 : 70, gd.phase === 3 ? '#b050ff' : '#5af0ff', 0.6);
     for (const L of lights) {

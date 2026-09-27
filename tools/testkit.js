@@ -30,6 +30,23 @@ export function bot(g, i, opts = {}) {
   inp.mouse.x = ((tgt.x - cam.left) * cam.zoom * r.scale) / r.dpr;
   inp.mouse.y = ((tgt.y - 12 - cam.top) * cam.zoom * r.scale) / r.dpr;
   const d = Math.hypot(tgt.x - p.x, tgt.y - p.y);
+  // ranged classes (class data: ratings.range >= 4) kite at mid range and play their own loop
+  if (p.cls.ratings && p.cls.ratings.range >= 4) {
+    if (d > 220) press(Math.atan2(tgt.y - p.y, tgt.x - p.x));
+    else if (d < 100) press(Math.atan2(p.y - tgt.y, p.x - tgt.x));
+    if (d < 280 && i % (opts.apm || 5) === 0) {
+      const res = p.resources.get(p.primaryResource);
+      inp.pushBuffer('attack');
+      if (i % 50 === 0) inp.pushBuffer('skill1');
+      if (i % 40 === 0 && d < 220) inp.pushBuffer('skill2');
+      if (p.threadCount > 0 && res >= 30 && i % 20 === 0) inp.pushBuffer('skill4');
+      if (res >= 60) inp.pushBuffer('skill5');
+      if (p.hp < p.maxHp * 0.6) inp.pushBuffer('break');
+    }
+    if (p.hp < p.maxHp * 0.35) g.inventory.quickUse('hp_potion');
+    if (opts.god) p.hp = Math.max(p.hp, p.maxHp * 0.5);
+    return;
+  }
   const reach = (tgt.radius || 10) + 36;
   if (d > reach) press(Math.atan2(tgt.y - p.y, tgt.x - p.x));
   if (d < reach + 30 && i % (opts.apm || 5) === 0) {
@@ -46,6 +63,7 @@ export function bot(g, i, opts = {}) {
 
 // release every held key / buffered action so one step never leaks into the next
 export function releaseInput(g) {
+  g.player.endAction(true); // a long skill (e.g. an ultimate) must not carry over into the next step
   g.input.down.clear();
   g.input.clearAll();
   g.player.vx = g.player.vy = 0;
@@ -70,7 +88,8 @@ export function use(g, id) {
   g.simulate(0.2);
   const ok = g.world.nearest === it;
   g.world.interactNearest();
-  return { ok, panel: g.ui.panels.current && g.ui.panels.current.name };
+  const n = g.world.nearest;
+  return ok ? { ok, panel: g.ui.panels.current && g.ui.panels.current.name } : { ok, nearest: n && (n.id || n.kind), dist: n && Math.round(Math.hypot(n.x - p.x, n.y - p.y)), itDist: Math.round(Math.hypot(it.x - p.x, it.y - p.y)), hostilesNear: g.world.hostiles().filter((m) => Math.hypot(m.x - p.x, m.y - p.y) < 200).length, inCombat: g.combat.inCombat };
 }
 
 export function fight(g, seconds, opts = {}) {
@@ -87,16 +106,19 @@ export function fight(g, seconds, opts = {}) {
 }
 
 export function counters(g) {
-  const c = { perfect: 0, breaks: 0, weak: 0, ults: 0 };
+  const c = { perfect: 0, breaks: 0, weak: 0, ults: 0, constellations: 0, threads: 0 };
   g.events.on('perfectDodge', () => c.perfect++);
   g.events.on('bossWeak', () => c.weak++);
-  g.events.on('skillUsed', (e) => { if (e.skillId === 'eclipse_sever') c.ults++; if (e.skillId === 'shadow_break') c.breaks++; });
+  g.events.on('markTriggered', (e) => { if (e.source === g.player) c.constellations++; });
+  g.events.on('threadCreated', () => c.threads++);
+  // "break" = the class's signature finisher (class data: tutorial.breakSkill)
+  g.events.on('skillUsed', (e) => { if (e.skill.ultimate) c.ults++; if (e.skillId === g.player.cls.tutorial.breakSkill) c.breaks++; });
   return c;
 }
 
 // Jump straight to the Guardian fight with the prerequisite flags set.
-export function toBoss(g) {
-  g.newGame();
+export function toBoss(g, classId) {
+  g.newGame(classId);
   g.world.setFlag('shrineInvestigated');
   g.world.setFlag('gateOpened');
   g.world.applyState();
@@ -105,9 +127,9 @@ export function toBoss(g) {
 }
 
 // Full regression of the V1.5 test sequence. Returns [step, pass, detail] rows.
-export function playthrough(g) {
+export function playthrough(g, classId) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
-  g.newGame();
+  g.newGame(classId);
   let w = g.world;
   const c = counters(g);
   ok('Lumina Village', w.map.zoneAt(g.player.x, g.player.y) === 1);
@@ -120,11 +142,11 @@ export function playthrough(g) {
   const camps = [[29, 60], [66, 62], [54, 80], [86, 70], [18, 80], [58, 104], [110, 82]];
   for (let k = 0; k < camps.length && (c.perfect === 0 || c.breaks === 0); k++) { goto(g, ...camps[k]); fight(g, 10, { god: true, until: () => c.perfect > 0 && c.breaks > 0 }); }
   ok('Fight + wolves 5/5', g.quests.active.whispers.done.wolves, `kills=${g.stats.kills}`);
-  ok('Shadow Mark / Perfect Dodge / Shadow Break', c.breaks > 0 && c.perfect > 0, `perfect=${c.perfect} breaks=${c.breaks}`);
+  ok('Class mechanic / Perfect Dodge / Finisher', c.breaks > 0 && c.perfect > 0, `class=${g.player.cls.id} perfect=${c.perfect} breaks=${c.breaks} constellations=${c.constellations} threads=${c.threads} tut=${!!w.state.flags.tut_marks}`);
   use(g, 'crack_info'); g.ui.panels.close();
   const crack = w.breakables.find((b) => b.kind === 'crack');
   goto(g, 70.5, 57); g.simulate(6, (gg, i) => bot(gg, i, { god: true, target: crack, breakables: true }));
-  ok('Hidden Area discovered', w.map.secretsFound.has(1));
+  ok('Hidden Area discovered', w.map.secretsFound.has(1), `crack hp=${crack.hp}/${crack.maxHp} dead=${crack.dead} canHit=${crack.canHit ? crack.canHit(g.player) : '-'} dist=${Math.round(Math.hypot(crack.x - g.player.x, crack.y - g.player.y))} panel=${g.ui.panels.current && g.ui.panels.current.name} hurt=${g.player.hurtT.toFixed(2)} act=${g.player.action && g.player.action.name}`);
   const diag = `panel=${g.ui.panels.current && g.ui.panels.current.name} dead=${g.player.dead} state=${g.state}`;
   const us = use(g, 'ancient_shrine'); g.ui.panels.close();
   const ug = use(g, 'gate_seal');

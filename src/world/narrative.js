@@ -51,7 +51,7 @@ export function dialogueFor(id, g) {
     case 'elder':
       if (!restored && !q.isActive('whispers') && !q.isDone('whispers')) return {
         lines: [
-          'Ah… you must be the swordsman the Guild sent. I am Maren, elder of Lumina.',
+          'Ah… you must be the adventurer the Guild sent. I am Maren, elder of Lumina.',
           'A strange fog crept out of the Whispering Forest a month ago. The wolves turned savage, travelers vanished, and the old road north is choked with thorns.',
           'The fog comes from the ruins beyond the river, where the Guardian of the Forest sleeps. Please — find out what is happening.',
         ],
@@ -74,8 +74,8 @@ export function dialogueFor(id, g) {
     case 'guide':
       if (!q.isActive('first_steps') && !q.isDone('first_steps')) return {
         lines: [
-          'Welcome to Lumina, Umbral Sword. Captain Aldric of the Adventurer Guild.',
-          'Your blade feeds on shadow. Each well-placed strike leaves a Shadow Mark — build three and you can unleash a SHADOW BREAK. [Q / Right Click]',
+          `Welcome to Lumina, ${g.player.cls.name}. Captain Aldric of the Adventurer Guild.`,
+          ...(g.player.cls.guideIntro || []),
           'And learn to dodge at the last instant [Space]. A Perfect Dodge slows the world and fuels your shadow.',
         ],
         options: [{ label: 'Accept: First Steps of Shadow', action: 'quest:first_steps' }, { label: 'Controls?', action: 'controls' }, { label: 'Later', action: 'close' }],
@@ -154,5 +154,5 @@ export const BOARD_TEXT_AFTER = [
   'LUMINA QUEST BOARD',
   '• The fog has lifted! Festival at the fountain tonight.',
   '• GUILD: Volunteers wanted for the Ancient Valley expedition.',
-  '• Bram is home safe. Thank you, Umbral Sword.',
+  '• Bram is home safe. Thank you, adventurer.',
 ];

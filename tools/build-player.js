@@ -1,13 +1,13 @@
-// Converts the raw Umbral Sword sheets in /UB (fake-checkerboard background, 6 columns)
+// Converts raw class sheets (fake-checkerboard background, 6 columns, 4-row direction groups)
 // into clean alpha sprite strips + an atlas description consumed by src/player/playerSprites.js.
-// Usage: node tools/build-player.js
+// Every class preset is normalised to the SAME visual standard (body height, canvas, pivot).
+// Usage: node tools/build-player.js            (all classes)
+//        node tools/build-player.js aw         (one class: ub | aw)
 const fs = require('fs');
 const path = require('path');
 const png = require('./png.js');
 
 const ROOT = path.join(__dirname, '..');
-const OUT = path.join(ROOT, 'assets', 'player');
-fs.mkdirSync(OUT, { recursive: true });
 
 // CHARACTER VISUAL STANDARD (shared by every animation)
 const STD = {
@@ -15,8 +15,9 @@ const STD = {
   canvas: [128, 128],      // every frame of every animation uses this canvas
   pivot: [64, 120],        // feet-centre pivot inside the canvas (ground line y = 120)
 };
-// name -> [file, rows]
-const SHEETS = {
+// class preset -> output folder + sheets (name -> [file, rows])
+const PRESETS = {};
+PRESETS.ub = { out: 'assets/player', sheets: {
   walk: ['desgin/class cr/UB/UB WALK1.png', 4],
   run: ['desgin/class cr/UB/UB WALK2', 4],
   atk1: ['desgin/class cr/UB/UB ATK1', 4],
@@ -32,7 +33,22 @@ const SHEETS = {
   sk6: ['desgin/class cr/UB/UB SK6.png', 4],
   ult: ['desgin/class cr/UB/UB UT.png', 4],
   vfx: ['desgin/class cr/UB/UB VFX', 8],
-};
+} };
+const AW = 'desgin/class cr/AW/';
+PRESETS.aw = { out: 'assets/player/aw', sheets: {
+  walk: [AW + 'AW2', 4],
+  atk1: [AW + 'AW1.PNG', 4],
+  atk2: [AW + 'AW3', 4],
+  cast: [AW + 'AW4', 4],
+  hit: [AW + 'aw5', 4],
+  sk1: [AW + 'sk1', 4],
+  sk2: [AW + 'sk2', 4],
+  sk3: [AW + 'sk3', 4],
+  sk4: [AW + 'sk4', 4],
+  sk5: [AW + 'sk5', 4],
+  sk6: [AW + 'sk6', 4],
+  ult: [AW + 'ut', 4],
+} };
 const COLS = 6;
 
 function removeBackground(img) {
@@ -262,7 +278,12 @@ function validate(sheet, rows) {
 }
 
 const [CW, CH] = STD.canvas, [PX, PY] = STD.pivot;
-const atlas = { standard: STD, cols: COLS, sheets: {}, validation: {} };
+function buildPreset(key) {
+const { out: outRel, sheets: SHEETS } = PRESETS[key];
+const OUT = path.join(ROOT, outRel);
+fs.mkdirSync(OUT, { recursive: true });
+console.log('== preset', key, '->', outRel);
+const atlas = { preset: key, standard: STD, cols: COLS, sheets: {}, validation: {} };
 for (const [name, [file, rows]] of Object.entries(SHEETS)) {
   const img = png.read(path.join(ROOT, file));
   removeBackground(img);
@@ -291,9 +312,13 @@ for (const [name, [file, rows]] of Object.entries(SHEETS)) {
   png.write(path.join(OUT, name + '.png'), sheet);
   const sides = [];
   for (let base = 0; base < rows; base += 4) sides.push(sideRows(sheet, { fw: CW, fh: CH, ax: PX }, base));
-  atlas.sheets[name] = { file: 'assets/player/' + name + '.png', fw: CW, fh: CH, rows, cols: COLS, ax: PX, ay: PY, sides, sourceScale: +scale.toFixed(4) };
+  atlas.sheets[name] = { file: outRel + '/' + name + '.png', fw: CW, fh: CH, rows, cols: COLS, ax: PX, ay: PY, sides, sourceScale: +scale.toFixed(4) };
   const v = validate(sheet, rows);
   atlas.validation[name] = v;
   console.log(name.padEnd(6), 'scale', scale.toFixed(3), 'body', v.bodyHeight, 'feet±', v.feetMaxOffset, 'center', v.centerOffset, v.ok ? 'OK' : '⚠ ' + v.issues.join(', '));
 }
 fs.writeFileSync(path.join(OUT, 'atlas.json'), JSON.stringify(atlas, null, 1));
+}
+const only = process.argv[2];
+if (only && !PRESETS[only]) throw new Error('Unknown preset "' + only + '" (use: ' + Object.keys(PRESETS).join(', ') + ')');
+for (const key of only ? [only] : Object.keys(PRESETS)) buildPreset(key);

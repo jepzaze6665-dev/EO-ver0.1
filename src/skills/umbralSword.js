@@ -1,5 +1,6 @@
 import { TAU, rand } from '../core/math.js';
 import { TEAM } from '../core/constants.js';
+import { ANIMS } from '../player/playerSprites.js';
 
 // UMBRAL SWORD — class definition. The combat core knows nothing about this file:
 // a class is a stat block + basic combo + 5 skills + a special (Q) + passive hooks.
@@ -20,6 +21,20 @@ export const UmbralSword = {
   id: 'umbral_sword',
   stableId: 'class_umbral_sword',
   name: 'Umbral Sword',
+  role: 'Melee DPS · Assassin · Burst',
+  difficulty: 3,
+  ratings: { damage: 5, range: 1, defense: 2, mobility: 5, support: 1 },
+  description: 'An assassin who marks, dances through danger and detonates shadow.',
+  signatureWeapon: 'umbral_sword',
+  preset: 'ub',
+  anims: ANIMS,
+  theme: { color: '#b070ff', ghost: '#8a3aff', trail: 'shadow' },
+  startingGear: { weapon: 'umbral_sword', armor: 'umbral_cloak' },
+  guideIntro: ['Your blade feeds on shadow. Each well-placed strike leaves a Shadow Mark — build three and you can unleash a SHADOW BREAK. [Q / Right Click]'],
+  tutorial: { marks: 'Build 3 Shadow Marks', break: 'Unleash Shadow Break', breakSkill: 'shadow_break' },
+  hudCounter(p) {
+    return { label: 'SHADOW MARK', value: p.marks, max: p.maxMarks, color: '#b060ff', full: '#f0c8ff', ready: p.marks >= p.maxMarks, readyText: 'SHADOW BREAK READY — [Q]' };
+  },
   resource: 'shadow_gauge', // primary resource (stable id → data/resources.js)
   resources: ['shadow_gauge'],
   mark: 'shadow_mark', // class mark (stable id → data/marks.js), stored in the generic MarkSystem
@@ -251,4 +266,4 @@ export const UmbralSword = {
   },
 };
 
-export const CLASSES = { umbral_sword: UmbralSword };
+export const CLASSES = { umbral_sword: UmbralSword }; // v1 alias — the full registry is skills/classes.js

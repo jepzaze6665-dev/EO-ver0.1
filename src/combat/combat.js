@@ -4,6 +4,7 @@ import { Telegraphs } from './telegraph.js';
 import { Projectiles } from './projectiles.js';
 import { computeDamage } from './damageSystem.js';
 import { STATUSES } from '../data/statuses.js';
+import { THREADS } from '../data/threads.js';
 
 // Class-agnostic combat resolver. Skills from any class spawn hitboxes described
 // as data; enemies resolve telegraphed strikes through enemyStrike(). All feedback
@@ -57,6 +58,28 @@ export class Combat {
       case 'line': return inLine(t.x, t.y, tr, hb.x, hb.y, hb.ang, hb.len, hb.width);
     }
     return false;
+  }
+
+  // ---------------- threads (rules in data/threads.js; the ThreadSystem only detects touches)
+  threadTouch(th, target, first) {
+    const def = THREADS[th.type], d = def.touch;
+    if (!d || target.dead) return;
+    if (d.power) this.dealDamage(th.owner, target, { power: d.power, type: d.type, dot: true, knock: 0, color: def.visual.color, threadId: th.id });
+    if (d.status && target.status && !target.dead) target.status.add(d.status, d.statusTime, { source: th.owner });
+    if (first && d.mark && !target.dead && this.game.marks) this.game.marks.apply(target, d.mark, { source: th.owner });
+  }
+  // a triggered thread explodes along its whole length (the caller decides extra effects via onHit)
+  threadBurst(seg, owner, { onHit } = {}) {
+    const d = seg.def.burst;
+    const len = Math.hypot(seg.bx - seg.ax, seg.by - seg.ay);
+    return this.spawnHitbox({
+      owner, x: seg.ax, y: seg.ay, ang: Math.atan2(seg.by - seg.ay, seg.bx - seg.ax), shape: 'line', len: len + 8, width: d.width,
+      power: d.power, type: d.type, knock: 130, stagger: 22, hitStop: 0.06, shake: 0.2,
+      onHit: (t) => {
+        if (d.mark && !t.dead && !t.isBreakable && this.game.marks) this.game.marks.apply(t, d.mark, { source: owner });
+        if (onHit) onHit(t);
+      },
+    });
   }
 
   // statuses queue their damage ticks and events; combat turns them into real damage + bus events

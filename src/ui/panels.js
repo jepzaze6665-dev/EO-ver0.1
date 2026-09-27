@@ -3,19 +3,21 @@ import { iconURL } from './icons.js';
 import { dialogueFor, LORE } from '../world/narrative.js';
 import { QUESTS } from '../quests/quests.js';
 import { TILE, T } from '../core/constants.js';
+import { CLASSES, STARTING_CLASSES } from '../skills/classes.js';
+import { RESOURCES } from '../data/resources.js';
 
 // DOM overlays. They only exist while open (no DOM churn during combat) and pause the game.
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
-export const CONTROLS_HTML = `
+// controls sheet — skill lines come from the class data (any class)
+export const controlsHTML = (cls = CLASSES.umbral_sword) => `
 <div class="controls">
   <div><b>WASD</b> Move (360°)</div><div><b>Mouse</b> Aim</div>
   <div><b>Left Click</b> Basic Attack (3-hit combo)</div><div><b>Space</b> Dodge — time it for PERFECT DODGE</div>
-  <div><b>1</b> Shadow Slash</div><div><b>2</b> Twin Fang</div>
-  <div><b>3</b> Shade Step (dash)</div><div><b>4</b> Shadow Arc</div>
-  <div><b>5</b> Eclipse Sever (Ultimate)</div><div><b>Q / Right Click</b> Shadow Break (3 Marks)</div>
-  <div><b>R</b> Healing Draught</div><div><b>F</b> Shadow Tonic</div>
+  ${cls.skills.map((s) => `<div><b>${s.slot}</b> ${esc(s.name)}${s.ultimate ? ' (Ultimate)' : ''}</div>`).join('')}
+  <div><b>Q / Right Click</b> ${esc(cls.special.name)}</div>
+  <div><b>R</b> Healing Draught</div><div><b>F</b> Resource Tonic</div>
   <div><b>E</b> Interact / Talk</div><div><b>Shift</b> Sprint</div>
   <div><b>I</b> Inventory · Equipment · Knowledge</div><div><b>M</b> World Map</div>
   <div><b>ESC</b> Menu (Save / Load / Reset)</div><div><b>F3</b> Debug overlay</div>
@@ -62,13 +64,45 @@ export class Panels {
           <button data-a="new" class="${hasSave ? '' : 'primary'}">New Game</button>
           <button data-a="controls">Controls</button>
         </div>
-        <div class="foot">Class: <b>Umbral Sword</b> · Explore → Discover → Fight → Build → Boss → World State Change</div>
+        <div class="foot">Choose a class · Explore → Discover → Fight → Build → Boss → World State Change</div>
       </div>`, 'title');
     el.addEventListener('click', (e) => {
       const a = e.target.dataset.a;
-      if (a === 'new') this.game.newGame();
+      if (a === 'new') this.classSelect(hasSave);
       if (a === 'continue') this.game.continueGame();
-      if (a === 'controls') this.textPanel('Controls', CONTROLS_HTML, () => this.title(hasSave), true);
+      if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined), () => this.title(hasSave), true);
+    });
+  }
+
+  // ---------------- class select (generic: every card is built from class data)
+  classSelect(hasSave) {
+    const stars = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+    const card = (id) => {
+      const c = CLASSES[id], r = c.ratings || {}, res = RESOURCES[c.resource];
+      return `<button class="class-card" data-cls="${id}" style="--cc:${(c.theme && c.theme.color) || '#b070ff'}">
+        <div class="cc-name">${esc(c.name)}</div>
+        <div class="cc-role">${esc(c.role || '')}</div>
+        <div class="cc-desc">${esc(c.description || '')}</div>
+        <div class="cc-stats">
+          <span>Difficulty</span><b>${stars(c.difficulty || 3)}</b>
+          <span>Damage</span><b>${stars(r.damage || 3)}</b><span>Range</span><b>${stars(r.range || 3)}</b>
+          <span>Defense</span><b>${stars(r.defense || 3)}</b><span>Mobility</span><b>${stars(r.mobility || 3)}</b>
+        </div>
+        <div class="cc-res">Resource: <b style="color:${res.colors[0]}">${esc(res.name)}</b></div>
+        <div class="cc-skills">${[...c.skills, c.special].map((s) => esc(s.name)).join(' · ')}</div>
+      </button>`;
+    };
+    const el = this.show('title', `
+      <div class="title-wrap compact">
+        <div class="logo"><span class="eclipse"></span>ECLIPSE<small>ONLINE</small></div>
+        <div class="tag">Choose your class</div>
+        <div class="class-cards">${STARTING_CLASSES.map(card).join('')}</div>
+        <div class="menu-buttons"><button data-a="back">Back</button></div>
+      </div>`, 'title');
+    el.addEventListener('click', (e) => {
+      const c = e.target.closest('[data-cls]');
+      if (c) return this.game.newGame(c.dataset.cls);
+      if (e.target.dataset.a === 'back') this.title(hasSave);
     });
   }
 
@@ -104,7 +138,7 @@ export class Panels {
     if (a.startsWith('quest:')) { this.close(); g.quests.accept(a.slice(6)); return; }
     if (a === 'shop') return this.shop();
     if (a === 'smith') return this.smith();
-    if (a === 'controls') return this.textPanel('Controls', CONTROLS_HTML, null, true);
+    if (a === 'controls') return this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined), null, true);
   }
 
   // ---------------- lore / text
@@ -151,7 +185,7 @@ export class Panels {
           <div>${slot('weapon', 'WEAPON')}${slot('armor', 'ARMOR')}${slot('accessory', 'ACCESSORY')}
             <p class="muted small">Equip items from the Inventory tab. Equipment changes stats <i>and</i> how skills behave.</p></div>
           <div class="stats">
-            <h3>Umbral Sword — LV.${p.level}</h3>
+            <h3>${esc(p.cls.name)} — LV.${p.level}</h3>
             <div>Max HP <b>${p.maxHp}</b></div><div>Attack <b>${Math.round(st.atk)}</b></div><div>Defense <b>${Math.round(st.def)}</b></div>
             <div>Critical <b>${pct(st.crit)}</b></div><div>Shadow Damage <b>+${pct(st.shadowDmg)}</b></div><div>Cooldown Reduction <b>${pct(st.cdr || 0)}</b></div>
             <div>Shadow Gain <b>${pct(st.shadowGain)}</b></div><div>Armor Break <b>×${(st.armorBreak || 1).toFixed(1)}</b></div>
@@ -366,7 +400,7 @@ export class Panels {
         if (e.target.dataset.confirm) { this.close(); g.resetGame(); }
         else { e.target.dataset.confirm = '1'; e.target.textContent = 'Click again to confirm reset'; e.target.classList.add('danger'); }
       }
-      if (a === 'controls') this.textPanel('Controls', CONTROLS_HTML, () => this.menu(), true);
+      if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined), () => this.menu(), true);
       if (a === 'mute') { g.audio.setMuted(!g.audio.muted); this.menu(); }
       if (a === 'title') { this.close(); g.toTitle(); }
     });

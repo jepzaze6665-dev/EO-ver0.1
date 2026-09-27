@@ -1,3 +1,5 @@
+import { CLASSES } from '../skills/classes.js';
+
 // LocalStorage save: level, EXP, gold, inventory, storage, equipment, quests,
 // world state, discovered areas (+ minimap reveal), monster knowledge, position.
 const KEY = 'eclipse_online_save_v1';
@@ -16,7 +18,7 @@ export class SaveSystem {
       const raw = localStorage.getItem(KEY);
       if (!raw) return 'No save data.';
       const d = JSON.parse(raw);
-      return `Last save: ${new Date(d.savedAt).toLocaleString()} · LV.${d.player.level}`;
+      return `Last save: ${new Date(d.savedAt).toLocaleString()} · ${(CLASSES[d.player.classId] || CLASSES.umbral_sword).name} LV.${d.player.level}`;
     } catch (e) { return 'Save unavailable.'; }
   }
   snapshot() {
@@ -25,7 +27,7 @@ export class SaveSystem {
       v: 1,
       savedAt: Date.now(),
       playTime: g.playTime,
-      player: { level: p.level, exp: p.exp, gold: p.gold, hp: p.hp, shadow: p.shadow, resources: p.resources.serialize(), x: p.x, y: p.y },
+      player: { classId: p.cls.id, level: p.level, exp: p.exp, gold: p.gold, hp: p.hp, shadow: p.shadow, resources: p.resources.serialize(), x: p.x, y: p.y },
       inventory: g.inventory.serialize(),
       equipment: g.equipment.serialize(),
       quests: g.quests.serialize(),
