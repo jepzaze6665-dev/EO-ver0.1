@@ -1,5 +1,6 @@
 import { MONSTERS } from './monsterTypes.js';
 import { ITEMS } from '../items/items.js';
+import { LOOT_TABLES } from '../data/lootTables.js';
 
 // MONSTER KNOWLEDGE — the player learns the world by fighting it.
 //  unseen  : not listed ("UNKNOWN MONSTER" nameplate)
@@ -53,7 +54,7 @@ export class Knowledge {
         hp: q(k >= 5 || e.reveal.hp, d.hp),
         weakness: q(k >= 3 || e.reveal.weakness, (d.weakness || []).map((w) => w[0].toUpperCase() + w.slice(1)).join(', ')),
         pattern: q(k >= 1 || e.reveal.pattern, d.pattern),
-        drop: q(k >= 3 || e.reveal.drop, d.drops ? d.drops.map((x) => ITEMS[x.item].name).join(', ') : d.boss ? 'Heart of the Guardian' : '—'),
+        drop: q(k >= 3 || e.reveal.drop, ((LOOT_TABLES[d.loot] || {}).drops || []).map((x) => ITEMS[x.item].name).join(', ') || '—'),
         desc: k >= 1 || e.reveal.pattern ? d.desc : 'Little is known. Fight it to learn more.',
       };
     });

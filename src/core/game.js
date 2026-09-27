@@ -20,6 +20,9 @@ import { ThreadSystem } from '../combat/threadSystem.js';
 import { SummonSystem } from '../combat/summonSystem.js';
 import { SUMMONS } from '../data/summons.js';
 import { Progression } from '../progression/progression.js';
+import { ExperienceSystem } from '../progression/experienceSystem.js';
+import { LootSystem } from '../loot/lootSystem.js';
+import { TargetSystem } from '../combat/targetSystem.js';
 import { changeClass } from '../progression/classChange.js';
 import { CLASS_TREE, TRIALS } from '../data/classTree.js';
 const TRIALS_TITLE = (id) => (TRIALS[id] ? TRIALS[id].title : id);
@@ -66,8 +69,14 @@ export class Game {
 
   wireEvents() {
     const ev = this.events;
-    ev.on('kill', () => { this.stats.kills++; });
+    ev.on('enemyDefeated', (e) => {
+      this.stats.kills++;
+      if (!e.boss) this.knowledge.kill(e.type);
+    });
+    ev.on('lootDropped', (e) => { if (e.gold) this.vfx.text(e.x, e.y - 10, `+${e.gold}G`, { color: '#ffd24a', size: 8, life: 0.8 }); });
     ev.on('chestOpened', () => { this.stats.chests++; });
+    // hitting an enemy with nothing selected makes it the target
+    ev.on('damageDealt', (e) => { if (e.source === this.player && !e.killed && !this.targets.current && !e.target.isBreakable) this.targets.set(e.target); });
     // tutorial 'marks' step, for any class: a self mark reaching max, or our mark triggering on an enemy
     ev.on('targetMarked', (e) => { if (e.target === this.player && e.stacks >= e.maxStacks) this.world.setFlag('tut_marks'); });
     ev.on('markTriggered', (e) => { if (e.source === this.player) this.world.setFlag('tut_marks'); });
@@ -131,6 +140,14 @@ export class Game {
     this.wireEvents();
     this.stats = { kills: 0, chests: 0, deaths: 0 };
     this.quests = new Quests(this);
+    // enemyDefeated -> EXP / loot (rules in data/levels.js, data/lootTables.js)
+    this.experience = new ExperienceSystem(this);
+    this.loot = new LootSystem(this);
+    // current target (Tab = nearest / cycle, click an enemy, or hit one); the HUD reads targets.current
+    this.targets = new TargetSystem({
+      candidates: () => this.world.hostiles().filter((e) => !e.isBreakable),
+      onChange: (e) => this.events.emit('targetChanged', e),
+    });
     // class records / trials / unlocks (rules in data/classTree.js)
     this.progression = new Progression(this);
     this.combat.clear();
@@ -298,11 +315,10 @@ export class Game {
     }, true);
     this.after(4.2, () => {
       this.camera.targetZoom = 1;
+      const first = !w.state.killed.guardian; // boss rewards are given once per character
       w.onGuardianDefeated();
-      this.player.gainExp(boss.def.exp);
-      this.player.gold += 300;
-      this.inventory.add('guardian_heart', 1);
-      this.inventory.add('guardian_heartwood', 1);
+      if (first) this.events.emit('enemyDefeated', { entity: boss, type: 'guardian', name: boss.def.name, source: this.player, x: boss.x, y: boss.y, summoned: false, boss: true, exp: boss.def.exp, loot: boss.def.loot });
+      this.events.emit('bossDefeated', { entity: boss, type: 'guardian', first });
       this.vfx.flash('200,255,220', 0.6, 0.8);
       this.ui.banner('WORLD STATE UPDATED', 'Whispering Forest has changed.', '#a8f0c8', 5);
       this.quests.accept('valley');
@@ -400,6 +416,8 @@ export class Game {
     else if (inp.pressed('KeyI')) this.ui.panels.inventory();
     else if (inp.pressed('KeyM')) this.ui.panels.worldMap();
     else if (inp.pressed('KeyE')) this.world.interactNearest();
+    if (inp.pressed('Tab')) this.targets.nearest(this.player, true);
+    if (inp.mouse.leftPressed) { const mw = this.mouseWorld(), t = this.targets.pickAt(mw.x, mw.y); if (t) this.targets.set(t); }
   }
 
   update(dt) {
@@ -421,6 +439,7 @@ export class Game {
     this.tickTimers(dt, sdt);
     this.player.update(sdt);
     this.world.update(sdt);
+    this.targets.update(this.player);
     this.combat.update(sdt);
     this.marks.update(sdt, { inCombat: (e) => (e === this.player ? this.combat.inCombat : true) });
     this.threads.update(sdt, {
@@ -441,12 +460,13 @@ export class Game {
       `FPS ${this.fps}  scale ${this.renderer.scale}  view ${this.renderer.vw}x${this.renderer.vh}`,
       `pos ${(p.x / TILE).toFixed(1)}, ${(p.y / TILE).toFixed(1)}  zone ${w.currentZone} ${w.currentSub ? w.currentSub.name : ''}`,
       `monsters ${w.monsters.length}  particles ${this.vfx.particles.count()}  proj ${this.combat.projectiles.pool.count()}  tele ${this.combat.telegraphs.list.length}  marks ${this.marks.count()}  threads ${this.threads.count()}  summons ${this.summons.count()}`,
+      `target ${this.targets.current ? `${this.targets.current.name || this.targets.current.type} ${Math.ceil(this.targets.current.hp)}/${this.targets.current.maxHp}` : '-'}  LV ${p.level} ${p.cls.id} HP ${Math.ceil(p.hp)}/${p.maxHp}`,
       `timeScale ${this.timeScale.toFixed(2)} hitStop ${this.hitStop.toFixed(2)}  flags ${Object.keys(w.state.flags).join(',')}`,
     ];
     c.save();
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.fillStyle = 'rgba(0,0,0,0.6)';
-    c.fillRect(0, this.canvas.height - 90, 900, 90);
+    c.fillRect(0, this.canvas.height - 108, 900, 108);
     // SPRITE VALIDATION (dev mode)
     c.fillRect(this.canvas.width - 300, this.canvas.height - 40 - this.spriteReport.length * 18, 300, 40 + this.spriteReport.length * 18);
     c.font = '14px monospace';
@@ -455,7 +475,7 @@ export class Game {
     this.spriteReport.forEach((r, i) => { c.fillStyle = r.ok ? '#9f9' : '#fc6'; c.fillText(`${r.name.padEnd(6)} ${r.ok ? '✓' : '⚠ ' + r.issues.join(', ')}  h${r.bodyHeight} feet±${r.feet}`, this.canvas.width - 290, this.canvas.height - 4 - (this.spriteReport.length - 1 - i) * 18); });
     c.fillStyle = '#9f9';
     c.font = '14px monospace';
-    lines.forEach((l, i) => c.fillText(l, 10, this.canvas.height - 70 + i * 18));
+    lines.forEach((l, i) => c.fillText(l, 10, this.canvas.height - 88 + i * 18));
     c.restore();
   }
 }

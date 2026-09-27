@@ -85,6 +85,22 @@ export class Player extends Entity {
     }
   }
   get classId() { return this.cls.id; }
+  // ---------------- gold (never negative; 'goldChanged' for the UI / quests / a future server)
+  addGold(n) {
+    n = Math.floor(n);
+    if (!(n > 0)) return 0;
+    this.gold += n;
+    if (this.game.events) this.game.events.emit('goldChanged', { entity: this, amount: n, gold: this.gold });
+    return n;
+  }
+  canAfford(n) { return n >= 0 && this.gold >= n; }
+  removeGold(n) {
+    n = Math.floor(n);
+    if (!(n >= 0) || !this.canAfford(n)) return false;
+    this.gold -= n;
+    if (this.game.events) this.game.events.emit('goldChanged', { entity: this, amount: -n, gold: this.gold });
+    return true;
+  }
   get isMaxLevel() { return this.level >= LEVELS.maxLevel; }
   expToNext() { return expToNext(this.level); }
   // level + EXP from a save / class change / test; repaired to a valid state (level range, exp < next)

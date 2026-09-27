@@ -50,7 +50,7 @@ export class Quests {
     this.active = {}; // id -> {progress:{objId: n}, done:{objId: bool}}
     this.completed = {};
     game.events.on('zoneEnter', (z) => this.onEvent('zone', z));
-    game.events.on('kill', (type) => this.onEvent('kill', type));
+    game.events.on('enemyDefeated', (e) => { if (!e.summoned) this.onEvent('kill', e.type); });
     game.events.on('flag', (f) => this.onEvent('flag', f));
   }
   isActive(id) { return !!this.active[id]; }

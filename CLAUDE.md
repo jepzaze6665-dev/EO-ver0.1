@@ -63,6 +63,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   quest/target/save). Owner chose **B = real separate maps with transitions** (not the seamless zone world) and
   **start at LV 1** (cap 30). Done: P1 audit, P2 level rules in `src/data/levels.js` + pure `src/progression/experience.js`
   (class `base` = level 1, `perLevel` × `statGrowth`; `levelUp` / `expGained` events; Class 2 needs LV 10; tests set LV 10
-  for the boss). Next: P3 combat ↔ world (`enemyDefeated` event → EXP / loot / quest listeners, target system), then
-  maps split per the spec. Monster display levels / zone "Lv." subtitles still show the old 5-15 range (fix in P4).
+  for the boss). P3: monster deaths emit `enemyDefeated` (world.js) → `ExperienceSystem`
+  (`src/progression/experienceSystem.js`), `LootSystem` (`src/loot/lootSystem.js`, tables in `src/data/lootTables.js`,
+  monsters name `loot: '<table>'`), quests, knowledge; boss reward = same event, once; `player.addGold/removeGold/canAfford`;
+  `src/combat/targetSystem.js` (Tab nearest/cycle, click, auto on hit; HUD target frame). Next: P4 monster foundation
+  (LV 1 balance, display levels), then P5-7, maps split per the spec (P8-12). Monster display levels / zone "Lv." subtitles still show the old 5-15 range (fix in P4).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

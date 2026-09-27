@@ -7,7 +7,7 @@ import { NPC } from './npc.js';
 import { Breakable } from '../exploration/breakable.js';
 import { TrainingDummy } from '../entities/trainingDummy.js';
 import { isAvailable, interact, promptFor } from '../exploration/interactables.js';
-import { dist, rand, randInt, TAU, pick } from '../core/math.js';
+import { dist, rand, TAU, pick } from '../core/math.js';
 import { Assets } from '../core/assets.js';
 
 const REVEAL_R = 10;
@@ -196,16 +196,14 @@ export class World {
     }
   }
 
+  // The world only records what the death means for the world; EXP / loot / quests / knowledge / UI
+  // react to the 'enemyDefeated' event (progression/experienceSystem.js, loot/lootSystem.js, quests, ...).
   onMonsterKilled(m, src) {
     const g = this.game, d = m.def;
-    g.knowledge.kill(m.type);
-    g.events.emit('kill', m.type);
-    if (!m.summoned) {
-      g.player.gainExp(d.exp);
-      const gold = randInt(d.gold[0], d.gold[1]);
-      if (gold) { g.player.gold += gold; g.vfx.text(m.x, m.y - 10, `+${gold}G`, { color: '#ffd24a', size: 8, life: 0.8 }); }
-      for (const dr of d.drops || []) if (Math.random() < dr.chance) g.inventory.add(dr.item, dr.count || 1);
-    }
+    g.events.emit('enemyDefeated', {
+      entity: m, type: m.type, name: d.name, source: src, x: m.x, y: m.y,
+      summoned: !!m.summoned, boss: false, miniBoss: !!d.miniBoss, exp: d.exp, loot: d.loot,
+    });
     g.vfx.burst(m.x, m.y - m.height * 0.5, m.corrupted ? '#b060ff' : '#c8c0b0', 18, 120);
     g.vfx.shadowSmoke(m.x, m.y, 8);
     g.audio.sfx('kill');

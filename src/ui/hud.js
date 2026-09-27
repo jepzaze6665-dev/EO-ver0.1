@@ -1,3 +1,4 @@
+import { MONSTERS } from '../monsters/monsterTypes.js';
 import { icon } from './icons.js';
 import { TILE, T, Z } from '../core/constants.js';
 import { clamp, TAU, easeOutCubic } from '../core/math.js';
@@ -96,6 +97,7 @@ export class HUD {
     this.drawMinimap(ctx, W, u);
     this.drawQuests(ctx, W, u);
     this.drawBoss(ctx, W, u);
+    this.drawTarget(ctx, W, u);
     this.drawPickups(ctx, H, u);
     this.drawBanners(ctx, W, H, u);
     ctx.restore();
@@ -422,6 +424,26 @@ export class HUD {
       ctx.globalAlpha = 1;
       y += 42 * u;
     }
+  }
+
+  // current target (combat/targetSystem.js): marker over it + a small frame at the top (hidden when the boss bar shows it)
+  drawTarget(ctx, W, u) {
+    const g = this.game, t = g.targets && g.targets.current;
+    if (!t) return;
+    const kn = g.knowledge;
+    const name = t.type && MONSTERS[t.type] ? kn.nameFor(t.type) : t.name || 'Target';
+    const lvl = t.type && MONSTERS[t.type] ? kn.levelFor(t.type) : null;
+    // marker above the head
+    const s = this.toScreen(t.x, t.y - (t.height || 30) * (t.scale || 1) - 26);
+    const bob = Math.sin(g.time * 6) * 2 * u;
+    ctx.fillStyle = '#ffd24a';
+    ctx.beginPath(); ctx.moveTo(s.x - 6 * u, s.y - 10 * u + bob); ctx.lineTo(s.x + 6 * u, s.y - 10 * u + bob); ctx.lineTo(s.x, s.y - 2 * u + bob); ctx.closePath(); ctx.fill();
+    if (t === g.world.guardian && this.bossBarShow > 0) return;
+    const w = Math.min(W * 0.3, 320 * u), x = W / 2 - w / 2, y = 22 * u;
+    ctx.fillStyle = 'rgba(10,6,20,0.7)'; ctx.fillRect(x - 8 * u, y - 16 * u, w + 16 * u, 40 * u);
+    this.text(ctx, lvl ? `${name}  Lv.${lvl}` : name, W / 2, y, 13 * u, '#f0e8e0', { align: 'center' });
+    this.bar(ctx, x, y + 6 * u, w, 10 * u, t.hp / t.maxHp, '#ff6070', '#901828');
+    this.text(ctx, `${Math.ceil(t.hp)} / ${Math.ceil(t.maxHp)}`, W / 2, y + 15 * u, 9 * u, '#fff', { align: 'center' });
   }
 
   drawBoss(ctx, W, u) {
