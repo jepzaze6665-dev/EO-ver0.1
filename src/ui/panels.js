@@ -11,11 +11,11 @@ const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
 // controls sheet — skill lines come from the class data (any class)
-export const controlsHTML = (cls = CLASSES.umbral_sword) => `
+export const controlsHTML = (cls = CLASSES.umbral_sword, player = null) => `
 <div class="controls">
   <div><b>WASD</b> Move (360°)</div><div><b>Mouse</b> Aim</div>
   <div><b>Left Click</b> Basic Attack (3-hit combo)</div><div><b>Space</b> Dodge — time it for PERFECT DODGE</div>
-  ${cls.skills.map((s) => `<div><b>${s.slot}</b> ${esc(s.name)}${s.ultimate ? ' (Ultimate)' : ''}</div>`).join('')}
+  ${(player ? player.loadout.bindings() : cls.skills.filter((s) => s.slot).map((s) => ({ key: s.slot, skill: s }))).map((b) => `<div><b>${b.key}</b> ${esc(b.skill.name)}${b.skill.ultimate ? ' (Ultimate)' : ''}</div>`).join('')}
   <div><b>Q / Right Click</b> ${esc(cls.special.name)}</div>
   <div><b>R</b> Healing Draught</div><div><b>F</b> Resource Tonic</div>
   <div><b>E</b> Interact / Talk</div><div><b>Shift</b> Sprint</div>
@@ -70,7 +70,7 @@ export class Panels {
       const a = e.target.dataset.a;
       if (a === 'new') this.classSelect(hasSave);
       if (a === 'continue') this.game.continueGame();
-      if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined), () => this.title(hasSave), true);
+      if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.title(hasSave), true);
     });
   }
 
@@ -138,7 +138,7 @@ export class Panels {
     if (a.startsWith('quest:')) { this.close(); g.quests.accept(a.slice(6)); return; }
     if (a === 'shop') return this.shop();
     if (a === 'smith') return this.smith();
-    if (a === 'controls') return this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined), null, true);
+    if (a === 'controls') return this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), null, true);
   }
 
   // ---------------- lore / text
@@ -158,7 +158,7 @@ export class Panels {
   inventory(tab) {
     if (tab) this.invTab = tab;
     const g = this.game, p = g.player, inv = g.inventory, eq = g.equipment;
-    const tabs = [['inventory', 'Inventory'], ['equipment', 'Equipment'], ['knowledge', 'Monster Knowledge'], ['lore', 'Lore & Quests']];
+    const tabs = [['inventory', 'Inventory'], ['equipment', 'Equipment'], ['skills', 'Skills'], ['knowledge', 'Monster Knowledge'], ['lore', 'Lore & Quests']];
     let body = '';
     if (this.invTab === 'inventory') {
       const items = inv.list(this.invCat);
@@ -194,6 +194,19 @@ export class Panels {
             ${Object.keys(p.mods).length ? Object.values(eq.slots).filter(Boolean).map((id) => ITEMS[id].modText ? `<div class="mod">◆ ${esc(ITEMS[id].modText)}</div>` : '').join('') : '<div class="muted">None — find or forge equipment to change your build.</div>'}
           </div>
         </div>`;
+    } else if (this.invTab === 'skills') {
+      // generic loadout editor: every class skill, keys 1-4 are chosen here (5 = ultimate, Q = special)
+      const p = g.player, lo = p.loadout, cd = (s) => `CD ${s.cooldown}s${s.cost ? ` · ${s.cost} ${RESOURCES[s.costResource || p.primaryResource].label}` : ''}`;
+      const card = (s, extra = '') => `<div class="skill-card${lo.slots.includes(s.id) ? ' on' : ''}">
+          <img src="${iconURL(s.icon)}"><div class="sk-body"><b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).join(', ')}</span>
+          <div class="small">${esc(s.desc || '')}</div>${extra}</div></div>`;
+      body = `<div class="skills-layout">
+        <div><h3>${esc(p.cls.name)} — Skill Loadout</h3>
+          <p class="muted small">Keys <b>1-4</b> are yours to choose. <b>5</b> is always the ultimate and <b>Q</b> the class special. Changes are locked while in combat.</p>
+          ${lo.pool().map((s) => card(s, `<div class="slot-btns">${[0, 1, 2, 3].map((i) => `<button data-slot="${i}" data-skill="${s.id}" class="${lo.slots[i] === s.id ? 'on' : ''}">${i + 1}</button>`).join('')}</div>`)).join('')}
+        </div>
+        <div><h3>Fixed</h3>${[lo.ultimate(), p.cls.special].filter(Boolean).map((s) => card(s, `<div class="muted small">Key ${s.ultimate ? '5' : 'Q'}</div>`)).join('')}</div>
+      </div>`;
     } else if (this.invTab === 'knowledge') {
       const list = g.knowledge.view();
       body = `<div class="know">${list.map((e) => `
@@ -223,7 +236,7 @@ export class Panels {
         <div class="content">${body}</div>
       </div>`);
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],.x');
+      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],[data-slot],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
       if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
@@ -232,6 +245,7 @@ export class Panels {
       else if (t.dataset.use) { g.inventory.use(t.dataset.use); this.inventory(); }
       else if (t.dataset.equip) { g.equipment.equip(t.dataset.equip); if (!g.inventory.has(this.selected)) this.selected = null; this.inventory(); }
       else if (t.dataset.unequip) { g.equipment.unequip(t.dataset.unequip); this.inventory(); }
+      else if (t.dataset.slot) { g.player.setSkillSlot(+t.dataset.slot, t.dataset.skill); this.inventory(); }
     });
   }
   itemDetail(id) {
@@ -400,7 +414,7 @@ export class Panels {
         if (e.target.dataset.confirm) { this.close(); g.resetGame(); }
         else { e.target.dataset.confirm = '1'; e.target.textContent = 'Click again to confirm reset'; e.target.classList.add('danger'); }
       }
-      if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined), () => this.menu(), true);
+      if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.menu(), true);
       if (a === 'mute') { g.audio.setMuted(!g.audio.muted); this.menu(); }
       if (a === 'title') { this.close(); g.toTitle(); }
     });

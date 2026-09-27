@@ -7,6 +7,7 @@ import { ResourcePool } from '../combat/resourceSystem.js';
 import { RESOURCES } from '../data/resources.js';
 import { SkillSystem } from '../combat/skillSystem.js';
 import { MARKS } from '../data/marks.js';
+import { Loadout } from './loadout.js';
 
 const DODGE_TIME = 0.24, DODGE_DIST = 100, DODGE_IFRAMES = 0.28, DODGE_CHARGES = 2, DODGE_RECHARGE = 0.85;
 const HURT_IFRAMES = 0.55;
@@ -35,6 +36,8 @@ export class Player extends Entity {
       onUsed: (e) => game.events && game.events.emit('skillUsed', e),
       onFailed: (e) => game.events && game.events.emit('skillFailed', e),
     });
+    // which skills sit on keys 1-4 (key 5 = ultimate) — chosen in the Skills tab, saved with the character
+    this.loadout = new Loadout(classDef);
     // class passives listen to core events (markTriggered, threadTouched, ...) — no class checks in the core
     for (const [name, fn] of Object.entries(classDef.on || {})) game.events.on(name, (e) => fn(this, game, e));
     this.mods = {};
@@ -43,7 +46,7 @@ export class Player extends Entity {
     this.combo = 0; this.comboTimer = 0;
     this.dodgeCharges = DODGE_CHARGES; this.dodgeRecharge = 0;
     this.dodging = false; this.dodgeStart = -9; this.dodgeOrigin = null; this.dodgeAng = 0; this.dodgeT = 0;
-    this.invulnT = 0; this.hurtT = 0; this.counterT = 0;
+    this.invulnT = 0; this.hurtT = 0;
     this.perfectCooldown = 0;
     this.anim = 'idle'; this.animT = 0;
     this.aim = 0; this.facing = Math.PI / 2;
@@ -228,6 +231,16 @@ export class Player extends Entity {
     return r.ok;
   }
   tryBreak() { return this.trySkill(this.cls.special); }
+  // change which skill sits on key i+1 (Skills tab). Not allowed mid-fight.
+  setSkillSlot(i, id) {
+    const g = this.game;
+    if (g.combat.inCombat) { g.ui.toast('Cannot change skills in combat', 1); g.audio.sfx('deny'); return false; }
+    if (!this.loadout.assign(i, id)) return false;
+    g.events.emit('loadoutChanged', { player: this, slots: this.loadout.serialize() });
+    g.audio.sfx('equip');
+    g.save.dirty = true;
+    return true;
+  }
 
   tryAttack() {
     if (this.hurtT > 0 || this.dodging || !this.status.canAct()) return false;
@@ -252,7 +265,6 @@ export class Player extends Entity {
 
     this.invulnT = Math.max(0, this.invulnT - dt);
     this.hurtT = Math.max(0, this.hurtT - dt);
-    this.counterT = Math.max(0, this.counterT - dt);
     this.perfectCooldown = Math.max(0, this.perfectCooldown - dt);
     this.comboTimer = Math.max(0, this.comboTimer - dt);
     this.skillSys.update(dt);
@@ -281,7 +293,7 @@ export class Player extends Entity {
 
       if (input.peek('dodge') && this.tryDodge()) input.consume('dodge');
       if (input.peek('break') && this.tryBreak()) input.consume('break');
-      for (const sk of this.cls.skills) if (input.peek('skill' + sk.slot) && this.trySkill(sk)) input.consume('skill' + sk.slot);
+      for (const b of this.loadout.bindings()) if (input.peek('skill' + b.key) && this.trySkill(b.skill)) input.consume('skill' + b.key);
       if (input.peek('attack') && this.tryAttack()) input.consume('attack');
     }
 
@@ -358,10 +370,10 @@ export class Player extends Entity {
         g.audio.sfx('step');
       }
     }
-    // idle aura when Shadow Break is ready
-    if (this.marks >= 3 && Math.random() < 0.35) {
+    // idle aura while the class mark is full (colours from data/marks.js)
+    if (this.markId && this.marks >= this.maxMarks && Math.random() < 0.35) {
       const a2 = rand(0, TAU);
-      g.vfx.particle(this.x + Math.cos(a2) * 12, this.y - rand(0, 40), { color: '#b060ff', vy: -30, life: 0.6, size: 2, add: true });
+      g.vfx.particle(this.x + Math.cos(a2) * 12, this.y - rand(0, 40), { color: MARKS[this.markId].display.color, vy: -30, life: 0.6, size: 2, add: true });
     }
   }
 
@@ -385,9 +397,10 @@ export class Player extends Entity {
     // shadow
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath(); ctx.ellipse(this.x, this.y, 12, 4.5, 0, 0, TAU); ctx.fill();
-    if (this.marks >= 3) {
-      ctx.fillStyle = `rgba(160,70,255,${0.25 + 0.15 * Math.sin(g.time * 8)})`;
-      ctx.beginPath(); ctx.ellipse(this.x, this.y, 18, 7, 0, 0, TAU); ctx.fill();
+    if (this.markId && this.marks >= this.maxMarks) {
+      ctx.fillStyle = MARKS[this.markId].display.color;
+      ctx.globalAlpha = 0.3 + 0.15 * Math.sin(g.time * 8);
+      ctx.beginPath(); ctx.ellipse(this.x, this.y, 18, 7, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
     }
     let y = this.y;
     if (this.dead) {
@@ -407,13 +420,14 @@ export class Player extends Entity {
       this.sprites.draw(ctx, this.currentFrame('ghost'), this.x, y, 0.18 + 0.08 * Math.sin(g.time * 10));
       ctx.globalCompositeOperation = 'source-over';
     }
-    // Shadow Marks above head
-    if (this.marks > 0) {
+    // class mark stacks above the head (diamonds, colours from data/marks.js)
+    if (this.markId && this.marks > 0) {
+      const md = MARKS[this.markId].display, full = this.marks >= this.maxMarks;
       const top = this.y - 70 - this.markPulse * 4;
       for (let i = 0; i < this.maxMarks; i++) {
-        const mx = this.x + (i - 1) * 9;
+        const mx = this.x + (i - (this.maxMarks - 1) / 2) * 9;
         const on = i < this.marks;
-        ctx.fillStyle = on ? (this.marks === 3 ? '#e8b8ff' : '#b060ff') : 'rgba(60,40,80,0.7)';
+        ctx.fillStyle = on ? (full ? md.full : md.color) : 'rgba(60,40,80,0.7)';
         ctx.beginPath();
         ctx.moveTo(mx, top - 4); ctx.lineTo(mx + 3.5, top); ctx.lineTo(mx, top + 4); ctx.lineTo(mx - 3.5, top); ctx.closePath();
         ctx.fill();

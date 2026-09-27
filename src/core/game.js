@@ -156,6 +156,7 @@ export class Game {
     p.recomputeStats();
     p.hp = Math.min(p.maxHp, d.player.hp || p.maxHp); p.shadow = d.player.shadow ?? 40;
     if (d.player.resources) p.resources.load(d.player.resources);
+    p.loadout.load(d.player.loadout); // invalid / missing ids fall back to the class default
     this.world.applyState();
     const pos = this.world.map.findOpen(d.player.x, d.player.y, 6);
     p.x = pos.x; p.y = pos.y;

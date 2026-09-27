@@ -139,10 +139,13 @@ export class Monster extends Entity {
         break;
       case 'chase': {
         if (p.dead || g.world.inSafeZone(p)) { this.setState('return'); break; }
+        // stealth (status flag): lose track unless the player is right next to us, never commit an attack
+        const hidden = p.status.flag('stealth');
+        if (hidden && dP > 70) { this.aggro = false; this.setState('return'); break; }
         const fromHome = dist(this.x, this.y, this.home.x, this.home.y);
         if (fromHome > this.def.leash && !this.summoned) { this.setState('return'); break; }
         const ang = angleTo(this.x, this.y, p.x, p.y);
-        const atk = this.chooseAttack(dP);
+        const atk = hidden ? null : this.chooseAttack(dP);
         if (atk) { this.startAttack(atk); break; }
         // approach / keep-away
         const want = this.def.keepAway;
@@ -186,6 +189,7 @@ export class Monster extends Entity {
   lookForPlayer(dP, detect) {
     const g = this.game, p = g.player;
     if (p.dead || g.world.inSafeZone(p)) return;
+    if (p.status.flag('stealth')) detect *= 0.3; // a stealthed player is only noticed up close
     if (dP < detect && g.world.map.lineOfSight(this.x, this.y - 8, p.x, p.y - 8)) {
       this.setState('alert');
       this.aggro = true;

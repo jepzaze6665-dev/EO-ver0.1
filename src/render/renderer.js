@@ -4,6 +4,7 @@ import { TAU, clamp, lerp } from '../core/math.js';
 import { vnoise } from '../core/rng.js';
 import { drawSpecialProp } from './specialProps.js';
 import { drawInteractable, isAvailable } from '../exploration/interactables.js';
+import { MARKS } from '../data/marks.js';
 
 // Two-canvas pipeline:
 //  scene  — low-res pixel canvas (world, entities, VFX, lighting, fog) upscaled with nearest-neighbour
@@ -319,7 +320,7 @@ export class Renderer {
     };
     const p = game.player;
     push(p.x, p.y - 16, 95, null, 0.9);
-    if (p.marks >= 3) push(p.x, p.y - 20, 60, '#b060ff', 0.5);
+    if (p.markId && p.marks >= p.maxMarks) push(p.x, p.y - 20, 60, MARKS[p.markId].display.color, 0.5);
     for (const L of game.world.staticLights) push(L.x, L.y, L.r, L.color, L.a ?? 0.6, L.flicker);
     for (const pr of props) if (pr.light && pr.visible) push(pr.x, pr.y + (pr.light.oy || -10), pr.light.r, pr.light.color, pr.light.a ?? 0.6, pr.light.flicker);
     game.vfx.lights.forEach((l) => push(l.x, l.y, l.r * (l.life / l.max), l.color, l.a * (l.life / l.max)));

@@ -30,6 +30,8 @@ export const UmbralSword = {
   anims: ANIMS,
   theme: { color: '#b070ff', ghost: '#8a3aff', trail: 'shadow' },
   startingGear: { weapon: 'umbral_sword', armor: 'umbral_cloak' },
+  // 6 actives, 4 slots: the rest are swapped in from the Skills tab (key 5 is always Eclipse Sever)
+  defaultLoadout: ['shadow_slash', 'twin_fang', 'shade_step', 'shadow_arc'],
   guideIntro: ['Your blade feeds on shadow. Each well-placed strike leaves a Shadow Mark — build three and you can unleash a SHADOW BREAK. [Q / Right Click]'],
   tutorial: { marks: 'Build 3 Shadow Marks', break: 'Unleash Shadow Break', breakSkill: 'shadow_break' },
   hudCounter(p) {
@@ -43,7 +45,7 @@ export const UmbralSword = {
 
   // ---------------- basic 3-hit combo (LMB). 3rd hit builds a Shadow Mark.
   basic(p, g, a, step) {
-    const counter = p.counterT > 0;
+    const counter = p.status.has('counter_ready'); // granted by a Perfect Dodge (status system)
     const defs = [
       { dur: 0.3, at: 0.07, anim: 'atk1', r: 52, half: 1.0, power: 1.0, lunge: 14, fx: { r: 30, half: 1.15 } },
       { dur: 0.3, at: 0.07, anim: 'atk2', r: 52, half: 1.0, power: 1.1, lunge: 14, fx: { r: 30, half: 1.15, flip: true } },
@@ -57,13 +59,13 @@ export const UmbralSword = {
       events: [[d.at, () => {
         let marked = false;
         swing(p, g, a, counter ? { r: 46, half: 1.5, width: 12, life: 0.3, sfx: 'counter' } : d.fx);
-        if (counter) { p.counterT = 0; g.vfx.text(p.x, p.y - 64, 'COUNTER', { color: '#e0a0ff', size: 11 }); g.vfx.flash('150,60,255', 0.2, 6); }
+        if (counter) { p.status.remove('counter_ready'); g.vfx.text(p.x, p.y - 64, 'COUNTER', { color: '#e0a0ff', size: 11 }); g.vfx.flash('150,60,255', 0.2, 6); }
         g.combat.spawnHitbox({
           owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: d.r + (counter ? 14 : 0), half: d.half + (counter ? 0.3 : 0),
           power: d.power * (counter ? 2.2 : 1), forceCrit: counter, knock: d.knock ?? 100, stagger: counter ? 40 : 10 + step * 6,
           hitStop: step === 2 || counter ? 0.08 : 0.045, shake: step === 2 ? 0.2 : 0.1, type: counter ? 'shadow' : 'physical',
           onHit: () => {
-            p.gainShadow(4);
+            p.gainResource(4);
             if ((d.mark || counter) && !marked) { marked = true; p.addMark(1); }
           },
         });
@@ -86,7 +88,7 @@ export const UmbralSword = {
             g.vfx.shadowSmoke(p.x, p.y, 6);
             g.combat.spawnHitbox({
               owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 76, half: 0.8, power: 2.1, type: 'shadow', knock: 180, stagger: 25, hitStop: 0.07, shake: 0.2,
-              onHit: () => { p.gainShadow(3); if (!marked) { marked = true; p.addMark(1); } },
+              onHit: () => { p.gainResource(3); if (!marked) { marked = true; p.addMark(1); } },
             });
           }]],
         };
@@ -104,7 +106,7 @@ export const UmbralSword = {
           g.vfx.sprite('twin', p.x + Math.cos(a) * 28, p.y - 14 + Math.sin(a) * 28, a, { scale: 1.05, life: 0.24, flipY: i % 2 === 1 });
           g.combat.spawnHitbox({
             owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 60, half: 1.1, power: 1.35, type: 'shadow', knock: 80, stagger: 14, hitStop: 0.05, shake: 0.12,
-            onHit: () => { p.gainShadow(2); if (!marked) { marked = true; p.addMark(1); } },
+            onHit: () => { p.gainResource(2); if (!marked) { marked = true; p.addMark(1); } },
           });
         }]);
         return { name: 'twin_fang', dur: triple ? 0.5 : 0.42, anim: 'twinFang', moveMul: 0.5, ang: a, cancelAt: 0.15, events: ev, lunge: { dist: 18, t0: 0, t1: 0.2 } };
@@ -155,10 +157,48 @@ export const UmbralSword = {
               g.combat.spawnHitbox({
                 owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'arcband', r0: 10, r: 40, half: 1.3, life: 0.28, power: 1.9, type: 'shadow', knock: 170, stagger: 20, hitStop: 0.05, shake: 0.22,
                 grow: (hb, dt) => { hb.r = Math.min(155, hb.r + dt * 420); hb.r0 = Math.max(10, hb.r - 60); },
-                onHit: () => { hits++; p.gainShadow(2); if (hits >= 3 && !marked) { marked = true; p.addMark(1); } },
+                onHit: () => { hits++; p.gainResource(2); if (hits >= 3 && !marked) { marked = true; p.addMark(1); } },
               });
             }],
           ],
+        };
+      },
+    },
+    {
+      id: 'shadow_veil', name: 'Shadow Veil', type: 'active', cooldown: 12, cost: 15, targeting: 'self', tags: ['stealth', 'utility', 'mark'], icon: 'veil_shadow',
+      desc: 'Melt into shadow for 3 s: monsters lose track of you and you move faster. Your next hit is an AMBUSH (+60% damage, +1 Shadow Mark).',
+      cast(p, g, a) {
+        return {
+          name: 'shadow_veil', dur: 0.3, anim: 'aura', moveMul: 0.4, ang: a, cancelAt: 0.12,
+          events: [[0.08, () => {
+            p.status.add('veiled', 3, { source: p, refresh: true });
+            g.audio.sfx('dash');
+            g.vfx.shadowSmoke(p.x, p.y, 14, { vy: -40 });
+            g.vfx.ring(p.x, p.y, 6, 46, { life: 0.3, color: '120,60,200', width: 2 });
+          }]],
+        };
+      },
+    },
+    {
+      id: 'phantom_edge', name: 'Phantom Edge', type: 'active', cooldown: 5, cost: 12, targeting: 'direction', tags: ['ranged', 'shadow', 'mark', 'pierce'], icon: 'phantom',
+      desc: 'Hurl a phantom blade that pierces everything, then returns to you. Marks the first enemy hit on the way out.',
+      cast(p, g, a) {
+        let marked = false;
+        const blade = (x, y, ang, back) => g.combat.projectiles.fire({
+          x, y, vx: Math.cos(ang) * 540, vy: Math.sin(ang) * 540, r: 12, life: 0.4,
+          team: TEAM.PLAYER, owner: p, kind: 'sprite', sprite: 'twin', frames: [2, 3, 4, 3], fps: 20, scale: 0.7,
+          pierce: true, power: back ? 1.0 : 1.3, type: 'shadow', knock: 70, stagger: 12, hitStop: 0.04, shake: 0.1, color: '#b070ff', trail: true, wallStop: !back,
+          onHit: () => { p.gainResource(2); if (!back && !marked) { marked = true; p.addMark(1); } },
+        });
+        return {
+          name: 'phantom_edge', dur: 0.32, anim: 'atk2', moveMul: 0.5, ang: a, cancelAt: 0.14,
+          events: [[0.08, () => {
+            g.audio.sfx('swing_fast');
+            const sx = p.x + Math.cos(a) * 14, sy = p.y - 14 + Math.sin(a) * 14;
+            const out = blade(sx, sy, a, false);
+            // the blade turns around where it is after 0.4 s and flies back to the Umbral Sword
+            g.after(0.4, () => { const bx = out.active ? out.x : sx + Math.cos(a) * 216, by = out.active ? out.y : sy + Math.sin(a) * 216; blade(bx, by, Math.atan2(p.y - 14 - by, p.x - bx), true); });
+          }]],
         };
       },
     },
@@ -240,7 +280,7 @@ export const UmbralSword = {
             const mult = (sigil ? 1.4 : 1) * bandMult;
             g.combat.spawnHitbox({ owner: p, x: p.x, y: p.y - 8, shape: 'circle', r: 112, power: 2.6 * mult, type: 'shadow', knock: 300, stagger: 60, hitStop: 0.16, shake: 0.4, big: true, breakBonus: 1.5 });
             g.combat.spawnHitbox({ owner: p, x: p.x, y: p.y - 8, ang: a, shape: 'cone', r: 170, half: 0.55, power: 1.2 * mult, type: 'shadow', knock: 200, stagger: 25, hitStop: 0.05, breakBonus: 1.5 });
-            p.gainShadow(20, true);
+            p.gainResource(20, true);
             p.status.add('surge', 5, { mult: 1.15, refresh: true });
           }],
           [0.42, () => {
@@ -255,14 +295,24 @@ export const UmbralSword = {
     },
   },
 
-  // ---------------- passive hooks
+  // ---------------- passive hooks (bus events — see core/events)
+  on: {
+    // AMBUSH: the first hit out of Shadow Veil (the +60% comes from the 'veiled' status damageMult)
+    damageDealt(p, g, e) {
+      if (e.source !== p || !p.status.has('veiled') || (e.opts && e.opts.dot)) return;
+      p.status.remove('veiled');
+      p.addMark(1);
+      g.vfx.text(e.target.x, e.target.y - (e.target.height || 30) - 20, 'AMBUSH', { color: '#e0c0ff', size: 11 });
+      g.vfx.shadowSmoke(e.target.x, e.target.y, 8);
+    },
+  },
   onPerfectDodge(p, g) {
     p.addMark(1);
-    p.gainShadow(20, true);
+    p.gainResource(20, true);
     p.reduceCooldowns(1.0);
     p.status.add('haste', 1.5, { mult: 1.3, refresh: true });
-    p.counterT = 1.3;
-    if (p.mods.perfectBonus) { p.addMark(1); p.gainShadow(15, true); }
+    p.status.add('counter_ready', 1.3, { refresh: true });
+    if (p.mods.perfectBonus) { p.addMark(1); p.gainResource(15, true); }
   },
 };
 

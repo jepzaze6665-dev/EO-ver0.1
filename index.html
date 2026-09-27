@@ -52,6 +52,14 @@
   .title-wrap.compact .logo { font-size: clamp(32px, 5vw, 60px); }
   .title-wrap.compact .tag { margin: 8px 0 16px; }
   .overlay.title { overflow-y: auto; }
+  .skills-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+  .skill-card { display: flex; gap: 10px; padding: 8px; margin-bottom: 6px; border: 1px solid var(--line); border-radius: 6px; background: rgba(20,12,34,.6); }
+  .skill-card.on { border-color: #c89aff; }
+  .skill-card img { width: 40px; height: 40px; image-rendering: pixelated; flex: none; }
+  .sk-body { flex: 1; }
+  .slot-btns { margin-top: 4px; display: flex; gap: 4px; }
+  .slot-btns button { padding: 2px 10px; font-size: 12px; margin: 0; }
+  .slot-btns button.on { border-color: var(--gold); color: var(--gold); }
   .class-cards { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
   .class-card { width: 300px; text-align: left; padding: 16px 18px; border-color: var(--cc); display: flex; flex-direction: column; gap: 8px; }
   .class-card:hover:not(:disabled) { border-color: #fff; box-shadow: 0 0 18px var(--cc); }

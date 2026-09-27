@@ -54,7 +54,7 @@ export function classChecks(g, classId) {
   };
   let { p, d } = fresh();
   const cls = p.cls, rid = p.primaryResource;
-  const main = cls.skills[0];
+  const main = p.loadout.bindings()[0].skill; // the skill on key 1
 
   // Damage + HP: the dummy loses exactly what the damage events report
   let hp0 = d.hp;

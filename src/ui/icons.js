@@ -12,6 +12,17 @@ export function icon(name, color = '#b070ff') {
   g.lineJoin = 'round';
   const glow = (col, w, fn) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); fn(); g.stroke(); };
   switch (name) {
+    // ---- Umbral Sword (loadout skills)
+    case 'veil_shadow':
+      g.fillStyle = 'rgba(90,40,150,0.5)'; g.beginPath(); g.arc(16, 17, 12, 0, 7); g.fill();
+      for (let i = 0; i < 3; i++) glow(['#3a1a6a', '#8a50e0', '#e0c8ff'][i], 3 - i, () => { g.moveTo(8 + i * 2, 26); g.quadraticCurveTo(16, 4 + i * 3, 24 - i * 2, 26); });
+      break;
+    case 'phantom':
+      glow('#4a2080', 5, () => { g.moveTo(6, 26); g.lineTo(24, 8); });
+      glow('#d0a0ff', 2, () => { g.moveTo(6, 26); g.lineTo(24, 8); });
+      glow('rgba(200,150,255,0.6)', 1.5, () => g.arc(16, 16, 13, -2.6, 0.6));
+      g.fillStyle = '#fff'; g.beginPath(); g.moveTo(24, 8); g.lineTo(28, 4); g.lineTo(26, 10); g.closePath(); g.fill();
+      break;
     // ---- Astral Weaver
     case 'needle':
       glow('#1a3a7a', 5, () => { g.moveTo(4, 28); g.lineTo(28, 4); });

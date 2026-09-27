@@ -8,7 +8,8 @@
 //               'stack'   -> +1 stack per application, duration refreshed
 //  modifiers  : moveMult / damageMult (dealt) / damageTakenMult — multiplied per stack when perStack
 //               values in `data` passed to add() (e.g. { mult: 1.3 }) override `mult`
-//  flags      : cannotAct (no move/attack/skill), cannotMove, cannotCast (no skills)
+//  flags      : cannotAct (no move/attack/skill), cannotMove, cannotCast (no skills),
+//               stealth (monsters lose track / hold their attacks)
 //  dot        : { interval, damage, type } — damage per tick per stack (data.damage overrides)
 //  absorb     : shield — data.amount points of damage absorbed before HP
 //  vulnerable : target takes the weak-window bonus from combat/damageSystem.js
@@ -27,6 +28,9 @@ export const STATUSES = {
   poison: { id: 'poison', category: 'dot', maxStacks: 5, stacking: 'stack', dot: { interval: 1, damage: 4, type: 'poison' }, display: { label: 'POISON', color: '#90e050' } },
   // ---- buffs
   haste: { id: 'haste', category: 'buff', maxStacks: 1, stacking: 'longest', modifiers: { moveMult: 1.25 }, display: { label: 'HASTE', color: '#9af8ff' } },
+  counter_ready: { id: 'counter_ready', category: 'buff', maxStacks: 1, stacking: 'refresh', display: { label: 'COUNTER READY', color: '#ffd070' } },
+  // stealth + the next hit deals +60% (the hit itself ends it — see the class that grants it)
+  veiled: { id: 'veiled', category: 'buff', maxStacks: 1, stacking: 'refresh', flags: ['stealth'], modifiers: { moveMult: 1.2, damageMult: 1.6 }, display: { label: 'VEILED', color: '#c8a0ff' } },
   surge: { id: 'surge', category: 'buff', maxStacks: 1, stacking: 'longest', modifiers: { damageMult: 1.15 }, display: { label: 'SURGE', color: '#e0a0ff' } },
   // ---- defense
   shield: { id: 'shield', category: 'defense', maxStacks: 1, stacking: 'refresh', absorb: true, display: { label: 'SHIELD', color: '#fff0a0' } },

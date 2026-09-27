@@ -193,7 +193,6 @@ export class HUD {
       const disp = STATUSES[st.id].display;
       if (disp) chips.push([st.stacks > 1 ? `${disp.label} ×${st.stacks}` : disp.label, disp.color]);
     }
-    if (p.counterT > 0) chips.push(['COUNTER READY', '#ffd070']);
     if (g.world.state.flags.moonBlessing) chips.push(['MOON BLESSING', '#dfe8ff']);
     for (const [label, col] of chips) {
       ctx.font = `700 ${Math.round(9 * u)}px ${FONT}`;
@@ -207,7 +206,9 @@ export class HUD {
   drawSkillBar(ctx, W, H, u) {
     const g = this.game, p = g.player, cls = p.cls;
     const size = 50 * u, gap = 8 * u;
-    const slots = [...cls.skills.map((s) => ({ s, key: String(s.slot) })), { s: cls.special, key: 'Q', special: true }, { potion: 'hp_potion', key: 'R' }, { potion: 'shadow_tonic', key: 'F' }];
+    // keys 1-5 come from the player's loadout (Skills tab), not from fixed slots in the class data
+    const binds = p.loadout.bindings();
+    const slots = [...binds.map((b) => ({ s: b.skill, key: b.key })), { s: cls.special, key: 'Q', special: true }, { potion: 'hp_potion', key: 'R' }, { potion: 'shadow_tonic', key: 'F' }];
     const total = slots.length * size + (slots.length - 1) * gap + 14 * u;
     let x = W / 2 - total / 2;
     const y = H - size - 22 * u;
@@ -224,7 +225,7 @@ export class HUD {
       this.text(ctx, `◆ ◆ ◆  ${hc.readyText.replace(' — ', '  —  ')}`, W / 2, y - 42 * u, 15 * u * (0.95 + k * 0.08), `rgba(240,220,255,${k})`, { align: 'center', font: TITLE });
     }
     slots.forEach((sl, i) => {
-      if (i === cls.skills.length) x += 14 * u;
+      if (i === binds.length) x += 14 * u;
       const sx = x, sy = y;
       ctx.fillStyle = 'rgba(20,12,34,0.95)';
       ctx.fillRect(sx, sy, size, size);

@@ -64,7 +64,10 @@ quests/  items/  inventory/  equipment/  ui/ (canvas HUD + DOM panels)  save/  a
 | Class | Role | Resource | Mechanic |
 |---|---|---|---|
 | **Astral Weaver** | Ranged magic · control | Astral Charge (builds, decays out of combat) | Astral Threads + Star Marks on enemies → Constellation Break |
-| **Umbral Sword** | Melee assassin · burst | Shadow Gauge | Shadow Marks on self → Shadow Break |
+| **Umbral Sword** | Melee assassin · burst | Shadow Gauge | Shadow Marks on self → Shadow Break · Shadow Veil (stealth → Ambush) · Phantom Edge |
+
+**Skill loadout:** keys 1-4 are chosen per character in the **Skills** tab (`I` → Skills; locked in combat, saved);
+key 5 is the ultimate and Q the class special. Umbral Sword knows 6 actives for 4 slots.
 
 Class data lives in `src/skills/<class>.js` and is registered in `src/skills/classes.js`. Core systems used by every class:
 `combat/damageSystem` · `resourceSystem` · `skillSystem` · `markSystem` · `threadSystem` · `status/status`
@@ -89,7 +92,7 @@ The combat core never references Umbral Sword directly: a class is a stat block 
 Unit tests (pure combat core, no browser):
 
 ```bash
-node tools/tests/run.mjs          # all unit tests (combat, resource, skill, mark, status, thread, sprites)
+node tools/tests/run.mjs          # all unit tests (combat, resource, skill, mark, status, thread, sprites, loadout)
 ```
 
 In-game: a **training yard** with 3 Training Dummies (HP, DPS meter, auto-reset) stands west of the Lumina fountain.
