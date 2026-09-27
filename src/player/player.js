@@ -85,6 +85,15 @@ export class Player extends Entity {
     }
   }
   get classId() { return this.cls.id; }
+  // every heal goes through here: clamped to max HP, reported as 'healed' (UI shows +N HP)
+  heal(amount, source = null) {
+    if (this.dead || !(amount > 0)) return 0;
+    const before = this.hp;
+    this.hp = Math.min(this.maxHp, this.hp + amount);
+    const healed = Math.round(this.hp - before);
+    if (healed > 0 && this.game.events) this.game.events.emit('healed', { entity: this, amount: healed, source });
+    return healed;
+  }
   // ---------------- gold (never negative; 'goldChanged' for the UI / quests / a future server)
   addGold(n) {
     n = Math.floor(n);
@@ -249,7 +258,7 @@ export class Player extends Entity {
     g.camera.punch(0.08);
     g.audio.sfx('perfect');
     this.cls.onPerfectDodge(this, g);
-    if (this.mods.perfectHeal) this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.05);
+    if (this.mods.perfectHeal) this.heal(this.maxHp * 0.05, 'perfectHeal');
     g.events.emit('perfectDodge', attacker);
   }
   onHurt(amount, src, opts, ang) {

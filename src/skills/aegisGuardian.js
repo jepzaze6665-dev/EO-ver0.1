@@ -190,7 +190,7 @@ export const AegisGuardian = {
             g.vfx.sprite('ag_dome', p.x, p.y - 22, 0, { scale: 1.5, life: 0.6, glow: 0.5 });
             g.vfx.flash(HOLY, 0.2, 4);
             p.status.add('shield', 6, { amount: Math.round(p.maxHp * 0.35), source: p, refresh: true });
-            p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.08);
+            p.heal(p.maxHp * 0.08, 'holy_barrier');
             g.vfx.text(p.x, p.y - 74, 'HOLY BARRIER', { color: '#fff0b0', size: 11 });
             g.events.emit('barrierCreated', { owner: p, amount: Math.round(p.maxHp * 0.35) });
             g.combat.spawnHitbox({ owner: p, x: p.x, y: p.y - 8, shape: 'circle', r: 84, power: 0.6, type: 'holy', knock: 300, stagger: 30, hitStop: 0.04 });

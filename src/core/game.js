@@ -75,6 +75,13 @@ export class Game {
       this.stats.kills++;
       if (!e.boss) this.knowledge.kill(e.type);
     });
+    // combat feedback that isn't the damage number itself (spec 12): CRITICAL / +HP
+    ev.on('damageDealt', (e) => {
+      if (!e.crit || (e.opts && e.opts.dot) || !e.target) return;
+      const t = e.target;
+      this.vfx.text(t.x, t.y - (t.height || 30) * (t.scale || 1) - 10, 'CRITICAL', { color: '#ffd24a', size: 8, life: 0.6 });
+    });
+    ev.on('healed', (e) => { const p = e.entity; this.vfx.text(p.x, p.y - 64, `+${e.amount} HP`, { color: '#80ff90', size: 10 }); });
     ev.on('lootDropped', (e) => { if (e.gold) this.vfx.text(e.x, e.y - 10, `+${e.gold}G`, { color: '#ffd24a', size: 8, life: 0.8 }); });
     ev.on('chestOpened', () => { this.stats.chests++; });
     // quest feedback (the Quest System only reports; rewards: ExperienceSystem + LootSystem)

@@ -174,8 +174,10 @@ export class HUD {
       const td = p.resources.tierDef(rid);
       if (td) this.text(ctx, td.label, x0 + 4 * u, y + 56 * u, 8 * u, `rgba(255,240,255,${0.75 + 0.25 * Math.sin(g.time * 6)})`);
     }
-    // EXP (thin)
+    // EXP (thin) + numbers, gold
     this.bar(ctx, bx, y + 63 * u, bw, 4 * u, p.isMaxLevel ? 1 : p.exp / p.expToNext(), '#ffe08a', '#b08a20');
+    this.text(ctx, p.isMaxLevel ? 'EXP MAX' : `EXP ${p.exp} / ${p.expToNext()}`, bx, y + 78 * u, 9 * u, '#e8d08a');
+    this.text(ctx, `${p.gold} G`, bx + bw, y + 78 * u, 10 * u, '#ffd24a', { align: 'right' });
     // class counter (Shadow Marks / Astral Threads / ...) — the class says what to show
     const my = y + ps + 22 * u;
     const hc = p.cls.hudCounter ? p.cls.hudCounter(p) : null;
@@ -391,8 +393,10 @@ export class HUD {
     ctx.strokeStyle = '#8a5ad8'; ctx.lineWidth = 2 * u; ctx.strokeRect(x, y, size, size);
     // zone label
     const sa = g.world.currentSub;
-    this.text(ctx, sa ? sa.name : '', x + size / 2, y + size + 18 * u, 12 * u, '#e8dcff', { align: 'center' });
-    this.text(ctx, '[M] Map   [I] Inventory', x + size / 2, y + size + 33 * u, 9 * u, '#8a80a8', { align: 'center' });
+    const md = g.world.mapDef;
+    this.text(ctx, md ? md.name : '', x + size / 2, y + size + 18 * u, 12 * u, '#e8dcff', { align: 'center' });
+    this.text(ctx, sa && (!md || sa.name.toUpperCase() !== md.name) ? sa.name : '', x + size / 2, y + size + 31 * u, 9 * u, '#b8acd8', { align: 'center' });
+    this.text(ctx, '[M] Map   [I] Inventory', x + size / 2, y + size + 44 * u, 9 * u, '#8a80a8', { align: 'center' });
   }
 
   drawQuests(ctx, W, u) {

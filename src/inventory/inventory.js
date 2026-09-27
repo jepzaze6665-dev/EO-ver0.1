@@ -54,9 +54,8 @@ export class Inventory {
     if (!def || !def.use || !this.has(id)) return false;
     if (def.use === 'heal') {
       if (p.hp >= p.maxHp) { g.ui.toast('HP is full', 0.8); return false; }
-      p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.4);
+      p.heal(p.maxHp * 0.4, 'potion');
       g.vfx.burst(p.x, p.y - 20, '#ff6070', 16, 70);
-      g.vfx.text(p.x, p.y - 64, '+HP', { color: '#80ff90', size: 10 });
     } else if (def.use === 'shadow') {
       p.gainResource(50, true); // the class's primary resource (Shadow / Astral / ...)
       g.vfx.burst(p.x, p.y - 20, RESOURCES[p.primaryResource].colors[0], 16, 70);
