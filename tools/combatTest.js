@@ -274,7 +274,7 @@ export function mechanicChecks(g, classId) {
 
 // ---------------- balance report: dummy DPS (30 s bot) + a real boss fight (no god mode)
 // loadout: optional [id,id,id,id] for keys 1-4 (compare builds of the same class)
-export function balance(g, classId, loadout) {
+export function balance(g, classId, loadout, botOpts = {}) {
   const { p } = atDummy(g, classId, 140);
   if (loadout) p.loadout.load(loadout);
   let dmg = 0;
@@ -292,9 +292,11 @@ export function balance(g, classId, loadout) {
   let t = 0, dmgTaken = 0;
   g.events.on('damageTaken', (e) => { if (e.target === pl) dmgTaken += e.amount; });
   const pots0 = g.inventory.count('hp_potion');
-  while (t < 300 && !gd.dead && !pl.dead) { g.simulate(5, (gg, i) => bot(gg, i, {})); t += 5; }
+  let blocked = 0, perfects = 0;
+  g.events.on('guardBlocked', () => blocked++); g.events.on('perfectGuard', () => perfects++);
+  while (t < 300 && !gd.dead && !pl.dead) { g.simulate(5, (gg, i) => bot(gg, i, botOpts)); t += 5; }
   releaseInput(g);
-  return { class: classId, loadout: p.loadout.serialize().join(','), dummyDPS: dps, bossResult: gd.dead ? 'WIN' : pl.dead ? 'DIED' : 'TIMEOUT', bossTime: t + 's', bossPhase: gd.phase, dmgTaken: Math.round(dmgTaken), potionsUsed: pots0 - g.inventory.count('hp_potion'), skillUses: JSON.stringify(uses) };
+  return { class: classId, loadout: p.loadout.serialize().join(','), dummyDPS: dps, bossResult: gd.dead ? 'WIN' : pl.dead ? 'DIED' : 'TIMEOUT', bossTime: t + 's', bossPhase: gd.phase, dmgTaken: Math.round(dmgTaken), takenPerSec: +(dmgTaken / Math.max(1, t)).toFixed(2), blocked, perfects, potionsUsed: pots0 - g.inventory.count('hp_potion'), skillUses: JSON.stringify(uses) };
 }
 
 export function runAll(g, { withBalance = true } = {}) {

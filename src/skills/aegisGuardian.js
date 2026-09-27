@@ -9,23 +9,25 @@ import { TAU, rand } from '../core/math.js';
 
 const GOLD = '#ffd070', HOLY = '255,220,140', BLUE = '120,180,255';
 
+// every base move comes from the AG NEW sheets, so the shield is always there (one consistent design)
+//   bob: code-driven step bounce in px — the AG walk art barely moves its legs, the bounce sells the step
 export const AG_ANIMS = {
-  idle: { sheet: 'walk', cols: [0] },
-  walk: { sheet: 'walk', cols: [1, 2, 3, 4, 5], fps: 8, loop: true },
-  run: { sheet: 'run', cols: [1, 2, 3, 4, 5], fps: 11, loop: true },
-  atk1: { sheet: 'atk1', cols: [1, 2, 3] },
-  atk2: { sheet: 'atk1', cols: [4, 2, 3] },
-  atk3: { sheet: 'atk2', cols: [1, 2, 3, 4, 5] },
-  dodge: { sheet: 'run', cols: [2, 3, 4] },
-  guard: { sheet: 'sk1', cols: [0] },            // shield raised, steady stance
+  idle: { sheet: 'idle', cols: [0, 1, 2, 3, 4, 5], fps: 4, loop: true }, // breathing
+  walk: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 8, loop: true, bob: 2 },
+  run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 12, loop: true, bob: 3 },
+  atk1: { sheet: 'atk1', cols: [1, 1, 4] },       // sword cut -> thrust
+  atk2: { sheet: 'atk1', cols: [2, 2, 3] },       // shield bash -> shield high
+  atk3: { sheet: 'atk2', cols: [1, 2, 3, 4] },    // spinning slash
+  dodge: { sheet: 'walk', cols: [2, 3, 4] },
+  guard: { sheet: 'guard', cols: [3] },           // shield square to the front in all 4 directions
   shieldBash: { sheet: 'bash', cols: [1, 2, 3, 4, 5] },
   guardianSlash: { sheet: 'sk2', cols: [1, 2, 3, 4, 5] },
   challenge: { sheet: 'sk4', cols: [1, 2, 3, 3, 4] },
   barrier: { sheet: 'sk5', cols: [1, 2, 3, 3, 4] },
-  counter: { sheet: 'sk6', cols: [2, 3, 4, 5] },
+  counter: { sheet: 'counter', cols: [3, 3, 4, 4] }, // gold parry flash -> riposte thrust
   perfectGuard: { sheet: 'sk1', cols: [2, 3, 4] },
   ascension: { sheet: 'ult', cols: [1, 2, 3, 3, 4, 5] },
-  hurt: { sheet: 'hit', cols: [1, 2, 3] },
+  hurt: { sheet: 'guard', cols: [4] },            // braced behind the shield (keeps the shield on screen)
   death: { sheet: 'hit', cols: [1, 2, 3, 3] },
 };
 

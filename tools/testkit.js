@@ -16,19 +16,30 @@ export function bot(g, i, opts = {}) {
   if (!opts.noDodge) for (const t of g.combat.telegraphs.list) {
     if (t.resolved) continue;
     const rem = t.total - t.time;
-    if (rem < (opts.dodgeLead ?? 0.1) && rem > 0 && g.combat.testShape(t, p)) {
+    // guard classes with guardStyle 'hold' raise the shield as soon as a blow is winding up (tank play)
+    const lead = p.cls.guard && opts.guardStyle === 'hold' ? 0.6 : (opts.dodgeLead ?? 0.1);
+    if (rem < lead && rem > 0 && g.combat.testShape(t, p)) {
       // guard classes raise the guard toward the attacker at the last moment (-> Perfect Guard)
       if (p.cls.guard && t.owner && !t.owner.dead) {
         const r = g.renderer, cam = g.camera;
         inp.mouse.x = ((t.owner.x - cam.left) * cam.zoom * r.scale) / r.dpr;
         inp.mouse.y = ((t.owner.y - 12 - cam.top) * cam.zoom * r.scale) / r.dpr;
         inp.down.add('KeyQ');
+        // big attackers land their damage a few frames after the telegraph resolves: keep the shield up
+        p._botGuard = { until: g.time + rem + 0.35, x: t.owner.x, y: t.owner.y };
         return;
       }
       press(Math.atan2(p.y - t.y, p.x - t.x));
       inp.pushBuffer('dodge');
       return;
     }
+  }
+  if (p._botGuard && g.time < p._botGuard.until) {
+    const r = g.renderer, cam = g.camera;
+    inp.mouse.x = ((p._botGuard.x - cam.left) * cam.zoom * r.scale) / r.dpr;
+    inp.mouse.y = ((p._botGuard.y - 12 - cam.top) * cam.zoom * r.scale) / r.dpr;
+    inp.down.add('KeyQ');
+    return;
   }
   const ms = g.world.hostiles().filter((m) => !m.isBreakable || opts.breakables);
   ms.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
@@ -61,7 +72,8 @@ export function bot(g, i, opts = {}) {
     inp.pushBuffer('attack');
     // any class: fire the first slotted skill (keys 1-4) that is ready, affordable and allowed
     if (i % 20 === 0) {
-      const b = p.loadout.bindings().find((x) => x.key !== '5' && p.skillSys.canUse(x.skill.id).ok);
+      // damage rotation only: mobility / dash skills would carry a melee class out of range
+      const b = p.loadout.bindings().find((x) => x.key !== '5' && !(x.skill.tags || []).some((t) => t === 'dash' || t === 'mobility') && p.skillSys.canUse(x.skill.id).ok);
       if (b) inp.pushBuffer('skill' + b.key);
     }
     if (p.marks >= 3) inp.pushBuffer('break');
@@ -151,7 +163,8 @@ export function playthrough(g, classId) {
   for (const [x, y] of [[38, 121], [20, 112], [54, 80], [66, 62]]) { goto(g, x, y); fight(g, 20, { god: true, until: () => g.quests.active.whispers.done.wolves }); if (g.quests.active.whispers.done.wolves) break; }
   // keep fighting until the combat loop has produced a Perfect Dodge and a Shadow Break
   const camps = [[29, 60], [66, 62], [54, 80], [86, 70], [18, 80], [58, 104], [110, 82]];
-  for (let k = 0; k < camps.length && (c.perfect === 0 || c.breaks === 0); k++) { goto(g, ...camps[k]); fight(g, 10, { god: true, until: () => c.perfect > 0 && c.breaks > 0 }); }
+  // two laps over the camps: a strong build can clear a camp before any telegraph shows up
+  for (let k = 0; k < camps.length * 2 && (c.perfect === 0 || c.breaks === 0); k++) { goto(g, ...camps[k % camps.length]); fight(g, 10, { god: true, until: () => c.perfect > 0 && c.breaks > 0 }); }
   ok('Fight + wolves 5/5', g.quests.active.whispers.done.wolves, `kills=${g.stats.kills}`);
   ok('Class mechanic / Perfect Dodge / Finisher', c.breaks > 0 && c.perfect > 0, `class=${g.player.cls.id} perfect=${c.perfect} breaks=${c.breaks} constellations=${c.constellations} threads=${c.threads} tut=${!!w.state.flags.tut_marks}`);
   use(g, 'crack_info'); g.ui.panels.close();

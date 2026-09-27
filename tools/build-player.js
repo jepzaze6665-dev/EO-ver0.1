@@ -35,14 +35,18 @@ PRESETS.ub = { out: 'assets/player', sheets: {
   vfx: ['desgin/class cr/UB/UB VFX', 8],
 } };
 const AG = 'desgin/class cr/AG/';
+// Aegis Guardian: every base move comes from the AG NEW sheets (shield always visible, one design);
+// skill sheets (bash / sk1-6 / ult) already carry the shield. The old shield-less HIT is kept for death only.
+const AGN = 'desgin/class cr/AG NEW/';
 PRESETS.ag = { out: 'assets/player/ag', sheets: {
-  walk: [AG + 'AG walk1.png', 4],
-  run: [AG + 'AG walk2', 4],
-  atk1: [AG + 'AG ATK1', 4],
-  atk2: [AG + 'AG ATK2', 4],
-  guard: [AG + 'AG DF.PNG', 4],
+  walk: [AGN + 'walk1.png', 4],
+  idle: [AGN + 'image-ed9b37cb-d52f-423d-8a61-0495e5f3ce6d-0', 4],
+  atk1: [AGN + 'image-74d16551-eff0-4aa7-a63f-63c5253ddb09-0', 4],
+  atk2: [AGN + 'image-f159e3fd-7d4c-46c6-8f87-809fd6e45f24-0', 4],
+  guard: [AGN + 'image-c6d0a5e9-c7f9-4281-a1eb-eb3e57756505-0', 4],
+  parry: [AGN + 'image-ef3490e4-c6e6-44fc-bd6b-32847f006bac-0', 4],
+  counter: [AGN + 'image-f6f15f0d-b9df-4051-88cc-5bbc04e85f18-0', 4],
   hit: [AG + 'AG HIT', 4],
-  pr: [AG + 'AG PR', 4],
   bash: [AG + 'AG VFX', 4],
   sk1: [AG + 'sk1.png', 4],
   sk2: [AG + 'sk2', 4],

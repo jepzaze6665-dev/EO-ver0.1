@@ -445,7 +445,8 @@ export class Player extends Entity {
 
   currentFrame(variant = 'img') {
     const dir = dir4(this.facing);
-    const t = this.sprites && (this.anim === 'walk' || this.anim === 'run') ? this.animT : this.animProgress || 0;
+    const ad = this.sprites.anims[this.anim];
+    const t = ad && ad.loop ? this.animT : this.animProgress || 0; // looping anims (walk, run, breathing idle) run on time
     return this.sprites.frame(this.anim, t, dir, variant);
   }
 
@@ -467,6 +468,9 @@ export class Player extends Entity {
       return;
     }
     const f = this.currentFrame();
+    // step bob (animation data 'bob'): 2 bounces per cycle, whole pixels only
+    const ad = this.sprites.anims[this.anim];
+    if (ad && ad.bob) y -= Math.round(Math.abs(Math.sin(this.animT * Math.PI * (ad.fps || 8) / 3)) * ad.bob);
     const flicker = this.invulnT > 0 && !this.dodging && Math.floor(g.time * 20) % 2 === 0;
     const bodyA = (flicker ? 0.45 : 1) * (1 - sk * (0.65 + 0.08 * Math.sin(g.time * 5)));
     this.sprites.draw(ctx, f, this.x, y, bodyA);

@@ -29,11 +29,11 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2632,
+   "sourceScale": 0.1639,
    "emptyFrames": []
   },
-  "run": {
-   "file": "assets/player/ag/run.png",
+  "idle": {
+   "file": "assets/player/ag/idle.png",
    "fw": 160,
    "fh": 160,
    "rows": 4,
@@ -48,7 +48,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2667,
+   "sourceScale": 0.1639,
    "emptyFrames": []
   },
   "atk1": {
@@ -67,7 +67,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2956,
+   "sourceScale": 0.1813,
    "emptyFrames": []
   },
   "atk2": {
@@ -86,7 +86,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2804,
+   "sourceScale": 0.1829,
    "emptyFrames": []
   },
   "guard": {
@@ -105,7 +105,45 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2667,
+   "sourceScale": 0.1749,
+   "emptyFrames": []
+  },
+  "parry": {
+   "file": "assets/player/ag/parry.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 2,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.1754,
+   "emptyFrames": []
+  },
+  "counter": {
+   "file": "assets/player/ag/counter.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 2,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.176,
    "emptyFrames": []
   },
   "hit": {
@@ -125,25 +163,6 @@
     }
    ],
    "sourceScale": 0.2643,
-   "emptyFrames": []
-  },
-  "pr": {
-   "file": "assets/player/ag/pr.png",
-   "fw": 160,
-   "fh": 160,
-   "rows": 4,
-   "cols": 6,
-   "ax": 80,
-   "ay": 140,
-   "sides": [
-    {
-     "right": 3,
-     "left": 2,
-     "flipLeft": false,
-     "flipRight": false
-    }
-   ],
-   "sourceScale": 0.274,
    "emptyFrames": []
   },
   "bash": {
@@ -301,34 +320,48 @@
  },
  "validation": {
   "walk": {
-   "bodyHeight": 59,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
    "issues": []
   },
-  "run": {
+  "idle": {
    "bodyHeight": 58,
    "feetMaxOffset": 1,
-   "centerOffset": -1,
+   "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "atk1": {
-   "bodyHeight": 59,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "atk2": {
-   "bodyHeight": 59,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "guard": {
+   "bodyHeight": 58,
+   "feetMaxOffset": 1,
+   "centerOffset": 0,
+   "ok": true,
+   "issues": []
+  },
+  "parry": {
+   "bodyHeight": 59,
+   "feetMaxOffset": 1,
+   "centerOffset": 0,
+   "ok": true,
+   "issues": []
+  },
+  "counter": {
    "bodyHeight": 59,
    "feetMaxOffset": 1,
    "centerOffset": 0,
@@ -338,13 +371,6 @@
   "hit": {
    "bodyHeight": 59,
    "feetMaxOffset": 1,
-   "centerOffset": 0,
-   "ok": true,
-   "issues": []
-  },
-  "pr": {
-   "bodyHeight": 59,
-   "feetMaxOffset": 0,
    "centerOffset": 0,
    "ok": true,
    "issues": []
