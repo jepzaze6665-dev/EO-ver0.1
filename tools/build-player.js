@@ -53,9 +53,11 @@ PRESETS.ag = { out: 'assets/player/ag', sheets: {
   sk6: [AGN + 'sk6', 4],
   ult: [AGN + 'ut', 4],
 } };
-// Nightfall Reaper (Class 2 of Umbral Sword) — art ready; class data pending (Phase 15/16)
+// Nightfall Reaper (Class 2 of Umbral Sword)
+// facing: the hood hides the face, so the skin-based side detection cannot tell left from right —
+// the RP sheets draw row 2 facing LEFT and row 3 facing RIGHT (both drawn, no mirroring needed).
 const RP = 'desgin/class cr/RP/';
-PRESETS.rp = { out: 'assets/player/rp', sheets: {
+PRESETS.rp = { out: 'assets/player/rp', facing: { right: 3, left: 2 }, sheets: {
   walk: [RP + 'WALK1.PNG', 4],
   idle: [RP + 'WALK2.PNG', 4],
   atk1: [RP + 'ATK1', 4],
@@ -437,7 +439,7 @@ function componentFrames(img, y0, y1, xs, n = COLS) {
 
 const [CW, CH] = STD.canvas, [PX, PY] = STD.pivot;
 function buildPreset(key) {
-const { out: outRel, sheets: SHEETS } = PRESETS[key];
+const { out: outRel, sheets: SHEETS, facing: FACING } = PRESETS[key];
 const OUT = path.join(ROOT, outRel);
 fs.mkdirSync(OUT, { recursive: true });
 console.log('== preset', key, '->', outRel);
@@ -486,7 +488,7 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
   });
   png.write(path.join(OUT, name + '.png'), sheet);
   const sides = [];
-  for (let base = 0; base < rows; base += 4) sides.push(sideRows(sheet, { fw: CW, fh: CH, ax: PX }, base));
+  for (let base = 0; base < rows; base += 4) sides.push(FACING ? { right: base + FACING.right, left: base + FACING.left, flipLeft: false, flipRight: false } : sideRows(sheet, { fw: CW, fh: CH, ax: PX }, base));
   atlas.sheets[name] = { file: outRel + '/' + name + '.png', fw: CW, fh: CH, rows, cols: COLS, ax: PX, ay: PY, sides, sourceScale: +scale.toFixed(4) };
   // frames with (almost) no character body: animations must never show them (tools/tests/sprites.test.mjs)
   atlas.sheets[name].emptyFrames = [];

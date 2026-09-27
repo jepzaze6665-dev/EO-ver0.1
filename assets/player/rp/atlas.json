@@ -23,9 +23,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -42,9 +42,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -61,9 +61,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -80,9 +80,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -99,9 +99,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -118,9 +118,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -137,9 +137,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -156,9 +156,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -175,9 +175,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -194,9 +194,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -234,9 +234,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -253,9 +253,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -272,9 +272,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
@@ -291,9 +291,9 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
