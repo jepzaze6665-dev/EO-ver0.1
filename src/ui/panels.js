@@ -194,7 +194,7 @@ export class Panels {
             <div>Max HP <b>${p.maxHp}</b></div><div>Attack <b>${Math.round(st.atk)}</b></div><div>Defense <b>${Math.round(st.def)}</b></div>
             <div>Critical <b>${pct(st.crit)}</b></div><div>Shadow Damage <b>+${pct(st.shadowDmg)}</b></div><div>Cooldown Reduction <b>${pct(st.cdr || 0)}</b></div>
             <div>Shadow Gain <b>${pct(st.shadowGain)}</b></div><div>Armor Break <b>×${(st.armorBreak || 1).toFixed(1)}</b></div>
-            <div>EXP <b>${p.exp} / ${p.expToNext()}</b></div>
+            <div>EXP <b>${p.isMaxLevel ? 'MAX' : `${p.exp} / ${p.expToNext()}`}</b></div>
             <h3>Skill Modifiers</h3>
             ${Object.keys(p.mods).length ? Object.values(eq.slots).filter(Boolean).map((id) => ITEMS[id].modText ? `<div class="mod">◆ ${esc(ITEMS[id].modText)}</div>` : '').join('') : '<div class="muted">None — find or forge equipment to change your build.</div>'}
           </div>

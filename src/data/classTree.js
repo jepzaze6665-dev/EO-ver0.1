@@ -28,7 +28,7 @@ export const CLASS_COUNTERS = {
 
 // shared by every Class 2 path: the story so far proves the character is ready
 const CLASS2_BASE = [
-  { type: 'level', min: 13 },
+  { type: 'level', min: 10 },
   { type: 'quest', id: 'whispers', label: 'Defeat the Forest Guardian' },
 ];
 

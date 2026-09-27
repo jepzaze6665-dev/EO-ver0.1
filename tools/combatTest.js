@@ -414,7 +414,7 @@ export function balance(g, classId, loadout, botOpts = {}) {
   const dps = Math.round(dmg / 30);
   // boss: same level/gear rules as the playthrough, real damage taken
   toBoss(g, classId);
-  const pl = g.player; pl.level = 13; pl.recomputeStats(); pl.hp = pl.maxHp;
+  const pl = g.player; pl.setLevel(10); pl.hp = pl.maxHp;
   if (loadout) pl.loadout.load(loadout);
   goto(g, 135, 37); g.simulate(3);
   const gd = g.world.guardian;

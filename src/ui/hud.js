@@ -173,7 +173,7 @@ export class HUD {
       if (td) this.text(ctx, td.label, x0 + 4 * u, y + 56 * u, 8 * u, `rgba(255,240,255,${0.75 + 0.25 * Math.sin(g.time * 6)})`);
     }
     // EXP (thin)
-    this.bar(ctx, bx, y + 63 * u, bw, 4 * u, p.exp / p.expToNext(), '#ffe08a', '#b08a20');
+    this.bar(ctx, bx, y + 63 * u, bw, 4 * u, p.isMaxLevel ? 1 : p.exp / p.expToNext(), '#ffe08a', '#b08a20');
     // class counter (Shadow Marks / Astral Threads / ...) — the class says what to show
     const my = y + ps + 22 * u;
     const hc = p.cls.hudCounter ? p.cls.hudCounter(p) : null;

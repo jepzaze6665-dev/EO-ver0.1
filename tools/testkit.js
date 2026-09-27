@@ -183,7 +183,7 @@ export function playthrough(g, classId) {
   goto(g, 136, 60); for (let y = 60; y >= 50; y--) { g.player.y = y * 32; g.simulate(0.1); }
   const trig = w.interactables.find((i) => i.id === 'trig_guardian');
   ok('Guardian discovered', w.state.flags.guardianDiscovered, `pos=${(g.player.x / 32).toFixed(1)},${(g.player.y / 32).toFixed(1)} fired=${trig.fired} dead=${g.player.dead} panel=${g.ui.panels.current && g.ui.panels.current.name} hitStop=${g.hitStop.toFixed(2)} guardian=${w.guardian && w.guardian.state}`);
-  g.player.level = 13; g.player.recomputeStats(); g.player.hp = g.player.maxHp;
+  g.player.setLevel(10); g.player.hp = g.player.maxHp;
   goto(g, 135, 37); g.simulate(3);
   const gd = w.guardian, phases = new Set();
   for (let s = 0; s < 80 && !gd.dead; s++) { g.simulate(5, (gg, i) => bot(gg, i, { god: true })); phases.add(gd.phase); }

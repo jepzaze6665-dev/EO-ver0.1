@@ -57,6 +57,12 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Death Harvest (enemyKilled) + Bloodless Night (execute stats). Unlock: UB lineage, 20 Shadow Breaks + Trial of the Long Night.
 - Balance (bot, dummy DPS over 3 dummies): Umbral ≈ 158-160, Astral ≈ 134, Aegis ≈ 92, Reaper ≈ 188-201 (its single-target
   DPS ≈ Umbral's; the extra is AoE on the 2nd dummy); all beat the Guardian solo.
-- **Next: Phase 17** — owner decides: the next Class 2 (Duskrunner / Blade of Echoes / AW / AG paths — needs their class
-  data, same format as the Reaper's), or polish. Unused RP art: `sk6` (anim `harvest`) is mapped but no skill plays it yet.
+- Later Class 2 work (paused for V2.1): Duskrunner / Blade of Echoes / AW / AG paths need the owner's class data.
+  Unused RP art: `sk6` (anim `harvest`) is mapped but no skill plays it yet.
+- **Current: V2.1 "Class × World Integration"** (owner's 16-phase spec: Lumina → A1 → A2 → A3 → Boss Arena, EXP/loot/
+  quest/target/save). Owner chose **B = real separate maps with transitions** (not the seamless zone world) and
+  **start at LV 1** (cap 30). Done: P1 audit, P2 level rules in `src/data/levels.js` + pure `src/progression/experience.js`
+  (class `base` = level 1, `perLevel` × `statGrowth`; `levelUp` / `expGained` events; Class 2 needs LV 10; tests set LV 10
+  for the boss). Next: P3 combat ↔ world (`enemyDefeated` event → EXP / loot / quest listeners, target system), then
+  maps split per the spec. Monster display levels / zone "Lv." subtitles still show the old 5-15 range (fix in P4).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

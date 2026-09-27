@@ -9,6 +9,8 @@ import { SkillSystem } from '../combat/skillSystem.js';
 import { MARKS } from '../data/marks.js';
 import { Loadout } from './loadout.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
+import { LEVELS } from '../data/levels.js';
+import { expToNext, addExp, normalize as normalizeExp, levelStats } from '../progression/experience.js';
 
 const DODGE_TIME = 0.24, DODGE_DIST = 100, DODGE_IFRAMES = 0.28, DODGE_CHARGES = 2, DODGE_RECHARGE = 0.85;
 const HURT_IFRAMES = 0.55;
@@ -23,7 +25,8 @@ export class Player extends Entity {
     this.radius = CHARACTER.collisionRadius; // fixed feet collision, independent of animation
     this.hurtRadius = CHARACTER.hurtRadius;
     this.height = CHARACTER.bodyHeight;
-    this.level = 10; this.exp = 0; this.gold = 120;
+    this.id = 'player'; // single local player for now; a server would assign ids
+    this.level = LEVELS.start.level; this.exp = 0; this.gold = LEVELS.start.gold;
     // generic resource pool — the class only names its resources, the rules live in data/resources.js
     this.resources = new ResourcePool(classDef.resources || [classDef.resource], RESOURCES, {
       stats: () => this.stats,
@@ -62,9 +65,9 @@ export class Player extends Entity {
 
   // ---------------- stats / progression
   recomputeStats() {
-    const c = this.cls, lv = this.level - 10;
-    const s = { ...c.base };
-    s.hp += c.perLevel.hp * lv; s.atk += c.perLevel.atk * lv; s.def += c.perLevel.def * lv;
+    const c = this.cls;
+    const s = { ...c.base }; // class base = level 1
+    for (const [k, v] of Object.entries(levelStats(c.perLevel, this.level))) s[k] = (s[k] || 0) + v;
     const mods = {};
     const eq = this.game.equipment;
     if (eq) eq.applyTo(s, mods);
@@ -81,23 +84,33 @@ export class Player extends Entity {
       this.hp = Math.min(this.maxHp, Math.round(this.maxHp * ratio));
     }
   }
-  expToNext() { return Math.round(120 * Math.pow(1.28, this.level - 10)); }
+  get classId() { return this.cls.id; }
+  get isMaxLevel() { return this.level >= LEVELS.maxLevel; }
+  expToNext() { return expToNext(this.level); }
+  // level + EXP from a save / class change / test; repaired to a valid state (level range, exp < next)
+  setLevel(level, exp = 0) {
+    const s = normalizeExp(level, exp);
+    this.level = s.level; this.exp = s.exp;
+    this.recomputeStats();
+  }
+  // rules in data/levels.js + progression/experience.js; feedback is the UI's job (listens to 'levelUp')
   gainExp(n) {
-    this.exp += n;
-    let leveled = false;
-    while (this.exp >= this.expToNext()) {
-      this.exp -= this.expToNext();
-      this.level++;
-      leveled = true;
+    if (!(n > 0) || this.isMaxLevel) return;
+    const from = this.level;
+    const s = addExp(this.level, this.exp, n);
+    this.level = s.level; this.exp = s.exp;
+    const ev = this.game.events;
+    if (ev) ev.emit('expGained', { entity: this, amount: n, level: this.level, exp: this.exp });
+    if (!s.levelsGained) return;
+    this.recomputeStats();
+    const lu = LEVELS.levelUp;
+    if (lu.restoreHp) this.hp = this.maxHp;
+    for (const rid in this.resources.defs) {
+      const d = this.resources.defs[rid];
+      if (lu.resource === 'max') this.resources.set(rid, this.resources.max(rid), 'levelUp');
+      else if (lu.resource === 'respawn') this.resources.set(rid, Math.max(this.resources.get(rid), d.respawn ?? d.start ?? 0), 'levelUp');
     }
-    if (leveled) {
-      this.recomputeStats();
-      this.hp = this.maxHp;
-      this.game.vfx.ring(this.x, this.y, 10, 60, { color: '255,220,120', life: 0.6 });
-      this.game.vfx.burst(this.x, this.y - 20, '#ffe08a', 30, 140);
-      this.game.ui.banner('LEVEL UP', `${this.cls.name}  LV.${this.level}`, '#ffd96a');
-      this.game.audio.sfx('levelup');
-    }
+    if (ev) ev.emit('levelUp', { entity: this, from, level: this.level });
   }
 
   // ---------------- resources

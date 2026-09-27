@@ -87,6 +87,16 @@ export class Game {
     };
     ev.on('statusExpired', reveal);
     ev.on('statusRemoved', reveal);
+    // level up feedback (rules: data/levels.js · progression/experience.js)
+    ev.on('levelUp', (e) => {
+      const p = e.entity;
+      if (p !== this.player) return;
+      this.vfx.ring(p.x, p.y, 10, 60, { color: '255,220,120', life: 0.6 });
+      this.vfx.burst(p.x, p.y - 20, '#ffe08a', 30, 140);
+      this.vfx.text(p.x, p.y - 80, 'LEVEL UP', { color: '#ffd96a', size: 12 });
+      this.ui.banner('LEVEL UP', `${p.cls.name}  LV.${p.level}`, '#ffd96a');
+      this.audio.sfx('levelup');
+    });
     // class progression feedback
     ev.on('trialStarted', (e) => this.ui.questBanner('CLASS TRIAL', TRIALS_TITLE(e.trial)));
     ev.on('trialPassed', (e) => { this.ui.questBanner('TRIAL PASSED', TRIALS_TITLE(e.trial)); this.audio.sfx('quest_done'); });
@@ -185,8 +195,8 @@ export class Game {
     this.stats = { kills: 0, chests: 0, deaths: 0, ...(d.stats || {}) };
     this.playTime = d.playTime || 0;
     const p = this.player;
-    p.level = d.player.level; p.exp = d.player.exp; p.gold = d.player.gold;
-    p.recomputeStats();
+    p.gold = Math.max(0, d.player.gold || 0);
+    p.setLevel(d.player.level, d.player.exp); // repaired to the current level rules (old saves too)
     p.hp = Math.min(p.maxHp, d.player.hp || p.maxHp); p.shadow = d.player.shadow ?? 40;
     if (d.player.resources) p.resources.load(d.player.resources);
     p.loadout.load(d.player.loadout); // invalid / missing ids fall back to the class default
