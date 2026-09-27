@@ -122,6 +122,7 @@ export class Quests {
         })),
       });
     }
+    if (this.game.progression) out.unshift(...this.game.progression.tracker()); // active class trial first
     return out.sort((a, b) => (a.side ? 1 : 0) - (b.side ? 1 : 0));
   }
   serialize() { return { active: this.active, completed: this.completed }; }

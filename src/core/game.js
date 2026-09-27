@@ -17,6 +17,9 @@ import { PlayerSprites } from '../player/playerSprites.js';
 import { buildMonsterSprites } from '../monsters/monsterSprites.js';
 import { CLASSES, DEFAULT_CLASS } from '../skills/classes.js';
 import { ThreadSystem } from '../combat/threadSystem.js';
+import { Progression } from '../progression/progression.js';
+import { CLASS_TREE, TRIALS } from '../data/classTree.js';
+const TRIALS_TITLE = (id) => (TRIALS[id] ? TRIALS[id].title : id);
 import { THREADS } from '../data/threads.js';
 import { TILE, WORLD_W, WORLD_H, Z } from './constants.js';
 import { LORE } from '../world/narrative.js';
@@ -81,6 +84,10 @@ export class Game {
     };
     ev.on('statusExpired', reveal);
     ev.on('statusRemoved', reveal);
+    // class progression feedback
+    ev.on('trialStarted', (e) => this.ui.questBanner('CLASS TRIAL', TRIALS_TITLE(e.trial)));
+    ev.on('trialPassed', (e) => { this.ui.questBanner('TRIAL PASSED', TRIALS_TITLE(e.trial)); this.audio.sfx('quest_done'); });
+    ev.on('classUnlocked', (e) => this.ui.banner('CLASS UNLOCKED', `${CLASS_TREE[e.classId].name} — the path is open`, '#ffd96a'));
     // skill failures are reported as data; presenting them is the UI's job
     ev.on('skillFailed', (e) => {
       if (e.caster !== this.player) return;
@@ -111,6 +118,8 @@ export class Game {
     this.wireEvents();
     this.stats = { kills: 0, chests: 0, deaths: 0 };
     this.quests = new Quests(this);
+    // class records / trials / unlocks (rules in data/classTree.js)
+    this.progression = new Progression(this);
     this.combat.clear();
     this.ui.hud.reset();
     // generic marks on any entity (rules in data/marks.js); events go through the session bus
@@ -163,6 +172,7 @@ export class Game {
     this.inventory.load(d.inventory);
     this.equipment.load(d.equipment);
     this.quests.load(d.quests);
+    this.progression.load(d.progression);
     this.knowledge.load(d.knowledge);
     this.stats = { kills: 0, chests: 0, deaths: 0, ...(d.stats || {}) };
     this.playTime = d.playTime || 0;

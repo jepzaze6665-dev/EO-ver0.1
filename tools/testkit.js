@@ -89,6 +89,7 @@ export function releaseInput(g) {
   g.input.down.clear();
   g.input.clearAll();
   g.player.vx = g.player.vy = 0;
+  g.player.kx = g.player.ky = 0; // leftover knockback would slide a teleported player off its mark
 }
 
 export function goto(g, tx, ty) {
@@ -104,6 +105,8 @@ export function use(g, id) {
   const it = g.world.interactables.find((i) => i.id === id);
   if (!it) return { error: 'no ' + id };
   releaseInput(g);
+  // an open panel (e.g. a discovery popup) pauses the world, so `nearest` would never refresh
+  if (g.ui.panelOpen) g.ui.panels.close(true);
   const p = g.player;
   const pos = g.world.map.findOpen(it.x, it.y + 20, 3);
   p.x = pos.x; p.y = pos.y;

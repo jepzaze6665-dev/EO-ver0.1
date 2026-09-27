@@ -52,6 +52,18 @@
   .title-wrap.compact .logo { font-size: clamp(32px, 5vw, 60px); }
   .title-wrap.compact .tag { margin: 8px 0 16px; }
   .overlay.title { overflow-y: auto; }
+  .class-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 18px; }
+  .records div { font-size: 13px; padding: 2px 0; }
+  .path-card { border: 1px solid var(--line); border-radius: 6px; padding: 10px; margin-bottom: 8px; background: rgba(20,12,34,.6); }
+  .path-card.unlocked { border-color: var(--gold); }
+  .path-head b { font-size: 15px; color: #f0e0ff; }
+  .req { font-size: 12px; color: #a898c8; margin: 3px 0; display: flex; align-items: center; gap: 6px; }
+  .req.ok { color: #a8f0b0; }
+  .req-bar { display: inline-block; width: 90px; height: 6px; background: rgba(0,0,0,.5); border-radius: 3px; overflow: hidden; }
+  .req-bar i { display: block; height: 100%; background: linear-gradient(90deg, #8a5ad8, #ffd96a); }
+  .trial { margin-top: 6px; padding: 6px 8px; border-left: 2px solid #8a5ad8; font-size: 12px; }
+  .trial.active { border-color: var(--gold); } .trial.passed { border-color: #a8f0b0; color: #a8f0b0; }
+  .trial button { margin-top: 4px; padding: 3px 10px; font-size: 12px; }
   .skills-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
   .skill-card { display: flex; gap: 10px; padding: 8px; margin-bottom: 6px; border: 1px solid var(--line); border-radius: 6px; background: rgba(20,12,34,.6); }
   .skill-card.on { border-color: #c89aff; }

@@ -31,6 +31,7 @@ export class SaveSystem {
       inventory: g.inventory.serialize(),
       equipment: g.equipment.serialize(),
       quests: g.quests.serialize(),
+      progression: g.progression.serialize(),
       world: g.world.serialize(),
       knowledge: g.knowledge.serialize(),
       stats: g.stats,

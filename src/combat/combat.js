@@ -145,7 +145,9 @@ export class Combat {
       opts = { ...opts, knock: (opts.knock || 0) * 0.25, blocked: true };
     }
     // shields (status 'shield') soak damage before HP
+    const shieldSrc = target.status && target.status.get('shield') ? target.status.get('shield').source : null;
     const absorbed = target.status ? res.amount - target.status.absorb(res.amount) : 0;
+    if (absorbed > 0) g.events.emit('shieldAbsorbed', { target, source: src, amount: absorbed, statusSource: shieldSrc });
     const amount = res.amount - absorbed;
     // 2) APPLY — state changes
     if (res.armorDamage) {

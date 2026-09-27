@@ -70,6 +70,13 @@ quests/  items/  inventory/  equipment/  ui/ (canvas HUD + DOM panels)  save/  a
 **Skill loadout:** keys 1-4 are chosen per character in the **Skills** tab (`I` → Skills; locked in combat, saved);
 key 5 is the ultimate and Q the class special. Umbral Sword knows 6 actives for 4 slots.
 
+**Class progression** (`I` → Class): each class keeps *class records* (Constellation Breaks, Perfect Guards,
+Shadow Breaks…, counted from game events). Every Class 2 path (3 per class, 9 total) has requirements — level,
+quest, class records — and a **class trial**; passing it unlocks the path. Class 2 classes are not playable yet
+(Class Change is the next phase). Tree, counters and trials: `src/data/classTree.js`; generic requirement types
+(level · quest · flag · counter · item · secrets · trial · class · any · all, with hidden conditions for secret
+classes): `src/progression/requirements.js`.
+
 Class data lives in `src/skills/<class>.js` and is registered in `src/skills/classes.js`. Core systems used by every class:
 `combat/damageSystem` · `resourceSystem` · `skillSystem` · `markSystem` · `threadSystem` · `guardSystem` · `status/status`
 (rules in `src/data/*.js`). Saves store the class id; old saves load as Umbral Sword.
@@ -93,7 +100,7 @@ The combat core never references Umbral Sword directly: a class is a stat block 
 Unit tests (pure combat core, no browser):
 
 ```bash
-node tools/tests/run.mjs          # all unit tests (combat, resource, skill, mark, status, thread, guard, sprites, loadout, syntax)
+node tools/tests/run.mjs          # all unit tests (combat, resource, skill, mark, status, thread, guard, progression, sprites, loadout, syntax)
 ```
 
 In-game: a **training yard** with 3 Training Dummies (HP, DPS meter, auto-reset) stands west of the Lumina fountain.

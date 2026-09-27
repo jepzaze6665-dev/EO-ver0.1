@@ -5,6 +5,7 @@ import { QUESTS } from '../quests/quests.js';
 import { TILE, T } from '../core/constants.js';
 import { CLASSES, STARTING_CLASSES } from '../skills/classes.js';
 import { RESOURCES } from '../data/resources.js';
+import { CLASS_COUNTERS } from '../data/classTree.js';
 
 // DOM overlays. They only exist while open (no DOM churn during combat) and pause the game.
 const $ = (sel) => document.querySelector(sel);
@@ -158,7 +159,7 @@ export class Panels {
   inventory(tab) {
     if (tab) this.invTab = tab;
     const g = this.game, p = g.player, inv = g.inventory, eq = g.equipment;
-    const tabs = [['inventory', 'Inventory'], ['equipment', 'Equipment'], ['skills', 'Skills'], ['knowledge', 'Monster Knowledge'], ['lore', 'Lore & Quests']];
+    const tabs = [['inventory', 'Inventory'], ['equipment', 'Equipment'], ['skills', 'Skills'], ['class', 'Class'], ['knowledge', 'Monster Knowledge'], ['lore', 'Lore & Quests']];
     let body = '';
     if (this.invTab === 'inventory') {
       const items = inv.list(this.invCat);
@@ -207,6 +208,32 @@ export class Panels {
         </div>
         <div><h3>Fixed</h3>${[lo.ultimate(), p.cls.special].filter(Boolean).map((s) => card(s, `<div class="muted small">Key ${s.ultimate ? '5' : 'Q'}</div>`)).join('')}</div>
       </div>`;
+    } else if (this.invTab === 'class') {
+      // class tree from data/classTree.js: next-tier paths, requirement checklist, trial, unlock state
+      const p = g.player, prog = g.progression, rec = prog.records[p.cls.id] || {};
+      const bar = (have, need) => need ? `<span class="req-bar"><i style="width:${Math.min(100, (have / need) * 100)}%"></i></span><span class="muted small">${Math.floor(have)}/${need}</span>` : '';
+      const reqRow = (r) => `<div class="req ${r.met ? 'ok' : ''}">${r.met ? '✓' : '○'} ${esc(r.label)} ${r.need ? bar(r.have, r.need) : ''}</div>`;
+      const trialBox = (x) => {
+        const t = x.trial;
+        if (!t) return '';
+        if (x.unlocked || t.state === 'passed') return `<div class="trial passed">✦ ${esc(t.def.title)} — PASSED</div>`;
+        if (t.state === 'active') return `<div class="trial active"><b>${esc(t.def.title)}</b>${t.objectives.map((o) => reqRow({ met: o.have >= o.count, label: CLASS_COUNTERS[o.counter].label, have: Math.max(0, o.have), need: o.count })).join('')}<button data-abandon="${t.id}">Abandon trial</button></div>`;
+        return `<div class="trial"><b>${esc(t.def.title)}</b>${t.def.objectives.map((o) => `<div class="muted small">• ${CLASS_COUNTERS[o.counter].label} ×${o.count}</div>`).join('')}<button data-trial="${x.node.id}" ${x.ready ? '' : 'disabled'}>${x.ready ? 'Begin trial' : 'Requirements not met'}</button></div>`;
+      };
+      const card = (x) => `<div class="path-card ${x.unlocked ? 'unlocked' : ''}">
+          <div class="path-head"><b>${esc(x.node.name)}</b> <span class="muted small">${esc(x.node.role || '')}</span></div>
+          <div class="small">${esc(x.node.description || '')}</div>
+          <div class="muted small">Resource: ${esc(x.node.resource || '—')}${x.node.playable ? '' : ' · <i>arrives with Class 2 (not playable yet)</i>'}</div>
+          ${x.unlocked ? '<div class="req ok">✦ UNLOCKED — Class Change comes in the next phase</div>' : x.reqs.map(reqRow).join('')}
+          ${trialBox(x)}
+        </div>`;
+      const recs = Object.entries(rec).filter(([, v]) => v > 0).map(([k, v]) => `<div>${esc(CLASS_COUNTERS[k] ? CLASS_COUNTERS[k].label : k)} <b>${Math.floor(v)}</b></div>`).join('') || '<div class="muted">Nothing yet — fight!</div>';
+      body = `<div class="class-layout">
+        <div><h3>${esc(p.cls.name)} <span class="muted small">Tier 1 · ${esc(p.cls.role || '')}</span></h3>
+          <p class="muted small">Class records are earned by playing this class. Meet a path's requirements, then pass its trial to unlock it.</p>
+          <h3>Class Records</h3><div class="records">${recs}</div></div>
+        <div><h3>Class 2 Paths</h3>${prog.paths().map(card).join('') || '<div class="muted">No further paths.</div>'}</div>
+      </div>`;
     } else if (this.invTab === 'knowledge') {
       const list = g.knowledge.view();
       body = `<div class="know">${list.map((e) => `
@@ -236,7 +263,7 @@ export class Panels {
         <div class="content">${body}</div>
       </div>`);
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],[data-slot],.x');
+      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],[data-slot],[data-trial],[data-abandon],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
       if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
@@ -246,6 +273,8 @@ export class Panels {
       else if (t.dataset.equip) { g.equipment.equip(t.dataset.equip); if (!g.inventory.has(this.selected)) this.selected = null; this.inventory(); }
       else if (t.dataset.unequip) { g.equipment.unequip(t.dataset.unequip); this.inventory(); }
       else if (t.dataset.slot) { g.player.setSkillSlot(+t.dataset.slot, t.dataset.skill); this.inventory(); }
+      else if (t.dataset.trial) { const r = g.progression.startTrial(t.dataset.trial); if (!r.ok) g.ui.toast(r.reason === 'busy' ? 'Finish your current trial first' : 'Requirements not met', 1.2); this.inventory(); }
+      else if (t.dataset.abandon) { g.progression.abandonTrial(t.dataset.abandon); this.inventory(); }
     });
   }
   itemDetail(id) {
