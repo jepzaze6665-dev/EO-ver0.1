@@ -154,6 +154,58 @@ export function toBoss(g, classId) {
   g.simulate(3);
 }
 
+// V2.1 maps: walk through every exit of every map (locks opened), check the arrival map, that the player
+// is not standing in an exit on arrival (no transition loop) and stays there, plus the mapExited/mapEntered events.
+// Returns [step, pass, detail] rows. Leaves the game in a fresh New Game afterwards.
+export function mapTour(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, mm = w.mapManager, p = g.player;
+  ok('New Game starts on Lumina', w.mapId === 'lumina');
+  for (const f of ['ruinsGate', 'logBridge', 'gateOpened', 'guardianDefeated']) w.setFlag(f);
+  w.applyState();
+  const events = [];
+  g.events.on('mapEntered', (e) => events.push(e.id));
+  let bad = [];
+  for (const def of mm.list) for (const e of def.exits) {
+    // stand on an open tile inside the exit rect (tile owned by this map)
+    let spot = null;
+    for (let ty = e.rect[1]; ty <= e.rect[3] && !spot; ty++) for (let tx = e.rect[0]; tx <= e.rect[2] && !spot; tx++) {
+      if (mm.idAtTile(tx, ty) !== def.id) continue;
+      w.changeMap(def.id, { silent: true });
+      if (!w.map.isSolid(tx, ty)) spot = { x: (tx + 0.5) * TILE, y: (ty + 0.5) * TILE };
+    }
+    if (!spot) { bad.push(`${def.id}.${e.id}: no open tile`); continue; }
+    w.changeMap(def.id, { silent: true });
+    w.transitions.cooldown = 0;
+    releaseInput(g); p.x = spot.x; p.y = spot.y; p.dead = false; p.hp = p.maxHp;
+    g.simulate(0.1);
+    const arrived = w.mapId === e.to && mm.idAt(p.x, p.y) === e.to;
+    const inExit = !!w.transitions.exitAt(mm.get(e.to), p.x, p.y);
+    g.simulate(1.2, () => { p.hp = p.maxHp; });
+    if (!arrived || inExit || w.mapId !== e.to) bad.push(`${def.id}.${e.id} -> ${w.mapId} (${(p.x / TILE).toFixed(1)},${(p.y / TILE).toFixed(1)}) inExit=${inExit}`);
+  }
+  const total = mm.list.reduce((n, d) => n + d.exits.length, 0);
+  ok(`All exits work both ways (${total})`, !bad.length, bad.join(' | '));
+  ok('mapEntered events', events.length >= total, `events=${events.length}`);
+  // every exit leads to a map that has an exit back
+  const noBack = mm.list.flatMap((d) => d.exits.filter((e) => !mm.get(e.to).exits.some((b) => b.to === d.id)).map((e) => `${d.id}.${e.id}`));
+  ok('Every exit has a way back', !noBack.length, noBack.join(','));
+  // locks: sealed gate + boss fight
+  g.newGame(classId);
+  const w2 = g.world, a3 = w2.mapManager.get('a3').exits.find((e) => e.id === 'arena_gate');
+  const locked = !w2.transitions.isOpen(a3);
+  w2.setFlag('gateOpened'); const open = w2.transitions.isOpen(a3);
+  w2.bossActive = true; const bossLock = !w2.transitions.isOpen(a3); w2.bossActive = false;
+  ok('Locks: sealed until flag, closed during boss fight', locked && open && bossLock);
+  // teleport (waystone-like) follows the player to the other map
+  goto(g, 136, 110); ok('Teleport into A3 switches map', w2.mapId === 'a3', w2.mapId);
+  // other maps' monsters are frozen / not hostile
+  ok('Only this map is hostile', w2.hostiles().every((h) => w2.onMap(h)));
+  g.newGame(classId);
+  return R;
+}
+
 // Full regression of the V1.5 test sequence. Returns [step, pass, detail] rows.
 export function playthrough(g, classId) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
@@ -193,7 +245,7 @@ export function playthrough(g, classId) {
   ok('Weak windows used', c.weak > 0, `weak=${c.weak}`);
   ok('Guardian defeated', gd.dead);
   g.simulate(9);
-  ok('World State changed', w.state.flags.guardianDefeated && w.map.style.restored && !w.map.isSolid(32, 37));
+  ok('World State changed', w.state.flags.guardianDefeated && w.map.style.restored && !w.map.isTerrainSolid(32, 37));
   goto(g, 32, 40); for (let y = 40; y >= 26; y--) { g.player.y = y * 32; g.simulate(0.08); }
   ok('Ancient Valley revealed', w.currentZone === 6 && g.quests.isDone('valley'));
   // back to Lumina: report to the Elder + the Guide (turn-in objectives)

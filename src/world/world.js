@@ -9,6 +9,9 @@ import { TrainingDummy } from '../entities/trainingDummy.js';
 import { isAvailable, interact, promptFor } from '../exploration/interactables.js';
 import { dist, rand, TAU, pick } from '../core/math.js';
 import { Assets } from '../core/assets.js';
+import { MapManager } from './mapManager.js';
+import { TransitionSystem } from './transitionSystem.js';
+import { MAPS } from '../maps/mapRegistry.js';
 
 const REVEAL_R = 10;
 
@@ -41,6 +44,11 @@ export class World {
     this.nearest = null;
     this.propById = {};
     for (const p of map.props) if (p.id) this.propById[p.id] = p;
+    // separate maps (Lumina / A1 / A2 / A3 / Boss Arena / Valley) over the generated terrain + exits between them
+    this.mapManager = new MapManager(map, MAPS);
+    this.transitions = new TransitionSystem(this);
+    this.mapId = null;
+    this.suppressZoneBanner = false;
 
     for (const n of builder.npcs) {
       const npc = new NPC(game, n);
@@ -60,7 +68,7 @@ export class World {
   }
 
   freshState() {
-    return { flags: {}, chests: {}, lore: {}, waystones: {}, nodes: {}, subs: {}, secrets: [], lastWaystone: null, killed: {} };
+    return { flags: {}, chests: {}, lore: {}, waystones: {}, nodes: {}, subs: {}, secrets: [], lastWaystone: null, killed: {}, maps: {} };
   }
 
   makeBreakables() {
@@ -87,13 +95,53 @@ export class World {
   }
 
   // ---------------- queries
+  // ---------------- maps
+  get mapDef() { return this.mapId ? this.mapManager.get(this.mapId) : null; }
+  // is an entity / object on the current map? (its map is fixed where it was placed: home / spawn position)
+  onMap(e) {
+    if (!this.mapId) return true;
+    if (e.mapId === undefined) { const h = e.home || e; e.mapId = this.mapManager.idAt(h.x, h.y); }
+    return e.mapId === this.mapId || e.mapId === null;
+  }
+  // switch the active map. opts.entry: [tx, ty] arrival point (walking through an exit); without it the player
+  // is already on the new map (teleport, respawn, load, new game)
+  changeMap(id, opts = {}) {
+    const g = this.game, p = g.player, def = this.mapManager.get(id);
+    if (!def) return false;
+    const prev = this.mapId;
+    if (prev === id && !opts.entry) return false;
+    if (prev) g.events.emit('mapExited', { id: prev, to: id, via: opts.via || null });
+    this.mapId = id;
+    this.mapManager.activate(id);
+    g.camera.bounds = this.mapManager.boundsPx(id);
+    if (opts.entry) {
+      const pos = this.map.findOpen(opts.entry[0] * TILE, opts.entry[1] * TILE, 4);
+      p.x = pos.x; p.y = pos.y; p.kx = p.ky = 0;
+      g.vfx.flash('0,0,0', 1, 2.4); // quick fade in from black
+    }
+    g.camera.snap(p.x, p.y);
+    if (g.targets) g.targets.clear();
+    const first = !this.state.maps[id];
+    this.state.maps[id] = true;
+    this.suppressZoneBanner = true; // the map banner replaces the zone banner
+    if (!opts.silent) g.ui.zoneBanner(def.name, def.sub, first);
+    g.events.emit('mapEntered', { id, from: prev, first });
+    g.save.dirty = true;
+    return true;
+  }
+  // teleports put the player straight onto another map: follow them there
+  syncMapToPlayer(opts) {
+    const p = this.game.player, id = this.mapManager.idAt(p.x, p.y);
+    if (id && id !== this.mapId) this.changeMap(id, opts);
+  }
+
   hostiles() {
     const out = this._hostiles || (this._hostiles = []);
     out.length = 0;
-    for (const m of this.monsters) if (!m.dead) out.push(m);
-    if (this.guardian && !this.guardian.dead && this.guardian.hurtable) out.push(this.guardian);
-    for (const b of this.breakables) if (!b.dead && b.hurtable) out.push(b);
-    for (const d of this.dummies) if (!d.dead) out.push(d);
+    for (const m of this.monsters) if (!m.dead && this.onMap(m)) out.push(m);
+    if (this.guardian && !this.guardian.dead && this.guardian.hurtable && this.onMap(this.guardian)) out.push(this.guardian);
+    for (const b of this.breakables) if (!b.dead && b.hurtable && this.onMap(b)) out.push(b);
+    for (const d of this.dummies) if (!d.dead && this.onMap(d)) out.push(d);
     return out;
   }
   inSafeZone(p) { return this.map.zoneAt(p.x, p.y) === Z.VILLAGE; }
@@ -267,6 +315,8 @@ export class World {
 
   trackZone() {
     const g = this.game, p = g.player;
+    const quiet = this.suppressZoneBanner;
+    this.suppressZoneBanner = false;
     const z = this.map.zoneAt(p.x, p.y);
     if (z && z !== this.currentZone) {
       this.currentZone = z;
@@ -275,7 +325,7 @@ export class World {
       this.state.subs['zone' + z] = true;
       if (info) {
         if (z === Z.CAVE) this.discoverSecret(1, 'HIDDEN CAVE');
-        else g.ui.zoneBanner(info.name, info.sub, first);
+        else if (!quiet) g.ui.zoneBanner(info.name, info.sub, first);
         g.audio.music(info.music);
       }
       g.events.emit('zoneEnter', z);
@@ -311,6 +361,7 @@ export class World {
   findNearest(p) {
     let best = null, bd = 1e9;
     for (const it of this.interactables) {
+      if (!this.onMap(it.npc || it)) continue;
       if (it.kind === 'npc') { it.x = it.npc.x; it.y = it.npc.y; }
       const d = dist(p.x, p.y, it.x, it.y);
       if (it.kind === 'trigger') {
@@ -333,7 +384,7 @@ export class World {
       if (!this.state.flags.guardianDiscovered && this.guardian && !this.state.flags.guardianDefeated) {
         this.setFlag('guardianDiscovered');
         g.knowledge.encounter('guardian');
-        g.camera.lookAt(this.guardian.x, this.guardian.y - 40, 2.6);
+        if (this.onMap(this.guardian)) g.camera.lookAt(this.guardian.x, this.guardian.y - 40, 2.6); // it sleeps on the next map
         g.ui.bossTitle('GUARDIAN OF THE FOREST', 'It sleeps… for now');
         g.audio.sfx('discover_boss');
       }
@@ -445,9 +496,10 @@ export class World {
     for (const n of this.npcs) n.update(dt);
     for (const d of this.dummies) d.update(dt);
     // monsters: simulate near the player (or anything in a fight)
+    // monsters: only the current map is simulated (other maps are frozen), and only near the player / in a fight
     for (const m of this.monsters) {
       if (m.dead) { m.deathT += dt; continue; }
-      if (m.aggro || dist(m.x, m.y, p.x, p.y) < 900) m.update(dt);
+      if (this.onMap(m) && (m.aggro || dist(m.x, m.y, p.x, p.y) < 900)) m.update(dt);
     }
     this.monsters = this.monsters.filter((m) => !(m.dead && m.deathT > 0.8));
     if (this.guardian) {
@@ -469,6 +521,7 @@ export class World {
     }
     this.revealT -= dt;
     if (this.revealT <= 0) { this.revealT = 0.2; this.revealAround(p); }
+    this.transitions.update(dt, p);
     this.trackZone();
     this.findNearest(p);
     this.ambient(dt);

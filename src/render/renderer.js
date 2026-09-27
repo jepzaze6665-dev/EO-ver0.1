@@ -116,8 +116,10 @@ export class Renderer {
     map.drawGround(ctx, cam);
     map.prefetch(cam);
     map.drawWater(ctx, cam, t);
+    this.drawAreaMask(ctx, cam, map);
 
-    const props = map.propsInView(cam, this.propBuf);
+    // only the current map's props (plus neutral border scenery) — other maps stay hidden
+    const props = map.propsInView(cam, this.propBuf).filter((p) => this.onArea(map, p));
     // ground decals (runes, circles, fallen logs)
     for (const p of props) if (p.layer === 'ground') this.drawProp(ctx, p, game, true);
     this.drawHazards(ctx, game);
@@ -127,11 +129,11 @@ export class Renderer {
     const list = this.drawList;
     list.length = 0;
     for (const p of props) if (p.layer !== 'ground') list.push({ y: p.y, p });
-    for (const it of world.interactables) if (it.kind !== 'npc' && cam.visible(it.x, it.y, 40)) list.push({ y: it.y - 1, it });
-    for (const n of world.npcs) if (!n.hidden && cam.visible(n.x, n.y) && (!n.secret || map.secretsFound.has(n.secret))) list.push({ y: n.y, e: n });
-    for (const m of world.monsters) if (cam.visible(m.x, m.y, 80)) list.push({ y: m.y, e: m });
-    for (const d of world.dummies) if (cam.visible(d.x, d.y, 60)) list.push({ y: d.y, e: d });
-    if (world.guardian && cam.visible(world.guardian.x, world.guardian.y, 200)) list.push({ y: world.guardian.y, e: world.guardian });
+    for (const it of world.interactables) if (it.kind !== 'npc' && cam.visible(it.x, it.y, 40) && world.onMap(it)) list.push({ y: it.y - 1, it });
+    for (const n of world.npcs) if (!n.hidden && cam.visible(n.x, n.y) && world.onMap(n) && (!n.secret || map.secretsFound.has(n.secret))) list.push({ y: n.y, e: n });
+    for (const m of world.monsters) if (cam.visible(m.x, m.y, 80) && world.onMap(m)) list.push({ y: m.y, e: m });
+    for (const d of world.dummies) if (cam.visible(d.x, d.y, 60) && world.onMap(d)) list.push({ y: d.y, e: d });
+    if (world.guardian && cam.visible(world.guardian.x, world.guardian.y, 200) && world.onMap(world.guardian)) list.push({ y: world.guardian.y, e: world.guardian });
     for (const s of world.rootSpikes) list.push({ y: s.y, spike: s });
     if (game.summons) for (const s of game.summons.list) if (cam.visible(s.x, s.y, 60)) list.push({ y: s.y, summon: s });
     const pl = game.player;
@@ -162,6 +164,29 @@ export class Renderer {
     sc.setTransform(1, 0, 0, 1, 0, 0);
     sc.imageSmoothingEnabled = false;
     sc.drawImage(this.scene, 0, 0, this.vw * this.scale, this.vh * this.scale);
+  }
+
+  // prop belongs to the current map, or to no map (walls / border scenery)
+  onArea(map, p) {
+    if (!map.activeArea) return true;
+    if (p.area === undefined) p.area = map.areaAt(p.x, p.y - 2);
+    return !p.area || p.area === map.activeArea;
+  }
+  // paint every visible tile that belongs to another map as darkness (maps are separate places)
+  drawAreaMask(ctx, cam, map) {
+    if (!map.activeArea) return;
+    const tx0 = Math.max(0, Math.floor(cam.left / TILE) - 1), ty0 = Math.max(0, Math.floor(cam.top / TILE) - 1);
+    const tx1 = Math.min(map.w - 1, Math.ceil((cam.left + cam.width) / TILE) + 1), ty1 = Math.min(map.h - 1, Math.ceil((cam.top + cam.height) / TILE) + 1);
+    ctx.fillStyle = '#050409';
+    for (let ty = ty0; ty <= ty1; ty++) {
+      let run = -1;
+      for (let tx = tx0; tx <= tx1 + 1; tx++) {
+        const a = tx <= tx1 ? map.area[ty * map.w + tx] : 0;
+        const other = a && a !== map.activeArea;
+        if (other && run < 0) run = tx;
+        if (!other && run >= 0) { ctx.fillRect(run * TILE, ty * TILE, (tx - run) * TILE, TILE); run = -1; }
+      }
+    }
   }
 
   drawProp(ctx, p, game, ground) {
@@ -341,7 +366,7 @@ export class Renderer {
     const p = game.player;
     push(p.x, p.y - 16, 95, null, 0.9);
     if (p.markId && p.marks >= p.maxMarks) push(p.x, p.y - 20, 60, MARKS[p.markId].display.color, 0.5);
-    for (const L of game.world.staticLights) push(L.x, L.y, L.r, L.color, L.a ?? 0.6, L.flicker);
+    for (const L of game.world.staticLights) if (this.onArea(game.world.map, L)) push(L.x, L.y, L.r, L.color, L.a ?? 0.6, L.flicker);
     for (const pr of props) if (pr.light && pr.visible) push(pr.x, pr.y + (pr.light.oy || -10), pr.light.r, pr.light.color, pr.light.a ?? 0.6, pr.light.flicker);
     game.vfx.lights.forEach((l) => push(l.x, l.y, l.r * (l.life / l.max), l.color, l.a * (l.life / l.max)));
     game.combat.projectiles.pool.forEach((pj) => push(pj.x, pj.y, 26, pj.color, 0.5));

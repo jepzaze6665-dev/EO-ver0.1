@@ -185,6 +185,7 @@ export class Game {
     this.world.applyState();
     const s = this.world.regions.playerSpawn;
     this.player.x = s.x; this.player.y = s.y;
+    this.world.syncMapToPlayer({ silent: true });
     this.camera.snap(s.x, s.y - 40);
     this.state = 'title';
     this.ui.panels.title(this.save.exists());
@@ -199,6 +200,7 @@ export class Game {
     const s = this.world.regions.playerSpawn;
     this.player.x = s.x; this.player.y = s.y;
     this.player.facing = -Math.PI / 2;
+    this.world.syncMapToPlayer({ silent: true }); // start map = the map that owns the spawn point (Lumina)
     this.inventory.add('hp_potion', 3, true);
     this.inventory.add('shadow_tonic', 1, true);
     this.camera.snap(s.x, s.y);
@@ -230,8 +232,13 @@ export class Game {
     if (d.player.resources) p.resources.load(d.player.resources);
     p.loadout.load(d.player.loadout); // invalid / missing ids fall back to the class default
     this.world.applyState();
-    const pos = this.world.map.findOpen(d.player.x, d.player.y, 6);
+    // saved map + position; a position that no longer belongs to a map falls back to that map's spawn
+    const saved = this.world.mapManager.get(d.player.map) || null;
+    let pos = this.world.map.findOpen(d.player.x, d.player.y, 6);
+    if (!this.world.mapManager.idAt(pos.x, pos.y) && saved) pos = this.world.map.findOpen(saved.spawn[0] * TILE, saved.spawn[1] * TILE, 6);
     p.x = pos.x; p.y = pos.y;
+    this.world.mapId = null;
+    this.world.syncMapToPlayer({ silent: true });
     this.camera.snap(p.x, p.y);
     this.world.currentZone = Z.NONE;
   }
@@ -301,6 +308,7 @@ export class Game {
     p.dead = false; p.hp = p.maxHp; p.marks = 0;
     for (const rid in p.resources.defs) p.resources.set(rid, p.resources.defs[rid].respawn ?? p.resources.defs[rid].start, 'respawn');
     p.x = pos.x; p.y = pos.y; p.invulnT = 2; p.kx = p.ky = 0;
+    w.syncMapToPlayer();
     for (const m of w.monsters) { if (m.aggro) { m.aggro = false; m.x = m.home.x; m.y = m.home.y; m.hp = m.maxHp; m.setState('idle'); } }
     this.camera.targetZoom = 1;
     this.camera.snap(p.x, p.y);
@@ -449,6 +457,7 @@ export class Game {
     const sdt = dt * this.timeScale;
     this.time += sdt;
     this.tickTimers(dt, sdt);
+    this.world.syncMapToPlayer();
     this.player.update(sdt);
     this.world.update(sdt);
     this.targets.update(this.player);
@@ -470,7 +479,7 @@ export class Game {
     const p = this.player, w = this.world;
     const lines = [
       `FPS ${this.fps}  scale ${this.renderer.scale}  view ${this.renderer.vw}x${this.renderer.vh}`,
-      `pos ${(p.x / TILE).toFixed(1)}, ${(p.y / TILE).toFixed(1)}  zone ${w.currentZone} ${w.currentSub ? w.currentSub.name : ''}`,
+      `map ${w.mapId}  pos ${(p.x / TILE).toFixed(1)}, ${(p.y / TILE).toFixed(1)}  zone ${w.currentZone} ${w.currentSub ? w.currentSub.name : ''}`,
       `monsters ${w.monsters.length}  particles ${this.vfx.particles.count()}  proj ${this.combat.projectiles.pool.count()}  tele ${this.combat.telegraphs.list.length}  marks ${this.marks.count()}  threads ${this.threads.count()}  summons ${this.summons.count()}`,
       `target ${this.targets.current ? `${this.targets.current.name || this.targets.current.type} ${Math.ceil(this.targets.current.hp)}/${this.targets.current.maxHp}` : '-'}  LV ${p.level} ${p.cls.id} HP ${Math.ceil(p.hp)}/${p.maxHp}`,
       `timeScale ${this.timeScale.toFixed(2)} hitStop ${this.hitStop.toFixed(2)}  flags ${Object.keys(w.state.flags).join(',')}`,

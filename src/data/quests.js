@@ -14,7 +14,7 @@ import { Z } from '../core/constants.js';
 //    kill    { target: monster type | 'any', count }     ← 'enemyDefeated'
 //    collect { item, count }                             ← inventory count ('itemCollected')
 //    talk    { npc }                                     ← 'npcTalked' (a last talk objective = turn-in)
-//    reach   { zone }                                    ← 'zoneEnter' (map ids later)
+//    reach   { map } or { zone }                         ← 'mapEntered' / 'zoneEnter'
 //    boss    { boss }                                    ← 'bossDefeated'
 //    flag    { flag }                                    ← world flag set
 export const QUESTS = {
@@ -23,7 +23,7 @@ export const QUESTS = {
     description: 'Captain Aldric of the Adventurer Guild wants proof you can survive beyond the village gate.',
     objectives: [
       { id: 'talk', text: 'Talk to Village Guide', type: 'talk', npc: 'guide', marker: [36, 176] },
-      { id: 'exit', text: 'Exit Lumina Village', type: 'reach', zone: Z.FOREST, marker: [47, 152] },
+      { id: 'exit', text: 'Exit Lumina Village', type: 'reach', map: 'a1', marker: [47, 152] },
       { id: 'hunt', text: 'Defeat Monsters', type: 'kill', target: 'any', count: 5, marker: [38, 121] },
       { id: 'return', text: 'Return to Village Guide', type: 'talk', npc: 'guide', marker: [36, 176] },
     ],
@@ -61,7 +61,7 @@ export const QUESTS = {
     objectives: [
       { id: 'gd', text: 'Guardian Defeated', type: 'flag', flag: 'guardianDefeated' },
       { id: 'fr', text: 'Forest Restored', type: 'flag', flag: 'forestRestored' },
-      { id: 'enter', text: 'Enter Ancient Valley', type: 'reach', zone: Z.VALLEY, marker: [32, 26] },
+      { id: 'enter', text: 'Enter Ancient Valley', type: 'reach', map: 'valley', marker: [32, 26] },
     ],
     rewards: { exp: 200, gold: 100 },
     requirements: [],

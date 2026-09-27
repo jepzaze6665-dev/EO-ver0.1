@@ -10,7 +10,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - Unit tests: `node tools/tests/run.mjs` (must print `ALL TEST FILES PASSED`).
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
   (combat / mechanics / Reaper / class-change checks, currently 101/101) and
-  `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class).
+  `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
+  and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
 - After editing `tools/testkit.js`, **reload the page**: `combatTest.js` imports it without a cache-busting query.
 
@@ -76,5 +77,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   ordered/requirements/rewards; objectives kill·collect·talk·reach·boss·flag + `marker`), `src/quests/quests.js` is generic
   (events questAccepted/Updated/Completed; NPC "!" + HUD arrow from data). Main quest `beyond_lumina` (auto on New Game,
   Village Guide = Captain Aldric), `whispers` now ends with "Report to Elder Maren"; `first_steps` (side) needs
-  beyond_lumina. Next: P8 Lumina integration + the B map split (separate maps + transition system), then A1/A2/A3/arena. Monster display levels / zone "Lv." subtitles still show the old 5-15 range (fix in P4).
+  beyond_lumina. P8: **separate maps** over the one generated terrain (same world tile coordinates everywhere): defs in
+  `src/maps/{luminaVillage,fieldA1,fieldA2,fieldA3,majorBossArena,ancientValley}.js` + `mapRegistry.js` (region = zones
+  [+ minTy/maxTy], spawn, exits {rect, to, entry, requires.flag}); `src/world/mapManager.js` (tile → area, bounds, BFS
+  `nextExit` for quest arrows), `src/world/transitionSystem.js` (exits, locks, boss-fight lock, cooldown). Only the active
+  map is walkable (`WorldMap.isSolid` + `activeArea`; `isTerrainSolid` ignores maps), simulated, hostile, drawn (other
+  maps masked black) and on the minimap. Teleports / load / respawn: `world.syncMapToPlayer()`. Events mapExited/
+  mapEntered; save stores `player.map`; quest `reach {map}`. A1 = forest south of the river (y ≥ 98), A2 = north +
+  Hidden Cave, A3 = ruins + gate. Next: P9 A1 content (tutorial combat, sign/NPC, spawn review), P10 A2, P11 A3 (elite),
+  P12 arena, P13 UI, P14 save, P15 debug, P16 polish. Monster display levels / zone "Lv." subtitles still show the old 5-15 range (fix in P4).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

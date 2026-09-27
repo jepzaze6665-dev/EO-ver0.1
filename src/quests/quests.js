@@ -17,6 +17,7 @@ export class Quests {
     ev.on('enemyDefeated', (e) => { if (!e.summoned && !e.boss) this.onEvent('kill', { type: e.type }); });
     ev.on('bossDefeated', (e) => this.onEvent('boss', { type: e.type }));
     ev.on('zoneEnter', (z) => this.onEvent('reach', { zone: z }));
+    ev.on('mapEntered', (e) => this.onEvent('reach', { map: e.id }));
     ev.on('flag', (f) => this.onEvent('flag', { flag: f }));
     ev.on('npcTalked', (e) => this.onEvent('talk', { npc: e.id }));
     ev.on('itemCollected', () => this.onEvent('collect', {}));
@@ -43,7 +44,7 @@ export class Quests {
     for (const o of q.objectives) {
       if (st.done[o.id] || !this.unlocked(q, st, o)) continue;
       if (o.type === 'flag' && this.game.world.state.flags[o.flag]) this.markDone(id, o);
-      else if (o.type === 'reach' && this.game.world.currentZone === o.zone) this.markDone(id, o);
+      else if (o.type === 'reach' && ((o.zone !== undefined && this.game.world.currentZone === o.zone) || (o.map !== undefined && this.game.world.mapId === o.map))) this.markDone(id, o);
       else if (o.type === 'collect') this.updateCollect(id, o);
     }
     this.checkComplete(id);
@@ -85,7 +86,7 @@ export class Quests {
           else this.game.events.emit('questUpdated', { id: qid, objective: o.id, progress: st.progress[o.id], count: o.count, done: false });
           changed = true;
         } else if (type === 'collect') { const before = st.progress[o.id]; this.updateCollect(qid, o); changed = before !== st.progress[o.id]; }
-        else if ((type === 'reach' && o.zone === v.zone) || (type === 'flag' && o.flag === v.flag)
+        else if ((type === 'reach' && ((o.zone !== undefined && o.zone === v.zone) || (o.map !== undefined && o.map === v.map))) || (type === 'flag' && o.flag === v.flag)
           || (type === 'talk' && o.npc === v.npc) || (type === 'boss' && o.boss === v.type)) { this.markDone(qid, o); changed = true; }
         // one step per event in ordered quests (talking to the guide must not tick "talk" and "return" at once)
         if (changed && q.ordered) break;

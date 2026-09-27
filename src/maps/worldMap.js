@@ -13,6 +13,9 @@ export class WorldMap {
     this.secret = new Uint8Array(this.w * this.h); // secret id -> hidden on minimap until found
     this.blocker = new Uint8Array(this.w * this.h); // dynamic blockers (gates, barriers, props)
     this.revealed = new Uint8Array(this.w * this.h);
+    // map areas (world/mapManager.js): area per tile + the active map's area; other areas count as solid
+    this.area = new Uint8Array(this.w * this.h);
+    this.activeArea = 0;
     this.subAreas = [null];
     this.props = [];
     this.propGrid = new Map();
@@ -37,6 +40,13 @@ export class WorldMap {
   addSubArea(info) { this.subAreas.push(info); return this.subAreas.length - 1; }
 
   isSolid(tx, ty) {
+    if (!this.inBounds(tx, ty)) return true;
+    const i = ty * this.w + tx;
+    if (this.activeArea && this.area[i] !== this.activeArea) return true; // outside the current map
+    return this.blocker[i] > 0 || SOLID_TILES.has(this.tiles[i]);
+  }
+  // terrain / blocker solidity ignoring which map is active (world state checks, tools)
+  isTerrainSolid(tx, ty) {
     if (!this.inBounds(tx, ty)) return true;
     const i = ty * this.w + tx;
     return this.blocker[i] > 0 || SOLID_TILES.has(this.tiles[i]);
@@ -103,14 +113,24 @@ export class WorldMap {
     return true;
   }
   // nearest walkable point (used for spawns / respawns)
+  // nearest open tile, searched inside the map that owns (x, y) (so it also works before a map switch)
   findOpen(x, y, maxR = 6) {
     const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
-    for (let r = 0; r <= maxR; r++)
-      for (let oy = -r; oy <= r; oy++) for (let ox = -r; ox <= r; ox++) {
-        if (Math.max(Math.abs(ox), Math.abs(oy)) !== r) continue;
-        if (!this.isSolid(tx + ox, ty + oy)) return { x: (tx + ox + 0.5) * TILE, y: (ty + oy + 0.5) * TILE };
-      }
-    return { x, y };
+    const keep = this.activeArea, own = this.inBounds(tx, ty) ? this.area[ty * this.w + tx] : 0;
+    if (keep && own) this.activeArea = own;
+    try {
+      for (let r = 0; r <= maxR; r++)
+        for (let oy = -r; oy <= r; oy++) for (let ox = -r; ox <= r; ox++) {
+          if (Math.max(Math.abs(ox), Math.abs(oy)) !== r) continue;
+          if (!this.isSolid(tx + ox, ty + oy)) return { x: (tx + ox + 0.5) * TILE, y: (ty + oy + 0.5) * TILE };
+        }
+      return { x, y };
+    } finally { this.activeArea = keep; }
+  }
+  // area of a world position (0 = between maps)
+  areaAt(x, y) {
+    const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
+    return this.inBounds(tx, ty) ? this.area[ty * this.w + tx] : 0;
   }
 
   // ---------------- props

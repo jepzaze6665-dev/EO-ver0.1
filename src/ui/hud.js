@@ -90,6 +90,7 @@ export class HUD {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.drawStealth(ctx, W, H);
     this.drawNameplates(ctx, u);
+    this.drawExits(ctx, u);
     g.vfx.drawScreen(ctx, (x, y) => this.toScreen(x, y), g.renderer.scale);
     this.drawPrompt(ctx, u);
     this.drawPlayerFrame(ctx, u);
@@ -313,7 +314,7 @@ export class HUD {
     const cache = this.colCache || (this.colCache = {});
     for (let i = 0; i < map.w * map.h; i++) {
       const o = i * 4;
-      if (!map.revealed[i]) { d[o + 3] = 0; continue; }
+      if (!map.revealed[i] || (map.activeArea && map.area[i] && map.area[i] !== map.activeArea)) { d[o + 3] = 0; continue; } // other maps hidden
       let t = map.revealed[i] === 2 ? T.CANOPY : map.tiles[i];
       if (t === T.CORRUPT && map.style.restored) t = T.FOREST_FLOOR;
       const hx = MINI_COLORS[t] || '#222';
@@ -327,25 +328,31 @@ export class HUD {
 
   markers() {
     const g = this.game, w = g.world, f = w.state.flags, out = [];
-    for (const n of w.npcs) if (!n.secret || w.map.secretsFound.has(n.secret)) out.push({ x: n.x, y: n.y, c: n.hasNews() ? '#ffd24a' : '#8adfff', r: 1.3 });
+    for (const n of w.npcs) if (w.onMap(n) && (!n.secret || w.map.secretsFound.has(n.secret))) out.push({ x: n.x, y: n.y, c: n.hasNews() ? '#ffd24a' : '#8adfff', r: 1.3 });
     for (const it of w.interactables) {
+      if (!w.onMap(it)) continue;
       if (it.kind === 'waystone' && w.state.waystones[it.id]) out.push({ x: it.x, y: it.y, c: '#5af0ff', r: 1.8, diamond: true });
       if (it.kind === 'chest' && !w.state.chests[it.id] && w.map.revealed[w.map.idx(Math.floor(it.x / TILE), Math.floor(it.y / TILE))] && (!it.secret || w.map.secretsFound.has(it.secret))) out.push({ x: it.x, y: it.y, c: '#ffc050', r: 1.2 });
     }
     // landmarks appear once their area has been discovered
     for (const [name, lx, ly] of LANDMARKS) if (w.state.subs[name]) out.push({ x: lx * TILE, y: ly * TILE, c: '#f0e6c8', r: 1.1, diamond: true });
-    if (w.guardian && f.guardianDiscovered && !f.guardianDefeated) out.push({ x: w.guardian.home.x, y: w.guardian.home.y, c: '#ff4060', r: 3, boss: true });
+    if (w.guardian && f.guardianDiscovered && !f.guardianDefeated && w.onMap(w.guardian)) out.push({ x: w.guardian.home.x, y: w.guardian.home.y, c: '#ff4060', r: 3, boss: true });
     const q = this.questTarget();
     if (q) out.push({ x: q.x, y: q.y, c: '#ffe070', r: 2.4, quest: true });
     return out;
   }
 
   questTarget() {
-    // read from the Quest System (objective markers are quest data)
-    const g = this.game, t = g.quests.target();
+    // read from the Quest System (objective markers are quest data); a goal on another map points at the exit
+    // that leads toward it (world/mapManager.js nextExit)
+    const g = this.game, w = g.world, t = g.quests.target();
     if (!t) return null;
-    if (t.npc) { const n = g.world.npcs.find((x) => x.id === t.npc); return n ? { x: n.x, y: n.y } : null; }
-    return { x: t.tx * TILE, y: t.ty * TILE };
+    let pos = null;
+    if (t.npc) { const n = w.npcs.find((x) => x.id === t.npc); pos = n ? { x: n.x, y: n.y } : null; } else pos = { x: t.tx * TILE, y: t.ty * TILE };
+    if (!pos) return null;
+    const goal = w.mapManager.idAt(pos.x, pos.y);
+    if (goal && w.mapId && goal !== w.mapId) { const e = w.mapManager.nextExit(w.mapId, goal); if (e) return w.mapManager.exitCenter(e); }
+    return pos;
   }
 
   drawMinimap(ctx, W, u) {
@@ -512,6 +519,24 @@ export class HUD {
       if (disp && !STATUSES[st.id].vulnerable) parts.push([st.stacks > 1 ? `${disp.label}×${st.stacks}` : disp.label, disp.color]);
     }
     parts.forEach(([label, col], i) => this.text(ctx, label, x + (i - (parts.length - 1) / 2) * 52 * u, y, 8 * u, col, { align: 'center' }));
+  }
+
+  // exit signs: where each open exit of the current map leads (sealed ones stay unmarked)
+  drawExits(ctx, u) {
+    const g = this.game, w = g.world, def = w.mapDef;
+    if (!def) return;
+    const cw = g.canvas.width, ch = g.canvas.height;
+    for (const e of def.exits) {
+      const c = w.mapManager.exitCenter(e), s = this.toScreen(c.x, c.y);
+      if (s.x < -80 || s.y < -40 || s.x > cw + 80 || s.y > ch + 40) continue;
+      if (!w.transitions.isOpen(e)) continue;
+      const to = w.mapManager.get(e.to);
+      const bob = Math.sin(g.time * 3) * 2 * u;
+      const dx = e.entry[0] * TILE - c.x, dy = e.entry[1] * TILE - c.y; // the way the exit leads
+      const arrow = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? '▶' : '◀') : dy > 0 ? '▼' : '▲';
+      this.text(ctx, arrow, s.x, s.y - 14 * u + bob, 11 * u, '#ffd98a', { align: 'center' });
+      this.text(ctx, to ? to.name : e.label, s.x, s.y, 9 * u, '#f0e0b0', { align: 'center' });
+    }
   }
 
   drawNameplates(ctx, u) {
