@@ -528,3 +528,44 @@ export function dodgeCheck(g, classId = 'umbral_sword') {
   releaseInput(g);
   return R;
 }
+
+// COMBAT 2.0 C3: Counter Window from a real monster's attack (perfect dodge / whiff), bonus + rewards, shared-world time.
+export function counterCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId); releaseInput(g);
+  const p = g.player; goto(g, 38, 121); g.simulate(0.3);
+  const foe = g.world.monsters.filter((m) => !m.dead && g.world.onMap(m)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+  // quiet test: only this foe on the map, and it stands still (the test drives its attacks)
+  for (const m of g.world.monsters) if (m !== foe && g.world.onMap(m)) { m.dead = true; m.deathT = 99; }
+  foe.x = p.x + 50; foe.y = p.y; foe.aggro = false; foe.setState('idle'); foe.hp = foe.maxHp = 5000; foe.status.add('stun', 60);
+  const ev = { windows: [], hits: [] };
+  g.events.on('counterWindow', (e) => ev.windows.push(e));
+  g.events.on('counterHit', (e) => ev.hits.push(e));
+  const strike = () => g.combat.enemyStrike(foe, { shape: 'circle', x: p.x, y: p.y, r: 40 }, 5);
+  const reset = () => { g.simulate(1.5); foe.status.remove('counter_window'); p.invulnT = 0; p.perfectCooldown = 0; p.resources.fill('stamina'); p.hp = p.maxHp; foe.x = p.x + 50; foe.y = p.y; };
+  const hitFoe = () => { const h = foe.hp; g.combat.dealDamage(p, foe, { power: 2, noCrit: true, counterMult: 1.3 }); return h - foe.hp; };
+  reset();
+  p.tryDodge(); g.simulate(0.05); strike();
+  const w = ev.windows[ev.windows.length - 1];
+  ok('Perfect Dodge opens a Counter Window on the attacker', w && w.target === foe && w.reason === 'perfectDodge' && foe.status.has('counter_window'), w && w.reason);
+  const marks0 = p.marks || 0, res0 = p.resources.get(p.primaryResource);
+  let countered = hitFoe();
+  const b = p.cls.counterBonus || {};
+  ok('First counter hit: COUNTER event + class counterBonus once', ev.hits.length === 1 && ev.hits[0].first && (!b.marks || (p.marks || 0) > marks0) && (!b.resource || p.resources.get(p.primaryResource) > res0), `marks ${marks0}->${p.marks || 0}`);
+  countered += hitFoe() + hitFoe();
+  ok('Later hits: still countered, no second reward', ev.hits.length === 3 && !ev.hits[1].first && !ev.hits[2].first);
+  foe.status.remove('counter_window');
+  const plain = hitFoe() + hitFoe() + hitFoe();
+  ok('Hits inside the window deal more (less DEF, +damage taken, skill counterMult)', countered > plain * 1.35, `3 hits: ${plain} -> ${countered}`);
+  reset();
+  p.tryDodge(); g.simulate(0.25); strike();
+  const w2 = ev.windows[ev.windows.length - 1];
+  ok('Normal dodge (whiff) opens a shorter window', w2.reason === 'whiff' && w2.duration < w.duration, `${w2.reason} ${w2.duration}s`);
+  g.simulate(w2.duration + 0.2);
+  ok('Window closes by itself', !foe.status.has('counter_window'));
+  reset();
+  g.sharedWorld = true; g.slowMo(0.3, 1); g.simulate(0.05); const ts = g.timeScale; g.sharedWorld = false;
+  ok('Shared world: slow motion does not slow the simulation', ts === 1, `timeScale ${ts}`);
+  releaseInput(g);
+  return R;
+}

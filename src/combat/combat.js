@@ -131,8 +131,11 @@ export class Combat {
     const attacker = src && src.stats ? { stats: src.stats, damageMult: src.status ? src.status.damageMult() : 1 } : null;
     // flat attackers (monsters) still feel damage modifiers from statuses (taunted, surge...)
     if (!attacker && src && src.status && opts.power !== undefined) opts = { ...opts, power: opts.power * src.status.damageMult() };
+    // Counter Window (combat/counterSystem.js): hitboxes may carry counterMult = extra power against an open target
+    if (opts.counterMult && target.status && target.status.has('counter_window') && opts.power !== undefined) opts = { ...opts, power: opts.power * opts.counterMult };
     const res = computeDamage(attacker, {
       defense: target.defense, stats: target.stats, weakness: target.weakness,
+      defenseMult: target.status ? target.status.modifier('defenseMult') : 1,
       vulnerable: target.status && target.status.isVulnerable(), armor: target.armor,
       damageTakenMult: target.status ? target.status.damageTakenMult() : 1,
       hpRatio: target.maxHp ? target.hp / target.maxHp : 1,

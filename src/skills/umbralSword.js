@@ -108,7 +108,7 @@ export const UmbralSword = {
           swing(p, g, a, { r: 36, life: 0.16, sfx: 'swing_fast', noSprite: true });
           g.vfx.sprite('twin', p.x + Math.cos(a) * 28, p.y - 14 + Math.sin(a) * 28, a, { scale: 1.05, life: 0.24, flipY: i % 2 === 1 });
           g.combat.spawnHitbox({
-            owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 60, half: 1.1, power: 1.35, type: 'shadow', knock: 80, stagger: 14, hitStop: 0.05, shake: 0.12,
+            owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 60, half: 1.1, power: 1.35, counterMult: 1.3, type: 'shadow', knock: 80, stagger: 14, hitStop: 0.05, shake: 0.12,
             onHit: () => { p.gainResource(2); if (!marked) { marked = true; p.addMark(1); } },
           });
         }]);
@@ -235,7 +235,7 @@ export const UmbralSword = {
               g.vfx.light(p.x + Math.cos(a) * 90, p.y + Math.sin(a) * 90, 200, '#c080ff', 0.6, 1);
               if (n) g.vfx.text(p.x, p.y - 80, `ECLIPSE ×${n}`, { color: '#e0b0ff', size: 13 });
               g.combat.spawnHitbox({
-                owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 195, half: 0.5, power, type: 'shadow', knock: 340, stagger: 90, hitStop: 0.2, shake: 0.5, big: true, breakBonus: 1.3,
+                owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 195, half: 0.5, power, counterMult: 1.25, type: 'shadow', knock: 340, stagger: 90, hitStop: 0.2, shake: 0.5, big: true, breakBonus: 1.3,
               });
               g.combat.projectiles.fire({
                 x: p.x + Math.cos(a) * 30, y: p.y - 14 + Math.sin(a) * 30, vx: Math.cos(a) * 420, vy: Math.sin(a) * 420, r: 26, life: 0.7,
@@ -310,6 +310,7 @@ export const UmbralSword = {
     },
   },
   // Perfect Dodge rewards (data/dodge.js): +1 Shadow Mark, Shadow, faster skills, a counter-ready basic attack
+  counterBonus: { marks: 1, resource: 5 }, // first hit inside a Counter Window (data/counter.js)
   perfectDodge: { marks: 1, resource: 20, stamina: 10, cooldownCut: 1.0, statuses: [{ id: 'haste', dur: 1.5, mult: 1.3 }, { id: 'counter_ready', dur: 1.3 }] },
   onPerfectDodge(p) { if (p.mods.perfectBonus) { p.addMark(1); p.gainResource(15, true); } },
 };

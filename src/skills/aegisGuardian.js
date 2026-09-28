@@ -252,6 +252,7 @@ export const AegisGuardian = {
     });
   },
   onGuardBlock(p) { p.gainResource(p.cls.charge.block); },
+  counterBonus: { resource: 8 }, // data/counter.js
   perfectDodge: { resource: 10, stamina: 10, cooldownCut: 0.5 }, // data/dodge.js
 
   on: {

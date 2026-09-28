@@ -453,5 +453,6 @@ export const NightfallReaper = {
     },
     targetMarked(p, g, e) { if (e.source === p && e.markId === MARK && e.stacks >= e.maxStacks) g.world.setFlag('tut_marks'); },
   },
+  counterBonus: { resource: 8 }, // data/counter.js
   perfectDodge: { resource: 10, stamina: 10, cooldownCut: 0.8, statuses: [{ id: 'haste', dur: 1.5, mult: 1.3 }] }, // data/dodge.js
 };

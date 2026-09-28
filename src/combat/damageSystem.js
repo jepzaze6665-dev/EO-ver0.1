@@ -9,7 +9,7 @@
 //           execute*: bonus damage against targets below `executeAt` of their max HP (only hits of
 //           `executeType` when set) — e.g. a reaper passive. Never applies to damage-over-time ticks.
 // target:   { defense?, stats?: {def}, weakness?: [], vulnerable?: bool, armor?: number,
-//             damageTakenMult?: number (statuses: curse > 1, damage reduction < 1),
+//             damageTakenMult?: number (statuses: curse > 1, damage reduction < 1), defenseMult?: number (Counter Window < 1),
 //             hpRatio?: number (hp / maxHp, read by execute bonuses) }
 // hit:      { power, type ('physical'|'shadow'|'magic'|...), critBonus?, forceCrit?,
 //             breakBonus?, armorBreak?, weakPoint?: bool (attacker is behind the target),
@@ -62,7 +62,7 @@ export function computeDamage(attacker, target, hit, roll = Math.random) {
     }
   }
   amount *= num(target.damageTakenMult, 1);
-  const def = target.defense ?? (target.stats ? target.stats.def : 0) ?? 0;
+  const def = (target.defense ?? (target.stats ? target.stats.def : 0) ?? 0) * num(target.defenseMult, 1);
   amount = Math.max(R.minDamage, amount - def * R.defenseFactor);
   amount *= 1 + (roll() * 2 - 1) * R.variance;
   amount = Math.max(R.minDamage, Math.round(amount));

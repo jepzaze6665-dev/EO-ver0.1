@@ -21,6 +21,7 @@ import { SummonSystem } from '../combat/summonSystem.js';
 import { SUMMONS } from '../data/summons.js';
 import { Progression } from '../progression/progression.js';
 import { ExperienceSystem } from '../progression/experienceSystem.js';
+import { CounterSystem } from '../combat/counterSystem.js';
 import { LootSystem } from '../loot/lootSystem.js';
 import { HiddenSystem } from '../world/hiddenSystem.js';
 import { WorldProgression } from '../world/worldProgression.js';
@@ -64,6 +65,10 @@ export class Game {
     this.state = 'boot';
     this.time = 0; this.playTime = 0;
     this.hitStop = 0; this.timeScale = 1; this.slowT = 0;
+    // SHARED WORLD (party / online, later): slow motion and hit stop freeze the whole simulation, so they are only
+    // allowed while one player owns the world. When true they are skipped here (a client would play them as local
+    // presentation only: its own camera / animation / sound), and Perfect Dodge keeps its gameplay rewards.
+    this.sharedWorld = false;
     this.acc = 0; this.last = 0;
     this.timers = [];
     this.debug = false;
@@ -169,6 +174,7 @@ export class Game {
     this.quests = new Quests(this);
     // enemyDefeated -> EXP / loot (rules in data/levels.js, data/lootTables.js)
     this.experience = new ExperienceSystem(this);
+    this.counters = new CounterSystem(this); // Combat 2.0 Counter Window
     this.loot = new LootSystem(this);
     // hidden areas / triggers / rare events (data/hidden.js)
     this.hidden = new HiddenSystem(this);
@@ -484,6 +490,7 @@ export class Game {
   }
 
   update(dt) {
+    if (this.sharedWorld) { this.timeScale = 1; this.slowT = 0; this.hitStop = 0; }
     // slow motion recovers in real time
     if (this.slowT > 0) { this.slowT -= dt; if (this.slowT <= 0) this.timeScale = 1; }
     else this.timeScale = Math.min(1, this.timeScale + dt * 3);

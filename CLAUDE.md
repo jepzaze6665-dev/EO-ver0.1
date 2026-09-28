@@ -14,7 +14,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (V2.2 vertical slice, 29 steps: walks every boss gate on foot, 3 boss fights, City 2, save/load),
   `T.bossReset(__game)` (death mid-fight resets the boss)
-  `T.dodgeCheck(__game, classId)` (Combat 2.0 dodge / Perfect Dodge),
+  `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` (Combat 2.0 dodge, Perfect Dodge, Counter Window),
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -168,5 +168,12 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   rewards = class data `perfectDodge { marks, resource, stamina, cooldownCut, statuses[] }` applied by Player
   (all 4 classes converted, +10 stamina refund; hook `onPerfectDodge(p, g, attacker)` only for extras);
   event 'attackDodged' { attacker, player, perfect } from enemyStrike / projectiles (for C3 Counter Window).
-  `T.dodgeCheck(g, classId)` (8 steps) + tools/tests/dodge.test.mjs. Next: C3.
+  `T.dodgeCheck(g, classId)` (8 steps) + tools/tests/dodge.test.mjs.
+  Done C3: `src/combat/counterSystem.js` (game.counters) + rules `src/data/counter.js`: attackDodged (perfect 1.6 s /
+  whiff 0.8 s) and perfectGuard (parry 2.0 s) put status `counter_window` on the attacker (DEF ×0.5, damage taken ×1.2;
+  bosses / elites ×0.6 duration); first player hit inside it = 'counterHit' first + class data `counterBonus
+  { marks, resource }` (UB +1 mark +5); hitboxes may carry `counterMult` (UB Twin Fang 1.3, Eclipse Sever 1.25).
+  New status modifier `defenseMult` (damageSystem target.defenseMult). `game.sharedWorld` (false): when true,
+  slow-mo / hit stop never touch the simulation (party / online: client-side presentation only).
+  `T.counterCheck(g, classId)` (7 steps) + tools/tests/counter.test.mjs. Next: C4.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

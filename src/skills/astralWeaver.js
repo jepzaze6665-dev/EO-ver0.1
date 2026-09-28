@@ -294,5 +294,6 @@ export const AstralWeaver = {
     },
     threadTouched(p, g, e) { if (e.owner === p && e.first) p.gainResource(p.cls.charge.threadTouch); },
   },
+  counterBonus: { resource: 6 }, // data/counter.js
   perfectDodge: { resource: 15, stamina: 10, cooldownCut: 0.8, statuses: [{ id: 'haste', dur: 1.5, mult: 1.3 }] }, // data/dodge.js
 };

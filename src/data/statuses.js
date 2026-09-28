@@ -6,7 +6,7 @@
 //  stacking   : 'longest' -> keep the longer remaining duration (default)
 //               'refresh' -> every application resets the duration
 //               'stack'   -> +1 stack per application, duration refreshed
-//  modifiers  : moveMult / damageMult (dealt) / damageTakenMult — multiplied per stack when perStack
+//  modifiers  : moveMult / damageMult (dealt) / damageTakenMult / defenseMult (× DEF against incoming hits) — multiplied per stack when perStack
 //               values in `data` passed to add() (e.g. { mult: 1.3 }) override `mult`
 //  flags      : cannotAct (no move/attack/skill), cannotMove, cannotCast (no skills),
 //               stealth (monsters lose track / hold their attacks), taunted (monster must chase its taunter)
@@ -24,6 +24,8 @@ export const STATUSES = {
   // taunt: the monster must fight the taunter and hits 20% softer
   taunted: { id: 'taunted', category: 'debuff', maxStacks: 1, stacking: 'refresh', flags: ['taunted'], modifiers: { damageMult: 0.8 }, display: { label: 'TAUNTED', color: '#ffd070' } },
   vulnerable: { id: 'vulnerable', category: 'debuff', maxStacks: 1, stacking: 'longest', vulnerable: true, display: { label: 'VULNERABLE', color: '#9af8ff' } },
+  // Combat 2.0 Counter Window (combat/counterSystem.js, data/counter.js): the attacker was beaten — punish it now
+  counter_window: { id: 'counter_window', category: 'debuff', maxStacks: 1, stacking: 'longest', modifiers: { damageTakenMult: 1.2, defenseMult: 0.5 }, display: { label: 'COUNTER', color: '#ffb060' } },
   curse: { id: 'curse', category: 'debuff', maxStacks: 3, stacking: 'stack', perStack: true, modifiers: { damageTakenMult: 1.06 }, display: { label: 'CURSE', color: '#d070ff' } },
   // ---- damage over time
   burn: { id: 'burn', category: 'dot', maxStacks: 3, stacking: 'stack', dot: { interval: 0.5, damage: 3, type: 'fire' }, display: { label: 'BURN', color: '#ff9a40' } },
