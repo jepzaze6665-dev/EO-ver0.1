@@ -78,7 +78,7 @@ export const UmbralSword = {
 
   skills: [
     {
-      slot: 1, id: 'shadow_slash', name: 'Shadow Slash', type: 'active', cooldown: 3.5, cost: 8, targeting: 'direction', tags: ['melee', 'shadow', 'mark'], icon: 'slash',
+      slot: 1, id: 'shadow_slash', name: 'Shadow Slash', type: 'active', cooldown: 3.5, cost: 8, stamina: 8, targeting: 'direction', tags: ['melee', 'shadow', 'mark'], icon: 'slash',
       desc: 'Lunge and cut the enemy in front. Builds 1 Shadow Mark.',
       cast(p, g, a) {
         let marked = false;
@@ -98,7 +98,7 @@ export const UmbralSword = {
       },
     },
     {
-      slot: 2, id: 'twin_fang', name: 'Twin Fang', type: 'active', cooldown: 6, cost: 12, targeting: 'direction', tags: ['melee', 'shadow', 'mark', 'multi-hit'], icon: 'twin',
+      slot: 2, id: 'twin_fang', name: 'Twin Fang', type: 'active', cooldown: 6, cost: 12, stamina: 12, targeting: 'direction', tags: ['melee', 'shadow', 'mark', 'multi-hit'], icon: 'twin',
       desc: 'Two rapid crossing cuts that shred through guards. Builds a Shadow Mark on hit.',
       cast(p, g, a) {
         const triple = p.mods.twinFangTriple;
@@ -116,7 +116,7 @@ export const UmbralSword = {
       },
     },
     {
-      slot: 3, id: 'shade_step', name: 'Shade Step', type: 'active', cooldown: 4.5, cost: 10, targeting: 'direction', tags: ['dash', 'mobility', 'invulnerable', 'mark'], icon: 'step',
+      slot: 3, id: 'shade_step', name: 'Shade Step', type: 'active', cooldown: 4.5, cost: 10, stamina: 15, targeting: 'direction', tags: ['dash', 'mobility', 'invulnerable', 'mark'], icon: 'step',
       desc: 'Dash through enemies as a shadow. Invulnerable; can trigger Perfect Dodge. Builds a Mark on hit.',
       cast(p, g, a) {
         const mv = g.input.moveVector();
@@ -146,7 +146,7 @@ export const UmbralSword = {
       },
     },
     {
-      slot: 4, id: 'shadow_arc', name: 'Shadow Arc', type: 'active', cooldown: 8, cost: 22, targeting: 'direction', tags: ['aoe', 'shadow'], icon: 'arc',
+      slot: 4, id: 'shadow_arc', name: 'Shadow Arc', type: 'active', cooldown: 8, cost: 22, stamina: 20, targeting: 'direction', tags: ['aoe', 'shadow'], icon: 'arc',
       desc: 'Release a wide crescent of shadow that sweeps through groups. Hitting 3+ enemies builds a Mark.',
       cast(p, g, a) {
         let hits = 0, marked = false;
@@ -206,7 +206,7 @@ export const UmbralSword = {
       },
     },
     {
-      slot: 5, id: 'eclipse_sever', name: 'Eclipse Sever', type: 'ultimate', cooldown: 24, cost: 50, targeting: 'direction', tags: ['burst', 'shadow', 'consumes-marks'], icon: 'eclipse', ultimate: true,
+      slot: 5, id: 'eclipse_sever', name: 'Eclipse Sever', type: 'ultimate', cooldown: 24, cost: 50, stamina: 30, targeting: 'direction', tags: ['burst', 'shadow', 'consumes-marks'], icon: 'eclipse', ultimate: true,
       desc: 'ULTIMATE. Summon a black eclipse and sever everything ahead. Consumes all Shadow Marks for bonus damage.',
       cast(p, g, a) {
         return {

@@ -135,7 +135,7 @@ export class Monster extends Entity {
     if (!this.status.canAct()) { this.moving = false; return; }
     const dP = dist(this.x, this.y, p.x, p.y);
     const speed = this.def.speed * this.mod.speed * this.status.moveMult();
-    const detect = this.def.detect * this.mod.detect * (g.player.sprinting ? 1.15 : 1);
+    const detect = this.def.detect * this.mod.detect;
     // taunt (status flag): drop everything and fight the taunter
     if (this.status.flag('taunted') && !p.dead && (this.state === S.IDLE || this.state === S.PATROL || this.state === S.RETURN || this.state === S.AGGRO)) { this.aggro = true; this.setState(S.CHASE); }
     this.moving = false;

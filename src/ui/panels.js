@@ -22,9 +22,9 @@ export const controlsHTML = (cls = CLASSES.umbral_sword, player = null) => `
   <div><b>WASD</b> Move (360°)</div><div><b>Mouse</b> Aim</div>
   <div><b>Left Click</b> Basic Attack (3-hit combo)</div><div><b>Space</b> Dodge — time it for PERFECT DODGE</div>
   ${(player ? player.loadout.bindings() : cls.skills.filter((s) => s.slot).map((s) => ({ key: s.slot, skill: s }))).map((b) => `<div><b>${b.key}</b> ${esc(b.skill.name)}${b.skill.ultimate ? ' (Ultimate)' : ''}</div>`).join('')}
-  <div><b>Q / Right Click</b> ${esc(cls.special.name)}</div>
+  <div><b>${cls.guard ? 'Hold Shift / Right Click / Q' : 'Q / Right Click'}</b> ${esc(cls.special.name)}${cls.guard ? ' (Guard · time it to PARRY)' : ''}</div>
   <div><b>R</b> Healing Draught</div><div><b>F</b> Resource Tonic</div>
-  <div><b>E</b> Interact / Talk</div><div><b>Shift</b> Sprint</div>
+  <div><b>E</b> Interact / Talk</div><div><b>STAMINA</b> Dodge · Guard · some skills</div>
   <div><b>I</b> Inventory · Equipment · Knowledge</div><div><b>M</b> World Map</div>
   <div><b>ESC</b> Menu (Save / Load / Reset)</div><div><b>F3</b> Debug overlay</div>
 </div>`;

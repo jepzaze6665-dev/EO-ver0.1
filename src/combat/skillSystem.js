@@ -1,3 +1,4 @@
+import { STAMINA } from '../data/stamina.js';
 import { Cooldowns } from './cooldownSystem.js';
 
 // SKILL SYSTEM — generic skill pipeline for any caster (player today; enemies, party
@@ -15,7 +16,7 @@ import { Cooldowns } from './cooldownSystem.js';
 // Caster interface (duck-typed): resources (ResourcePool), stats.cdr, primaryResource,
 //   canAct(skill) -> bool, and whatever fields REQUIREMENTS read.
 export const SKILL_FAIL = {
-  UNKNOWN: 'unknown', BUSY: 'busy', SILENCED: 'silenced', COOLDOWN: 'cooldown', REQUIREMENT: 'requirement', RESOURCE: 'resource',
+  UNKNOWN: 'unknown', BUSY: 'busy', SILENCED: 'silenced', COOLDOWN: 'cooldown', REQUIREMENT: 'requirement', RESOURCE: 'resource', STAMINA: 'stamina',
 };
 
 // Requirement checks are data -> predicate. New condition types register here, not in the pipeline.
@@ -69,6 +70,10 @@ export class SkillSystem {
     if (s.cost && !this.caster.resources.canAfford(this.costResource(s), s.cost)) {
       return { ok: false, reason: SKILL_FAIL.RESOURCE, skill: s, resource: this.costResource(s) };
     }
+    // COMBAT 2.0: optional skill.stamina (data/stamina.js resource) on top of the class resource cost
+    if (s.stamina && this.caster.resources.has(STAMINA.resource) && !this.caster.resources.canAfford(STAMINA.resource, s.stamina)) {
+      return { ok: false, reason: SKILL_FAIL.STAMINA, skill: s, resource: STAMINA.resource };
+    }
     return { ok: true, skill: s };
   }
 
@@ -82,6 +87,7 @@ export class SkillSystem {
     const s = check.skill;
     if (this.caster.beforeCast) this.caster.beforeCast(s);
     if (s.cost) this.caster.resources.spend(this.costResource(s), s.cost, 'skill:' + id);
+    if (s.stamina && this.caster.resources.has(STAMINA.resource)) this.caster.resources.spend(STAMINA.resource, s.stamina, 'skill:' + id);
     this.cooldowns.start(id, this.cooldownFor(s));
     const result = s.cast(...castArgs);
     if (this.onUsed) this.onUsed({ caster: this.caster, skillId: id, skill: s });

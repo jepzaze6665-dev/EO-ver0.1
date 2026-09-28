@@ -141,6 +141,7 @@ export class Game {
       if (e.caster !== this.player) return;
       if (e.reason === 'cooldown') this.ui.toast('Cooldown', 0.6);
       else if (e.reason === 'silenced') { this.ui.toast('Silenced', 0.8); this.audio.sfx('deny'); }
+      else if (e.reason === 'stamina') { this.ui.toast('Not enough STAMINA', 0.8); this.audio.sfx('deny'); }
       else if (e.reason === 'resource') { this.ui.toast(`Not enough ${RESOURCES[e.resource].label}`, 0.8); this.audio.sfx('deny'); }
       else if (e.reason === 'requirement') { this.ui.toast(`Need ${e.requirement.label || 'requirement'}`, 0.8); this.audio.sfx('deny'); }
     });

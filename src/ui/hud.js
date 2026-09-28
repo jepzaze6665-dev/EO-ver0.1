@@ -5,6 +5,7 @@ import { clamp, TAU, easeOutCubic } from '../core/math.js';
 import { makeCanvas } from '../core/assets.js';
 import { RARITY_COLOR } from '../items/items.js';
 import { RESOURCES } from '../data/resources.js';
+import { STAMINA } from '../data/stamina.js';
 import { MARKS } from '../data/marks.js';
 import { STATUSES } from '../data/statuses.js';
 import { REQUIREMENTS } from '../combat/skillSystem.js';
@@ -160,22 +161,26 @@ export class HUD {
     this.text(ctx, p.cls.name, bx, y + 16 * u, 16 * u, '#efe4ff', { font: TITLE });
     this.text(ctx, `LV.${p.level}`, bx + bw, y + 16 * u, 15 * u, '#ffd96a', { align: 'right' });
     // HP
-    this.text(ctx, 'HP', bx, y + 36 * u, 11 * u, '#ff9aa8');
-    this.bar(ctx, bx + 26 * u, y + 25 * u, bw - 26 * u, 14 * u, p.hp / p.maxHp, '#ff5a6e', '#a01830', this.hpLag);
-    this.text(ctx, `${Math.ceil(p.hp)} / ${p.maxHp}`, bx + bw - 4 * u, y + 36 * u, 10 * u, '#fff', { align: 'right' });
-    // SHADOW
+    this.text(ctx, 'HP', bx, y + 33 * u, 11 * u, '#ff9aa8');
+    this.bar(ctx, bx + 26 * u, y + 23 * u, bw - 26 * u, 12 * u, p.hp / p.maxHp, '#ff5a6e', '#a01830', this.hpLag);
+    this.text(ctx, `${Math.ceil(p.hp)} / ${p.maxHp}`, bx + bw - 4 * u, y + 33 * u, 10 * u, '#fff', { align: 'right' });
+    // STAMINA (Combat 2.0) — flashes red when a dodge is not affordable
+    const sid = STAMINA.resource, sdef = RESOURCES[sid], low = !p.resources.canAfford(sid, STAMINA.dodge);
+    const lowCol = low ? `rgba(255,120,110,${0.7 + 0.3 * Math.sin(g.time * 10)})` : sdef.colors[0];
+    this.text(ctx, 'STA', bx, y + 45 * u, 9 * u, lowCol);
+    this.bar(ctx, bx + 26 * u, y + 38 * u, bw - 26 * u, 7 * u, p.resources.ratio(sid), low ? '#ff7060' : sdef.colors[0], low ? '#6a1a14' : sdef.colors[1]);
     // primary resource bar — label/colours come from resource data (works for any class)
     const rid = p.primaryResource, rdef = RESOURCES[rid];
-    this.text(ctx, rdef.label, bx, y + 56 * u, 10 * u, rdef.colors[0]);
-    this.bar(ctx, bx + 52 * u, y + 46 * u, bw - 52 * u, 11 * u, p.resources.ratio(rid), rdef.colors[0], rdef.colors[1]);
-    this.text(ctx, `${Math.floor(p.resources.get(rid))}`, bx + bw - 4 * u, y + 56 * u, 9 * u, '#fff', { align: 'right' });
+    this.text(ctx, rdef.label, bx, y + 58 * u, 10 * u, rdef.colors[0]);
+    this.bar(ctx, bx + 52 * u, y + 49 * u, bw - 52 * u, 10 * u, p.resources.ratio(rid), rdef.colors[0], rdef.colors[1]);
+    this.text(ctx, `${Math.floor(p.resources.get(rid))}`, bx + bw - 4 * u, y + 58 * u, 9 * u, '#fff', { align: 'right' });
     // resource tiers (data tiers): a tick at each threshold + the active tier's name
     if (rdef.tiers) {
       const x0 = bx + 52 * u, w0 = bw - 52 * u, max = p.resources.max(rid);
       ctx.fillStyle = 'rgba(255,255,255,0.75)';
-      for (const tr of rdef.tiers) ctx.fillRect(Math.round(x0 + w0 * (tr.at / max)), y + 44 * u, Math.max(1, 1.5 * u), 15 * u);
+      for (const tr of rdef.tiers) ctx.fillRect(Math.round(x0 + w0 * (tr.at / max)), y + 47 * u, Math.max(1, 1.5 * u), 14 * u);
       const td = p.resources.tierDef(rid);
-      if (td) this.text(ctx, td.label, x0 + 4 * u, y + 56 * u, 8 * u, `rgba(255,240,255,${0.75 + 0.25 * Math.sin(g.time * 6)})`);
+      if (td) this.text(ctx, td.label, x0 + 4 * u, y + 58 * u, 8 * u, `rgba(255,240,255,${0.75 + 0.25 * Math.sin(g.time * 6)})`);
     }
     // EXP (thin) + numbers, gold
     this.bar(ctx, bx, y + 63 * u, bw, 4 * u, p.isMaxLevel ? 1 : p.exp / p.expToNext(), '#ffe08a', '#b08a20');
@@ -241,12 +246,8 @@ export class HUD {
     let x = W / 2 - total / 2;
     const y = H - size - 22 * u;
     this.panel(ctx, x - 10 * u, y - 10 * u, total + 20 * u, size + 20 * u, 0.6);
-    // dodge charges
-    for (let i = 0; i < 2; i++) {
-      ctx.fillStyle = i < p.dodgeCharges ? '#9af8ff' : 'rgba(80,90,110,0.7)';
-      ctx.fillRect(W / 2 - 22 * u + i * 24 * u, y - 18 * u, 20 * u, 4 * u);
-    }
-    this.text(ctx, 'DODGE [SPACE]', W / 2, y - 22 * u, 9 * u, '#9ab8c8', { align: 'center' });
+    // dodge hint: bright when there is stamina for a dodge
+    this.text(ctx, 'DODGE [SPACE]', W / 2, y - 18 * u, 9 * u, p.resources.canAfford(STAMINA.resource, STAMINA.dodge) ? '#9af8ff' : 'rgba(150,120,120,0.8)', { align: 'center' });
     const hc = cls.hudCounter ? cls.hudCounter(p) : null;
     if (hc && hc.ready && hc.readyText) {
       const k = 0.65 + 0.35 * Math.sin(g.time * 8);

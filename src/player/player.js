@@ -10,9 +10,11 @@ import { MARKS } from '../data/marks.js';
 import { Loadout } from './loadout.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
 import { LEVELS } from '../data/levels.js';
+import { STAMINA } from '../data/stamina.js';
 import { expToNext, addExp, normalize as normalizeExp, levelStats } from '../progression/experience.js';
 
-const DODGE_TIME = 0.24, DODGE_DIST = 100, DODGE_IFRAMES = 0.28, DODGE_CHARGES = 2, DODGE_RECHARGE = 0.85;
+const DODGE_TIME = 0.24, DODGE_DIST = 100, DODGE_IFRAMES = 0.28;
+const WALK_MUL = 1.08; // Combat 2.0: sprint removed, base walk a little faster to compensate
 const HURT_IFRAMES = 0.55;
 
 export class Player extends Entity {
@@ -28,7 +30,8 @@ export class Player extends Entity {
     this.id = 'player'; // single local player for now; a server would assign ids
     this.level = LEVELS.start.level; this.exp = 0; this.gold = LEVELS.start.gold;
     // generic resource pool — the class only names its resources, the rules live in data/resources.js
-    this.resources = new ResourcePool(classDef.resources || [classDef.resource], RESOURCES, {
+    // + 'stamina' for everyone (Combat 2.0 decision resource: dodge / guard / some skills — data/stamina.js)
+    this.resources = new ResourcePool([...(classDef.resources || [classDef.resource]), STAMINA.resource], RESOURCES, {
       stats: () => this.stats,
       onChange: (e) => game.events && game.events.emit('resourceChanged', { entity: this, ...e }),
     });
@@ -48,14 +51,13 @@ export class Player extends Entity {
     this.stats = { ...classDef.base };
     this.action = null;
     this.combo = 0; this.comboTimer = 0;
-    this.dodgeCharges = DODGE_CHARGES; this.dodgeRecharge = 0;
     this.dodging = false; this.dodgeStart = -9; this.dodgeOrigin = null; this.dodgeAng = 0; this.dodgeT = 0;
     this.invulnT = 0; this.hurtT = 0;
     this.guardState = { active: false, since: -9, releasedAt: -9 }; // Guard System (classes with guard data)
     this.perfectCooldown = 0;
     this.anim = 'idle'; this.animT = 0;
     this.aim = 0; this.facing = Math.PI / 2;
-    this.moving = false; this.sprinting = false;
+    this.moving = false;
     this.deathT = 0;
     this.stepT = 0;
     this.lastHitTime = -99;
@@ -203,6 +205,7 @@ export class Player extends Entity {
       if (this.dead || this.hurtT > 0 || this.dodging || !this.status.canAct()) return false;
       if (g.time - st.releasedAt < (gd.recover || 0)) return false; // no perfect-guard spamming
       if (this.action && this.action.t < (this.action.cancelAt ?? 0)) return false;
+      if (!this.resources.spend(STAMINA.resource, STAMINA.guardRaise, 'guard')) return false; // too tired to guard
       this.endAction(true);
       st.active = true; st.since = g.time;
       g.events.emit('guardStarted', { player: this });
@@ -214,14 +217,25 @@ export class Player extends Entity {
     }
     return false;
   }
+  // guard stamina: when it runs out the guard drops (full Guard Break / Poise = Combat 2.0 phase C4)
+  drainGuard(amount, src = null) {
+    const r = STAMINA.resource;
+    this.resources.drain(r, amount, 'guard');
+    if (this.guardState.active && this.resources.get(r) <= 0) {
+      this.setGuard(false);
+      this.game.vfx.text(this.x, this.y - 72, 'GUARD BROKEN', { color: '#ff9a80', size: 12, life: 1 });
+      this.game.events.emit('guardBroken', { player: this, source: src });
+    }
+  }
   // called by combat.dealDamage for every incoming hit
   tryBlock(src) {
     if (!this.cls.guard || !this.guardState.active || this.dead) return null;
     return evaluateBlock(this.cls.guard, this.guardState, this.aim, src.x - this.x, src.y - this.y, this.game.time);
   }
-  onBlock(res, src, opts, ang) {
+  onBlock(res, src, opts, ang, raw = 0) {
     const g = this.game, fx = this.x + Math.cos(this.aim) * 16, fy = this.y - 16 + Math.sin(this.aim) * 16;
     if (res.perfect) {
+      this.resources.gain(STAMINA.resource, STAMINA.parryRefund, { raw: true, reason: 'parry' });
       g.events.emit('perfectGuard', { player: this, source: src });
       g.vfx.text(this.x, this.y - 72, 'PERFECT GUARD', { color: '#fff0b0', size: 13, life: 1.2 });
       g.audio.sfx('perfect_guard');
@@ -235,6 +249,7 @@ export class Player extends Entity {
       g.vfx.text(fx, fy - 20, 'BLOCK', { color: '#ffe8a0', size: 9 });
       g.camera.shake(0.12);
       if (this.cls.onGuardBlock) this.cls.onGuardBlock(this, g, src);
+      this.drainGuard(clamp(raw * STAMINA.blockPerDamage, STAMINA.blockMin, STAMINA.blockMax), src);
     }
     if (this.cls.guard.fx) g.vfx.sprite(this.cls.guard.fx, fx, fy, 0, { scale: res.perfect ? 0.9 : 0.55, life: 0.25, glow: 0.5 });
   }
@@ -308,12 +323,13 @@ export class Player extends Entity {
   }
 
   tryDodge() {
-    if (this.dodgeCharges <= 0 || this.hurtT > 0 || !this.status.canMove()) return false;
+    if (this.hurtT > 0 || !this.status.canMove()) return false;
     if (this.action && this.action.t < (this.action.cancelAt ?? 0)) return false;
+    if (!this.resources.canAfford(STAMINA.resource, STAMINA.dodge)) { this.game.events.emit('staminaEmpty', { entity: this, action: 'dodge' }); return false; }
     const g = this.game, mv = g.input.moveVector();
     const ang = mv.x || mv.y ? Math.atan2(mv.y, mv.x) : this.aim;
     this.endAction(true);
-    this.dodgeCharges--;
+    this.resources.spend(STAMINA.resource, STAMINA.dodge, 'dodge');
     this.beginDodge(ang);
     this.facing = ang;
     g.audio.sfx('dodge');
@@ -384,10 +400,7 @@ export class Player extends Entity {
       this.recomputeStats();
       g.events.emit('resourceTier', { entity: this, resource: this.primaryResource, tier, before, def: this.resources.tierDef(this.primaryResource) });
     }
-    if (this.dodgeCharges < DODGE_CHARGES) {
-      this.dodgeRecharge += dt;
-      if (this.dodgeRecharge >= DODGE_RECHARGE) { this.dodgeRecharge = 0; this.dodgeCharges++; }
-    }
+    if (this.guardState.active) this.drainGuard(STAMINA.guardDrain * dt);
     // hp regen out of combat (resource regen and mark decay are handled by their systems)
     if (!g.combat.inCombat) {
       if (g.time - this.lastHitTime > 6 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.02 * dt);
@@ -402,7 +415,7 @@ export class Player extends Entity {
       if (input.pressed('Space')) input.pushBuffer('dodge');
       if (input.mouse.leftPressed || (input.mouse.left && !this.action)) input.pushBuffer('attack');
       // classes with guard data HOLD Q / right-click to guard; the others tap it for their special
-      if (this.cls.guard) this.setGuard(input.isDown('KeyQ') || input.mouse.right);
+      if (this.cls.guard) this.setGuard(input.isDown('KeyQ') || input.isDown('ShiftLeft') || input.isDown('ShiftRight') || input.mouse.right);
       else if (input.pressed('KeyQ') || input.mouse.rightPressed) input.pushBuffer('break');
       for (let i = 1; i <= 5; i++) if (input.pressed('Digit' + i)) input.pushBuffer('skill' + i);
       if (input.pressed('KeyR')) g.inventory.quickUse('hp_potion');
@@ -416,8 +429,7 @@ export class Player extends Entity {
 
     // ---- movement
     const mv = g.controlsEnabled() ? input.moveVector() : { x: 0, y: 0 };
-    this.sprinting = input.isDown('ShiftLeft') || input.isDown('ShiftRight');
-    let speed = this.stats.speed * this.status.moveMult() * (this.sprinting && !g.combat.inCombat ? 1.4 : this.sprinting ? 1.15 : 1);
+    let speed = this.stats.speed * this.status.moveMult() * WALK_MUL;
     let tvx = mv.x * speed, tvy = mv.y * speed;
 
     if (this.dodging) {
@@ -476,7 +488,7 @@ export class Player extends Entity {
     else if (this.action) { anim = this.action.anim; at = this.action.t / this.action.dur; }
     else if (this.dodging) { anim = 'dodge'; at = this.dodgeT / DODGE_TIME; }
     else if (this.guardState.active) { anim = 'guard'; at = 0; }
-    else if (this.moving) { anim = this.sprinting ? 'run' : 'walk'; at = this.animT; }
+    else if (this.moving) { anim = 'walk'; at = this.animT; }
     else { anim = 'idle'; at = 0; }
     if (anim !== this.anim) { this.anim = anim; this.animT = 0; }
     this.animT += dt;
@@ -484,7 +496,7 @@ export class Player extends Entity {
 
     // footsteps
     if (this.moving && !this.dodging) {
-      this.stepT += dt * (this.sprinting ? 1.4 : 1);
+      this.stepT += dt;
       if (this.stepT > 0.3) {
         this.stepT = 0;
         g.vfx.particle(this.x + rand(-4, 4), this.y, { color: 'rgba(120,110,100,0.6)', life: 0.35, size: 3, vy: -8, drag: 4 });

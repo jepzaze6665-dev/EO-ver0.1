@@ -140,8 +140,9 @@ export class Combat {
     // GUARD (combat/guardSystem.js): a blocking target reduces or negates the hit
     const block = !opts.dot && src && target.tryBlock ? target.tryBlock(src, opts) : null;
     if (block) {
-      res.amount = Math.round(res.amount * block.mult);
-      if (target.onBlock) target.onBlock(block, src, opts, ang);
+      const raw = res.amount; // what the hit would have dealt (guard stamina cost scales with it)
+      res.amount = Math.round(raw * block.mult);
+      if (target.onBlock) target.onBlock(block, src, opts, ang, raw);
       g.events.emit('damageBlocked', { source: src, target, perfect: block.perfect, amount: res.amount });
       if (block.perfect || res.amount <= 0) return { amount: 0, crit: false, killed: false, tags: ['blocked'], blocked: true };
       opts = { ...opts, knock: (opts.knock || 0) * 0.25, blocked: true };

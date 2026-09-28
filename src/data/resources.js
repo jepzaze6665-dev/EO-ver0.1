@@ -3,13 +3,22 @@
 // class owns a resource. Adding Storm Charge / Void Ink / Guard Gauge = add an entry.
 //
 //  max, start          : capacity and value on spawn / respawn
-//  regen               : per second, { inCombat, outOfCombat }
+//  regen               : per second, { inCombat, outOfCombat, delay? } — delay = seconds after the last spend before it regens
 //  decay               : per second after `delay` seconds without gaining, { inCombat, outOfCombat, delay }
 //  gainStat            : character stat that multiplies normal (non-raw) gains, e.g. shadowGain
 //  tiers               : optional [{ at, label, stats }] — while the value is >= `at`, the holder gets `stats`
 //                        added to its stats (highest tier only). The Player re-computes stats when the tier changes.
 //  label / colors      : display only (UI reads them; gameplay never does)
 export const RESOURCES = {
+  // COMBAT 2.0 — every character's decision resource (not a class resource): dodge, guard, parry, some skills.
+  // Costs live in data/stamina.js. Basic attacks never use it.
+  stamina: {
+    id: 'stamina', name: 'Stamina', label: 'STAMINA',
+    max: 100, start: 100, respawn: 100,
+    regen: { inCombat: 30, outOfCombat: 60, delay: 0.6 },
+    decay: { inCombat: 0, outOfCombat: 0, delay: 0 },
+    colors: ['#7fe08a', '#1f6a2c'],
+  },
   shadow_gauge: {
     id: 'shadow_gauge', name: 'Shadow Gauge', label: 'SHADOW',
     max: 100, start: 40, respawn: 50,

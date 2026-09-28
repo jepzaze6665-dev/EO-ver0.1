@@ -155,5 +155,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   C7 Skill commitment tiers (fast / medium / high data) + Shadow Break / Eclipse Sever feel pass.
   C8 Combat UI (◇◇◇ 0/3 + SHADOW BREAK READY, DODGE [SPACE] hint until learned, quest UI fades in combat, boss poise).
   C9 Party foundation (Downed state + revive interface, ENCOUNTER FAILED → checkpoint + boss reset).
-  C10 Anti-tanking + balance + full regression. Next: C1.
+  C10 Anti-tanking + balance + full regression.
+  Done C1: 'stamina' in data/resources.js (every player's pool gets it; regen { delay } = pause after spending),
+  costs in `src/data/stamina.js` (dodge 22 — replaces the 2 dodge charges; Aegis guard: raise 5, hold 6/s, block
+  0.4 × damage (4-25), parry refunds 12, empty → guard drops + 'guardBroken'); skills may set `stamina: n`
+  (SkillSystem → SKILL_FAIL.STAMINA; Umbral: 8/12/15/20/30); ResourcePool.drain(); sprint removed (walk ×1.08; Aegis
+  guard also on Shift); HUD STA bar under HP (red when a dodge is unaffordable). tools/tests/stamina.test.mjs.
+  Balance after C1 (bot): UB 158 · AW 133 · AG 93 · RP 184 dummy DPS, all WIN the Guardian. Next: C2.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

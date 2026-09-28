@@ -13,6 +13,7 @@ export class ResourcePool {
     this.defs = {};
     this.values = {};
     this.sinceGain = {};
+    this.sinceSpend = {};
     this.modifiers = []; // { id, resource, kind: 'maxAdd' | 'gainMult' | 'costMult', value }
     this.stats = opts.stats || (() => ({}));
     this.onChange = opts.onChange || null;
@@ -22,6 +23,7 @@ export class ResourcePool {
       this.defs[id] = d;
       this.values[id] = d.start;
       this.sinceGain[id] = 99;
+      this.sinceSpend[id] = 99;
     }
   }
 
@@ -80,7 +82,16 @@ export class ResourcePool {
     const c = this.cost(id, amount);
     if (!this.canAfford(id, amount)) return false;
     this.set(id, this.values[id] - c, reason);
+    if (c > 0) this.sinceSpend[id] = 0;
     return true;
+  }
+  // spend up to `amount` (never fails; for costs that drain over time, e.g. holding a guard) -> amount spent
+  drain(id, amount, reason = 'drain') {
+    if (!this.has(id) || !Number.isFinite(amount) || amount <= 0) return 0;
+    const c = Math.min(this.values[id], this.cost(id, amount));
+    this.set(id, this.values[id] - c, reason);
+    this.sinceSpend[id] = 0;
+    return c;
   }
   fill(id) { this.set(id, this.max(id), 'fill'); }
 
@@ -93,7 +104,8 @@ export class ResourcePool {
     for (const id in this.defs) {
       const d = this.defs[id];
       this.sinceGain[id] += dt;
-      const regen = d.regen ? (inCombat ? d.regen.inCombat : d.regen.outOfCombat) || 0 : 0;
+      this.sinceSpend[id] += dt;
+      const regen = d.regen && this.sinceSpend[id] >= (d.regen.delay || 0) ? (inCombat ? d.regen.inCombat : d.regen.outOfCombat) || 0 : 0;
       const decay = d.decay && this.sinceGain[id] >= (d.decay.delay || 0) ? (inCombat ? d.decay.inCombat : d.decay.outOfCombat) || 0 : 0;
       const delta = (regen - decay) * dt;
       if (delta) this.values[id] = Math.min(this.max(id), Math.max(0, this.values[id] + delta)); // silent: no event spam per frame
