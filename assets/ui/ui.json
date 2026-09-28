@@ -81,5 +81,22 @@
   "file": "assets/ui/crystal.png",
   "w": 177,
   "h": 276
+ },
+ "frame_tile": {
+  "file": "assets/ui/frame_tile.png",
+  "w": 230,
+  "h": 230,
+  "slice": 65
+ },
+ "frame_gem": {
+  "file": "assets/ui/frame_gem.png",
+  "w": 64,
+  "h": 62
+ },
+ "plate_tile": {
+  "file": "assets/ui/plate_tile.png",
+  "w": 290,
+  "h": 206,
+  "slice": 110
  }
 }

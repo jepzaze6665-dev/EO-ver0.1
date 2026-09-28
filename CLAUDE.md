@@ -246,6 +246,12 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `slot_pressed` (dark) / `slot_disabled` (grey) (build-ui `variants`) — the U2 skill bar picks them up again (checked
   in game: ready / cooldown / no-stamina / Q ready glow); `bar_frame` (614×106, see-through slot, slice 95 = end caps) for
   HP / stamina / boss bars; `crystal` (shadow crystal + shards, 177×276) for Shadow Mark icons / emblem.
-  Next: U3 = windows (HTML panels) with the pixel frame + plate buttons; U4 = player frame bars + boss bar with
-  bar_frame, Shadow Mark crystals; U5 title screen.
+  Done U3: `src/ui/uiKit.css` (linked after the base <style> in index.html, overrides only): every `.panel` + `.dialogue`
+  = CSS border-image of `frame_tile` (build-ui COMPOSE: frame corners + plain rune edge that repeats — the edge gems are
+  left out so big windows never stretch them; `frame_gem` is cut for later), dark gradient interior, centred uppercase
+  h2 with a fading rule; main buttons (primary, title / ESC menu, close, death, dialogue options) = `plate_tile`
+  (caps + plain middle, gem-free) with glow on hover / sink on press / grey when disabled; tabs = glowing underline.
+  Checked in game: title, Inventory, Skills, ESC menu, dialogue. ui.test checks the CSS only uses existing images.
+  Owner: Shadow Mark stays as it is (no crystal icons). Next: U4 = HP / stamina / resource bars + boss bar with
+  bar_frame; U5 title screen.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

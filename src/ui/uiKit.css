@@ -1,0 +1,71 @@
+/* UI KIT THEME (U3) — the owner's pixel-art kit on every HTML window and main button.
+   Images come from tools/build-ui.js (assets/ui): frame_tile = window frame corners + plain rune edges (repeat),
+   plate_tile = gem-free stone plate for buttons. Loaded after the base styles in index.html, so it only overrides.
+   Design rules: ornament on the edges only, calm dark interiors, clear type sizes, soft glow on interaction. */
+
+:root {
+  --kit-frame: url("../../assets/ui/frame_tile.png");
+  --kit-plate: url("../../assets/ui/plate_tile.png");
+  --kit-panel: linear-gradient(180deg, rgba(20, 13, 34, 0.97), rgba(10, 7, 18, 0.97));
+  --kit-glow: 0 0 10px rgba(176, 112, 255, 0.55);
+}
+
+/* ---------- windows: pixel frame (corners + repeating rune edges), dark calm interior ---------- */
+.panel, .dialogue {
+  border: 30px solid transparent;
+  border-image: var(--kit-frame) 65 round;
+  background: var(--kit-panel) padding-box;
+  image-rendering: pixelated;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6), 0 0 80px rgba(90, 40, 170, 0.22);
+  border-radius: 0;
+}
+.panel::before { display: none; } /* the old thin inner line: the frame replaces it */
+.panel > *, .dialogue > * { image-rendering: auto; } /* only the frame is pixelated, not text / icons */
+.panel.big { padding: 0; }
+.panel.big > .tabs { margin: 0; }
+
+/* headings: centred title with a thin fading rule — modern and quiet next to the ornate frame */
+.panel h2 { text-align: center; font-size: 22px; letter-spacing: 4px; text-transform: uppercase; color: #efe2ff;
+  text-shadow: 0 0 14px rgba(160, 90, 255, 0.45); margin-bottom: 16px; }
+.panel h2::after { content: ""; display: block; height: 1px; margin: 10px auto 0; width: 60%;
+  background: linear-gradient(90deg, transparent, rgba(190, 140, 255, 0.7), transparent); }
+
+/* ---------- main buttons: stone plate with caps; glow on hover, sink on press ---------- */
+button.primary, .menu-buttons button, .panel .close, .death button, .dialogue .opts button {
+  border: 0 solid transparent;
+  border-width: 0 24px;
+  border-image: var(--kit-plate) 0 110 fill / 0 24px round;
+  background: none;
+  image-rendering: pixelated;
+  color: #f2e8ff;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 11px 14px;
+  min-height: 44px;
+  text-shadow: 0 1px 0 #000, 0 0 8px rgba(160, 90, 255, 0.5);
+  box-shadow: none;
+  transition: filter 0.12s, transform 0.08s;
+}
+button.primary:hover:not(:disabled), .menu-buttons button:hover:not(:disabled), .panel .close:hover,
+.death button:hover, .dialogue .opts button:hover:not(:disabled) {
+  background: none; border-color: transparent; box-shadow: none;
+  filter: brightness(1.25) drop-shadow(0 0 6px rgba(176, 112, 255, 0.8));
+}
+button.primary:active, .menu-buttons button:active, .panel .close:active, .dialogue .opts button:active { transform: translateY(1px); filter: brightness(0.85); }
+button.primary:disabled, .menu-buttons button:disabled { filter: grayscale(1) brightness(0.7); opacity: 0.8; }
+
+/* ---------- small buttons (lists, slots, filters): flat, rounded, one accent colour ---------- */
+button:not(.primary):not(.tabs button) {
+  border-radius: 4px;
+}
+
+/* ---------- tabs: text tabs with a glowing underline instead of filled boxes ---------- */
+.tabs { background: linear-gradient(180deg, rgba(40, 24, 66, 0.55), rgba(10, 6, 20, 0.2)); border-bottom: 1px solid rgba(170, 120, 240, 0.35); }
+.tabs button { border: 0; border-right: 0; letter-spacing: 1px; color: #b8a8d8; position: relative; background: transparent; }
+.tabs button.on { background: transparent; color: #fff; }
+.tabs button.on::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #c890ff, transparent); box-shadow: var(--kit-glow); }
+.tabs button:hover:not(.on) { color: #fff; background: rgba(120, 70, 200, 0.12); box-shadow: none; }
+
+/* ---------- dialogue box sits a little higher so the frame clears the skill bar ---------- */
+.dialogue { border-width: 26px; }

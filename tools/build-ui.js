@@ -32,6 +32,38 @@ const SHEETS = {
   crystal: { scale: 0.25, names: ['crystal'], grow: 12, largest: true },
 };
 
+// COMPOSED pieces for CSS border-image (built from the cut pieces above; coordinates in the cut piece's pixels):
+//  nine  : corners (S×S) + a plain edge segment [t0, t1) that repeats — the edges' centre gems are left out so big
+//          windows never stretch them (the gem is its own piece, placed by CSS)
+//  three : left cap [0, cap) + plain middle [t0, t1) + right cap — for buttons (gem-free, clean)
+//  rect  : a plain crop
+const COMPOSE = [
+  { name: 'frame_tile', from: 'frame', type: 'nine', S: 65, t0: 100, t1: 200 },
+  { name: 'frame_gem', from: 'frame', type: 'rect', rect: [226, 0, 64, 62] },
+  { name: 'plate_tile', from: 'plate', type: 'three', cap: 110, t0: 112, t1: 182 },
+];
+function blit(src, sx, sy, w, h, dst, dx, dy) {
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const si = ((sy + y) * src.width + sx + x) * 4, di = ((dy + y) * dst.width + dx + x) * 4;
+    for (let k = 0; k < 4; k++) dst.data[di + k] = src.data[si + k];
+  }
+}
+function compose(c) {
+  const src = png.read(path.join(OUT, c.from + '.png')), w = src.width, h = src.height;
+  if (c.type === 'rect') { const [x, y, rw, rh] = c.rect, out = png.create(rw, rh); blit(src, x, y, rw, rh, out, 0, 0); return { out, meta: {} }; }
+  if (c.type === 'three') {
+    const L = c.t1 - c.t0, out = png.create(c.cap * 2 + L, h);
+    blit(src, 0, 0, c.cap, h, out, 0, 0); blit(src, c.t0, 0, L, h, out, c.cap, 0); blit(src, w - c.cap, 0, c.cap, h, out, c.cap + L, 0);
+    return { out, meta: { slice: c.cap } };
+  }
+  const S = c.S, L = c.t1 - c.t0, N = S * 2 + L, out = png.create(N, N);
+  blit(src, 0, 0, S, S, out, 0, 0); blit(src, w - S, 0, S, S, out, S + L, 0);
+  blit(src, 0, h - S, S, S, out, 0, S + L); blit(src, w - S, h - S, S, S, out, S + L, S + L);
+  blit(src, c.t0, 0, L, S, out, S, 0); blit(src, c.t0, h - S, L, S, out, S, S + L);          // top / bottom plain edge
+  blit(src, 0, c.t0, S, L, out, 0, S); blit(src, w - S, c.t0, S, L, out, S + L, S);          // left / right plain edge
+  return { out, meta: { slice: S } };
+}
+
 // generated state variants (pure pixel maths on the cut piece)
 const VARIANTS = {
   glow: (r, g, b) => [Math.min(255, r * 1.25 + 18), Math.min(255, g * 1.1 + 6), Math.min(255, b * 1.35 + 30)],
@@ -170,6 +202,13 @@ for (const [sheet, cfg] of Object.entries(SHEETS)) {
     }
     console.log(`    ${name.padEnd(18)} ${out.width}x${out.height}${slice ? `  slice ${slice}` : ''}`);
   });
+}
+for (const c of COMPOSE) {
+  if (!atlas[c.from]) { console.log(`✗ ${c.name}: needs ${c.from}`); problems++; continue; }
+  const { out, meta } = compose(c);
+  png.write(path.join(OUT, c.name + '.png'), out);
+  atlas[c.name] = { file: `assets/ui/${c.name}.png`, w: out.width, h: out.height, ...meta };
+  console.log(`✓ ${c.name.padEnd(18)} ${out.width}x${out.height}${meta.slice ? `  slice ${meta.slice}` : ''}  (${c.type} from ${c.from})`);
 }
 fs.writeFileSync(path.join(OUT, 'ui.json'), JSON.stringify(atlas, null, 1));
 console.log(problems ? `\n${problems} sheet(s) need attention` : `\nUI kit built: ${Object.keys(atlas).length} pieces -> assets/ui/`);

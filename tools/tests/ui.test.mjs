@@ -41,6 +41,17 @@ test('stretchable frames carry a 9-slice border', () => {
   for (const n of ['frame', 'plate']) ok(atlas[n].slice > 0 && atlas[n].slice * 2 < Math.min(atlas[n].w, atlas[n].h), n);
   ok(atlas.bar_frame.slice > 0 && atlas.bar_frame.slice * 2 < atlas.bar_frame.w, 'bar_frame: horizontal end caps');
 });
+test('composed pieces for CSS: tileable frame (gem-free edges), gem, gem-free button plate', () => {
+  for (const n of ['frame_tile', 'frame_gem', 'plate_tile']) ok(atlas[n] && existsSync(new URL(atlas[n].file, ROOT)), n);
+  ok(atlas.frame_tile.w === atlas.frame_tile.h && atlas.frame_tile.slice * 2 < atlas.frame_tile.w, 'frame_tile square with a repeat middle');
+  ok(alphaAt(img('frame_tile'), 0.5, 0.5) < 40, 'frame_tile see-through middle');
+});
+test('uiKit.css only points at images that exist, and index.html links it', () => {
+  const css = readFileSync(new URL('src/ui/uiKit.css', ROOT), 'utf8'), urls = [...css.matchAll(/url\("([^"]+)"\)/g)].map((m) => m[1]);
+  ok(urls.length >= 2, 'urls found');
+  for (const u of urls) ok(existsSync(new URL(u, new URL('src/ui/', ROOT))), 'missing ' + u);
+  ok(readFileSync(new URL('index.html', ROOT), 'utf8').includes('src/ui/uiKit.css'), 'linked from index.html');
+});
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
