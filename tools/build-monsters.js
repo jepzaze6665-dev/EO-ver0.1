@@ -19,7 +19,7 @@ const SRC = 'desgin/monster/';
 
 // Sheet data: rows in reading order. Each row = [animName, frameCount, opts?]
 //   opts.flip   : the row is drawn facing LEFT -> mirror it (game frames face right)
-// `flip: true` on the sheet = every row faces left.
+// `flip: true` on the sheet = every row faces left. Row opts.mirrorFrames: [i] = only those frames face the other way.
 // `height`   : game px of the neutral body (row 0 frame 0 measures it); `feet` = pivot row inside the output cell.
 // `anims`    : game animation -> [row name, frame indices?]; missing anims fall back in sheetSprites.js.
 const SHEETS = {
@@ -61,7 +61,7 @@ const SHEETS = {
   },
   bronze_hoplite: {
     file: 'A3/2', height: 40,
-    rows: [['front', 7], ['back', 7], ['side', 7], ['side_b', 7], ['attack', 7], ['hit', 6], ['death', 6]],
+    rows: [['front', 7], ['back', 7], ['side', 7, { flip: true }], ['side_b', 7, { flip: true }], ['attack', 7, { mirrorFrames: [6] }], ['hit', 6], ['death', 6]],
   },
   rune_knight: {
     file: 'A3/BOSS', height: 84,
@@ -280,6 +280,7 @@ function buildMonster(id, def, probe) {
     r.cols.forEach(([a, b], ci) => {
       let im = crop(img, a, r.y0, b, r.y1);
       if (opts.flip) im = mirror(im);
+      if (opts.mirrorFrames && opts.mirrorFrames.includes(ci)) im = mirror(im);
       const bb = bbox(im);
       if (!bb) return;
       frames.push({ row: r.name, i: ci, im, bb, feet: feetOf(im, bb), cx: centreOf(im, bb) });

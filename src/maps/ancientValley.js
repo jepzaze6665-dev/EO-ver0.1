@@ -82,6 +82,7 @@ export function buildAncientValleyTerrain(b) {
   b.disc(rx, ry, 16.5, T.SCORCHED, { noise: 0.5, seed: 53 });
   b.line([[rx, 44], [rx, ry + 12]], 6, T.SCORCHED, { noise: 0.5 });  // the causeway over the moat
   b.line([[rx, 44], [rx, 38]], 5, D, { noise: 0.6 });
+  b.line([[rx + 12, ry], [110, ry]], 5, T.SCORCHED, { noise: 0.4 }); // east causeway: the road to the Rune Citadel (A3)
   for (let ty = 0; ty <= 41; ty++) for (let tx = 58; tx <= 110; tx++) b.m.zone[b.m.idx(tx, ty)] = Z.RIFT;
 
   // ---------------- sub-areas (banners, map labels)

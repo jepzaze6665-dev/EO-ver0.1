@@ -16,6 +16,7 @@ const png = require('./png.js');
 const ROOT = path.join(__dirname, '..');
 const TILE = 32, VARIANTS = 4;
 const A2 = 'desgin/Map/A/a2/image-11462af1-b6f1-43a6-96f9-71e6baef142e-0';
+const A3 = 'desgin/Map/A/a3/image-092dabfa-467b-48b0-901c-8dad361ac42e-0';
 
 // skin -> sheet + rows. Each row: [name, region [x0, y0, x1, y1] (sheet px), picks (card indices in reading order)]
 //   name = a tile type of core/constants.js T, or 'face:<cliff|wall|cave>' for vertical wall faces.
@@ -39,13 +40,50 @@ const SKINS = {
       ['face:cliff', [981, 1262, 1338, 1350], [0, 1, 2, 3]],
     ],
   },
+  // A3 RUNE CITADEL (owner's sheet desgin/Map/A/a3): dark stone + bronze gold, grid cards ~72 px
+  citadel: {
+    src: A3, grade: { sat: 0.9, dark: 0.85 }, bg: 'measured',
+    rows: [
+      ['GRASS', [15, 36, 615, 410], [0, 1, 8, 9]],
+      ['FLOWERS', [15, 36, 615, 410], [6, 7, 14, 15]],
+      ['DIRT', [635, 36, 1137, 410], [0, 1, 7, 8]],
+      ['COBBLE', [1152, 36, 1654, 410], [0, 1, 7, 8]],
+      ['RUIN', [1152, 36, 1654, 410], [2, 3, 9, 10]],
+      ['ARENA', [1393, 1761, 1587, 1951], [0, 1, 2, 3]],
+      ['MOSS_STONE', [20, 1761, 220, 1951], [0, 1, 2, 3]],
+      ['CORRUPT', [235, 1761, 440, 1951], [0, 1, 2, 3]],
+      ['CLIFF', [1152, 36, 1654, 410], [5, 6, 12, 13]],
+      ['WATER', [1669, 36, 1961, 410], [1, 5, 1, 5]],
+      ['DEEP_WATER', [1669, 36, 1961, 410], [6, 7, 8, 9]],
+      ['SHALLOW', [1669, 36, 1961, 410], [2, 3, 2, 3]],
+      ['face:cliff', [1620, 1495, 1850, 1580], [0, 1, 2, 0]],
+      ['face:wall', [620, 1495, 1000, 1580], [0, 1, 2, 3]],
+    ],
+  },
 };
 
 // the owner's sheets may or may not carry a .png extension
 const sheetPath = (p) => [p, p + '.png'].map((q) => path.join(ROOT, q)).find((q) => fs.existsSync(q)) || path.join(ROOT, p);
 
-// dark navy sheet background
-const isBg = (d, i) => { const r = d[i], g = d[i + 1], b = d[i + 2]; return r < 42 && g < 48 && b < 64 && b >= r; };
+// sheet background: measured from the sheet border (dark navy on the A2 sheet, near-black on the A3 one); a pixel
+// within BG_TOL of it on every channel is background
+const BG_TOL = 12;
+let BG = [20, 26, 36];
+function measureBg(img) {
+  const { width: w, height: h, data } = img, hist = new Map();
+  for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) {
+    if (x > 12 && y > 12 && x < w - 12 && y < h - 12) continue;
+    const i = (y * w + x) * 4, k = (data[i] >> 2) + ',' + (data[i + 1] >> 2) + ',' + (data[i + 2] >> 2);
+    hist.set(k, (hist.get(k) || 0) + 1);
+  }
+  const top = [...hist].sort((a, b) => b[1] - a[1])[0][0].split(',').map((v) => v * 4 + 2);
+  BG = top;
+}
+// skin.bg 'measured' (dark sheets whose tiles are dark too, A3) · default 'navy' (any dark blue-ish pixel, A2)
+let BG_MODE = 'navy';
+const isBg = (d, i) => BG_MODE === 'measured'
+  ? Math.abs(d[i] - BG[0]) <= BG_TOL && Math.abs(d[i + 1] - BG[1]) <= BG_TOL && Math.abs(d[i + 2] - BG[2]) <= BG_TOL
+  : d[i] < 42 && d[i + 1] < 48 && d[i + 2] < 64 && d[i + 2] >= d[i];
 
 function cards(img, [x0, y0, x1, y1]) {
   const { width: w, data } = img;
@@ -129,6 +167,7 @@ fs.mkdirSync(outDir, { recursive: true });
 const meta = {};
 for (const [id, skin] of Object.entries(SKINS)) {
   const img = png.read(sheetPath(skin.src));
+  measureBg(img); BG_MODE = skin.bg || 'navy';
   const atlas = png.create(TILE * VARIANTS, TILE * skin.rows.length);
   const rows = {};
   skin.rows.forEach(([name, region, picks], r) => {

@@ -188,7 +188,7 @@ export class Combat {
       if (crit || opts.big) g.vfx.sprite('shards', hx, hy, ang, { scale: opts.big ? 0.9 : 0.55, life: 0.22 });
       if (tags.includes('weakpoint')) g.vfx.text(hx, hy - 30, 'WEAK POINT', { color: '#5af0ff', size: 10 });
       if (tags.includes('execute') && !target.executeShown) { target.executeShown = true; g.vfx.text(hx, hy - 30, 'LOW HP — EXECUTE', { color: '#e0a0ff', size: 9 }); }
-      if (tags.includes('armored') && !target.armorWarned) { target.armorWarned = true; g.vfx.text(hx, hy - 30, 'ARMORED — strike its back', { color: '#9ad8ff', size: 9 }); }
+      if (tags.includes('armored') && !target.armorWarned) { target.armorWarned = true; g.vfx.text(hx, hy - 30, (target.def && target.def.weakPointText) || 'ARMORED — strike its back', { color: '#9ad8ff', size: 9 }); }
     } else {
       g.vfx.damage(hx, hy - 6, amount, { crit, color: '#ff6060', big: opts.big, tags });
       g.vfx.spark(hx, hy, ang, col, crit ? 12 : 7);

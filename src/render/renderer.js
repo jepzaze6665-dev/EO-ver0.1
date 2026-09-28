@@ -101,6 +101,8 @@ export class Renderer {
       case Z.VALLEY: return { r: 40, g: 26, b: 10, a: 0.1 };
       case Z.ANCIENT: return { r: 22, g: 18, b: 12, a: 0.26 };
       case Z.RIFT: return { r: 48, g: 10, b: 0, a: 0.34 };
+      case Z.CITADEL: return { r: 8, g: 12, b: 30, a: 0.42 };
+      case Z.SANCTUM: return { r: 10, g: 14, b: 40, a: 0.46 };
     }
     return { r: 10, g: 10, b: 20, a: 0.4 };
   }

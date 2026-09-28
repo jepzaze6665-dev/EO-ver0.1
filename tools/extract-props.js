@@ -16,7 +16,8 @@ const F = 'FOREST SET.png', A = 'FANTASY SET.png', V = 'VILLAGE SET.png';
 // W3: the owner's per-map prop sheets (2048 px, drawn at twice the pixel size of the 1024 sets -> SCALE 0.5).
 // Coordinates in the manifest are in the sheet's own pixels. A2 = Ancient Valley props, names 'v_*'.
 const A2P = '../A/a2/image-bf40810d-ac8c-4bed-a831-af8840274bbe-0';
-const SCALE = { [A2P]: 0.5 };
+const A3P = '../A/a3/image-cffd3904-429f-435a-85d6-3b6b93bed0a8-0';
+const SCALE = { [A2P]: 0.5, [A3P]: 0.5 };
 const MANIFEST = {
   // ---- forest
   tree_small_a: [F, 35, 90], tree_small_b: [F, 78, 88],
@@ -100,6 +101,27 @@ const MANIFEST = {
   v_banner_a: [A2P, 1649, 1494], v_banner_b: [A2P, 1740, 1494], v_banner_c: [A2P, 1821, 1496], v_grass_tall: [A2P, 1135, 1482], v_grass_b: [A2P, 1214, 1474],
   v_flower_a: [A2P, 65, 1600], v_flower_b: [A2P, 295, 1597], v_flower_c: [A2P, 496, 1595], v_grass_c: [A2P, 857, 1593],
   v_mushroom: [A2P, 1754, 1626], v_mushroom_red: [A2P, 1876, 1619], v_skulls: [A2P, 1215, 1672], v_pebbles: [A2P, 1203, 1757],
+  // ---- A3 RUNE CITADEL (owner's sheet desgin/Map/A/a3): buildings, gates, banners, lamps, golden trees (boxes)
+  c_statue_plaza: [A3P, 12, 23, 415, 365], c_plaza_ring: [A3P, 425, 92, 718, 335], c_crystal_shrine: [A3P, 737, 32, 892, 241], c_chapel: [A3P, 907, 27, 1101, 241],
+  c_pit: [A3P, 1119, 20, 1457, 350], c_gold_gate: [A3P, 1466, 65, 1792, 334], c_dome: [A3P, 1801, 65, 2033, 337], c_obelisk_s: [A3P, 761, 263, 871, 365],
+  c_shrine_s: [A3P, 890, 260, 983, 359], c_ruin_s: [A3P, 997, 270, 1105, 351], c_tower_a: [A3P, 11, 393, 109, 497], c_tower_b: [A3P, 121, 376, 231, 502],
+  c_tower_c: [A3P, 244, 365, 348, 505], c_tower_d: [A3P, 371, 382, 516, 510], c_tower_e: [A3P, 524, 358, 657, 508], c_tower_f: [A3P, 667, 367, 780, 505],
+  c_house_a: [A3P, 797, 403, 882, 506], c_house_b: [A3P, 896, 379, 996, 503], c_house_c: [A3P, 1010, 375, 1113, 503], c_crystal_spire: [A3P, 1119, 359, 1237, 509],
+  c_fall_ruin: [A3P, 1253, 364, 1423, 510], c_fall_b: [A3P, 1431, 363, 1545, 529], c_pool_ruin: [A3P, 1550, 355, 1825, 555], c_stair_ruin: [A3P, 1876, 372, 2035, 591],
+  c_wall_a: [A3P, 10, 526, 139, 652], c_wall_b: [A3P, 152, 512, 261, 655], c_wall_c: [A3P, 269, 517, 358, 655], c_stairs_a: [A3P, 353, 528, 468, 657],
+  c_house_d: [A3P, 482, 515, 593, 659], c_house_e: [A3P, 606, 533, 719, 660], c_house_f: [A3P, 732, 534, 825, 661], c_house_g: [A3P, 837, 529, 954, 662],
+  c_house_h: [A3P, 969, 512, 1068, 654], c_well: [A3P, 1079, 549, 1161, 665], c_house_i: [A3P, 1169, 518, 1273, 662], c_house_j: [A3P, 1285, 531, 1380, 661],
+  c_wall_long: [A3P, 10, 664, 206, 825], c_gate_a: [A3P, 223, 673, 309, 819], c_pillar_a: [A3P, 318, 692, 385, 823], c_gate_b: [A3P, 394, 673, 480, 823],
+  c_stairs_b: [A3P, 484, 688, 607, 830], c_ruin_c: [A3P, 614, 674, 735, 830], c_stairs_c: [A3P, 744, 695, 872, 817], c_wall_d: [A3P, 879, 673, 961, 821],
+  c_statue_s: [A3P, 967, 673, 1061, 823], c_banner_house: [A3P, 1078, 681, 1211, 823], c_crystal_obelisk: [A3P, 1217, 673, 1313, 822], c_stairs_d: [A3P, 1314, 668, 1449, 818],
+  c_pillar_b: [A3P, 1570, 696, 1615, 825], c_wall_banner: [A3P, 1717, 698, 1856, 835], c_pillar_banner: [A3P, 1866, 718, 1940, 825], c_banner_a: [A3P, 17, 1180, 72, 1297],
+  c_banner_b: [A3P, 83, 1182, 142, 1303], c_banner_arch: [A3P, 161, 1163, 294, 1315], c_banner_purple: [A3P, 330, 1185, 406, 1319], c_tent_a: [A3P, 444, 1165, 570, 1308],
+  c_tent_b: [A3P, 578, 1167, 745, 1304], c_tent_c: [A3P, 749, 1164, 916, 1302], c_crates: [A3P, 927, 1164, 1048, 1290], c_stall: [A3P, 1061, 1168, 1184, 1302],
+  c_rubble_a: [A3P, 1311, 1183, 1443, 1278], c_gold_tree: [A3P, 1474, 1250, 1598, 1383], c_rock_spire: [A3P, 1907, 1192, 2041, 1381], c_tree_s: [A3P, 1561, 1345, 1662, 1437],
+  c_bush_a: [A3P, 15, 1429, 122, 1498], c_bush_b: [A3P, 134, 1426, 220, 1507], c_bush_c: [A3P, 231, 1419, 337, 1511], c_bush_d: [A3P, 343, 1439, 464, 1512],
+  c_bush_wide: [A3P, 712, 1415, 927, 1528], c_bush_e: [A3P, 941, 1419, 1113, 1543], c_dead_tree: [A3P, 1206, 1403, 1495, 1616], c_dead_tree_b: [A3P, 1662, 1447, 1936, 1607],
+  c_rock_a: [A3P, 1901, 1403, 2033, 1536], c_grass_patch: [A3P, 218, 1533, 384, 1614], c_lamp_a: [A3P, 1093, 1633, 1135, 1713], c_lamp_b: [A3P, 1155, 1633, 1193, 1714],
+  c_lamp_c: [A3P, 1375, 1632, 1414, 1719], c_lamp_d: [A3P, 1503, 1630, 1548, 1721], c_rock_crystal: [A3P, 1834, 1594, 2031, 1820], c_debris: [A3P, 663, 1625, 797, 1698],
 };
 
 function bgLike(r, g, b) {

@@ -29,7 +29,8 @@ export const MONSTERS = {
       // tail sweep: a quick circle around it — back off or dodge out
       { id: 'tail', range: 40, min: 0, windup: 0.5, recover: 0.5, cd: 1.6, power: 24, shape: { shape: 'circle', r: 44 }, kind: 'strike', knock: 140 },
       // boulder roll: line telegraph, a fast roll along it, then DIZZY (vulnerable) — dodge sideways and punish
-      { id: 'roll', range: 190, min: 70, windup: 0.75, recover: 0.8, cd: 4.2, power: 34, shape: { shape: 'line', len: 190, width: 22 }, kind: 'dash', dashTime: 0.34, exposes: 1.4, exposeText: 'DIZZY!', knock: 240 },
+      // bounces: it ricochets off walls up to twice (and can hit again) — near a wall, expect the rebound
+      { id: 'roll', range: 190, min: 70, windup: 0.75, recover: 0.8, cd: 4.2, power: 34, shape: { shape: 'line', len: 190, width: 22 }, kind: 'dash', dashTime: 0.34, exposes: 1.4, exposeText: 'DIZZY!', knock: 240, bounces: 2 },
       // spike burst (heavy): stone spikes erupt in a ring — leave the ring before it resolves
       { id: 'spikes', range: 70, min: 0, windup: 0.95, recover: 0.9, cd: 6, power: 32, shape: { shape: 'ring', r0: 18, r: 72 }, kind: 'strike', knock: 200, heavy: true },
     ],
@@ -42,9 +43,38 @@ export const MONSTERS = {
     attacks: [
       { id: 'gore', range: 50, min: 0, windup: 0.6, recover: 0.6, cd: 1.8, power: 32, shape: { shape: 'cone', r: 58, half: 0.7 }, kind: 'strike', knock: 180 },
       // rampage charge: long, guard-breaking; misses leave it recovering much longer (flank + punish)
-      { id: 'charge', range: 240, min: 90, windup: 1.0, recover: 1.0, cd: 5.5, power: 44, shape: { shape: 'line', len: 240, width: 30 }, kind: 'dash', dashTime: 0.42, guardBreak: true, knock: 280, missRecover: 1.9, exposes: 1.2, exposeText: 'STUMBLING!' },
+      // steer: the charge can bend toward you once (0.8 rad) — dodge late, not early
+      { id: 'charge', range: 240, min: 90, windup: 1.0, recover: 1.0, cd: 5.5, power: 44, shape: { shape: 'line', len: 240, width: 30 }, kind: 'dash', dashTime: 0.42, guardBreak: true, knock: 280, missRecover: 1.9, exposes: 1.2, exposeText: 'STUMBLING!', steer: 2.2, steerMax: 0.8 },
       // tremor stomp (heavy): the ground shakes around it and slows — step out of the circle
       { id: 'stomp', range: 64, min: 0, windup: 0.9, recover: 0.8, cd: 5, power: 30, shape: { shape: 'circle', r: 78 }, kind: 'strike', knock: 160, heavy: true, status: [{ id: 'slow', dur: 1.6 }] },
+    ],
+  },
+  // ---------------- A3 RUNE CITADEL (owner's sheets desgin/monster/A3). Lv 14-16.
+  crystal_golem: {
+    name: 'Crystal Golem', level: 14, hp: 2400, def: 14, armor: 900, speed: 50, radius: 16, height: 42, mass: 3.5, superArmor: true,
+    detect: 150, leash: 420, exp: 170, loot: 'crystal_golem', weakness: ['physical'], sprite: 'crystal_golem', poise: 120, turn: 2,
+    role: 'tank', weakPoint: 'front', weakPointText: 'ARMORED — strike the chest crystal (front)',
+    pattern: 'Stone Punch / Crystal Slam / Shoulder Ram', desc: 'Stone armour, a crystal heart on its chest. Its slam raises crystal spikes that wall you in — stay out of the ring, then hit the crystal while it recovers.',
+    attacks: [
+      { id: 'punch', range: 46, min: 0, windup: 0.7, recover: 0.7, cd: 2, power: 38, shape: { shape: 'cone', r: 54, half: 0.6 }, kind: 'strike', knock: 220 },
+      // slam (heavy): a ring of crystal spikes bursts up around it and BLOCKS the ground for 6 s
+      { id: 'slam', range: 80, min: 0, windup: 1.1, recover: 1.2, cd: 6, power: 40, shape: { shape: 'ring', r0: 30, r: 90 }, kind: 'strike', knock: 240, heavy: true, opening: true,
+        leaves: { count: 7, radius: 96, life: 6, sprite: 'r_spikes' } },
+      { id: 'ram', range: 170, min: 70, windup: 0.95, recover: 1.1, cd: 5, power: 36, shape: { shape: 'line', len: 170, width: 28 }, kind: 'dash', dashTime: 0.4, knock: 260, exposes: 1.6, exposeText: 'CRYSTAL EXPOSED!' },
+    ],
+  },
+  bronze_hoplite: {
+    name: 'Bronze Hoplite', level: 15, hp: 1800, def: 12, speed: 72, radius: 12, height: 40, mass: 2,
+    detect: 170, leash: 460, exp: 150, loot: 'bronze_hoplite', weakness: ['shadow'], sprite: 'bronze_hoplite', poise: 90, turn: 2.6,
+    role: 'bruiser',
+    // the shield: frontal hits are 85% blocked and wear it down; flank or break it (2.2 s stun)
+    shield: { arc: 1.2, mult: 0.15, hp: 380, breakTime: 2.2, regen: 8 },
+    pattern: 'Shield Bash / Spear Sweep / Phalanx', desc: 'A rune-bound soldier behind a bronze shield. Get around it — or break the shield. Two of them lock shields and thrust as one.',
+    attacks: [
+      { id: 'bash', range: 40, min: 0, windup: 0.55, recover: 0.6, cd: 1.8, power: 30, shape: { shape: 'cone', r: 46, half: 0.7 }, kind: 'strike', knock: 260 },
+      { id: 'sweep', range: 60, min: 0, windup: 0.75, recover: 0.8, cd: 3, power: 34, shape: { shape: 'cone', r: 70, half: 1.4 }, kind: 'strike', knock: 200, opening: true },
+      // phalanx: with another hoplite close by — a long spear line; step out sideways
+      { id: 'phalanx', range: 130, min: 30, windup: 0.9, recover: 0.9, cd: 4.5, power: 38, shape: { shape: 'cone', r: 130, half: 0.22 }, kind: 'strike', knock: 240, guardBreak: true, needsAlly: { type: 'bronze_hoplite', within: 120 } },
     ],
   },
   wolf: {

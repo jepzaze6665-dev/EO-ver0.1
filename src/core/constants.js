@@ -47,6 +47,8 @@ export const Z = {
   CAVE: 7,
   ANCIENT: 8, // A2 Ancient Valley grid (world/levels/ancientValley.js)
   RIFT: 9, // A2 boss arena: the Magma Rift (maps/magmaRift.js)
+  CITADEL: 10, // A3 Rune Citadel grid (world/levels/runeCitadel.js)
+  SANCTUM: 11, // A3 boss arena (W4b)
 };
 
 export const ZONE_INFO = {
@@ -59,6 +61,8 @@ export const ZONE_INFO = {
   [Z.CAVE]: { name: 'HIDDEN CAVE', sub: 'Secret Area Discovered', music: 'cave' },
   [Z.ANCIENT]: { name: 'ANCIENT VALLEY', sub: 'Terraces of a fallen kingdom', music: 'ancient' },
   [Z.RIFT]: { name: 'MAGMA RIFT', sub: 'A2 Boss · the burning heart of the valley', music: 'arena' },
+  [Z.CITADEL]: { name: 'RUNE CITADEL', sub: 'The fallen city of Asteria', music: 'ruins' },
+  [Z.SANCTUM]: { name: 'THE SANCTUM', sub: 'A3 Major Boss · the Rune Knight', music: 'gate' },
 };
 
 export const TEAM = { PLAYER: 1, ENEMY: 2, NEUTRAL: 3 };

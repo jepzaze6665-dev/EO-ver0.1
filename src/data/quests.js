@@ -70,6 +70,18 @@ export const QUESTS = {
     rewards: { exp: 250, gold: 200, items: { hp_potion: 3 } },
     requirements: [],
   },
+  // A3 spine (W4): started on the first visit to the Rune Citadel
+  fallen_city: {
+    id: 'fallen_city', name: 'THE FALLEN CITY', giver: null, ordered: true, priority: 1,
+    description: 'Asteria fell with its knights still at their posts. Climb the avenue to the Golden Gate and the Sanctum beyond.',
+    objectives: [
+      { id: 'plaza', text: 'Reach the Winged Plaza', type: 'flag', flag: 'wingedPlaza', marker: [84, 118], markerMap: 'a3' },
+      { id: 'gate', text: 'Find the Golden Gate', type: 'flag', flag: 'goldenGate', marker: [84, 56], markerMap: 'a3' },
+      { id: 'boss', text: 'Defeat the Rune Knight (A3 Major Boss — coming soon)', type: 'boss', boss: 'boss_a3', marker: [84, 56], markerMap: 'a3' },
+    ],
+    rewards: { exp: 400, gold: 300, items: { hp_potion: 3 } },
+    requirements: [],
+  },
   // A1's optional mini-bosses (W2): the old area bosses keep their arenas and rewards, but lock nothing
   forest_hunts: {
     id: 'forest_hunts', name: 'HUNTS OF THE WHISPERING FOREST', giver: null, side: true,

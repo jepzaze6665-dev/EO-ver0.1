@@ -18,5 +18,26 @@
    "SHALLOW": 11,
    "face:cliff": 12
   }
+ },
+ "citadel": {
+  "file": "assets/tiles/citadel.png",
+  "tile": 32,
+  "variants": 4,
+  "rows": {
+   "GRASS": 0,
+   "FLOWERS": 1,
+   "DIRT": 2,
+   "COBBLE": 3,
+   "RUIN": 4,
+   "ARENA": 5,
+   "MOSS_STONE": 6,
+   "CORRUPT": 7,
+   "CLIFF": 8,
+   "WATER": 9,
+   "DEEP_WATER": 10,
+   "SHALLOW": 11,
+   "face:cliff": 12,
+   "face:wall": 13
+  }
  }
 }

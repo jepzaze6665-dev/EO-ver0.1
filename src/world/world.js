@@ -126,6 +126,8 @@ export class World {
     if (g.vfx && g.vfx.clear) g.vfx.clear();
     if (g.targets) g.targets.clear();
     this.hazards = []; this.rootSpikes = []; this.totemTick = null; this.totemActive = false;
+    for (const s of this.spikes || []) L.map.blocker[s.i] = Math.max(0, L.map.blocker[s.i] - 1);
+    this.spikes = [];
     this.nearest = null;
     g.events.emit('gridUnloaded', { id: L.id });
     this.level = null;
@@ -462,6 +464,23 @@ export class World {
     }
   }
   rootSpike(x, y) { this.rootSpikes.push({ x, y, t: 0 }); }
+  // attack data `leaves: { count, radius, life, sprite }`: crystal spikes burst up around an impact and BLOCK the ground
+  // for `life` s (tiles marked solid). Never on a player / an occupied or solid tile. Monster attacks: golem slam.
+  spawnSpikes(x, y, o = {}) {
+    const g = this.game, m = this.map, n = o.count || 5, r = o.radius || 60;
+    this.spikes = this.spikes || [];
+    for (let k = 0; k < n; k++) {
+      const a = (k / n) * TAU + rand(-0.3, 0.3), px = x + Math.cos(a) * r, py = y + Math.sin(a) * r;
+      const tx = Math.floor(px / TILE), ty = Math.floor(py / TILE);
+      if (!m.inBounds(tx, ty) || m.isSolid(tx, ty)) continue;
+      if (g.players().some((p) => Math.hypot(p.x - (tx + 0.5) * TILE, p.y - (ty + 0.5) * TILE) < 30)) continue;
+      const i = m.idx(tx, ty);
+      m.blocker[i]++;
+      this.spikes.push({ i, t: o.life || 6 });
+      if (o.sprite) g.vfx.sprite(o.sprite, (tx + 0.5) * TILE, (ty + 0.9) * TILE - 16, 0, { life: o.life || 6, frame: 4, scale: 0.7, glow: 0.3 });
+      g.vfx.shards((tx + 0.5) * TILE, (ty + 0.5) * TILE, '#9ad8ff', 6, 90);
+    }
+  }
 
   updateHazards(dt) {
     const g = this.game, p = g.player;
@@ -484,6 +503,10 @@ export class World {
       }
     }
     for (const s of this.rootSpikes) s.t += dt;
+    if (this.spikes && this.spikes.length) {
+      for (const s of this.spikes) { s.t -= dt; if (s.t <= 0) this.map.blocker[s.i] = Math.max(0, this.map.blocker[s.i] - 1); }
+      this.spikes = this.spikes.filter((s) => s.t > 0);
+    }
     this.rootSpikes = this.rootSpikes.filter((s) => s.t < 1.4);
   }
 

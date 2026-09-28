@@ -88,15 +88,26 @@ export const MONSTER_ART = {
   crystal_golem: {
     sheet: 'crystal_golem', replaces: ['crystal_golem'],
     anims: {
-      idle: ['front', [0, 1, 2, 3, 4]], move: ['side_b', [0, 1, 2, 3]], windup: ['side', [3]], attack: ['side', [4]],
-      hurt: ['special', [3]], death: 'death', back: ['back', [0, 1, 2]], slam: 'special',
+      idle: ['front', [0, 1, 2, 3, 4]], move: ['side_b', [0, 1, 2, 3]], windup: ['side_b', [3]], attack: ['side', [4]],
+      hurt: ['special', [3]], death: 'death', front: ['front', [0, 1, 2, 3, 4]], back: ['back', [0, 1, 2]], slam: 'special',
     },
+    attacks: {
+      punch: { windup: ['side_b', [3]], attack: ['side', [4]] },
+      slam: { windup: ['special', [4]], attack: ['special', [0, 1]] },   // arms up -> crystal ring
+      ram: { windup: ['special', [4]], attack: ['special', [2]] },        // shoulder roll
+    },
+    fps: { move: 6, idle: 4 },
   },
   bronze_hoplite: {
     sheet: 'bronze_hoplite', replaces: ['bronze_hoplite'],
     anims: {
-      idle: 'front', move: 'side', windup: ['attack', [0, 1]], attack: ['attack', [2, 3]], hurt: 'hit', death: 'death',
-      back: 'back', ward: ['attack', [5, 6]],
+      idle: 'front', move: 'side', windup: ['attack', [0]], attack: ['attack', [1]], hurt: 'hit', death: 'death',
+      front: 'front', back: 'back', ward: ['attack', [5]],
+    },
+    attacks: {
+      bash: { windup: ['attack', [0]], attack: ['attack', [1]] },          // shield bash
+      sweep: { windup: ['attack', [3]], attack: ['attack', [2]] },         // spear sweep (arc)
+      phalanx: { windup: ['attack', [5]], attack: ['attack', [6]] },       // rune-lit spear thrust in formation
     },
   },
   rune_knight: {

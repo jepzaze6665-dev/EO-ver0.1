@@ -9,7 +9,12 @@ export const MAGMA_RIFT = {
   requires: [],
   region: { zones: [Z.RIFT] },
   spawn: [84, 38],
+  // after the Magma Beast: the east causeway opens toward A3 (collision gate + the A3 map's requirement)
+  gates: [
+    { id: 'a3_road_gate', rect: [104, 19, 104, 25], requires: [{ type: 'map_unlocked', map: 'a3', label: 'Defeat the Magma Beast (A2 Boss)' }], color: '140,180,255', label: 'Road to the Rune Citadel' },
+  ],
   exits: [
     { id: 'rift_south', rect: [81, 41, 87, 41], to: 'a2', entry: [84, 46], label: 'High Meadow' },
+    { id: 'east_road', rect: [108, 19, 109, 25], to: 'a3', entry: [84, 198], label: 'Rune Citadel' },
   ],
 };

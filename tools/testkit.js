@@ -1002,3 +1002,75 @@ export function a2BossCheck(g, classId = 'umbral_sword', { god = true, level = 1
   }
   return R;
 }
+
+// W4a: A3 monsters + the distinct mechanics (golem front weak point + crystal spikes, hoplite shield / flank / break
+// + phalanx) and the reworked A2 monsters (armadillo roll bounces, rhino charge curves). Ends with a no-god pack fight.
+export function a3MonsterCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  let w = g.world;
+  const p = g.player;
+  for (const b of ['boss_a1', 'boss_a2']) g.worldProgress.defeatBoss(b);
+  w.setFlag('guardianDefeated'); w.applyState();
+  w.changeMap('a3', { entry: [84, 196] }); g.simulate(0.3);
+  p.setLevel(15); p.hp = p.maxHp;
+  ok('A3 spawns golems + hoplites with sheet art', ['crystal_golem', 'bronze_hoplite'].every((t) => w.monsters.some((m) => m.type === t && m.sprites.sheet)));
+  for (const m of w.monsters) { m.aggro = false; m.setState('return'); }
+  const spot = () => { releaseInput(g); const s = w.map.findOpen(84 * TILE, 188 * TILE, 3); p.x = s.x; p.y = s.y; p.hp = p.maxHp; };
+  const make = (type, dx, dy) => { const M = w.monsters[0].constructor, m = new M(g, type, p.x + dx, p.y + dy, {}); w.monsters.push(m); return m; };
+  const hitFrom = (m, ax, ay) => { const h0 = m.hp, a0 = m.armor; g.combat.dealDamage({ x: ax, y: ay, team: 1 }, m, { power: 40, noCrit: true, knock: 0 }); return { hp: h0 - m.hp, armor: a0 - m.armor }; };
+  // golem: chest crystal in FRONT
+  spot();
+  const gol = make('crystal_golem', 60, 0); gol.facing = Math.PI; // facing the player (west)
+  const front = hitFrom(gol, gol.x - 40, gol.y), back = hitFrom(gol, gol.x + 40, gol.y);
+  ok('Golem: the chest crystal (front) takes full damage, the back is armoured', front.hp > back.hp * 2, `front ${front.hp} vs back ${back.hp} (armour -${back.armor})`);
+  // golem slam: crystal spikes block tiles, then crumble (the golem is removed first: a woken golem would slam too)
+  gol.dead = true; gol.removed = true;
+  const b0 = [...w.map.blocker].reduce((a, v) => a + v, 0);
+  w.spawnSpikes(gol.x, gol.y, { count: 7, radius: 96, life: 1.5, sprite: 'r_spikes' });
+  const b1 = [...w.map.blocker].reduce((a, v) => a + v, 0);
+  g.simulate(2);
+  const b2 = [...w.map.blocker].reduce((a, v) => a + v, 0);
+  ok('Golem slam: crystal spikes block the ground, then crumble', b1 > b0 && b2 === b0, `blockers ${b0} -> ${b1} -> ${b2}`);
+  // hoplite: shield in front, open from the flank, breaks under pressure
+  spot();
+  const hop = make('bronze_hoplite', 60, 0); hop.facing = Math.PI;
+  const shielded = hitFrom(hop, hop.x - 40, hop.y), flank = hitFrom(hop, hop.x + 40, hop.y);
+  ok('Hoplite: frontal hits are blocked by the shield, the back is open', shielded.hp * 3 < flank.hp, `front ${shielded.hp} vs back ${flank.hp}`);
+  let n = 0; while (!hop.shieldBroken && n++ < 60) { hop.facing = Math.PI; g.combat.dealDamage({ x: hop.x - 40, y: hop.y, team: 1 }, hop, { power: 60, noCrit: true, knock: 0, stagger: 25 }); }
+  ok('Hoplite: the shield breaks under pressure -> stunned + vulnerable', hop.shieldBroken && hop.status.has('stun') && hop.status.has('vulnerable'), `hits=${n}`);
+  hop.dead = true; hop.removed = true;
+  // phalanx: only with a second hoplite close by
+  spot();
+  const h1 = make('bronze_hoplite', 110, -10), h2 = make('bronze_hoplite', 110, 30);
+  const used = new Set();
+  for (const h of [h1, h2]) { const s0 = h.startAttack.bind(h); h.startAttack = (a) => { used.add(a.id); return s0(a); }; h.aggro = true; h.setState('chase'); }
+  for (let t = 0; t < 30 && !used.has('phalanx'); t += 0.5) g.simulate(0.5, () => { p.hp = p.maxHp; });
+  ok('Hoplites in a pair use the PHALANX spear line', used.has('phalanx'), [...used].join(','));
+  h1.dead = h2.dead = true; h1.removed = h2.removed = true;
+  // A2 rework: armadillo roll bounces, rhino charge curves
+  w.changeMap('a2', { entry: [84.5, 190] }); g.simulate(0.3); w = g.world;
+  for (const m of w.monsters) { m.aggro = false; m.setState('return'); }
+  // stand near the west cliff of the Valley Gate: a roll aimed at you runs on into the wall
+  releaseInput(g); { const s = w.map.findOpen(74 * TILE, 192 * TILE, 3); p.x = s.x; p.y = s.y; } p.hp = p.maxHp;
+  let bounces = 0, steered = 0;
+  const onText = g.vfx.text.bind(g.vfx); g.vfx.text = (x, y, s, o) => { if (s === 'BOUNCE') bounces++; return onText(x, y, s, o); };
+  const arm = make('armadillo', 150, 0), rh = make('rock_rhino', -200, 0);
+  for (const m of [arm, rh]) { m.aggro = true; m.setState('chase'); }
+  // the player strafes up and down: the charge has to bend to follow (a still target needs no curve)
+  for (let t = 0; t < 60 && (!bounces || steered < 0.1); t += 0.1) { g.simulate(0.1, () => { p.hp = p.maxHp; if (rh.state === 'attack') p.y += Math.sin(g.time * 3) * 5; }); steered = Math.max(steered, rh.steered || 0); }
+  g.vfx.text = onText;
+  ok('Armadillo roll bounces off walls; rhino charge bends toward you', bounces > 0 && steered > 0.05, `bounces=${bounces} rhino turned ${steered.toFixed(2)} rad`);
+  arm.dead = rh.dead = true; arm.removed = rh.removed = true;
+  // real fight: LV 15, a golem + 2 hoplites at the Winged Plaza, no god mode
+  w.changeMap('a3', { entry: [84, 130] }); g.simulate(0.3); w = g.world;
+  p.setLevel(15); p.hp = p.maxHp; g.inventory.add('hp_potion', 3, true);
+  goto(g, 84, 124);
+  const pack = w.monsters.filter((m) => !m.dead && Math.hypot(m.x - p.x, m.y - p.y) < 16 * TILE);
+  for (const m of pack) { m.aggro = true; m.setState('chase'); }
+  let t = 0, minHp = p.maxHp;
+  for (; t < 120 && !p.dead && pack.some((m) => !m.dead); t += 1) { g.simulate(1, (gg, i) => bot(gg, i, {})); minHp = Math.min(minHp, p.hp); }
+  ok('Winged Plaza pack at LV 15 (no god mode): the player wins', !p.dead && pack.length >= 2 && pack.every((m) => m.dead), `pack=${pack.map((m) => m.type).join('+')} ${t}s lowest HP ${Math.round((minHp / p.maxHp) * 100)}% dead=${p.dead}`);
+  releaseInput(g);
+  return R;
+}

@@ -345,6 +345,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   5.5 s collapse) + `lava_pools` (eruptions leave burning pools). HUD shows mechanic tags (HEAT n%). The Guardian's
   descriptive list is `notes`. Tests: `tools/tests/bossVfx.test.mjs`; a2BossCheck 12/12; no-god LV 13: UB 102 · AW 104 ·
   RP 95 · AG 145 s.
-  Next: W4 A3 Rune Citadel (owner's A3 sheets fit: dark stone + gold + purple crystal) + rune knight (major),
+  W4a done (owner approved the A3 designs): A3 RUNE CITADEL = grid `citadel` (zones Z.CITADEL + Z.SANCTUM, skin
+  'citadel' from the A3 tileset — build-tiles skin option `bg: 'measured'` for dark sheets; props `c_*` from the A3 prop
+  sheet, boxes in extract-props), terrain `maps/runeCitadel.js` (walled street grid, canal + bridges, plazas: Gate Ward ·
+  Market · Lamplight Row · Winged Plaza · Crystal Shrine · Well Court · Archive Ruins · Bronze Barracks · Golden Gate;
+  the Sanctum arena is carved north of the Golden Gate, sealed by a wall until W4b). Map `a3` (maps/fieldA3.js, requires
+  boss_a2; entry from the Rift's east causeway: rift gate `a3_road_gate` + exit `east_road`), quest `fallen_city`.
+  Monsters: `crystal_golem` (Lv 14, armour 900, weakPoint 'front' + `weakPointText`, slam `leaves` crystal spikes =
+  World.spawnSpikes: temporary blocked tiles), `bronze_hoplite` (Lv 15, `shield` via Monster.tryBlock/onBlock: front
+  hits ×0.15, shield hp breaks → stun + vulnerable, flank = open; attack `needsAlly` = PHALANX spear line). Old monsters
+  made distinct: dash `bounces` (armadillo roll ricochets off walls, can hit again) and `steer`/`steerMax` (rhino charge
+  bends once). build-monsters row opts `mirrorFrames`. `T.a3MonsterCheck(g, classId)` 8/8 for all 4 classes.
+  Bots take ~no hits in pack fights: A3 balance needs a human playtest. (slotCheck "everyone gets turns" can flake once.)
+  Next: W4b the Rune Knight (A3 major) in the Sanctum: stances, rune sequence, echoes, Asterian Judgement (owner's A3 sheets fit: dark stone + gold + purple crystal) + rune knight (major),
   W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

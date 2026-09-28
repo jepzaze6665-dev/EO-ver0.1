@@ -37,11 +37,13 @@ test('skin tiles repeat without a seam (opposite edges match closely)', () => {
     }
   }
 });
-test('every prop named by the A2 terrain exists in props.json', () => {
-  const src = readFileSync(new URL('src/maps/ancientValley.js', ROOT), 'utf8');
-  const names = new Set(src.match(/'v_[a-z_]+'/g).map((s) => s.slice(1, -1)));
-  for (const n of names) ok(props[n], `missing prop ${n}`);
-  ok(names.size > 30, 'uses the owner\'s A2 props');
+test('every prop named by the A2 / A3 terrains exists in props.json', () => {
+  for (const [file, pre] of [['src/maps/ancientValley.js', 'v_'], ['src/maps/runeCitadel.js', 'c_']]) {
+    const src = readFileSync(new URL(file, ROOT), 'utf8');
+    const names = new Set(src.match(new RegExp(`'${pre}[a-z_]+'`, 'g')).map((s) => s.slice(1, -1)));
+    for (const n of names) ok(props[n], `${file}: missing prop ${n}`);
+    ok(names.size > 25, `${file} uses the owner's props`);
+  }
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

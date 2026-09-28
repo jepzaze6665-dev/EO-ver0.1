@@ -70,7 +70,18 @@ export const WORLD_TRIGGERS = [
   },
   {
     id: 'a2_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_a2' },
-    actions: [{ type: 'banner', title: 'THE RIFT COOLS', text: 'Beyond it, a road climbs toward the Rune Citadel (A3 — coming in a later update)', color: '#ffd98a' }],
+    actions: [{ type: 'banner', title: 'A3 UNLOCKED', text: 'The rift cools — the east causeway leads to the Rune Citadel', color: '#ffd98a' }],
+  },
+
+  // ---- A3 Rune Citadel
+  {
+    id: 'a3_first_visit', on: 'mapEntered', match: { id: 'a3', first: true },
+    actions: [{ type: 'cutscene', title: 'RUNE CITADEL', sub: 'Route A · A3', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:fallen_city'],
+  },
+  { id: 'a3_winged_found', on: 'areaDiscovered', match: { name: 'Winged Plaza' }, actions: ['set_flag:wingedPlaza'] },
+  {
+    id: 'a3_golden_found', on: 'areaDiscovered', match: { name: 'Golden Gate' },
+    actions: ['set_flag:goldenGate', { type: 'notify', title: 'THE GOLDEN GATE', text: 'Something waits in the Sanctum beyond. The gate does not open yet.', color: '#ffe08a' }],
   },
 
   // ---- A3 Major Boss -> City 2: added with City 2 (W5); the unlock itself = City 2's map `requires`.

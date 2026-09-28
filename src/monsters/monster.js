@@ -67,10 +67,35 @@ export class Monster extends Entity {
   get expReward() { return Math.round(this.def.exp * this.mod.exp); }
   get lootTable() { return this.elite && ELITE_MOD.loot ? [this.def.loot, ELITE_MOD.loot] : this.def.loot; }
 
+  // weakPoint: true / 'back' = the core on its back (crystal beasts) · 'front' = a chest crystal (golems): risky, it attacks that way
   weakPointHit(ax, ay) {
     if (!this.def.weakPoint) return false;
-    const toAttacker = angleTo(this.x, this.y, ax, ay);
-    return Math.abs(wrapAngle(toAttacker - this.facing)) > 1.9;
+    const diff = Math.abs(wrapAngle(angleTo(this.x, this.y, ax, ay) - this.facing));
+    return this.def.weakPoint === 'front' ? diff < 1.1 : diff > 1.9;
+  }
+  // SHIELD (data `shield: { arc, mult, hp, breakTime, regen }`): hits from the front are mostly blocked (combat asks
+  // tryBlock like a guarding player). Blocked damage wears the shield down (heavy hits twice as fast); at 0 it
+  // breaks: stunned + vulnerable. Flank or strike its back and the shield never helps.
+  tryBlock(src) {
+    const sh = this.def.shield;
+    if (!sh || !src || this.dead || this.shieldBroken || !this.status.canAct() || this.status.has('vulnerable')) return null;
+    if (this.state === S.ATTACK && this.phase !== 'windup') return null; // committed to a swing: open
+    return Math.abs(wrapAngle(angleTo(this.x, this.y, src.x, src.y) - this.facing)) <= sh.arc ? { mult: sh.mult, perfect: false } : null;
+  }
+  onBlock(block, src, opts, ang, raw) {
+    const g = this.game, sh = this.def.shield;
+    this.aggro = true;
+    this.shieldHp = (this.shieldHp ?? sh.hp) - raw * (opts.big || (opts.stagger || 0) >= 20 ? 2 : 1);
+    g.vfx.spark(this.x, this.y - this.height * 0.5, ang + Math.PI, '#ffd070', 8);
+    if ((this.blockTextT || 0) <= g.time) { this.blockTextT = g.time + 1.2; g.vfx.text(this.x, this.y - this.height - 8, 'BLOCKED — flank it', { color: '#ffd070', size: 9 }); }
+    g.audio.sfx('block');
+    if (this.shieldHp > 0) return;
+    this.shieldBroken = true; this.shieldRegen = sh.regen || 8;
+    this.status.add('stun', sh.breakTime || 2.2); this.status.add('vulnerable', sh.breakTime || 2.2);
+    this.interrupt(sh.breakTime || 2.2);
+    g.vfx.shards(this.x, this.y - 20, '#ffd070', 24, 200);
+    g.vfx.text(this.x, this.y - this.height - 14, 'SHIELD BROKEN!', { color: '#ffe8a0', size: 12 });
+    g.events.emit('poiseBroken', { target: this, source: src });
   }
   onArmorBreak() {
     const g = this.game;
@@ -147,6 +172,7 @@ export class Monster extends Entity {
     this.status.update(dt);
     this.applyKnockback(dt, map);
     for (const k in this.cds) this.cds[k] -= dt;
+    if (this.shieldBroken) { this.shieldRegen -= dt; if (this.shieldRegen <= 0) { this.shieldBroken = false; this.shieldHp = this.def.shield.hp; } }
     if (this.armorRegen !== undefined && this.armor <= 0) {
       this.armorRegen -= dt;
       if (this.armorRegen <= 0) { this.armor = this.maxArmor; this.armorRegen = undefined; this.armorWarned = false; g.vfx.burst(this.x, this.y - 20, '#5af0ff', 14, 60); }
@@ -300,8 +326,10 @@ export class Monster extends Entity {
   chooseAttack(dP) {
     // skirmishers punish a player standing still: their `punish` attack ignores its cooldown
     const punish = this.def.punishIdle && ((this.target || this.game.player).idleT || 0) >= this.def.punishIdle;
-    const opts = this.def.attacks.filter((a) => ((this.cds[a.id] || 0) <= 0 || (punish && a.punish)) && dP <= a.range && dP >= a.min);
+    const opts = this.def.attacks.filter((a) => ((this.cds[a.id] || 0) <= 0 || (punish && a.punish)) && dP <= a.range && dP >= a.min && this.hasAlly(a.needsAlly));
     if (!opts.length) return null;
+    const team = opts.filter((a) => a.needsAlly); // formation attacks win when the formation is there
+    if (team.length && Math.random() < 0.6) return pick(team);
     // the slow-turning beasts only attack what is roughly in front of them (their back stays exposed)
     if (this.def.turn < 3) {
       const p = this.target || this.game.player;
@@ -310,9 +338,15 @@ export class Monster extends Entity {
     return pick(opts);
   }
 
+  // needsAlly { type, within }: another living monster of that type close by (phalanx)
+  hasAlly(n) {
+    if (!n) return true;
+    return this.game.world.monsters.some((o) => o !== this && !o.dead && o.type === n.type && dist(o.x, o.y, this.x, this.y) <= n.within);
+  }
   startAttack(atk) {
     const g = this.game, p = this.target || g.player;
     this.cur = atk;
+    this.bounced = 0; this.steered = 0;
     this.missed = false;
     this.phase = 'windup';
     this.setState(S.ATTACK);
@@ -345,6 +379,7 @@ export class Monster extends Entity {
       if (atk.exposes) { this.status.add('vulnerable', atk.exposes); g.vfx.text(this.x, this.y - this.height - 8, atk.exposeText || 'CORE EXPOSED!', { color: '#ff9ad8', size: 10 }); }
       if (atk.opening) { this.status.add('vulnerable', atk.recover); g.vfx.text(this.x, this.y - this.height - 8, 'OPENING!', { color: '#ffe070', size: 10 }); }
       if (atk.blinkAfter) g.after(0.3, () => !this.dead && this.blink());
+      if (atk.leaves) g.world.spawnSpikes(this.curShape.x, this.curShape.y, atk.leaves);
     } else if (atk.kind === 'dash') {
       this.phase = 'active';
       this.stateT = 0;
@@ -377,10 +412,25 @@ export class Monster extends Entity {
       return;
     }
     if (this.phase === 'active') {
+      // steer: the charge bends toward the target, up to steerMax radians in total (it can curve once)
+      if (atk.steer && !this.dashHit) {
+        const p = this.target || g.player, want = wrapAngle(angleTo(this.x, this.y, p.x, p.y) - this.curShape.ang);
+        const step = clamp(want, -atk.steer * dt, atk.steer * dt);
+        if (this.steered + Math.abs(step) <= (atk.steerMax ?? 0.9)) { this.curShape.ang += step; this.steered += Math.abs(step); this.facing = this.curShape.ang; }
+      }
       const ang = this.curShape.ang;
       const sp = atk.shape.len / atk.dashTime;
-      this.game.world.map.moveCircle(this, Math.cos(ang) * sp * dt, Math.sin(ang) * sp * dt);
+      const wall = this.game.world.map.moveCircle(this, Math.cos(ang) * sp * dt, Math.sin(ang) * sp * dt);
       this.moving = true;
+      // bounces: a roll ricochets off walls (and can hit again) — read the wall, not only the line
+      if (wall && atk.bounces && this.bounced < atk.bounces) {
+        this.bounced++;
+        this.curShape.ang = ang + Math.PI + rand(-0.6, 0.6); this.facing = this.curShape.ang;
+        this.stateT = Math.max(0, this.stateT - atk.dashTime * 0.6);
+        this.dashHit = false;
+        g.vfx.ring(this.x, this.y, 6, 40, { color: '220,200,160', life: 0.3, width: 4 }); g.camera.shake(0.15); g.audio.sfx('slam');
+        g.vfx.text(this.x, this.y - this.height - 6, 'BOUNCE', { color: '#e8d8b0', size: 8, life: 0.5 });
+      }
       if (!this.dashHit) {
         const hitShape = { shape: 'circle', x: this.x, y: this.y, r: this.radius + 6 };
         if (g.combat.enemyStrike(this, hitShape, atk.power * this.mod.power, { knock: atk.knock ?? 220, knockAng: ang, guardBreak: atk.guardBreak, status: atk.status })) this.dashHit = true;
@@ -497,7 +547,8 @@ export class Monster extends Entity {
     ctx.restore();
     // weak point glint on crystal beasts
     if (this.def.weakPoint && !this.dead && this.armor > 0) {
-      const bx = x - Math.cos(this.facing) * this.radius * 1.1, by = y - this.height * 0.45;
+      const side = this.def.weakPoint === 'front' ? 1 : -1;
+      const bx = x + side * Math.cos(this.facing) * this.radius * 1.1, by = y - this.height * 0.45;
       ctx.fillStyle = `rgba(255,150,220,${0.4 + 0.3 * Math.sin(g.time * 5)})`;
       ctx.fillRect(Math.round(bx) - 1, Math.round(by) - 1, 3, 3);
     }
