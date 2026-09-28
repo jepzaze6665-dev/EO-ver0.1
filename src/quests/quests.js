@@ -119,7 +119,7 @@ export class Quests {
   target() {
     const rank = (id) => (this.data[id].side ? 100 : 0) - (this.data[id].priority || 0);
     const ids = Object.keys(this.active).sort((a, b) => rank(a) - rank(b));
-    for (const id of ids) { const o = this.current(id); if (o && o.marker) return { tx: o.marker[0], ty: o.marker[1] }; }
+    for (const id of ids) { const o = this.current(id); if (o && o.marker) return { tx: o.marker[0], ty: o.marker[1], map: o.markerMap }; }
     for (const [id, q] of Object.entries(this.data)) if (!q.side && q.giver && this.canAccept(id)) return { npc: q.giver };
     return null;
   }

@@ -486,12 +486,19 @@ export class Panels {
         const why = !s.unlocked && s.lockReason ? `<div class="small muted">${s.lockReason}</div>` : '';
         return `<div style="display:inline-block;vertical-align:top;margin:4px 8px;min-width:120px;color:${col}"><b>${mark} ${s.short}</b> <span class="small">${s.planned ? '(planned)' : s.name}</span>${boss}${hid}${why}</div>`;
       };
-      const city = st.city ? `<div style="display:inline-block;vertical-align:top;margin:4px 8px;color:${st.city.unlocked ? '#ffe8b0' : '#77708a'}"><b>${st.city.unlocked ? '●' : '✕'} ${st.city.short}</b> <span class="small">${st.city.name}</span></div>` : '';
+      const city = st.city ? `<div style="display:inline-block;vertical-align:top;margin:4px 8px;color:${st.city.unlocked ? '#ffe8b0' : '#77708a'}"><b>${st.city.unlocked ? '●' : '✕'} ${st.city.short}</b> <span class="small">${st.city.name}</span></div>`
+        : `<div style="display:inline-block;vertical-align:top;margin:4px 8px;color:#77708a"><b>✕ City 2</b> <span class="small">(planned)</span></div>`;
       return `<div style="margin-top:8px;text-align:left"><b style="color:#ffd98a">${r.name}</b> <span class="muted small">${r.sub}${r.playable ? (st.complete ? ' · COMPLETE' : '') : ' · not surveyed yet'}</span><br>${st.steps.map(cell).join('<span class="muted">→</span>')}<span class="muted">→</span>${city}</div>`;
-    }).join('');
+    }).join('') + this.secretMapsHtml();
+  }
+  // secret maps (maps/*.js `secret: true`): listed only once visited
+  secretMapsHtml() {
+    const w = this.game.world, found = w.mapManager.list.filter((d) => d.secret && w.state.maps[d.id]);
+    if (!found.length) return '';
+    return `<div style="margin-top:8px;text-align:left"><b style="color:#e0b0ff">SECRETS</b> ${found.map((d) => `<span style="margin:0 8px;color:#e0b0ff">✦ ${d.name}</span>`).join('')}</div>`;
   }
   centroid(map, subIdx) {
-    if (!this._cent) this._cent = {};
+    if (!this._cent || this._centMap !== map) { this._cent = {}; this._centMap = map; } // per grid
     if (this._cent[subIdx]) return this._cent[subIdx];
     let sx = 0, sy = 0, n = 0;
     for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) if (map.sub[map.idx(x, y)] === subIdx && !map.isSolid(x, y)) { sx += x; sy += y; n++; }

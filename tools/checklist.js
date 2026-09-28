@@ -81,13 +81,11 @@ export function runChecklist(g, classId = 'umbral_sword') {
   ok('Loot gained', ev.lootDropped.some((e) => e.items.length) || items > start.items, `items ${start.items}→${items}`);
   ok('Quest objective updates', ev.questUpdated.some((e) => e.id === 'beyond_lumina') && g.quests.active.beyond_lumina.done.hunt);
 
-  // 19-21 A1 -> A2 -> A3 -> arena, walking through the exits
-  // V2.2 boss gates: the A1 / A2 area bosses are fought in T.routeA — here they are marked defeated so the roads open
-  g.bosses.complete('boss_a1'); g.bosses.complete('boss_a2');
+  // 19-21 through A1 (W2: one map from the forest edge to the ruins) -> the Guardian Arena
   releaseInput(g); goto(g, 50, 101.5); hold(g, 'KeyW', 1.2);
-  ok('Walk to A2', w().mapId === 'a2', w().mapId);
+  ok('Walk across the river (Deep Forest, A1)', w().mapId === 'a1' && p.y < 98 * 32, w().mapId);
   releaseInput(g); goto(g, 90, 71); hold(g, 'KeyD', 2.2);
-  ok('Walk to A3', w().mapId === 'a3', w().mapId);
+  ok('Walk the Ancient Path into the Ruins (A1)', w().mapId === 'a1' && w().currentZone === 3, `${w().mapId} zone=${w().currentZone}`);
   use(g, 'ancient_shrine'); g.ui.panels.close(true); use(g, 'gate_seal'); g.ui.panels.close(true);
   releaseInput(g); goto(g, 135, 51); hold(g, 'KeyW', 1);
   const asked = g.ui.panels.current && g.ui.panels.current.name === 'confirm';

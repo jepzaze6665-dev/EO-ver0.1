@@ -8,7 +8,7 @@ import { flashOf } from '../monsters/monsterSprites.js';
 import { frameAt } from '../monsters/sheetSprites.js';
 import { angleTo, dist, rand, TAU, wrapAngle, clamp, pick, lerp, easeOutCubic } from '../core/math.js';
 
-// GUARDIAN OF THE FOREST — 3-phase boss = Route A's Major Boss (data/bosses.js boss_a3; lifecycle: boss/bossSystem.js).
+// GUARDIAN OF THE FOREST — 3-phase boss = A1's boss (W2; data/bosses.js boss_a1; lifecycle: boss/bossSystem.js).
 // V2.2: a Final Attack at 12% HP in phase 3 — "Last Root of the Forest" (the whole arena erupts except near its heart).
 // Attacks are generator "moves": they yield seconds to wait, or a per-frame function
 // that returns true when finished. Weak Windows open after heavy attacks, charge

@@ -49,8 +49,8 @@ test('map hazards: known kinds, statuses exist, inside their map', () => {
     for (const s of hz.statuses || []) ok(STATUSES[s.id], `${hz.id}: ${s.id}`);
     ok((hz.kind === 'beam' ? hz.len > 0 : hz.r > 0) && hz.tx >= 0 && hz.ty >= 0, hz.id);
   }
-  ok(MAPS.find((m) => m.id === 'a2').content.hazards.length >= 2, 'A2 has hazards');
-  ok(MAPS.find((m) => m.id === 'a3').content.hazards.some((h) => h.kind === 'beam'), 'A3 has rune wards');
+  const a1 = MAPS.find((m) => m.id === 'a1').content.hazards; // W2: Deep Forest + Ruins are parts of A1
+  ok(a1.filter((h) => h.kind !== 'beam').length >= 2 && a1.some((h) => h.kind === 'beam'), 'A1 has mire / thorns + rune wards');
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

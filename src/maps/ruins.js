@@ -160,7 +160,7 @@ export function buildGateAndArena(b) {
   b.spawn('guardian', 132, 22, { id: 'guardian', unique: true, count: 1, radius: 0, cond: 'before' });
 }
 
-// ANCIENT VALLEY = CITY 2 VALEHAVEN (x 8..63, y 2..29), opened after a Major Boss falls (maps/city2.js).
+// ANCIENT VALLEY = VALEHAVEN, the secret city (x 8..63, y 2..29), open once the forest heals (maps/valehaven.js).
 export function buildValley(b) {
   const m = b.m;
   b.zoneRect(8, 1, 63, 29, Z.VALLEY);
@@ -186,6 +186,6 @@ export function buildValley(b) {
   b.interact({ id: 'dungeon', kind: 'dungeon', tx: 36, ty: 6, prompt: 'Examine the Sealed Depths', radius: 50 });
   b.interact({ id: 'lore_valley', kind: 'lore', tx: 24, ty: 10, lore: 'valley_stone', prompt: 'Read Standing Stone' });
   b.npc({ id: 'scout', name: 'Scout Wren', role: 'Guild Scout', tx: 31, ty: 22, look: 'scout' });
-  // (V2.2) the valley is City 2 (maps/city2.js): a safe zone, so no monster spawns here any more
+  // the valley is Valehaven (maps/valehaven.js): a safe zone, so no monster spawns here
   b.regions.valleyEntry = { x: 32.5 * TILE, y: 27 * TILE };
 }

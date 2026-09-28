@@ -272,7 +272,7 @@ export function buildForest(b) {
   b.spawn(W, 58, 104, { count: 2, radius: 3, cond: 'before' });
 }
 
-// HOWLING DEN (V2.2) — Hollow Fang's arena, the A1 area boss (data/bosses.js boss_a1). A clearing carved out of the
+// HOWLING DEN (V2.2) — Hollow Fang's arena, an optional A1 mini-boss since W2 (data/bosses.js mini_hollow_fang). A clearing carved out of the
 // canopy east of the River Crossing waystone, reached by one short path from the south bank. Built after the
 // rest of the world so no other layout (or its random decoration) changes; trees left inside the carve are removed.
 export function buildHowlingDen(b) {

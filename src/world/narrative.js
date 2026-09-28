@@ -48,7 +48,7 @@ export const LORE = {
   },
   guardian_rest: {
     title: 'The Guardian Rests',
-    text: 'The Warden of the Whispering Heart kneels, and the black veins leave its crystal heart. North of the arena the old road to the valley opens: Valehaven, where both roads from Lumina meet.',
+    text: 'The Warden of the Whispering Heart kneels, and the black veins leave its crystal heart. North of the arena the road into the Ashen Badlands opens — and somewhere in the healed forest, an old path to a hidden valley.',
   },
   valley_stone: {
     title: 'Standing Stone — Ancient Valley',
@@ -173,7 +173,7 @@ export function dialogueFor(id, g) {
       return {
         lines: [
           'Scout Wren, Adventurer Guild. You’re the one who calmed the Guardian? Then you’re the reason I could get up here at all.',
-          'Welcome to Valehaven — City 2, or it will be once the caravans arrive. Both roads from Lumina end here: the Forest Road you just took, and the Eastern Road nobody has surveyed yet.',
+          'Welcome to Valehaven. Few in Lumina know this valley exists — the Guild keeps it that way. The Sealed Path only opens for those the forest trusts.',
           'That gate to the north is a dungeon — the Sealed Depths. The runes don’t respond to anything I have.',
           'The Guild will want to know. This valley is only the beginning.',
         ],

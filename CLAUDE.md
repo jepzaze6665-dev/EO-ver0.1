@@ -12,7 +12,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (combat / mechanics / Reaper / class-change checks, currently 101/101),
   `const L = await import('/tools/checklist.js'); L.runChecklist(__game, classId)` (spec TEST 1-31),
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
-  `T.routeA(__game, classId)` (V2.2 vertical slice, 29 steps: walks every boss gate on foot, 3 boss fights, City 2, save/load),
+  `T.routeA(__game, classId)` (W2 Route A, 26 steps: A1 on foot, 2 optional mini-bosses, Guardian, north road into A2 on
+  the other grid, secret city Valehaven, save/load),
   `T.bossReset(__game)` (death mid-fight resets the boss)
   `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` / `T.uiCheck(__game)` / `await T.partyCheck(__game)` / `T.tankCheck(__game)` (Combat 2.0),
   `T.gridCheck(__game)` (W1 multi-grid: lock/unlock, load/unload + cleanup, save/load + fog on another grid, no leaks, respawn),
@@ -287,7 +288,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   map `ashen` ASHEN BADLANDS placeholder: Scorched Pass → Ember Canyon → Magma Caldera, side Ash Flats / Cinder Rift,
   hidden pocket slot; zone Z.BADLANDS + music 'badlands'; planned boss `boss_ashen`). Temporary way in: `ember_portal`
   exit on the Guardian Arena's east rim (needs boss_a3), back via `portal_back`. gridCheck 20/20 + every suite green.
-  Next: W2 move bosses
-  (Guardian → A1, Route/quests/tests follow), W3 A2 Ashen Badlands map + its monsters/boss, W4 A3 Rune Citadel + boss,
-  W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase) from the monster spec.
+  Done W2 (A1 restructure, save v3): maps = lumina · **a1** (one map: old A1 + Deep Forest + Ruins + Gate; region zones
+  FOREST/CAVE/RUINS/GATE; connector tiles x 96-99 zoned in worldGen.js; `corruptedMonsters: { maxTy: 97 }` = north of the
+  river, `monsterMods` = ruins hardened; Kael, shrine Elite, mire / thorns / rune-ward hazards moved in) · **arena** (A1
+  boss arena, `parent: 'a1'`; north road exit + gate `a2_road_gate` -> A2) · **valehaven** (SECRET city, `secret: true`,
+  needs boss_a1, only way in = `valley_road` Sealed Path exit of A1; hidden.js `valehaven` type 'secret_city' pays once;
+  quest `valley` = THE HIDDEN VALLEY: find it + talk to Scout Wren) · **a2** (Ashen Badlands, grid `ashen`, back exit to the
+  arena). Bosses: **boss_a1 = the Guardian** (type area, impl guardian, unlocks a2); **mini_hollow_fang / mini_grukk** =
+  type `mini` (optional, gate nothing, quest `forest_hunts`, loot tables hollow_fang / grukk); boss_a2 (magma beast) and
+  boss_a3 (rune knight, major) planned. Routes: `cityPlanned` (City 2 has no map yet — its trigger returns in W5).
+  Quest route_a: river (flag riverCrossed via trigger on areaDiscovered 'Deep Forest') -> ruins zone -> gate -> Guardian
+  -> reach a2. Quest markers may name `markerMap`. World map lists found secret maps. Save v3 migration (saveData.js
+  V3_BOSS_IDS / V3_MAP_IDS; route_a progress restarts). The W1 ember portal is gone.
+  Next: W3 A2 Ashen Badlands for real (badlands tiles / lava, armadillo + rock rhino packs, the magma beast boss),
+  W4 A3 Rune Citadel + rune knight (major), W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

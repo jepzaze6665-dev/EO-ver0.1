@@ -28,7 +28,8 @@ console.log('boss data');
 test('every live boss: its map exists, arena, phases, moves, rewards are valid', () => {
   for (const b of liveBosses()) {
     ok(mapIds.has(b.map), `${b.id}: map ${b.map}`);
-    ok(b.type === 'area' || b.type === 'major', `${b.id}: type`);
+    ok(['area', 'major', 'mini'].includes(b.type), `${b.id}: type`);
+    if (b.type === 'mini') ok(!(b.unlocks || []).length, `${b.id}: a mini-boss gates nothing`);
     ok(b.arena && b.arena.center && b.arena.radius > 0 && b.arena.trigger < b.arena.radius, `${b.id}: arena`);
     ok(b.phases.length >= 1 && b.phases[0].hpBelow === 1, `${b.id}: first phase starts at 100%`);
     for (let i = 1; i < b.phases.length; i++) ok(b.phases[i].hpBelow < b.phases[i - 1].hpBelow, `${b.id}: phases in HP order`);
@@ -48,21 +49,22 @@ test('every live boss: its map exists, arena, phases, moves, rewards are valid',
     for (const u of b.unlocks || []) ok(mapIds.has(u) || Object.values(ROUTES).some((rt) => rt.steps.some((s) => s.map === u)), `${b.id}: unlocks ${u}`);
   }
 });
-test('difficulty rises along Route A (area < area < major)', () => {
+test('Route A (W2): A1 boss = the Guardian; A2 / A3 bosses planned; A3 is the major boss; A1 mini-bosses optional', () => {
   const [a1, a2, a3] = ROUTES.A.steps.map((s) => BOSSES[s.boss]);
-  ok(a1.level < a2.level && a2.level <= a3.level, 'levels');
-  ok(a1.stats.hp < a2.stats.hp, 'hp');
-  ok(a1.phases.length === 1 && a2.phases.length === 2 && a3.phases.length === 3, 'phases 1 -> 2 -> 3');
-  eq(a3.type, 'major');
+  ok(a1.impl === 'guardian' && a1.type === 'area' && a1.map === 'arena' && a1.unlocks.includes('a2'), 'A1 boss');
+  ok(a2.planned && a2.map === 'a2' && a3.planned && a3.type === 'major', 'A2 / A3 planned');
+  const minis = liveBosses().filter((b) => b.type === 'mini');
+  ok(minis.length === 2 && minis.every((b) => b.map === 'a1' && b.level < a1.level), 'minis in A1, weaker than its boss');
 });
 
 console.log('maps / routes / gates');
 test('routes: playable steps name real maps + bosses; planned ones name planned bosses', () => {
   for (const r of Object.values(ROUTES)) {
-    ok(mapIds.has(r.from) && mapIds.has(r.to), `${r.id}: cities`);
+    ok(mapIds.has(r.from) && (mapIds.has(r.to) || r.cityPlanned), `${r.id}: cities`);
     for (const s of r.steps) {
       ok(BOSSES[s.boss], `${r.id}: boss ${s.boss}`);
-      if (r.playable) ok(mapIds.has(s.map) && MAPS.find((m) => m.id === s.map).bossId === s.boss, `${r.id}: ${s.map} bossId`);
+      // a playable route: every built step names its boss on the map; steps without a map have a planned boss
+      if (r.playable && mapIds.has(s.map)) ok(MAPS.find((m) => m.id === s.map).bossId === s.boss, `${r.id}: ${s.map} bossId`);
       else ok(BOSSES[s.boss].planned, `${r.id}: ${s.boss} should be planned`);
     }
   }
@@ -78,12 +80,12 @@ test('map requirements / gates / exits use known requirement types and real maps
     if (m.type === 'field') ok(m.route && m.bossId && BOSSES[m.bossId], `${m.id}: field needs route + bossId`);
   }
 });
-test('boss gate chain: A2 needs Boss A1, A3 needs Boss A2, City 2 needs ANY major boss', () => {
+test('boss gate chain (W2): A2 needs the A1 boss (not the mini-bosses); the secret city opens with it too', () => {
   const need = (id, ctx) => allMet(MAPS.find((m) => m.id === id).requires, ctx);
   const bosses = (...b) => ({ bosses: new Set(b) });
   ok(need('a1', bosses()) && !need('a2', bosses()) && need('a2', bosses('boss_a1')), 'A2');
-  ok(!need('a3', bosses('boss_a1')) && need('a3', bosses('boss_a2')), 'A3');
-  ok(!need('city2', bosses('boss_a1', 'boss_a2')) && need('city2', bosses('boss_a3')) && need('city2', bosses('boss_b3')), 'City 2: A3 OR B3');
+  ok(!need('a2', bosses('mini_hollow_fang', 'mini_grukk')), 'mini-bosses open nothing');
+  ok(!need('valehaven', bosses()) && need('valehaven', bosses('boss_a1')) && MAPS.find((m) => m.id === 'valehaven').secret, 'Valehaven');
 });
 
 console.log('requirements (world types)');
@@ -140,17 +142,18 @@ test('new game: maps without requirements are unlocked; a boss kill unlocks the 
   ok(wp.isMapUnlocked('lumina') && wp.isMapUnlocked('a1') && !wp.isMapUnlocked('a2'), 'start');
   eq(wp.defeatBoss('boss_a1'), true, 'first kill');
   eq(wp.defeatBoss('boss_a1'), false, 'second kill is not "first"');
-  ok(wp.isMapUnlocked('a2') && unlocked.includes('a2') && !wp.isMapUnlocked('a3'), 'A2 only');
-  ok(wp.lockReason('a3').includes('GRUKK'), 'lock reason comes from data');
+  ok(wp.isMapUnlocked('a2') && unlocked.includes('a2'), 'A2');
+  const { g: g2 } = fakeGame(); g2.worldProgress.refreshUnlocks('start');
+  ok(g2.worldProgress.lockReason('a2').includes('Guardian'), 'lock reason comes from data');
 });
-test('flag requirement (Guardian Gate) unlocks the arena; City 2 after the major boss', () => {
+test('flag requirement (Guardian Gate) unlocks the arena; the A1 boss opens A2 + Valehaven', () => {
   const { g } = fakeGame(), wp = g.worldProgress;
   wp.refreshUnlocks('start');
   ok(!wp.isMapUnlocked('arena'), 'sealed');
   g.world.setFlag('gateOpened');
   ok(wp.isMapUnlocked('arena'), 'flag event refreshes');
-  wp.defeatBoss('boss_a3');
-  ok(wp.isMapUnlocked('city2'), 'city 2');
+  wp.defeatBoss('boss_a1');
+  ok(wp.isMapUnlocked('a2') && wp.isMapUnlocked('valehaven'), 'A2 + secret city');
 });
 test('save / load roundtrip + snapshot shape; unknown ids dropped', () => {
   const { g } = fakeGame(), wp = g.worldProgress;
@@ -169,8 +172,8 @@ test('old save (before V2.2): bosses rebuilt from visited maps / guardian flag â
   const { g } = fakeGame();
   g.worldProgress.load(undefined, { flags: { guardianDefeated: true }, maps: { lumina: true, a1: true, a2: true, a3: true }, killed: { guardian: true } });
   const wp = g.worldProgress;
-  ok(wp.isBossDefeated('boss_a1') && wp.isBossDefeated('boss_a2') && wp.isBossDefeated('boss_a3'), 'bosses');
-  ok(wp.isMapUnlocked('a3') && wp.isMapUnlocked('city2'), 'maps');
+  ok(wp.isBossDefeated('boss_a1'), 'the Guardian (A1 boss) from the guardian kill');
+  ok(wp.isMapUnlocked('a2') && wp.isMapUnlocked('valehaven'), 'maps');
   const { g: g2 } = fakeGame();
   g2.worldProgress.load(undefined, { flags: {}, maps: { lumina: true, a1: true } });
   ok(!g2.worldProgress.isBossDefeated('boss_a1') && !g2.worldProgress.isMapUnlocked('a2'), 'fresh A1 save stays gated');
@@ -179,10 +182,11 @@ test('route status: steps, current boss, completion', () => {
   const { g } = fakeGame(), wp = g.worldProgress;
   wp.refreshUnlocks('start');
   let st = wp.routeStatus('A');
-  eq(st.steps.length, 3); ok(!st.complete && !st.city.unlocked, 'fresh');
-  for (const b of ['boss_a1', 'boss_a2', 'boss_a3']) wp.defeatBoss(b);
+  eq(st.steps.length, 3); ok(!st.complete && st.city === null, 'fresh (City 2 planned: no map)');
+  ok(st.steps[0].id === 'a1' && !st.steps[0].planned && st.steps[1].id === 'a2' && st.steps[2].planned, 'A1 / A2 built, A3 planned');
+  wp.defeatBoss('boss_a1');
   st = wp.routeStatus('A');
-  ok(st.complete && st.city.unlocked, 'complete');
+  ok(st.steps[0].bossDefeated && st.steps[1].unlocked && !st.complete, 'A1 done, A2 open');
   ok(wp.routeStatus('B').steps.every((s) => s.planned), 'route B is planned only');
 });
 

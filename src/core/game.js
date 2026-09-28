@@ -406,9 +406,9 @@ export class Game {
     this.after(4.2, () => {
       this.camera.targetZoom = 1;
       w.onGuardianDefeated();
-      // progression + first-kill rewards + 'bossDefeated' -> world triggers (City 2 unlock, quest) — boss/bossSystem.js
+      // progression + first-kill rewards + 'bossDefeated' -> world triggers (A2 unlock) — boss/bossSystem.js
       const enc = this.bosses.list.find((e) => e.entity === boss);
-      this.bosses.complete(enc ? enc.id : 'boss_a3', boss);
+      this.bosses.complete(enc ? enc.id : 'boss_a1', boss);
       this.vfx.flash('200,255,220', 0.6, 0.8);
       const d = boss.def.defeat || {};
       if (d.banner) this.ui.banner(d.banner[0], d.banner[1], '#a8f0c8', 5);

@@ -1,6 +1,6 @@
 import { T, Z } from '../core/constants.js';
 
-// ASHEN BADLANDS terrain — PLACEHOLDER layout (W1: proves the multi-grid world). Same size as the Whispering grid
+// ASHEN BADLANDS terrain (A2) — PLACEHOLDER layout (W1: proves the multi-grid world). Same size as the Whispering grid
 // (168 × 208 tiles). The real A2 design (badlands tiles, lava, monsters, boss) replaces the look in W3; the route
 // shape below is the skeleton it keeps:
 //   Scorched Pass (south entry) -> Ember Canyon (main route, winding north) -> Magma Caldera (boss area, north)

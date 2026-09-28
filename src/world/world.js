@@ -45,7 +45,7 @@ export class World {
     this.totemActive = false;
     this.ambientT = 0;
     this.nearest = null;
-    // every map (Lumina / A1 / A2 / A3 / Boss Arena / City 2 / other grids) + exits between them
+    // every map (Lumina / A1 + its boss arena / Valehaven / A2 on its own grid / ...) + exits between them
     this.mapManager = new MapManager(MAPS);
     this.transitions = new TransitionSystem(this);
     this.hazardSys = new HazardSystem(this, MAPS); // map hazards (maps/*.js content.hazards)
@@ -237,13 +237,19 @@ export class World {
       if (!this.guardian) this.guardian = new Guardian(g, d.x, d.y);
       return;
     }
-    // corrupted beasts: maps that say so (A2 Deep Forest), until the Guardian falls; tutorial spawns never
+    // difficulty by part of the map (map data): corrupted beasts (corruptedMonsters: true | { minTy, maxTy }) until the
+    // Guardian falls — tutorial spawns never; hardened monsters in some zones (monsterMods: [{ zones, mod }])
     const home = this.mapManager && this.mapManager.get(this.mapManager.idAt(d.x, d.y));
-    const corrupted = !d.tutorial && !this.state.flags.guardianDefeated && !!(home && home.corruptedMonsters);
+    const cm = home && home.corruptedMonsters, ty = Math.floor(d.y / TILE);
+    const inCorrupt = cm === true || (!!cm && (cm.minTy === undefined || ty >= cm.minTy) && (cm.maxTy === undefined || ty <= cm.maxTy));
+    const corrupted = !d.tutorial && !this.state.flags.guardianDefeated && inCorrupt;
+    const zone = this.map.zoneAt(d.x, d.y);
+    const zm = home && (home.monsterMods || []).find((x) => x.zones.includes(zone));
+    const areaMod = (zm && zm.mod) || (home && home.monsterMod);
     for (let i = 0; i < d.count; i++) {
       const a = rand(0, TAU), r = rand(0, d.radius * TILE);
       const pos = this.map.findOpen(d.x + Math.cos(a) * r, d.y + Math.sin(a) * r, 4);
-      const m = new Monster(g, d.type, pos.x, pos.y, { spawn: sp, corrupted, elite: !!d.elite, areaMod: home && home.monsterMod });
+      const m = new Monster(g, d.type, pos.x, pos.y, { spawn: sp, corrupted, elite: !!d.elite, areaMod });
       sp.alive.push(m);
       this.monsters.push(m);
     }

@@ -31,8 +31,6 @@ export const WHISPERING = {
       canHit: () => !w.state.flags.bramble && g.player.y < 147.6 * TILE,
       onBreak: () => { w.setFlag('bramble'); w.applyState(); g.ui.banner('SHORTCUT OPENED', 'Bramble Lane → Lumina Village', '#ffd98a'); },
     }));
-    // W1 ember portal (arena east rim -> Ashen Badlands; exit data in maps/majorBossArena.js)
-    L.map.addProp({ name: 'magic_circle', x: 147 * TILE, y: 29 * TILE, layer: 'ground', scale: 0.9, glow: '#ff7a30', alpha: 0.55 });
     // training yard beside the Adventurer Guild (class / combat testing)
     L.dummies = [[29, 186], [32, 187.5], [35, 186]].map(([tx, ty]) => {
       const pos = L.map.findOpen(tx * TILE, ty * TILE, 3);

@@ -11,19 +11,24 @@
 //  flag           : world flag set when found (default `hidden_<type>_found` is also set, e.g. hidden_area_found)
 export const HIDDEN = {
   hidden_cave: {
-    id: 'hidden_cave', name: 'Hidden Cave', type: 'area', map: 'a2',
+    id: 'hidden_cave', name: 'Hidden Cave', type: 'area', map: 'a1',
     trigger: { event: 'secretFound', match: { id: 1 } }, reward: { exp: 60 }, once: true,
   },
   behind_waterfall: {
-    id: 'behind_waterfall', name: 'Behind the Waterfall', type: 'area', map: 'a2',
+    id: 'behind_waterfall', name: 'Behind the Waterfall', type: 'area', map: 'a1',
     trigger: { event: 'secretFound', match: { id: 2 } }, reward: { exp: 60 }, once: true,
   },
   moonlit_shrine: {
-    id: 'moonlit_shrine', name: 'Moonlit Shrine', type: 'area', map: 'a2',
+    id: 'moonlit_shrine', name: 'Moonlit Shrine', type: 'area', map: 'a1',
     trigger: { event: 'secretFound', match: { id: 3 } }, reward: { exp: 60 }, once: true,
   },
   sealed_archive: {
-    id: 'sealed_archive', name: 'Sealed Archive', type: 'area', map: 'a3',
+    id: 'sealed_archive', name: 'Sealed Archive', type: 'area', map: 'a1',
     trigger: { event: 'secretFound', match: { id: 4 } }, reward: { exp: 60 }, once: true,
+  },
+  // W2: Valehaven is a SECRET CITY — found by walking the hidden Sealed Path once the forest heals
+  valehaven: {
+    id: 'valehaven', name: 'Valehaven, the Hidden City', type: 'secret_city', map: 'valehaven',
+    trigger: { event: 'mapEntered', match: { id: 'valehaven' } }, reward: { exp: 150, gold: 100 }, once: true,
   },
 };

@@ -2,7 +2,8 @@
 // Add a boss = add an entry (+ its arena in a map file's region). No game-loop code changes.
 //
 //  id, name, title          : text (boss bar, banners)
-//  type                     : 'area' (guards a field map) | 'major' (end of a route, several phases, unlocks a city)
+//  type                     : 'area' (guards a field map, opens the next one) | 'major' (end of a route, unlocks a city)
+//                             'mini' (optional mini-boss: rewards once, gates nothing)
 //  impl                     : which code runs the fight — 'area' = generic data-driven boss (boss/areaBoss.js)
 //                             'guardian' = the V2 Guardian of the Forest (boss/guardian.js, its own 3-phase fight)
 //  route, map               : where it lives (map id from maps/mapRegistry.js)
@@ -30,12 +31,13 @@
 //  rewards                  : { exp, loot (table in data/lootTables.js), gold, items: { id: n }, lore } — first kill only
 //  unlocks                  : map ids this boss opens (info for UI/tools; the unlock itself = map `requires` + world triggers)
 //  teaches                  : one line shown in the route panel (what this fight tests)
-export const BOSS_TYPE = { AREA: 'area', MAJOR: 'major' };
+export const BOSS_TYPE = { AREA: 'area', MAJOR: 'major', MINI: 'mini' };
 
 export const BOSSES = {
   // ---------------- ROUTE A
-  boss_a1: {
-    id: 'boss_a1', name: 'HOLLOW FANG', title: 'Alpha of the Whispering Forest', type: 'area', impl: 'area',
+  // ---------------- A1 optional mini-bosses (W2: the old A1 / A2 area bosses; they no longer lock any road)
+  mini_hollow_fang: {
+    id: 'mini_hollow_fang', name: 'HOLLOW FANG', title: 'Alpha of the Whispering Forest', type: 'mini', impl: 'area',
     route: 'A', map: 'a1', level: 5, recommendedLevel: 4,
     teaches: 'Basic combat · read the red ground · dodge the lunge',
     stats: { hp: 4500, def: 4, speed: 112, radius: 20, height: 44, mass: 5, weakness: ['shadow'], superArmor: true, poise: 650 },
@@ -50,13 +52,13 @@ export const BOSSES = {
       lunge: { kind: 'dash', guardBreak: true, range: 240, min: 90, windup: 0.85, recover: 0.8, cd: 4.5, weight: 3, power: 28, knock: 240, len: 230, width: 34, opening: 1.8 },
       howl: { kind: 'strike', range: 150, windup: 1.0, recover: 0.7, cd: 7, weight: 2, power: 18, knock: 200, dmg: 'magic', shape: { shape: 'circle', r: 118 }, status: [{ id: 'slow', dur: 2 }], opening: 1.4 },
     },
-    rewards: { exp: 150, loot: 'boss_a1', items: { hollow_fang_pelt: 1 }, lore: 'hollow_fang' },
-    unlocks: ['a2'],
+    rewards: { exp: 150, loot: 'hollow_fang', items: { hollow_fang_pelt: 1 }, lore: 'hollow_fang' },
+    unlocks: [],
   },
 
-  boss_a2: {
-    id: 'boss_a2', name: 'GRUKK THE THORNBOUND', title: 'Warchief of the Goblin Glade', type: 'area', impl: 'area',
-    route: 'A', map: 'a2', level: 8, recommendedLevel: 7,
+  mini_grukk: {
+    id: 'mini_grukk', name: 'GRUKK THE THORNBOUND', title: 'Warchief of the Goblin Glade', type: 'mini', impl: 'area',
+    route: 'A', map: 'a1', level: 8, recommendedLevel: 7,
     teaches: 'AoE patterns · movement · adds · a second phase',
     stats: { hp: 9000, def: 7, speed: 92, radius: 20, height: 56, mass: 6, weakness: ['physical'], superArmor: true, poise: 850 },
     look: { sprite: 'goblinC', scale: 2.1, aura: '176,96,255' },
@@ -77,15 +79,16 @@ export const BOSSES = {
       spears: { kind: 'volley', range: 360, min: 90, windup: 0.8, recover: 0.6, cd: 6, weight: 2, power: 18, count: 5, spread: 0.8, speed: 260, dmg: 'magic', status: [{ id: 'poison', dur: 3 }], color: '#b060ff' },
       warcry: { kind: 'summon', range: 999, windup: 1.0, recover: 0.6, cd: 16, weight: 1.5, monster: 'goblin', count: 2, max: 2, corrupted: true },
     },
-    rewards: { exp: 300, loot: 'boss_a2', items: { warchief_totem: 1 }, lore: 'grukk' },
-    unlocks: ['a3'],
+    rewards: { exp: 300, loot: 'grukk', items: { warchief_totem: 1 }, lore: 'grukk' },
+    unlocks: [],
   },
 
-  // the V2 Guardian of the Forest = Route A's Major Boss (its fight code: boss/guardian.js; the arena: maps/ruins.js)
-  boss_a3: {
-    id: 'boss_a3', name: 'GUARDIAN OF THE FOREST', title: 'Warden of the Whispering Heart', type: 'major', impl: 'guardian',
+  // ---------------- A1 BOSS: the Guardian of the Forest (fight code: boss/guardian.js; arena: maps/ruins.js; art: the
+  // owner's A1 boss sheet). W2: it guards the north road out of A1 — its fall opens A2 (Ashen Badlands).
+  boss_a1: {
+    id: 'boss_a1', name: 'GUARDIAN OF THE FOREST', title: 'Warden of the Whispering Heart', type: 'area', impl: 'guardian',
     route: 'A', map: 'arena', monster: 'guardian', level: 10, recommendedLevel: 10,
-    teaches: 'Everything so far · weak windows · arena hazards · the final attack',
+    teaches: 'Everything A1 taught · weak windows · arena hazards · the final attack',
     arena: { name: 'Guardian Arena', center: [132.5, 28], radius: 15.5, trigger: 13.6, bossSpawn: [132, 22], entry: [135, 42] },
     appear: [{ type: 'flag', flag: 'gateOpened', label: 'Open the Guardian Gate' }], // it sleeps behind the sealed gate
     phases: [
@@ -95,11 +98,12 @@ export const BOSSES = {
     ],
     mechanics: ['Weak windows after heavy blows', 'Root patches + corruption pools (arena)', 'Summoned thornlings', 'Final attack: Last Root of the Forest'],
     rewards: { exp: 500, loot: 'guardian', lore: 'guardian_rest' },
-    unlocks: ['city2'],
+    unlocks: ['a2'],
   },
 
-  // ---------------- ASHEN BADLANDS (W1 placeholder grid; the fight arrives in W3 with the magma beast sheet)
-  boss_ashen: { id: 'boss_ashen', name: 'MAGMA BEAST', title: 'Heart of the Ashen Badlands · to be built (W3)', type: 'area', impl: 'area', route: 'A', map: 'ashen', planned: true, unlocks: [] },
+  // ---------------- A2 / A3 (planned: the fights arrive with their maps — W3 magma beast sheet, W4 rune knight sheet)
+  boss_a2: { id: 'boss_a2', name: 'MAGMA BEAST', title: 'Heart of the Ashen Badlands · coming soon', type: 'area', impl: 'area', route: 'A', map: 'a2', planned: true, unlocks: ['a3'] },
+  boss_a3: { id: 'boss_a3', name: 'RUNE KNIGHT', title: 'Warden of the Rune Citadel · coming soon', type: 'major', impl: 'area', route: 'A', map: 'a3', planned: true, unlocks: ['city2'] },
 
   // ---------------- ROUTE B (architecture only — Phase 13/14 builds the maps; nothing here is spawned yet)
   boss_b1: { id: 'boss_b1', name: 'B1 AREA BOSS', title: 'Route B · to be designed', type: 'area', impl: 'area', route: 'B', map: 'b1', planned: true, unlocks: ['b2'] },

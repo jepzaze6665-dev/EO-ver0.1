@@ -160,7 +160,7 @@ export class BossSystem {
     this.engaged = null;
     this.restoreMusic();
     g.after(1.1, () => {
-      g.ui.callout(enc.def.type === 'major' ? 'MAJOR BOSS DEFEATED' : 'AREA BOSS DEFEATED', enc.def.name, '#ffe8b0');
+      g.ui.callout(enc.def.type === 'major' ? 'MAJOR BOSS DEFEATED' : enc.def.type === 'mini' ? 'MINI BOSS DEFEATED' : 'AREA BOSS DEFEATED', enc.def.name, '#ffe8b0');
       g.audio.sfx('victory');
       this.complete(enc.id, e);
     }, true);

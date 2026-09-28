@@ -21,6 +21,23 @@ const fakeGame = (state) => ({
 });
 
 console.log('save format');
+test('v2 -> v3 (W2): Guardian = boss_a1, old A1/A2 bosses = minis, A2/A3 -> A1, City 2 -> Valehaven, route_a restarts', () => {
+  const v2 = { ...good(), v: 2, player: { ...good().player, map: 'a3' },
+    world: { flags: {}, maps: { lumina: true, a1: true, a2: true, a3: true, city2: true }, hidden: {} },
+    worldProgress: { defeatedBosses: { boss_a1: { time: 1 }, boss_a2: { time: 2 }, boss_a3: { time: 3 } }, unlockedMaps: { a2: true, a3: true, city2: true }, triggeredEvents: {} },
+    quests: { active: { route_a: { progress: {}, done: { a1_boss: true, a2: true } } }, completed: {} } };
+  const r = parseSave(JSON.stringify(v2)); ok(r.ok, r.error);
+  const d = r.data;
+  eq(d.v, SAVE_VERSION); eq(d.player.map, 'a1');
+  ok(d.worldProgress.defeatedBosses.boss_a1.time === 3 && d.worldProgress.defeatedBosses.mini_hollow_fang && d.worldProgress.defeatedBosses.mini_grukk, 'bosses');
+  ok(!d.worldProgress.defeatedBosses.boss_a3 && !d.worldProgress.defeatedBosses.boss_a2, 'old ids gone');
+  ok(d.world.maps.valehaven && d.world.maps.a1 && !d.world.maps.city2 && !d.world.maps.a3, 'visited maps');
+  ok(Object.keys(d.quests.active.route_a.done).length === 0, 'route_a restarts');
+  const town = parseSave(JSON.stringify({ ...v2, player: { ...v2.player, map: 'city2' } })).data;
+  eq(town.player.map, 'valehaven');
+  const w1 = parseSave(JSON.stringify({ ...v2, player: { ...v2.player, map: 'ashen' } })).data;
+  eq(w1.player.map, 'a2');
+});
 test('current save parses unchanged', () => { const r = parseSave(JSON.stringify(good())); ok(r.ok, r.error); eq(r.data.player.map, 'a1'); eq(r.data.world.flags.a, true); });
 test('v1 save is migrated (no map / hidden state yet)', () => {
   const v1 = good({ v: 1 }); delete v1.player.map;

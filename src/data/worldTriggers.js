@@ -26,44 +26,48 @@ export const WORLD_TRIGGERS = [
     actions: ['accept_quest:route_a'],
   },
 
-  // ---- A1: the first boss gate
+  // ---- A1 optional mini-bosses (W2): a side quest, rewards once, no gate
   {
-    id: 'a1_boss_start', on: 'bossEngaged', match: { bossId: 'boss_a1' },
+    id: 'a1_hunts_begin', on: 'questCompleted', match: { id: 'beyond_lumina' },
+    actions: ['accept_quest:forest_hunts'],
+  },
+  {
+    id: 'mini_hollow_fang_start', on: 'bossEngaged', match: { bossId: 'mini_hollow_fang' },
     actions: [{ type: 'notify', title: 'BOSS TIP', text: 'Red ground = an attack is coming. Step out, or [Space] dodge through it.', color: '#ffb070' }],
   },
   {
-    id: 'a1_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_a1' },
-    actions: ['unlock_map:a2', { type: 'banner', title: 'A2 UNLOCKED', text: 'The River Crossing is open — the Deep Forest lies beyond', color: '#ffd98a' }],
-  },
-
-  // ---- A2
-  {
-    id: 'a2_boss_phase2', on: 'bossPhaseChanged', match: { bossId: 'boss_a2', phase: 2 },
+    id: 'mini_grukk_phase2', on: 'bossPhaseChanged', match: { bossId: 'mini_grukk', phase: 2 },
     actions: [{ type: 'notify', title: 'PHASE CHANGE', text: 'Thorn rings leave gaps — find the opening and stand in it.', color: '#b890ff' }],
   },
   {
-    id: 'a2_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_a2' },
-    actions: ['unlock_map:a3', { type: 'banner', title: 'A3 UNLOCKED', text: 'The Ancient Forest Path to the ruins is open', color: '#ffd98a' }],
-  },
-  {
-    id: 'a2_hidden_cave', on: 'hiddenFound', match: { id: 'hidden_cave' },
+    id: 'a1_hidden_cave', on: 'hiddenFound', match: { id: 'hidden_cave' },
     actions: [{ type: 'notify', title: 'HIDDEN AREA', text: 'Something in this cave remembers the eclipse…', color: '#e0b0ff' }],
   },
 
-  // ---- A3 / Major Boss -> City 2 (any route's major boss unlocks the city)
+  // ---- A1 route milestones (quest route_a reads the flag)
   {
-    id: 'major_boss_defeated', on: 'bossDefeated', match: { major: true },
-    actions: [
-      'unlock_map:city2',
-      { type: 'banner', title: 'CITY 2 UNLOCKED', text: 'The road to Valehaven is open', color: '#ffe08a' },
-      'accept_quest:valley',
-    ],
+    id: 'a1_river_crossed', on: 'areaDiscovered', match: { name: 'Deep Forest' },
+    actions: ['set_flag:riverCrossed'],
+  },
+
+  // ---- A1 boss (the Guardian) -> A2 Ashen Badlands
+  {
+    id: 'a1_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_a1' },
+    actions: ['unlock_map:a2', { type: 'banner', title: 'A2 UNLOCKED', text: 'The north road beyond the arena leads into the Ashen Badlands', color: '#ffd98a' }],
   },
   {
-    id: 'city2_first_visit', on: 'mapEntered', match: { id: 'city2', first: true },
+    id: 'a2_first_visit', on: 'mapEntered', match: { id: 'a2', first: true },
+    actions: [{ type: 'cutscene', title: 'ASHEN BADLANDS', sub: 'Route A · A2', focus: 'player', zoom: 1.3, time: 2.2 }],
+  },
+
+  // ---- A3 Major Boss -> City 2: added with City 2 (W5); the unlock itself = City 2's map `requires`.
+
+  // ---- Valehaven: the secret city of the Ancient Valley (hidden road behind the Sealed Path, open once the forest heals)
+  {
+    id: 'valehaven_found', on: 'mapEntered', match: { id: 'valehaven', first: true },
     actions: [
-      { type: 'cutscene', title: 'VALEHAVEN', sub: 'City 2 · where the routes meet', focus: 'player', zoom: 1.4, time: 2.4 },
-      { type: 'banner', title: 'ROUTE COMPLETE', text: 'You crossed the Forest Road from Lumina to Valehaven', color: '#ffe08a' },
+      { type: 'cutscene', title: 'VALEHAVEN', sub: 'A hidden city in the Ancient Valley', focus: 'player', zoom: 1.4, time: 2.4 },
+      'accept_quest:valley',
     ],
   },
 ];

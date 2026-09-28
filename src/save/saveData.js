@@ -1,15 +1,40 @@
 // SAVE DATA (pure) — the save format, its versions and its checks. No DOM, no storage, no game loop:
 // the SaveSystem builds a snapshot from the game (snapshot()), this file parses / migrates / validates it.
 //
-// Format v2: { v, savedAt, playTime,
+// Format v3: { v, savedAt, playTime,
 //   player: { classId, level, exp, gold, hp, resources, loadout, map, x, y },
 //   inventory, equipment, quests, progression, world (flags, maps, hidden, ...), knowledge, stats }
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 // older formats -> current. v1 (V1 / V2 saves): no map (the loader finds it from the position) + no hidden state.
 const MIGRATIONS = {
   1: (d) => ({ ...d, v: 2, player: { ...d.player, map: d.player.map || null }, world: { maps: {}, hidden: {}, ...(d.world || {}) } }),
+  2: migrateV2,
 };
+
+// v2 -> v3 (W2 world restructure): the old A1 / A2 / A3 maps are ONE map A1; the Guardian became the A1 boss and the old
+// A1 / A2 bosses optional mini-bosses; City 2 Valehaven became the secret city; 'ashen' (W1) is now A2.
+export const V3_BOSS_IDS = { boss_a1: 'mini_hollow_fang', boss_a2: 'mini_grukk', boss_a3: 'boss_a1', boss_ashen: 'boss_a2' };
+export const V3_MAP_IDS = { a2: 'a1', a3: 'a1', city2: 'valehaven', ashen: 'a2' };
+function migrateV2(d) {
+  const renameKeys = (o, table) => Object.fromEntries(Object.entries(o || {}).map(([k, v]) => [table[k] || k, v]));
+  const wp = d.worldProgress || null;
+  const world = d.world || {};
+  // route_a objectives changed: its progress starts over (flags / boss kills tick the new objectives again)
+  const quests = d.quests ? { ...d.quests, active: { ...(d.quests.active || {}) } } : d.quests;
+  if (quests && quests.active.route_a) quests.active.route_a = { progress: {}, done: {} };
+  return {
+    ...d, v: 3,
+    player: { ...d.player, map: V3_MAP_IDS[d.player.map] || d.player.map },
+    world: { ...world, maps: renameKeys(world.maps, V3_MAP_IDS) },
+    quests,
+    worldProgress: wp && {
+      ...wp,
+      defeatedBosses: renameKeys(wp.defeatedBosses, V3_BOSS_IDS),
+      unlockedMaps: {}, // recomputed from the map requirements on load
+    },
+  };
+}
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 const num = (v, lo, hi, dflt) => (Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : dflt);
