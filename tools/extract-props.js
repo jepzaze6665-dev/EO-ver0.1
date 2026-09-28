@@ -18,7 +18,8 @@ const F = 'FOREST SET.png', A = 'FANTASY SET.png', V = 'VILLAGE SET.png';
 const A2P = '../A/a2/image-bf40810d-ac8c-4bed-a831-af8840274bbe-0';
 const A3P = '../A/a3/image-cffd3904-429f-435a-85d6-3b6b93bed0a8-0';
 const CP = '../City/ASTERIA CITY/image-6fbe1327-6060-4dcf-be43-116029029bdb-0';
-const SCALE = { [A2P]: 0.5, [A3P]: 0.5 }; // the city sheet (CP) stays full size: its buildings are drawn large
+const B1P = '../B/B1/image-53b4c9a1-506f-42b5-904f-7281d8bc5b1f-0';
+const SCALE = { [A2P]: 0.5, [A3P]: 0.5, [B1P]: 0.5 }; // the city sheet (CP) stays full size: its buildings are drawn large
 // sheets whose background is not the navy of the old sets: their own background test. `fillHoles` = box mode keeps
 // background-coloured pixels enclosed by the prop (dark grey stone inside the city buildings)
 const GREY_BG = (r, g, b) => { const l = (r + g + b) / 3; return l >= 24 && l <= 58 && Math.max(r, g, b) - Math.min(r, g, b) <= 8; };
@@ -159,6 +160,29 @@ const MANIFEST = {
   a_wall_low_b: [CP, 1877, 1507, 2000, 1570], a_arch_gate: [CP, 1617, 1502, 1717, 1574], a_statue_s: [CP, 1408, 1406, 1489, 1488], a_barrel: [CP, 1150, 1438, 1184, 1490],
   a_crate: [CP, 993, 1525, 1045, 1561], a_pond_a: [CP, 26, 1599, 166, 1721], a_pond_b: [CP, 188, 1614, 345, 1722], a_waterfall: [CP, 813, 1588, 890, 1735],
   a_pond_rock: [CP, 1886, 1592, 2012, 1722],
+  // ---- B1 FROSTWIND PLAINS (owner's sheet desgin/Map/B/B1, navy background): snow cliffs, ice crystals, watchtowers,
+  // ruins, snowy pines, frozen ponds (point = the piece under it: their boxes overlap), the hunters' lodge, camp, shrine
+  f_cliff_cave: [B1P, 10, 5, 300, 245], f_cliff_a: [B1P, 320, 10, 590, 235], f_cliff_b: [B1P, 605, 11, 765, 220], f_cliff_l: [B1P, 12, 247, 197, 506],
+  f_crystal_a: [B1P, 801, 34, 952, 212], f_crystal_big: [B1P, 944, 9, 1110, 272], f_crystal_b: [B1P, 1114, 34, 1287, 216], f_crystal_s: [B1P, 703, 221, 784, 315],
+  f_crystal_m: [B1P, 862, 200, 937, 299], f_crystal_xs: [B1P, 807, 244, 849, 309], f_crystal_rock: [B1P, 111, 379, 275, 514],
+  f_tower_a: [B1P, 1316, 42, 1450, 295], f_tower_b: [B1P, 1499, 36, 1631, 295], f_tower_ruin: [B1P, 1671, 71, 1808, 289], f_ruin_ring: [B1P, 1827, 77, 2017, 294],
+  f_ruin_hall: [B1P, 1276, 303, 1513, 471], f_ruin_arch: [B1P, 1533, 314, 1756, 477], f_ruin_block: [B1P, 1778, 336, 1894, 477], f_ruin_mound: [B1P, 1896, 369, 2019, 458],
+  f_rock_a: [B1P, 972, 295, 1100, 403], f_rock_b: [B1P, 1130, 240, 1254, 356], f_rock_c: [B1P, 1150, 379, 1224, 464],
+  f_pine_big: [B1P, 589, 225, 700, 450], f_pine_dead: [B1P, 740, 317, 817, 502], f_pine_a: [B1P, 839, 316, 909, 422], f_pine_b: [B1P, 916, 405, 959, 464],
+  f_pine_c: [B1P, 561, 426, 616, 515], f_pine_d: [B1P, 628, 460, 666, 518], f_pine_e: [B1P, 847, 434, 901, 513], f_pine_f: [B1P, 951, 439, 1018, 554],
+  f_dead_tree: [B1P, 1042, 427, 1119, 582], f_dead_big: [B1P, 1050, 735, 1171, 954], f_bush: [B1P, 1163, 613, 1285, 729], f_twig: [B1P, 1140, 543, 1193, 598],
+  f_pond_lake: [B1P, 100, 700], f_pond_a: [B1P, 380, 600], f_pond_s: [B1P, 595, 570], f_pond_b: [B1P, 780, 620], f_river_a: [B1P, 900, 760], f_river_b: [B1P, 620, 800],
+  f_fence: [B1P, 1202, 492, 1401, 591], f_fence_gate: [B1P, 1418, 492, 1522, 592], f_banner_a: [B1P, 1536, 500, 1590, 596], f_banner_b: [B1P, 1612, 500, 1648, 595],
+  f_sign: [B1P, 1685, 509, 1736, 598], f_camp: [B1P, 1738, 507, 2022, 713], f_crate: [B1P, 1759, 632, 1812, 682], f_barrel: [B1P, 1996, 649, 2028, 688],
+  f_stakes: [B1P, 1561, 629, 1688, 688], f_ice_pillar: [B1P, 1304, 624, 1369, 724], f_ice_pillars: [B1P, 1399, 619, 1531, 739], f_ice_shrine: [B1P, 1169, 756, 1337, 952],
+  f_ice_spike: [B1P, 1322, 894, 1374, 984], f_frost_arena: [B1P, 1377, 695, 2037, 1260], f_lodge: [B1P, 235, 904, 614, 1312],
+  f_house_ruin_a: [B1P, 708, 957, 856, 1118], f_house_ruin_b: [B1P, 875, 958, 1081, 1157], f_house_ruin_c: [B1P, 1108, 964, 1346, 1144],
+  f_wood_tower: [B1P, 225, 1178, 302, 1312], f_palisade: [B1P, 457, 1174, 582, 1298], f_shrine_gate: [B1P, 610, 1156, 708, 1300], f_stone_arch: [B1P, 854, 1160, 973, 1296],
+  f_rocks_a: [B1P, 1201, 1307, 1328, 1410], f_rocks_b: [B1P, 1356, 1317, 1428, 1402], f_rocks_c: [B1P, 1450, 1308, 1545, 1411], f_rocks_d: [B1P, 1562, 1312, 1699, 1407],
+  f_rocks_e: [B1P, 1711, 1306, 1824, 1408], f_snow_rock_a: [B1P, 13, 1345, 72, 1405], f_snow_rock_b: [B1P, 88, 1332, 145, 1402], f_snow_bush_a: [B1P, 260, 1332, 323, 1410],
+  f_snow_bush_b: [B1P, 453, 1338, 524, 1414], f_column_a: [B1P, 1838, 1255, 1906, 1409], f_column_b: [B1P, 1920, 1249, 1971, 1405], f_ice_altar: [B1P, 743, 1917, 865, 2005],
+  f_ice_spikes: [B1P, 896, 1795, 1013, 1894], f_well: [B1P, 643, 1831, 719, 1923], f_ruin_tower: [B1P, 409, 1789, 520, 2010], f_bones_a: [B1P, 1549, 1800, 1619, 1854],
+  f_bones_b: [B1P, 1646, 1810, 1711, 1866], f_bones_c: [B1P, 1943, 1960, 2018, 2010], f_logs: [B1P, 1153, 1803, 1225, 1870],
 };
 
 function bgLike(r, g, b) {

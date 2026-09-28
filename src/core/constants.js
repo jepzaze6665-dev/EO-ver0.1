@@ -30,6 +30,7 @@ export const T = {
   STAIRS: 22, // walkable; rendered as steps rising toward the north
   SCORCHED: 23, // walkable burnt / cracked earth (A2 caldera rim)
   LAVA: 24, // molten rock: solid like deep water (shots fly over it), glows
+  ICE: 25, // B1 frozen lake / river: walkable ice
 };
 
 // Which tiles block movement
@@ -50,6 +51,8 @@ export const Z = {
   CITADEL: 10, // A3 Rune Citadel grid (world/levels/runeCitadel.js)
   SANCTUM: 11, // A3 boss arena (W4b)
   ASTERIA: 12, // City 2 Asteria City grid (world/levels/asteria.js)
+  FROSTWIND: 13, // B1 Frostwind Plains grid (world/levels/frostwind.js)
+  FROST_ARENA: 14, // B1 boss arena (the Frost Arena, SE of B1)
 };
 
 export const ZONE_INFO = {
@@ -65,6 +68,8 @@ export const ZONE_INFO = {
   [Z.CITADEL]: { name: 'RUNE CITADEL', sub: 'The fallen city of Asteria', music: 'ruins' },
   [Z.SANCTUM]: { name: 'THE SANCTUM', sub: 'A3 Major Boss · the Rune Knight', music: 'gate' },
   [Z.ASTERIA]: { name: 'ASTERIA CITY', sub: 'City 2 · Safe Zone', safe: true, music: 'asteria' },
+  [Z.FROSTWIND]: { name: 'FROSTWIND PLAINS', sub: 'Route B · the Eastern Road', music: 'frost' },
+  [Z.FROST_ARENA]: { name: 'THE FROST ARENA', sub: 'Route B · B1 Boss', music: 'gate' },
 };
 
 export const TEAM = { PLAYER: 1, ENEMY: 2, NEUTRAL: 3 };

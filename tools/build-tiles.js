@@ -18,8 +18,10 @@ const TILE = 32, VARIANTS = 4;
 const A2 = 'desgin/Map/A/a2/image-11462af1-b6f1-43a6-96f9-71e6baef142e-0';
 const A3 = 'desgin/Map/A/a3/image-092dabfa-467b-48b0-901c-8dad361ac42e-0';
 const CITY = 'desgin/Map/City/ASTERIA CITY/image-c0f27881-0e5a-4221-ab7f-192ea8b07205-0';
+const B1 = 'desgin/Map/B/B1/image-4e5b0ee7-22d6-4f86-96e0-1b8e9df7ebb6-0';
 
 // skin -> sheet + rows. Each row: [name, region [x0, y0, x1, y1] (sheet px), picks (card indices in reading order)]
+//   a pick may also be a card box [x0, y0, x1, y1] (sheets whose cards touch: no gap to find them by); region null then
 //   name = a tile type of core/constants.js T, or 'face:<cliff|wall|cave>' for vertical wall faces.
 //   grade: { sat, dark } colour grade (sat < 1 calmer colours, dark < 1 darker) to sit with the game's night palette
 const SKINS = {
@@ -78,6 +80,26 @@ const SKINS = {
       ['SHALLOW', [10, 515, 620, 770], [11, 12, 11, 12]],
       ['face:cliff', [190, 1600, 380, 1700], [0, 1, 2, 0]],
       ['face:wall', [565, 1600, 745, 1700], [0, 1, 0, 1]],
+    ],
+  },
+  // B1 FROSTWIND PLAINS (owner's sheet desgin/Map/B/B1): snow fields, packed-snow roads, blue water, lake ice. The
+  // cards touch each other (thin dark lines, no gaps) -> explicit card boxes
+  frost: {
+    src: B1, grade: { sat: 0.92, dark: 0.9 },
+    rows: [
+      ['GRASS', null, [[8, 77, 79, 163], [85, 77, 158, 163], [8, 77, 79, 163], [85, 77, 158, 163]]],
+      ['FLOWERS', null, [[250, 77, 333, 163], [340, 77, 423, 163], [430, 77, 514, 163], [520, 77, 613, 163]]],
+      ['DIRT', null, [[8, 248, 79, 334], [86, 248, 165, 334], [8, 248, 79, 334], [86, 248, 165, 334]]],
+      ['COBBLE', null, [[469, 416, 565, 506], [572, 416, 673, 506], [469, 416, 565, 506], [572, 416, 673, 506]]],
+      ['ARENA', null, [[8, 416, 80, 506], [87, 416, 166, 506], [8, 416, 80, 506], [87, 416, 166, 506]]],
+      ['RUIN', null, [[786, 416, 882, 506], [890, 416, 993, 506], [786, 416, 882, 506], [890, 416, 993, 506]]],
+      ['MOSS_STONE', null, [[1623, 1594, 1737, 1718], [1623, 1594, 1737, 1718], [1623, 1594, 1737, 1718], [1623, 1594, 1737, 1718]]],
+      ['ICE', null, [[1757, 1594, 1864, 1718], [1757, 1594, 1864, 1718], [1757, 1594, 1864, 1718], [1757, 1594, 1864, 1718]]],
+      ['CLIFF', null, [[786, 416, 882, 506], [890, 416, 993, 506], [786, 416, 882, 506], [890, 416, 993, 506]]], // dark rough stone (the 'cliff top' cards stripe)
+      ['WATER', null, [[9, 594, 88, 675], [93, 594, 171, 675], [9, 594, 88, 675], [93, 594, 171, 675]]],
+      ['DEEP_WATER', null, [[599, 594, 677, 675], [599, 594, 677, 675], [599, 594, 677, 675], [599, 594, 677, 675]]],
+      ['SHALLOW', null, [[919, 594, 1018, 675], [1020, 594, 1119, 675], [919, 594, 1018, 675], [1020, 594, 1119, 675]]],
+      ['face:cliff', null, [[333, 1599, 406, 1683], [333, 1599, 406, 1683], [333, 1599, 406, 1683], [333, 1599, 406, 1683]]],
     ],
   },
 };
@@ -191,10 +213,10 @@ for (const [id, skin] of Object.entries(SKINS)) {
   const atlas = png.create(TILE * VARIANTS, TILE * skin.rows.length);
   const rows = {};
   skin.rows.forEach(([name, region, picks], r) => {
-    const list = cards(img, region);
+    const list = region ? cards(img, region) : [];
     const face = name.startsWith('face:');
     const tiles = picks.map((k) => {
-      const b = list[k];
+      const b = Array.isArray(k) ? { minx: k[0], miny: k[1], maxx: k[2], maxy: k[3] } : list[k];
       if (!b) throw new Error(`${id}.${name}: card ${k} missing (found ${list.length})`);
       return toTile(seamless(img, b, face ? 0.08 : 0.12, face ? 0.12 : 0.2), skin.grade, face);
     });

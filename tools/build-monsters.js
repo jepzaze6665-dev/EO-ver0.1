@@ -100,6 +100,25 @@ const SHEETS = {
     rows: [['idle', 8], ['walk', 8], ['lunge', 7], ['slash', 7], ['combo', 8], ['nova', 7], ['guard', 7], ['stance', 7],
       ['death', 8]],
   },
+  // ---------------- B1 FROSTWIND PLAINS: one pose per action row, one column per direction (0 down · 1 up · 2 left · 3 right)
+  rime_wolf: {
+    file: 'B/B1/1', height: 30, region: [300, 0, 2048, 2048],
+    rows: [['idle', 4], ['walk', 4], ['attack', 4], ['hit', 4], ['telegraph', 4], ['special', 4], ['death', 4]],
+  },
+  frost_bear: {
+    file: 'B/B1/2', height: 40, region: [260, 0, 2048, 2048],
+    rows: [['idle', 4, { y: [41, 288] }], ['walk', 4, { y: [316, 555] }], ['attack', 4, { y: [581, 803] }], ['hit', 4, { y: [826, 1070] }],
+      ['telegraph', 4, { y: [1094, 1337] }], ['special', 4, { y: [1354, 1681] }], ['death', 4, { y: [1721, 1975] }]],
+  },
+  snow_hare: {
+    file: 'B/B1/3', height: 20,
+    rows: [['idle', 4], ['walk', 4], ['attack', 4], ['hit', 4], ['telegraph', 4], ['special', 4], ['death', 4]],
+  },
+  // rows = directions (3 sets); columns: idle · walk ×3 · attack · hit · telegraph · special · death
+  frost_harrier: {
+    file: 'B/B1/4', height: 26, region: [180, 80, 2048, 2048],
+    rows: [['down', 9, { y: [95, 255] }], ['right', 9, { y: [608, 764] }]],
+  },
 };
 
 // ---------------------------------------------------------------- background

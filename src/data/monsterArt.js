@@ -132,6 +132,41 @@ export const MONSTER_ART = {
       burrow: { windup: 'telegraph', attack: 'special' },                   // digs in -> bursts out, pincers first
     },
   },
+  // ---------------- B1 FROSTWIND PLAINS: one pose per action row; columns = directions (0 down · 1 up · 2 / 3 sides)
+  snow_hare: {
+    sheet: 'snow_hare', replaces: ['snow_hare'],
+    anims: {
+      idle: ['idle', [3]], move: ['walk', [3]], windup: ['telegraph', [3]], attack: ['attack', [3]], hurt: ['hit', [3]], death: ['death', [3]],
+      front: ['idle', [0]], back: ['idle', [1]],
+    },
+    attacks: { spin: { windup: ['telegraph', [3]], attack: ['special', [3]] } },
+  },
+  rime_wolf: {
+    sheet: 'rime_wolf', replaces: ['rime_wolf'], corrupt: '150,70,200',
+    anims: {
+      idle: ['idle', [2]], move: ['walk', [2]], windup: ['telegraph', [2]], attack: ['attack', [2]], hurt: ['hit', [2]], death: ['death', [2]],
+      front: ['idle', [0]], back: ['idle', [1]],
+    },
+    attacks: { lunge: { windup: ['telegraph', [2]], attack: ['special', [2]] } },
+  },
+  frost_harrier: {
+    sheet: 'frost_harrier', replaces: ['frost_harrier'],
+    // columns: 0 idle · 1-3 walk · 4 attack · 5 hit · 6 telegraph · 7 special · 8 death
+    anims: {
+      idle: ['right', [0]], move: ['right', [1, 2, 3]], windup: ['right', [6]], attack: ['right', [4]], hurt: ['right', [5]], death: ['right', [8]],
+      front: ['down', [0, 1, 2, 3]],
+    },
+    attacks: { gale: { windup: ['right', [6]], attack: ['right', [7]] } },
+    fps: { move: 8 },
+  },
+  frost_bear: {
+    sheet: 'frost_bear', replaces: ['frost_bear'],
+    anims: {
+      idle: ['idle', [2]], move: ['walk', [2]], windup: ['telegraph', [2]], attack: ['attack', [2]], hurt: ['hit', [2]], death: ['death', [2]],
+      front: ['idle', [0]], back: ['idle', [1]],
+    },
+    attacks: { eruption: { windup: ['telegraph', [2]], attack: ['special', [2]] } },
+  },
   // ---------------- A3 RUNE CITADEL
   // rows = directions; columns: 0 idle · 1-2 walk · 3 attack · 4 hit · 5 telegraph · 6 special · 7-9 death
   void_scarab: {

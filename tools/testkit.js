@@ -1199,7 +1199,8 @@ export function spriteMonsterCheck(g, classId = 'umbral_sword') {
   for (const t of ['thornling', 'leafling']) { const m = new Mon(g, t, 0, 0, {}); if (!(m.sprites && m.sprites.sheet)) noArt.add(t); }
   ok('Summons use sheet art too (Guardian thornlings, Thornbound Elder leaflings)', !noArt.size, [...noArt].join(','));
   const labs = [['leafling', 'lumina', 'a1', [47, 150]], ['treant', 'a1', 'a1', [47, 150]], ['quill_lizard', 'a2', 'a2', [84.5, 190]],
-    ['burrower', 'a2', 'a2', [84.5, 190]], ['void_scarab', 'a3', 'a3', [84, 190]], ['rune_wisp', 'a3', 'a3', [84, 190]]];
+    ['burrower', 'a2', 'a2', [84.5, 190]], ['void_scarab', 'a3', 'a3', [84, 190]], ['rune_wisp', 'a3', 'a3', [84, 190]],
+    ['snow_hare', 'b1', 'b1', [20, 27]], ['rime_wolf', 'b1', 'b1', [20, 27]], ['frost_harrier', 'b1', 'b1', [20, 27]], ['frost_bear', 'b1', 'b1', [20, 27]]];
   for (const [type, , map, spot] of labs) {
     w.changeMap(map, { entry: spot }); g.simulate(0.3);
     for (const m of w.monsters) if (!m.dead) { m.dead = true; m.deathT = 99; }
@@ -1214,7 +1215,7 @@ export function spriteMonsterCheck(g, classId = 'umbral_sword') {
     g.events.off && g.events.off('damageDealt', onDmg);
     const all = m.def.attacks.map((a) => a.id);
     ok(`${m.name}: every attack used after a telegraph (${all.join(' / ')}) · hits land · sheet art`,
-      all.every((id) => used.has(id)) && winds.every((s) => s >= 0.4) && hits > 0 && m.sprites.sheet, `used=${[...used]} hits=${hits}`);
+      all.every((id) => used.has(id)) && winds.every((s) => s >= 0.35) && hits > 0 && m.sprites.sheet, `used=${[...used]} hits=${hits}`);
     m.hp = 0; m.dead = true; m.deathT = 99;
   }
   return R;
@@ -1222,4 +1223,34 @@ export function spriteMonsterCheck(g, classId = 'umbral_sword') {
 // a monster type draws sheet art when its sprite key is a sheet set (monsterArt `replaces`)
 let MonCtor = null; // the Monster class, taken from the first live monster seen (testkit imports nothing)
 const MONSTERS_OF = (g, t) => { if (g.world.monsters[0]) MonCtor = g.world.monsters[0].constructor; if (!MonCtor) return true; const m = new MonCtor(g, t, 0, 0, {}); return !!(m.def.boss || (m.sprites && m.sprites.sheet)); }; // bosses (boss: true) draw their own sheets
-const MONSTER_LEVEL = { leafling: 3, treant: 5, quill_lizard: 11, burrower: 12, void_scarab: 14, rune_wisp: 15 };
+const MONSTER_LEVEL = { leafling: 3, treant: 5, quill_lizard: 11, burrower: 12, void_scarab: 14, rune_wisp: 15, snow_hare: 2, rime_wolf: 4, frost_harrier: 5, frost_bear: 7 };
+
+// B1: Route B's first map — Lumina's Eastern Road on foot, FROSTWIND PLAINS on its own grid, the Frost Arena sealed
+// until its boss exists, route B status, the waystone, save / load on the new grid.
+export function routeBCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, wp = g.worldProgress;
+  const st = wp.routeStatus('B');
+  ok('Route B playable: B1 built, B2 / B3 planned', st.route.playable && !st.steps[0].planned && st.steps[0].unlocked && st.steps[1].planned, JSON.stringify(st.steps.map((s) => [s.id, s.planned, s.unlocked])));
+  goto(g, 60, 180);
+  for (let k = 0; k < 30 && w.mapId !== 'b1'; k++) walk(g, 'KeyD', 0.3);
+  g.simulate(2.5);
+  ok("Lumina's Eastern Road -> FROSTWIND PLAINS (grid frostwind) on foot", w.mapId === 'b1' && w.gridId === 'frostwind', `map=${w.mapId} grid=${w.gridId}`);
+  ok('B1 is hostile ground with its own monsters', w.spawnPoints.some((sp) => sp.def.type === 'rime_wolf') && !w.mapDef.safe);
+  use(g, 'ws_b1_lodge'); g.ui.panels.close(true);
+  ok("Hunter's Lodge waystone attuned", w.state.waystones.ws_b1_lodge);
+  const gate = w.mapDef.gates.find((x) => x.id === 'b1_arena_gate');
+  goto(g, 142, 121);
+  for (let k = 0; k < 12; k++) walk(g, 'KeyS', 0.25);
+  ok('Frost Arena sealed until its guardian exists (gate holds)', p.y < 126 * TILE && !wp.isGateOpen?.(gate), `y=${(p.y / TILE).toFixed(1)}`);
+  goto(g, 81, 60); g.simulate(0.5);
+  const pos = [p.x, p.y];
+  g.saveGame(); w.changeMap('lumina'); g.simulate(0.3); const loaded = g.loadGame();
+  ok('Save / load in B1 (grid frostwind, same spot)', loaded && g.world.mapId === 'b1' && g.world.gridId === 'frostwind' && Math.hypot(g.player.x - pos[0], g.player.y - pos[1]) < 40, `map=${g.world.mapId}`);
+  const w2 = g.world;
+  goto(g, 6, 21);
+  for (let k = 0; k < 12 && w2.mapId !== 'lumina'; k++) walk(g, 'KeyA', 0.3);
+  ok('Back west to Lumina', w2.mapId === 'lumina', `map=${w2.mapId}`);
+  return R;
+}

@@ -25,6 +25,7 @@ const PAL = {
   canopy: ['#11231a', '#183022', '#24452d', '#0a170f'],
   void: ['#07060b', '#0b0a12', '#141224', '#040307'],
   scorched: ['#2e2622', '#3a302a', '#56463a', '#1c1614'],
+  ice: ['#6f94b4', '#86aac6', '#b4d2e6', '#4f7090'],
 };
 
 function paint(ctx, fn) {
@@ -246,6 +247,7 @@ export function buildTileset() {
   add(T.RUIN_WALL, (s) => wallTop(s));
   add(T.SCORCHED, (s) => stones(PAL.scorched, s, 11, { crack: true }));
   add(T.LAVA, (s) => lavaFn(s));
+  add(T.ICE, (s) => stones(PAL.ice, s, 20, { crack: true }));
 
   // alternative palettes used by world state (corrupted canopy / restored forest)
   const alt = {};
@@ -318,5 +320,5 @@ export const EDGE_PRIORITY = {
   [T.CANOPY]: 9, [T.CAVE_WALL]: 9,
   [T.CORRUPT]: 7, [T.FOREST_FLOOR]: 6, [T.GRASS]: 6, [T.FLOWERS]: 6, [T.VALLEY]: 6,
   [T.MOSS_STONE]: 5, [T.SAND]: 4, [T.DIRT]: 3, [T.CAVE]: 3,
-  [T.COBBLE]: 2, [T.RUIN]: 2, [T.ARENA]: 1, [T.SHALLOW]: 1, [T.SCORCHED]: 2,
+  [T.COBBLE]: 2, [T.RUIN]: 2, [T.ARENA]: 1, [T.SHALLOW]: 1, [T.SCORCHED]: 2, [T.ICE]: 1,
 };

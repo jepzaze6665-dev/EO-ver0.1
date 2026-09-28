@@ -19,11 +19,17 @@ export const WORLD_TRIGGERS = [
   // ---- Lumina: the route choice
   {
     id: 'lumina_route_choice', on: 'npcTalked', match: { id: 'guard' },
-    actions: [{ type: 'notify', title: 'ROUTE CHOICE', text: 'Route A (Forest Road) is open · Route B (Eastern Road) is not surveyed yet', color: '#ffd98a' }],
+    actions: [{ type: 'notify', title: 'ROUTE CHOICE', text: 'Route A (Forest Road, north gate) and Route B (Eastern Road, east lane) are both open', color: '#ffd98a' }],
   },
   {
     id: 'route_a_begins', on: 'questCompleted', match: { id: 'beyond_lumina' },
     actions: ['accept_quest:route_a'],
+  },
+
+  // ---- B1 Frostwind Plains (Route B)
+  {
+    id: 'b1_first_visit', on: 'mapEntered', match: { id: 'b1', first: true },
+    actions: [{ type: 'cutscene', title: 'FROSTWIND PLAINS', sub: 'Route B · B1', focus: 'player', zoom: 1.3, time: 2.2 }],
   },
 
   // ---- A1 optional mini-bosses (W2): a side quest, rewards once, no gate

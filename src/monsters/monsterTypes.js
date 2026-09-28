@@ -121,6 +121,48 @@ export const MONSTERS = {
       { id: 'dash', range: 180, min: 60, windup: 0.65, recover: 0.8, cd: 4.5, power: 26, shape: { shape: 'line', len: 180, width: 18 }, kind: 'dash', dashTime: 0.25, knock: 180 },
     ],
   },
+  // ---------------- B1 FROSTWIND PLAINS (owner's sheets desgin/monster/B/B1). Route B's first map: Lv 1-8 like A1.
+  snow_hare: {
+    name: 'Snowdrift Hare', level: 1, hp: 40, def: 0, speed: 120, radius: 8, height: 20, mass: 0.5,
+    detect: 110, leash: 380, exp: 8, loot: 'snow_hare', weakness: ['physical'], sprite: 'snow_hare', poise: 8, turn: 12,
+    role: 'skirmisher', pattern: 'Hop Kick / Frost Spin', desc: 'Skittish. Cornered, it spins up a flurry of frost — step out of the ring.',
+    attacks: [
+      { id: 'kick', range: 30, min: 0, windup: 0.42, recover: 0.45, cd: 1.3, power: 7, shape: { shape: 'cone', r: 34, half: 0.8 }, kind: 'strike', knock: 90 },
+      { id: 'spin', range: 40, min: 0, windup: 0.7, recover: 0.6, cd: 4.5, power: 10, shape: { shape: 'circle', r: 46 }, kind: 'strike', knock: 120, status: [{ id: 'slow', dur: 1 }] },
+    ],
+  },
+  rime_wolf: {
+    name: 'Rimefang Wolf', level: 3, hp: 90, def: 2, speed: 130, radius: 10, height: 30, mass: 0.8, corruptible: true,
+    detect: 150, leash: 520, exp: 22, loot: 'rime_wolf', weakness: ['shadow'], sprite: 'rime_wolf', poise: 20, turn: 12,
+    role: 'skirmisher', flank: true, punishIdle: 1.0,
+    pattern: 'Bite / Frost Lunge', desc: 'Hunts the drifts in packs and circles to your back. The ice on its back flares before a lunge that chills the blood.',
+    attacks: [
+      { id: 'bite', range: 38, min: 0, windup: 0.38, recover: 0.42, cd: 1.1, power: 15, shape: { shape: 'cone', r: 42, half: 0.75 }, kind: 'strike', knock: 120 },
+      { id: 'lunge', range: 130, min: 55, windup: 0.55, recover: 0.6, cd: 3.4, power: 19, shape: { shape: 'line', len: 130, width: 14 }, kind: 'dash', dashTime: 0.2, punish: true, status: [{ id: 'slow', dur: 1.2 }] },
+    ],
+  },
+  frost_harrier: {
+    name: 'Frost Harrier', level: 5, hp: 120, def: 3, speed: 110, radius: 9, height: 26, mass: 0.6, float: true,
+    detect: 190, leash: 520, exp: 38, loot: 'frost_harrier', weakness: ['physical'], sprite: 'frost_harrier', poise: 20, turn: 10,
+    role: 'caster', keepAway: 100,
+    pattern: 'Talon Dive / Gale Ring', desc: 'Circles out of reach, then dives in a straight line. Its wings spin up a ring of frozen wind — leave it before it bursts.',
+    attacks: [
+      { id: 'dive', range: 170, min: 60, windup: 0.6, recover: 0.8, cd: 3, power: 18, shape: { shape: 'line', len: 170, width: 16 }, kind: 'dash', dashTime: 0.28, knock: 150, exposes: 1, exposeText: 'GROUNDED!' },
+      // gale: its wings throw a burst of frozen wind where YOU stand (it fights from range) — move off the circle
+      { id: 'gale', range: 150, min: 50, windup: 0.85, recover: 0.8, cd: 5, power: 20, shape: { shape: 'circle', r: 58, offset: 100 }, kind: 'strike', knock: 220 },
+    ],
+  },
+  frost_bear: {
+    name: 'Frostback Bear', level: 7, hp: 420, def: 8, speed: 62, radius: 16, height: 40, mass: 3, superArmor: true,
+    detect: 150, leash: 440, exp: 70, loot: 'frost_bear', weakness: ['shadow'], sprite: 'frost_bear', poise: 80, turn: 2.5,
+    role: 'bruiser',
+    pattern: 'Maul / Ice Eruption', desc: 'Rears up before a maul. Its roar tears ice spikes out of the ground in front of it — they stay a while and wall off the path.',
+    attacks: [
+      { id: 'maul', range: 50, min: 0, windup: 0.6, recover: 0.6, cd: 1.8, power: 26, shape: { shape: 'cone', r: 58, half: 0.8 }, kind: 'strike', knock: 200 },
+      { id: 'eruption', range: 110, min: 0, windup: 1.0, recover: 1.1, cd: 5, power: 30, shape: { shape: 'cone', r: 120, half: 0.35 }, kind: 'strike', knock: 240, heavy: true, opening: true, missRecover: 1.8,
+        leaves: { count: 5, radius: 90, life: 5, sprite: 'r_spikes' } },
+    ],
+  },
   wolf: {
     name: 'Forest Wolf', level: 2, hp: 70, def: 2, speed: 128, radius: 10, height: 30, mass: 0.8, corruptible: true,
     detect: 150, leash: 520, exp: 18, loot: 'wolf', weakness: ['shadow'], sprite: 'wolf', poise: 18, turn: 12,

@@ -399,5 +399,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Owner's Route B art (not used yet): maps desgin/Map/B/B1..B3 (+ Ref b1 FROSTWIND PLAINS, b2 CRYSTAL CAVERNS, b3 FROSTPEAK),
   monsters desgin/monster/B/B1..B3 (4 + BOSS each, VFX BOSS, "AURA Phase BOSS" for B1/B2 phase changes, B3 "Phase BOSS" =
   Crystal Warden multi-phase sheet: 4 phases + transitions, frames ~75% of the normal boss sheet -> usable as the main body).
-  Next: B1 Frostwind Plains (map + monsters), B1 boss, B2, B3 (own grids like A2/A3).
+  B1a done: ROUTE B is playable. Lumina's EASTERN ROAD (exit eastern_road, east lane) -> map `b1` FROSTWIND PLAINS on grid
+  `frostwind` (168×208, zones Z.FROSTWIND + Z.FROST_ARENA, music 'frost', skin 'frost' — build-tiles picks may be card
+  BOXES [x0,y0,x1,y1] for sheets whose cards touch), terrain `maps/frostwind.js` from the reference (square snowfield in a
+  ragged rock ring, Hunter's Lodge NW, watchtower, crossroads, nomad camp, trapper's ruins, FROZEN MERE = new walkable
+  tile T.ICE with open deep-water holes, Rimewater river + bridge, Ice Shrine, Frost Arena SE sealed by gate
+  b1_arena_gate (event b1_arena_open) until its boss exists). Props `f_*` (B1 prop sheet, SCALE 0.5). Monsters (sheets
+  desgin/monster/B/B1, one pose per action row × 4 direction columns): `snow_hare` (kick / frost spin + slow),
+  `rime_wolf` (flank pack, bite / frost lunge + slow), `frost_harrier` (float caster: talon dive -> GROUNDED / gale burst
+  at your position), `frost_bear` (maul / ice eruption = heavy cone that leaves ice spikes); Elite bear at the Ice Shrine.
+  Item `frost_pelt`. Builder note: disc() needs whole-tile centres. `T.routeBCheck(g)` 7/7, spriteMonsterCheck 12/12.
+  Next: B1b the B1 boss in the Frost Arena (owner's B1 BOSS sheet + VFX BOSS + AURA Phase BOSS for its phase change), then B2, B3.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

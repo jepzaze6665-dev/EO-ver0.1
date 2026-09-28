@@ -18,6 +18,10 @@ export const LOOT_TABLES = {
   void_scarab: { gold: [18, 30], drops: [{ item: 'rune_crystal', chance: 0.3 }] },
   rune_wisp: { gold: [30, 48], drops: [{ item: 'rune_crystal', chance: 0.5 }, { item: 'shadow_tonic', chance: 0.12 }] },
   thornling: { gold: [0, 2], drops: [] },
+  snow_hare: { gold: [1, 3], drops: [{ item: 'hare_pelt', chance: 0.5 }] },
+  rime_wolf: { gold: [3, 8], drops: [{ item: 'wolf_fang', chance: 0.6 }, { item: 'frost_pelt', chance: 0.2 }] },
+  frost_harrier: { gold: [5, 12], drops: [{ item: 'crystal_shard', chance: 0.5 }, { item: 'hp_potion', chance: 0.08 }] },
+  frost_bear: { gold: [10, 22], drops: [{ item: 'frost_pelt', chance: 0.7 }, { item: 'hp_potion', chance: 0.15 }] },
   elite: { gold: [20, 40], drops: [{ item: 'hp_potion', chance: 0.5 }, { item: 'shadow_tonic', chance: 0.25 }] }, // extra roll for elites
   // area bosses (data/bosses.js rewards.loot) — rolled once, on the first kill
   rune_knight: { gold: [200, 200], drops: [{ item: 'rune_crystal', chance: 1, count: 4 }, { item: 'bronze_plate', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 4 }] },

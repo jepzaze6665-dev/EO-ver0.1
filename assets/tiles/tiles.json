@@ -59,5 +59,25 @@
    "face:cliff": 11,
    "face:wall": 12
   }
+ },
+ "frost": {
+  "file": "assets/tiles/frost.png",
+  "tile": 32,
+  "variants": 4,
+  "rows": {
+   "GRASS": 0,
+   "FLOWERS": 1,
+   "DIRT": 2,
+   "COBBLE": 3,
+   "ARENA": 4,
+   "RUIN": 5,
+   "MOSS_STONE": 6,
+   "ICE": 7,
+   "CLIFF": 8,
+   "WATER": 9,
+   "DEEP_WATER": 10,
+   "SHALLOW": 11,
+   "face:cliff": 12
+  }
  }
 }

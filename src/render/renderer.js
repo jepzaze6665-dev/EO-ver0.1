@@ -104,6 +104,8 @@ export class Renderer {
       case Z.CITADEL: return { r: 8, g: 12, b: 30, a: 0.42 };
       case Z.SANCTUM: return { r: 10, g: 14, b: 40, a: 0.46 };
       case Z.ASTERIA: return { r: 30, g: 22, b: 12, a: 0.1 };
+      case Z.FROSTWIND: return { r: 14, g: 22, b: 40, a: 0.2 };
+      case Z.FROST_ARENA: return { r: 12, g: 20, b: 44, a: 0.3 };
     }
     return { r: 10, g: 10, b: 20, a: 0.4 };
   }

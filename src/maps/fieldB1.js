@@ -1,0 +1,50 @@
+import { Z } from '../core/constants.js';
+
+// B1 — FROSTWIND PLAINS (own grid: world/levels/frostwind.js, terrain maps/frostwind.js). Route B's first map: snow
+// fields east of Lumina, a frozen lake and the Frost Arena. Monsters from the owner's sheets (desgin/monster/B/B1):
+// Snowdrift Hare, Rimefang Wolf (packs, flank), Frost Harrier (diving bird) and Frostback Bear (ice spikes).
+// Its boss (the Frost Arena, SE) comes in the next phase; until then the arena stays sealed (gate b1_arena_gate).
+const NOTICE = [
+  "HUNTER'S LODGE — Guild notice",
+  '"The Eastern Road is open again. Keep to the packed snow; the wolves hunt the drifts."',
+  'The crossroads lie south-east. The old arena past the river has been sealed since the frost came.',
+].join('\n');
+
+export const FIELD_B1 = {
+  id: 'b1', name: 'FROSTWIND PLAINS', short: 'B1', sub: 'Route B · B1 — Frostwind Plains · Lv. 1 – 9', grid: 'frostwind',
+  type: 'field', route: 'B', nextMap: 'b2', bossId: 'boss_b1',
+  requires: [],
+  hiddenAreas: [],
+  region: { zones: [Z.FROSTWIND] },
+  spawn: [8.5, 21],
+  gates: [
+    { id: 'b1_arena_gate', rect: [140, 125, 144, 125], requires: [{ type: 'event', id: 'b1_arena_open', label: 'The Frost Arena is sealed (its guardian arrives in the next update)' }], color: '160,210,255', label: 'Frost Arena' },
+  ],
+  content: {
+    interactables: [
+      { id: 'b1_lodge_notice', kind: 'sign', tx: 10, ty: 24, prompt: 'Read Notice', title: "Hunter's Lodge", text: NOTICE },
+      { id: 'ws_b1_lodge', kind: 'waystone', tx: 14, ty: 18, name: "Hunter's Lodge", prompt: 'Waystone' },
+      { id: 'b1_cross_sign', kind: 'sign', tx: 83, ty: 60, prompt: 'Read Sign', title: 'Frostwind Crossroads', text: "↑ Old Watchtower\n→ Nomad Camp · the arena road (south-east)\n← Trapper's Ruins\n↓ the Frozen Mere" },
+    ],
+    // hares near the lodge, wolves in packs on the roads, harriers over the open snow, bears at the ruins and the camp
+    spawns: [
+      { id: 'b1_lodge_hares', type: 'snow_hare', count: 3, tx: 34, ty: 38, radius: 4 },
+      { id: 'b1_road_wolves', type: 'rime_wolf', count: 2, tx: 58, ty: 50, radius: 3 },
+      { id: 'b1_tower_harrier', type: 'frost_harrier', count: 2, tx: 92, ty: 36, radius: 4 },
+      { id: 'b1_trapper_wolves', type: 'rime_wolf', count: 3, tx: 38, ty: 70, radius: 4 },
+      { id: 'b1_trapper_bear', type: 'frost_bear', count: 1, tx: 30, ty: 60, radius: 2 },
+      { id: 'b1_camp_harrier', type: 'frost_harrier', count: 2, tx: 130, ty: 70, radius: 4 },
+      { id: 'b1_mine_bear', type: 'frost_bear', count: 1, tx: 138, ty: 92, radius: 2 },
+      { id: 'b1_bank_wolves', type: 'rime_wolf', count: 3, tx: 124, ty: 104, radius: 4 },
+      { id: 'b1_mere_hares', type: 'snow_hare', count: 2, tx: 70, ty: 92, radius: 3 },
+      { id: 'b1_mere_wolves', type: 'rime_wolf', count: 2, tx: 34, ty: 118, radius: 4 },
+      { id: 'b1_shrine_harrier', type: 'frost_harrier', count: 2, tx: 28, ty: 146, radius: 3 },
+      { id: 'b1_bridge_bear', type: 'frost_bear', count: 1, tx: 108, ty: 160, radius: 2 },
+      // Elite: a Frostback Bear guards the Ice Shrine (killed once)
+      { id: 'b1_shrine_warden', type: 'frost_bear', elite: true, unique: true, count: 1, tx: 21, ty: 162, radius: 0 },
+    ],
+  },
+  exits: [
+    { id: 'eastern_road', rect: [2, 19, 2, 23], to: 'lumina', entry: [68.5, 180], label: 'Lumina Village' },
+  ],
+};

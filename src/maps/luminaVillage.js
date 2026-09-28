@@ -12,13 +12,14 @@ export const LUMINA_VILLAGE = {
   exits: [
     { id: 'north_gate', rect: [44, 158, 51, 159], to: 'a1', entry: [47.5, 154], label: 'Whispering Forest' },
     { id: 'bramble_lane', rect: [63, 158, 67, 159], to: 'a1', entry: [65.5, 154], label: 'Bramble Lane' },
+    { id: 'eastern_road', rect: [71, 179, 71, 181], to: 'b1', entry: [6, 21], label: 'Frostwind Plains (Route B)' },
   ],
   // route choice at the north gate (data/routes.js: Route A is open, Route B is architecture only for now)
   content: {
     interactables: [
       {
         id: 'lumina_route_sign', kind: 'sign', tx: 43, ty: 162, prompt: 'Read Route Sign', title: 'Roads from Lumina',
-        text: 'ROADS FROM LUMINA VILLAGE\n↑ ROUTE A — The Forest Road: Whispering Forest (A1) → Ancient Valley (A2) → Rune Citadel (A3) → City 2 Asteria\n→ ROUTE B — The Eastern Road: not surveyed yet (coming in a later update)\n\n"Each forest keeps a guardian. The road past it stays shut until the guardian falls." — Guild notice',
+        text: 'ROADS FROM LUMINA VILLAGE\n↑ ROUTE A — The Forest Road: Whispering Forest (A1) → Ancient Valley (A2) → Rune Citadel (A3) → City 2 Asteria\n→ ROUTE B — The Eastern Road: Frostwind Plains (B1) → Crystal Caverns (B2) → Frostpeak (B3) → City 2 Asteria\n\n"Each forest keeps a guardian. The road past it stays shut until the guardian falls." — Guild notice',
       },
     ],
   },

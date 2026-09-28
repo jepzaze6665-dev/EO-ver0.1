@@ -19,7 +19,7 @@ export const ROUTES = {
     ],
   },
   B: {
-    id: 'B', name: 'ROUTE B', sub: 'The Eastern Road', from: 'lumina', to: 'city2', playable: false,
+    id: 'B', name: 'ROUTE B', sub: 'The Eastern Road', from: 'lumina', to: 'city2', playable: true, // B1 built (B2 / B3 next)
     steps: [
       { map: 'b1', boss: 'boss_b1', name: 'B1' },
       { map: 'b2', boss: 'boss_b2', name: 'B2' },
