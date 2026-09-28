@@ -50,6 +50,10 @@ export const LORE = {
     title: 'The Magma Beast of the Rift',
     text: 'When the mountain woke, it did not stop at the valley\'s edge. The beast crawled up out of the rift and the kings fled their summer court.\nNow the rift cools. Past it, carved into the far cliffs, a road leads toward a citadel of rune and bronze.',
   },
+  hoarfang: {
+    title: 'Hoarfang, the Winter Alpha',
+    text: 'The nomads say the frost did not come to the plains — it was called, by a wolf the size of a cart, howling from the old arena.\nWith it fallen, the snow will not melt. But for the first time in years the road south is quiet.',
+  },
   grukk: {
     title: 'The Thornbound Elder',
     text: 'The eldest treant of the glade drank from the corrupted mire to master the thorns. The thorns mastered it instead.\nHis totem points east, toward the ruins, as if something there still calls it.',

@@ -29,7 +29,12 @@ export const WORLD_TRIGGERS = [
   // ---- B1 Frostwind Plains (Route B)
   {
     id: 'b1_first_visit', on: 'mapEntered', match: { id: 'b1', first: true },
-    actions: [{ type: 'cutscene', title: 'FROSTWIND PLAINS', sub: 'Route B · B1', focus: 'player', zoom: 1.3, time: 2.2 }],
+    actions: [{ type: 'cutscene', title: 'FROSTWIND PLAINS', sub: 'Route B · B1', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:eastern_road'],
+  },
+  { id: 'b1_cross_found', on: 'areaDiscovered', match: { name: 'Frostwind Crossroads' }, actions: ['set_flag:b1Crossroads'] },
+  {
+    id: 'b1_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_b1' },
+    actions: [{ type: 'banner', title: 'THE WINTER ALPHA FALLS', text: 'The pack scatters. South of the arena the road to the Crystal Caverns (B2) waits for a later update.', color: '#bfe6ff' }],
   },
 
   // ---- A1 optional mini-bosses (W2): a side quest, rewards once, no gate

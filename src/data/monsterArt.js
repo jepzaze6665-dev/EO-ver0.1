@@ -171,6 +171,16 @@ export const MONSTER_ART = {
     attacks: { eruption: { windup: ['telegraph', [3]], attack: ['special', [3]] } },
     fps: { move: 5, idle: 3 },
   },
+  // B1 BOSS: Hoarfang (a giant frost wolf)
+  hoarfang: {
+    sheet: 'hoarfang', replaces: ['hoarfang'],
+    anims: {
+      idle: 'idle', move: 'walk', run: 'run', windup: ['bite', [0, 1]], attack: ['bite', [2, 3, 4]], hurt: 'hit', death: 'death',
+      bite_wind: ['bite', [0, 1]], bite_hit: ['bite', [2, 3, 4]], slash_wind: ['slash', [0, 1]], slash_hit: ['slash', [2, 3]],
+      special: 'special', howl: 'howl', stagger: 'hit',
+    },
+    fps: { run: 12, howl: 8, special: 8 },
+  },
   // ---------------- A3 RUNE CITADEL
   // rows = directions; columns: 0 idle · 1-2 walk · 3 attack · 4 hit · 5 telegraph · 6 special · 7-9 death
   void_scarab: {

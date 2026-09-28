@@ -3,11 +3,11 @@ import { Z } from '../core/constants.js';
 // B1 — FROSTWIND PLAINS (own grid: world/levels/frostwind.js, terrain maps/frostwind.js). Route B's first map: snow
 // fields east of Lumina, a frozen lake and the Frost Arena. Monsters from the owner's sheets (desgin/monster/B/B1):
 // Snowdrift Hare, Rimefang Wolf (packs, flank), Frost Harrier (diving bird) and Frostback Bear (ice spikes).
-// Its boss (the Frost Arena, SE) comes in the next phase; until then the arena stays sealed (gate b1_arena_gate).
+// Its boss: HOARFANG in the Frost Arena (SE, its own boss-arena map maps/frostArena.js, up the north stairs).
 const NOTICE = [
   "HUNTER'S LODGE — Guild notice",
   '"The Eastern Road is open again. Keep to the packed snow; the wolves hunt the drifts."',
-  'The crossroads lie south-east. The old arena past the river has been sealed since the frost came.',
+  'The crossroads lie south-east. Past the river, stairs climb to the old Frost Arena — the Winter Alpha dens there.',
 ].join('\n');
 
 export const FIELD_B1 = {
@@ -17,9 +17,6 @@ export const FIELD_B1 = {
   hiddenAreas: [],
   region: { zones: [Z.FROSTWIND] },
   spawn: [8.5, 21],
-  gates: [
-    { id: 'b1_arena_gate', rect: [140, 125, 144, 125], requires: [{ type: 'event', id: 'b1_arena_open', label: 'The Frost Arena is sealed (its guardian arrives in the next update)' }], color: '160,210,255', label: 'Frost Arena' },
-  ],
   content: {
     interactables: [
       { id: 'b1_lodge_notice', kind: 'sign', tx: 10, ty: 24, prompt: 'Read Notice', title: "Hunter's Lodge", text: NOTICE },
@@ -46,5 +43,13 @@ export const FIELD_B1 = {
   },
   exits: [
     { id: 'eastern_road', rect: [2, 19, 2, 23], to: 'lumina', entry: [68.5, 180], label: 'Lumina Village' },
+    {
+      id: 'arena_stairs', rect: [140, 123, 144, 123], to: 'frost_arena', entry: [142, 131], label: 'The Frost Arena',
+      confirm: {
+        title: 'The Frost Arena',
+        text: 'Frost-bitten bones line the stairs. Something enormous breathes in the arena above.\nOnce the Winter Alpha rises, the arena seals until one of you falls.\n\nEnter the Frost Arena?',
+        yes: 'Enter', no: 'Not yet',
+      },
+    },
   ],
 };

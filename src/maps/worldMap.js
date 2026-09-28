@@ -20,6 +20,7 @@ export class WorldMap {
     this.subAreas = [null];
     this.props = [];
     this.propGrid = new Map();
+    this.bigProps = []; // props larger than the view margin: culled by their own box, not their anchor's chunk
     this.tileset = tileset;
     this.chunkCache = new Map();
     this.style = { restored: false };
@@ -143,9 +144,13 @@ export class WorldMap {
     p.alpha = 1;
     p.layer = p.layer || 'y';
     this.props.push(p);
-    const key = this.chunkKey(p.x, p.y);
-    if (!this.propGrid.has(key)) this.propGrid.set(key, []);
-    this.propGrid.get(key).push(p);
+    const pw = def ? def.w * p.scale : 0, ph = def ? def.h * p.scale : 0;
+    if (pw > 300 || ph > 300) { p.box = { x0: p.x - pw / 2, x1: p.x + pw / 2, y0: p.y - ph, y1: p.y }; this.bigProps.push(p); }
+    else {
+      const key = this.chunkKey(p.x, p.y);
+      if (!this.propGrid.has(key)) this.propGrid.set(key, []);
+      this.propGrid.get(key).push(p);
+    }
     if (p.solid) this.setPropSolid(p, true);
     return p;
   }
@@ -170,6 +175,7 @@ export class WorldMap {
       if (!list) continue;
       for (const p of list) if (p.visible) out.push(p);
     }
+    for (const p of this.bigProps) if (p.visible && p.box.x1 > cam.left && p.box.x0 < cam.left + cam.width && p.box.y1 > cam.top && p.box.y0 < cam.top + cam.height) out.push(p);
     return out;
   }
   setBlockRect(tx0, ty0, tx1, ty1, on) {

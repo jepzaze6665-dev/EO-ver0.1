@@ -212,6 +212,9 @@ export class AreaBoss extends Entity {
     g.camera.shake(0.7);
     g.vfx.flash(this.look.aura || '255,120,120', 0.35, 1.6);
     this.fx('phase', this.x, this.y - this.height * 0.4, 0, { scale: 2.4, life: 1.1 });
+    // phase aura sequence (look.phaseAura[phase].transition: effect keys played one after another under the boss)
+    const pa = this.look.phaseAura && this.look.phaseAura[this.phase];
+    if (pa && pa.transition) pa.transition.forEach((k, i) => g.after(i * (pa.step || 0.4), () => !this.dead && g.vfx.sprite(k, this.x, this.y, 0, { follow: this, off: 0, life: pa.stepLife || 0.7, scale: pa.scale || 1.4, glow: 0.6 })));
     g.ui.callout(ph.name, ph.sub || '', '#e0b0ff');
     if (ph.shockwave) {
       const tel = this.tele({ shape: 'ring', x: this.x, y: this.y, r0: 20, r: 170, total: 1.1 });
@@ -245,6 +248,12 @@ export class AreaBoss extends Entity {
     this.status.update(dt);
     if (this.state === 'dormant') { this.pose = 'idle'; return; }
     this.mechHook('update', dt);
+    // phase aura (look.phaseAura[phase].loop): an aura effect kept playing under the boss in that phase
+    const pa = this.look.phaseAura && this.look.phaseAura[this.phase];
+    if (pa && pa.loop) {
+      this.auraT = (this.auraT || 0) - dt;
+      if (this.auraT <= 0) { this.auraT = pa.loopLife || 1; g.vfx.sprite(pa.loop, this.x, this.y, 0, { follow: this, off: 0, life: this.auraT + 0.05, scale: pa.scale || 1.4, glow: 0.4 }); }
+    }
     this.applyKnockback(dt, g.world.map);
     for (const k in this.cds) this.cds[k] -= dt;
     // crowd control works on bosses, but never chains: a stun / root is followed by a short immunity

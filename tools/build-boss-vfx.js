@@ -32,6 +32,18 @@ const SHEETS = [
     mirror: ['bolt'],
     counts: { slash: 8 },
   },
+  {
+    prefix: 'f', dir: 'desgin/monster/B/B1/VFX BOSS', bg: 'light', skipX: 60, clearLines: true, // grey checkerboard: flood-removed; lines between rows // B1 ice blue (the Frost Arena boss), row numbers on the left
+    names: ['spark', 'slash', 'burst', 'spikes', 'bolt', 'blast', 'sigil', 'crater', 'crystal', 'vortex', 'pillar', 'shockwave', 'shatter'],
+    counts: { shockwave: 9, shatter: 8, pillar: 14 },
+  },
+  {
+    // B1 AURA sheet (owner: "used when the boss changes phase"): ring forming -> spiked ring -> big ring -> corrupted
+    // violet vortex -> burst pillar
+    prefix: 'fa', dir: 'desgin/monster/B/B1/AURA Phase BOSS', bg: 'light',
+    names: ['form', 'ring', 'bigring', 'void', 'burst'],
+    counts: { void: 9, burst: 10 },
+  },
 ];
 
 // dark background: keep the glow. alpha = brightness above the background, colour un-mixed from the background
@@ -60,6 +72,13 @@ function buildSheet(sh, out, preview) {
   const img = png.read(path.join(dir, file));
   if (sh.bg === 'dark') glowExtract(img); else removeBackground(img);
   if (sh.skipX) for (let y = 0; y < img.height; y++) for (let x = 0; x < sh.skipX; x++) img.data[(y * img.width + x) * 4 + 3] = 0;
+  // separator lines drawn across the sheet between rows would join every frame of a row: clear any pixel row
+  // (and its neighbours) that is opaque across most of the width
+  if (sh.clearLines) {
+    const w = img.width, full = [];
+    for (let y = 0; y < img.height; y++) { let n = 0; for (let x = 0; x < w; x++) if (img.data[(y * w + x) * 4 + 3] > 40) n++; if (n > w * 0.92) full.push(y); }
+    for (const y of full) for (let yy = Math.max(0, y - 2); yy <= Math.min(img.height - 1, y + 2); yy++) for (let x = 0; x < w; x++) img.data[(yy * w + x) * 4 + 3] = 0;
+  }
   const rowsP = projection(img, 0, 0, img.width, img.height, 'y');
   const rows = fitSegments(runs(rowsP, 8), rowsP, sh.names.length);
   const meta = {};

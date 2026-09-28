@@ -413,5 +413,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   anim specs may be a LIST of pieces ([['walk',[2]],['idle',[2]]] = 2-step walk for one-pose-per-action sheets, also front /
   back); walks with 1-2 frames get a step bounce (Monster.draw); sizes vs the ~58 px player: hare 22 · wolf 36 · harrier 32 ·
   bear 54 · Bramble Treant 46 (Elder ×1.4, Thornbound Elder ×1.5).
-  Next: B1b the B1 boss in the Frost Arena (owner's B1 BOSS sheet + VFX BOSS + AURA Phase BOSS for its phase change), then B2, B3.
+  B1b done: boss_b1 HOARFANG, the Winter Alpha (area boss, Lv 10, 11000 HP) in map  (maps/frostArena.js, boss_arena
+  up B1's arena stairs = exit arena_stairs with confirm; south gate b2_road_gate waits for B2). Art: B1 BOSS sheet (giant frost
+  wolf, 9 rows), VFX  (build-boss-vfx:  drops the separator lines of the grey-checker sheet), AURA   (form / ring / bigring / void / burst). AreaBoss  = { transition: [fx...] played in sequence on
+  the phase change, loop: fx kept under the boss }. Phase 1 THE HUNT (combo bite with a late 3rd hit, pounce leap, frost
+  shards, howl = 2 Rimefang Wolves), phase 2 WHITEOUT at 55% (+ ice spikes cross, frost nova). Mechanics:   (standing still -> 5 stacks -> FROZEN stun + hit) and  (ice pillars, then ABSOLUTE ZERO over the arena — only
+  line-of-sight cover behind a pillar is safe; HP floor 20% until it has gone off once; interrupted -> recast in 2 s).
+  Mechanic HUD tags must be { label, color }. Quest  (B spine), item frost_heart, lore hoarfang, trigger
+  b1_boss_defeated. WorldMap: props > 300 px go to  (culled by their box, not the anchor chunk). The owner's
+  whole-arena prop f_frost_arena is NOT used as a floor (its rock walls cross the fight when scaled).  11/11; no god LV 9: RP 73 s · AW 91.5 s · UB 93 s · AG 104.5 s.
+  Next: B2 Crystal Caverns (map + 4 monsters), B2 boss, B3 (Phase BOSS sheet = the Crystal Warden's main body).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

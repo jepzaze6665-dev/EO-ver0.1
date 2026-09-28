@@ -82,6 +82,18 @@ export const QUESTS = {
     rewards: { exp: 400, gold: 300, items: { hp_potion: 3 } },
     requirements: [],
   },
+  // Route B spine for B1 (starts on the first visit to Frostwind Plains)
+  eastern_road: {
+    id: 'eastern_road', name: 'THE EASTERN ROAD', giver: null, ordered: true, priority: 1,
+    description: 'East of Lumina the snow never melts. The Guild wants the road to the Crystal Caverns open — something in the Frost Arena says otherwise.',
+    objectives: [
+      { id: 'cross', text: 'Reach the Frostwind Crossroads', type: 'flag', flag: 'b1Crossroads', marker: [81, 57], markerMap: 'b1' },
+      { id: 'arena', text: 'Climb the stairs to the Frost Arena', type: 'reach', map: 'frost_arena', marker: [142, 123], markerMap: 'b1' },
+      { id: 'boss', text: 'Defeat Hoarfang (B1 Boss)', type: 'boss', boss: 'boss_b1', marker: [142, 146], markerMap: 'frost_arena' },
+    ],
+    rewards: { exp: 250, gold: 150, items: { hp_potion: 3 } },
+    requirements: [],
+  },
   // City 2 (W5): starts on the first visit to Asteria City (data/worldTriggers.js city2_first_visit)
   asteria: {
     id: 'asteria', name: 'THE LIVING CITY', giver: null, ordered: true, priority: 1,

@@ -199,7 +199,50 @@ export const BOSSES = {
   },
 
   // ---------------- ROUTE B (architecture only — Phase 13/14 builds the maps; nothing here is spawned yet)
-  boss_b1: { id: 'boss_b1', name: 'B1 AREA BOSS', title: 'Route B · to be designed', type: 'area', impl: 'area', route: 'B', map: 'b1', planned: true, unlocks: ['b2'] },
+  // B1 AREA BOSS (B1b): HOARFANG in the Frost Arena (maps/frostArena.js). Art = the owner's B1 boss sheet (a giant frost
+  // wolf); effects = the B1 VFX sheet ('f_*'); the phase change plays the owner's AURA sheet ('fa_*', look.phaseAura).
+  // Phase 1 THE HUNT: a fast hunter (late third bite, pounce, shards, its howl brings the pack). Phase 2 WHITEOUT:
+  // FROSTBITE punishes standing still, and ABSOLUTE ZERO sweeps the arena — hide behind the ice pillars it raises.
+  boss_b1: {
+    id: 'boss_b1', name: 'HOARFANG', title: 'The Winter Alpha', type: 'area', impl: 'area',
+    route: 'B', map: 'frost_arena', level: 10, recommendedLevel: 9,
+    teaches: 'Wait for the late bite · keep moving (frostbite) · hide behind the ice from ABSOLUTE ZERO',
+    stats: { hp: 11000, def: 10, speed: 128, radius: 24, height: 64, mass: 6, weakness: ['physical'], superArmor: true, poise: 800 },
+    look: {
+      sprite: 'hoarfang', scale: 1.1, aura: '150,210,255',
+      anims: { hurt: 'hit', roar: 'howl' },
+      phaseAnims: { 2: { walk: 'run' } },
+      vfx: { charge: 'f_spark', slash: 'f_slash', impact: 'f_crater', bolt: 'f_bolt', eruption: 'f_spikes', nova: 'f_shockwave', phase: 'f_vortex', pillar: 'f_pillar', shatter: 'f_shatter', burst: 'f_burst' },
+      // the owner's AURA sheet: ring forms -> spiked ring -> big ring -> burst when WHITEOUT begins, then a ring stays under it
+      phaseAura: { 2: { transition: ['fa_form', 'fa_ring', 'fa_bigring', 'fa_burst'], step: 0.35, stepLife: 0.6, loop: 'fa_ring', loopLife: 0.9, scale: 1.3 } },
+    },
+    arena: { name: 'The Frost Arena', center: [142, 146], radius: 15.5, trigger: 12, bossSpawn: [142, 141], entry: [142, 131], cameraLock: true },
+    appear: [],
+    phases: [
+      { name: 'THE HUNT', sub: 'Bite · Pounce · Frost shards — its howl calls the pack', hpBelow: 1, moves: ['bite', 'pounce', 'frost_shards', 'howl'] },
+      { name: 'WHITEOUT', sub: 'The blizzard rises — keep moving, find the ice', hpBelow: 0.55, windup: 0.9, speed: 1.15, shockwave: 24, moves: ['bite', 'pounce', 'frost_shards', 'ice_spikes', 'frost_nova'] },
+    ],
+    moves: {
+      // two quick bites, then a LATE heavy one (an early dodge gets caught)
+      bite: {
+        kind: 'combo', range: 90, cd: 3.5, weight: 3, power: 24, knock: 170, recover: 0.7, opening: 1.1, shape: { shape: 'cone', r: 84, half: 0.8 },
+        hits: [{ windup: 0.45 }, { windup: 0.35, track: true }, { windup: 0.95, track: true, power: 34, shape: { shape: 'cone', r: 100, half: 1.0 } }],
+        anim: { windup: 'bite_wind', attack: 'bite_hit' },
+      },
+      pounce: { kind: 'leap', guardBreak: true, range: 330, min: 110, windup: 0.9, recover: 0.7, cd: 5, weight: 2.5, power: 32, knock: 280, r: 80, track: 0.6, opening: 1.4, anim: { windup: 'run', attack: 'run' } },
+      frost_shards: { kind: 'volley', range: 360, min: 100, windup: 0.75, recover: 0.6, cd: 4, weight: 2.5, power: 22, count: 3, spread: 0.5, speed: 270, dmg: 'magic', status: [{ id: 'slow', dur: 1.2 }], color: '#bfe6ff', anim: { windup: 'slash_wind', attack: 'slash_hit' } },
+      howl: { kind: 'summon', range: 999, windup: 1.0, recover: 0.6, cd: 18, weight: 1.5, monster: 'rime_wolf', count: 2, max: 2, anim: { roar: 'howl' } },
+      ice_spikes: { kind: 'pattern', layout: 'cross', range: 400, windup: 0.9, recover: 0.6, cd: 6, weight: 2, power: 26, knock: 180, count: 4, r: 30, step: 58, delay: 0.12, dmg: 'magic', color: '150,210,255', anim: { roar: 'special' } },
+      frost_nova: { kind: 'nova', range: 999, windup: 1.1, recover: 0.9, cd: 9, weight: 1.5, power: 26, rings: 3, width: 44, gap: 70, dmg: 'magic', status: [{ id: 'slow', dur: 1.5 }], color: '150,210,255', anim: { roar: 'special' } },
+    },
+    // SIGNATURE (boss/mechanics.js): order = priority when several want the next turn
+    mechanics: [
+      { type: 'glacier', phase: 2, every: 17, count: 3, dist: 150, life: 9, windup: 3, power: 70, weak: 4, anim: 'howl', name: 'ABSOLUTE ZERO' },
+      { type: 'frostbite', phase: 2, max: 5, rate: 1.1, melt: 2.2, freeze: 1.1, power: 28 },
+    ],
+    rewards: { exp: 700, gold: 280, loot: 'hoarfang', items: { frost_heart: 1 }, lore: 'hoarfang' },
+    unlocks: ['b2'],
+  },
   boss_b2: { id: 'boss_b2', name: 'B2 AREA BOSS', title: 'Route B · to be designed', type: 'area', impl: 'area', route: 'B', map: 'b2', planned: true, unlocks: ['b3'] },
   boss_b3: { id: 'boss_b3', name: 'B3 MAJOR BOSS', title: 'Route B · to be designed', type: 'major', impl: 'area', route: 'B', map: 'b3', planned: true, unlocks: ['city2'] },
 };

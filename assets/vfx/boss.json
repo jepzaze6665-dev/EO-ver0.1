@@ -271,5 +271,131 @@
   "fh": 60,
   "frames": 8,
   "set": "boss"
+ },
+ "f_spark": {
+  "file": "assets/vfx/boss/f_spark.png",
+  "fw": 45,
+  "fh": 48,
+  "frames": 12,
+  "set": "boss"
+ },
+ "f_slash": {
+  "file": "assets/vfx/boss/f_slash.png",
+  "fw": 119,
+  "fh": 56,
+  "frames": 9,
+  "set": "boss"
+ },
+ "f_burst": {
+  "file": "assets/vfx/boss/f_burst.png",
+  "fw": 95,
+  "fh": 70,
+  "frames": 6,
+  "set": "boss"
+ },
+ "f_spikes": {
+  "file": "assets/vfx/boss/f_spikes.png",
+  "fw": 109,
+  "fh": 67,
+  "frames": 8,
+  "set": "boss"
+ },
+ "f_bolt": {
+  "file": "assets/vfx/boss/f_bolt.png",
+  "fw": 79,
+  "fh": 38,
+  "frames": 7,
+  "set": "boss"
+ },
+ "f_blast": {
+  "file": "assets/vfx/boss/f_blast.png",
+  "fw": 78,
+  "fh": 58,
+  "frames": 7,
+  "set": "boss"
+ },
+ "f_sigil": {
+  "file": "assets/vfx/boss/f_sigil.png",
+  "fw": 84,
+  "fh": 59,
+  "frames": 7,
+  "set": "boss"
+ },
+ "f_crater": {
+  "file": "assets/vfx/boss/f_crater.png",
+  "fw": 98,
+  "fh": 66,
+  "frames": 9,
+  "set": "boss"
+ },
+ "f_crystal": {
+  "file": "assets/vfx/boss/f_crystal.png",
+  "fw": 68,
+  "fh": 56,
+  "frames": 8,
+  "set": "boss"
+ },
+ "f_vortex": {
+  "file": "assets/vfx/boss/f_vortex.png",
+  "fw": 68,
+  "fh": 54,
+  "frames": 8,
+  "set": "boss"
+ },
+ "f_pillar": {
+  "file": "assets/vfx/boss/f_pillar.png",
+  "fw": 77,
+  "fh": 70,
+  "frames": 14,
+  "set": "boss"
+ },
+ "f_shockwave": {
+  "file": "assets/vfx/boss/f_shockwave.png",
+  "fw": 215,
+  "fh": 105,
+  "frames": 6,
+  "set": "boss"
+ },
+ "f_shatter": {
+  "file": "assets/vfx/boss/f_shatter.png",
+  "fw": 200,
+  "fh": 107,
+  "frames": 6,
+  "set": "boss"
+ },
+ "fa_form": {
+  "file": "assets/vfx/boss/fa_form.png",
+  "fw": 104,
+  "fh": 90,
+  "frames": 9,
+  "set": "boss"
+ },
+ "fa_ring": {
+  "file": "assets/vfx/boss/fa_ring.png",
+  "fw": 109,
+  "fh": 109,
+  "frames": 8,
+  "set": "boss"
+ },
+ "fa_bigring": {
+  "file": "assets/vfx/boss/fa_bigring.png",
+  "fw": 127,
+  "fh": 137,
+  "frames": 7,
+  "set": "boss"
+ },
+ "fa_void": {
+  "file": "assets/vfx/boss/fa_void.png",
+  "fw": 112,
+  "fh": 134,
+  "frames": 9,
+  "set": "boss"
+ },
+ "fa_burst": {
+  "file": "assets/vfx/boss/fa_burst.png",
+  "fw": 134,
+  "fh": 145,
+  "frames": 10,
+  "set": "boss"
  }
 }

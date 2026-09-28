@@ -1,4 +1,5 @@
 import { dist, TAU, angleTo, wrapAngle } from '../core/math.js';
+import { TILE as TILE_PX } from '../core/constants.js';
 
 // BOSS MECHANICS — the signature rule that makes one boss fight different from another (data: data/bosses.js
 // `mechanics: [{ type, ... }]`). An AreaBoss owns a list of these and calls their hooks; no boss is named here.
@@ -273,5 +274,107 @@ class Judgement {
   }
 }
 
-export const MECHANICS = { overheat: Overheat, lava_pools: LavaPools, stance: Stance, rune_sequence: RuneSequence, echoes: Echoes, judgement: Judgement };
+// frostbite (from phase d.phase): a player who stands still gathers FROSTBITE; at `max` stacks they FREEZE (stun +
+// a shatter hit). Moving / dodging melts it. Stops a player from camping one spot against a fast hunter.
+class Frostbite {
+  constructor(boss, d) { this.b = boss; this.d = { phase: 2, max: 5, rate: 1.1, melt: 2.2, freeze: 1.1, power: 30, ...d }; this.reset(); }
+  reset() { this.stacks = 0; this.last = null; this.freezes = 0; }
+  update(dt) {
+    const b = this.b, g = b.game, p = g.player, d = this.d;
+    if (b.dead || b.phase < d.phase || (b.state !== 'fight' && b.state !== 'weak') || !p || p.dead) { this.stacks = Math.max(0, this.stacks - dt * d.melt); return; }
+    const moved = this.last ? Math.hypot(p.x - this.last.x, p.y - this.last.y) / Math.max(dt, 1e-4) : 0;
+    this.last = { x: p.x, y: p.y };
+    if (moved > 30 || p.dash) this.stacks = Math.max(0, this.stacks - dt * d.melt);
+    else this.stacks += dt * d.rate;
+    if (this.stacks >= 1 && Math.random() < dt * 4) g.vfx.particle(p.x + (Math.random() - 0.5) * 20, p.y - 10 - Math.random() * 30, { color: '#cfe8ff', vy: -20, life: 0.6, size: 2 });
+    if (this.stacks >= d.max) {
+      this.stacks = 0; this.freezes++;
+      p.status.add('stun', d.freeze);
+      g.combat.dealDamage(b, p, { power: d.power, type: 'magic', unblockable: true, knock: 0 });
+      b.fx('shatter', p.x, p.y - 20, 0, { scale: 0.8, life: 0.5 });
+      g.vfx.text(p.x, p.y - 60, 'FROZEN!', { color: '#bfe6ff', size: 12 });
+      g.events.emit('playerFrozen', { bossId: b.bossId, player: p });
+    }
+  }
+  tags() { return this.b.phase >= this.d.phase && this.stacks >= 0.5 ? [{ label: `FROSTBITE ${Math.floor(this.stacks)}/${this.d.max}`, color: this.stacks >= this.d.max - 1 ? '#ff8080' : '#bfe6ff' }] : []; }
+}
+
+// glacier (from phase d.phase, every `every` s): the boss howls ICE PILLARS out of the floor (solid for `life` s), then
+// breathes ABSOLUTE ZERO across the whole arena — only a player hidden behind a pillar (it blocks the line from the
+// boss) is safe. Afterwards it is EXHAUSTED for `weak` s.
+class Glacier {
+  constructor(boss, d) { this.b = boss; this.d = { phase: 2, every: 17, count: 3, dist: 150, life: 9, windup: 3, power: 70, cover: 26, weak: 4, floor: 0.2, name: 'ABSOLUTE ZERO', ...d }; this.reset(); }
+  reset() {
+    this.t = this.d.first ?? 3; this.safe = 0; this.hurt = 0; this.casts = 0; this.blasts = 0; this.casting = false; // the first cast comes early: the signature is always seen
+    if (this.pillars) this.clearPillars();
+    this.pillars = [];
+  }
+  clearPillars() {
+    const m = this.b.game.world.map;
+    for (const pl of this.pillars) if (m.blocker[pl.i] > 0) m.blocker[pl.i]--;
+    this.pillars = [];
+  }
+  update(dt) {
+    const b = this.b;
+    const m = b.game.world.map;
+    this.pillars = this.pillars.filter((pl) => { pl.t -= dt; if (pl.t > 0 && !b.dead) return true; if (m.blocker[pl.i] > 0) m.blocker[pl.i]--; return false; });
+    if (this.casting && b.co !== this.gen) { this.casting = false; this.t = 2; } // interrupted before the blast: again soon
+    if (b.phase >= this.d.phase && b.state === 'fight') this.t -= dt;
+  }
+  wantsTurn() { return this.b.phase >= this.d.phase && this.t <= 0 ? (this.gen = this.cast()) : null; }
+  // HP floor (areaBoss.applyFloor) until the first blast has gone off — a fast burst cannot skip the signature
+  hpFloor() { return this.blasts ? 0 : this.d.floor; }
+  // is the segment boss -> player blocked by a pillar?
+  covered(p) {
+    const b = this.b, dx = p.x - b.x, dy = p.y - b.y, L2 = dx * dx + dy * dy || 1;
+    return this.pillars.some((pl) => {
+      const t = Math.max(0, Math.min(1, ((pl.x - b.x) * dx + (pl.y - b.y) * dy) / L2));
+      return Math.hypot(b.x + dx * t - pl.x, b.y + dy * t - pl.y) <= this.d.cover && t > 0.05 && t < 0.98;
+    });
+  }
+  *cast() {
+    const b = this.b, g = b.game, d = this.d, m = g.world.map;
+    this.t = d.every; this.casts++; this.casting = true;
+    let t = 0;
+    yield (dt) => { t += dt; b.pose = 'walk'; return b.stepToward(b.center.x, b.center.y, 240, dt) < 16 || t > 1.4; };
+    b.curMove = { anim: { roar: d.anim || 'roar' } };
+    b.pose = 'roar';
+    g.audio.sfx('roar');
+    g.ui.callout(d.name, 'Hide behind an ice pillar!', '#bfe6ff');
+    // pillars around the boss, one on the player's side so a shelter is always reachable
+    const pa = Math.atan2(g.player.y - b.y, g.player.x - b.x);
+    for (let k = 0; k < d.count; k++) {
+      const a = pa + (k - (d.count - 1) / 2) * ((Math.PI * 2) / d.count);
+      const c = b.clampToArena(b.x + Math.cos(a) * d.dist, b.y + Math.sin(a) * d.dist, 40);
+      const tx = Math.floor(c.x / TILE_PX), ty = Math.floor(c.y / TILE_PX);
+      if (!m.inBounds(tx, ty) || m.isSolid(tx, ty)) continue;
+      const i = m.idx(tx, ty);
+      m.blocker[i]++;
+      const pl = { i, x: (tx + 0.5) * TILE_PX, y: (ty + 0.5) * TILE_PX, t: d.life };
+      this.pillars.push(pl);
+      b.fx('pillar', pl.x, pl.y + 10, 0, { scale: 1.2, life: d.life, frame: 12 });
+      g.vfx.shards(pl.x, pl.y, '#9ad8ff', 10, 120);
+    }
+    b.tele({ shape: 'circle', x: b.center.x, y: b.center.y, r: b.arenaR, total: d.windup, color: '150,210,255' }, { dmg: 'magic' });
+    yield d.windup;
+    for (const p of g.players()) {
+      if (p.dead) continue;
+      if (this.covered(p) || p.invulnerable()) { this.safe++; continue; }
+      g.combat.dealDamage(b, p, { power: d.power, type: 'magic', unblockable: true, knock: 240 });
+      p.status.add('slow', 2);
+      this.hurt++;
+    }
+    g.vfx.flash('200,230,255', 0.5, 1.4);
+    g.camera.shake(0.9);
+    b.fx('nova', b.x, b.y, 0, { scale: b.arenaR / 45, life: 0.7, ground: true, squash: 0.6 });
+    this.blasts++; this.casting = false;
+    g.events.emit('bossAbsoluteZero', { bossId: b.bossId, safe: this.safe, hurt: this.hurt });
+    yield 0.4;
+    b.curMove = null;
+    b.enterWeak(d.weak, 'EXHAUSTED');
+  }
+  tags() { return this.pillars.length ? [{ label: `ICE PILLARS ${this.pillars.length} — HIDE BEHIND ONE`, color: '#bfe6ff' }] : []; }
+}
+
+export const MECHANICS = { overheat: Overheat, lava_pools: LavaPools, stance: Stance, rune_sequence: RuneSequence, echoes: Echoes, judgement: Judgement, frostbite: Frostbite, glacier: Glacier };
 export const MECHANIC_TYPES = Object.keys(MECHANICS);

@@ -68,7 +68,6 @@ export function buildFrostwindTerrain(b) {
   for (let y = ay + AR_R - 1; y <= ay + AR_R + 4; y++) for (let x = ax - 2; x <= ax + 2; x++) m.set(x, y, T.STAIRS);
   b.line([[ax, ay + AR_R + 4], [138, 186], [134, 200], [134, 206]], 3, D);             // the road south (to B2, later)
   for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) if (Math.hypot(x - ax, y - ay) <= AR_R + 5) m.zone[m.idx(x, y)] = Z.FROST_ARENA;
-  b.prop('f_frost_arena', ax, ay + AR_R - 3, { layer: 'ground', scale: 3.4 });
   for (let i = 0; i < 14; i++) {
     const a = (i / 14) * Math.PI * 2;
     if (Math.abs(Math.sin(a)) > 0.93) continue; // leave the stairs open

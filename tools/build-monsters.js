@@ -114,6 +114,11 @@ const SHEETS = {
     file: 'B/B1/3', height: 22,
     rows: [['idle', 4], ['walk', 4], ['attack', 4], ['hit', 4], ['telegraph', 4], ['special', 4], ['death', 4]],
   },
+  // B1 BOSS: HOARFANG, a giant frost wolf (faces right on every row)
+  hoarfang: {
+    file: 'B/B1/BOSS', height: 76,
+    rows: [['idle', 8], ['walk', 7], ['run', 7], ['bite', 7], ['slash', 6], ['special', 6], ['hit', 3], ['howl', 8], ['death', 7]],
+  },
   // rows = directions (3 sets); columns: idle · walk ×3 · attack · hit · telegraph · special · death
   frost_harrier: {
     file: 'B/B1/4', height: 32, region: [180, 80, 2048, 2048],

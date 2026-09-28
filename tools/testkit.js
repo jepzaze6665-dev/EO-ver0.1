@@ -1240,10 +1240,13 @@ export function routeBCheck(g, classId = 'umbral_sword') {
   ok('B1 is hostile ground with its own monsters', w.spawnPoints.some((sp) => sp.def.type === 'rime_wolf') && !w.mapDef.safe);
   use(g, 'ws_b1_lodge'); g.ui.panels.close(true);
   ok("Hunter's Lodge waystone attuned", w.state.waystones.ws_b1_lodge);
-  const gate = w.mapDef.gates.find((x) => x.id === 'b1_arena_gate');
-  goto(g, 142, 121);
-  for (let k = 0; k < 12; k++) walk(g, 'KeyS', 0.25);
-  ok('Frost Arena sealed until its guardian exists (gate holds)', p.y < 126 * TILE && !wp.isGateOpen?.(gate), `y=${(p.y / TILE).toFixed(1)}`);
+  // the arena stairs ask first (like every boss arena); 'Not yet' keeps you in B1
+  let asked = false; const ask0 = g.ui.panels.confirm.bind(g.ui.panels);
+  g.ui.panels.confirm = (t, b, y, n, onYes, onNo) => { asked = true; g.ui.panels.confirm = ask0; onNo(); };
+  goto(g, 142, 119);
+  for (let k = 0; k < 6 && !asked; k++) walk(g, 'KeyS', 0.25);
+  g.ui.panels.confirm = ask0;
+  ok('Frost Arena stairs ask first · "Not yet" stays in B1', asked && w.mapId === 'b1', `asked=${asked} map=${w.mapId}`);
   goto(g, 81, 60); g.simulate(0.5);
   const pos = [p.x, p.y];
   g.saveGame(); w.changeMap('lumina'); g.simulate(0.3); const loaded = g.loadGame();
@@ -1252,5 +1255,62 @@ export function routeBCheck(g, classId = 'umbral_sword') {
   goto(g, 6, 21);
   for (let k = 0; k < 12 && w2.mapId !== 'lumina'; k++) walk(g, 'KeyA', 0.3);
   ok('Back west to Lumina', w2.mapId === 'lumina', `map=${w2.mapId}`);
+  return R;
+}
+
+// B1b: HOARFANG, the B1 boss, in the Frost Arena — quest THE EASTERN ROAD, arena gate, 2 phases, the owner's AURA sheet on
+// the phase change, FROSTBITE (standing still freezes you), ABSOLUTE ZERO (only an ice pillar gives cover), the pack howl,
+// rewards once. god: the bot's damage is ignored and it steps behind a pillar when ABSOLUTE ZERO starts.
+export function b1BossCheck(g, classId = 'umbral_sword', { god = true, level = 9, seconds = 300 } = {}) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
+  const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
+  w.changeMap('b1', { entry: [8.5, 21] }); g.simulate(0.5);
+  ok('B1 first visit starts THE EASTERN ROAD', q.isActive('eastern_road'), Object.keys(q.active).join(','));
+  goto(g, 81, 57); g.simulate(0.6);
+  w.transitions.autoConfirm = true;
+  goto(g, 142, 119);
+  for (let k = 0; k < 10 && w.mapId !== 'frost_arena'; k++) walk(g, 'KeyS', 0.35);
+  const enc = g.bosses.get('boss_b1');
+  ok('Frost Arena = its own boss-arena map up the stairs · quest steps · Hoarfang waits', w.mapId === 'frost_arena' && w.mapDef.type === 'boss_arena' && q.active.eastern_road && q.active.eastern_road.done.cross && q.active.eastern_road.done.arena && enc.state === 'idle', `map=${w.mapId} ${enc.state} ${JSON.stringify(q.active.eastern_road && q.active.eastern_road.done)}`);
+  p.setLevel(level); p.hp = p.maxHp; g.inventory.add('hp_potion', 5, true);
+  for (let k = 0; k < 12 && enc.state !== 'engaged'; k++) walk(g, 'KeyS', 0.35);
+  ok('Engaged: exits sealed, camera held on the arena', enc.state === 'engaged' && !!g.camera.lock && w.mapDef.exits.every((x) => !w.transitions.isOpen(x)), enc.state);
+  const e = enc.entity, moves = new Set(), phases = new Set(), fxUsed = new Set();
+  const st = { frozen: 0, zero: null, summons: 0 };
+  const on = (n, f) => { g.events.on(n, f); return [n, f]; };
+  const subs = [on('playerFrozen', () => st.frozen++), on('bossAbsoluteZero', (x) => { st.zero = x; })];
+  const spawn0 = g.vfx.sprite.bind(g.vfx); g.vfx.sprite = (n, ...a) => { if (/^fa?_/.test(n)) fxUsed.add(n); return spawn0(n, ...a); };
+  const glacier = e.mech.find((m) => m.pillars), frost = e.mech.find((m) => m.stacks !== undefined);
+  let stillT = 0, t = 0;
+  for (; t < seconds && enc.state !== 'defeated' && !p.dead; t += 0.5) {
+    g.simulate(0.5, (gg, i) => {
+      // phase 2, once: stand still for a while -> FROSTBITE must freeze the player
+      if (god && e.phase >= 2 && st.frozen === 0 && stillT < 7) { stillT += 1 / 60; releaseInput(gg); p.hp = Math.max(p.hp, p.maxHp * 0.6); }
+      else bot(gg, i, { god });
+      if (e.curMove) moves.add(Object.keys(e.def.moves).find((k) => e.def.moves[k] === e.curMove));
+      st.summons = Math.max(st.summons, (e.summons || []).filter((m) => !m.dead).length);
+      for (const tg of e.hudState().tags) if (!tg || typeof tg.label !== 'string') st.badTag = true; // HUD tags = { label, color }
+      // mechanics run: step behind the nearest pillar when ABSOLUTE ZERO is coming
+      if (god && glacier.pillars.length && !st.zero) {
+        const pl = glacier.pillars.reduce((a, b) => (Math.hypot(b.x - p.x, b.y - p.y) < Math.hypot(a.x - p.x, a.y - p.y) ? b : a));
+        const ang = Math.atan2(pl.y - e.y, pl.x - e.x); p.x = pl.x + Math.cos(ang) * 30; p.y = pl.y + Math.sin(ang) * 30; p.kx = p.ky = 0;
+      }
+    });
+    phases.add(e.phase);
+  }
+  releaseInput(g);
+  g.simulate(6);
+  g.vfx.sprite = spawn0;
+  for (const [n, f] of subs) g.events.off(n, f);
+  ok('Phase change plays the AURA sheet (fa_*) and the B1 boss VFX (f_*)', [...fxUsed].some((n) => n.startsWith('fa_')) && [...fxUsed].filter((n) => n.startsWith('f_')).length >= 4, [...fxUsed].join(','));
+  ok('THE HUNT: its howl calls the pack (Rimefang Wolves)', st.summons > 0, `max summons=${st.summons}`);
+  if (god) ok('WHITEOUT: standing still -> FROSTBITE -> FROZEN', st.frozen > 0, `frozen=${st.frozen}`);
+  ok(`ABSOLUTE ZERO: ice pillars raised${god ? ' · hiding behind one is safe' : ''}`, st.zero && (!god || st.zero.safe > 0), JSON.stringify(st.zero));
+  if (god) ok('Every move used', Object.keys(e.def.moves).every((m) => moves.has(m)), [...moves].join(','));
+  ok('2 phases (WHITEOUT at 55%) · HUD tags well-formed', phases.has(1) && phases.has(2) && !st.badTag, [...phases].join(','));
+  ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_b1') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
+  if (enc.state === 'defeated') ok('Rewards once (Heart of the Winter Alpha + lore) · quest done · banner · route B step 1 done · camera free', g.inventory.count('frost_heart') === 1 && w.state.lore.hoarfang && q.isDone('eastern_road') && trig.includes('b1_boss_defeated') && wp.routeStatus('B').steps[0].bossDefeated && !g.camera.lock);
   return R;
 }
