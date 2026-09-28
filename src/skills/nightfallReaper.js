@@ -87,7 +87,7 @@ export const NightfallReaper = {
   perLevel: { hp: 12, atk: 1.6, def: 0.5 },
   defaultLoadout: ['reapers_arc', 'phantom_reap', 'shadow_doppel', 'nightfall_zone'],
   // Nightfall Gauge generation rules (data, not code)
-  charge: { basicHit: 2, combo: 6, skillHit: 3, skillCap: 12, markExplosion: 5, kill: 8, harvest: 10, perfectDodge: 10 },
+  charge: { basicHit: 2, combo: 6, skillHit: 3, skillCap: 12, markExplosion: 5, kill: 8, harvest: 10 },
   // Death Harvest (passive): a foe dying within `range` of the Reaper
   harvest: { range: 220, haste: 2.5, hasteMult: 1.2 },
   markBonus: 0.25,        // Reaper's Arc: +25% damage per Shadow Mark already on the target
@@ -453,9 +453,5 @@ export const NightfallReaper = {
     },
     targetMarked(p, g, e) { if (e.source === p && e.markId === MARK && e.stacks >= e.maxStacks) g.world.setFlag('tut_marks'); },
   },
-  onPerfectDodge(p, g) {
-    p.gainResource(p.cls.charge.perfectDodge, true);
-    p.reduceCooldowns(0.8);
-    p.status.add('haste', 1.5, { mult: 1.3, refresh: true });
-  },
+  perfectDodge: { resource: 10, stamina: 10, cooldownCut: 0.8, statuses: [{ id: 'haste', dur: 1.5, mult: 1.3 }] }, // data/dodge.js
 };

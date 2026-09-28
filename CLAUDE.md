@@ -14,6 +14,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (V2.2 vertical slice, 29 steps: walks every boss gate on foot, 3 boss fights, City 2, save/load),
   `T.bossReset(__game)` (death mid-fight resets the boss)
+  `T.dodgeCheck(__game, classId)` (Combat 2.0 dodge / Perfect Dodge),
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -161,5 +162,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   0.4 × damage (4-25), parry refunds 12, empty → guard drops + 'guardBroken'); skills may set `stamina: n`
   (SkillSystem → SKILL_FAIL.STAMINA; Umbral: 8/12/15/20/30); ResourcePool.drain(); sprint removed (walk ×1.08; Aegis
   guard also on Shift); HUD STA bar under HP (red when a dodge is unaffordable). tools/tests/stamina.test.mjs.
-  Balance after C1 (bot): UB 158 · AW 133 · AG 93 · RP 184 dummy DPS, all WIN the Guardian. Next: C2.
+  Balance after C1 (bot): UB 158 · AW 133 · AG 93 · RP 184 dummy DPS, all WIN the Guardian.
+  Done C2: dodge rules in `src/data/dodge.js` (time/dist/iframes, recovery 0.08 s, perfectWindow 0.2, perfectCooldown,
+  slowMo; pure `isPerfectDodge`); one dash at a time (no dodge / attack / skill until dash + recovery); Perfect Dodge
+  rewards = class data `perfectDodge { marks, resource, stamina, cooldownCut, statuses[] }` applied by Player
+  (all 4 classes converted, +10 stamina refund; hook `onPerfectDodge(p, g, attacker)` only for extras);
+  event 'attackDodged' { attacker, player, perfect } from enemyStrike / projectiles (for C3 Counter Window).
+  `T.dodgeCheck(g, classId)` (8 steps) + tools/tests/dodge.test.mjs. Next: C3.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

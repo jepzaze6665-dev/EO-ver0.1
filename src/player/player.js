@@ -1,7 +1,7 @@
 import { Entity } from '../core/entity.js';
 import { TEAM } from '../core/constants.js';
 import { angleTo, dir4, damp, clamp, rand, TAU, easeOutCubic } from '../core/math.js';
-import { PERFECT_WINDOW } from '../combat/combat.js';
+import { DODGE, isPerfectDodge } from '../data/dodge.js';
 import { CHARACTER } from './characterConfig.js';
 import { ResourcePool } from '../combat/resourceSystem.js';
 import { RESOURCES } from '../data/resources.js';
@@ -13,7 +13,6 @@ import { LEVELS } from '../data/levels.js';
 import { STAMINA } from '../data/stamina.js';
 import { expToNext, addExp, normalize as normalizeExp, levelStats } from '../progression/experience.js';
 
-const DODGE_TIME = 0.24, DODGE_DIST = 100, DODGE_IFRAMES = 0.28;
 const WALK_MUL = 1.08; // Combat 2.0: sprint removed, base walk a little faster to compensate
 const HURT_IFRAMES = 0.55;
 
@@ -51,7 +50,7 @@ export class Player extends Entity {
     this.stats = { ...classDef.base };
     this.action = null;
     this.combo = 0; this.comboTimer = 0;
-    this.dodging = false; this.dodgeStart = -9; this.dodgeOrigin = null; this.dodgeAng = 0; this.dodgeT = 0;
+    this.dodging = false; this.dodgeReadyAt = -9; this.dodgeStart = -9; this.dodgeOrigin = null; this.dodgeAng = 0; this.dodgeT = 0;
     this.invulnT = 0; this.hurtT = 0;
     this.guardState = { active: false, since: -9, releasedAt: -9 }; // Guard System (classes with guard data)
     this.perfectCooldown = 0;
@@ -259,20 +258,26 @@ export class Player extends Entity {
     return this.invulnT > 0 || this.dodging || (this.action && this.action.invuln && this.action.t >= this.action.invuln[0] && this.action.t <= this.action.invuln[1]);
   }
   canPerfect() {
-    const win = PERFECT_WINDOW + (this.mods.perfectWindow || 0);
-    return this.perfectCooldown <= 0 && this.game.time - this.dodgeStart <= win;
+    return isPerfectDodge(this.game.time, this.dodgeStart, this.perfectCooldown, this.mods.perfectWindow || 0);
   }
   onPerfectDodge(attacker) {
     const g = this.game;
-    this.perfectCooldown = 0.5;
-    g.slowMo(0.3, 0.45);
+    this.perfectCooldown = DODGE.perfectCooldown;
+    g.slowMo(DODGE.slowMo[0], DODGE.slowMo[1]);
     g.vfx.flash('150,60,255', 0.35, 3);
     g.vfx.text(this.x, this.y - 70, 'PERFECT DODGE', { color: '#f2d8ff', size: 13, life: 1.3 });
     g.vfx.ring(this.x, this.y, 8, 70, { life: 0.4, color: '200,120,255', width: 3 });
     g.vfx.burst(this.x, this.y - 20, '#c080ff', 22, 150);
     g.camera.punch(0.08);
     g.audio.sfx('perfect');
-    this.cls.onPerfectDodge(this, g);
+    // rewards = class data (data/dodge.js explains the fields); the class hook adds anything special
+    const r = this.cls.perfectDodge || DODGE.perfectDefault;
+    if (r.marks && this.addMark) this.addMark(r.marks);
+    if (r.resource) this.gainResource(r.resource, true);
+    if (r.stamina) this.resources.gain(STAMINA.resource, r.stamina, { raw: true, reason: 'perfectDodge' });
+    if (r.cooldownCut) this.reduceCooldowns(r.cooldownCut);
+    for (const s of r.statuses || []) this.status.add(s.id, s.dur, { refresh: true, ...(s.mult ? { mult: s.mult } : {}) });
+    if (this.cls.onPerfectDodge) this.cls.onPerfectDodge(this, g, attacker);
     if (this.mods.perfectHeal) this.heal(this.maxHp * 0.05, 'perfectHeal');
     g.events.emit('perfectDodge', attacker);
   }
@@ -320,10 +325,12 @@ export class Player extends Entity {
     this.dodgeAng = ang;
     this.dodgeT = 0;
     this.dodgeFromSkill = fromSkill;
+    this.dodgeReadyAt = this.game.time + (fromSkill ? 0 : DODGE.time + DODGE.recovery);
   }
 
   tryDodge() {
     if (this.hurtT > 0 || !this.status.canMove()) return false;
+    if (this.dodging || this.game.time < this.dodgeReadyAt) return false; // one dash at a time + small recovery
     if (this.action && this.action.t < (this.action.cancelAt ?? 0)) return false;
     if (!this.resources.canAfford(STAMINA.resource, STAMINA.dodge)) { this.game.events.emit('staminaEmpty', { entity: this, action: 'dodge' }); return false; }
     const g = this.game, mv = g.input.moveVector();
@@ -342,7 +349,7 @@ export class Player extends Entity {
   canAct(skill) {
     if (this.dead || this.hurtT > 0 || !this.status.canAct()) return false;
     if (this.action && !this.action.basic && this.action.t < (this.action.cancelAt ?? 0)) return false;
-    if (this.dodging && !this.dodgeFromSkill && this.dodgeT < DODGE_TIME * 0.6) return false;
+    if (!this.dodgeFromSkill && (this.dodging || this.game.time < this.dodgeReadyAt)) return false; // dash + small recovery (data/dodge.js)
     return true;
   }
   beforeCast() { this.dodging = false; if (this.guardState.active) this.setGuard(false); }
@@ -365,7 +372,7 @@ export class Player extends Entity {
   }
 
   tryAttack() {
-    if (this.hurtT > 0 || this.dodging || this.guardState.active || !this.status.canAct()) return false;
+    if (this.hurtT > 0 || this.dodging || this.game.time < this.dodgeReadyAt || this.guardState.active || !this.status.canAct()) return false;
     const a = this.action;
     if (a) {
       if (!a.basic || a.t < a.comboAt) return false;
@@ -434,15 +441,15 @@ export class Player extends Entity {
 
     if (this.dodging) {
       this.dodgeT += dt;
-      const dur = this.action && this.action.dash ? this.action.dur : DODGE_TIME;
-      const dist = this.action && this.action.dash ? this.action.dash.dist : DODGE_DIST;
+      const dur = this.action && this.action.dash ? this.action.dur : DODGE.time;
+      const dist = this.action && this.action.dash ? this.action.dash.dist : DODGE.dist;
       const f0 = easeOutCubic(Math.min(1, (this.dodgeT - dt) / dur)), f1 = easeOutCubic(Math.min(1, this.dodgeT / dur));
       const step = (f1 - f0) * dist;
       map.moveCircle(this, Math.cos(this.dodgeAng) * step, Math.sin(this.dodgeAng) * step);
       this.vx = this.vy = 0;
       if (Math.random() < 0.7) this.trailFx(1);
       this.stepGhost(dt, 0.035);
-      if (this.dodgeT >= dur) { this.dodging = false; if (!this.dodgeFromSkill) this.invulnT = Math.max(this.invulnT, DODGE_IFRAMES - dur); }
+      if (this.dodgeT >= dur) { this.dodging = false; if (!this.dodgeFromSkill) this.invulnT = Math.max(this.invulnT, DODGE.iframes - dur); }
     } else if (this.hurtT > 0) {
       this.vx = damp(this.vx, 0, 10, dt); this.vy = damp(this.vy, 0, 10, dt);
     } else {
@@ -486,7 +493,7 @@ export class Player extends Entity {
     let anim, at;
     if (this.hurtT > 0) { anim = 'hurt'; at = 1 - this.hurtT / 0.2; }
     else if (this.action) { anim = this.action.anim; at = this.action.t / this.action.dur; }
-    else if (this.dodging) { anim = 'dodge'; at = this.dodgeT / DODGE_TIME; }
+    else if (this.dodging) { anim = 'dodge'; at = this.dodgeT / DODGE.time; }
     else if (this.guardState.active) { anim = 'guard'; at = 0; }
     else if (this.moving) { anim = 'walk'; at = this.animT; }
     else { anim = 'idle'; at = 0; }

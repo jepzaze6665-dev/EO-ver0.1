@@ -66,7 +66,7 @@ export class Projectiles {
       const d2 = (pl.x - p.x) ** 2 + (pl.y - 8 - p.y) ** 2;
       if (d2 < (p.r + (pl.hurtRadius || pl.radius)) ** 2) {
         if (pl.invulnerable()) {
-          if (!p.perfectDone && pl.canPerfect()) { p.perfectDone = true; pl.onPerfectDodge(p.owner); }
+          if (!p.perfectDone && pl.canPerfect()) { p.perfectDone = true; pl.onPerfectDodge(p.owner); g.events.emit('attackDodged', { attacker: p.owner, player: pl, perfect: true, projectile: true }); }
           return;
         }
         const info = g.combat.dealDamage(p.owner || { x: p.x - p.vx, y: p.y - p.vy, team: TEAM.ENEMY }, pl, { power: p.power, knock: p.knock, type: p.dmgType || 'physical' });

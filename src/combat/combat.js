@@ -9,7 +9,8 @@ import { THREADS } from '../data/threads.js';
 // Class-agnostic combat resolver. Skills from any class spawn hitboxes described
 // as data; enemies resolve telegraphed strikes through enemyStrike(). All feedback
 // (hit flash, hit stop, numbers, sparks, shake, sound) is centralised here.
-export const PERFECT_WINDOW = 0.2;
+import { DODGE } from '../data/dodge.js'; // dodge / perfect dodge rules (PERFECT_WINDOW moved there)
+export { DODGE };
 
 export class Combat {
   constructor(game) {
@@ -215,7 +216,10 @@ export class Combat {
     const hit = this.testShape(shape, hurt) || (p.dodging && p.dodgeOrigin && this.testShape(shape, { x: p.dodgeOrigin.x, y: p.dodgeOrigin.y, radius: hurt.radius }));
     if (!hit) return false;
     if (p.invulnerable()) {
-      if (p.canPerfect()) p.onPerfectDodge(attacker);
+      const perfect = p.canPerfect();
+      if (perfect) p.onPerfectDodge(attacker);
+      // the attack whiffed — enemies / Counter Window (Combat 2.0 C3) react to this
+      if (p.dodging || perfect || this.game.time - p.dodgeStart <= DODGE.iframes) this.game.events.emit('attackDodged', { attacker, player: p, perfect });
       return false;
     }
     if (!this.testShape(shape, hurt)) return false;

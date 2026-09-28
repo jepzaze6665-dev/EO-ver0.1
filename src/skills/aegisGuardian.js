@@ -252,7 +252,7 @@ export const AegisGuardian = {
     });
   },
   onGuardBlock(p) { p.gainResource(p.cls.charge.block); },
-  onPerfectDodge(p, g) { p.gainResource(10, true); p.reduceCooldowns(0.5); },
+  perfectDodge: { resource: 10, stamina: 10, cooldownCut: 0.5 }, // data/dodge.js
 
   on: {
     // taunted foes that still hit the Guardian feed the gauge

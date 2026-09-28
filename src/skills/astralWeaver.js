@@ -69,7 +69,7 @@ export const AstralWeaver = {
   perLevel: { hp: 10, atk: 1.6, def: 0.4 },
   startingGear: { weapon: 'celestial_loom', armor: 'astral_robe' },
   // Astral Charge generation rules (data, not code)
-  charge: { basicHit: 4, needleHit: 5, threadTouch: 3, markApplied: 2, bind: 6, constellation: 14, perfectDodge: 15 },
+  charge: { basicHit: 4, needleHit: 5, threadTouch: 3, markApplied: 2, bind: 6, constellation: 14 },
   guideIntro: [
     'Your loom spins starlight. Weave Astral Threads [2] — foes that cross them are slowed and Star-Marked. Three Star Marks on one foe cause a CONSTELLATION BREAK.',
     'Build Astral Charge, then detonate every thread at once with THREAD BURST [4]. Keep your distance — you are fragile up close.',
@@ -294,9 +294,5 @@ export const AstralWeaver = {
     },
     threadTouched(p, g, e) { if (e.owner === p && e.first) p.gainResource(p.cls.charge.threadTouch); },
   },
-  onPerfectDodge(p, g) {
-    p.gainResource(p.cls.charge.perfectDodge, true);
-    p.reduceCooldowns(0.8);
-    p.status.add('haste', 1.5, { mult: 1.3, refresh: true });
-  },
+  perfectDodge: { resource: 15, stamina: 10, cooldownCut: 0.8, statuses: [{ id: 'haste', dur: 1.5, mult: 1.3 }] }, // data/dodge.js
 };

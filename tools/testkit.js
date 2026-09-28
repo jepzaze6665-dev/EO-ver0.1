@@ -494,3 +494,37 @@ export function bossReset(g, classId = 'umbral_sword') {
   ok('not recorded as defeated', !g.worldProgress.isBossDefeated('boss_a1'));
   return R;
 }
+
+// COMBAT 2.0 C2: dodge + Perfect Dodge through the real enemyStrike path. Returns [step, pass, detail] rows.
+export function dodgeCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId); releaseInput(g);
+  const p = g.player, foe = { x: p.x + 40, y: p.y, type: 'test_foe', name: 'Test Foe' };
+  const strike = () => g.combat.enemyStrike(foe, { shape: 'circle', x: p.x, y: p.y, r: 40 }, 10);
+  const ev = { perfect: 0, dodged: [] };
+  g.events.on('perfectDodge', () => ev.perfect++);
+  g.events.on('attackDodged', (e) => ev.dodged.push(e.perfect));
+  const settle = () => { g.simulate(1.2); p.invulnT = 0; p.perfectCooldown = 0; p.resources.fill('stamina'); p.hp = p.maxHp; };
+  settle();
+  const hp0 = p.hp; strike(); g.simulate(0.05);
+  ok('No dodge: the attack hits', p.hp < hp0, `${hp0} -> ${p.hp}`);
+  settle();
+  const st0 = p.resources.get('stamina'), marks0 = p.marks || 0;
+  const sk = p.loadout.bindings()[0].skill; p.skillSys.cooldowns.start(sk.id, 10);
+  ok('Dodge costs stamina', p.tryDodge() && st0 - p.resources.get('stamina') === 22, `${st0} -> ${p.resources.get('stamina')}`);
+  ok('No second dodge mid-dash', !p.tryDodge());
+  g.simulate(0.05); const hp1 = p.hp; strike();
+  const r = p.cls.perfectDodge || {};
+  ok('Perfect Dodge: no damage + event + attackDodged(perfect)', p.hp === hp1 && ev.perfect === 1 && ev.dodged[ev.dodged.length - 1] === true);
+  ok('Perfect Dodge rewards (class data)', (!r.marks || (p.marks || 0) > marks0) && p.skillSys.cooldowns.remaining(sk.id) < 10 - 0.05 - (r.cooldownCut || 0.5) + 0.2, `marks ${marks0}->${p.marks || 0} cd ${p.skillSys.cooldowns.remaining(sk.id).toFixed(2)}`);
+  settle();
+  p.tryDodge(); g.simulate(0.25); const hp2 = p.hp; strike();
+  ok('Late dodge (after the window, inside i-frames): normal dodge, no damage, not perfect', p.hp === hp2 && ev.perfect === 1 && ev.dodged[ev.dodged.length - 1] === false, `perfects=${ev.perfect}`);
+  g.simulate(0.2);
+  ok('Dodge again after the recovery', p.tryDodge());
+  settle();
+  p.resources.set('stamina', 10);
+  ok('Not enough stamina: no dodge', !p.tryDodge());
+  releaseInput(g);
+  return R;
+}

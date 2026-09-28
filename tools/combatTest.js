@@ -265,7 +265,7 @@ export function mechanicChecks(g, classId) {
   // Counter (status 'counter_ready' from a Perfect Dodge): next basic attack consumes it with a forced crit
   if (classId === 'umbral_sword') {
     ({ p, d } = atDummy(g, classId));
-    p.cls.onPerfectDodge(p, g);
+    p.onPerfectDodge(null);
     const had = p.status.has('counter_ready');
     let crit = null; g.events.on('damageDealt', (e) => { if (e.source === p && crit === null) crit = e.crit; });
     g.simulate(0.5, (gg, i) => { aim(g, d.x, d.y); if (i === 1) gg.input.pushBuffer('attack'); });

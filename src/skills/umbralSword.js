@@ -309,14 +309,9 @@ export const UmbralSword = {
       g.vfx.shadowSmoke(e.target.x, e.target.y, 8);
     },
   },
-  onPerfectDodge(p, g) {
-    p.addMark(1);
-    p.gainResource(20, true);
-    p.reduceCooldowns(1.0);
-    p.status.add('haste', 1.5, { mult: 1.3, refresh: true });
-    p.status.add('counter_ready', 1.3, { refresh: true });
-    if (p.mods.perfectBonus) { p.addMark(1); p.gainResource(15, true); }
-  },
+  // Perfect Dodge rewards (data/dodge.js): +1 Shadow Mark, Shadow, faster skills, a counter-ready basic attack
+  perfectDodge: { marks: 1, resource: 20, stamina: 10, cooldownCut: 1.0, statuses: [{ id: 'haste', dur: 1.5, mult: 1.3 }, { id: 'counter_ready', dur: 1.3 }] },
+  onPerfectDodge(p) { if (p.mods.perfectBonus) { p.addMark(1); p.gainResource(15, true); } },
 };
 
 export const CLASSES = { umbral_sword: UmbralSword }; // v1 alias — the full registry is skills/classes.js
