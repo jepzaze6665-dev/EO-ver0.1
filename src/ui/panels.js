@@ -1,3 +1,4 @@
+import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { ITEMS, RARITY_COLOR, CATEGORIES, RECIPES, SHOP } from '../items/items.js';
 import { iconURL } from './icons.js';
 import { dialogueFor, LORE } from '../world/narrative.js';
@@ -219,7 +220,8 @@ export class Panels {
         </div>`;
     } else if (this.invTab === 'skills') {
       // generic loadout editor: every class skill, keys 1-4 are chosen here (5 = ultimate, Q = special)
-      const p = g.player, lo = p.loadout, cd = (s) => `CD ${s.cooldown}s${s.cost ? ` · ${s.cost} ${RESOURCES[s.costResource || p.primaryResource].label}` : ''}`;
+      const tierTag = (s) => { const t = SKILL_TIERS[s.tier]; return t ? `<span style="color:${t.color}">${t.label}</span> · ` : ''; };
+      const p = g.player, lo = p.loadout, cd = (s) => `${tierTag(s)}CD ${s.cooldown}s${s.cost ? ` · ${s.cost} ${RESOURCES[s.costResource || p.primaryResource].label}` : ''}${staminaCost(s) ? ` · ${staminaCost(s)} STA` : ''}`;
       const card = (s, extra = '') => `<div class="skill-card${lo.slots.includes(s.id) ? ' on' : ''}">
           <img src="${iconURL(s.icon)}"><div class="sk-body"><b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).join(', ')}</span>
           <div class="small">${esc(s.desc || '')}</div>${extra}</div></div>`;

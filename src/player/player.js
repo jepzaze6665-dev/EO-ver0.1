@@ -176,11 +176,15 @@ export class Player extends Entity {
     const r = this.game.marks.apply(this, this.markId, { source: this, stacks: n, sourceClass: this.cls.id });
     if (r.added > 0) {
       this.markPulse = 1;
-      this.game.audio.sfx(this.marks === 3 ? 'mark_full' : 'mark');
-      this.game.vfx.burst(this.x, this.y - 64, '#c080ff', 8, 50);
-      if (this.marks === 3) {
-        this.game.vfx.text(this.x, this.y - 78, 'SHADOW BREAK READY  [Q]', { color: '#e8c0ff', size: 10, life: 1.4 });
-        this.game.vfx.ring(this.x, this.y, 30, 6, { life: 0.3, color: '200,120,255', width: 2 });
+      const g = this.game, hc = this.cls.hudCounter ? this.cls.hudCounter(this) : null, full = this.marks >= this.maxMarks;
+      g.audio.sfx(full ? 'mark_full' : 'mark');
+      g.vfx.burst(this.x, this.y - 64, (hc && hc.color) || '#c080ff', 8, 50);
+      if (full) {
+        // Combat 2.0 §55: the last mark lands with a beat — short freeze, a pulse, the ready call (class text)
+        g.hitStop = Math.max(g.hitStop, 0.05);
+        if (hc && hc.readyText) g.vfx.text(this.x, this.y - 78, hc.readyText, { color: hc.full || '#e8c0ff', size: 10, life: 1.4 });
+        g.vfx.ring(this.x, this.y, 36, 6, { life: 0.3, color: '200,120,255', width: 3 });
+        g.events.emit('marksFull', { player: this, mark: this.markId });
       }
     }
   }

@@ -14,7 +14,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (V2.2 vertical slice, 29 steps: walks every boss gate on foot, 3 boss fights, City 2, save/load),
   `T.bossReset(__game)` (death mid-fight resets the boss)
-  `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` (Combat 2.0),
+  `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` (Combat 2.0),
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -200,5 +200,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   stunned) > low HP > skirmishers → ranged classes > sticky current > distance; re-picked every 1.5 s (`monster.target`).
   combat.enemyStrike + enemy projectiles hit every player in `game.players()`. `T.slotCheck(g)` (5 steps: 5-monster
   pack never exceeds capacity, all get turns) + tools/tests/attackSlots.test.mjs. counterCheck damage compare now
-  uses knock 0 + 6 samples (was flaky). Next: C7.
+  uses knock 0 + 6 samples (was flaky).
+  Done C7: `src/data/skillTiers.js`: every class skill (1-5 + Q special) names `tier` fast / medium / high
+  (limits: fast dur ≤ 0.45 + early cancel, medium ≤ 0.7, high ≥ 0.6 + superArmor; pure `tierProblems`), default
+  stamina 6 / 12 / 25 via `staminaCost(skill)` (SkillSystem; own `stamina` overrides, 0 = free: Shadow Break,
+  Aegis Guard) → AW / AG / RP skills now cost stamina too. Tier + STA shown in the Skills tab and skill tooltip.
+  Player.addMark no longer hardcodes UB text: full marks = short hit stop + the class hudCounter readyText + event
+  'marksFull'. Shadow Break adds the large slash sprite + a delayed shadow particle explosion (§55 order).
+  `T.tierCheck(g)` (async, 8 steps: real cast() actions vs their tier + stamina spent) + tools/tests/skillTiers.test.mjs.
+  Next: C8.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

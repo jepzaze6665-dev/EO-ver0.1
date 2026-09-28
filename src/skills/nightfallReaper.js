@@ -232,7 +232,7 @@ export const NightfallReaper = {
 
   skills: [
     {
-      slot: 1, id: 'reapers_arc', name: 'Reaper\'s Arc', type: 'active', cooldown: 5, cost: 0, targeting: 'self',
+      slot: 1, id: 'reapers_arc', tier: 'medium', name: 'Reaper\'s Arc', type: 'active', cooldown: 5, cost: 0, targeting: 'self',
       tags: ['aoe', 'shadow', 'mark', 'melee'], icon: 'reaper_arc',
       desc: 'Spin the scythe in a full circle. Places a Shadow Mark on everything hit and deals +25% damage per mark a target already carries.',
       cast(p, g, a) {
@@ -258,7 +258,7 @@ export const NightfallReaper = {
       },
     },
     {
-      slot: 2, id: 'phantom_reap', name: 'Phantom Reap', type: 'active', cooldown: 7, cost: 0, targeting: 'direction',
+      slot: 2, id: 'phantom_reap', tier: 'fast', name: 'Phantom Reap', type: 'active', cooldown: 7, cost: 0, targeting: 'direction',
       tags: ['dash', 'shadow', 'multi-hit', 'consumes-marks', 'invulnerable'], icon: 'phantom_reap',
       desc: 'Dash through enemies as a phantom (invulnerable), cutting 3 times along the path. The final reap scales with Shadow Marks and detonates them (Mark Explosion).',
       cast(p, g, a) {
@@ -292,7 +292,7 @@ export const NightfallReaper = {
       },
     },
     {
-      slot: 3, id: 'shadow_doppel', name: 'Shadow Doppel', type: 'active', cooldown: 16, cost: 20, targeting: 'self',
+      slot: 3, id: 'shadow_doppel', tier: 'medium', name: 'Shadow Doppel', type: 'active', cooldown: 16, cost: 20, targeting: 'self',
       tags: ['summon', 'clone', 'shadow'], icon: 'doppel',
       desc: 'Split off a Shadow Clone for 8 s (40% damage). It fights beside you, copies Reaper\'s Arc and Phantom Reap, and marks what it cuts.',
       cast(p, g, a) {
@@ -310,7 +310,7 @@ export const NightfallReaper = {
       },
     },
     {
-      slot: 4, id: 'nightfall_zone', name: 'Nightfall Zone', type: 'active', cooldown: 12, cost: 0, targeting: 'point',
+      slot: 4, id: 'nightfall_zone', tier: 'medium', name: 'Nightfall Zone', type: 'active', cooldown: 12, cost: 0, targeting: 'point',
       tags: ['zone', 'aoe', 'shadow', 'control', 'mark'], icon: 'nightfall_zone',
       desc: 'Open a pool of night at the cursor for 4 s: it slows, damages and Shadow-Marks foes inside (marked foes take more). It then collapses, pulling foes to the centre and rooting them (bosses are only pulled).',
       cast(p, g, a) {
@@ -322,7 +322,7 @@ export const NightfallReaper = {
       },
     },
     {
-      slot: 5, id: 'funeral_eclipse', name: 'Funeral Eclipse', type: 'ultimate', cooldown: 28, cost: 50, targeting: 'self',
+      slot: 5, id: 'funeral_eclipse', tier: 'high', name: 'Funeral Eclipse', type: 'ultimate', cooldown: 28, cost: 50, targeting: 'self',
       tags: ['ultimate', 'aoe', 'shadow', 'summon', 'consumes-marks', 'execute'], icon: 'funeral_eclipse', ultimate: true,
       desc: 'ULTIMATE (50+ Nightfall — spends it ALL). A black sun rises: an Eclipse Zone and a Shadow Clone appear, every Shadow Mark nearby explodes, then night falls on everything around you — stronger the more gauge you spent. Non-boss foes left under 20% HP are executed.',
       cast(p, g, a) {
@@ -376,7 +376,7 @@ export const NightfallReaper = {
 
   // ---------------- REAPER'S STEP (Q / right click) — needs a Shadow-Marked foe in range
   special: {
-    id: 'reapers_step', name: 'Reaper\'s Step', type: 'special', slot: 'Q', key: 'Q', icon: 'reaper_step',
+    id: 'reapers_step', tier: 'fast', name: 'Reaper\'s Step', type: 'special', slot: 'Q', key: 'Q', icon: 'reaper_step',
     cost: 0, cooldown: 6, targeting: 'target', tags: ['teleport', 'mobility', 'shadow', 'consumes-marks'],
     requirements: [{ type: 'markedFoe', mark: MARK, range: 300, label: 'a Shadow-Marked foe nearby' }],
     desc: 'Step through the shadows to the marked foe nearest your cursor, appear behind it and cut — detonating its Shadow Marks.',

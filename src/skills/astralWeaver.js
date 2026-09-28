@@ -119,7 +119,7 @@ export const AstralWeaver = {
 
   skills: [
     {
-      slot: 1, id: 'star_needle', name: 'Star Needle', type: 'active', cooldown: 2.2, cost: 0, targeting: 'direction',
+      slot: 1, id: 'star_needle', tier: 'fast', name: 'Star Needle', type: 'active', cooldown: 2.2, cost: 0, targeting: 'direction',
       tags: ['ranged', 'magic', 'mark', 'pierce'], icon: 'needle',
       desc: 'Hurl a piercing needle of starlight. Places a Star Mark on every enemy it passes.',
       cast(p, g, a) {
@@ -141,7 +141,7 @@ export const AstralWeaver = {
       },
     },
     {
-      slot: 2, id: 'astral_thread', name: 'Astral Thread', type: 'active', cooldown: 3, cost: 0, targeting: 'point',
+      slot: 2, id: 'astral_thread', tier: 'fast', name: 'Astral Thread', type: 'active', cooldown: 3, cost: 0, targeting: 'point',
       tags: ['thread', 'control', 'magic'], icon: 'thread',
       desc: 'Weave a thread of starlight from your feet to the cursor. Enemies crossing it are slowed, damaged and Star-Marked. Aim at an enemy to BIND it (root).',
       cast(p, g, a) {
@@ -167,7 +167,7 @@ export const AstralWeaver = {
       },
     },
     {
-      slot: 3, id: 'comet_step', name: 'Comet Step', type: 'active', cooldown: 5, cost: 0, targeting: 'direction',
+      slot: 3, id: 'comet_step', tier: 'fast', name: 'Comet Step', type: 'active', cooldown: 5, cost: 0, targeting: 'direction',
       tags: ['dash', 'mobility', 'invulnerable', 'thread'], icon: 'comet',
       desc: 'Blink as a comet (invulnerable, can Perfect Dodge). Leaves an Astral Thread along your path.',
       cast(p, g, a) {
@@ -188,7 +188,7 @@ export const AstralWeaver = {
       },
     },
     {
-      slot: 4, id: 'thread_burst', name: 'Thread Burst', type: 'active', cooldown: 6, cost: 30, targeting: 'self',
+      slot: 4, id: 'thread_burst', tier: 'medium', name: 'Thread Burst', type: 'active', cooldown: 6, cost: 30, targeting: 'self',
       tags: ['thread', 'burst', 'aoe', 'magic', 'consumes-threads'], icon: 'burst',
       requirements: [{ type: 'value', key: 'threadCount', min: 1, label: 'an Astral Thread' }],
       desc: 'Detonate every Astral Thread you have woven. Each explosion places a Star Mark.',
@@ -217,7 +217,7 @@ export const AstralWeaver = {
       },
     },
     {
-      slot: 5, id: 'starfall_fate', name: 'Starfall Fate', type: 'ultimate', cooldown: 22, cost: 60, targeting: 'point',
+      slot: 5, id: 'starfall_fate', tier: 'high', name: 'Starfall Fate', type: 'ultimate', cooldown: 22, cost: 60, targeting: 'point',
       tags: ['ultimate', 'aoe', 'magic', 'mark'], icon: 'starfall', ultimate: true,
       desc: 'ULTIMATE. Call down a rain of stars on the target area. Every star places a Star Mark; the final impact is devastating.',
       cast(p, g, a) {
@@ -258,7 +258,7 @@ export const AstralWeaver = {
 
   // ---------------- ASTRAL VEIL (Q / right click) — shield + repel
   special: {
-    id: 'astral_veil', name: 'Astral Veil', type: 'special', slot: 'Q', key: 'Q', icon: 'veil',
+    id: 'astral_veil', tier: 'medium', name: 'Astral Veil', type: 'special', slot: 'Q', key: 'Q', icon: 'veil',
     cost: 0, cooldown: 12, targeting: 'self', tags: ['defense', 'shield', 'control'],
     desc: 'Wrap yourself in a veil of stars: a shield (20% max HP) and a pulse that repels and slows nearby enemies.',
     cast(p, g, a) {

@@ -1,3 +1,4 @@
+import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
 import { icon } from './icons.js';
 import { TILE, T, Z } from '../core/constants.js';
@@ -304,11 +305,13 @@ export class HUD {
   tooltip(ctx, x, y, s, u) {
     const w = 280 * u;
     const lines = wrap(ctx, s.desc, w - 16 * u, `500 ${Math.round(11 * u)}px ${FONT}`);
-    const h = (40 + lines.length * 15) * u;
+    const h = (46 + lines.length * 15) * u;
     this.panel(ctx, x, y - h, w, h, 0.95);
     this.text(ctx, s.name, x + 8 * u, y - h + 18 * u, 13 * u, '#f0e0ff');
-    if (s.cooldown > 1) this.text(ctx, `CD ${s.cooldown}s · ${s.cost} ${RESOURCES[s.costResource || this.game.player.primaryResource].label}`, x + w - 8 * u, y - h + 18 * u, 10 * u, '#b8a0d8', { align: 'right' });
-    lines.forEach((l, i) => this.text(ctx, l, x + 8 * u, y - h + (36 + i * 15) * u, 11 * u, '#d8d0e8', { weight: 500, stroke: false }));
+    if (s.cooldown > 1) this.text(ctx, `CD ${s.cooldown}s · ${s.cost} ${RESOURCES[s.costResource || this.game.player.primaryResource].label}${staminaCost(s) ? ` · ${staminaCost(s)} STA` : ''}`, x + w - 8 * u, y - h + 18 * u, 10 * u, '#b8a0d8', { align: 'right' });
+    const tier = SKILL_TIERS[s.tier];
+    if (tier) this.text(ctx, tier.label, x + 8 * u, y - h + 30 * u, 8 * u, tier.color);
+    lines.forEach((l, i) => this.text(ctx, l, x + 8 * u, y - h + (44 + i * 15) * u, 11 * u, '#d8d0e8', { weight: 500, stroke: false }));
   }
 
   // ---------------- minimap

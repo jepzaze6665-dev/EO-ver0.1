@@ -107,7 +107,7 @@ export const AegisGuardian = {
 
   skills: [
     {
-      id: 'shield_bash', name: 'Shield Bash', type: 'active', cooldown: 5, cost: 0, targeting: 'direction',
+      id: 'shield_bash', tier: 'medium', name: 'Shield Bash', type: 'active', cooldown: 5, cost: 0, targeting: 'direction',
       tags: ['melee', 'stun', 'mark', 'control'], icon: 'shield_bash',
       desc: 'Slam forward with the shield: stuns and places a Guardian Mark (taunt) on everything hit.',
       cast(p, g, a) {
@@ -128,7 +128,7 @@ export const AegisGuardian = {
       },
     },
     {
-      id: 'guardian_slash', name: 'Guardian Slash', type: 'active', cooldown: 4, cost: 0, targeting: 'direction',
+      id: 'guardian_slash', tier: 'medium', name: 'Guardian Slash', type: 'active', cooldown: 4, cost: 0, targeting: 'direction',
       tags: ['melee', 'aoe', 'holy', 'consumes-marks'], icon: 'guardian_slash',
       desc: 'A wide holy crescent. Foes carrying your Guardian Mark are JUDGED: the mark is consumed for heavy bonus holy damage and Guard Gauge.',
       cast(p, g, a) {
@@ -154,7 +154,7 @@ export const AegisGuardian = {
       },
     },
     {
-      id: 'guardian_challenge', name: 'Guardian Challenge', type: 'active', cooldown: 12, cost: 0, targeting: 'self',
+      id: 'guardian_challenge', tier: 'medium', name: 'Guardian Challenge', type: 'active', cooldown: 12, cost: 0, targeting: 'self',
       tags: ['taunt', 'aoe', 'mark', 'defense'], icon: 'challenge',
       desc: 'A war cry: every foe nearby is TAUNTED (Guardian Mark, -20% damage) and must fight you. You take 30% less damage for 4 s.',
       cast(p, g, a) {
@@ -179,7 +179,7 @@ export const AegisGuardian = {
       },
     },
     {
-      id: 'holy_barrier', name: 'Holy Barrier', type: 'active', cooldown: 16, cost: 40, targeting: 'self',
+      id: 'holy_barrier', tier: 'medium', name: 'Holy Barrier', type: 'active', cooldown: 16, cost: 40, targeting: 'self',
       tags: ['barrier', 'shield', 'defense', 'support'], icon: 'barrier',
       desc: 'Raise a holy dome: a shield worth 35% of max HP for 6 s, heals 8% and pushes enemies away. (Party members will share it.)',
       cast(p, g, a) {
@@ -199,7 +199,7 @@ export const AegisGuardian = {
       },
     },
     {
-      slot: 5, id: 'aegis_ascension', name: 'Aegis Ascension', type: 'ultimate', cooldown: 30, cost: 70, targeting: 'self',
+      slot: 5, id: 'aegis_ascension', tier: 'high', name: 'Aegis Ascension', type: 'ultimate', cooldown: 30, cost: 70, targeting: 'self',
       tags: ['ultimate', 'aoe', 'taunt', 'defense', 'holy'], icon: 'aegis', ultimate: true,
       desc: 'ULTIMATE. Ascend behind a colossal holy shield: a crushing slam taunts everything nearby, then for 8 s you take 50% less damage and deal 25% more.',
       cast(p, g, a) {
@@ -229,7 +229,7 @@ export const AegisGuardian = {
 
   // ---------------- AEGIS GUARD (hold Q / right click) — the Guard System; tapping from code raises it too
   special: {
-    id: 'aegis_guard', name: 'Aegis Guard', type: 'special', slot: 'Q', key: 'Q', icon: 'guard',
+    id: 'aegis_guard', tier: 'fast', stamina: 0, name: 'Aegis Guard', type: 'special', slot: 'Q', key: 'Q', icon: 'guard',
     cost: 0, cooldown: 0.1, targeting: 'self', tags: ['guard', 'block', 'defense', 'hold'], hold: true,
     desc: 'HOLD to guard: frontal hits deal 75% less and fill the Guard Gauge. Raise it just before a blow for a PERFECT GUARD: no damage + instant counter.',
     cast(p) { p.setGuard(true); return null; },

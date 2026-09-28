@@ -1,4 +1,5 @@
 import { STAMINA } from '../data/stamina.js';
+import { staminaCost } from '../data/skillTiers.js';
 import { Cooldowns } from './cooldownSystem.js';
 
 // SKILL SYSTEM — generic skill pipeline for any caster (player today; enemies, party
@@ -70,8 +71,9 @@ export class SkillSystem {
     if (s.cost && !this.caster.resources.canAfford(this.costResource(s), s.cost)) {
       return { ok: false, reason: SKILL_FAIL.RESOURCE, skill: s, resource: this.costResource(s) };
     }
-    // COMBAT 2.0: optional skill.stamina (data/stamina.js resource) on top of the class resource cost
-    if (s.stamina && this.caster.resources.has(STAMINA.resource) && !this.caster.resources.canAfford(STAMINA.resource, s.stamina)) {
+    // COMBAT 2.0: stamina (skill.stamina, else its tier's default — data/skillTiers.js) on top of the class resource cost
+    const sta = staminaCost(s);
+    if (sta && this.caster.resources.has(STAMINA.resource) && !this.caster.resources.canAfford(STAMINA.resource, sta)) {
       return { ok: false, reason: SKILL_FAIL.STAMINA, skill: s, resource: STAMINA.resource };
     }
     return { ok: true, skill: s };
@@ -87,7 +89,8 @@ export class SkillSystem {
     const s = check.skill;
     if (this.caster.beforeCast) this.caster.beforeCast(s);
     if (s.cost) this.caster.resources.spend(this.costResource(s), s.cost, 'skill:' + id);
-    if (s.stamina && this.caster.resources.has(STAMINA.resource)) this.caster.resources.spend(STAMINA.resource, s.stamina, 'skill:' + id);
+    const sta = staminaCost(s);
+    if (sta && this.caster.resources.has(STAMINA.resource)) this.caster.resources.spend(STAMINA.resource, sta, 'skill:' + id);
     this.cooldowns.start(id, this.cooldownFor(s));
     const result = s.cast(...castArgs);
     if (this.onUsed) this.onUsed({ caster: this.caster, skillId: id, skill: s });

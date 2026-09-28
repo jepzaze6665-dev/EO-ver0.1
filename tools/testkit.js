@@ -688,3 +688,36 @@ export function slotCheck(g) {
   releaseInput(g);
   return R;
 }
+
+// COMBAT 2.0 C7: every class skill has a commitment tier and its real action respects it; stamina follows the tier.
+export async function tierCheck(g) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  const { tierProblems, staminaCost } = await import('../src/data/skillTiers.js');
+  const { CLASSES } = await import('../src/skills/classes.js');
+  for (const id of Object.keys(CLASSES)) {
+    g.newGame(id); releaseInput(g); goto(g, 38, 121); g.simulate(0.2);
+    const p = g.player, all = [...p.cls.skills.filter((s) => !s.basic), p.cls.special].filter(Boolean);
+    const bad = [];
+    for (const s of all) {
+      if (!s.tier) { bad.push(`${s.id}: no tier`); continue; }
+      p.endAction(true);
+      // meet the skill's data requirements first (marks on self / a marked foe nearby)
+      for (const r of s.requirements || []) {
+        if (r.type === 'mark' && p.addMark) p.addMark(r.min);
+        if (r.type === 'markedFoe') { const foe = g.world.monsters.find((m) => !m.dead && g.world.onMap(m)); foe.x = p.x + 60; foe.y = p.y; g.marks.apply(foe, r.mark, { source: p, stacks: 3 }); }
+      }
+      const act = s.cast(p, g, 0); // the action timeline the skill really plays
+      const probs = tierProblems(s, act && act.dur ? act : null);
+      if (probs.length) bad.push(`${s.id} (${s.tier}): ${probs.join(', ')}`);
+      p.endAction(true); p.dodging = false; g.combat.clear();
+    }
+    ok(`${p.cls.name}: all ${all.length} skills have a tier their action respects`, !bad.length, bad.join(' | '));
+    // stamina through the real pipeline for the first loadout skill
+    const s = p.loadout.bindings()[0].skill; g.simulate(0.5);
+    p.resources.fill(p.primaryResource); p.resources.fill('stamina'); p.skillSys.cooldowns.clear(s.id); p.hurtT = 0; p.endAction(true);
+    const st0 = p.resources.get('stamina'); const used = p.trySkill(s);
+    ok(`${p.cls.name}: ${s.name} spends its tier stamina`, used && Math.round(st0 - p.resources.get('stamina')) === staminaCost(s), `${st0} -> ${p.resources.get('stamina')} (cost ${staminaCost(s)})`);
+  }
+  releaseInput(g);
+  return R;
+}
