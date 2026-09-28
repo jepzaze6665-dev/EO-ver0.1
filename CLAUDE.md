@@ -20,6 +20,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
+- The preview pane in the background pauses `requestAnimationFrame`: the game does not advance (a map-entry fade
+  looks "stuck" black). Drive it with `game.simulate(sec)` before screenshots.
 - After editing `tools/testkit.js`, **reload the page**: `combatTest.js` imports it without a cache-busting query.
 
 ## Architecture rules (from the V2 master prompt — keep them)
@@ -322,6 +324,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   the back-core turn after a dash is only for `weakPoint` monsters). `T.a2MonsterCheck(g, classId)` (12 steps: every
   attack used after a telegraph, punish windows, slow, loot, a no-god LV 10 pack fight) — 12/12 for all 4 classes.
   Bots dodge almost perfectly (take 0-1 hits): real difficulty needs a human playtest.
-  Next: W3c the Magma Beast boss in the Magma Rift, W4 A3 Rune Citadel (owner's A3 sheets fit: dark stone + gold + purple crystal) + rune knight (major),
+  W3c done (A2 boss): `boss_a2` MAGMA BEAST (live, impl 'area', Lv 14, rec 13, hp 16000, arena = Magma Rift center
+  [84,26] r 8.5). Phase 1 MOLTEN HIDE: bite · charge (guardBreak, opening) · fireball volley (burn) · eruption (scatter,
+  burn, opening); phase 2 MOLTEN FURY at 50% (red enraged form, faster): + fire_fan · lava_rain · magma_nova. AreaBoss now
+  plays sheet art: pose -> anim via move `anim` > look.phaseAnims[phase] > look.anims > defaults (`sheetFrame`), death anim,
+  stagger in weak windows; `pattern` moves may have `opening`. Quest `burning_rift` (A2 spine, starts on the first A2 visit;
+  flag riftFound via trigger), rewards magma_heart + lore 'magma_beast', trigger a2_boss_defeated (A3 coming later).
+  `T.a2BossCheck(g, classId, { god, level, seconds })` 8/8. No-god balance at LV 13: RP 88 s · UB 102 s · AW 108 s ·
+  AG 149 s, all win.
+  Next: W4 A3 Rune Citadel (owner's A3 sheets fit: dark stone + gold + purple crystal) + rune knight (major),
   W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

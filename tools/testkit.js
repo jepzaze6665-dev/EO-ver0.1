@@ -952,3 +952,40 @@ export function a2MonsterCheck(g, classId = 'umbral_sword') {
   releaseInput(g);
   return R;
 }
+
+// W3c: the A2 boss (Magma Beast) — quest, idle in the Magma Rift, engage on foot, every move used, 2 phases, sheet
+// art per pose, defeat + rewards once, world trigger, route status. opts.god false = a real fight (balance).
+export function a2BossCheck(g, classId = 'umbral_sword', { god = true, level = 13, seconds = 300 } = {}) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
+  wp.defeatBoss('boss_a1'); w.setFlag('guardianDefeated'); w.applyState();
+  const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
+  w.changeMap('a2', { entry: [84.5, 190] }); g.simulate(0.5);
+  ok('A2 first visit starts THE BURNING RIFT', q.isActive('burning_rift'), Object.keys(q.active).join(','));
+  const enc = g.bosses.get('boss_a2');
+  goto(g, 84, 44); walk(g, 'KeyW', 0.6);
+  ok('Magma Rift found (flag + quest step) · boss waits (IDLE)', w.state.flags.riftFound && q.active.burning_rift.done.rift && enc.state === 'idle', `${enc.state} rift=${w.state.flags.riftFound}`);
+  p.setLevel(level); p.hp = p.maxHp; g.inventory.add('hp_potion', 4, true);
+  goto(g, 84, 38);
+  for (let k = 0; k < 8 && enc.state !== 'engaged'; k++) walk(g, 'KeyW', 0.4); // classes walk at different speeds
+  ok('Engaged when the player walks in (arena lock)', enc.state === 'engaged' && w.inBossFight(), enc.state);
+  const e = enc.entity, moves = new Set(), anims = new Set(), phases = new Set();
+  let t = 0;
+  for (; t < seconds && enc.state !== 'defeated' && !p.dead; t += 0.5) {
+    g.simulate(0.5, (gg, i) => { bot(gg, i, { god }); if (e.curMove) moves.add(Object.keys(e.def.moves).find((k) => e.def.moves[k] === e.curMove)); if (!e.dead && e.sprites && e.sprites.sheet) { const fr = e.sheetFrame(e.sprites); for (const [n, list] of Object.entries(e.sprites.anims)) if (list.includes(fr)) anims.add(n); } });
+    phases.add(e.phase);
+  }
+  releaseInput(g);
+  g.simulate(6);
+  const all = Object.keys(e.def.moves);
+  // move coverage is random over a short fight: checked in the mechanics run (god), reported in balance runs
+  if (god) ok(`Every move used (${all.length})`, all.every((m) => moves.has(m)), `used ${[...moves].join(',')}`);
+  ok('Sheet animations follow the fight (bite / fireball / eruption / enraged form)', ['attack', 'fire_shot', 'eruption', 'enrage'].every((a) => anims.has(a)), [...anims].join(','));
+  ok('2 phases (MOLTEN FURY at 50%)', phases.has(1) && phases.has(2), [...phases].join(','));
+  ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_a2') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
+  if (enc.state === 'defeated') {
+    ok('Rewards once: Magma Heart + lore; quest done; world trigger; route status', g.inventory.count('magma_heart') === 1 && w.state.lore.magma_beast && q.isDone('burning_rift') && trig.includes('a2_boss_defeated') && wp.routeStatus('A').steps[1].bossDefeated);
+  }
+  return R;
+}

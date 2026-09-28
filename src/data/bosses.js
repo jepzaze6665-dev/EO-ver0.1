@@ -102,7 +102,39 @@ export const BOSSES = {
   },
 
   // ---------------- A2 / A3 (planned: the fights arrive with their maps — W3 magma beast sheet, W4 rune knight sheet)
-  boss_a2: { id: 'boss_a2', name: 'MAGMA BEAST', title: 'Lord of the Magma Rift · coming soon', type: 'area', impl: 'area', route: 'A', map: 'a2', planned: true, unlocks: ['a3'] },
+  // A2 BOSS (W3c): the Magma Beast in the Magma Rift (maps/ancientValley.js). Art = the owner's A2 boss sheet: bite,
+  // run, eruption, fireball, stagger, and a red enraged form for phase 2.
+  boss_a2: {
+    id: 'boss_a2', name: 'MAGMA BEAST', title: 'Lord of the Magma Rift', type: 'area', impl: 'area',
+    route: 'A', map: 'a2', level: 14, recommendedLevel: 13,
+    teaches: 'Burning ground · ranged pressure · punish the charge · a faster second phase',
+    stats: { hp: 16000, def: 12, speed: 96, radius: 26, height: 70, mass: 7, weakness: ['shadow'], superArmor: true, poise: 1000 },
+    look: {
+      sprite: 'magma_beast', scale: 1.15, aura: '255,120,40',
+      anims: { hurt: 'stagger', roar: 'enrage' },
+      phaseAnims: { 2: { idle: 'enrage', walk: 'run' } }, // MOLTEN FURY: the red form
+    },
+    arena: { name: 'Magma Rift', center: [84, 26], radius: 8.5, trigger: 6.5, bossSpawn: [84, 23], entry: [84, 38] },
+    appear: [],
+    phases: [
+      { name: 'MOLTEN HIDE', sub: 'Bite · Charge · Fireballs · Eruptions', hpBelow: 1, moves: ['bite', 'charge', 'fireball', 'eruption'] },
+      {
+        name: 'MOLTEN FURY', sub: 'Its core blazes — rings of magma, a rain of fire', hpBelow: 0.5, windup: 0.85, speed: 1.2, shockwave: 26,
+        moves: ['bite', 'charge', 'fire_fan', 'lava_rain', 'magma_nova'],
+      },
+    ],
+    moves: {
+      bite: { kind: 'strike', range: 90, windup: 0.7, recover: 0.6, cd: 1.6, weight: 4, power: 34, knock: 200, shape: { shape: 'cone', r: 96, half: 0.8 } },
+      charge: { kind: 'dash', guardBreak: true, range: 300, min: 120, windup: 0.95, recover: 0.9, cd: 5, weight: 2.5, power: 40, knock: 300, len: 260, width: 42, opening: 1.6, anim: { attack: 'run' } },
+      fireball: { kind: 'volley', range: 360, min: 110, windup: 0.8, recover: 0.6, cd: 4, weight: 2.5, power: 26, count: 3, spread: 0.5, speed: 260, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '#ff8a30', anim: { windup: 'fire_wind', attack: 'fire_shot' } },
+      eruption: { kind: 'pattern', layout: 'scatter', range: 999, windup: 1.0, recover: 0.8, cd: 7, weight: 2, power: 30, count: 6, r: 42, delay: 0.15, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '255,120,40', opening: 1.2, anim: { roar: 'eruption' } },
+      fire_fan: { kind: 'volley', range: 360, min: 90, windup: 0.8, recover: 0.6, cd: 4, weight: 2.5, power: 26, count: 5, spread: 0.9, speed: 280, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '#ff6a20', anim: { windup: 'fire_wind', attack: 'fire_shot' } },
+      lava_rain: { kind: 'pattern', layout: 'scatter', range: 999, windup: 1.0, recover: 0.8, cd: 7, weight: 2, power: 30, count: 10, r: 40, delay: 0.1, dmg: 'magic', status: [{ id: 'burn', dur: 2.5 }], color: '255,90,30', anim: { roar: 'eruption' } },
+      magma_nova: { kind: 'nova', range: 999, windup: 1.1, recover: 0.9, cd: 9, weight: 1.5, power: 28, rings: 3, width: 48, gap: 72, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '255,110,40', anim: { roar: 'enrage' } },
+    },
+    rewards: { exp: 800, gold: 300, loot: 'magma_beast', items: { magma_heart: 1 }, lore: 'magma_beast' },
+    unlocks: ['a3'],
+  },
   boss_a3: { id: 'boss_a3', name: 'RUNE KNIGHT', title: 'Warden of the Rune Citadel · coming soon', type: 'major', impl: 'area', route: 'A', map: 'a3', planned: true, unlocks: ['city2'] },
 
   // ---------------- ROUTE B (architecture only — Phase 13/14 builds the maps; nothing here is spawned yet)

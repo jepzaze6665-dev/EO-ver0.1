@@ -59,6 +59,17 @@ export const QUESTS = {
     rewards: { exp: 150, gold: 150, items: { hp_potion: 2 } },
     requirements: [{ type: 'quest', id: 'beyond_lumina', label: 'Finish First Steps Beyond Lumina' }],
   },
+  // A2 spine (W3c): started on the first visit to the Ancient Valley (data/worldTriggers.js a2_first_visit)
+  burning_rift: {
+    id: 'burning_rift', name: 'THE BURNING RIFT', giver: null, ordered: true, priority: 1,
+    description: 'The valley kings fled their summer court when the mountain woke. Something still burns in the rift to the north.',
+    objectives: [
+      { id: 'rift', text: 'Climb north to the Magma Rift', type: 'flag', flag: 'riftFound', marker: [84, 40], markerMap: 'a2' },
+      { id: 'boss', text: 'Defeat the Magma Beast (A2 Boss)', type: 'boss', boss: 'boss_a2', marker: [84, 26], markerMap: 'a2' },
+    ],
+    rewards: { exp: 250, gold: 200, items: { hp_potion: 3 } },
+    requirements: [],
+  },
   // A1's optional mini-bosses (W2): the old area bosses keep their arenas and rewards, but lock nothing
   forest_hunts: {
     id: 'forest_hunts', name: 'HUNTS OF THE WHISPERING FOREST', giver: null, side: true,

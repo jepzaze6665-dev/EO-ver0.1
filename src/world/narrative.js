@@ -42,6 +42,10 @@ export const LORE = {
     title: 'Hollow Fang — the Alpha of the Crossing',
     text: 'The pack followed the fog to the river and made the crossing their den. Their alpha grew larger with every traveller turned away.\nWith it gone, the wolves scatter — and the bridge north belongs to the road again.',
   },
+  magma_beast: {
+    title: 'The Magma Beast of the Rift',
+    text: 'When the mountain woke, it did not stop at the valley\'s edge. The beast crawled up out of the rift and the kings fled their summer court.\nNow the rift cools. Past it, carved into the far cliffs, a road leads toward a citadel of rune and bronze.',
+  },
   grukk: {
     title: 'Grukk the Thornbound',
     text: 'A goblin warchief who drank from the corrupted mire to master the thorns. The thorns mastered him instead.\nHis totem points east, toward the ruins, as if something there still calls it.',

@@ -80,7 +80,9 @@ export const MONSTER_ART = {
     anims: {
       idle: 'idle', move: 'walk', run: 'run', windup: ['bite', [0, 1, 2]], attack: ['bite', [3, 4, 5, 6]], hurt: 'hit',
       death: 'death', eruption: 'eruption', fireball: 'fireball', stagger: 'stagger', enrage: 'enrage',
+      fire_wind: ['fireball', [0, 1, 2, 3, 4]], fire_shot: ['fireball', [5, 6, 7]],
     },
+    fps: { eruption: 7, enrage: 8, run: 12, stagger: 7 },
   },
   // ---------------- A3 RUNE CITADEL
   crystal_golem: {

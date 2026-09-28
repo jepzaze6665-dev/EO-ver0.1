@@ -15,6 +15,7 @@ export const LOOT_TABLES = {
   wraith: { gold: [15, 30], drops: [{ item: 'moon_crystal', chance: 0.25 }] },
   elite: { gold: [20, 40], drops: [{ item: 'hp_potion', chance: 0.5 }, { item: 'shadow_tonic', chance: 0.25 }] }, // extra roll for elites
   // area bosses (data/bosses.js rewards.loot) — rolled once, on the first kill
+  magma_beast: { gold: [120, 120], drops: [{ item: 'ember_core', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }] },
   hollow_fang: { gold: [80, 80], drops: [{ item: 'wolf_fang', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 2 }] },
   grukk: { gold: [150, 150], drops: [{ item: 'goblin_iron', chance: 1, count: 4 }, { item: 'shadow_tonic', chance: 1 }, { item: 'hp_potion', chance: 1, count: 2 }] },
   guardian: { gold: [300, 300], drops: [{ item: 'guardian_heart', chance: 1 }, { item: 'guardian_heartwood', chance: 1 }] },

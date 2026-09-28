@@ -57,7 +57,20 @@ export const WORLD_TRIGGERS = [
   },
   {
     id: 'a2_first_visit', on: 'mapEntered', match: { id: 'a2', first: true },
-    actions: [{ type: 'cutscene', title: 'ANCIENT VALLEY', sub: 'Route A · A2', focus: 'player', zoom: 1.3, time: 2.2 }],
+    actions: [{ type: 'cutscene', title: 'ANCIENT VALLEY', sub: 'Route A · A2', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:burning_rift'],
+  },
+
+  {
+    id: 'a2_rift_found', on: 'areaDiscovered', match: { name: 'Magma Rift' },
+    actions: ['set_flag:riftFound', { type: 'notify', title: 'MAGMA RIFT', text: 'The ground burns here. Watch the orange rings — and never stand still.', color: '#ffb070' }],
+  },
+  {
+    id: 'a2_boss_phase2', on: 'bossPhaseChanged', match: { bossId: 'boss_a2', phase: 2 },
+    actions: [{ type: 'notify', title: 'MOLTEN FURY', text: 'Rings of magma spread outward — dodge through them, not away.', color: '#ff9a50' }],
+  },
+  {
+    id: 'a2_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_a2' },
+    actions: [{ type: 'banner', title: 'THE RIFT COOLS', text: 'Beyond it, a road climbs toward the Rune Citadel (A3 — coming in a later update)', color: '#ffd98a' }],
   },
 
   // ---- A3 Major Boss -> City 2: added with City 2 (W5); the unlock itself = City 2's map `requires`.

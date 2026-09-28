@@ -5,6 +5,7 @@ import { Entity } from '../core/entity.js';
 import { TEAM, TILE } from '../core/constants.js';
 import { Monster } from '../monsters/monster.js';
 import { flashOf } from '../monsters/monsterSprites.js';
+import { frameAt } from '../monsters/sheetSprites.js';
 import { angleTo, dist, rand, TAU, lerp, easeOutCubic } from '../core/math.js';
 
 // AREA BOSS — one generic, data-driven boss entity (data: data/bosses.js). It never names a boss: stats, look,
@@ -101,7 +102,7 @@ export class AreaBoss extends Entity {
   // ---------------- coroutine helpers
   run(gen) { this.co = gen; this.wait = 0; this.waitFn = null; }
   interruptMove() {
-    this.co = null; this.wait = 0; this.waitFn = null; this.air = 0;
+    this.co = null; this.wait = 0; this.waitFn = null; this.air = 0; this.curMove = null;
     this.game.combat.telegraphs.cancelOwner(this);
   }
   wind(t) { return t * ((this.phaseDef && this.phaseDef.windup) || 1); }
@@ -287,7 +288,9 @@ export class AreaBoss extends Entity {
     const p = this.game.player;
     if (m.range && m.range < 999 && dist(this.x, this.y, p.x, p.y) > m.range * 0.9) yield* this.approach(m.range * 0.8);
     const kind = KINDS[m.kind];
+    this.curMove = m; // sheet art: the move may name its own animations (m.anim)
     if (kind) yield* kind.call(this, m);
+    this.curMove = null;
     this.pose = 'idle';
   }
 }
@@ -432,6 +435,7 @@ const KINDS = {
     g.camera.shake(0.3);
     g.audio.sfx('shatter');
     yield this.wind(m.recover || 0.6);
+    if (m.opening) this.enterWeak(m.opening, 'OPENING');
   },
   *nova(m) {
     const g = this.game;
@@ -494,9 +498,21 @@ AreaBoss.prototype.draw = function draw(ctx) {
   const shake = this.pose === 'roar' || (this.pose === 'windup' && this.state === 'fight') ? Math.sin(t * 70) * 1.2 : 0;
   ctx.translate(x + shake, y - this.air);
   if (Math.cos(this.facing) < 0) ctx.scale(-1, 1);
-  if (this.dead) ctx.rotate(Math.min(1, this.deathT * 2) * 0.35);
+  if (this.dead && !(this.sprites && this.sprites.sheet)) ctx.rotate(Math.min(1, this.deathT * 2) * 0.35);
   const s = this.sprites;
-  if (s) {
+  if (s && s.sheet) {
+    const fr = this.sheetFrame(s);
+    const sc = this.scale, w = s.w * sc, h = s.h * sc, ax = s.ax * sc, ay = s.ay * sc;
+    if (this.state === 'dormant') ctx.filter = 'brightness(0.75)';
+    ctx.drawImage(fr, -ax, -ay, w, h);
+    ctx.filter = 'none';
+    if (this.flash > 0 && !this.dead) { ctx.globalAlpha = Math.min(1, this.flash * 10); ctx.drawImage(flashOf(fr), -ax, -ay, w, h); }
+    if (this.status.has('vulnerable') && !this.dead) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.25 + 0.2 * Math.sin(g.time * 14);
+      ctx.drawImage(flashOf(fr), -ax, -ay, w, h);
+    }
+  } else if (s) {
     const set = s;
     const fr = this.pose === 'walk' ? set.move[Math.floor(t * 10) % set.move.length]
       : this.pose === 'windup' || this.pose === 'roar' ? set.windup[0]
@@ -531,4 +547,20 @@ AreaBoss.prototype.draw = function draw(ctx) {
     ctx.fillText('z'.repeat(zz + 1), x + 26, y - this.height * this.scale * 0.6 - zz * 3);
   }
 };
+// sheet art (data/monsterArt.js): which animation a pose plays. Order: the current move's `anim` { pose: anim },
+// then the phase's look.phaseAnims[phase] { pose: anim }, then look.anims { pose: anim }, then the pose name itself.
+// idle / walk loop; the other poses play once from the moment the pose began (the last frame holds).
+const DEFAULT_POSE_ANIM = { idle: 'idle', walk: 'move', windup: 'windup', attack: 'attack', hurt: 'hurt', roar: 'windup' };
+AreaBoss.prototype.sheetFrame = function sheetFrame(set) {
+  if (this.pose !== this.lastPose) { this.lastPose = this.pose; this.poseT0 = this.animT; }
+  const look = this.look, A = set.anims;
+  if (this.dead) { const d = set.death || set.hurt; return frameAt(d, this.deathT, d.length / 1.4, false); }
+  const pick = (o) => o && o[this.pose] && A[o[this.pose]] ? o[this.pose] : null;
+  const name = pick(this.curMove && this.curMove.anim) || pick(look.phaseAnims && look.phaseAnims[this.phase]) || pick(look.anims) || DEFAULT_POSE_ANIM[this.pose];
+  const frames = A[name] || set.idle;
+  const loop = this.pose === 'idle' || this.pose === 'walk';
+  const fps = (set.fps && set.fps[name]) || (loop ? (this.pose === 'walk' ? 9 : 6) : this.pose === 'attack' ? 12 : 8);
+  return frameAt(frames, loop ? this.animT : this.animT - (this.poseT0 || 0), fps, loop);
+};
+
 export const MOVE_KINDS = Object.keys(KINDS); // valid `kind` values (checked by tools/tests/boss.test.mjs)
