@@ -16,16 +16,14 @@ fs.mkdirSync(OUT, { recursive: true });
 
 // names = pieces in reading order; seed = which image edges the background flood starts from
 const SHEETS = {
-  skill_slot: { scale: 0.5, names: ['slot_normal', 'slot_hover', 'slot_pressed', 'slot_disabled', 'slot_cooldown'] },
-  button_bar: { scale: 0.5, names: ['btn_normal', 'btn_hover', 'btn_selected', 'btn_disabled'], slice: 70 },
-  panel_kit: {
-    scale: 0.5, names: ['panel_corner_tl', 'panel_edge_top', 'panel_corner_tr', 'panel_edge_left', 'panel_frame', 'panel_edge_right', 'panel_corner_bl', 'panel_edge_bottom', 'panel_corner_br'],
-    slice: { panel_frame: 48 }, grid3: true, // pieces named by their place on a 3×3 grid (the side bars are taller than a row)
+  // pixel-art plate (buttons, name plates, small info boxes) — stretches between its end caps
+  plate: { scale: 0.5, names: ['plate'], slice: 120 },
+  // pixel-art window frame: 4 corners + 4 edges laid out as a frame (named by their 3×3 place, no centre piece);
+  // `whole` also saves the complete frame (for CSS border-image / 9-slice drawing)
+  frame_kit: {
+    scale: 0.5, grid3: true, grow: 0, whole: { name: 'frame', slice: 130 }, // pieces sit a few px apart: no merging
+    names: ['frame_corner_tl', 'frame_edge_top', 'frame_corner_tr', 'frame_edge_left', 'frame_edge_right', 'frame_corner_bl', 'frame_edge_bottom', 'frame_corner_br'],
   },
-  ring_frame: { scale: 0.4, names: ['ring_frame'], holes: [[0.5, 0.5]] }, // the see-through middle (portrait / icon goes there)
-  // the long bar runs off the left / right edges of the sheet: only flood from the top and bottom
-  boss_bar: { scale: 0.75, names: ['boss_bar'], seed: ['top', 'bottom'] }, // the name plate hangs from the bar: one piece
-  emblem: { scale: 0.5, names: ['emblem'], keyTol: 26, largest: true }, // loose smoke wisps are dropped
 };
 const BG_MAX = 24;     // "background" = every channel below this (black sheets) …
 const FRINGE = 56;     // … and pixels next to the background darker than this fade out (soft edge)
@@ -64,13 +62,13 @@ function removeBackground(img, cfg) {
 }
 
 // separate pieces: occupied grid cells, grown so a piece's glow / sparks stay with it, then connected groups
-function findBlobs(img) {
+function findBlobs(img, grow = GROW) {
   const { width: w, height: h, data } = img, gw = Math.ceil(w / CELL), gh = Math.ceil(h / CELL);
   const occ = new Uint8Array(gw * gh);
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (data[(y * w + x) * 4 + 3] > 24) occ[((y / CELL) | 0) * gw + ((x / CELL) | 0)] = 1;
   const grown = new Uint8Array(gw * gh);
   for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) if (occ[y * gw + x]) {
-    for (let dy = -GROW; dy <= GROW; dy++) for (let dx = -GROW; dx <= GROW; dx++) {
+    for (let dy = -grow; dy <= grow; dy++) for (let dx = -grow; dx <= grow; dx++) {
       const nx = x + dx, ny = y + dy; if (nx >= 0 && ny >= 0 && nx < gw && ny < gh) grown[ny * gw + nx] = 1;
     }
   }
@@ -122,7 +120,7 @@ for (const [sheet, cfg] of Object.entries(SHEETS)) {
   if (!fs.existsSync(file)) { console.log(`✗ ${sheet}: missing ${path.relative(ROOT, file)}`); problems++; continue; }
   const img = png.read(file);
   const bg = removeBackground(img, cfg);
-  let blobs = findBlobs(img);
+  let blobs = findBlobs(img, cfg.grow);
   if (cfg.largest) blobs = [blobs.sort((a, b) => b.w * b.h - a.w * a.h)[0]];
   if (cfg.grid3) { // order = 3×3 cell of each piece's centre (TL, T, TR, L, C, R, BL, B, BR)
     const cell = (b) => Math.min(2, Math.floor(((b.y + b.h / 2) / img.height) * 3)) * 3 + Math.min(2, Math.floor(((b.x + b.w / 2) / img.width) * 3));
@@ -131,6 +129,14 @@ for (const [sheet, cfg] of Object.entries(SHEETS)) {
   const ok = blobs.length === cfg.names.length;
   if (!ok) problems++;
   console.log(`${ok ? '✓' : '✗'} ${sheet} (${img.width}x${img.height}, ${bg}): ${blobs.length} pieces, expected ${cfg.names.length}`);
+  if (cfg.whole) { // the complete sheet content as one piece too (bounding box of every piece)
+    const x0 = Math.min(...blobs.map((b) => b.x)), y0 = Math.min(...blobs.map((b) => b.y));
+    const r = { x: x0, y: y0, w: Math.max(...blobs.map((b) => b.x + b.w)) - x0, h: Math.max(...blobs.map((b) => b.y + b.h)) - y0 };
+    const out = crop(img, r, cfg.scale), name = cfg.whole.name;
+    png.write(path.join(OUT, name + '.png'), out);
+    atlas[name] = { file: `assets/ui/${name}.png`, w: out.width, h: out.height, slice: Math.round(cfg.whole.slice * cfg.scale) };
+    console.log(`    ${name.padEnd(18)} ${out.width}x${out.height}  slice ${atlas[name].slice} (whole)`);
+  }
   blobs.slice(0, cfg.names.length).forEach((b, i) => {
     const name = cfg.names[i], out = crop(img, b, cfg.scale);
     png.write(path.join(OUT, name + '.png'), out);

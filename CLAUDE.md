@@ -52,8 +52,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - `node tools/build-vfx.js` → `assets/vfx/*.png + vfx.json` (right-facing strips, rotated at runtime;
   per-file `rows` (front view for caster-centred effects) and `mirrorFrames`).
 - `tools/tests/sprites.test.mjs` fails if any class animation uses an empty frame.
-- UI kit: `desgin/UI/{skill_slot,button_bar,panel_kit,ring_frame,boss_bar,emblem}.png` (AI sheets, black or transparent
-  background) → `node tools/build-ui.js` → `assets/ui/*.png + ui.json` ({ file, w, h, slice? }; background flood-removed
+- UI kit (PIXEL-ART style — the owner dropped the first painterly kit as not matching the game): `desgin/UI/{plate,frame_kit}.png`
+  (AI sheets, black background) → `node tools/build-ui.js` → `assets/ui/*.png + ui.json` ({ file, w, h, slice? }; background flood-removed
   from the chosen edges + soft fringe, pieces found as blobs, named in reading order or by 3×3 grid). Loaded as
   `Assets.ui[name]` (core/assets.js). `tools/tests/ui.test.mjs` checks every piece exists / is cut out.
 
@@ -235,15 +235,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Measured: A2 Grukk at LV 7, Umbral bot — dodging: 54 damage taken, 0 staggers; face-tanking: 563 damage, 2 staggers,
   still alive. All 8 area-boss fights (4 classes × A1/A2) win without god mode.
   **COMBAT 2.0 COMPLETE (C1-C10)** — pushed.
-- **Current: UI ART PASS** with the owner's UI kit (`desgin/UI`). Plan: U1 build tool + loader (done: 21 pieces — 5 skill-slot
-  states, 4 button states (slice 35), panel kit (panel_frame slice 24 + corners / edges), ring_frame (see-through
-  middle), boss_bar (crest + name plate, the bar runs off the sheet edges — no end caps), emblem (rough smoke edges,
-  menu only)); U2 skill bar frames; U3 HTML panels + buttons via CSS border-image; U4 boss bar + ring portrait;
-  U5 title screen emblem.
-  Done U2: skill bar uses the kit frames (hud.drawSkillBar; `hud.uiImage(ctx, name, x, y, w, h)` draws any kit piece):
-  64u frames, icon in the ~63% see-through middle; slot_disabled when not usable (resource / stamina / requirement / no
-  potions — a red STA tag when stamina is short), slot_pressed while that skill's action plays, slot_hover on mouse-over
-  and pulsing for a special whose requirements are met (SHADOW BREAK READY); cooldown keeps the normal frame + the live
-  radial sweep (the kit's cooldown frame has a fixed ring baked in). Old boxes remain as fallback without the kit.
-  Next: U3.
+- **Current: UI ART PASS.** U1 built `tools/build-ui.js` + `Assets.ui` loader; U2 put kit frames on the skill bar. The owner then
+  REPLACED the painterly kit with a **pixel-art kit** (matches the pixel world): `plate` (474×206, slice 60: buttons / name
+  plates) and `frame` (504×494 window frame, see-through middle, slice 65) + its 8 separate corners / edges
+  (`frame_corner_*`, `frame_edge_*`). Old pieces deleted (tools/tests/ui.test.mjs checks they stay gone). The skill bar is
+  back to the plain boxes (hud falls back when `slot_normal` is absent) until a pixel slot frame exists. Fit check in the
+  real game (runtime-only preview): frame + plate sit well with the tiles / sprites; the plate's centre gems stretch
+  under 9-slice and touch short text — draw plates as caps + middle, text kept clear of the gems.
+  Next: U3 = windows (HTML panels: Inventory / Skills / Class / Knowledge / Quest / dialogue) with the pixel frame + plate
+  buttons; later (needs art in the same pixel style): skill-slot frame, bars, boss bar, portrait ring.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

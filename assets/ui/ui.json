@@ -1,112 +1,54 @@
 {
- "slot_normal": {
-  "file": "assets/ui/slot_normal.png",
-  "w": 196,
-  "h": 194
+ "plate": {
+  "file": "assets/ui/plate.png",
+  "w": 474,
+  "h": 206,
+  "slice": 60
  },
- "slot_hover": {
-  "file": "assets/ui/slot_hover.png",
-  "w": 196,
-  "h": 198
+ "frame": {
+  "file": "assets/ui/frame.png",
+  "w": 504,
+  "h": 494,
+  "slice": 65
  },
- "slot_pressed": {
-  "file": "assets/ui/slot_pressed.png",
-  "w": 192,
-  "h": 194
- },
- "slot_disabled": {
-  "file": "assets/ui/slot_disabled.png",
-  "w": 196,
-  "h": 194
- },
- "slot_cooldown": {
-  "file": "assets/ui/slot_cooldown.png",
-  "w": 198,
-  "h": 196
- },
- "btn_normal": {
-  "file": "assets/ui/btn_normal.png",
-  "w": 388,
-  "h": 100,
-  "slice": 35
- },
- "btn_hover": {
-  "file": "assets/ui/btn_hover.png",
-  "w": 392,
-  "h": 102,
-  "slice": 35
- },
- "btn_selected": {
-  "file": "assets/ui/btn_selected.png",
-  "w": 388,
-  "h": 102,
-  "slice": 35
- },
- "btn_disabled": {
-  "file": "assets/ui/btn_disabled.png",
-  "w": 388,
-  "h": 100,
-  "slice": 35
- },
- "panel_corner_tl": {
-  "file": "assets/ui/panel_corner_tl.png",
-  "w": 84,
-  "h": 86
- },
- "panel_edge_top": {
-  "file": "assets/ui/panel_edge_top.png",
-  "w": 402,
-  "h": 64
- },
- "panel_corner_tr": {
-  "file": "assets/ui/panel_corner_tr.png",
-  "w": 84,
-  "h": 86
- },
- "panel_edge_left": {
-  "file": "assets/ui/panel_edge_left.png",
-  "w": 44,
-  "h": 410
- },
- "panel_frame": {
-  "file": "assets/ui/panel_frame.png",
-  "w": 436,
-  "h": 432,
-  "slice": 24
- },
- "panel_edge_right": {
-  "file": "assets/ui/panel_edge_right.png",
-  "w": 44,
-  "h": 410
- },
- "panel_corner_bl": {
-  "file": "assets/ui/panel_corner_bl.png",
-  "w": 80,
-  "h": 88
- },
- "panel_edge_bottom": {
-  "file": "assets/ui/panel_edge_bottom.png",
-  "w": 404,
+ "frame_corner_tl": {
+  "file": "assets/ui/frame_corner_tl.png",
+  "w": 64,
   "h": 60
  },
- "panel_corner_br": {
-  "file": "assets/ui/panel_corner_br.png",
-  "w": 80,
-  "h": 88
+ "frame_edge_top": {
+  "file": "assets/ui/frame_edge_top.png",
+  "w": 376,
+  "h": 54
  },
- "ring_frame": {
-  "file": "assets/ui/ring_frame.png",
-  "w": 456,
-  "h": 474
+ "frame_corner_tr": {
+  "file": "assets/ui/frame_corner_tr.png",
+  "w": 64,
+  "h": 62
  },
- "boss_bar": {
-  "file": "assets/ui/boss_bar.png",
-  "w": 768,
-  "h": 345
+ "frame_edge_left": {
+  "file": "assets/ui/frame_edge_left.png",
+  "w": 38,
+  "h": 366
  },
- "emblem": {
-  "file": "assets/ui/emblem.png",
-  "w": 392,
-  "h": 562
+ "frame_edge_right": {
+  "file": "assets/ui/frame_edge_right.png",
+  "w": 38,
+  "h": 366
+ },
+ "frame_corner_bl": {
+  "file": "assets/ui/frame_corner_bl.png",
+  "w": 64,
+  "h": 60
+ },
+ "frame_edge_bottom": {
+  "file": "assets/ui/frame_edge_bottom.png",
+  "w": 376,
+  "h": 54
+ },
+ "frame_corner_br": {
+  "file": "assets/ui/frame_corner_br.png",
+  "w": 64,
+  "h": 60
  }
 }
