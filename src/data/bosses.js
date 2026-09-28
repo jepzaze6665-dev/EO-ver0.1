@@ -64,7 +64,7 @@ export const BOSSES = {
     route: 'A', map: 'a1', level: 8, recommendedLevel: 7,
     teaches: 'AoE patterns · movement · adds · a second phase',
     stats: { hp: 9000, def: 7, speed: 92, radius: 20, height: 56, mass: 6, weakness: ['physical'], superArmor: true, poise: 850 },
-    look: { sprite: 'treant', scale: 2.3, aura: '176,96,255' },
+    look: { sprite: 'treant', scale: 1.5, aura: '176,96,255' },
     arena: { name: 'Thornwood Glade', center: [29.5, 60.5], radius: 6.4, trigger: 4.8, bossSpawn: [29.5, 58.5], entry: [36.5, 64.5] },
     appear: [],
     phases: [

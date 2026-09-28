@@ -132,22 +132,25 @@ export const MONSTER_ART = {
       burrow: { windup: 'telegraph', attack: 'special' },                   // digs in -> bursts out, pincers first
     },
   },
-  // ---------------- B1 FROSTWIND PLAINS: one pose per action row; columns = directions (0 down · 1 up · 2 / 3 sides)
+  // ---------------- B1 FROSTWIND PLAINS: one pose per action row; columns = directions (0 down · 1 up · 2 / 3 sides —
+  // which side faces RIGHT differs per sheet: wolf 2, bear 3, hare 2). Walks = walk pose + idle pose (2 steps).
   snow_hare: {
     sheet: 'snow_hare', replaces: ['snow_hare'],
     anims: {
-      idle: ['idle', [3]], move: ['walk', [3]], windup: ['telegraph', [3]], attack: ['attack', [3]], hurt: ['hit', [3]], death: ['death', [3]],
-      front: ['idle', [0]], back: ['idle', [1]],
+      idle: ['idle', [2]], move: [['walk', [2]], ['idle', [2]]], windup: ['telegraph', [2]], attack: ['attack', [2]], hurt: ['hit', [2]], death: ['death', [2]],
+      front: [['walk', [0]], ['idle', [0]]], back: [['walk', [1]], ['idle', [1]]],
     },
-    attacks: { spin: { windup: ['telegraph', [3]], attack: ['special', [3]] } },
+    attacks: { spin: { windup: ['telegraph', [2]], attack: ['special', [2]] } },
+    fps: { move: 7, idle: 3 },
   },
   rime_wolf: {
     sheet: 'rime_wolf', replaces: ['rime_wolf'], corrupt: '150,70,200',
     anims: {
-      idle: ['idle', [2]], move: ['walk', [2]], windup: ['telegraph', [2]], attack: ['attack', [2]], hurt: ['hit', [2]], death: ['death', [2]],
-      front: ['idle', [0]], back: ['idle', [1]],
+      idle: ['idle', [2]], move: [['walk', [2]], ['idle', [2]]], windup: ['telegraph', [2]], attack: ['attack', [2]], hurt: ['hit', [2]], death: ['death', [2]],
+      front: [['walk', [0]], ['idle', [0]]], back: [['walk', [1]], ['idle', [1]]],
     },
     attacks: { lunge: { windup: ['telegraph', [2]], attack: ['special', [2]] } },
+    fps: { move: 8, idle: 3 },
   },
   frost_harrier: {
     sheet: 'frost_harrier', replaces: ['frost_harrier'],
@@ -162,10 +165,11 @@ export const MONSTER_ART = {
   frost_bear: {
     sheet: 'frost_bear', replaces: ['frost_bear'],
     anims: {
-      idle: ['idle', [2]], move: ['walk', [2]], windup: ['telegraph', [2]], attack: ['attack', [2]], hurt: ['hit', [2]], death: ['death', [2]],
-      front: ['idle', [0]], back: ['idle', [1]],
+      idle: ['idle', [3]], move: [['walk', [3]], ['idle', [3]]], windup: ['telegraph', [3]], attack: ['attack', [3]], hurt: ['hit', [3]], death: ['death', [3]],
+      front: [['walk', [0]], ['idle', [0]]], back: [['walk', [1]], ['idle', [1]]],
     },
-    attacks: { eruption: { windup: ['telegraph', [2]], attack: ['special', [2]] } },
+    attacks: { eruption: { windup: ['telegraph', [3]], attack: ['special', [3]] } },
+    fps: { move: 5, idle: 3 },
   },
   // ---------------- A3 RUNE CITADEL
   // rows = directions; columns: 0 idle · 1-2 walk · 3 attack · 4 hit · 5 telegraph · 6 special · 7-9 death

@@ -19,6 +19,7 @@ const opaque = (im, x0, y0, w, h) => {
   return n;
 };
 const specFrames = (m, spec) => {
+  if (Array.isArray(spec) && Array.isArray(spec[0])) { const parts = spec.map((s) => specFrames(m, s)); return parts.every(Boolean) ? parts.flat() : null; } // list of pieces
   const [row, idx] = Array.isArray(spec) ? spec : [spec, null];
   const all = m.anims[row];
   return all && (idx ? idx.map((i) => all[i]) : all);

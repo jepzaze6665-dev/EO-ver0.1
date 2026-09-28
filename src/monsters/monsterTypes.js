@@ -123,7 +123,7 @@ export const MONSTERS = {
   },
   // ---------------- B1 FROSTWIND PLAINS (owner's sheets desgin/monster/B/B1). Route B's first map: Lv 1-8 like A1.
   snow_hare: {
-    name: 'Snowdrift Hare', level: 1, hp: 40, def: 0, speed: 120, radius: 8, height: 20, mass: 0.5,
+    name: 'Snowdrift Hare', level: 1, hp: 40, def: 0, speed: 120, radius: 8, height: 22, mass: 0.5,
     detect: 110, leash: 380, exp: 8, loot: 'snow_hare', weakness: ['physical'], sprite: 'snow_hare', poise: 8, turn: 12,
     role: 'skirmisher', pattern: 'Hop Kick / Frost Spin', desc: 'Skittish. Cornered, it spins up a flurry of frost — step out of the ring.',
     attacks: [
@@ -132,7 +132,7 @@ export const MONSTERS = {
     ],
   },
   rime_wolf: {
-    name: 'Rimefang Wolf', level: 3, hp: 90, def: 2, speed: 130, radius: 10, height: 30, mass: 0.8, corruptible: true,
+    name: 'Rimefang Wolf', level: 3, hp: 90, def: 2, speed: 130, radius: 12, height: 36, mass: 0.8, corruptible: true,
     detect: 150, leash: 520, exp: 22, loot: 'rime_wolf', weakness: ['shadow'], sprite: 'rime_wolf', poise: 20, turn: 12,
     role: 'skirmisher', flank: true, punishIdle: 1.0,
     pattern: 'Bite / Frost Lunge', desc: 'Hunts the drifts in packs and circles to your back. The ice on its back flares before a lunge that chills the blood.',
@@ -142,7 +142,7 @@ export const MONSTERS = {
     ],
   },
   frost_harrier: {
-    name: 'Frost Harrier', level: 5, hp: 120, def: 3, speed: 110, radius: 9, height: 26, mass: 0.6, float: true,
+    name: 'Frost Harrier', level: 5, hp: 120, def: 3, speed: 110, radius: 11, height: 32, mass: 0.6, float: true,
     detect: 190, leash: 520, exp: 38, loot: 'frost_harrier', weakness: ['physical'], sprite: 'frost_harrier', poise: 20, turn: 10,
     role: 'caster', keepAway: 100,
     pattern: 'Talon Dive / Gale Ring', desc: 'Circles out of reach, then dives in a straight line. Its wings spin up a ring of frozen wind — leave it before it bursts.',
@@ -153,7 +153,7 @@ export const MONSTERS = {
     ],
   },
   frost_bear: {
-    name: 'Frostback Bear', level: 7, hp: 420, def: 8, speed: 62, radius: 16, height: 40, mass: 3, superArmor: true,
+    name: 'Frostback Bear', level: 7, hp: 420, def: 8, speed: 62, radius: 20, height: 54, mass: 3, superArmor: true,
     detect: 150, leash: 440, exp: 70, loot: 'frost_bear', weakness: ['shadow'], sprite: 'frost_bear', poise: 80, turn: 2.5,
     role: 'bruiser',
     pattern: 'Maul / Ice Eruption', desc: 'Rears up before a maul. Its roar tears ice spikes out of the ground in front of it — they stay a while and wall off the path.',
@@ -184,7 +184,7 @@ export const MONSTERS = {
     ],
   },
   treant: {
-    name: 'Bramble Treant', level: 5, hp: 300, def: 7, speed: 58, radius: 14, height: 34, mass: 2.4, superArmor: true, corruptible: true,
+    name: 'Bramble Treant', level: 5, hp: 300, def: 7, speed: 58, radius: 16, height: 46, mass: 2.4, superArmor: true, corruptible: true,
     detect: 140, leash: 440, exp: 48, loot: 'treant', weakness: ['shadow'], sprite: 'treant', poise: 60, turn: 3, role: 'bruiser',
     pattern: 'Branch Swipe / Root Slam / Sap Orb', desc: 'Slow and heavy. It lifts both branches before the Root Slam — a slam that hits nothing leaves it rooted in place.',
     attacks: [
@@ -194,7 +194,7 @@ export const MONSTERS = {
     ],
   },
   elder_treant: {
-    name: 'Elder Treant', level: 8, hp: 760, def: 12, armor: 220, speed: 56, radius: 22, height: 50, mass: 5, scale: 1.55,
+    name: 'Elder Treant', level: 8, hp: 760, def: 12, armor: 220, speed: 56, radius: 22, height: 64, mass: 5, scale: 1.4,
     detect: 190, leash: 400, exp: 240, loot: 'elder_treant', weakness: ['physical'], sprite: 'treant', poise: 140, turn: 1.8, role: 'tank',
     superArmor: true, miniBoss: true, shardColor: '#8af06a',
     pattern: 'Root Ring / Trample / Sap Barrage', desc: 'The oldest tree of the hidden cave. Break its bark armour, then strike the glowing heartwood.',

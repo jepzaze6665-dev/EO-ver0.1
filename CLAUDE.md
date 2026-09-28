@@ -409,5 +409,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `rime_wolf` (flank pack, bite / frost lunge + slow), `frost_harrier` (float caster: talon dive -> GROUNDED / gale burst
   at your position), `frost_bear` (maul / ice eruption = heavy cone that leaves ice spikes); Elite bear at the Ice Shrine.
   Item `frost_pelt`. Builder note: disc() needs whole-tile centres. `T.routeBCheck(g)` 7/7, spriteMonsterCheck 12/12.
+  B1a polish (owner): which side column faces RIGHT differs per sheet (wolf 2, bear 3, hare 2 — a wrong one = moonwalking);
+  anim specs may be a LIST of pieces ([['walk',[2]],['idle',[2]]] = 2-step walk for one-pose-per-action sheets, also front /
+  back); walks with 1-2 frames get a step bounce (Monster.draw); sizes vs the ~58 px player: hare 22 · wolf 36 · harrier 32 ·
+  bear 54 · Bramble Treant 46 (Elder ×1.4, Thornbound Elder ×1.5).
   Next: B1b the B1 boss in the Frost Arena (owner's B1 BOSS sheet + VFX BOSS + AURA Phase BOSS for its phase change), then B2, B3.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

@@ -29,8 +29,10 @@ function tint(frame, rgb) {
   return c;
 }
 
-// anim spec -> frame positions from the atlas meta
+// anim spec -> frame positions from the atlas meta. A spec may also be a LIST of pieces joined in order
+// ([['walk', [2]], ['idle', [2]]] = a 2-step walk from sheets that draw one pose per action)
 function framesOf(meta, spec) {
+  if (Array.isArray(spec) && Array.isArray(spec[0])) return spec.flatMap((s) => framesOf(meta, s) || []);
   const [row, idx] = Array.isArray(spec) ? spec : [spec, null];
   const all = meta.anims[row];
   if (!all) return null;

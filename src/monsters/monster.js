@@ -528,7 +528,9 @@ export class Monster extends Entity {
     // shadow
     ctx.fillStyle = `rgba(0,0,0,${0.35 * alpha})`;
     ctx.beginPath(); ctx.ellipse(x, y, this.radius * 1.2, this.radius * 0.45, 0, 0, TAU); ctx.fill();
-    const floatY = this.def.float ? Math.sin(this.animT * 3) * 3 - 6 : 0;
+    // fliers bob; walkers whose sheet has only 1-2 walk frames get a small step bounce (legs never look frozen)
+    const floatY = this.def.float ? Math.sin(this.animT * 3) * 3 - 6
+      : set.sheet && this.moving && !this.dead && this.state !== S.ATTACK && set.move.length <= 2 ? -Math.abs(Math.sin(this.animT * 9)) * 2.5 : 0;
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.translate(x, y + floatY);
