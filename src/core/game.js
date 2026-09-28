@@ -372,7 +372,7 @@ export class Game {
     let pos = w.regions.villageRespawn;
     const ws = w.state.lastWaystone && w.interactables.find((i) => i.id === w.state.lastWaystone);
     if (ws) pos = w.map.findOpen(ws.x, ws.y + 40, 3);
-    p.dead = false; p.hp = p.maxHp; p.marks = 0;
+    p.dead = false; p.hp = p.maxHp; p.marks = 0; if (p.poise) p.poise.reset();
     for (const rid in p.resources.defs) p.resources.set(rid, p.resources.defs[rid].respawn ?? p.resources.defs[rid].start, 'respawn');
     p.x = pos.x; p.y = pos.y; p.invulnT = 2; p.kx = p.ky = 0;
     w.syncMapToPlayer();

@@ -162,7 +162,7 @@ export class Combat {
       target.armor = Math.max(0, target.armor - res.armorDamage);
       if (target.armor <= 0 && target.onArmorBreak) target.onArmorBreak();
     }
-    target.hp -= amount;
+    target.hp -= target.endure ? target.endure(amount) : amount; // ENDURE (players): no one-shot from healthy
     target.flash = 0.12;
     this.lastCombatTime = g.time;
 

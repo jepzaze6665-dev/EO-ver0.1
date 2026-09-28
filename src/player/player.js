@@ -1,3 +1,5 @@
+import { Poise } from '../combat/poiseSystem.js';
+import { ANTI_TANK } from '../data/antiTank.js';
 import { Entity } from '../core/entity.js';
 import { TEAM } from '../core/constants.js';
 import { angleTo, dir4, damp, clamp, rand, TAU, easeOutCubic } from '../core/math.js';
@@ -54,6 +56,7 @@ export class Player extends Entity {
     this.invulnT = 0; this.hurtT = 0;
     this.guardState = { active: false, since: -9, releasedAt: -9 }; // Guard System (classes with guard data)
     this.perfectCooldown = 0;
+    this.poise = new Poise(ANTI_TANK.poise.max, ANTI_TANK.poise); // Combat 2.0 anti-tanking (data/antiTank.js)
     this.anim = 'idle'; this.animT = 0;
     this.aim = 0; this.facing = Math.PI / 2;
     this.moving = false;
@@ -307,6 +310,25 @@ export class Player extends Entity {
       this.endAction(true);
       this.hurtT = 0.2;
     }
+    // POISE: hits in a row break it -> STAGGERED + EXPOSED (a single hit never does — data/antiTank.js)
+    const at = ANTI_TANK, hp = at.hitPoise;
+    const pd = clamp((amount / Math.max(1, this.maxHp)) * hp.perHpShare, hp.min, hp.max) + (opts && (opts.guardBreak || opts.heavy) ? at.heavyBonus : 0);
+    if (this.poise.hit(pd, { canBreak: !(this.action && this.action.superArmor) })) this.onStaggered(src, ang);
+  }
+  onStaggered(src, ang) {
+    const g = this.game, at = ANTI_TANK;
+    this.endAction(true); this.setGuard(false);
+    this.status.add('staggered', at.staggerTime);
+    this.status.add('exposed', at.exposedTime);
+    if (ang !== undefined) { this.kx = (this.kx || 0) + Math.cos(ang) * at.knock; this.ky = (this.ky || 0) + Math.sin(ang) * at.knock; }
+    g.vfx.text(this.x, this.y - 74, 'STAGGERED', { color: '#ff9a80', size: 12, life: 1 });
+    g.camera.shake(0.4);
+    g.events.emit('playerStaggered', { player: this, source: src });
+  }
+  // ENDURE (data/antiTank.js): a hit taken while healthy never kills outright
+  endure(amount) {
+    if (this.hp >= this.maxHp * ANTI_TANK.endure.fromHp && amount >= this.hp) return this.hp - 1;
+    return amount;
   }
   onDeath() {
     this.guardState.active = false;
@@ -414,6 +436,7 @@ export class Player extends Entity {
     this.invulnT = Math.max(0, this.invulnT - dt);
     this.hurtT = Math.max(0, this.hurtT - dt);
     this.perfectCooldown = Math.max(0, this.perfectCooldown - dt);
+    this.poise.update(dt);
     this.comboTimer = Math.max(0, this.comboTimer - dt);
     this.skillSys.update(dt);
     this.resources.update(dt, { inCombat: g.combat.inCombat });

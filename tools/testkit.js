@@ -761,7 +761,7 @@ export async function partyCheck(g) {
   g.newGame('umbral_sword'); releaseInput(g);
   let p = g.player; goto(g, 38, 121); g.simulate(0.3);
   const ev = []; for (const n of ['encounterFailed', 'playerDowned', 'playerRevived', 'reviveInterrupted']) g.events.on(n, () => ev.push(n));
-  const kill = (who) => { who.invulnT = 0; who.dodging = false; g.combat.dealDamage({ x: who.x + 10, y: who.y, team: 'enemy' }, who, { power: 99999, noCrit: true }); };
+  const kill = (who) => { who.invulnT = 0; who.dodging = false; who.hp = Math.min(who.hp, who.maxHp * 0.5); g.combat.dealDamage({ x: who.x + 10, y: who.y, team: 'enemy' }, who, { power: 99999, noCrit: true }); };
   kill(p); g.simulate(2);
   ok('Solo: 0 HP -> ENCOUNTER FAILED screen', p.dead && ev.includes('encounterFailed') && g.ui.panels.current && /ENCOUNTER FAILED/.test(document.body.innerText), g.ui.panels.current && g.ui.panels.current.name);
   g.ui.panels.close(true); g.respawn(); g.simulate(0.3);
@@ -783,5 +783,31 @@ export async function partyCheck(g) {
   kill(p); g.simulate(0.1); kill(ally); g.simulate(2);
   ok('Everyone down -> ENCOUNTER FAILED', g.party.failed && p.dead && ally.dead && ev.filter((e) => e === 'encounterFailed').length === 2);
   g.ui.panels.close(true); g.party.remove(ally); ally.dispose(); g.respawn(); releaseInput(g);
+  return R;
+}
+
+// COMBAT 2.0 C10: anti-tanking — hits in a row stagger + expose you, one hit never does, no one-shot from healthy.
+export function tankCheck(g) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame('umbral_sword'); releaseInput(g);
+  const p = g.player; goto(g, 38, 121); g.simulate(0.3);
+  for (const m of g.world.monsters) if (g.world.onMap(m)) { m.dead = true; m.deathT = 99; }
+  let staggers = 0; g.events.on('playerStaggered', () => staggers++);
+  const src = { x: p.x + 20, y: p.y, team: 'enemy' };
+  const hit = (power) => { p.invulnT = 0; p.dodging = false; g.combat.dealDamage(src, p, { power, noCrit: true }); };
+  const fresh = () => { g.simulate(4); p.hp = p.maxHp; p.status.clear(); p.poise.reset(); };
+  fresh(); hit(99999);
+  ok('Endure: a huge hit from full HP leaves you at 1 HP (no one-shot)', !p.dead && p.hp === 1, `hp ${p.hp}`);
+  fresh(); hit(18);
+  ok('One ordinary hit never staggers', staggers === 0 && p.poise.value < p.poise.max, `poise ${Math.round(p.poise.value)}`);
+  fresh(); for (let i = 0; i < 6 && !staggers; i++) { hit(18); g.simulate(0.3); }
+  ok('Taking hits in a row -> STAGGERED + EXPOSED', staggers === 1 && p.status.has('exposed'), `staggers ${staggers}`);
+  const exposedMult = p.status.damageTakenMult();
+  ok('Exposed takes more damage', exposedMult > 1, `x${exposedMult}`);
+  for (let i = 0; i < 4; i++) { hit(18); g.simulate(0.2); }
+  ok('No stun-lock: immune to a second stagger right away', staggers === 1);
+  g.simulate(6);
+  ok('Poise refills once you stop getting hit', p.poise.value === p.poise.max);
+  releaseInput(g);
   return R;
 }
