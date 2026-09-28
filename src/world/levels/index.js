@@ -1,5 +1,5 @@
 import { WHISPERING } from './whispering.js';
-import { ASHEN } from './ashen.js';
+import { ANCIENT_VALLEY } from './ancientValley.js';
 
 // LEVELS (grids) — every playable map lives on one grid: its own tile map + everything placed on it.
 // Only ONE grid is loaded at a time (world/world.js enterGrid): walking through an exit to a map on another grid
@@ -12,6 +12,8 @@ import { ASHEN } from './ashen.js';
 //  generate : (builder) -> paints the terrain, zones, sub-areas, props, spawns, NPCs, lights (maps/*.js builders)
 //  setup    : (world, level) -> objects created once when the grid is first built (breakables, dummies, ...)
 //  apply    : (world) -> world flags change this grid's terrain / props (idempotent, runs from World.applyState)
+//  skin     : ground art for this grid (maps/tileSkins.js, built by tools/build-tiles.js); none = painted tiles
+//  landmarks: [[name, tx, ty]] minimap / world map markers (name = a sub-area: shown once that area was discovered)
 // A new grid = one module + one line here + maps naming it. The World never names a grid.
-export const LEVELS = { whispering: WHISPERING, ashen: ASHEN };
+export const LEVELS = { whispering: WHISPERING, ancient_valley: ANCIENT_VALLEY };
 export const START_GRID = 'whispering';

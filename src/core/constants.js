@@ -28,10 +28,12 @@ export const T = {
   MOSS_STONE: 20,
   DEEP_WATER: 21,
   STAIRS: 22, // walkable; rendered as steps rising toward the north
+  SCORCHED: 23, // walkable burnt / cracked earth (A2 caldera rim)
+  LAVA: 24, // molten rock: solid like deep water (shots fly over it), glows
 };
 
 // Which tiles block movement
-export const SOLID_TILES = new Set([T.VOID, T.WATER, T.CANOPY, T.CLIFF, T.CAVE_WALL, T.BUILDING, T.RUIN_WALL, T.DEEP_WATER]);
+export const SOLID_TILES = new Set([T.VOID, T.WATER, T.CANOPY, T.CLIFF, T.CAVE_WALL, T.BUILDING, T.RUIN_WALL, T.DEEP_WATER, T.LAVA]);
 
 // Zones (major areas)
 export const Z = {
@@ -43,7 +45,7 @@ export const Z = {
   ARENA: 5,
   VALLEY: 6,
   CAVE: 7,
-  BADLANDS: 8, // Ashen Badlands grid (world/levels/ashen.js)
+  ANCIENT: 8, // A2 Ancient Valley grid (world/levels/ancientValley.js)
 };
 
 export const ZONE_INFO = {
@@ -52,9 +54,9 @@ export const ZONE_INFO = {
   [Z.RUINS]: { name: 'ANCIENT RUINS', sub: 'Lv. 5 – 8', music: 'ruins' },
   [Z.GATE]: { name: 'GUARDIAN GATE', sub: 'Something ancient stirs', music: 'gate' },
   [Z.ARENA]: { name: 'GUARDIAN ARENA', sub: 'A1 Boss · Heart of the Forest', music: 'arena' },
-  [Z.VALLEY]: { name: 'VALEHAVEN', sub: 'Secret City · Ancient Valley', safe: true, music: 'valley' },
+  [Z.VALLEY]: { name: 'VALEHAVEN', sub: 'Secret City · Hidden Valley', safe: true, music: 'valley' },
   [Z.CAVE]: { name: 'HIDDEN CAVE', sub: 'Secret Area Discovered', music: 'cave' },
-  [Z.BADLANDS]: { name: 'ASHEN BADLANDS', sub: 'Scorched canyons', music: 'badlands' },
+  [Z.ANCIENT]: { name: 'ANCIENT VALLEY', sub: 'Terraces of a fallen kingdom', music: 'ancient' },
 };
 
 export const TEAM = { PLAYER: 1, ENEMY: 2, NEUTRAL: 3 };

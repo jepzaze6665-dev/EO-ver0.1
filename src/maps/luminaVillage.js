@@ -18,7 +18,7 @@ export const LUMINA_VILLAGE = {
     interactables: [
       {
         id: 'lumina_route_sign', kind: 'sign', tx: 43, ty: 162, prompt: 'Read Route Sign', title: 'Roads from Lumina',
-        text: 'ROADS FROM LUMINA VILLAGE\n↑ ROUTE A — The Forest Road: Whispering Forest (A1) → Ashen Badlands (A2) → Rune Citadel (A3) → City 2\n→ ROUTE B — The Eastern Road: not surveyed yet (coming in a later update)\n\n"Each forest keeps a guardian. The road past it stays shut until the guardian falls." — Guild notice',
+        text: 'ROADS FROM LUMINA VILLAGE\n↑ ROUTE A — The Forest Road: Whispering Forest (A1) → Ancient Valley (A2) → Rune Citadel (A3) → City 2\n→ ROUTE B — The Eastern Road: not surveyed yet (coming in a later update)\n\n"Each forest keeps a guardian. The road past it stays shut until the guardian falls." — Guild notice',
       },
     ],
   },

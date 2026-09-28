@@ -1,13 +1,13 @@
 import { Z } from '../core/constants.js';
 
-// VALEHAVEN — the SECRET CITY of the Ancient Valley (W2; was City 2 in V2.2). A safe Guild camp-city nobody in Lumina
+// VALEHAVEN — the SECRET CITY of the Hidden Valley (W2; was City 2 in V2.2). A safe Guild camp-city nobody in Lumina
 // speaks of. Way in: the Sealed Path in A1's north-west (exit `valley_road`), whose thorn barrier withers once the
 // Guardian falls (world/levels/whispering.js valley barrier). Finding it = hidden content (data/hidden.js valehaven:
 // EXP + gold once, quest 'valley'). Not on the route panel; the world map shows it only after it was found.
 // Placeholder city: Scout Wren, a waystone, a notice and the Sealed Depths door (a later content hook).
 // Terrain: maps/ruins.js buildValley (tile rows 1..29).
 export const VALEHAVEN = {
-  id: 'valehaven', name: 'VALEHAVEN', short: 'Valehaven', sub: 'Secret City · Ancient Valley · Safe Zone', grid: 'whispering',
+  id: 'valehaven', name: 'VALEHAVEN', short: 'Valehaven', sub: 'Secret City · Hidden Valley · Safe Zone', grid: 'whispering',
   type: 'city', safe: true, secret: true,
   region: { zones: [Z.VALLEY] },
   spawn: [32, 24],

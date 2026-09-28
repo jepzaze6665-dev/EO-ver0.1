@@ -50,14 +50,14 @@ export const WORLD_TRIGGERS = [
     actions: ['set_flag:riverCrossed'],
   },
 
-  // ---- A1 boss (the Guardian) -> A2 Ashen Badlands
+  // ---- A1 boss (the Guardian) -> A2 Ancient Valley
   {
     id: 'a1_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_a1' },
-    actions: ['unlock_map:a2', { type: 'banner', title: 'A2 UNLOCKED', text: 'The north road beyond the arena leads into the Ashen Badlands', color: '#ffd98a' }],
+    actions: ['unlock_map:a2', { type: 'banner', title: 'A2 UNLOCKED', text: 'The north road beyond the arena leads into the Ancient Valley', color: '#ffd98a' }],
   },
   {
     id: 'a2_first_visit', on: 'mapEntered', match: { id: 'a2', first: true },
-    actions: [{ type: 'cutscene', title: 'ASHEN BADLANDS', sub: 'Route A · A2', focus: 'player', zoom: 1.3, time: 2.2 }],
+    actions: [{ type: 'cutscene', title: 'ANCIENT VALLEY', sub: 'Route A · A2', focus: 'player', zoom: 1.3, time: 2.2 }],
   },
 
   // ---- A3 Major Boss -> City 2: added with City 2 (W5); the unlock itself = City 2's map `requires`.

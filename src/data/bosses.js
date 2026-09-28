@@ -84,7 +84,7 @@ export const BOSSES = {
   },
 
   // ---------------- A1 BOSS: the Guardian of the Forest (fight code: boss/guardian.js; arena: maps/ruins.js; art: the
-  // owner's A1 boss sheet). W2: it guards the north road out of A1 — its fall opens A2 (Ashen Badlands).
+  // owner's A1 boss sheet). W2: it guards the north road out of A1 — its fall opens A2 (Ancient Valley).
   boss_a1: {
     id: 'boss_a1', name: 'GUARDIAN OF THE FOREST', title: 'Warden of the Whispering Heart', type: 'area', impl: 'guardian',
     route: 'A', map: 'arena', monster: 'guardian', level: 10, recommendedLevel: 10,
@@ -102,7 +102,7 @@ export const BOSSES = {
   },
 
   // ---------------- A2 / A3 (planned: the fights arrive with their maps — W3 magma beast sheet, W4 rune knight sheet)
-  boss_a2: { id: 'boss_a2', name: 'MAGMA BEAST', title: 'Heart of the Ashen Badlands · coming soon', type: 'area', impl: 'area', route: 'A', map: 'a2', planned: true, unlocks: ['a3'] },
+  boss_a2: { id: 'boss_a2', name: 'MAGMA BEAST', title: 'Lord of the Magma Rift · coming soon', type: 'area', impl: 'area', route: 'A', map: 'a2', planned: true, unlocks: ['a3'] },
   boss_a3: { id: 'boss_a3', name: 'RUNE KNIGHT', title: 'Warden of the Rune Citadel · coming soon', type: 'major', impl: 'area', route: 'A', map: 'a3', planned: true, unlocks: ['city2'] },
 
   // ---------------- ROUTE B (architecture only — Phase 13/14 builds the maps; nothing here is spawned yet)

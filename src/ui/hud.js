@@ -1,5 +1,5 @@
 import { PARTY } from '../data/party.js';
-import { START_GRID } from '../world/levels/index.js';
+import { START_GRID, LEVELS } from '../world/levels/index.js';
 import { COMBAT_UI } from '../data/combatUI.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
@@ -23,13 +23,9 @@ const MINI_COLORS = {
   [T.RUIN]: '#4f5664', [T.MOSS_STONE]: '#44574a', [T.ARENA]: '#5a6476', [T.WATER]: '#215a80', [T.DEEP_WATER]: '#133452',
   [T.SHALLOW]: '#357a8c', [T.BRIDGE]: '#9a7550', [T.SAND]: '#7b7050', [T.CORRUPT]: '#3a2450', [T.CAVE]: '#3a3149',
   [T.VALLEY]: '#6a8a48', [T.CANOPY]: '#10201a', [T.CLIFF]: '#2a2a30', [T.RUIN_WALL]: '#22252e', [T.CAVE_WALL]: '#16121e',
-  [T.BUILDING]: '#8a5a3a', [T.STAIRS]: '#5e6676', [T.VOID]: '#05040a',
+  [T.BUILDING]: '#8a5a3a', [T.STAIRS]: '#5e6676', [T.VOID]: '#05040a', [T.SCORCHED]: '#3a302a', [T.LAVA]: '#e8601a',
 };
 
-const LANDMARKS = [
-  ['Elder Tree', 18, 73], ['Stone Circle', 66, 62], ['Crystal Glade', 77, 121], ['Silverfall', 6, 98], ['River Crossing', 50, 98],
-  ['Abandoned Camp', 20, 132], ['Ancient Shrine', 136, 69], ['Guardian Gate', 136, 57], ['Ruin Courtyard', 136, 99], ['Ancient Valley', 36, 6],
-];
 
 export class HUD {
   constructor(game) {
@@ -395,7 +391,8 @@ export class HUD {
       if (it.kind === 'chest' && !w.state.chests[it.id] && w.map.revealed[w.map.idx(Math.floor(it.x / TILE), Math.floor(it.y / TILE))] && (!it.secret || w.map.secretsFound.has(it.secret))) out.push({ x: it.x, y: it.y, c: '#ffc050', r: 1.2 });
     }
     // landmarks appear once their area has been discovered
-    for (const [name, lx, ly] of LANDMARKS) if (w.state.subs[name]) out.push({ x: lx * TILE, y: ly * TILE, c: '#f0e6c8', r: 1.1, diamond: true });
+    // landmarks of the loaded grid (world/levels/*.js `landmarks`: [name, tx, ty]) once their area was discovered
+    for (const [name, lx, ly] of (LEVELS[w.gridId] && LEVELS[w.gridId].landmarks) || []) if (w.state.subs[name]) out.push({ x: lx * TILE, y: ly * TILE, c: '#f0e6c8', r: 1.1, diamond: true });
     if (w.guardian && f.guardianDiscovered && !f.guardianDefeated && w.onMap(w.guardian)) out.push({ x: w.guardian.home.x, y: w.guardian.home.y, c: '#ff4060', r: 3, boss: true });
     // area bosses waiting in their arena (boss/bossSystem.js)
     if (g.bosses) for (const enc of g.bosses.idleOnMap()) if (enc.def.impl === 'area') { const a = g.bosses.arenaPx(enc); out.push({ x: a.x, y: a.y, c: '#ff4060', r: 3, boss: true }); }

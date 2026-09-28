@@ -451,7 +451,7 @@ export function routeA(g, classId = 'umbral_sword') {
   ok('Guardian: 3 phases + final attack, defeated', r3.state === 'defeated' && r3.phases === '1,2,3' && r3.finals === 1 && wp.isBossDefeated('boss_a1'), JSON.stringify(r3));
   ok('A2 UNLOCKED: world trigger + north road gate open', wp.isMapUnlocked('a2') && w.gates.get('a2_road_gate').open && events.triggers.includes('a1_boss_defeated'));
   goto(g, 136, 13); walk(g, 'KeyW', 1.5);
-  ok('Walked the north road into A2 (Ashen Badlands, other grid)', w.mapId === 'a2' && w.gridId === 'ashen' && events.triggers.includes('a2_first_visit'), `${w.mapId}/${w.gridId}`);
+  ok('Walked the north road into A2 (Ancient Valley, other grid)', w.mapId === 'a2' && w.gridId === 'ancient_valley' && events.triggers.includes('a2_first_visit'), `${w.mapId}/${w.gridId}`);
   g.simulate(0.5);
   ok('Route A quest complete (reached A2)', q.isDone('route_a'), JSON.stringify(q.active.route_a || 'done'));
   const st = wp.routeStatus('A');
@@ -824,7 +824,7 @@ export function gridCheck(g, classId = 'umbral_sword') {
   w.setFlag('gateOpened'); w.applyState();
   w.changeMap('arena', { silent: true });
   const portal = mm.get('arena').exits.find((e) => e.to === 'a2');
-  ok('A2 Ashen Badlands LOCKED before the Guardian falls', !wp.isMapUnlocked('a2') && !w.transitions.isOpen(portal), w.transitions.lockReason(portal));
+  ok('A2 Ancient Valley LOCKED before the Guardian falls', !wp.isMapUnlocked('a2') && !w.transitions.isOpen(portal), w.transitions.lockReason(portal));
   // stand in the portal without walking through the arena (walking in would wake the Guardian)
   releaseInput(g); p.x = (portal.rect[0] + 0.5) * TILE; p.y = (portal.rect[1] + 0.5) * TILE;
   w.transitions.cooldown = 0; w.transitions.update(0.02, p);
@@ -838,8 +838,8 @@ export function gridCheck(g, classId = 'umbral_sword') {
   goto(g, 136, portal.rect[1] + 3); walk(g, 'KeyW', 1.5);
   g.simulate(0.5);
   const box = mm.get('a2').box;
-  ok('Transition arena -> A2 (other grid): map + grid switched', w.mapId === 'a2' && w.gridId === 'ashen' && mm.idAt(p.x, p.y) === 'a2', `${w.mapId} / ${w.gridId}`);
-  ok('Grid events: unloaded whispering, loaded ashen', unloaded.includes('whispering') && loaded.includes('ashen'));
+  ok('Transition arena -> A2 (other grid): map + grid switched', w.mapId === 'a2' && w.gridId === 'ancient_valley' && mm.idAt(p.x, p.y) === 'a2', `${w.mapId} / ${w.gridId}`);
+  ok('Grid events: unloaded whispering, loaded ancient_valley', unloaded.includes('whispering') && loaded.includes('ancient_valley'));
   ok('Player spawned at the entry, on open ground', arrival && Math.abs(arrival.x / TILE - 84.5) < 3 && Math.abs(arrival.y / TILE - 196) < 3 && !arrival.solid, arrival && `${(arrival.x / TILE).toFixed(1)},${(arrival.y / TILE).toFixed(1)}`);
   ok('Old grid cleaned up: its monsters, projectiles and render cache are gone', w.monsters.every((m) => !m.removed) && !w.monsters.some((m) => m.mapId && mm.gridOf(m.mapId) === 'whispering') && g.combat.projectiles.pool.items.filter((o) => o.active).length === 0 && w.levels.whispering.map.chunkCache.size === 0 && w.levels.whispering.monsters.length === 0, `forest monsters before=${forestMons}`);
   ok('Grid size = the A1 scale', w.map.w === w.levels.whispering.map.w && w.map.h === w.levels.whispering.map.h, `${w.map.w}x${w.map.h}`);
@@ -849,15 +849,15 @@ export function gridCheck(g, classId = 'umbral_sword') {
   ok('Collision: canyon walls stop the player', p.x < x0 && p.x > (box.tx0 + 2) * TILE && !w.map.isSolidAt(p.x, p.y), `x ${(x0 / TILE).toFixed(1)} -> ${(p.x / TILE).toFixed(1)}`);
   goto(g, 84.5, 192);
   g.simulate(0.5);
-  ok('Area detection: sub-area on the new grid', w.currentSub && w.currentSub.name === 'Scorched Pass', w.currentSub && w.currentSub.name);
-  ok('Map content loaded (sign) + objects of the other grid absent', w.interactables.some((i) => i.id === 'ashen_survey') && !w.interactables.some((i) => i.id === 'a1_hunters_notice') && w.dummies.length === 0);
+  ok('Area detection: sub-area on the new grid', w.currentSub && w.currentSub.name === 'Valley Gate', w.currentSub && w.currentSub.name);
+  ok('Map content loaded (sign) + objects of the other grid absent', w.interactables.some((i) => i.id === 'a2_gate_plaque') && !w.interactables.some((i) => i.id === 'a1_hunters_notice') && w.dummies.length === 0);
   // save / load on the other grid
   goto(g, 84, 150);
   const at = { x: p.x, y: p.y };
   g.simulate(0.4);
   ok('Save on the other grid', g.save.save());
   g.loadGame(); w = g.world;
-  ok('Load: grid + map + position restored', w.gridId === 'ashen' && w.mapId === 'a2' && Math.hypot(g.player.x - at.x, g.player.y - at.y) < 40, `${w.gridId}/${w.mapId}`);
+  ok('Load: grid + map + position restored', w.gridId === 'ancient_valley' && w.mapId === 'a2' && Math.hypot(g.player.x - at.x, g.player.y - at.y) < 40, `${w.gridId}/${w.mapId}`);
   const fog = w.map.revealed[w.map.idx(84, 150)];
   ok('Load: fog of war of the other grid kept', fog === 1, 'revealed=' + fog);
   // back through the exit: the forest grid returns with its monsters re-spawned

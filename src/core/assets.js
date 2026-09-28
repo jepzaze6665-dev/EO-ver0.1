@@ -6,6 +6,7 @@ export const Assets = {
   props: {}, // name -> {img, x, y, w, h}
   vfx: {}, // name -> {img, fw, fh, frames} (skill effect strips, right-facing)
   ui: {}, // name -> {img, w, h, slice?, file} (UI kit built by tools/build-ui.js: frames, buttons, slots, boss bar)
+  tiles: {}, // skin -> {img, tile, variants, rows} (ground skins built by tools/build-tiles.js, used per grid)
 };
 
 export function loadImage(src) {
@@ -35,12 +36,14 @@ export async function loadAll(onProgress) {
   const uiMeta = await loadJSON('assets/ui/ui.json');
   // monster sheets (tools/build-monsters.js); optional: without it every monster keeps its canvas placeholder
   Assets.data.monsters = await loadJSON('assets/monsters/monsters.json').catch(() => ({}));
+  const tileMeta = await loadJSON('assets/tiles/tiles.json').catch(() => ({})); // optional too: painted tiles stay
   const jobs = [];
   for (const [key, atlas] of Object.entries(Assets.data.atlases)) for (const [name, s] of Object.entries(atlas.sheets)) jobs.push([`player_${key}_${name}`, s.file]);
   jobs.push(['props', 'assets/props/props.png']);
   for (const [name, v] of Object.entries(vfxMeta)) jobs.push(['vfx_' + name, v.file]);
   for (const [name, v] of Object.entries(uiMeta)) jobs.push(['ui_' + name, v.file]);
   for (const [name, v] of Object.entries(Assets.data.monsters)) jobs.push(['monster_' + name, v.file]);
+  for (const [name, v] of Object.entries(tileMeta)) jobs.push(['tiles_' + name, v.file]);
   let done = 0;
   await Promise.all(
     jobs.map(async ([key, src]) => {
@@ -51,6 +54,7 @@ export async function loadAll(onProgress) {
   );
   for (const [name, v] of Object.entries(vfxMeta)) Assets.vfx[name] = { ...v, img: Assets.images['vfx_' + name] };
   for (const [name, v] of Object.entries(uiMeta)) Assets.ui[name] = { ...v, img: Assets.images['ui_' + name] };
+  for (const [name, v] of Object.entries(tileMeta)) Assets.tiles[name] = { ...v, img: Assets.images['tiles_' + name] };
   const pimg = Assets.images.props;
   for (const [name, [x, y, w, h]] of Object.entries(propMeta)) Assets.props[name] = { img: pimg, x, y, w, h };
 }

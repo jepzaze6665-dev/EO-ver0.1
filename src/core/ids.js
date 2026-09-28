@@ -9,7 +9,7 @@ export const IDS = {
   // W2: the Guardian became the A1 boss (boss_a1); Hollow Fang / Grukk are optional A1 mini-bosses; A2 / A3 bosses planned
   bosses: { boss_guardian_forest: 'boss_a1', boss_hollow_fang: 'mini_hollow_fang', boss_grukk_thornbound: 'mini_grukk', boss_route_a_2: 'boss_a2', boss_route_a_major: 'boss_a3' },
   // V2.2 map registry ids (maps/mapRegistry.js) — `valley` (V2.1) became `city2` (City 2 Valehaven)
-  // W2: A1 = the whole old forest (+ its boss arena), A2 = Ashen Badlands (own grid), Valehaven = secret city
+  // W2: A1 = the whole old forest (+ its boss arena), A2 = Ancient Valley (own grid), Valehaven = secret city
   mapIds: { map_city_1: 'lumina', map_route_a_1: 'a1', map_route_a_2: 'a2', map_route_a_3: 'a3', map_route_a_1_boss: 'arena', map_city_2: 'city2', map_valehaven: 'valehaven' },
   monsters: { mon_forest_wolf: 'wolf', mon_forest_goblin: 'goblin', mon_crystal_beast: 'crystal_beast', mon_amethyst_behemoth: 'crystal_alpha', mon_thornling: 'thornling', mon_rune_wraith: 'wraith' },
   quests: { quest_whispers_forest: 'whispers', quest_path_valley: 'valley', quest_sealed_depths: 'depths', quest_first_steps: 'first_steps', quest_route_a: 'route_a' },

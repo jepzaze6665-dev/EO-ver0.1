@@ -50,7 +50,7 @@ export const MONSTER_ART = {
       corrupted: { idle: 'corrupt', walk: 'corrupt' },
     },
   },
-  // ---------------- A2 ASHEN BADLANDS (sheets built; monsters join the game with the A2 map)
+  // ---------------- A2 ANCIENT VALLEY (sheets built; monsters join the game in W3b)
   armadillo: {
     sheet: 'armadillo', replaces: ['armadillo'],
     anims: {

@@ -45,16 +45,16 @@ export const QUESTS = {
   },
   // the progression spine: every field map's boss is a gate (data/bosses.js, data/routes.js). Started by a world trigger
   // when FIRST STEPS BEYOND LUMINA is done (data/worldTriggers.js route_a_begins). W2: A1 = the whole Whispering Forest,
-  // its boss is the Guardian; A2 = the Ashen Badlands (next quest steps arrive with A2's content).
+  // its boss is the Guardian; A2 = the Ancient Valley (next quest steps arrive with A2's content).
   route_a: {
     id: 'route_a', name: 'ROUTE A — THE FOREST ROAD', giver: null, ordered: true, priority: 1,
-    description: 'Every land keeps a guardian, and the road past it stays shut until it falls. Cross the Whispering Forest (A1) and take the north road into the Ashen Badlands (A2).',
+    description: 'Every land keeps a guardian, and the road past it stays shut until it falls. Cross the Whispering Forest (A1) and take the north road into the Ancient Valley (A2).',
     objectives: [
       { id: 'river', text: 'Cross the river into the Deep Forest', type: 'flag', flag: 'riverCrossed', marker: [50, 96] },
       { id: 'ruins', text: 'Follow the Ancient Forest Path to the Ruins', type: 'reach', zone: Z.RUINS, marker: [103, 71] },
       { id: 'gate', text: 'Unseal the Guardian Gate (Ancient Shrine)', type: 'flag', flag: 'gateOpened', marker: [136, 70] },
       { id: 'guardian', text: 'Defeat the Guardian of the Forest (A1 Boss)', type: 'boss', boss: 'boss_a1', marker: [132.5, 28] },
-      { id: 'a2', text: 'Take the north road into the Ashen Badlands (A2)', type: 'reach', map: 'a2', marker: [136, 11] },
+      { id: 'a2', text: 'Take the north road into the Ancient Valley (A2)', type: 'reach', map: 'a2', marker: [136, 11] },
     ],
     rewards: { exp: 150, gold: 150, items: { hp_potion: 2 } },
     requirements: [{ type: 'quest', id: 'beyond_lumina', label: 'Finish First Steps Beyond Lumina' }],

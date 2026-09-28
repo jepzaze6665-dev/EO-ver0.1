@@ -1,0 +1,22 @@
+{
+ "valley": {
+  "file": "assets/tiles/valley.png",
+  "tile": 32,
+  "variants": 4,
+  "rows": {
+   "GRASS": 0,
+   "FLOWERS": 1,
+   "VALLEY": 2,
+   "DIRT": 3,
+   "COBBLE": 4,
+   "RUIN": 5,
+   "MOSS_STONE": 6,
+   "SCORCHED": 7,
+   "CLIFF": 8,
+   "WATER": 9,
+   "DEEP_WATER": 10,
+   "SHALLOW": 11,
+   "face:cliff": 12
+  }
+ }
+}

@@ -57,7 +57,7 @@ export class WorldMap {
     const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
     if (!this.inBounds(tx, ty)) return true;
     const t = this.tiles[ty * this.w + tx];
-    if (t === T.WATER || t === T.DEEP_WATER) return false;
+    if (t === T.WATER || t === T.DEEP_WATER || t === T.LAVA) return false;
     return this.isSolid(tx, ty);
   }
   isWater(x, y) {

@@ -5,7 +5,7 @@ import { VALEHAVEN } from './valehaven.js';
 import { FIELD_A2 } from './fieldA2.js';
 
 // Every playable map. Order = region priority when a tile of one grid could match two maps.
-//   City 1 Lumina Village -> A1 Whispering Forest (+ its boss arena) -> A2 Ashen Badlands -> A3 (planned) -> City 2 (planned)
+//   City 1 Lumina Village -> A1 Whispering Forest (+ its boss arena) -> A2 Ancient Valley -> A3 (planned) -> City 2 (planned)
 //   Valehaven = secret city inside A1's grid (not a route step). Route B (B1 -> B2 -> B3) is data only for now
 //   (data/routes.js): its maps are added here when they are built.
 // Map fields:

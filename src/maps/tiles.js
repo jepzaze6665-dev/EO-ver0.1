@@ -24,6 +24,7 @@ const PAL = {
   shallow: ['#2b6a7c', '#357a8c', '#5aa6b8', '#1f5566'],
   canopy: ['#11231a', '#183022', '#24452d', '#0a170f'],
   void: ['#07060b', '#0b0a12', '#141224', '#040307'],
+  scorched: ['#2e2622', '#3a302a', '#56463a', '#1c1614'],
 };
 
 function paint(ctx, fn) {
@@ -113,6 +114,20 @@ function waterFn(pal, seed) {
     const w = Math.sin((x + y * 0.4) / 3 + seed) * 0.5 + 0.5;
     if (w > 0.94 && hash2(x, y, seed) > 0.5) c = hex(pal[2]);
     return c;
+  };
+}
+
+// molten rock: bright core flowing between dark cooling crust
+function lavaFn(seed) {
+  const core = hex('#ffb040'), hot = hex('#e8601a'), deep = hex('#9a2410'), crust = hex('#2a1410');
+  return (x, y) => {
+    const n = vnoise(x / 6, y / 5, seed) * 0.65 + vnoise(x / 2.5, y / 2.5, seed + 3) * 0.35;
+    const vein = Math.abs(vnoise(x / 7, y / 7, seed + 9) - 0.5);
+    if (vein < 0.05) return crust;
+    if (vein < 0.08) return mix(crust, deep, 0.6);
+    if (n > 0.72) return core;
+    if (n > 0.5) return mix(hot, core, (n - 0.5) / 0.22);
+    return mix(deep, hot, n / 0.5);
   };
 }
 
@@ -229,6 +244,8 @@ export function buildTileset() {
   add(T.STAIRS, (s) => stairsFn(s));
   add(T.BUILDING, (s) => grassLike(PAL.dirt, s));
   add(T.RUIN_WALL, (s) => wallTop(s));
+  add(T.SCORCHED, (s) => stones(PAL.scorched, s, 11, { crack: true }));
+  add(T.LAVA, (s) => lavaFn(s));
 
   // alternative palettes used by world state (corrupted canopy / restored forest)
   const alt = {};
@@ -301,5 +318,5 @@ export const EDGE_PRIORITY = {
   [T.CANOPY]: 9, [T.CAVE_WALL]: 9,
   [T.CORRUPT]: 7, [T.FOREST_FLOOR]: 6, [T.GRASS]: 6, [T.FLOWERS]: 6, [T.VALLEY]: 6,
   [T.MOSS_STONE]: 5, [T.SAND]: 4, [T.DIRT]: 3, [T.CAVE]: 3,
-  [T.COBBLE]: 2, [T.RUIN]: 2, [T.ARENA]: 1, [T.SHALLOW]: 1,
+  [T.COBBLE]: 2, [T.RUIN]: 2, [T.ARENA]: 1, [T.SHALLOW]: 1, [T.SCORCHED]: 2,
 };

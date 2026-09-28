@@ -69,6 +69,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `src/data/monsterArt.js` (idle/move/windup/attack/hurt/death/front/back + extras, per-attack overrides, boss `poses`,
   `replaces` sprite keys, `corrupt` tint → the 'C' variant). `src/monsters/sheetSprites.js` builds sets in the same shape
   as the canvas placeholders (monsterSprites.js), so Monster / AreaBoss / Guardian draw them; `tools/tests/monsterArt.test.mjs`.
+- Map art per route map: `desgin/Map/A/<a1|a2|a3>/` (2 sheets each: tileset + props, 2048², dark navy bg; files may or may
+  not end in .png), references `desgin/Map/Ref/`. GROUND = tile skins: `node tools/build-tiles.js [--preview]` cuts the
+  tile cards, crops the painted border, wrap-blends the edges (seamless), shrinks to 32 px, evens the variants' colour →
+  `assets/tiles/<skin>.png + tiles.json`; a grid names `skin` (world/levels) and `maps/tileSkins.js` swaps those tile
+  types / wall faces into that grid's tileset only. PROPS: `tools/extract-props.js` (manifest; 2048 sheets use `SCALE`
+  0.5; A2 props = `v_*`). The sheets' transition / edge tiles are NOT usable as autotiles (engine blends edges itself).
+  `tools/tests/tiles.test.mjs`.
 - UI kit (PIXEL-ART style — the owner dropped the first painterly kit as not matching the game): `desgin/UI/{plate,frame_kit,slot_frame,bar_frame,crystal}.png`
   (AI sheets, black background) → `node tools/build-ui.js` → `assets/ui/*.png + ui.json` ({ file, w, h, slice? }; background flood-removed
   from the chosen edges + soft fringe, pieces found as blobs, named in reading order or by 3×3 grid). Loaded as
@@ -300,6 +307,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Quest route_a: river (flag riverCrossed via trigger on areaDiscovered 'Deep Forest') -> ruins zone -> gate -> Guardian
   -> reach a2. Quest markers may name `markerMap`. World map lists found secret maps. Save v3 migration (saveData.js
   V3_BOSS_IDS / V3_MAP_IDS; route_a progress restarts). The W1 ember portal is gone.
-  Next: W3 A2 Ashen Badlands for real (badlands tiles / lava, armadillo + rock rhino packs, the magma beast boss),
-  W4 A3 Rune Citadel + rune knight (major), W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase).
+  W3a done (A2 look): the owner's A2 art is an ANCIENT VALLEY (green terraced cliffs, river, waterfalls, ruins), not
+  volcanic → owner chose: A2 follows the art + a lava rift at the end for the Magma Beast. Grid `ancient_valley`
+  (Z.ANCIENT, music 'ancient', skin 'valley', old grid id 'ashen' aliased in saves), terrain `maps/ancientValley.js`:
+  Valley Gate → Pine Terraces → River Fords → Statue Commons → High Meadow → MAGMA RIFT (scorched ground + lava, clear
+  boss ground at `regions.bossRift`), sides Sunken Temple / Golden Arch → Gilded Shrine (loop) / Mirror Lake, hidden slot
+  Quiet Hollow; river on the east + south, each road crosses it once (auto BRIDGE tiles). New tiles T.SCORCHED (walkable)
+  and T.LAVA (solid, shots fly over). Waystone `ws_a2_gate`. Landmarks are per grid (`landmarks` in world/levels).
+  Next: W3b A2 monsters (armadillo + rock rhino from the sheets: combat data, packs, spawns), W3c the Magma Beast boss in the
+  Magma Rift, W4 A3 Rune Citadel (owner's A3 sheets fit: dark stone + gold + purple crystal) + rune knight (major),
+  W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

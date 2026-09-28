@@ -10,6 +10,11 @@ import { buildWhisperingTerrain } from '../../maps/worldGen.js';
 export const WHISPERING = {
   id: 'whispering', name: 'Whispering Forest', size: [168, 208], seed: 1337,
   generate: buildWhisperingTerrain,
+  // minimap / world map landmarks (spec §18): [name (= a sub-area name, shown once discovered), tx, ty]
+  landmarks: [
+    ['Elder Tree', 18, 73], ['Stone Circle', 66, 62], ['Crystal Glade', 77, 121], ['Silverfall', 6, 98], ['River Crossing', 50, 98],
+    ['Abandoned Camp', 20, 132], ['Ancient Shrine', 136, 69], ['Guardian Gate', 136, 57], ['Ruin Courtyard', 136, 99], ['Ancient Valley', 36, 6],
+  ],
 
   // breakable secrets, the training yard, examine prompts
   setup(w, L) {

@@ -2,6 +2,7 @@ import { TILE, Z, ZONE_INFO } from '../core/constants.js';
 import { WorldMap } from '../maps/worldMap.js';
 import { Builder } from '../maps/builder.js';
 import { buildTileset } from '../maps/tiles.js';
+import { skinnedTileset } from '../maps/tileSkins.js';
 import { LEVELS, START_GRID } from './levels/index.js';
 import { Monster } from '../monsters/monster.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
@@ -64,7 +65,7 @@ export class World {
   buildLevel(id) {
     const def = LEVELS[id], g = this.game;
     const [w, h] = def.size;
-    const map = new WorldMap(this.tileset, w, h);
+    const map = new WorldMap(skinnedTileset(this.tileset, def.skin), w, h); // skin: the grid's own ground art
     const b = new Builder(map, def.seed || 1);
     def.generate(b);
     map.secretsFound = this.secretsFound;
@@ -570,6 +571,7 @@ export class World {
     this.secretsFound.clear();
     for (const id of d.secrets || []) this.secretsFound.add(id);
     const fog = { ...(revealedGrids || {}), ...(revealed ? { [START_GRID]: revealed } : {}) };
+    if (fog.ashen) { fog.ancient_valley = fog.ancient_valley || fog.ashen; delete fog.ashen; } // W1/W2 name of the A2 grid
     this.pendingReveal = {};
     for (const [id, r] of Object.entries(fog)) {
       if (this.levels[id]) unrle(r, this.levels[id].map.revealed);

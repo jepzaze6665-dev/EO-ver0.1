@@ -48,7 +48,7 @@ export const LORE = {
   },
   guardian_rest: {
     title: 'The Guardian Rests',
-    text: 'The Warden of the Whispering Heart kneels, and the black veins leave its crystal heart. North of the arena the road into the Ashen Badlands opens — and somewhere in the healed forest, an old path to a hidden valley.',
+    text: 'The Warden of the Whispering Heart kneels, and the black veins leave its crystal heart. North of the arena the road into the Ancient Valley opens — and somewhere in the healed forest, an old path to a hidden valley.',
   },
   valley_stone: {
     title: 'Standing Stone — Ancient Valley',

@@ -13,6 +13,10 @@ fs.mkdirSync(OUT, { recursive: true });
 
 // name: [sheet, x, y] (blob under point) or [sheet, x0, y0, x1, y1] (box). Optional scale as last numeric arg via object form.
 const F = 'FOREST SET.png', A = 'FANTASY SET.png', V = 'VILLAGE SET.png';
+// W3: the owner's per-map prop sheets (2048 px, drawn at twice the pixel size of the 1024 sets -> SCALE 0.5).
+// Coordinates in the manifest are in the sheet's own pixels. A2 = Ancient Valley props, names 'v_*'.
+const A2P = '../A/a2/image-bf40810d-ac8c-4bed-a831-af8840274bbe-0';
+const SCALE = { [A2P]: 0.5 };
 const MANIFEST = {
   // ---- forest
   tree_small_a: [F, 35, 90], tree_small_b: [F, 78, 88],
@@ -77,6 +81,25 @@ const MANIFEST = {
   fountain_s: [V, 160, 535], angel_statue: [V, 228, 535], fountain_basin: [V, 300, 535],
   fence_wood: [V, 15, 305, 125, 345], fence_wood_b: [V, 132, 305, 228, 345], fence_stone: [V, 235, 305, 330, 345],
   well_tower: [V, 545, 225], shrine_small: [V, 595, 230],
+  // ---- A2 ANCIENT VALLEY (owner's sheet desgin/Map/A/a2): terraced cliffs, falls, bridges, ruins, pines
+  v_cliff_a: [A2P, 93, 120], v_cliff_b: [A2P, 176, 21, 352, 225], v_cliff_arch: [A2P, 1072, 124], v_waterfall: [A2P, 1326, 167], v_cliff_cave_big: [A2P, 1754, 198],
+  v_plateau: [A2P, 150, 340], v_cliff_cave: [A2P, 396, 338], v_cliff_fall: [A2P, 632, 340], v_pond_a: [A2P, 851, 356], v_plateau_stream: [A2P, 1101, 342],
+  v_rock_pillar: [A2P, 1331, 414], v_bridge_arch: [A2P, 1551, 383], v_cascade: [A2P, 1735, 475], v_rocks: [A2P, 1942, 317], v_rock_heap: [A2P, 1927, 497],
+  v_torch_pillar: [A2P, 76, 507], v_bridge_a: [A2P, 182, 523], v_bridge_b: [A2P, 389, 512], v_bridge_c: [A2P, 633, 518],
+  v_pond_b: [A2P, 959, 531], v_pond_c: [A2P, 1192, 515], v_pond_d: [A2P, 1445, 522], v_statue: [A2P, 1334, 705],
+  v_gold_gate: [A2P, 209, 715], v_temple: [A2P, 1044, 728], v_gold_shrine: [A2P, 1796, 730], v_pillar_a: [A2P, 451, 682], v_pillar_b: [A2P, 538, 677],
+  v_ruin_platform: [A2P, 737, 730], v_pillar_c: [A2P, 1438, 666], v_obelisk: [A2P, 1537, 804], v_brazier: [A2P, 1629, 818], v_rubble_a: [A2P, 1974, 798],
+  v_block_a: [A2P, 447, 799], v_block_b: [A2P, 535, 798],
+  v_pine_a: [A2P, 75, 936], v_pine_b: [A2P, 172, 949], v_pine_c: [A2P, 283, 951], v_pine_d: [A2P, 406, 964], v_pine_pair: [A2P, 579, 964], v_pine_e: [A2P, 769, 964],
+  v_dead_a: [A2P, 893, 959], v_dead_b: [A2P, 981, 1018], v_bush_a: [A2P, 1108, 962], v_pine_f: [A2P, 1246, 991], v_dead_c: [A2P, 1378, 970], v_pine_g: [A2P, 1484, 987],
+  v_pine_h: [A2P, 1586, 967], v_pine_i: [A2P, 1688, 951], v_pine_j: [A2P, 1792, 991], v_bare_a: [A2P, 1889, 975], v_bare_b: [A2P, 1944, 1018],
+  v_rock_a: [A2P, 77, 1094], v_rock_b: [A2P, 186, 1121], v_bush_b: [A2P, 289, 1123], v_bush_c: [A2P, 395, 1129], v_bush_d: [A2P, 535, 1130], v_bush_e: [A2P, 648, 1122],
+  v_bush_f: [A2P, 734, 1122], v_bush_g: [A2P, 838, 1113], v_rock_c: [A2P, 1122, 1092], v_log_a: [A2P, 1346, 1109], v_log_b: [A2P, 1801, 1116],
+  v_wall_a: [A2P, 58, 1265], v_ruin_b: [A2P, 144, 1233], v_ruin_c: [A2P, 264, 1246], v_ruin_d: [A2P, 383, 1238],
+  v_gold_pillar: [A2P, 1196, 1310], v_lamp_post: [A2P, 1282, 1309], v_ruin_arch: [A2P, 1484, 1308], v_lamp_b: [A2P, 1582, 1313],
+  v_banner_a: [A2P, 1649, 1494], v_banner_b: [A2P, 1740, 1494], v_banner_c: [A2P, 1821, 1496], v_grass_tall: [A2P, 1135, 1482], v_grass_b: [A2P, 1214, 1474],
+  v_flower_a: [A2P, 65, 1600], v_flower_b: [A2P, 295, 1597], v_flower_c: [A2P, 496, 1595], v_grass_c: [A2P, 857, 1593],
+  v_mushroom: [A2P, 1754, 1626], v_mushroom_red: [A2P, 1876, 1619], v_skulls: [A2P, 1215, 1672], v_pebbles: [A2P, 1203, 1757],
 };
 
 function bgLike(r, g, b) {
@@ -89,7 +112,8 @@ function bgLike(r, g, b) {
 const cache = {};
 function loadSheet(name) {
   if (cache[name]) return cache[name];
-  const img = png.read(path.join(SRC, name));
+  const file = [name, name + '.png'].map((n) => path.join(SRC, n)).find((f) => fs.existsSync(f)) || path.join(SRC, name);
+  const img = png.read(file);
   const { width: w, height: h, data } = img;
   const fg = new Uint8Array(w * h);
   for (let p = 0; p < w * h; p++) fg[p] = bgLike(data[p * 4], data[p * 4 + 1], data[p * 4 + 2]) ? 0 : 1;
@@ -130,7 +154,8 @@ function extract(entry) {
   if (nums.length === 2) {
     const [px, py] = nums;
     let best = -1, bd = 1e9;
-    for (let dy = -14; dy <= 14; dy++) for (let dx = -14; dx <= 14; dx++) {
+    const R = SCALE[sheet] ? 30 : 14;
+    for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
       const p = (py + dy) * w + px + dx;
       if (lab[p] >= 0 && dx * dx + dy * dy < bd) { bd = dx * dx + dy * dy; best = lab[p]; }
     }
@@ -159,7 +184,23 @@ function extract(entry) {
     const r = img.data[p * 4], g = img.data[p * 4 + 1], b = img.data[p * 4 + 2];
     out.data[o + 3] = (r + g + b) / 3 < 40 ? 200 : 255;
   }
-  return out;
+  return SCALE[sheet] ? shrink(out, SCALE[sheet]) : out;
+}
+
+// area-average downscale (alpha weighted) for the 2048 px sheets
+function shrink(im, s) {
+  const w = Math.max(1, Math.round(im.width * s)), h = Math.max(1, Math.round(im.height * s)), o = png.create(w, h), inv = 1 / s;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let r = 0, g = 0, b = 0, a = 0, n = 0;
+    for (let yy = Math.floor(y * inv); yy < Math.min(im.height, Math.floor((y + 1) * inv)); yy++) for (let xx = Math.floor(x * inv); xx < Math.min(im.width, Math.floor((x + 1) * inv)); xx++) {
+      const i = (yy * im.width + xx) * 4, al = im.data[i + 3];
+      r += im.data[i] * al; g += im.data[i + 1] * al; b += im.data[i + 2] * al; a += al; n++;
+    }
+    const i = (y * w + x) * 4;
+    if (a) { o.data[i] = r / a; o.data[i + 1] = g / a; o.data[i + 2] = b / a; }
+    o.data[i + 3] = n && a / n > 60 ? 255 : 0; // crisp edges
+  }
+  return o;
 }
 
 // Consistency pass: one colour grade + one outline style for every prop.
