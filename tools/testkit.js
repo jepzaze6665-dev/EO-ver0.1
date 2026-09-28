@@ -721,3 +721,34 @@ export async function tierCheck(g) {
   releaseInput(g);
   return R;
 }
+
+// COMBAT 2.0 C8: combat UI state — dodge hint learned + fades, quest UI fades in intense fights, mark counter, boss poise.
+export function uiCheck(g) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame('umbral_sword'); releaseInput(g);
+  const p = g.player, hud = g.ui.hud; goto(g, 38, 121); g.simulate(0.3);
+  for (const m of g.world.monsters) if (g.world.onMap(m)) { m.dead = true; m.deathT = 99; }
+  g.simulate(5); // out of combat
+  ok('New player: DODGE [SPACE] hint visible, quest UI visible', hud.dodgeHintA === 1 && !g.world.state.flags.tut_dodge && hud.questA === 1, `hint ${hud.dodgeHintA} quest ${hud.questA}`);
+  for (let i = 0; i < 5; i++) { p.resources.fill('stamina'); p.tryDodge(); g.simulate(0.5); }
+  g.simulate(1.2);
+  ok('After 5 dodges the hint is learned (saved flag) and faded out', g.world.state.flags.tut_dodge && hud.dodgeHintA === 0, `stats ${g.stats.dodges} hint ${hud.dodgeHintA}`);
+  const any = g.world.monsters[0];
+  const pack = [0, 1].map((i) => { const m = new any.constructor(g, 'wolf', p.x + 80 + i * 20, p.y, {}); m.hp = m.maxHp = 9999; m.aggro = true; m.setState('chase'); g.world.monsters.push(m); return m; });
+  g.combat.lastCombatTime = g.time;
+  g.simulate(1, () => { p.hp = p.maxHp; g.combat.lastCombatTime = g.time; });
+  ok('Intense fight: quest tracker + route panel fade', hud.questA < 0.5, `questA ${hud.questA.toFixed(2)}`);
+  for (const m of pack) { m.dead = true; m.deathT = 99; }
+  g.simulate(5);
+  ok('Fight over: quest UI comes back', hud.questA === 1, `questA ${hud.questA}`);
+  p.addMark(3);
+  const hc = p.cls.hudCounter(p);
+  ok('Mark counter 3/3 -> SHADOW BREAK READY', hc.value === 3 && hc.max === 3 && hc.ready && /SHADOW BREAK READY/.test(hc.readyText), hc.readyText);
+  // boss bar data carries poise for the POISE meter
+  toBoss(g, 'umbral_sword'); g.bosses.complete('boss_a1'); g.bosses.complete('boss_a2'); g.player.setLevel(10);
+  goto(g, 135, 37); g.simulate(3, () => { g.player.hp = g.player.maxHp; });
+  const bi = g.bosses.barInfo();
+  ok('Boss bar shows name, HP and poise', bi && bi.name && bi.maxHp > 0 && bi.stagger >= 0 && bi.stagger <= 1, bi && `${bi.name} poise used ${bi.stagger}`);
+  releaseInput(g);
+  return R;
+}

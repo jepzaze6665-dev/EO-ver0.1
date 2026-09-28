@@ -353,6 +353,7 @@ export class Player extends Entity {
     this.endAction(true);
     this.resources.spend(STAMINA.resource, STAMINA.dodge, 'dodge');
     this.beginDodge(ang);
+    g.events.emit('playerDodged', { player: this });
     this.facing = ang;
     g.audio.sfx('dodge');
     this.trailFx(5);

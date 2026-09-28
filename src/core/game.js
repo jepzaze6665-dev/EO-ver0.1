@@ -1,3 +1,4 @@
+import { COMBAT_UI } from '../data/combatUI.js';
 import { EventBus } from './events.js';
 import { Input } from '../input/input.js';
 import { Camera } from '../camera/camera.js';
@@ -112,7 +113,8 @@ export class Game {
     // tutorial 'marks' step, for any class: a self mark reaching max, or our mark triggering on an enemy
     ev.on('targetMarked', (e) => { if (e.target === this.player && e.stacks >= e.maxStacks) this.world.setFlag('tut_marks'); });
     ev.on('markTriggered', (e) => { if (e.source === this.player) this.world.setFlag('tut_marks'); });
-    ev.on('perfectDodge', () => this.world.setFlag('tut_perfect'));
+    ev.on('perfectDodge', () => { this.world.setFlag('tut_perfect'); this.world.setFlag('tut_dodge'); });
+    ev.on('playerDodged', () => { this.stats.dodges = (this.stats.dodges || 0) + 1; if (this.stats.dodges >= COMBAT_UI.dodgeHint.learnAfter) this.world.setFlag('tut_dodge'); });
     ev.on('perfectGuard', () => this.world.setFlag('tut_perfect'));
     ev.on('skillUsed', (e) => { const tut = this.player && this.player.cls.tutorial; if (e.caster === this.player && tut && e.skillId === tut.breakSkill) this.world.setFlag('tut_break'); });
     // stealth feedback for the player (any status carrying the 'stealth' flag, any class)

@@ -1,3 +1,4 @@
+import { COMBAT_UI } from '../data/combatUI.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
 import { icon } from './icons.js';
@@ -79,8 +80,23 @@ export class HUD {
     this.bossBarShow = clamp(this.bossBarShow + (this.bossBar ? dt : -dt) * 3, 0, 1);
     const p = this.game.player;
     this.hpLag += (p.hp / p.maxHp - this.hpLag) * Math.min(1, dt * 3);
+    // Combat 2.0 §67: dodge hint fades once learned; quest / route panels fade while the fight is intense
+    const flags = this.game.world.state.flags;
+    this.dodgeHintA = clamp((this.dodgeHintA ?? 1) + (flags.tut_dodge ? -dt : dt), 0, 1);
+    const qf = COMBAT_UI.questFade;
+    this.questA = clamp((this.questA ?? 1) + (this.intenseFight() ? -dt : dt) * qf.speed, qf.alpha, 1);
     const bi = this.game.bosses && this.game.bosses.barInfo();
     if (bi) this.bossHpLag += (bi.hp / bi.maxHp - this.bossHpLag) * Math.min(1, dt * 2);
+  }
+
+  // intense = a boss fight, someone attacking you right now, or several enemies in the fight on this map
+  intenseFight() {
+    const g = this.game, p = g.player;
+    if (!g.combat.inCombat || p.dead) return false;
+    if (g.world.inBossFight() || (g.attackSlots && g.attackSlots.used(p) > 0)) return true;
+    let n = 0;
+    for (const m of g.world.monsters) if (!m.dead && m.aggro && g.world.onMap(m) && ++n >= COMBAT_UI.questFade.foes) return true;
+    return false;
   }
 
   // ---------------- draw
@@ -100,7 +116,7 @@ export class HUD {
     this.drawSkillBar(ctx, W, H, u);
     this.drawMinimap(ctx, W, u);
     this.drawQuests(ctx, W, u);
-    this.drawRoute(ctx, u);
+    ctx.globalAlpha = this.questA ?? 1; this.drawRoute(ctx, u); ctx.globalAlpha = 1; // fades with the quest tracker
     this.drawBoss(ctx, W, u);
     this.drawTarget(ctx, W, u);
     this.drawPickups(ctx, H, u);
@@ -248,7 +264,8 @@ export class HUD {
     const y = H - size - 22 * u;
     this.panel(ctx, x - 10 * u, y - 10 * u, total + 20 * u, size + 20 * u, 0.6);
     // dodge hint: bright when there is stamina for a dodge
-    this.text(ctx, 'DODGE [SPACE]', W / 2, y - 18 * u, 9 * u, p.resources.canAfford(STAMINA.resource, STAMINA.dodge) ? '#9af8ff' : 'rgba(150,120,120,0.8)', { align: 'center' });
+    // (a tutorial hint: it fades out for good once the player has learned to dodge — data/combatUI.js)
+    if (this.dodgeHintA > 0) { ctx.globalAlpha = this.dodgeHintA; this.text(ctx, 'DODGE [SPACE]', W / 2, y - 18 * u, 9 * u, p.resources.canAfford(STAMINA.resource, STAMINA.dodge) ? '#9af8ff' : 'rgba(150,120,120,0.8)', { align: 'center' }); ctx.globalAlpha = 1; }
     const hc = cls.hudCounter ? cls.hudCounter(p) : null;
     if (hc && hc.ready && hc.readyText) {
       const k = 0.65 + 0.35 * Math.sin(g.time * 8);
@@ -413,6 +430,7 @@ export class HUD {
     const list = g.quests.tracker();
     let y = 18 * u + 190 * u + 56 * u;
     const w = 250 * u, x = W - w - 18 * u;
+    ctx.globalAlpha = this.questA ?? 1; // fades during intense fights
     for (const q of list) {
       const h = (28 + q.lines.length * 17) * u;
       this.panel(ctx, x, y, w, h, 0.6);
@@ -424,6 +442,7 @@ export class HUD {
       });
       y += h + 8 * u;
     }
+    ctx.globalAlpha = 1;
     // notifications under the tracker
     for (const n of this.notes) {
       const a = n.t < 0.3 ? n.t / 0.3 : n.t > n.dur - 0.5 ? (n.dur - n.t) / 0.5 : 1;
@@ -481,9 +500,10 @@ export class HUD {
     this.text(ctx, `${Math.round(pct * 100)}%`, x + w - 6 * u, by + bh - 4 * u, 11 * u, '#fff', { align: 'right' });
     this.text(ctx, bi.phaseCount > 1 ? `${bi.phaseName}  (${bi.phase}/${bi.phaseCount})` : bi.phaseName, x + 6 * u, by + bh - 4 * u, 10 * u, '#fff');
     this.text(ctx, `Lv.${bi.level}`, x - 8 * u, by + bh - 4 * u, 11 * u, '#ffd96a', { align: 'right' });
-    // stagger / weak window
+    // POISE (§67) — gold = poise left; empties into a STAGGER; during a weak window it shows the window instead
     const weak = bi.weak;
-    this.bar(ctx, x + w * 0.25, by + bh + 4 * u, w * 0.5, 5 * u, weak ? bi.weakPct : bi.stagger, weak ? '#9af8ff' : '#ffd070', weak ? '#3ab0d0' : '#a07020');
+    this.bar(ctx, x + w * 0.25, by + bh + 4 * u, w * 0.5, 5 * u, weak ? bi.weakPct : 1 - bi.stagger, weak ? '#9af8ff' : '#ffd070', weak ? '#3ab0d0' : '#a07020');
+    this.text(ctx, weak ? 'WEAK' : 'POISE', x + w * 0.25 - 6 * u, by + bh + 9 * u, 8 * u, weak ? '#9af8ff' : '#ffd070', { align: 'right' });
     this.drawStatuses(ctx, u, gd, W / 2, by + bh + 22 * u);
     // boss-specific tags from its own hudState() (e.g. Guardian: HEARTWOOD WARD / CORE EXPOSED)
     const tags = gd.hudState ? gd.hudState().tags || [] : [];
