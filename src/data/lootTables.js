@@ -11,5 +11,8 @@ export const LOOT_TABLES = {
   thornling: { gold: [0, 2], drops: [] },
   wraith: { gold: [15, 30], drops: [{ item: 'moon_crystal', chance: 0.25 }] },
   elite: { gold: [20, 40], drops: [{ item: 'hp_potion', chance: 0.5 }, { item: 'shadow_tonic', chance: 0.25 }] }, // extra roll for elites
+  // area bosses (data/bosses.js rewards.loot) — rolled once, on the first kill
+  boss_a1: { gold: [80, 80], drops: [{ item: 'wolf_fang', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 2 }] },
+  boss_a2: { gold: [150, 150], drops: [{ item: 'goblin_iron', chance: 1, count: 4 }, { item: 'shadow_tonic', chance: 1 }, { item: 'hp_potion', chance: 1, count: 2 }] },
   guardian: { gold: [300, 300], drops: [{ item: 'guardian_heart', chance: 1 }, { item: 'guardian_heartwood', chance: 1 }] },
 };

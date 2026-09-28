@@ -6,6 +6,7 @@ import { Z } from '../core/constants.js';
 //  giver                        : NPC id that offers it (dialogue option 'quest:<id>'); marks the NPC with "!"
 //  autoStart                    : accepted automatically on New Game
 //  side                         : optional quest (tracked below the main ones)
+//  priority                     : higher = its objective drives the HUD arrow first (default 0)
 //  ordered                      : objectives unlock one after another (tracker shows them all)
 //  requirements                 : progression/requirements.js conditions to accept (level, quest, flag, ...)
 //  rewards                      : { exp, gold, items: { id: n } } — given once, on completion (via 'questCompleted')
@@ -15,7 +16,7 @@ import { Z } from '../core/constants.js';
 //    collect { item, count }                             ← inventory count ('itemCollected')
 //    talk    { npc }                                     ← 'npcTalked' (a last talk objective = turn-in)
 //    reach   { map } or { zone }                         ← 'mapEntered' / 'zoneEnter'
-//    boss    { boss }                                    ← 'bossDefeated'
+//    boss    { boss }  boss id (data/bosses.js) or its monster id ← 'bossDefeated'
 //    flag    { flag }                                    ← world flag set
 export const QUESTS = {
   beyond_lumina: {
@@ -41,6 +42,22 @@ export const QUESTS = {
     rewards: { exp: 80, gold: 60, items: { shadow_tonic: 2 } },
     requirements: [{ type: 'quest', id: 'beyond_lumina', label: 'Finish First Steps Beyond Lumina' }],
   },
+  // the V2.2 progression spine: every boss is a gate (data/bosses.js, data/routes.js). Started by a world trigger
+  // when FIRST STEPS BEYOND LUMINA is done (data/worldTriggers.js route_a_begins).
+  route_a: {
+    id: 'route_a', name: 'ROUTE A — THE FOREST ROAD', giver: null, ordered: true, priority: 1,
+    description: 'Every forest keeps a guardian, and the road past it stays shut until it falls. Cross Route A from Lumina to Valehaven (City 2).',
+    objectives: [
+      { id: 'a1_boss', text: 'Defeat Hollow Fang (A1 Boss)', type: 'boss', boss: 'boss_a1', marker: [58.5, 113] },
+      { id: 'a2', text: 'Cross the river into the Deep Forest (A2)', type: 'reach', map: 'a2', marker: [50, 96] },
+      { id: 'a2_boss', text: 'Defeat Grukk the Thornbound (A2 Boss)', type: 'boss', boss: 'boss_a2', marker: [29.5, 60] },
+      { id: 'a3', text: 'Enter the Ancient Ruins (A3)', type: 'reach', map: 'a3', marker: [103, 71] },
+      { id: 'gate', text: 'Unseal the Guardian Gate (Ancient Shrine)', type: 'flag', flag: 'gateOpened', marker: [136, 70] },
+      { id: 'major', text: 'Defeat the Guardian of the Forest (Major Boss)', type: 'boss', boss: 'boss_a3', marker: [132.5, 28] },
+    ],
+    rewards: { exp: 150, gold: 150, items: { hp_potion: 2 } },
+    requirements: [{ type: 'quest', id: 'beyond_lumina', label: 'Finish First Steps Beyond Lumina' }],
+  },
   whispers: {
     id: 'whispers', name: 'WHISPERS IN THE FOREST', giver: 'elder',
     description: 'A fog has swallowed the Whispering Forest and the beasts have turned savage. Find the source.',
@@ -56,12 +73,12 @@ export const QUESTS = {
     requirements: [],
   },
   valley: {
-    id: 'valley', name: 'PATH TO ANCIENT VALLEY', giver: null,
-    description: 'With the Guardian at peace, the thorns sealing the northern road have withered.',
+    id: 'valley', name: 'THE ROAD TO VALEHAVEN', giver: null,
+    description: 'With the Guardian at peace, the road north of the arena and the thorns on the old valley road are open. Valehaven (City 2) waits in the Ancient Valley.',
     objectives: [
       { id: 'gd', text: 'Guardian Defeated', type: 'flag', flag: 'guardianDefeated' },
       { id: 'fr', text: 'Forest Restored', type: 'flag', flag: 'forestRestored' },
-      { id: 'enter', text: 'Enter Ancient Valley', type: 'reach', map: 'valley', marker: [32, 26] },
+      { id: 'enter', text: 'Enter Valehaven (City 2)', type: 'reach', map: 'city2', marker: [32, 22] },
     ],
     rewards: { exp: 200, gold: 100 },
     requirements: [],

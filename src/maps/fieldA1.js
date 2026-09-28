@@ -3,6 +3,8 @@ import { Z } from '../core/constants.js';
 // A1 — WHISPERING FOREST (forest edge, south of the river). Tutorial combat area: the first pack waits at the
 // Forest Entrance (tutorial wolves, never corrupted), Wolf Hollow west, the Abandoned Camp (goblin) south-west.
 // Optional Area: Crystal Glade (Crystal Beasts Lv.6 — harder than the rest of A1, rare chest + crystal nodes).
+// Area Boss: HOLLOW FANG in the Howling Den (east of the River Crossing waystone) — data/bosses.js boss_a1.
+// Boss Gate: a barrier on the bridge (gates) + the exits to A2 stay closed until the boss falls (A2 `requires`).
 // Terrain + base spawns: maps/forest.js (the forest south of tile row 98). Extra content below: `content`.
 
 const COMBAT_NOTICE = [
@@ -11,7 +13,8 @@ const COMBAT_NOTICE = [
   '• Left click attacks · keys 1–4 use skills · 5 is your ultimate · Q is your class special.',
   '• Red shapes on the ground mean an attack is coming. [Space] dodges — dodge through it at the last moment.',
   '• Beasts drop gold, materials and EXP. Potions: [R] heals · [F] restores your class resource.',
-  '• Wolf Hollow lies west. The River Crossing to the north leads on to the Deep Forest.',
+  '• Wolf Hollow lies west. The River Crossing to the north leads on to the Deep Forest —',
+  '  but HOLLOW FANG, the pack alpha, holds the crossing. Its den is beside the waystone.',
 ].join('\n');
 const GLADE_WARNING = [
   'WARNING — CRYSTAL GLADE',
@@ -20,8 +23,13 @@ const GLADE_WARNING = [
 ].join('\n');
 
 export const FIELD_A1 = {
-  id: 'a1', name: 'WHISPERING FOREST', sub: 'Route A · A1 — Forest Edge · Lv. 1 – 4',
+  id: 'a1', name: 'WHISPERING FOREST', short: 'A1', sub: 'Route A · A1 — Forest Edge · Lv. 1 – 4',
+  type: 'field', route: 'A', nextMap: 'a2', bossId: 'boss_a1', requires: [], hiddenAreas: [],
   region: { zones: [Z.FOREST], minTy: 98 },
+  // Boss Gate: the River Crossing is barred until Hollow Fang (Howling Den, beside the River Crossing waystone) falls
+  gates: [
+    { id: 'a1_river_gate', rect: [47, 100, 52, 101], requires: [{ type: 'map_unlocked', map: 'a2', label: 'Defeat HOLLOW FANG, the A1 boss (Howling Den)' }], color: '255,176,112', label: 'River Crossing' },
+  ],
   spawn: [47.5, 150],
   // map-owned content (world/world.js loads it): signs / NPC-free guidance for the tutorial area
   content: {

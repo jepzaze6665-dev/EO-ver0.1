@@ -8,6 +8,7 @@ import { Z } from '../core/constants.js';
 //    corrupted ground — gone once the Guardian falls
 //  - a crossroads (Elder Tree west · Stone Circle / Goblin Glade north · Ancient Path east) with a signpost
 //  - hidden areas: Hidden Cave, Behind the Waterfall, Moonlit Shrine (data/hidden.js)
+//  - Area Boss: GRUKK THE THORNBOUND in the Goblin Glade (data/bosses.js boss_a2) — the path east stays barred until he falls
 // Terrain + base spawns: maps/forest.js (tile rows < 98) + the cave.
 const CROSSROADS = [
   'CROSSROADS OF THE DEEP FOREST',
@@ -19,15 +20,22 @@ const CROSSROADS = [
 const CORRUPTED = { notFlag: 'guardianDefeated' }; // hazards fade when the forest is restored
 
 export const FIELD_A2 = {
-  id: 'a2', name: 'DEEP FOREST', sub: 'Route A · A2 — Beyond the River · Lv. 4 – 7',
+  id: 'a2', name: 'DEEP FOREST', short: 'A2', sub: 'Route A · A2 — Beyond the River · Lv. 4 – 7',
+  type: 'field', route: 'A', nextMap: 'a3', bossId: 'boss_a2',
+  requires: [{ type: 'boss_defeated', boss: 'boss_a1', label: 'Defeat HOLLOW FANG (A1 boss)' }],
+  hiddenAreas: ['hidden_cave', 'behind_waterfall', 'moonlit_shrine'],
   region: { zones: [Z.FOREST, Z.CAVE], maxTy: 97 },
+  // Boss Gate: the Ancient Forest Path to the ruins is barred until Grukk (Goblin Glade) falls
+  gates: [
+    { id: 'a2_path_gate', rect: [88, 66, 89, 75], requires: [{ type: 'map_unlocked', map: 'a3', label: 'Defeat GRUKK THE THORNBOUND, the A2 boss (Goblin Glade)' }], color: '176,96,255', label: 'Ancient Forest Path' },
+  ],
   spawn: [50, 93],
   corruptedMonsters: true, // wolves / goblins spawn corrupted here until the Guardian falls (monsterTypes CORRUPT_MOD)
   exits: [
     { id: 'bridge_south', rect: [48, 96, 52, 97], to: 'a1', entry: [50, 101.5], label: 'Whispering Forest' },
     { id: 'log_bridge', rect: [21, 96, 24, 97], to: 'a1', entry: [22.5, 100.5], label: 'Whispering Forest', requires: { flag: 'logBridge' } },
     { id: 'ancient_path', rect: [93, 68, 95, 73], to: 'a3', entry: [103, 71], label: 'Ancient Ruins' },
-    { id: 'valley_road', rect: [29, 30, 35, 31], to: 'valley', entry: [32, 25], label: 'Ancient Valley', requires: { flag: 'guardianDefeated' } },
+    { id: 'valley_road', rect: [29, 30, 35, 31], to: 'city2', entry: [32, 25], label: 'Valehaven' },
   ],
   content: {
     interactables: [
@@ -36,7 +44,7 @@ export const FIELD_A2 = {
     hazards: [
       // miasma bogs: poison + slow while you stand in them (walk around, or dash through)
       { id: 'mire_deep', kind: 'miasma', name: 'Green Mire', tx: 53, ty: 79, r: 2.6, interval: 1, statuses: [{ id: 'poison', dur: 3 }, { id: 'slow', dur: 1.2 }], while: CORRUPTED },
-      { id: 'mire_glade', kind: 'miasma', name: 'Green Mire', tx: 28, ty: 59, r: 2, interval: 1, statuses: [{ id: 'poison', dur: 3 }, { id: 'slow', dur: 1.2 }], while: CORRUPTED },
+      { id: 'mire_glade', kind: 'miasma', name: 'Green Mire', tx: 42, ty: 69, r: 1.8, interval: 1, statuses: [{ id: 'poison', dur: 3 }, { id: 'slow', dur: 1.2 }], while: CORRUPTED },
       { id: 'mire_path', kind: 'miasma', name: 'Green Mire', tx: 85, ty: 68, r: 1.8, interval: 1, statuses: [{ id: 'poison', dur: 3 }, { id: 'slow', dur: 1.2 }], while: CORRUPTED },
       // thorn eruptions: telegraphed circle, strike + short root (dodge out, or through at the last moment)
       { id: 'thorns_circle', kind: 'thorns', name: 'Corrupted Thorns', tx: 66, ty: 61, r: 1.6, period: 4.5, windup: 0.9, power: 16, root: 0.8, while: CORRUPTED },

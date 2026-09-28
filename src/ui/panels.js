@@ -7,6 +7,7 @@ import { CLASSES, STARTING_CLASSES } from '../skills/classes.js';
 import { RESOURCES } from '../data/resources.js';
 import { CLASS_COUNTERS, CLASS_TREE } from '../data/classTree.js';
 import { classChangeCheck } from '../progression/classChange.js';
+import { ROUTES } from '../data/routes.js';
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
 const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>Passives</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">passive</span><div class="small">${esc(x.desc)}</div></div></div>`).join('')}` : '');
@@ -437,7 +438,8 @@ export class Panels {
     const g = this.game, w = g.world, map = w.map, hud = g.ui.hud;
     hud.refreshMini();
     const el = this.show('map', `<div class="panel map"><h2>World Map <span class="muted small">[M] close</span></h2><canvas></canvas><div class="legend">
-      <span style="color:#fff">▲ You</span><span style="color:#ffe070">◆ Objective</span><span style="color:#5af0ff">◆ Waystone</span><span style="color:#ffc050">● Chest</span><span style="color:#ff4060">● Guardian</span><span style="color:#8adfff">● NPC</span></div></div>`);
+      <span style="color:#fff">▲ You</span><span style="color:#ffe070">◆ Objective</span><span style="color:#5af0ff">◆ Waystone</span><span style="color:#ffc050">● Chest</span><span style="color:#ff4060">● Boss</span><span style="color:#8adfff">● NPC</span></div>
+      <div class="routes">${this.routeProgressHtml()}</div></div>`);
     const cv = el.querySelector('canvas');
     const scale = Math.max(2, Math.floor(Math.min((window.innerHeight * 0.72) / map.h, (window.innerWidth * 0.8) / map.w)));
     cv.width = map.w * scale; cv.height = map.h * scale;
@@ -465,6 +467,24 @@ export class Panels {
     const p = g.player;
     c.fillStyle = '#fff';
     c.beginPath(); c.arc((p.x / TILE) * scale, (p.y / TILE) * scale, scale * 2, 0, 7); c.fill();
+  }
+  // World Progression per route (world/worldProgression.js routeStatus): map ✓ / open / LOCKED, its boss, secrets
+  routeProgressHtml() {
+    const wp = this.game.worldProgress;
+    if (!wp) return '';
+    return Object.values(ROUTES).map((r) => {
+      const st = wp.routeStatus(r.id);
+      const cell = (s) => {
+        const col = s.bossDefeated ? '#8af0a0' : s.unlocked ? '#f0e6c8' : '#77708a';
+        const mark = s.bossDefeated ? '✓' : s.unlocked ? '●' : '✕';
+        const boss = s.boss ? `<div class="small" style="color:${s.bossDefeated ? '#8af0a0' : '#ff9a8a'}">${s.boss.type === 'major' ? 'MAJOR' : 'BOSS'}: ${s.boss.name}${s.bossDefeated ? ' ✓' : ''}</div>` : '';
+        const hid = s.hiddenTotal ? `<div class="small muted">secrets ${s.hiddenFound}/${s.hiddenTotal}</div>` : '';
+        const why = !s.unlocked && s.lockReason ? `<div class="small muted">${s.lockReason}</div>` : '';
+        return `<div style="display:inline-block;vertical-align:top;margin:4px 8px;min-width:120px;color:${col}"><b>${mark} ${s.short}</b> <span class="small">${s.planned ? '(planned)' : s.name}</span>${boss}${hid}${why}</div>`;
+      };
+      const city = st.city ? `<div style="display:inline-block;vertical-align:top;margin:4px 8px;color:${st.city.unlocked ? '#ffe8b0' : '#77708a'}"><b>${st.city.unlocked ? '●' : '✕'} ${st.city.short}</b> <span class="small">${st.city.name}</span></div>` : '';
+      return `<div style="margin-top:8px;text-align:left"><b style="color:#ffd98a">${r.name}</b> <span class="muted small">${r.sub}${r.playable ? (st.complete ? ' · COMPLETE' : '') : ' · not surveyed yet'}</span><br>${st.steps.map(cell).join('<span class="muted">→</span>')}<span class="muted">→</span>${city}</div>`;
+    }).join('');
   }
   centroid(map, subIdx) {
     if (!this._cent) this._cent = {};

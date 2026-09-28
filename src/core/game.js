@@ -23,6 +23,9 @@ import { Progression } from '../progression/progression.js';
 import { ExperienceSystem } from '../progression/experienceSystem.js';
 import { LootSystem } from '../loot/lootSystem.js';
 import { HiddenSystem } from '../world/hiddenSystem.js';
+import { WorldProgression } from '../world/worldProgression.js';
+import { WorldTriggerSystem, TRIGGER_ACTIONS } from '../world/worldTriggerSystem.js';
+import { BossSystem } from '../boss/bossSystem.js';
 import { TargetSystem } from '../combat/targetSystem.js';
 import { changeClass } from '../progression/classChange.js';
 import { CLASS_TREE, TRIALS } from '../data/classTree.js';
@@ -85,6 +88,9 @@ export class Game {
     ev.on('healed', (e) => { const p = e.entity; this.vfx.text(p.x, p.y - 64, `+${e.amount} HP`, { color: '#80ff90', size: 10 }); });
     ev.on('lootDropped', (e) => { if (e.gold) this.vfx.text(e.x, e.y - 10, `+${e.gold}G`, { color: '#ffd24a', size: 8, life: 0.8 }); });
     ev.on('chestOpened', () => { this.stats.chests++; });
+    // world progression feedback (rules: data/bosses.js, data/worldTriggers.js, maps/*.js requires)
+    ev.on('bossRewarded', (e) => { if (e.reward.lore) TRIGGER_ACTIONS.lore(this, { lore: e.reward.lore }); });
+    ev.on('mapUnlocked', (e) => { if (e.reason === 'requirements') this.ui.notify('MAP UNLOCKED', e.map.name, '#ffe8b0'); });
     // quest feedback (the Quest System only reports; rewards: ExperienceSystem + LootSystem)
     ev.on('questAccepted', (e) => { this.ui.questBanner('NEW QUEST', e.quest.name); this.audio.sfx('quest'); });
     ev.on('questUpdated', (e) => { if (e.done) this.ui.notify(this.quests.data[e.id].name, '✓ ' + e.text, '#a8f0b0'); });
@@ -182,6 +188,11 @@ export class Game {
     this.summons = new SummonSystem(SUMMONS, { onEvent: (name, data) => this.events.emit(name, data) });
     this.world = new World(this);
     this.player = new Player(this, cls, this.spritesFor(cls));
+    // V2.2 world progression: defeated bosses / unlocked maps / world events (world/worldProgression.js),
+    // every boss fight (boss/bossSystem.js + data/bosses.js), world triggers (data/worldTriggers.js)
+    this.worldProgress = new WorldProgression(this);
+    this.bosses = new BossSystem(this);
+    this.worldTriggers = new WorldTriggerSystem(this);
     this.progression.startingClass = classId;
     this.validateSprites = validateSprites;
     this.spriteReport = validateSprites(cls.preset || 'ub');
@@ -193,6 +204,7 @@ export class Game {
 
   boot() {
     this.setupSession();
+    this.worldProgress.refreshUnlocks('start');
     this.world.applyState();
     const s = this.world.regions.playerSpawn;
     this.player.x = s.x; this.player.y = s.y;
@@ -207,6 +219,7 @@ export class Game {
   newGame(classId = this.classId) {
     this.save.reset();
     this.setupSession(classId);
+    this.worldProgress.refreshUnlocks('start'); // Lumina + A1 are open from the start (maps without requirements)
     this.world.applyState();
     const s = this.world.regions.playerSpawn;
     this.player.x = s.x; this.player.y = s.y;
@@ -234,6 +247,7 @@ export class Game {
     this.progression.load(d.progression);
     if (!this.progression.startingClass) this.progression.startingClass = this.player.cls.id; // saves before Phase 13
     this.knowledge.load(d.knowledge);
+    this.worldProgress.load(d.worldProgress, d.world); // saves from before V2.2: rebuilt from where the player has been
     this.stats = { kills: 0, chests: 0, deaths: 0, ...(d.stats || {}) };
     this.playTime = d.playTime || 0;
     const p = this.player;
@@ -326,7 +340,8 @@ export class Game {
   }
   respawn() {
     const w = this.world, p = this.player;
-    if (w.bossActive) w.resetBoss();
+    if (this.bosses.engaged) this.bosses.resetEngaged(); // any boss: heals + waits in its arena again
+    else if (w.bossActive) w.resetBoss();
     this.combat.clear();
     let pos = w.regions.villageRespawn;
     const ws = w.state.lastWaystone && w.interactables.find((i) => i.id === w.state.lastWaystone);
@@ -362,14 +377,14 @@ export class Game {
     }, true);
     this.after(4.2, () => {
       this.camera.targetZoom = 1;
-      const first = !w.state.killed.guardian; // boss rewards are given once per character
       w.onGuardianDefeated();
-      if (first) this.events.emit('enemyDefeated', { entity: boss, type: boss.type, name: boss.def.name, source: this.player, x: boss.x, y: boss.y, summoned: false, boss: true, exp: boss.def.exp, loot: boss.def.loot });
-      this.events.emit('bossDefeated', { entity: boss, type: boss.type, first });
+      // progression + first-kill rewards + 'bossDefeated' -> world triggers (City 2 unlock, quest) — boss/bossSystem.js
+      const enc = this.bosses.list.find((e) => e.entity === boss);
+      this.bosses.complete(enc ? enc.id : 'boss_a3', boss);
       this.vfx.flash('200,255,220', 0.6, 0.8);
       const d = boss.def.defeat || {};
       if (d.banner) this.ui.banner(d.banner[0], d.banner[1], '#a8f0c8', 5);
-      if (d.startQuest) this.quests.accept(d.startQuest);
+      if (d.startQuest) this.quests.accept(d.startQuest); // no-op if a world trigger already started it
       this.save.dirty = true;
     }, true);
   }
@@ -433,12 +448,11 @@ export class Game {
     requestAnimationFrame((t) => this.frame(t));
   }
 
-  // During the boss fight the camera leans toward the Guardian so both stay readable.
+  // During a boss fight the camera leans toward the boss so both stay readable.
   cameraTarget() {
     const p = this.player, gd = this.world.guardian;
-    if (this.world.bossActive && gd && !gd.dead) {
-      return { x: p.x + (gd.x - p.x) * 0.35, y: p.y + (gd.y - 40 - p.y) * 0.35 };
-    }
+    const b = (this.bosses && this.bosses.engagedEntity()) || (this.world.bossActive ? gd : null);
+    if (b && !b.dead) return { x: p.x + (b.x - p.x) * 0.35, y: p.y + (b.y - 40 - p.y) * 0.35 };
     return p;
   }
 

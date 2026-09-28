@@ -124,6 +124,8 @@ export class Renderer {
     for (const p of props) if (p.layer === 'ground') this.drawProp(ctx, p, game, true);
     this.drawHazards(ctx, game);
     game.world.hazardSys.draw(ctx, t);
+    game.world.gates.draw(ctx, t);              // boss gates (world/gateSystem.js)
+    if (game.bosses) game.bosses.drawGround(ctx, t); // boss arena boundaries (boss/bossSystem.js)
     game.vfx.drawBelow(ctx, t);
 
     // y-sorted objects
@@ -135,6 +137,7 @@ export class Renderer {
     for (const m of world.monsters) if (cam.visible(m.x, m.y, 80) && world.onMap(m)) list.push({ y: m.y, e: m });
     for (const d of world.dummies) if (cam.visible(d.x, d.y, 60) && world.onMap(d)) list.push({ y: d.y, e: d });
     if (world.guardian && cam.visible(world.guardian.x, world.guardian.y, 200) && world.onMap(world.guardian)) list.push({ y: world.guardian.y, e: world.guardian });
+    if (game.bosses) for (const b of game.bosses.entities()) if (cam.visible(b.x, b.y, 160)) list.push({ y: b.y, e: b });
     for (const s of world.rootSpikes) list.push({ y: s.y, spike: s });
     if (game.summons) for (const s of game.summons.list) if (cam.visible(s.x, s.y, 60)) list.push({ y: s.y, summon: s });
     const pl = game.player;
@@ -374,6 +377,7 @@ export class Renderer {
     if (game.threads) for (const th of game.threads.list) { const [a, b] = game.threads.ends(th); push((a.x + b.x) / 2, (a.y + b.y) / 2, 40 + Math.hypot(b.x - a.x, b.y - a.y) * 0.35, game.threads.defs[th.type].visual.color, 0.45); }
     const gd = game.world.guardian;
     if (gd && !gd.dead) push(gd.x, gd.y - 60, gd.status.has('vulnerable') ? 110 : 70, gd.phase === 3 ? '#b050ff' : '#5af0ff', 0.6);
+    if (game.bosses) for (const b of game.bosses.entities()) if (!b.dead && b.state !== 'dormant') push(b.x, b.y - 30, b.status.has('vulnerable') ? 100 : 70, `rgb(${b.look.aura || '255,160,120'})`, 0.5);
     for (const L of lights) {
       lc.globalAlpha = Math.min(1, L.a + 0.2);
       lc.drawImage(hole, L.x - L.r, L.y - L.r, L.r * 2, L.r * 2);

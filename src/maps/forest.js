@@ -260,12 +260,38 @@ export function buildForest(b) {
   b.spawn(W, 54, 78, { count: 2, radius: 4, cond: 'before' });
   b.spawn(G, 52, 80, { count: 2, radius: 4, cond: 'before' });
   b.spawn(W, 53, 80, { count: 2, radius: 4, cond: 'after' });
-  b.spawn(G, 29, 60, { count: 3, radius: 4, cond: 'before' });
-  b.spawn(G, 29, 60, { count: 1, radius: 3, cond: 'after' });
+  // (V2.2) the Goblin Glade itself is Grukk's boss arena: his pack waits on the paths into it
+  b.spawn(G, 38, 66, { count: 2, radius: 2, cond: 'before' });
+  b.spawn(G, 24, 68, { count: 1, radius: 2, cond: 'before' });
+  b.spawn(G, 38, 66, { count: 1, radius: 2, cond: 'after' });
   b.spawn(W, 18, 80, { count: 2, radius: 3, cond: 'before' });
   b.spawn(G, 66, 62, { count: 2, radius: 3, cond: 'before' });
   b.spawn(W, 66, 62, { count: 2, radius: 3, cond: 'before' });
   b.spawn(C, 77, 119, { count: 2, radius: 4, cond: 'always' });
   b.spawn(W, 86, 70, { count: 2, radius: 3, cond: 'before' });
   b.spawn(W, 58, 104, { count: 2, radius: 3, cond: 'before' });
+}
+
+// HOWLING DEN (V2.2) — Hollow Fang's arena, the A1 area boss (data/bosses.js boss_a1). A clearing carved out of the
+// canopy east of the River Crossing waystone, reached by one short path from the south bank. Built after the
+// rest of the world so no other layout (or its random decoration) changes; trees left inside the carve are removed.
+export function buildHowlingDen(b) {
+  const m = b.m, F = T.FOREST_FLOOR;
+  const cx = 58, cy = 113, r = 6; // integer tile centre (Builder brushes step whole tiles)
+  b.disc(cx, cy, r, F, { noise: 0.5 });
+  b.line([[56.5, 104], [57, 108.5]], 3, F, { noise: 0.2 });           // path from the bank
+  b.disc(cx, cy, 2.2, T.DIRT, { noise: 0.6, only: [F] });              // trampled centre
+  b.disc(cx + 3, cy + 3, 1.4, T.CORRUPT, { noise: 0.8, only: [F] });
+  const den = m.addSubArea({ name: 'Howling Den', zone: Z.FOREST });
+  b.subDisc(cx, cy, r + 1, den);
+  for (const p of m.props) {
+    const tx = Math.floor(p.x / TILE), ty = Math.floor((p.y - 2) / TILE);
+    if (!p.visible) continue;
+    if (Math.hypot(tx + 0.5 - cx, ty + 0.5 - cy) <= r + 0.8 || (tx >= 55 && tx <= 59 && ty >= 103 && ty <= 109)) {
+      p.visible = false;
+      if (p.solid) { m.setPropSolid(p, false); p.solid = false; }
+    }
+  }
+  // bones + a few rocks for the den (ground decals only: nothing to snag on during the fight)
+  for (const [x, y, n] of [[55.5, 110, 'pebble_a'], [61, 115.5, 'pebble_a'], [54.5, 116, 'grass_a'], [62, 109, 'grass_a']]) b.prop(n, x, y, { layer: 'ground' });
 }

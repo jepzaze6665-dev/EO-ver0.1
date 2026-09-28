@@ -164,6 +164,7 @@ export function mapTour(g, classId = 'umbral_sword') {
   w.transitions.autoConfirm = true; // boss gate asks first — the tour just walks through
   ok('New Game starts on Lumina', w.mapId === 'lumina');
   for (const f of ['ruinsGate', 'logBridge', 'bramble', 'gateOpened', 'guardianDefeated']) w.setFlag(f);
+  for (const b of g.bosses.list) g.worldProgress.defeatBoss(b.id); // V2.2 boss gates: every road open for the tour
   w.applyState();
   const events = [];
   g.events.on('mapEntered', (e) => events.push(e.id));
@@ -249,6 +250,7 @@ export function bossArena(g, classId = 'umbral_sword') {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   toBoss(g, classId);
   const w = g.world, gd = w.guardian, p = g.player;
+  g.bosses.complete('boss_a1'); g.bosses.complete('boss_a2'); // V2.2: roads A2/A3 open (toBoss teleports past their bosses)
   p.setLevel(10); p.hp = p.maxHp; goto(g, 135, 37); g.simulate(5.5, () => { p.hp = p.maxHp; });
   ok('Fight starts in the arena map', w.mapId === 'arena' && w.bossActive && ['fight', 'weak'].includes(gd.state) && w.boss === gd, `${w.mapId} ${gd.state}`);
   const s = gd.hudState();
@@ -263,7 +265,7 @@ export function bossArena(g, classId = 'umbral_sword') {
   g.simulate(0.2, () => { p.hp = p.maxHp; });
   ok('Ward breaks when the adds die', !gd.status.has('heartwood_ward'));
   let rewards = 0; g.events.on('enemyDefeated', (e) => { if (e.boss) rewards++; });
-  const gold0 = p.gold; gd.phase = 3; gd.hp = 1; g.combat.dealDamage(p, gd, { power: 99 }); // phase 3: no damage gate left
+  const gold0 = p.gold; gd.phase = 3; gd.finalDone = true; gd.hp = 1; g.combat.dealDamage(p, gd, { power: 99 }); // phase 3 + final attack seen (V2.2): no HP floor left
   g.simulate(6, () => { p.hp = p.maxHp; });
   ok('Boss defeated: reward once, exits open, quest follow-up', gd.dead && rewards === 1 && p.gold >= gold0 + 300 && g.inventory.has('guardian_heart') && !w.bossActive && g.quests.isActive('valley') && w.mapDef.exits.every((e) => w.transitions.isOpen(e)), `rewards=${rewards} gold+${p.gold - gold0}`);
   return R;
@@ -307,7 +309,7 @@ export function playthrough(g, classId) {
   ok('Whispering Forest', g.quests.active.whispers.done.enter);
   for (const [x, y] of [[38, 121], [20, 112], [54, 80], [66, 62]]) { goto(g, x, y); fight(g, 20, { god: true, until: () => g.quests.active.whispers.done.wolves }); if (g.quests.active.whispers.done.wolves) break; }
   // keep fighting until the combat loop has produced a Perfect Dodge and a Shadow Break
-  const camps = [[29, 60], [66, 62], [54, 80], [86, 70], [18, 80], [58, 104], [110, 82]];
+  const camps = [[38, 66], [66, 62], [54, 80], [86, 70], [18, 80], [58, 104], [110, 82]]; // (29,60) is Grukk's arena since V2.2
   // two laps over the camps: a strong build can clear a camp before any telegraph shows up
   for (let k = 0; k < camps.length * 2 && (c.perfect === 0 || c.breaks === 0); k++) { goto(g, ...camps[k % camps.length]); fight(g, 10, { god: true, until: () => c.perfect > 0 && c.breaks > 0 }); }
   ok('Fight + wolves 5/5', g.quests.active.whispers.done.wolves, `kills=${g.stats.kills}`);
@@ -343,5 +345,152 @@ export function playthrough(g, classId) {
   const lvl = g.player.level;
   g.loadGame(); w = g.world;
   ok('Load', g.world.state.flags.guardianDefeated && g.player.level === lvl && g.world.currentZone !== undefined);
+  return R;
+}
+
+// ---------------------------------------------------------------- V2.2 world progression / boss gates
+// hold a direction key for `sec` seconds (real walking: collision, gates and exits all apply)
+export function walk(g, key, sec) {
+  releaseInput(g);
+  g.input.down.add(key);
+  g.simulate(sec);
+  g.input.down.delete(key);
+  releaseInput(g);
+}
+// fight the boss of an encounter until it is defeated (or the time runs out). Returns a small report.
+export function bossFight(g, bossId, { seconds = 240, god = true, level } = {}) {
+  const enc = g.bosses.get(bossId), p = g.player;
+  if (level) { p.setLevel(level); p.hp = p.maxHp; }
+  const rep = { phases: new Set(), phaseEvents: [], weak: 0, hitsTaken: 0, time: 0, finals: 0, summons: 0 };
+  g.events.on('bossPhaseChanged', (e) => { if (e.bossId === bossId) rep.phaseEvents.push(e.phase); });
+  g.events.on('bossWeak', () => rep.weak++);
+  g.events.on('damageDealt', (e) => { if (e.target === p && e.amount > 0) rep.hitsTaken++; });
+  for (let t = 0; t < seconds && enc.state !== 'defeated'; t += 5) {
+    g.simulate(5, (gg, i) => bot(gg, i, { god }));
+    rep.time = t + 5;
+    if (enc.entity) rep.phases.add(enc.entity.phase);
+    if (enc.entity && enc.entity.summons) rep.summons = Math.max(rep.summons, enc.entity.summons.length);
+    if (enc.entity && enc.entity.finalDone) rep.finals = 1;
+    if (p.dead) break;
+  }
+  releaseInput(g);
+  g.simulate(6); // defeat cinematic + rewards + world triggers
+  rep.state = enc.state;
+  rep.phases = [...rep.phases].join(',');
+  return rep;
+}
+
+// ROUTE A VERTICAL SLICE (V2.2): Lumina -> A1 -> Boss A1 -> gate -> A2 -> Boss A2 -> A3 -> Major Boss -> City 2,
+// walking through every gate / exit on foot, then save / load. Returns [step, pass, detail] rows.
+export function routeA(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  let w = g.world;
+  const wp = g.worldProgress, p = g.player, T = 32;
+  const events = { blocked: 0, engaged: [], defeated: [], unlocked: [], triggers: [] };
+  g.events.on('gateBlocked', () => events.blocked++);
+  g.events.on('exitBlocked', () => events.blocked++);
+  g.events.on('bossEngaged', (e) => events.engaged.push(e.bossId));
+  g.events.on('bossDefeated', (e) => events.defeated.push(e.bossId));
+  g.events.on('mapUnlocked', (e) => events.unlocked.push(e.id));
+  g.events.on('worldTriggerFired', (e) => events.triggers.push(e.id));
+  w.transitions.autoConfirm = true;
+  ok('Start: Lumina, only Lumina + A1 unlocked', w.mapId === 'lumina' && wp.isMapUnlocked('a1') && !wp.isMapUnlocked('a2') && !wp.isMapUnlocked('city2'), Object.keys(wp.unlockedMaps).join(','));
+  // 1-2. talk to the guide, leave Lumina on foot, explore A1
+  use(g, 'npc_guide'); g.ui.panels.close(true);
+  goto(g, 47.5, 163); walk(g, 'KeyW', 1.6);
+  ok('A1: walked out of Lumina (Route A)', w.mapId === 'a1' && wp.currentRoute === 'A', `map=${w.mapId} route=${wp.currentRoute}`);
+  // 3. normal enemies
+  const kills0 = g.stats.kills;
+  goto(g, 47, 144); fight(g, 15, { god: true });
+  const q = g.quests;
+  for (const [x, y] of [[38, 121], [20, 112], [22, 131], [58, 104]]) {
+    if (q.active.beyond_lumina && q.active.beyond_lumina.done.hunt) break;
+    goto(g, x, y); fight(g, 25, { god: true, until: () => q.active.beyond_lumina.done.hunt });
+  }
+  ok('A1: normal enemies fought', g.stats.kills > kills0, `kills=${g.stats.kills - kills0}`);
+  use(g, 'npc_guide'); g.ui.panels.close(true);
+  ok('Guide quest done -> ROUTE A quest starts (world trigger)', q.isDone('beyond_lumina') && q.isActive('route_a') && events.triggers.includes('route_a_begins'));
+  goto(g, 50, 106);
+  // boss gate BEFORE the boss: the bridge is solid and the exit is closed
+  const a2exit = w.mapDef.exits.find((e) => e.id === 'bridge_north');
+  goto(g, 50, 104); walk(g, 'KeyW', 2);
+  ok('A1 gate: bridge blocked while Boss A1 lives', w.mapId === 'a1' && p.y > 101 * T && !w.transitions.isOpen(a2exit) && events.blocked > 0, `map=${w.mapId} y=${(p.y / T).toFixed(1)} blockedMsgs=${events.blocked}`);
+  // 4-5. enter the arena: boss spawns / engages, arena lock
+  const a1 = g.bosses.get('boss_a1');
+  goto(g, 57.5, 106.5);
+  ok('Boss A1 waits (IDLE) in the Howling Den', a1.state === 'idle', a1.state);
+  walk(g, 'KeyS', 1.2);
+  ok('Boss A1 engaged when the player steps in', a1.state === 'engaged' && events.engaged.includes('boss_a1') && g.bosses.barInfo(), a1.state);
+  walk(g, 'KeyW', 1.5);
+  const ar = g.bosses.arenaPx(a1);
+  ok('Arena lock: cannot walk out during the fight', Math.hypot(p.x - ar.x, p.y - ar.y) <= ar.r + 1 && w.inBossFight(), `d=${Math.round(Math.hypot(p.x - ar.x, p.y - ar.y))} r=${ar.r}`);
+  // 6-8. fight -> defeated -> rewards
+  const before = { exp: p.exp, lv: p.level, gold: p.gold };
+  const r1 = bossFight(g, 'boss_a1', { level: 4 });
+  ok('Boss A1 defeated', r1.state === 'defeated' && wp.isBossDefeated('boss_a1'), JSON.stringify(r1));
+  ok('Boss A1 reward: EXP + gold + trophy + lore', (p.level > before.lv || p.exp > before.exp) && p.gold > before.gold && g.inventory.count('hollow_fang_pelt') === 1 && w.state.lore.hollow_fang, `LV${before.lv}->${p.level} gold ${before.gold}->${p.gold}`);
+  // 9-11. world state -> A2 unlocked -> gate collision open
+  const gate = w.gates.get('a1_river_gate');
+  ok('World state: A2 unlocked, gate collision open', wp.isMapUnlocked('a2') && gate.open && !w.map.isSolid(50, 100) && w.transitions.isOpen(a2exit) && events.triggers.includes('a1_boss_defeated'), `open=${gate.open}`);
+  // 12. walk across the bridge into A2
+  goto(g, 50, 104); walk(g, 'KeyW', 2.5);
+  ok('Walked across the River Crossing into A2', w.mapId === 'a2', w.mapId);
+  // A2: enemies + gate east + Boss A2 (phase change)
+  const a3exit = w.mapDef.exits.find((e) => e.id === 'ancient_path');
+  ok('A2 gate: Ancient Path closed while Boss A2 lives', !w.transitions.isOpen(a3exit) && !w.gates.get('a2_path_gate').open);
+  const a2 = g.bosses.get('boss_a2');
+  goto(g, 36.5, 64.5);
+  ok('Boss A2 waits in the Goblin Glade', a2.state === 'idle', a2.state);
+  walk(g, 'KeyA', 1.4);
+  ok('Boss A2 engaged', a2.state === 'engaged', a2.state);
+  const r2 = bossFight(g, 'boss_a2', { level: 7 });
+  ok('Boss A2: phase change + adds, defeated', r2.state === 'defeated' && r2.phaseEvents.includes(2) && r2.summons > 0, JSON.stringify(r2));
+  ok('A3 unlocked + gate open', wp.isMapUnlocked('a3') && w.gates.get('a2_path_gate').open && w.transitions.isOpen(a3exit));
+  goto(g, 87, 71); walk(g, 'KeyD', 3);
+  ok('Walked the Ancient Forest Path into A3', w.mapId === 'a3', w.mapId);
+  // A3: hidden content placeholder (Sealed Archive) + shrine + gate + Major Boss
+  ok('A3 has hidden content registered', (w.mapDef.hiddenAreas || []).length > 0);
+  use(g, 'ancient_shrine'); g.ui.panels.close(true);
+  use(g, 'gate_seal'); g.ui.panels.close(true);
+  ok('Guardian Gate unsealed -> arena map unlocked', w.state.flags.gateOpened && wp.isMapUnlocked('arena'));
+  goto(g, 135.5, 50); walk(g, 'KeyW', 1.5);
+  ok('Entered the Major Boss arena', w.mapId === 'arena', w.mapId);
+  walk(g, 'KeyW', 2);
+  const a3 = g.bosses.get('boss_a3');
+  ok('Major Boss engaged (arena sealed)', a3.state === 'engaged' || a3.state === 'phase_change', a3.state);
+  const r3 = bossFight(g, 'boss_a3', { level: 10, seconds: 420 });
+  g.simulate(4);
+  ok('Major Boss: 3 phases + final attack, defeated', r3.state === 'defeated' && r3.phases === '1,2,3' && r3.finals === 1 && wp.isBossDefeated('boss_a3'), JSON.stringify(r3));
+  ok('City 2 unlocked + road gate open', wp.isMapUnlocked('city2') && w.gates.get('city2_road_gate').open && events.triggers.includes('major_boss_defeated'));
+  goto(g, 136, 13); walk(g, 'KeyW', 1.5);
+  ok('Transition to City 2 (Valehaven)', w.mapId === 'city2' && w.inSafeZone(p) && events.triggers.includes('city2_first_visit'), w.mapId);
+  g.simulate(1);
+  ok('Quests: Route A + Road to Valehaven complete', q.isDone('route_a') && q.isDone('valley'), `route_a=${JSON.stringify(q.active.route_a)} valley=${q.isDone('valley')}`);
+  const snap = wp.snapshot();
+  ok('Route status: A complete', wp.routeStatus('A').complete, JSON.stringify(snap));
+  // save / load keeps the world progression
+  ok('Save', g.save.save());
+  g.loadGame(); w = g.world;
+  const wp2 = g.worldProgress;
+  ok('Load: bosses / maps / events / map restored', ['boss_a1', 'boss_a2', 'boss_a3'].every((b) => wp2.isBossDefeated(b)) && wp2.isMapUnlocked('city2') && wp2.hasEvent('a1_boss_defeated') && w.mapId === 'city2' && g.bosses.get('boss_a1').state !== 'idle', `map=${w.mapId}`);
+  return R;
+}
+
+// death during a boss fight: the boss resets (full HP, waits again), the arena unlocks, nothing is lost
+export function bossReset(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const enc = g.bosses.get('boss_a1'), p = g.player, w = g.world;
+  goto(g, 58.5, 111); g.simulate(2.5);
+  ok('engaged', enc.state === 'engaged');
+  g.simulate(4, (gg, i) => bot(gg, i, {}));
+  const hurt = enc.entity.hp < enc.entity.maxHp;
+  p.hp = 1; g.combat.dealDamage({ x: p.x + 10, y: p.y, team: 2 }, p, { power: 999 });
+  g.simulate(2);
+  ok('player died', p.dead);
+  g.respawn(); g.simulate(0.5);
+  ok('boss reset: full HP, back to IDLE, arena unlocked', hurt && enc.state === 'idle' && enc.entity.hp === enc.entity.maxHp && !w.inBossFight() && !g.bosses.barInfo(), `state=${enc.state} hp=${enc.entity.hp}`);
+  ok('not recorded as defeated', !g.worldProgress.isBossDefeated('boss_a1'));
   return R;
 }

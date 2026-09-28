@@ -14,7 +14,8 @@ const good = (over = {}) => ({ v: SAVE_VERSION, savedAt: 1, playTime: 5, player:
 const fakeGame = (state) => ({
   player: { dead: false, cls: { id: 'umbral_sword' }, level: state.level, exp: 0, gold: state.gold, hp: 10, shadow: 0, x: 1, y: 2,
     resources: { serialize: () => ({}) }, loadout: { serialize: () => ({}) } },
-  world: { bossActive: false, mapId: 'lumina', serialize: () => ({ flags: {} }) },
+  world: { bossActive: false, inBossFight() { return this.bossActive; }, mapId: 'lumina', serialize: () => ({ flags: {} }) },
+  worldProgress: { serialize: () => ({}) },
   inventory: { serialize: () => ({}) }, equipment: { serialize: () => ({}) }, quests: { serialize: () => ({}) },
   progression: { serialize: () => ({}) }, knowledge: { serialize: () => ({}) }, stats: {}, playTime: 0,
 });

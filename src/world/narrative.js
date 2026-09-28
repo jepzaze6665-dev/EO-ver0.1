@@ -37,6 +37,19 @@ export const LORE = {
     title: 'Crystal Record — Sealed Archive',
     text: 'The Guardian was bound to the forest by the first people of Lumina. The Valley beyond the northern thorns held their greater work: the Depths, sealed with the same crystal as the Guardian’s heart.\nWhen the Guardian sleeps, the thorns wither.',
   },
+  // boss lore (data/bosses.js rewards.lore) — added to the codex on the first kill
+  hollow_fang: {
+    title: 'Hollow Fang — the Alpha of the Crossing',
+    text: 'The pack followed the fog to the river and made the crossing their den. Their alpha grew larger with every traveller turned away.\nWith it gone, the wolves scatter — and the bridge north belongs to the road again.',
+  },
+  grukk: {
+    title: 'Grukk the Thornbound',
+    text: 'A goblin warchief who drank from the corrupted mire to master the thorns. The thorns mastered him instead.\nHis totem points east, toward the ruins, as if something there still calls it.',
+  },
+  guardian_rest: {
+    title: 'The Guardian Rests',
+    text: 'The Warden of the Whispering Heart kneels, and the black veins leave its crystal heart. North of the arena the old road to the valley opens: Valehaven, where both roads from Lumina meet.',
+  },
   valley_stone: {
     title: 'Standing Stone — Ancient Valley',
     text: '"A2 — The Valley of Wardens. Beneath us lie the Depths, where the eclipse was first born."\nThe stone is warm. The dungeon gate to the north pulses in answer.',
@@ -160,6 +173,7 @@ export function dialogueFor(id, g) {
       return {
         lines: [
           'Scout Wren, Adventurer Guild. You’re the one who calmed the Guardian? Then you’re the reason I could get up here at all.',
+          'Welcome to Valehaven — City 2, or it will be once the caravans arrive. Both roads from Lumina end here: the Forest Road you just took, and the Eastern Road nobody has surveyed yet.',
           'That gate to the north is a dungeon — the Sealed Depths. The runes don’t respond to anything I have.',
           'The Guild will want to know. This valley is only the beginning.',
         ],

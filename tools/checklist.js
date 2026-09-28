@@ -80,6 +80,8 @@ export function runChecklist(g, classId = 'umbral_sword') {
   ok('Quest objective updates', ev.questUpdated.some((e) => e.id === 'beyond_lumina') && g.quests.active.beyond_lumina.done.hunt);
 
   // 19-21 A1 -> A2 -> A3 -> arena, walking through the exits
+  // V2.2 boss gates: the A1 / A2 area bosses are fought in T.routeA — here they are marked defeated so the roads open
+  g.bosses.complete('boss_a1'); g.bosses.complete('boss_a2');
   releaseInput(g); goto(g, 50, 101.5); hold(g, 'KeyW', 1.2);
   ok('Walk to A2', w().mapId === 'a2', w().mapId);
   releaseInput(g); goto(g, 90, 71); hold(g, 'KeyD', 2.2);
@@ -103,7 +105,7 @@ export function runChecklist(g, classId = 'umbral_sword') {
   ok('Boss combat (damage both ways)', bossHp0 > 0 && ev.damageDealt.some((e) => e.target === gd) && ev.damageDealt.some((e) => e.target === p && e.source === gd));
   ok('Boss defeated', gd.dead);
   g.simulate(9);
-  ok('Boss reward received (once)', ev.enemyDefeated.filter((e) => e.boss).length === 1 && g.inventory.has('guardian_heart') && p.gold > goldBefore, `gold +${p.gold - goldBefore}`);
+  ok('Boss reward received (once)', ev.enemyDefeated.filter((e) => e.boss && e.type === 'guardian').length === 1 && g.inventory.has('guardian_heart') && p.gold > goldBefore, `gold +${p.gold - goldBefore}`);
 
   // 27-28 back to Lumina (waystone teleport), report
   g.teleportTo('ws_village'); g.simulate(0.3);

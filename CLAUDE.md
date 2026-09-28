@@ -10,8 +10,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - Unit tests: `node tools/tests/run.mjs` (must print `ALL TEST FILES PASSED`).
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
   (combat / mechanics / Reaper / class-change checks, currently 101/101),
-  `const L = await import('/tools/checklist.js'); L.runChecklist(__game, classId)` (spec TEST 1-31) and
+  `const L = await import('/tools/checklist.js'); L.runChecklist(__game, classId)` (spec TEST 1-31),
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
+  `T.routeA(__game, classId)` (V2.2 vertical slice, 29 steps: walks every boss gate on foot, 3 boss fights, City 2, save/load),
+  `T.bossReset(__game)` (death mid-fight resets the boss)
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -31,7 +33,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - Progression: `src/data/classTree.js` (tree, class-record counters as event filters, trials),
   `src/progression/{requirements,progression,classChange}.js`. Secret classes / awakenings = data only
   (`hidden` + `reveal`). Class 2 nodes stay `playable: false` until their class data exists.
-- Don't build yet (spec): multiplayer/network, accounts/DB, guild, trading, PvP, real secret classes, world events.
+- World progression (V2.2): `src/world/worldProgression.js` owns defeatedBosses / unlockedMaps / triggeredEvents /
+  currentRoute (quests + secrets are read from their own systems); gates and exits ask it through requirement data
+  (`boss_defeated`, `map_unlocked`, `map_visited`, `event` in progression/requirements.js) — never `if (bossDead)`.
+  Bosses = `src/data/bosses.js` (impl 'area' = generic `boss/areaBoss.js`, 'guardian' = the V2 Guardian), lifecycle in
+  `boss/bossSystem.js` (pure state machine `boss/bossState.js`). World triggers = `src/data/worldTriggers.js`.
+  Map data: `type/route/nextMap/bossId/requires/gates/hiddenAreas` (maps/mapRegistry.js explains every field).
+- Don't build yet (spec): multiplayer/network, accounts/DB, guild, trading, PvP, real secret classes / secret bosses, world events.
 - If a request would break the architecture: explain the problem, propose a better way, then implement.
 
 ## Assets (never reference a path without a real file)
@@ -116,5 +124,19 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Verified: save → real page reload → load = identical state. P15: F3 overlay moved to `src/ui/debugOverlay.js`
   (`__game.debugInfo()` from the console: map, pos, HP/LV/EXP/class/resource/gold, target, enemies on the map, effects,
   quest state, boss); spec TEST 1-31 = `tools/checklist.js` (`L.runChecklist(__game, classId)`, 31/31 for all 4 classes).
-  Next: P16 vertical slice polish.
+  (V2.1 P1-15 + V2.2 merged on branch merge-v2.2; boss bar = BossSystem.barInfo + the boss's hudState() tags;
+  save = V2.1 storage/backup/validation + V2.2 `worldProgress` section.)
+- **V2.2 "World Progression + Boss Gate + Boss Foundation"** (owner's 37-point spec; world scale fixed: 2 cities,
+  Route A playable, Route B data-only). Done — Route A vertical slice: Lumina → A1 → **Boss A1 Hollow Fang** (Howling Den,
+  carved east of the River Crossing waystone by `buildHowlingDen` in forest.js; 1 phase: bite/lunge/howl) → bridge gate →
+  A2 → **Boss A2 Grukk the Thornbound** (Goblin Glade; 2 phases: cleave/leap/cross drums/war-cry adds → thorn ring with a
+  gap, poison spears) → Ancient Path gate → A3 → **Major Boss A3 = Guardian** (+ Final Attack "Last Root of the Forest"
+  at 12%, HP floor until seen) → arena north gate → **City 2 Valehaven** (= the old Ancient Valley map, id `city2`, safe,
+  no wraiths; old `valley` map id is gone, quest id `valley` kept). Save v2 adds `worldProgress`; older saves are
+  migrated (visited maps / guardian flag → defeated bosses). Quest `route_a` (priority 1) is the spine, started by a
+  world trigger after `beyond_lumina`. HUD: route panel, generic boss bar (area / major), idle boss labels, locked
+  exit text; world map lists route progress. Save backend is swappable (`save.js` localStorageBackend).
+  Boss HP (bot, god mode): A1 4500 ≈ 35 s at LV 4, A2 9000 ≈ 75 s at LV 7, Guardian 12000 ≈ 90 s at LV 10.
+- Next (owner decides): Route B maps + bosses (Phase 13-14: add maps/b1..b3 + fill the `planned` boss entries), real
+  hidden events per map, City 2 services, balance pass with a human player.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

@@ -84,6 +84,9 @@ export const ITEMS = {
   moon_crystal: { name: 'Moonlit Crystal', cat: 'Material', rarity: 'rare', icon: 'shard', color: '#d0a0ff', desc: 'Rare crystal grown in darkness.', sell: 60 },
   guardian_heartwood: { name: 'Guardian Heartwood', cat: 'Material', rarity: 'legendary', icon: 'ore', color: '#7af0c0', desc: 'Living wood from the Guardian. A smith in the Valley may know its use.', sell: 200 },
   // ---- quest
+  // boss trophies (data/bosses.js rewards.items) — lore materials for later crafting
+  hollow_fang_pelt: { name: 'Hollow Fang Pelt', cat: 'Material', rarity: 'rare', icon: 'fang', color: '#ffb070', desc: 'Trophy of the A1 boss. The alpha that held the River Crossing.', sell: 60 },
+  warchief_totem: { name: "Warchief's Thorn Totem", cat: 'Material', rarity: 'epic', icon: 'rune', color: '#b060ff', desc: 'Trophy of the A2 boss. Its thorns still twitch toward the ruins.', sell: 120 },
   seal_fragment: { name: 'Ancient Seal Fragment', cat: 'Quest Item', rarity: 'quest', icon: 'rune', color: '#5af0ff', desc: 'Resonates with the sealed Guardian Gate.' },
 };
 

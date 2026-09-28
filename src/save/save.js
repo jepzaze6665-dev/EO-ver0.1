@@ -7,7 +7,8 @@ import { SAVE_VERSION, parseSave } from './saveData.js';
 //   storage     : where the text goes (save/storage.js adapter: localStorage now, a server later)
 //   saveData.js : format version, migration of old saves, validation / repair
 // Saves: level, EXP, gold, class, inventory, equipment, quests, class progression, world state (flags, maps,
-// hidden content, minimap reveal), monster knowledge, current map + position.
+// hidden content, minimap reveal), world progression (V2.2: defeated bosses, unlocked maps, world events, route),
+// monster knowledge, current map + position.
 // Safety: the previous save is kept as a backup; a corrupt / unreadable main save falls back to it.
 const KEY = 'eclipse_online_save_v1'; // storage key (kept from V1 so old saves still load)
 const BACKUP = KEY + '_backup';
@@ -32,7 +33,7 @@ export class SaveSystem {
   blockedReason() {
     const g = this.game;
     if (g.player.dead) return 'Cannot save while defeated';
-    if (g.world.bossActive) return 'Cannot save during a boss fight';
+    if (g.world.inBossFight()) return 'Cannot save during a boss fight'; // Guardian or any area boss
     return null;
   }
   snapshot() {
@@ -47,6 +48,7 @@ export class SaveSystem {
       quests: g.quests.serialize(),
       progression: g.progression.serialize(),
       world: g.world.serialize(),
+      worldProgress: g.worldProgress.serialize(),
       knowledge: g.knowledge.serialize(),
       stats: g.stats,
     };
@@ -58,7 +60,7 @@ export class SaveSystem {
     try { text = JSON.stringify(this.snapshot()); } catch (e) { this.lastError = 'Could not build save'; console.warn(e); return false; }
     const prev = this.storage.read(KEY);
     if (prev && parseSave(prev).ok) this.storage.write(BACKUP, prev); // keep the last good save
-    if (!this.storage.write(KEY, text)) { this.lastError = 'Storage unavailable'; return false; }
+    if (this.storage.write(KEY, text) === false) { this.lastError = 'Storage unavailable'; return false; }
     this.dirty = false;
     return true;
   }

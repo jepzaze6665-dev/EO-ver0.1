@@ -29,6 +29,9 @@ export function debugInfo(g) {
     boss: w.bossActive && w.boss ? `${w.boss.type} phase ${w.boss.phase} ${Math.ceil(w.boss.hp)}/${w.boss.maxHp}` : '-',
     time: `timeScale ${g.timeScale.toFixed(2)} hitStop ${g.hitStop.toFixed(2)}`,
     flags: Object.keys(w.state.flags),
+    route: g.worldProgress ? g.worldProgress.currentRoute || '-' : '-',
+    bosses: g.bosses ? g.bosses.list.map((e) => `${e.id}:${e.state}`).join(' ') : '-',
+    unlocked: g.worldProgress ? Object.keys(g.worldProgress.unlockedMaps).join(',') : '-',
   };
 }
 
@@ -41,6 +44,7 @@ export function drawDebug(g, c) {
     `effects: status [${e.statuses.join(', ') || '-'}]  particles ${e.particles}  proj ${e.projectiles}  tele ${e.telegraphs}  marks ${e.marks}  threads ${e.threads}  summons ${e.summons}  hazards ${e.hazards}`,
     `quests: ${d.quests.join(' · ') || '-'}  (done ${d.questsDone})`,
     `${d.time}   flags ${d.flags.join(',')}`,
+    `route ${d.route}  bosses ${d.bosses}  unlocked ${d.unlocked}`,
   ];
   const H = c.canvas.height, W = c.canvas.width, rep = g.spriteReport || [];
   c.save();

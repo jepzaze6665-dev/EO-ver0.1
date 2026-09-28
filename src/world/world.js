@@ -12,6 +12,7 @@ import { Assets } from '../core/assets.js';
 import { MapManager } from './mapManager.js';
 import { TransitionSystem } from './transitionSystem.js';
 import { HazardSystem } from './hazardSystem.js';
+import { GateSystem } from './gateSystem.js';
 import { MAPS } from '../maps/mapRegistry.js';
 
 const REVEAL_R = 10;
@@ -49,6 +50,7 @@ export class World {
     this.mapManager = new MapManager(map, MAPS);
     this.transitions = new TransitionSystem(this);
     this.hazardSys = new HazardSystem(this, MAPS); // map hazards (maps/*.js content.hazards)
+    this.gates = new GateSystem(this, MAPS);       // boss gates with collision (maps/*.js gates)
     this.mapId = null;
     this.suppressZoneBanner = false;
 
@@ -156,11 +158,15 @@ export class World {
     out.length = 0;
     for (const m of this.monsters) if (!m.dead && this.onMap(m)) out.push(m);
     if (this.guardian && !this.guardian.dead && this.guardian.hurtable && this.onMap(this.guardian)) out.push(this.guardian);
+    if (this.game.bosses) for (const b of this.game.bosses.entities()) if (!b.dead && b.hurtable) out.push(b); // area bosses
     for (const b of this.breakables) if (!b.dead && b.hurtable && this.onMap(b)) out.push(b);
     for (const d of this.dummies) if (!d.dead && this.onMap(d)) out.push(d);
     return out;
   }
-  inSafeZone(p) { return this.map.zoneAt(p.x, p.y) === Z.VILLAGE; }
+  // safe maps (cities) come from map data (`safe: true`); before a map is active, the village zone
+  inSafeZone(p) { const d = this.mapDef; return d ? !!d.safe : this.map.zoneAt(p.x, p.y) === Z.VILLAGE; }
+  // any boss fight (the Guardian's own flag, or an area boss engaged in the BossSystem): exits lock, no saving
+  inBossFight() { return this.bossActive || !!(this.game.bosses && this.game.bosses.engaged); }
   setFlag(name, v = true) {
     if (this.state.flags[name] === v) return;
     this.state.flags[name] = v;
@@ -228,6 +234,7 @@ export class World {
     const as = R.arenaSeal;
     m.setBlockRect(as.tx0, as.ty0, as.tx1, as.ty1, this.bossActive);
     for (const b of this.breakables) if ((b.kind === 'crack' && f.caveOpened) || (b.kind === 'glyph' && f.archiveOpened) || (b.kind === 'bramble' && f.bramble)) b.dead = true;
+    this.gates.apply(); // boss gates follow the World Progression (collision open / closed)
     this.refreshSpawns();
   }
 
@@ -526,13 +533,10 @@ export class World {
       if (this.onMap(m) && (m.aggro || dist(m.x, m.y, p.x, p.y) < 900)) m.update(dt);
     }
     this.monsters = this.monsters.filter((m) => !(m.dead && m.deathT > 0.8));
-    if (this.guardian) {
-      this.guardian.update(dt);
-      const gd = this.guardian;
-      if (gd.state === 'dormant' && !gd.dead && this.state.flags.gateOpened && !p.dead) {
-        if (dist(p.x, p.y, this.regions.arenaCenter.x, this.regions.arenaCenter.y) < this.regions.arenaRadius - 60) this.startBoss();
-      }
-    }
+    if (this.guardian) this.guardian.update(dt);
+    // every boss encounter (engage / arena lock / phases / defeat): boss/bossSystem.js + data/bosses.js
+    if (g.bosses) { g.bosses.update(dt); g.bosses.ambient(); }
+    this.gates.update(dt);
     if (this.totemTick) this.totemTick();
     this.updateHazards(dt);
     this.hazardSys.update(dt);
