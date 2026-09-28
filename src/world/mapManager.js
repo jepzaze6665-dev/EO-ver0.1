@@ -1,23 +1,27 @@
 import { TILE } from '../core/constants.js';
 
-// MAP MANAGER — splits the generated world into separate maps (data: maps/mapRegistry.js).
-// Every world tile gets an area number (1 = first map, ...; 0 = no map: wall / gap between maps). Only the active
-// map's area is walkable (WorldMap.isSolid), drawn and simulated, so each map behaves as its own place and the
-// only ways between maps are exits (world/transitionSystem.js) or teleports (waystones, respawn, load).
+// MAP MANAGER — every playable map (data: maps/mapRegistry.js) and where it lies.
+// Maps live on GRIDS (world/levels): a grid is one tile map; several maps may share one (Lumina + the forest).
+// Inside a grid every tile gets an area number (1 = first map of that grid, ...; 0 = no map: wall / gap). Only the
+// active map's area is walkable (WorldMap.isSolid), drawn and simulated, so each map behaves as its own place and
+// the only ways between maps are exits (world/transitionSystem.js) or teleports (waystones, respawn, load).
+// Map lookups by id work for every map; lookups by POSITION need a grid (default: the loaded one).
 export class MapManager {
-  constructor(worldMap, maps) {
-    this.map = worldMap;
+  constructor(maps) {
     this.list = maps;
     this.byId = {};
-    maps.forEach((d, i) => { this.byId[d.id] = { ...d, area: i + 1 }; });
-    this.assign();
+    maps.forEach((d) => { this.byId[d.id] = { ...d }; });
+    this.grids = {};   // gridId -> { map, byArea }
+    this.cur = null;   // the loaded grid
   }
   get(id) { return this.byId[id] || null; }
-  // world tile -> area (first matching map wins)
-  assign() {
-    const m = this.map, defs = this.list.map((d) => this.byId[d.id]);
+  gridOf(id) { const d = this.byId[id]; return d ? d.grid : null; }
+  mapsOn(gridId) { return this.list.filter((d) => d.grid === gridId).map((d) => this.byId[d.id]); }
+  // a grid's tile map was built: give its tiles to its maps (first matching map wins)
+  attach(gridId, m) {
+    const defs = this.mapsOn(gridId);
+    defs.forEach((d, i) => { d.area = i + 1; d.box = { tx0: Infinity, ty0: Infinity, tx1: -1, ty1: -1 }; });
     m.area = new Uint8Array(m.w * m.h);
-    for (const d of defs) d.box = { tx0: Infinity, ty0: Infinity, tx1: -1, ty1: -1 };
     for (let ty = 0; ty < m.h; ty++) for (let tx = 0; tx < m.w; tx++) {
       const i = ty * m.w + tx, z = m.zone[i];
       if (!z) continue;
@@ -29,16 +33,19 @@ export class MapManager {
         break;
       }
     }
-    this.byArea = [null, ...defs];
+    this.grids[gridId] = { id: gridId, map: m, byArea: [null, ...defs] };
   }
-  idAtTile(tx, ty) {
-    const m = this.map;
-    if (!m.inBounds(tx, ty)) return null;
-    const d = this.byArea[m.area[ty * m.w + tx]];
+  use(gridId) { this.cur = this.grids[gridId] || null; }
+  get gridId() { return this.cur ? this.cur.id : null; }
+  // tile -> map id on a grid (default: the loaded grid)
+  idAtTile(tx, ty, gridId) {
+    const G = gridId ? this.grids[gridId] : this.cur;
+    if (!G || !G.map.inBounds(tx, ty)) return null;
+    const d = G.byArea[G.map.area[ty * G.map.w + tx]];
     return d ? d.id : null;
   }
-  idAt(x, y) { return this.idAtTile(Math.floor(x / TILE), Math.floor(y / TILE)); }
-  activate(id) { this.map.activeArea = this.byId[id].area; }
+  idAt(x, y, gridId) { return this.idAtTile(Math.floor(x / TILE), Math.floor(y / TILE), gridId); }
+  activate(id) { this.cur.map.activeArea = this.byId[id].area; }
   // camera bounds (px) with a small margin of scenery around the map
   boundsPx(id, margin = 3) {
     const b = this.byId[id].box;

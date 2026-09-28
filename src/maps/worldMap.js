@@ -5,8 +5,9 @@ import { EDGE_PRIORITY } from './tiles.js';
 
 // Tile grid + props + collision + chunk-cached ground rendering for the whole connected world.
 export class WorldMap {
-  constructor(tileset) {
-    this.w = WORLD_W; this.h = WORLD_H;
+  // w / h: grid size in tiles (world/levels: every grid names its own size; the default = the original world)
+  constructor(tileset, w = WORLD_W, h = WORLD_H) {
+    this.w = w; this.h = h;
     this.tiles = new Uint8Array(this.w * this.h).fill(T.CANOPY);
     this.zone = new Uint8Array(this.w * this.h);
     this.sub = new Uint8Array(this.w * this.h); // sub-area index (see subAreas)

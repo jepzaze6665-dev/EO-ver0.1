@@ -15,6 +15,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `T.routeA(__game, classId)` (V2.2 vertical slice, 29 steps: walks every boss gate on foot, 3 boss fights, City 2, save/load),
   `T.bossReset(__game)` (death mid-fight resets the boss)
   `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` / `T.uiCheck(__game)` / `await T.partyCheck(__game)` / `T.tankCheck(__game)` (Combat 2.0),
+  `T.gridCheck(__game)` (W1 multi-grid: lock/unlock, load/unload + cleanup, save/load + fog on another grid, no leaks, respawn),
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -39,7 +40,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (`boss_defeated`, `map_unlocked`, `map_visited`, `event` in progression/requirements.js) — never `if (bossDead)`.
   Bosses = `src/data/bosses.js` (impl 'area' = generic `boss/areaBoss.js`, 'guardian' = the V2 Guardian), lifecycle in
   `boss/bossSystem.js` (pure state machine `boss/bossState.js`). World triggers = `src/data/worldTriggers.js`.
-  Map data: `type/route/nextMap/bossId/requires/gates/hiddenAreas` (maps/mapRegistry.js explains every field).
+  Map data: `grid/type/route/nextMap/bossId/requires/gates/hiddenAreas` (maps/mapRegistry.js explains every field).
+- GRIDS (W1): every map names a `grid` = one tile map (`src/world/levels/`: index.js LEVELS + START_GRID, one module per
+  grid: `size`, `seed`, `generate(builder)`, optional `setup(world, level)` / `apply(world)` = that grid's own objects and
+  flag rules). ONE grid is loaded: `World.enterGrid` / `unloadGrid` swap the level fields (map, npcs, interactables,
+  spawnPoints, monsters, guardian, ...); unload drops monsters / projectiles / telegraphs / vfx / render cache (tile map
+  kept, so terrain changes survive). `changeMap` loads the target map's grid; MapManager lookups by position are per
+  grid (`idAt(x, y, gridId?)`); quest tile markers are on START_GRID unless they name `map`. Secrets are world-wide
+  (`world.secretsFound`); fog per grid (`revealed` + `revealedGrids` in the save); respawn = `world.checkpoint()`.
+  Grids: `whispering` (the original world, `world/levels/whispering.js`) and `ashen` (placeholder, maps/ashenBadlands.js).
 - Don't build yet (spec): multiplayer/network, accounts/DB, guild, trading, PvP, real secret classes / secret bosses, world events.
 - If a request would break the architecture: explain the problem, propose a better way, then implement.
 
@@ -274,7 +283,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   corrupted = purple tint. New A1 monster **Whisper Hare** (`rabbit`, Lv 1, Forest Entrance meadow, loot `hare_pelt`)
   with generic monster `enrage` data (below HP% → speed/power ×, 'monsterEnraged'). Checked: unit tests, combatTest
   101/101, checklist 31/31, routeA all pass, no console errors.
-  Next: W1 multi-grid world (a grid per map + map loader load/unload; old world = A1 grid incl. Lumina), W2 move bosses
+  Done W1 (multi-grid world, see GRIDS above): old world = grid `whispering` (all 6 maps), new grid `ashen` (168×208,
+  map `ashen` ASHEN BADLANDS placeholder: Scorched Pass → Ember Canyon → Magma Caldera, side Ash Flats / Cinder Rift,
+  hidden pocket slot; zone Z.BADLANDS + music 'badlands'; planned boss `boss_ashen`). Temporary way in: `ember_portal`
+  exit on the Guardian Arena's east rim (needs boss_a3), back via `portal_back`. gridCheck 20/20 + every suite green.
+  Next: W2 move bosses
   (Guardian → A1, Route/quests/tests follow), W3 A2 Ashen Badlands map + its monsters/boss, W4 A3 Rune Citadel + boss,
   W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase) from the monster spec.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

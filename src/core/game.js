@@ -18,6 +18,7 @@ import { Player } from '../player/player.js';
 import { PlayerSprites } from '../player/playerSprites.js';
 import { buildMonsterSprites } from '../monsters/monsterSprites.js';
 import { buildSheetSprites } from '../monsters/sheetSprites.js';
+import { START_GRID } from '../world/levels/index.js';
 import { CLASSES, DEFAULT_CLASS } from '../skills/classes.js';
 import { ThreadSystem } from '../combat/threadSystem.js';
 import { SummonSystem } from '../combat/summonSystem.js';
@@ -276,6 +277,7 @@ export class Game {
     this.world.applyState();
     // saved map + position; a position that no longer belongs to a map falls back to that map's spawn
     const saved = this.world.mapManager.get(d.player.map) || null;
+    this.world.enterGrid(saved ? saved.grid : START_GRID); // load the saved map's grid first
     let pos = this.world.map.findOpen(d.player.x, d.player.y, 6);
     if (!this.world.mapManager.idAt(pos.x, pos.y) && saved) pos = this.world.map.findOpen(saved.spawn[0] * TILE, saved.spawn[1] * TILE, 6);
     p.x = pos.x; p.y = pos.y;
@@ -371,9 +373,7 @@ export class Game {
     if (this.bosses.engaged) this.bosses.resetEngaged(); // any boss: heals + waits in its arena again
     else if (w.bossActive) w.resetBoss();
     this.combat.clear();
-    let pos = w.regions.villageRespawn;
-    const ws = w.state.lastWaystone && w.interactables.find((i) => i.id === w.state.lastWaystone);
-    if (ws) pos = w.map.findOpen(ws.x, ws.y + 40, 3);
+    const pos = w.checkpoint(); // last waystone (loads its grid) or Lumina
     p.dead = false; p.hp = p.maxHp; p.marks = 0; if (p.poise) p.poise.reset();
     for (const rid in p.resources.defs) p.resources.set(rid, p.resources.defs[rid].respawn ?? p.resources.defs[rid].start, 'respawn');
     p.x = pos.x; p.y = pos.y; p.invulnT = 2; p.kx = p.ky = 0;

@@ -6,7 +6,7 @@ import { Z } from '../core/constants.js';
 //  spawn  : default arrival point · exits: rect [tx0, ty0, tx1, ty1] (inclusive) -> map `to`, arriving at `entry`
 //  requires: { flag } — exit only works once that world flag is set (locked gates, sealed roads)
 export const LUMINA_VILLAGE = {
-  id: 'lumina', name: 'LUMINA VILLAGE', short: 'Lumina', sub: 'City 1 · Safe Zone', type: 'city', safe: true,
+  id: 'lumina', name: 'LUMINA VILLAGE', short: 'Lumina', sub: 'City 1 · Safe Zone', grid: 'whispering', type: 'city', safe: true,
   region: { zones: [Z.VILLAGE] },
   spawn: [48.5, 191],
   exits: [

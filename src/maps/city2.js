@@ -5,7 +5,7 @@ import { Z } from '../core/constants.js';
 // Placeholder city for V2.2: Scout Wren, a waystone, a notice and the Sealed Depths door (the next content hook).
 // Terrain: maps/ruins.js buildValley (the valley itself, tile rows 1..29).
 export const CITY_2 = {
-  id: 'city2', name: 'VALEHAVEN', short: 'City 2', sub: 'City 2 · Ancient Valley · Safe Zone', type: 'city', safe: true,
+  id: 'city2', name: 'VALEHAVEN', short: 'City 2', sub: 'City 2 · Ancient Valley · Safe Zone', grid: 'whispering', type: 'city', safe: true,
   region: { zones: [Z.VALLEY] },
   spawn: [32, 24],
   requires: [{

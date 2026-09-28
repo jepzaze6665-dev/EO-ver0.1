@@ -21,7 +21,7 @@ const CORRUPTED = { notFlag: 'guardianDefeated' }; // hazards fade when the fore
 
 export const FIELD_A2 = {
   id: 'a2', name: 'DEEP FOREST', short: 'A2', sub: 'Route A · A2 — Beyond the River · Lv. 4 – 7',
-  type: 'field', route: 'A', nextMap: 'a3', bossId: 'boss_a2',
+  grid: 'whispering', type: 'field', route: 'A', nextMap: 'a3', bossId: 'boss_a2',
   requires: [{ type: 'boss_defeated', boss: 'boss_a1', label: 'Defeat HOLLOW FANG (A1 boss)' }],
   hiddenAreas: ['hidden_cave', 'behind_waterfall', 'moonlit_shrine'],
   region: { zones: [Z.FOREST, Z.CAVE], maxTy: 97 },

@@ -1,4 +1,5 @@
 import { PARTY } from '../data/party.js';
+import { START_GRID } from '../world/levels/index.js';
 import { COMBAT_UI } from '../data/combatUI.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
@@ -411,7 +412,8 @@ export class HUD {
     let pos = null;
     if (t.npc) { const n = w.npcs.find((x) => x.id === t.npc); pos = n ? { x: n.x, y: n.y } : null; } else pos = { x: t.tx * TILE, y: t.ty * TILE };
     if (!pos) return null;
-    const goal = w.mapManager.idAt(pos.x, pos.y);
+    // npc: found on the loaded grid; a tile marker names its map (t.map) or lies on the start grid
+    const goal = t.map || w.mapManager.idAt(pos.x, pos.y, t.npc ? undefined : START_GRID);
     if (goal && w.mapId && goal !== w.mapId) { const e = w.mapManager.nextExit(w.mapId, goal); if (e) return w.mapManager.exitCenter(e); }
     return pos;
   }

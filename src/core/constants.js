@@ -43,6 +43,7 @@ export const Z = {
   ARENA: 5,
   VALLEY: 6,
   CAVE: 7,
+  BADLANDS: 8, // Ashen Badlands grid (world/levels/ashen.js)
 };
 
 export const ZONE_INFO = {
@@ -53,6 +54,7 @@ export const ZONE_INFO = {
   [Z.ARENA]: { name: 'GUARDIAN ARENA', sub: 'Heart of the Forest', music: 'arena' },
   [Z.VALLEY]: { name: 'VALEHAVEN', sub: 'City 2 · Ancient Valley', safe: true, music: 'valley' },
   [Z.CAVE]: { name: 'HIDDEN CAVE', sub: 'Secret Area Discovered', music: 'cave' },
+  [Z.BADLANDS]: { name: 'ASHEN BADLANDS', sub: 'Scorched canyons', music: 'badlands' },
 };
 
 export const TEAM = { PLAYER: 1, ENEMY: 2, NEUTRAL: 3 };

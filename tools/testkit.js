@@ -172,6 +172,7 @@ export function mapTour(g, classId = 'umbral_sword') {
   for (const def of mm.list) for (const e of def.exits) {
     // stand on an open tile inside the exit rect (tile owned by this map)
     let spot = null;
+    w.changeMap(def.id, { silent: true }); // loads the map's grid
     for (let ty = e.rect[1]; ty <= e.rect[3] && !spot; ty++) for (let tx = e.rect[0]; tx <= e.rect[2] && !spot; tx++) {
       if (mm.idAtTile(tx, ty) !== def.id) continue;
       w.changeMap(def.id, { silent: true });
@@ -808,6 +809,87 @@ export function tankCheck(g) {
   ok('No stun-lock: immune to a second stagger right away', staggers === 1);
   g.simulate(6);
   ok('Poise refills once you stop getting hit', p.poise.value === p.poise.max);
+  releaseInput(g);
+  return R;
+}
+
+// W1 multi-grid world: load / unload a grid through an exit, boss-gate lock, cleanup, save / load and respawn on
+// another grid, repeated switching without leaks (world/levels, World.enterGrid / unloadGrid)
+export function gridCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  let w = g.world;
+  const p = g.player, wp = g.worldProgress, mm = w.mapManager;
+  p.god = true;
+  w.transitions.autoConfirm = true;
+  const loaded = [], unloaded = [];
+  g.events.on('gridLoaded', (e) => loaded.push(e.id));
+  g.events.on('gridUnloaded', (e) => unloaded.push(e.id));
+  let arrival = null;
+  g.events.on('mapEntered', (e) => { if (e.id === 'ashen' && !arrival) arrival = { x: p.x, y: p.y, solid: g.world.map.isSolidAt(p.x, p.y) }; });
+  ok('New Game: only the start grid is built', w.gridId === 'whispering' && Object.keys(w.levels).join() === 'whispering', Object.keys(w.levels).join());
+  // the portal needs the Guardian (boss gate on the target map)
+  w.setFlag('gateOpened'); w.applyState();
+  w.changeMap('arena', { silent: true });
+  const portal = mm.get('arena').exits.find((e) => e.to === 'ashen');
+  ok('Ashen Badlands LOCKED before the Guardian falls', !wp.isMapUnlocked('ashen') && !w.transitions.isOpen(portal), w.transitions.lockReason(portal));
+  // stand in the portal without walking through the arena (walking in would wake the Guardian)
+  releaseInput(g); p.x = (portal.rect[0] + 0.5) * TILE; p.y = (portal.rect[1] + 0.5) * TILE;
+  w.transitions.cooldown = 0; w.transitions.update(0.02, p);
+  ok('Locked exit: the player stays on the arena map', w.mapId === 'arena' && w.gridId === 'whispering', w.mapId);
+  p.x = (portal.rect[0] - 3) * TILE; // step out of the portal before it opens
+  wp.defeatBoss('boss_a3'); w.setFlag('guardianDefeated'); w.applyState(); g.simulate(0.3);
+  ok('Ashen Badlands UNLOCKED after the Guardian', wp.isMapUnlocked('ashen') && w.transitions.isOpen(portal));
+  // put something temporary in the world, then walk through the portal
+  const forestMons = w.monsters.length;
+  g.combat.projectiles.fire({ x: p.x, y: p.y, vx: 10, vy: 0, r: 5, life: 5, owner: { team: 2, x: p.x, y: p.y }, power: 1 });
+  goto(g, portal.rect[0] - 3, portal.rect[1] + 0.5); walk(g, 'KeyD', 1.5);
+  g.simulate(0.5);
+  const box = mm.get('ashen').box;
+  ok('Transition A -> other grid: map + grid switched', w.mapId === 'ashen' && w.gridId === 'ashen' && mm.idAt(p.x, p.y) === 'ashen', `${w.mapId} / ${w.gridId}`);
+  ok('Grid events: unloaded whispering, loaded ashen', unloaded.includes('whispering') && loaded.includes('ashen'));
+  ok('Player spawned at the entry, on open ground', arrival && Math.abs(arrival.x / TILE - 84.5) < 3 && Math.abs(arrival.y / TILE - 196) < 3 && !arrival.solid, arrival && `${(arrival.x / TILE).toFixed(1)},${(arrival.y / TILE).toFixed(1)}`);
+  ok('Old grid cleaned up: its monsters, projectiles and render cache are gone', w.monsters.every((m) => !m.removed) && !w.monsters.some((m) => m.mapId && mm.gridOf(m.mapId) === 'whispering') && g.combat.projectiles.pool.items.filter((o) => o.active).length === 0 && w.levels.whispering.map.chunkCache.size === 0 && w.levels.whispering.monsters.length === 0, `forest monsters before=${forestMons}`);
+  ok('Grid size = the A1 scale', w.map.w === w.levels.whispering.map.w && w.map.h === w.levels.whispering.map.h, `${w.map.w}x${w.map.h}`);
+  ok('Camera bounds = the new map', g.camera.bounds.x0 <= box.tx0 * TILE && g.camera.bounds.x1 >= (box.tx1 + 1) * TILE && g.camera.bounds.y1 <= (w.map.h + 3) * TILE);
+  const x0 = p.x;
+  walk(g, 'KeyA', 3);
+  ok('Collision: canyon walls stop the player', p.x < x0 && p.x > (box.tx0 + 2) * TILE && !w.map.isSolidAt(p.x, p.y), `x ${(x0 / TILE).toFixed(1)} -> ${(p.x / TILE).toFixed(1)}`);
+  goto(g, 84.5, 192);
+  g.simulate(0.5);
+  ok('Area detection: sub-area on the new grid', w.currentSub && w.currentSub.name === 'Scorched Pass', w.currentSub && w.currentSub.name);
+  ok('Map content loaded (sign) + objects of the other grid absent', w.interactables.some((i) => i.id === 'ashen_survey') && !w.interactables.some((i) => i.id === 'a1_hunters_notice') && w.dummies.length === 0);
+  // save / load on the other grid
+  goto(g, 84, 150);
+  const at = { x: p.x, y: p.y };
+  g.simulate(0.4);
+  ok('Save on the other grid', g.save.save());
+  g.loadGame(); w = g.world;
+  ok('Load: grid + map + position restored', w.gridId === 'ashen' && w.mapId === 'ashen' && Math.hypot(g.player.x - at.x, g.player.y - at.y) < 40, `${w.gridId}/${w.mapId}`);
+  const fog = w.map.revealed[w.map.idx(84, 150)];
+  ok('Load: fog of war of the other grid kept', fog === 1, 'revealed=' + fog);
+  // back through the exit: the forest grid returns with its monsters re-spawned
+  const back = w.mapManager.get('ashen').exits[0];
+  goto(g, 84, back.rect[1] - 3); walk(g, 'KeyS', 2);
+  g.simulate(0.5);
+  ok('Transition back: arena on the start grid', w.gridId === 'whispering' && w.mapId === 'arena', `${w.gridId}/${w.mapId}`);
+  ok('Returning grid re-spawned its monsters', w.spawnPoints.some((sp) => sp.active) && w.monsters.length > 0, 'monsters=' + w.monsters.length);
+  // repeated switching must not pile up objects
+  const counts = [];
+  for (let i = 0; i < 4; i++) {
+    w.changeMap('ashen', { entry: [84.5, 190] }); g.simulate(0.2);
+    w.changeMap('arena', { entry: [140.5, 28.5] }); g.simulate(0.2);
+    counts.push(w.monsters.length + g.combat.projectiles.pool.items.filter((o) => o.active).length + g.combat.telegraphs.list.length);
+  }
+  ok('No leak over repeated grid switches', Math.max(...counts) - Math.min(...counts) <= 2, counts.join(','));
+  // falling on the other grid: respawn loads the checkpoint's grid
+  w.changeMap('ashen', { entry: [84.5, 190] }); g.simulate(0.2);
+  g.player.god = false; g.player.hp = 1;
+  g.combat.dealDamage({ x: g.player.x, y: g.player.y, team: 2 }, g.player, { power: 999, knock: 0 });
+  g.simulate(0.5);
+  g.respawn();
+  g.simulate(0.5);
+  ok('Respawn from the other grid -> Lumina (start grid)', g.world.gridId === 'whispering' && ['lumina', 'a1'].includes(g.world.mapId) && !g.player.dead, `${g.world.gridId}/${g.world.mapId}`);
   releaseInput(g);
   return R;
 }

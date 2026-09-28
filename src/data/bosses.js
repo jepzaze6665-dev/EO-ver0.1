@@ -98,6 +98,9 @@ export const BOSSES = {
     unlocks: ['city2'],
   },
 
+  // ---------------- ASHEN BADLANDS (W1 placeholder grid; the fight arrives in W3 with the magma beast sheet)
+  boss_ashen: { id: 'boss_ashen', name: 'MAGMA BEAST', title: 'Heart of the Ashen Badlands · to be built (W3)', type: 'area', impl: 'area', route: 'A', map: 'ashen', planned: true, unlocks: [] },
+
   // ---------------- ROUTE B (architecture only — Phase 13/14 builds the maps; nothing here is spawned yet)
   boss_b1: { id: 'boss_b1', name: 'B1 AREA BOSS', title: 'Route B · to be designed', type: 'area', impl: 'area', route: 'B', map: 'b1', planned: true, unlocks: ['b2'] },
   boss_b2: { id: 'boss_b2', name: 'B2 AREA BOSS', title: 'Route B · to be designed', type: 'area', impl: 'area', route: 'B', map: 'b2', planned: true, unlocks: ['b3'] },

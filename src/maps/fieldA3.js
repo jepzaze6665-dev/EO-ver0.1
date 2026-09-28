@@ -11,7 +11,7 @@ import { Z } from '../core/constants.js';
 // Terrain + base spawns: maps/ruins.js (ruins + gate).
 export const FIELD_A3 = {
   id: 'a3', name: 'ANCIENT RUINS', short: 'A3', sub: 'Route A · A3 — Before the Gate · Lv. 7 – 10',
-  type: 'field', route: 'A', nextMap: 'city2', bossId: 'boss_a3', // its Major Boss waits in the Guardian Arena map
+  grid: 'whispering', type: 'field', route: 'A', nextMap: 'city2', bossId: 'boss_a3', // its Major Boss waits in the Guardian Arena map
   requires: [{ type: 'boss_defeated', boss: 'boss_a2', label: 'Defeat GRUKK THE THORNBOUND (A2 boss)' }],
   hiddenAreas: ['sealed_archive'],
   region: { zones: [Z.RUINS, Z.GATE] },

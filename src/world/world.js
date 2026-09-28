@@ -1,11 +1,12 @@
-import { TILE, T, Z, ZONE_INFO } from '../core/constants.js';
-import { generateWorld } from '../maps/worldGen.js';
+import { TILE, Z, ZONE_INFO } from '../core/constants.js';
+import { WorldMap } from '../maps/worldMap.js';
+import { Builder } from '../maps/builder.js';
+import { buildTileset } from '../maps/tiles.js';
+import { LEVELS, START_GRID } from './levels/index.js';
 import { Monster } from '../monsters/monster.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
 import { Guardian } from '../boss/guardian.js';
 import { NPC } from './npc.js';
-import { Breakable } from '../exploration/breakable.js';
-import { TrainingDummy } from '../entities/trainingDummy.js';
 import { isAvailable, interact, promptFor } from '../exploration/interactables.js';
 import { dist, rand, TAU, pick } from '../core/math.js';
 import { Assets } from '../core/assets.js';
@@ -16,23 +17,23 @@ import { GateSystem } from './gateSystem.js';
 import { MAPS } from '../maps/mapRegistry.js';
 
 const REVEAL_R = 10;
+// the World's fields that belong to the loaded grid (swapped by enterGrid)
+const LEVEL_FIELDS = ['map', 'b', 'regions', 'staticLights', 'spawnPoints', 'npcs', 'interactables', 'breakables', 'dummies', 'monsters', 'guardian', 'propById'];
 
-// WORLD: owns the map, all live entities, the World State flags and every rule that
+// WORLD: owns the loaded grid (world/levels), all live entities, the World State flags and every rule that
 // reacts to them (fog, corruption, spawns, barriers, shortcuts, secrets, the boss arena).
+// GRIDS: each map names its grid (maps/*.js `grid`). One grid is loaded at a time; its tile map is built the first
+// time it is entered and kept (terrain changes survive), while its live objects (monsters, projectiles, effects,
+// render cache) are dropped on unload and re-created from the spawn data on the next load.
 export class World {
   constructor(game) {
     this.game = game;
-    const { map, builder } = generateWorld();
-    this.map = map;
-    this.b = builder;
-    this.regions = builder.regions;
-    this.staticLights = builder.lights;
-    this.monsters = [];
-    this.breakables = [];
-    this.npcs = [];
-    this.interactables = [];
-    this.spawnPoints = builder.spawns.map((s) => ({ def: s, alive: [], respawnT: 0, active: false }));
-    this.guardian = null;
+    this.tileset = buildTileset(); // shared by every grid
+    this.levels = {};
+    this.gridId = null;
+    this.level = null;
+    this.secretsFound = new Set(); // secrets are world-wide (every grid's map shares this set)
+    this.pendingReveal = {};       // saved fog of grids not built yet
     this.state = this.freshState();
     this.currentZone = Z.NONE;
     this.currentSub = null;
@@ -44,69 +45,99 @@ export class World {
     this.totemActive = false;
     this.ambientT = 0;
     this.nearest = null;
-    this.propById = {};
-    for (const p of map.props) if (p.id) this.propById[p.id] = p;
-    // separate maps (Lumina / A1 / A2 / A3 / Boss Arena / Valley) over the generated terrain + exits between them
-    this.mapManager = new MapManager(map, MAPS);
+    // every map (Lumina / A1 / A2 / A3 / Boss Arena / City 2 / other grids) + exits between them
+    this.mapManager = new MapManager(MAPS);
     this.transitions = new TransitionSystem(this);
     this.hazardSys = new HazardSystem(this, MAPS); // map hazards (maps/*.js content.hazards)
     this.gates = new GateSystem(this, MAPS);       // boss gates with collision (maps/*.js gates)
     this.mapId = null;
     this.suppressZoneBanner = false;
-
-    for (const n of builder.npcs) {
-      const npc = new NPC(game, n);
-      this.npcs.push(npc);
-      this.interactables.push({ id: 'npc_' + n.id, kind: 'npc', x: npc.x, y: npc.y, radius: 38, npc, secret: n.secret || 0 });
-    }
-    for (const it of builder.interactables) this.interactables.push(it);
-    // content owned by the map files (maps/*.js `content`): NPCs, signs, extra spawns
-    for (const d of MAPS) {
-      const c = d.content || {};
-      for (const n of c.npcs || []) {
-        const npc = new NPC(game, { ...n, x: (n.tx + 0.5) * TILE, y: (n.ty + 0.7) * TILE });
-        this.npcs.push(npc);
-        this.interactables.push({ id: 'npc_' + n.id, kind: 'npc', x: npc.x, y: npc.y, radius: 38, npc });
-      }
-      for (const it of c.interactables || []) this.interactables.push({ radius: 34, ...it, x: (it.tx + 0.5) * TILE, y: (it.ty + 0.6) * TILE, mapId: d.id });
-      for (const s of c.spawns || []) this.spawnPoints.push({ def: { radius: 2, count: 1, ...s, x: (s.tx + 0.5) * TILE, y: (s.ty + 0.5) * TILE }, alive: [], respawnT: 0, active: false });
-    }
-    // examine prompts for the breakable secrets
-    this.interactables.push({ id: 'crack_info', kind: 'crackInfo', x: 70.5 * TILE, y: 55.6 * TILE, radius: 40, prompt: 'Examine Cracked Stone' });
-    this.interactables.push({ id: 'glyph_info', kind: 'glyphInfo', x: 150.4 * TILE, y: 109.5 * TILE, radius: 40, prompt: 'Examine Glyph' });
-    this.makeBreakables();
-    // training yard beside the Adventurer Guild (class / combat testing)
-    this.dummies = [[29, 186], [32, 187.5], [35, 186]].map(([tx, ty]) => {
-      const pos = this.map.findOpen(tx * TILE, ty * TILE, 3);
-      return new TrainingDummy(game, pos.x, pos.y);
-    });
+    this.enterGrid(START_GRID, { apply: false });
   }
 
   freshState() {
     return { flags: {}, chests: {}, lore: {}, waystones: {}, nodes: {}, subs: {}, secrets: [], lastWaystone: null, killed: {}, maps: {}, hidden: {} };
   }
 
-  makeBreakables() {
-    const g = this.game;
-    this.breakables = [];
-    const crack = this.propById.cave_crack;
-    this.breakables.push(new Breakable(g, 70.5 * TILE, 55 * TILE - 8, {
-      kind: 'crack', hp: 70, radius: 22, height: 50, prop: crack,
-      canHit: () => !this.state.flags.caveOpened,
-      onBreak: () => { this.setFlag('caveOpened'); this.applyState(); this.discoverSecret(1, 'HIDDEN CAVE'); },
-    }));
-    const glyph = this.propById.archive_glyph;
-    this.breakables.push(new Breakable(g, 150.6 * TILE, 109 * TILE, {
-      kind: 'glyph', hp: 60, radius: 22, height: 50, prop: glyph,
-      canHit: () => !this.state.flags.archiveOpened,
-      onBreak: () => { this.setFlag('archiveOpened'); this.applyState(); this.discoverSecret(4, 'SEALED ARCHIVE'); },
-    }));
-    const br = this.propById.bramble_prop;
-    this.breakables.push(new Breakable(g, 68.5 * TILE, 147 * TILE, {
-      kind: 'bramble', hp: 40, radius: 40, height: 30, prop: br,
-      canHit: () => !this.state.flags.bramble && g.player.y < 147.6 * TILE,
-      onBreak: () => { this.setFlag('bramble'); this.applyState(); g.ui.banner('SHORTCUT OPENED', 'Bramble Lane → Lumina Village', '#ffd98a'); },
-    }));
+  // ---------------- grids (MAP LOADER)
+  // build a grid once: terrain + zones (level.generate), then everything placed on it
+  buildLevel(id) {
+    const def = LEVELS[id], g = this.game;
+    const [w, h] = def.size;
+    const map = new WorldMap(this.tileset, w, h);
+    const b = new Builder(map, def.seed || 1);
+    def.generate(b);
+    map.secretsFound = this.secretsFound;
+    if (this.pendingReveal[id]) { unrle(this.pendingReveal[id], map.revealed); delete this.pendingReveal[id]; }
+    const L = {
+      id, map, b, regions: b.regions, staticLights: b.lights, monsters: [], guardian: null,
+      spawnPoints: b.spawns.map((s) => ({ def: s, alive: [], respawnT: 0, active: false })),
+      npcs: [], interactables: [...b.interactables], breakables: [], dummies: [], propById: {},
+    };
+    for (const p of map.props) if (p.id) L.propById[p.id] = p;
+    for (const n of b.npcs) {
+      const npc = new NPC(g, n);
+      L.npcs.push(npc);
+      L.interactables.push({ id: 'npc_' + n.id, kind: 'npc', x: npc.x, y: npc.y, radius: 38, npc, secret: n.secret || 0 });
+    }
+    // content owned by the map files of this grid (maps/*.js `content`): NPCs, signs, extra spawns
+    for (const d of MAPS) {
+      if (d.grid !== id) continue;
+      const c = d.content || {};
+      for (const n of c.npcs || []) {
+        const npc = new NPC(g, { ...n, x: (n.tx + 0.5) * TILE, y: (n.ty + 0.7) * TILE });
+        L.npcs.push(npc);
+        L.interactables.push({ id: 'npc_' + n.id, kind: 'npc', x: npc.x, y: npc.y, radius: 38, npc });
+      }
+      for (const it of c.interactables || []) L.interactables.push({ radius: 34, ...it, x: (it.tx + 0.5) * TILE, y: (it.ty + 0.6) * TILE, mapId: d.id });
+      for (const sp of c.spawns || []) L.spawnPoints.push({ def: { radius: 2, count: 1, ...sp, x: (sp.tx + 0.5) * TILE, y: (sp.ty + 0.5) * TILE }, alive: [], respawnT: 0, active: false });
+    }
+    this.mapManager.attach(id, map);
+    if (def.setup) def.setup(this, L);
+    return L;
+  }
+  // LOAD a grid (unloading the current one). opts.apply false = do not run the world flags yet (constructor)
+  enterGrid(id, opts = {}) {
+    if (this.gridId === id) return false;
+    if (!LEVELS[id]) throw new Error('unknown grid ' + id);
+    const prev = this.gridId;
+    if (prev) this.unloadGrid();
+    const L = this.levels[id] || (this.levels[id] = this.buildLevel(id));
+    this.level = L;
+    this.gridId = id;
+    for (const k of LEVEL_FIELDS) this[k] = L[k];
+    this.mapManager.use(id);
+    this.currentZone = Z.NONE; this.currentSub = null;
+    if (opts.apply !== false) this.applyState();
+    this.game.events.emit('gridLoaded', { id, from: prev });
+    return true;
+  }
+  // UNLOAD: keep the grid's terrain / placed objects, destroy what lives on it (re-created on the next load)
+  unloadGrid() {
+    const L = this.level, g = this.game;
+    if (!L) return;
+    for (const k of LEVEL_FIELDS) L[k] = this[k]; // runtime additions (e.g. a totem chest) stay with the grid
+    for (const m of L.monsters) m.removed = true;
+    L.monsters = [];
+    for (const sp of L.spawnPoints) { sp.active = false; sp.alive = []; sp.respawnT = 0; }
+    L.map.chunkCache.clear(); // render cache: rebuilt when drawn again
+    if (g.combat) g.combat.clear(); // projectiles + telegraphs
+    if (g.vfx && g.vfx.clear) g.vfx.clear();
+    if (g.targets) g.targets.clear();
+    this.hazards = []; this.rootSpikes = []; this.totemTick = null; this.totemActive = false;
+    this.nearest = null;
+    g.events.emit('gridUnloaded', { id: L.id });
+    this.level = null;
+    this.gridId = null;
+    this.mapManager.use(null);
+  }
+  // where a fallen player gets up: the last waystone (any built grid), else Lumina — loads that grid
+  checkpoint() {
+    const id = this.state.lastWaystone;
+    const owner = id && Object.values(this.levels).find((L) => (L === this.level ? this.interactables : L.interactables).some((i) => i.id === id));
+    this.enterGrid(owner ? owner.id : START_GRID);
+    const ws = id && this.interactables.find((i) => i.id === id);
+    return ws ? this.map.findOpen(ws.x, ws.y + 40, 3) : this.regions.villageRespawn;
   }
 
   // ---------------- queries
@@ -129,6 +160,7 @@ export class World {
     const prev = this.mapId;
     if (prev === id && !opts.entry) return false;
     if (prev) g.events.emit('mapExited', { id: prev, to: id, via: opts.via || null });
+    if (def.grid !== this.gridId) this.enterGrid(def.grid); // another grid: unload this one, load that one
     this.mapId = id;
     this.mapManager.activate(id);
     g.camera.bounds = this.mapManager.boundsPx(id);
@@ -176,64 +208,8 @@ export class World {
 
   // ---------------- world state application (idempotent)
   applyState() {
-    const f = this.state.flags, m = this.map, R = this.regions;
-    const restored = !!f.guardianDefeated;
-    if (m.style.restored !== restored) { m.style.restored = restored; m.invalidate(); }
-    for (const p of m.props) {
-      if (p.corruptOnly) p.visible = !restored;
-      if (p.restoredOnly) p.visible = restored;
-      if (p.corruptVariant) { const n = restored ? p.restoredVariant : p.corruptVariant; if (p.name !== n) { p.name = n; p.def = Assets.props[n]; } }
-      if (p.secret) p.visible = m.secretsFound.has(p.secret);
-    }
-    // valley barrier
-    const vb = R.valleyBarrier;
-    m.setBlockRect(vb.tx0, vb.ty0, vb.tx1, vb.ty1, !restored);
-    // shortcuts
-    const lb = R.logBridge;
-    if (f.logBridge) {
-      for (let y = lb.ty0; y <= lb.ty1; y++) for (let x = lb.tx0; x <= lb.tx1; x++) {
-        const t = m.get(x, y);
-        if (t === T.WATER || t === T.DEEP_WATER || t === T.SAND) m.set(x, y, T.BRIDGE);
-      }
-      // the fallen log reaches both banks (the rows just outside the water were left as rock)
-      for (const y of [lb.ty0 - 3, lb.ty0 - 2, lb.ty0 - 1, lb.ty0, lb.ty1, lb.ty1 + 1]) for (let x = lb.tx0; x <= lb.tx1; x++) {
-        if (m.isTerrainSolid(x, y) && !m.blocker[m.idx(x, y)]) m.set(x, y, T.FOREST_FLOOR);
-      }
-      const up = this.propById.log_upright;
-      if (up && up.visible) { up.visible = false; m.setPropSolid(up, false); up.solid = false; }
-      if (!this.propById.log_fallen) {
-        this.propById.log_fallen = m.addProp({ name: 'log_a', x: 22.9 * TILE, y: (lb.ty1 + 1) * TILE - 6, layer: 'ground', rot: Math.PI / 2, scale: 1 });
-      }
-      m.invalidate();
-    }
-    m.setBlockRect(100, 111, 101, 113, !f.ruinsGate);
-    if (this.propById.side_gate) this.propById.side_gate.visible = !f.ruinsGate;
-    const bm = R.bramble;
-    m.setBlockRect(bm.tx0, bm.ty0, bm.tx1, bm.ty1, !f.bramble);
-    if (this.propById.bramble_prop) this.propById.bramble_prop.cut = !!f.bramble;
-    // secret walls
-    const cw = R.caveWall;
-    if (f.caveOpened) {
-      for (let y = cw.ty0 - 1; y <= cw.ty1; y++) for (let x = cw.tx0 + 1; x <= cw.tx1 - 1; x++) m.set(x, y, T.CAVE);
-      m.set(70, 55, T.FOREST_FLOOR); m.set(71, 55, T.FOREST_FLOOR);
-      if (this.propById.cave_crack) this.propById.cave_crack.broken = true;
-      m.invalidate();
-    }
-    const aw = R.archiveWall;
-    if (f.archiveOpened) {
-      for (let y = aw.ty0; y <= aw.ty1; y++) m.set(aw.tx0, y, T.RUIN);
-      if (this.propById.archive_glyph) this.propById.archive_glyph.broken = true;
-      m.invalidate();
-    }
-    // guardian gate seal
-    const gs = R.gateSeal;
-    m.setBlockRect(gs.tx0, gs.ty0, gs.tx1, gs.ty1, !f.gateOpened);
-    const gp = this.propById.guardian_gate;
-    if (gp) { const n = f.gateOpened ? 'gate_open' : 'big_gate'; gp.name = n; gp.def = Assets.props[n]; gp.scale = f.gateOpened ? 0.95 : 0.62; }
-    // arena seal (only during the fight)
-    const as = R.arenaSeal;
-    m.setBlockRect(as.tx0, as.ty0, as.tx1, as.ty1, this.bossActive);
-    for (const b of this.breakables) if ((b.kind === 'crack' && f.caveOpened) || (b.kind === 'glyph' && f.archiveOpened) || (b.kind === 'bramble' && f.bramble)) b.dead = true;
+    const def = LEVELS[this.gridId];
+    if (def && def.apply) def.apply(this); // this grid's own flag rules (world/levels/*.js)
     this.gates.apply(); // boss gates follow the World Progression (collision open / closed)
     this.refreshSpawns();
   }
@@ -331,9 +307,9 @@ export class World {
 
   // ---------------- secrets & discovery
   discoverSecret(id, name) {
-    if (this.map.secretsFound.has(id)) return;
-    this.map.secretsFound.add(id);
-    this.state.secrets = [...this.map.secretsFound];
+    if (this.secretsFound.has(id)) return;
+    this.secretsFound.add(id);
+    this.state.secrets = [...this.secretsFound];
     const g = this.game;
     g.ui.banner('SECRET DISCOVERED', name, '#e0b0ff');
     g.audio.sfx('secret');
@@ -576,13 +552,23 @@ export class World {
   }
 
   // ---------------- save/load
+  // fog of war: `revealed` = the start grid (as before grids existed), `revealedGrids` = every other grid seen so far
   serialize() {
-    return { ...this.state, nodes: {}, secrets: [...this.map.secretsFound], revealed: rle(this.map.revealed) };
+    const other = { ...this.pendingReveal };
+    for (const [id, L] of Object.entries(this.levels)) if (id !== START_GRID) other[id] = rle(L.map.revealed);
+    return { ...this.state, nodes: {}, secrets: [...this.secretsFound], revealed: rle(this.levels[START_GRID].map.revealed), revealedGrids: other };
   }
   load(d) {
-    this.state = { ...this.freshState(), ...d, flags: { ...(d.flags || {}) }, nodes: {} };
-    this.map.secretsFound = new Set(d.secrets || []);
-    if (d.revealed) unrle(d.revealed, this.map.revealed);
+    const { revealed, revealedGrids, ...rest } = d;
+    this.state = { ...this.freshState(), ...rest, flags: { ...(d.flags || {}) }, nodes: {} };
+    this.secretsFound.clear();
+    for (const id of d.secrets || []) this.secretsFound.add(id);
+    const fog = { ...(revealedGrids || {}), ...(revealed ? { [START_GRID]: revealed } : {}) };
+    this.pendingReveal = {};
+    for (const [id, r] of Object.entries(fog)) {
+      if (this.levels[id]) unrle(r, this.levels[id].map.revealed);
+      else this.pendingReveal[id] = r;
+    }
   }
 }
 

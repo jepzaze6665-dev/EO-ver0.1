@@ -24,7 +24,7 @@ const GLADE_WARNING = [
 
 export const FIELD_A1 = {
   id: 'a1', name: 'WHISPERING FOREST', short: 'A1', sub: 'Route A · A1 — Forest Edge · Lv. 1 – 4',
-  type: 'field', route: 'A', nextMap: 'a2', bossId: 'boss_a1', requires: [], hiddenAreas: [],
+  grid: 'whispering', type: 'field', route: 'A', nextMap: 'a2', bossId: 'boss_a1', requires: [], hiddenAreas: [],
   region: { zones: [Z.FOREST], minTy: 98 },
   // Boss Gate: the River Crossing is barred until Hollow Fang (Howling Den, beside the River Crossing waystone) falls
   gates: [

@@ -26,8 +26,9 @@ export class GateSystem {
   }
   // sync collision with the current requirements (cheap: a handful of gates)
   apply(fx = false) {
-    const m = this.world.map;
+    const m = this.world.map, mm = this.world.mapManager;
     for (const gate of this.list) {
+      if (mm.gridOf(gate.mapId) !== this.world.gridId) continue; // other grid: synced when that grid loads
       const open = this.isOpen(gate);
       if (open === gate.open) continue;
       const first = gate.open === null;
