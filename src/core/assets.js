@@ -5,6 +5,7 @@ export const Assets = {
   data: {},
   props: {}, // name -> {img, x, y, w, h}
   vfx: {}, // name -> {img, fw, fh, frames} (skill effect strips, right-facing)
+  ui: {}, // name -> {img, w, h, slice?, file} (UI kit built by tools/build-ui.js: frames, buttons, slots, boss bar)
 };
 
 export function loadImage(src) {
@@ -31,10 +32,12 @@ export async function loadAll(onProgress) {
   Assets.data.playerAtlas = Assets.data.atlases.ub; // v1 alias
   const propMeta = await loadJSON('assets/props/props.json');
   const vfxMeta = await loadJSON('assets/vfx/vfx.json');
+  const uiMeta = await loadJSON('assets/ui/ui.json');
   const jobs = [];
   for (const [key, atlas] of Object.entries(Assets.data.atlases)) for (const [name, s] of Object.entries(atlas.sheets)) jobs.push([`player_${key}_${name}`, s.file]);
   jobs.push(['props', 'assets/props/props.png']);
   for (const [name, v] of Object.entries(vfxMeta)) jobs.push(['vfx_' + name, v.file]);
+  for (const [name, v] of Object.entries(uiMeta)) jobs.push(['ui_' + name, v.file]);
   let done = 0;
   await Promise.all(
     jobs.map(async ([key, src]) => {
@@ -44,6 +47,7 @@ export async function loadAll(onProgress) {
     })
   );
   for (const [name, v] of Object.entries(vfxMeta)) Assets.vfx[name] = { ...v, img: Assets.images['vfx_' + name] };
+  for (const [name, v] of Object.entries(uiMeta)) Assets.ui[name] = { ...v, img: Assets.images['ui_' + name] };
   const pimg = Assets.images.props;
   for (const [name, [x, y, w, h]] of Object.entries(propMeta)) Assets.props[name] = { img: pimg, x, y, w, h };
 }

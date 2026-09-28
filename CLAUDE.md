@@ -52,6 +52,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - `node tools/build-vfx.js` → `assets/vfx/*.png + vfx.json` (right-facing strips, rotated at runtime;
   per-file `rows` (front view for caster-centred effects) and `mirrorFrames`).
 - `tools/tests/sprites.test.mjs` fails if any class animation uses an empty frame.
+- UI kit: `desgin/UI/{skill_slot,button_bar,panel_kit,ring_frame,boss_bar,emblem}.png` (AI sheets, black or transparent
+  background) → `node tools/build-ui.js` → `assets/ui/*.png + ui.json` ({ file, w, h, slice? }; background flood-removed
+  from the chosen edges + soft fringe, pieces found as blobs, named in reading order or by 3×3 grid). Loaded as
+  `Assets.ui[name]` (core/assets.js). `tools/tests/ui.test.mjs` checks every piece exists / is cut out.
 
 ## Machine / tooling gotchas (Windows, this repo)
 - Files get CRLF on checkout: normalise to LF before string-replacing multi-line code in scripts.
@@ -230,5 +234,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (`target.endure(amount)` hook in combat.dealDamage). `T.tankCheck(g)` (6) + tools/tests/antiTank.test.mjs.
   Measured: A2 Grukk at LV 7, Umbral bot — dodging: 54 damage taken, 0 staggers; face-tanking: 563 damage, 2 staggers,
   still alive. All 8 area-boss fights (4 classes × A1/A2) win without god mode.
-  **COMBAT 2.0 COMPLETE (C1-C10).** Next (owner decides): push; Route B; City 2 services; human playtest balance.
+  **COMBAT 2.0 COMPLETE (C1-C10)** — pushed.
+- **Current: UI ART PASS** with the owner's UI kit (`desgin/UI`). Plan: U1 build tool + loader (done: 21 pieces — 5 skill-slot
+  states, 4 button states (slice 35), panel kit (panel_frame slice 24 + corners / edges), ring_frame (see-through
+  middle), boss_bar (crest + name plate, the bar runs off the sheet edges — no end caps), emblem (rough smoke edges,
+  menu only)); U2 skill bar frames; U3 HTML panels + buttons via CSS border-image; U4 boss bar + ring portrait;
+  U5 title screen emblem. Next: U2.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).
