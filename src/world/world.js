@@ -282,7 +282,7 @@ export class World {
     this.totemActive = true;
     g.ui.callout('AMBUSH!', 'Defend yourself as the totem calls the corrupted', '#ff8080');
     g.audio.sfx('roar_small');
-    const waves = [['wolf', 'wolf', 'wolf'], ['goblin', 'wolf', 'goblin']];
+    const waves = [['wolf', 'wolf', 'wolf'], ['leafling', 'wolf', 'leafling']];
     let wave = 0;
     const spawnWave = () => {
       const list = waves[wave++];

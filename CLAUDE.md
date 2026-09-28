@@ -57,6 +57,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - If a request would break the architecture: explain the problem, propose a better way, then implement.
 
 ## Assets (never reference a path without a real file)
+- Monster art: `desgin/monster/<A|B>/<A1..A3|B1..B3>/` (1..4, BOSS, VFX BOSS, AURA Phase BOSS / Phase BOSS).
 - Raw art: `desgin/class cr/<UB|AW|AG NEW|RP>/`, `desgin/VFX/<UB|AW|AG|RP>/` (AI sheets: fake checkerboard
   background, 6 columns × 4 direction rows).
 - `node tools/build-player.js [ub|aw|ag|rp]` → `assets/player[/<preset>]/*.png + atlas.json`. Every preset is
@@ -384,5 +385,19 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   terrain are final); extract-props: per-sheet background test `SHEET_BG` (grey sheet) + `FILL_HOLES` (box mode keeps
   background-coloured pixels enclosed by a prop). routes: `cityPlanned` gone. `tools/mapOverview.js` (O.show(__game, 4)):
   whole-map render of the loaded grid. `T.cityCheck(g)` 11/11.
-  Next: F3 combat debug (hitbox / frame / phase), City 2 content (owner decides), Route B.
+  B0 done (Route B prep, owner 2026-09-29): art moved to desgin/monster/<A|B>/<map>/ (tools follow). Owner rule: NO monster
+  without sprite art — goblin / crystal_beast / crystal_alpha / wraith and their canvas code are gone. Replacements from
+  the owner's extra sheets: A1 `leafling` (Leafling, caster: seed shot / bloom + root; its art is also the Guardian's
+  `thornling` adds) and `treant` (Bramble Treant, bruiser: swipe / Root Slam heavy + missRecover / sap orb) +
+  `elder_treant` (unique cave mini-boss, treant art ×1.55); A2 `quill_lizard` (flank skirmisher: whip / quill spray /
+  spin rush -> DIZZY) + `burrower` (Thornshell Burrower: snap / burrow ambush = heavy circle ahead, guard break);
+  A3 `void_scarab` (swarm of 3: claw / void ring + slow) + `rune_wisp` (caster: blue flame breath + burn / flame dash,
+  `blinkWhenHit`). Mini-boss Grukk = THE THORNBOUND ELDER (id mini_grukk kept for saves, treant art, summons corrupted
+  leaflings); Goblin Glade -> Thornwood Glade; goblin_iron shown as "Ironbark Splinter". Monster data flags instead of
+  type names: `corruptible`, `shardColor`, `blinkWhenHit`, attack `projColor`. build-monsters: sheet `region`, row
+  opts `y` / `x` (labelled / direction-grid sheets), `pocket`, `clearLight` (blurry sheets). `T.spriteMonsterCheck(g)` 8/8.
+  Owner's Route B art (not used yet): maps desgin/Map/B/B1..B3 (+ Ref b1 FROSTWIND PLAINS, b2 CRYSTAL CAVERNS, b3 FROSTPEAK),
+  monsters desgin/monster/B/B1..B3 (4 + BOSS each, VFX BOSS, "AURA Phase BOSS" for B1/B2 phase changes, B3 "Phase BOSS" =
+  Crystal Warden multi-phase sheet: 4 phases + transitions, frames ~75% of the normal boss sheet -> usable as the main body).
+  Next: B1 Frostwind Plains (map + monsters), B1 boss, B2, B3 (own grids like A2/A3).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

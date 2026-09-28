@@ -5,7 +5,7 @@ import { Z } from '../core/constants.js';
 //   Forest Entrance (Whisper Hares, tutorial wolves) -> Wolf Hollow -> River Crossing -> Deep Forest (corrupted beasts,
 //   miasma, thorns) -> Stone Circle -> Ancient Forest Path -> Ancient Ruins (ruin-hardened monsters, rune wards, Elite)
 //   -> Guardian Gate -> A1 BOSS: the Guardian of the Forest (its own map: maps/majorBossArena.js, `arena`).
-// Optional: Crystal Glade (Lv. 6 beasts), mini-bosses Hollow Fang (Howling Den) + Grukk (Goblin Glade) — they gate
+// Optional: Crystal Glade (Lv. 6 beasts), mini-bosses Hollow Fang (Howling Den) + the Thornbound Elder (Thornwood Glade) — they gate
 // nothing any more (quest forest_hunts). Hidden: Hidden Cave, Behind the Waterfall, Moonlit Shrine, Sealed Archive,
 // and the Sealed Path to the secret city Valehaven (opens once the forest heals).
 // Terrain + base spawns: maps/forest.js + maps/ruins.js (world/levels/whispering.js). Extra content below: `content`.
@@ -26,7 +26,7 @@ const GLADE_WARNING = [
 ].join('\n');
 const CROSSROADS = [
   'CROSSROADS OF THE DEEP FOREST',
-  '← Elder Tree            ↑ Stone Circle · Goblin Glade            → Ancient Forest Path (Ruins)',
+  '← Elder Tree            ↑ Stone Circle · Thornwood Glade            → Ancient Forest Path (Ruins)',
   '"The ground rots where the fog is thickest. Do not linger in the green mire —',
   ' and watch for the thorns: they rise without a sound."',
 ].join('\n');
@@ -59,7 +59,7 @@ export const FIELD_A1 = {
       // Forest Entrance meadow: Whisper Hares (Lv. 1, the first thing to fight)
       { id: 'a1_hares', type: 'rabbit', count: 3, tx: 57, ty: 147, radius: 3, cond: 'always' },
       // Ancient Shrine: the first Elite (killed once)
-      { id: 'a3_shrine_warden', type: 'crystal_beast', elite: true, unique: true, count: 1, tx: 136, ty: 74, radius: 0 },
+      { id: 'a3_shrine_warden', type: 'treant', elite: true, unique: true, count: 1, tx: 136, ty: 74, radius: 0 },
     ],
     hazards: [
       // Deep Forest: miasma bogs (poison + slow while inside) and thorn eruptions (telegraphed strike + root)

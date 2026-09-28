@@ -1,4 +1,4 @@
-// Converts the owner's monster sheets (desgin/monster/<map>/<file>) into clean, right-facing frames packed in one
+// Converts the owner's monster sheets (desgin/monster/<route>/<map>/<file>, e.g. A/A1/1 · B/B2/BOSS) into clean, right-facing frames packed in one
 // atlas per monster: assets/monsters/<id>.png + assets/monsters/monsters.json (read by src/monsters/sheetSprites.js).
 // The sheets are AI images: a fake checkerboard / flat light background, rows of poses with a DIFFERENT number of
 // frames per row. The tool:
@@ -19,52 +19,84 @@ const SRC = 'desgin/monster/';
 
 // Sheet data: rows in reading order. Each row = [animName, frameCount, opts?]
 //   opts.flip   : the row is drawn facing LEFT -> mirror it (game frames face right)
+//   opts.y      : [y0, y1] sheet px of the row (labelled / tightly packed sheets: no automatic row search);
+//                 opts.x = [x0, x1] only that part of the row (e.g. the RIGHT column of a direction grid)
+// `region`   : [x0, y0, x1, y1] only this part of the sheet is read (drops text labels / headers around the frames)
 // `flip: true` on the sheet = every row faces left. Row opts.mirrorFrames: [i] = only those frames face the other way.
 // `height`   : game px of the neutral body (row 0 frame 0 measures it); `feet` = pivot row inside the output cell.
 // `anims`    : game animation -> [row name, frame indices?]; missing anims fall back in sheetSprites.js.
 const SHEETS = {
   // ---------------- A1 WHISPERING FOREST
   rabbit: {
-    file: 'A1/1', height: 22,
+    file: 'A/A1/1', height: 22,
     rows: [['front', 5], ['back', 5], ['walk', 5, { flip: true }], ['lunge', 4, { flip: true }], ['hit', 5, { flip: true }],
       ['enrage', 5], ['death', 5, { flip: true }]],
   },
   frost_wolf: {
-    file: 'A1/2', height: 30,
+    file: 'A/A1/2', height: 30,
     rows: [['front', 6], ['back', 6], ['run', 5], ['bite', 4], ['hit', 5], ['howl', 5], ['death', 5]],
   },
   forest_guardian: {
-    file: 'A1/Boss.png', height: 96,
+    file: 'A/A1/Boss.png', height: 96,
     rows: [['idle', 9], ['walk', 7], ['claw', 6], ['charge', 5], ['roots', 7], ['beam', 7], ['corrupt', 8], ['hit', 7],
       ['death', 8], ['death_corrupt', 8]],
   },
+  // B0: the owner's extra A1 sheets (they replace the old canvas-only goblins / crystal beasts / thornling look)
+  leafling: {
+    file: 'A/A1/3', height: 26, region: [300, 0, 2048, 2048], // labels on the left
+    rows: [['views', 7], ['idle', 7], ['walk', 7], ['attack', 8], ['hit', 7], ['telegraph', 7], ['special', 7], ['death', 5]],
+  },
+  treant: {
+    file: 'A/A1/4', height: 30, region: [380, 0, 2048, 2048], pocket: 6, clearLight: 175, // DOWN / UP / LEFT / RIGHT rows per action: the RIGHT row
+    rows: [['idle', 4, { y: [294, 367] }], ['walk', 6, { y: [610, 680] }], ['attack', 5, { y: [940, 1011] }], ['hit', 3, { y: [1170, 1229] }],
+      ['telegraph', 3, { y: [1416, 1487] }], ['special', 8, { y: [1672, 1750] }], ['death', 5, { y: [1952, 2022] }]],
+  },
   // ---------------- A2 ASHEN BADLANDS
   armadillo: {
-    file: 'A2/1', height: 24,
+    file: 'A/A2/1', height: 24,
     rows: [['front', 6], ['back', 6], ['walk', 6, { flip: true }], ['walk_r', 6], ['attack', 4, { flip: true }], ['hit', 4],
       ['special', 4], ['death', 4]],
   },
   rock_rhino: {
-    file: 'A2/2', height: 36,
+    file: 'A/A2/2', height: 36,
     rows: [['views', 4], ['walk', 5, { flip: true }], ['gore', 5, { flip: true }], ['hit', 5, { flip: true }], ['stomp', 5, { flip: true }],
       ['death', 4, { flip: true }]],
   },
   magma_beast: {
-    file: 'A2/boss', height: 80, flip: true, // drawn facing left on every row
+    file: 'A/A2/boss', height: 80, flip: true, // drawn facing left on every row
     rows: [['idle', 8], ['walk', 8], ['run', 7], ['bite', 7], ['eruption', 7], ['fireball', 8], ['hit', 5], ['stagger', 7],
       ['enrage', 7], ['death', 8]],
   },
+  quill_lizard: {
+    file: 'A/A2/3', height: 26,
+    rows: [['front', 6], ['back', 6], ['walk', 6, { flip: true }], ['leap', 6, { flip: true }], ['attack', 6, { flip: true }], ['hit', 6, { flip: true }],
+      ['spikes', 5], ['spin', 5, { flip: true }], ['death', 6, { flip: true }]],
+  },
+  burrower: {
+    file: 'A/A2/4', height: 30, // direction COLUMNS: the RIGHT column of every action row
+    rows: [['idle', 1, { y: [149, 352], x: [1540, 2048] }], ['walk', 3, { y: [452, 616], x: [1540, 2048] }], ['attack', 2, { y: [712, 916], x: [1540, 2048] }],
+      ['hit', 2, { y: [1020, 1172], x: [1540, 2048] }], ['telegraph', 2, { y: [1292, 1444], x: [1540, 2048] }], ['special', 1, { y: [1560, 1732], x: [1540, 2048] }],
+      ['death', 2, { y: [1832, 1952], x: [1540, 1830] }]],
+  },
   // ---------------- A3 RUNE CITADEL
   crystal_golem: {
-    file: 'A3/1', height: 38,
+    file: 'A/A3/1', height: 38,
     rows: [['front', 6], ['back', 6], ['side', 6], ['side_b', 6], ['special', 5], ['death', 5]],
   },
   bronze_hoplite: {
-    file: 'A3/2', height: 40,
+    file: 'A/A3/2', height: 40,
     rows: [['front', 7], ['back', 7], ['side', 7, { flip: true }], ['side_b', 7, { flip: true }], ['attack', 7, { mirrorFrames: [6] }], ['hit', 6], ['death', 6]],
   },
+  void_scarab: {
+    file: 'A/A3/3', height: 24, region: [150, 440, 2048, 2048], // rows = directions; columns = idle | walk×2 | attack | hit | telegraph | special | death×3
+    rows: [['down', 10, { y: [472, 667] }], ['right', 10, { y: [1495, 1668] }]],
+  },
+  rune_wisp: {
+    file: 'A/A3/4', height: 30,
+    rows: [['idle', 4], ['idle_b', 4], ['dash', 4], ['hit', 4], ['telegraph', 4], ['breath', 4], ['death', 4]],
+  },
   rune_knight: {
-    file: 'A3/BOSS', height: 84,
+    file: 'A/A3/BOSS', height: 84,
     rows: [['idle', 8], ['walk', 8], ['lunge', 7], ['slash', 7], ['combo', 8], ['nova', 7], ['guard', 7], ['stance', 7],
       ['death', 8]],
   },
@@ -89,7 +121,7 @@ function measureBackground(img) {
   return { lo: Math.min(...tones) - 10, hi: Math.max(...tones) + 10 };
 }
 
-function removeBackground(img) {
+function removeBackground(img, pocket = 40) {
   const { width: w, height: h, data } = img;
   const bg = measureBackground(img);
   const isBg = (p) => { const i = p * 4, l = lum(data, i); return neutral(data, i) <= 16 && l >= bg.lo && l <= bg.hi; };
@@ -119,7 +151,7 @@ function removeBackground(img) {
         seen[q] = 1; comp.push(q);
       }
     }
-    if (comp.length >= 40) for (const q of comp) mark[q] = 1;
+    if (comp.length >= pocket) for (const q of comp) mark[q] = 1; // sheet `pocket`: small sprites need a smaller size
   }
   // soft grey shadows touching the background -> translucent black
   for (let p = 0; p < w * h; p++) if (mark[p] === 1) st.push(p);
@@ -185,14 +217,20 @@ function fitSegments(segs, proj, n) {
 }
 
 function findFrames(img, def) {
-  const rowsP = projection(img, 0, 0, img.width, img.height, 'y');
-  const rows = fitSegments(runs(rowsP, 6), rowsP, def.rows.length);
+  const given = def.rows.every((r) => r[2] && r[2].y);
+  let rows;
+  if (given) rows = def.rows.map((r) => ({ a: r[2].y[0], b: r[2].y[1] }));
+  else {
+    const rowsP = projection(img, 0, 0, img.width, img.height, 'y');
+    rows = fitSegments(runs(rowsP, 6), rowsP, def.rows.length);
+  }
   const out = [];
   rows.forEach((r, ri) => {
-    const [name, count] = def.rows[ri];
-    const colP = projection(img, 0, r.a, img.width, r.b, 'x');
+    const [name, count, opts = {}] = def.rows[ri];
+    const [x0, x1] = opts.x || [0, img.width];
+    const colP = projection(img, x0, r.a, x1, r.b, 'x');
     const cols = fitSegments(runs(colP, 5), colP, count);
-    out.push({ name, y0: r.a, y1: r.b, cols: cols.map((c) => [c.a, c.b]), found: runs(colP, 5).filter((s) => s.mass > 40).length });
+    out.push({ name, y0: r.a, y1: r.b, cols: cols.map((c) => [c.a + x0, c.b + x0]), found: runs(colP, 5).filter((s) => s.mass > 40).length });
   });
   return out;
 }
@@ -267,7 +305,15 @@ function centreOf(im, bb) {
 
 function buildMonster(id, def, probe) {
   const img = png.read(path.join(ROOT, SRC, def.file));
-  const bg = removeBackground(img);
+  const bg = removeBackground(img, def.pocket);
+  if (def.clearLight) { // blurry sheets: light grey-white gaps between limbs (never real colour) become transparent
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) if (d[i + 3] && (d[i] + d[i + 1] + d[i + 2]) / 3 >= def.clearLight && Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]) <= 40) d[i + 3] = 0;
+  }
+  if (def.region) { // everything outside the region (labels, headers) is dropped
+    const [x0, y0, x1, y1] = def.region;
+    for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width; x++) if (x < x0 || x >= x1 || y < y0 || y >= y1) img.data[(y * img.width + x) * 4 + 3] = 0;
+  }
   const rows = findFrames(img, def);
   if (probe) {
     console.log(`${id} (${def.file}) bg ${bg.lo}-${bg.hi}`);

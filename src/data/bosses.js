@@ -60,15 +60,15 @@ export const BOSSES = {
   },
 
   mini_grukk: {
-    id: 'mini_grukk', name: 'GRUKK THE THORNBOUND', title: 'Warchief of the Goblin Glade', type: 'mini', impl: 'area',
+    id: 'mini_grukk', name: 'THE THORNBOUND ELDER', title: 'Heart of the Thornwood Glade', type: 'mini', impl: 'area',
     route: 'A', map: 'a1', level: 8, recommendedLevel: 7,
     teaches: 'AoE patterns · movement · adds · a second phase',
     stats: { hp: 9000, def: 7, speed: 92, radius: 20, height: 56, mass: 6, weakness: ['physical'], superArmor: true, poise: 850 },
-    look: { sprite: 'goblinC', scale: 2.1, aura: '176,96,255' },
-    arena: { name: 'Goblin Glade', center: [29.5, 60.5], radius: 6.4, trigger: 4.8, bossSpawn: [29.5, 58.5], entry: [36.5, 64.5] },
+    look: { sprite: 'treant', scale: 2.3, aura: '176,96,255' },
+    arena: { name: 'Thornwood Glade', center: [29.5, 60.5], radius: 6.4, trigger: 4.8, bossSpawn: [29.5, 58.5], entry: [36.5, 64.5] },
     appear: [],
     phases: [
-      { name: 'WARCHIEF', sub: 'Stay mobile — the ground erupts in lines', hpBelow: 1, moves: ['cleave', 'leap', 'drums', 'warcry'] },
+      { name: 'ELDER', sub: 'Stay mobile — the ground erupts in lines', hpBelow: 1, moves: ['cleave', 'leap', 'drums', 'warcry'] },
       {
         name: 'THORNBOUND', sub: 'The corruption answers — thorns and spears', hpBelow: 0.5, windup: 0.85, speed: 1.15, shockwave: 20,
         moves: ['cleave', 'leap', 'drums', 'thorn_ring', 'spears', 'warcry'],
@@ -80,7 +80,7 @@ export const BOSSES = {
       drums: { kind: 'pattern', layout: 'cross', range: 400, windup: 0.9, recover: 0.6, cd: 7, weight: 2, power: 24, knock: 180, count: 4, r: 30, step: 58, delay: 0.14 },
       thorn_ring: { kind: 'pattern', layout: 'ring', range: 400, windup: 1.2, recover: 0.8, cd: 9, weight: 2, power: 26, knock: 200, count: 11, r: 34, dist: 110, dmg: 'magic', status: [{ id: 'root', dur: 0.8 }], color: '120,255,120' },
       spears: { kind: 'volley', range: 360, min: 90, windup: 0.8, recover: 0.6, cd: 6, weight: 2, power: 18, count: 5, spread: 0.8, speed: 260, dmg: 'magic', status: [{ id: 'poison', dur: 3 }], color: '#b060ff' },
-      warcry: { kind: 'summon', range: 999, windup: 1.0, recover: 0.6, cd: 16, weight: 1.5, monster: 'goblin', count: 2, max: 2, corrupted: true },
+      warcry: { kind: 'summon', range: 999, windup: 1.0, recover: 0.6, cd: 16, weight: 1.5, monster: 'leafling', count: 2, max: 2, corrupted: true },
     },
     rewards: { exp: 300, loot: 'grukk', items: { warchief_totem: 1 }, lore: 'grukk' },
     unlocks: [],

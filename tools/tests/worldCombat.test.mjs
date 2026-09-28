@@ -44,9 +44,9 @@ test('every monster names an existing loot table; every drop is a real item', ()
   for (const [id, t] of Object.entries(LOOT_TABLES)) for (const d of t.drops) ok(ITEMS[d.item] && d.chance >= 0 && d.chance <= 1, `${id}: ${d.item}`);
 });
 test('rollLoot: gold in range, chance respected, deterministic with an rng', () => {
-  const lo = rollLoot('goblin', () => 0), hi = rollLoot('goblin', () => 0.999);
+  const lo = rollLoot('leafling', () => 0), hi = rollLoot('leafling', () => 0.999);
   eq(lo.gold, 6); eq(hi.gold, 14); eq(lo.items.length, 2); eq(hi.items.length, 0);
-  const alpha = rollLoot('crystal_alpha', () => 0.5); ok(alpha.items.some((i) => i.item === 'crystal_shard' && i.count === 3), 'counts');
+  const alpha = rollLoot('elder_treant', () => 0.5); ok(alpha.items.some((i) => i.item === 'crystal_shard' && i.count === 3), 'counts');
   eq(rollLoot('nope').gold, 0);
 });
 
@@ -90,14 +90,14 @@ test('spec fields come from data (name, hp, attack, defense, speed, ranges, exp,
   eq(m.state, MONSTER_STATE.IDLE); ok(typeof m.id === 'number', 'id');
 });
 test('elite: tougher, more EXP, extra loot roll; stacks with corrupted', () => {
-  const e = mon('goblin', { elite: true });
-  eq(e.maxHp, Math.round(130 * ELITE_MOD.hp)); eq(e.expReward, 30 * ELITE_MOD.exp); ok(e.name.startsWith('Elite'), e.name);
-  eq(JSON.stringify(e.lootTable), JSON.stringify(['goblin', 'elite'])); ok(LOOT_TABLES.elite, 'elite table');
-  const ce = mon('goblin', { elite: true, corrupted: true });
-  eq(ce.maxHp, Math.round(130 * ELITE_MOD.hp * CORRUPT_MOD.hp)); eq(ce.mod.power, ELITE_MOD.power * CORRUPT_MOD.power);
+  const e = mon('treant', { elite: true });
+  eq(e.maxHp, Math.round(300 * ELITE_MOD.hp)); eq(e.expReward, 48 * ELITE_MOD.exp); ok(e.name.startsWith('Elite'), e.name);
+  eq(JSON.stringify(e.lootTable), JSON.stringify(['treant', 'elite'])); ok(LOOT_TABLES.elite, 'elite table');
+  const ce = mon('treant', { elite: true, corrupted: true });
+  eq(ce.maxHp, Math.round(300 * ELITE_MOD.hp * CORRUPT_MOD.hp)); eq(ce.mod.power, ELITE_MOD.power * CORRUPT_MOD.power);
 });
 test('display levels fit a LV 1 start (field monsters below the boss)', () => {
-  for (const t of ['wolf', 'goblin', 'crystal_beast']) ok(MONSTERS[t].level < MONSTERS.guardian.level && MONSTERS[t].level <= 6, t);
+  for (const t of ['wolf', 'leafling', 'treant']) ok(MONSTERS[t].level < MONSTERS.guardian.level && MONSTERS[t].level <= 6, t);
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

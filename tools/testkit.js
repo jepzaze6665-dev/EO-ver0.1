@@ -623,12 +623,12 @@ export function enemyCheck(g) {
     if (away) p.x += 200;
     return t;
   };
-  const gob = spawn('goblin', 40, 0);
+  const gob = spawn('treant', 40, 0);
   const tHit = timeAttack(gob, 'slam', false);
   g.simulate(0.5); gob.status.remove('counter_window');
   const tMiss = timeAttack(gob, 'slam', true);
   const slam = gob.def.attacks.find((a) => a.id === 'slam');
-  ok('Goblin slam that misses: MISS event + much longer recovery (bruiser)', missed.some((e) => e.attacker === gob) && tMiss > tHit + slam.recover * 0.8, `hit ${tHit.toFixed(2)}s / miss ${tMiss.toFixed(2)}s`);
+  ok('Treant Root Slam that misses: MISS event + much longer recovery (bruiser)', missed.some((e) => e.attacker === gob) && tMiss > tHit + slam.recover * 0.8, `hit ${tHit.toFixed(2)}s / miss ${tMiss.toFixed(2)}s`);
   ok('A missed attack opens a Counter Window (whiff)', windows.some((e) => e.target === gob && e.reason === 'whiff'), windows.map((e) => e.reason).join(','));
   gob.dead = true; gob.deathT = 99;
   // wolf: punishes standing still (lunge off cooldown)
@@ -660,7 +660,7 @@ export function slotCheck(g) {
   for (const m of g.world.monsters) if (g.world.onMap(m)) { m.dead = true; m.deathT = 99; }
   const pack = [];
   for (let i = 0; i < 5; i++) {
-    const a = (i / 5) * Math.PI * 2, m = new any.constructor(g, i < 3 ? 'wolf' : 'goblin', p.x + Math.cos(a) * 70, p.y + Math.sin(a) * 70, {});
+    const a = (i / 5) * Math.PI * 2, m = new any.constructor(g, i < 3 ? 'wolf' : 'leafling', p.x + Math.cos(a) * 70, p.y + Math.sin(a) * 70, {});
     m.hp = m.maxHp = 9999; m.aggro = true; m.setState('chase'); g.world.monsters.push(m); pack.push(m);
   }
   let maxCost = 0, maxAttackers = 0, waitSeen = 0;
@@ -1176,3 +1176,50 @@ export function cityCheck(g, classId = 'umbral_sword') {
   ok('South road back to the Sanctum', w2.mapId === 'sanctum', `map=${w2.mapId}`);
   return R;
 }
+
+// B0: the owner's extra monster sheets (A1 Leafling / Bramble Treant, A2 Quillback Lizard / Thornshell Burrower,
+// A3 Void Scarab / Rune Wisp) + the rule "no monster without sprite art": every monster on every map, every summon /
+// wave type, uses a sheet. Each new monster fights a lab player: every attack starts with a telegraph and can land.
+export function spriteMonsterCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, wp = g.worldProgress;
+  for (const b of g.bosses.list) wp.defeatBoss(b.id);
+  w.setFlag('guardianDefeated'); w.applyState();
+  // every map: all monsters it spawns draw a sheet
+  const noArt = new Set(), seen = new Set();
+  for (const def of w.mapManager.list) {
+    w.changeMap(def.id, { silent: true }); g.simulate(0.2);
+    // spawn definitions of the loaded grid (monsters appear lazily near the player) + whatever is alive
+    const types = [...w.spawnPoints.map((sp) => sp.def.type), ...w.monsters.map((m) => m.type)];
+    for (const t of types) { seen.add(t); const d = MONSTERS_OF(g, t); if (!d) noArt.add(`${def.id}:${t}`); }
+  }
+  ok('Every monster on every map uses sprite-sheet art', !noArt.size && seen.size > 8, `types=${[...seen].join(',')} noArt=${[...noArt].join(',')}`);
+  const Mon = MonCtor; // cached while touring the maps
+  for (const t of ['thornling', 'leafling']) { const m = new Mon(g, t, 0, 0, {}); if (!(m.sprites && m.sprites.sheet)) noArt.add(t); }
+  ok('Summons use sheet art too (Guardian thornlings, Thornbound Elder leaflings)', !noArt.size, [...noArt].join(','));
+  const labs = [['leafling', 'lumina', 'a1', [47, 150]], ['treant', 'a1', 'a1', [47, 150]], ['quill_lizard', 'a2', 'a2', [84.5, 190]],
+    ['burrower', 'a2', 'a2', [84.5, 190]], ['void_scarab', 'a3', 'a3', [84, 190]], ['rune_wisp', 'a3', 'a3', [84, 190]]];
+  for (const [type, , map, spot] of labs) {
+    w.changeMap(map, { entry: spot }); g.simulate(0.3);
+    for (const m of w.monsters) if (!m.dead) { m.dead = true; m.deathT = 99; }
+    p.setLevel(Math.max(5, (MONSTER_LEVEL[type] || 5))); p.hp = p.maxHp;
+    const pos = w.map.findOpen(spot[0] * TILE, spot[1] * TILE, 4); p.x = pos.x; p.y = pos.y;
+    const m = new Mon(g, type, p.x + 90, p.y, {}); m.aggro = true; m.setState('chase'); w.monsters.push(m);
+    const used = new Set(), winds = []; let hits = 0;
+    const start = m.startAttack.bind(m); m.startAttack = (a) => { used.add(a.id); winds.push(a.windup); return start(a); };
+    const onDmg = (e) => { if (e.source === m && e.target === p) hits++; }; g.events.on('damageDealt', onDmg);
+    for (let t = 0; t < 40 && used.size < m.def.attacks.length; t += 0.1) g.simulate(0.1, () => { p.hp = p.maxHp; p.x += Math.sin(g.time * 0.9) * 1.5; });
+    g.simulate(1.5, () => { p.hp = p.maxHp; });
+    g.events.off && g.events.off('damageDealt', onDmg);
+    const all = m.def.attacks.map((a) => a.id);
+    ok(`${m.name}: every attack used after a telegraph (${all.join(' / ')}) · hits land · sheet art`,
+      all.every((id) => used.has(id)) && winds.every((s) => s >= 0.4) && hits > 0 && m.sprites.sheet, `used=${[...used]} hits=${hits}`);
+    m.hp = 0; m.dead = true; m.deathT = 99;
+  }
+  return R;
+}
+// a monster type draws sheet art when its sprite key is a sheet set (monsterArt `replaces`)
+let MonCtor = null; // the Monster class, taken from the first live monster seen (testkit imports nothing)
+const MONSTERS_OF = (g, t) => { if (g.world.monsters[0]) MonCtor = g.world.monsters[0].constructor; if (!MonCtor) return true; const m = new MonCtor(g, t, 0, 0, {}); return !!(m.def.boss || (m.sprites && m.sprites.sheet)); }; // bosses (boss: true) draw their own sheets
+const MONSTER_LEVEL = { leafling: 3, treant: 5, quill_lizard: 11, burrower: 12, void_scarab: 14, rune_wisp: 15 };

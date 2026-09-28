@@ -20,7 +20,7 @@ export class Monster extends Entity {
     this.game = game;
     this.type = typeId;
     this.def = d;
-    this.corrupted = !!opts.corrupted && (typeId === 'wolf' || typeId === 'goblin');
+    this.corrupted = !!opts.corrupted && !!(MONSTERS[typeId] && MONSTERS[typeId].corruptible); // data: `corruptible`
     this.elite = !!opts.elite;
     // stat modifiers multiply together (corrupted × elite × the map's own monsterMod, e.g. A3 ruins)
     const mods = [this.corrupted && CORRUPT_MOD, this.elite && ELITE_MOD, opts.areaMod].filter(Boolean);
@@ -103,7 +103,7 @@ export class Monster extends Entity {
     this.status.add('vulnerable', 2.6);
     this.armorRegen = 11;
     this.interrupt(2.6);
-    g.vfx.shards(this.x, this.y - 20, this.type === 'crystal_alpha' ? '#c080ff' : '#5af0ff', 30, 220);
+    g.vfx.shards(this.x, this.y - 20, this.def.shardColor || '#5af0ff', 30, 220);
     g.vfx.text(this.x, this.y - 60, 'ARMOR BROKEN!', { color: '#9af4ff', size: 12 });
     g.vfx.ring(this.x, this.y, 10, 60, { color: '120,240,255', life: 0.4 });
     g.camera.shake(0.3);
@@ -130,9 +130,9 @@ export class Monster extends Entity {
       g.vfx.text(this.x, this.y - this.height - 8, 'ENRAGED', { color: '#ff6a5a', size: 9 });
       g.events.emit('monsterEnraged', { monster: this });
     }
-    if (this.type === 'wraith') {
+    if (this.def.blinkWhenHit) { // data: blinks away after that many hits (casters that keep their distance)
       this.hitCount = (this.hitCount || 0) + 1;
-      if (this.hitCount >= 4 && this.state !== S.ATTACK) { this.hitCount = 0; this.blink(); }
+      if (this.hitCount >= this.def.blinkWhenHit && this.state !== S.ATTACK) { this.hitCount = 0; this.blink(); }
     }
   }
   interrupt(t) {
@@ -389,7 +389,7 @@ export class Monster extends Entity {
       const n = atk.count;
       for (let i = 0; i < n; i++) {
         const a = this.facing + (n > 1 ? (i / (n - 1) - 0.5) * atk.spread : 0);
-        g.combat.projectiles.fire({ x: this.x + Math.cos(a) * 16, y: this.y - this.height * 0.5, vx: Math.cos(a) * atk.speed, vy: Math.sin(a) * atk.speed, r: 5, life: 2.2, owner: this, power, kind: atk.projKind || 'shard', homing: atk.homing || 0, color: atk.projKind === 'orb' ? '#c080ff' : '#5af0ff' });
+        g.combat.projectiles.fire({ x: this.x + Math.cos(a) * 16, y: this.y - this.height * 0.5, vx: Math.cos(a) * atk.speed, vy: Math.sin(a) * atk.speed, r: 5, life: 2.2, owner: this, power, kind: atk.projKind || 'shard', homing: atk.homing || 0, color: atk.projColor || (atk.projKind === 'orb' ? '#c080ff' : '#5af0ff') });
       }
       this.phase = 'recover';
       this.stateT = 0;

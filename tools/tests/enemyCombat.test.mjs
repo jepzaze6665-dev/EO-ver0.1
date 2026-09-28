@@ -18,11 +18,11 @@ test('every attack has startup (telegraph) and recovery (commitment)', () => {
 test('every monster has a known role', () => {
   for (const [id, m] of mons) ok(ENEMY_COMBAT.roles[m.role], `${id}: role ${m.role}`);
 });
-test('spec §51 roles: wolf = skirmisher (flank + punish), goblin = bruiser (heavy, punishable miss), crystal = tank', () => {
-  const w = MONSTERS.wolf, gb = MONSTERS.goblin, c = MONSTERS.crystal_beast;
+test('spec §51 roles: wolf = skirmisher (flank + punish), treant = bruiser (heavy, punishable miss), crystal golem = tank', () => {
+  const w = MONSTERS.wolf, gb = MONSTERS.treant, c = MONSTERS.crystal_golem;
   ok(w.role === 'skirmisher' && w.flank && w.punishIdle > 0 && w.attacks.some((a) => a.punish), 'wolf');
-  ok(gb.role === 'bruiser' && gb.attacks.some((a) => a.heavy && a.missRecover > ENEMY_COMBAT.missRecoverMult), 'goblin');
-  ok(c.role === 'tank' && c.weakPoint && c.armor > 0 && c.turn < 3, 'crystal beast');
+  ok(gb.role === 'bruiser' && gb.attacks.some((a) => a.heavy && a.missRecover > ENEMY_COMBAT.missRecoverMult), 'treant');
+  ok(c.role === 'tank' && c.weakPoint && c.armor > 0 && c.turn < 3, 'crystal golem');
 });
 test('monsters that punish idling have a punish attack', () => {
   for (const [id, m] of mons) if (m.punishIdle) ok(m.attacks.some((a) => a.punish), id);

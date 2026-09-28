@@ -1,4 +1,4 @@
-// BOSS VFX: the owner's per-map boss effect sheets (desgin/monster/<A1|A2|A3>/VFX BOSS/*) -> animated strips in the
+// BOSS VFX: the owner's per-map boss effect sheets (desgin/monster/<route>/<map>/VFX BOSS/*) -> animated strips in the
 // same format as the skill VFX (assets/vfx: one horizontal strip per effect, right-facing, rotated in game by
 // src/vfx/vfx.js sprite()). Each sheet has 13 rows of effects with a different number of frames per row.
 //   light sheets (fake checkerboard): background flood-removed like the monster sheets
@@ -16,18 +16,18 @@ const ROOT = path.join(__dirname, '..');
 const SCALE = 0.5; // 2048 px sheets -> game pixels (same as the skill VFX)
 const SHEETS = [
   {
-    prefix: 'g', dir: 'desgin/monster/A1/VFX BOSS', bg: 'light', skipX: 96, // A1 green (Guardian): row numbers drawn on the left
+    prefix: 'g', dir: 'desgin/monster/A/A1/VFX BOSS', bg: 'light', skipX: 96, // A1 green (Guardian): row numbers drawn on the left
     names: ['orb', 'slash', 'burst', 'shockwave', 'bolt', 'blast', 'sigil', 'quake', 'crystal', 'spark', 'pillar', 'vortex', 'eruption'],
     mirror: ['bolt'], // the projectile flies left on the sheet
     counts: { eruption: 9 }, // rows whose frames touch: split into this many at the emptiest columns
   },
   {
-    prefix: 'm', dir: 'desgin/monster/A2/VFX BOSS', bg: 'dark', // A2 orange (Magma Beast)
+    prefix: 'm', dir: 'desgin/monster/A/A2/VFX BOSS', bg: 'dark', // A2 orange (Magma Beast)
     names: ['orb', 'slash', 'burst', 'crater', 'bolt', 'blast', 'sigil', 'eruption', 'spark', 'shockwave', 'pillar', 'vortex', 'spikes'],
     counts: { slash: 11 },
   },
   {
-    prefix: 'r', dir: 'desgin/monster/A3/VFX BOSS', bg: 'light', // A3 blue + gold (Rune Knight)
+    prefix: 'r', dir: 'desgin/monster/A/A3/VFX BOSS', bg: 'light', // A3 blue + gold (Rune Knight)
     names: ['orb', 'slash', 'burst', 'spikes', 'bolt', 'blast', 'sigil', 'pillar', 'crystal', 'spark', 'dome', 'vortex', 'shatter'],
     mirror: ['bolt'],
     counts: { slash: 8 },

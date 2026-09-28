@@ -29,9 +29,9 @@ export const LORE = {
     reveal: [['guardian', 'level']],
   },
   court_tablet: {
-    title: 'Tablet — Crystal Wardens',
-    text: 'The crystal beasts were bred to guard the courtyard. Their armour is near-unbreakable from the front, but the core on their backs was left bare so that their keepers could calm them.\n\n[Monster Knowledge] Crystal Beast: Weakness revealed.',
-    reveal: [['crystal_beast', 'weakness'], ['crystal_beast', 'pattern']],
+    title: 'Tablet — Bramble Wardens',
+    text: 'The treants were planted to guard the courtyard. Before their Root Slam they raise both branches — and a slam that finds nothing leaves them rooted, bare to the blade.\n\n[Monster Knowledge] Bramble Treant: Weakness revealed.',
+    reveal: [['treant', 'weakness'], ['treant', 'pattern']],
   },
   archive_record: {
     title: 'Crystal Record — Sealed Archive',
@@ -51,8 +51,8 @@ export const LORE = {
     text: 'When the mountain woke, it did not stop at the valley\'s edge. The beast crawled up out of the rift and the kings fled their summer court.\nNow the rift cools. Past it, carved into the far cliffs, a road leads toward a citadel of rune and bronze.',
   },
   grukk: {
-    title: 'Grukk the Thornbound',
-    text: 'A goblin warchief who drank from the corrupted mire to master the thorns. The thorns mastered him instead.\nHis totem points east, toward the ruins, as if something there still calls it.',
+    title: 'The Thornbound Elder',
+    text: 'The eldest treant of the glade drank from the corrupted mire to master the thorns. The thorns mastered it instead.\nHis totem points east, toward the ruins, as if something there still calls it.',
   },
   guardian_rest: {
     title: 'The Guardian Rests',
@@ -137,7 +137,7 @@ export function dialogueFor(id, g) {
       return {
         lines: restored
           ? ['Ha! The forge burns cleaner since the fog lifted. Bring me materials and I’ll make you something worthy of that valley.']
-          : ['Borin, smith of Lumina. Wolf fangs, goblin iron, crystal shards — bring them and I’ll forge blades that change how you fight.'],
+          : ['Borin, smith of Lumina. Wolf fangs, ironbark, crystal shards — bring them and I’ll forge blades that change how you fight.'],
         options: [{ label: 'Forge equipment', action: 'smith' }, { label: 'Leave', action: 'close' }],
       };
     case 'merchant':

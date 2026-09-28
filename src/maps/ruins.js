@@ -91,10 +91,10 @@ export function buildRuins(b) {
 
 
   // spawns
-  b.spawn('goblin', 110, 82, { count: 2, radius: 4, cond: 'always' });
+  b.spawn('leafling', 110, 82, { count: 2, radius: 4, cond: 'always' });
   b.spawn('wolf', 108, 104, { count: 2, radius: 3, cond: 'before' });
-  b.spawn('crystal_beast', 136, 100, { count: 2, radius: 6, cond: 'always' });
-  b.spawn('goblin', 140, 104, { count: 1, radius: 3, cond: 'always' });
+  b.spawn('treant', 136, 100, { count: 2, radius: 6, cond: 'always' });
+  b.spawn('leafling', 140, 104, { count: 1, radius: 3, cond: 'always' });
 }
 
 // GUARDIAN GATE — narrowing corridor north of the shrine (x 126..146, y 48..64) and GUARDIAN ARENA (x 112..151, y 8..47)

@@ -2,7 +2,7 @@ import { T, Z, TILE } from '../core/constants.js';
 
 // WHISPERING FOREST — 96x128 (tiles x 0..95, y 30..157).
 // Main route: Entrance -> Wolf Hollow -> River Crossing -> Deep Forest -> Stone Circle -> Ancient Forest Path -> Ruins.
-// Side routes / loops: Abandoned Camp, Waterfall, Elder Tree, Goblin Glade, Crystal Glade.
+// Side routes / loops: Abandoned Camp, Waterfall, Elder Tree, Thornwood Glade, Crystal Glade.
 // Secrets: Hidden Cave (major), Behind the Waterfall, Moonlit Shrine. Shortcuts: log bridge, bramble lane, ruins side gate.
 export function buildForest(b) {
   const m = b.m;
@@ -11,7 +11,7 @@ export function buildForest(b) {
   const A = {
     entrance: S('Forest Entrance'), hollow: S('Wolf Hollow'), river: S('River Crossing'), deep: S('Deep Forest'),
     circle: S('Stone Circle'), ancient: S('Ancient Forest Path', { ancient: true }), camp: S('Abandoned Camp'),
-    falls: S('Silverfall'), elder: S('Elder Tree'), glade: S('Goblin Glade'), crystal: S('Crystal Glade'),
+    falls: S('Silverfall'), elder: S('Elder Tree'), glade: S('Thornwood Glade'), crystal: S('Crystal Glade'),
     shrine: S('Moonlit Shrine', { secret: 3 }), valleyPath: S('Sealed Path', { ancient: true }), cave: S('Hidden Cave', { secret: 1 }),
   };
   b.forestAreas = A;
@@ -57,7 +57,7 @@ export function buildForest(b) {
   b.regions.waterfall = { x: 2.5 * TILE, y: 92 * TILE, w: 3 * TILE, h: 12 * TILE };
   b.subRect(4, 90, 16, 106, A.falls);
 
-  // ---------------- WEST LOOP: Entrance -> Camp -> south bank ; north bank -> Elder Tree -> Goblin Glade -> Deep Forest
+  // ---------------- WEST LOOP: Entrance -> Camp -> south bank ; north bank -> Elder Tree -> Thornwood Glade -> Deep Forest
   b.line([[44, 146], [34, 142], [24, 136]], 4.5, F);
   b.disc(20, 132, 7.5, F);                        // Abandoned Camp
   b.line([[20, 132], [15, 122], [17, 112], [20, 104]], 4.5, F);
@@ -66,7 +66,7 @@ export function buildForest(b) {
   b.line([[10, 92], [16, 92]], 3.5, F);
   b.disc(18, 75, 7.5, F);                         // Elder Tree glade
   b.line([[18, 75], [24, 68], [29, 62]], 5, F);
-  b.disc(29, 60, 7.5, F);                         // Goblin Glade (combat clearing 4)
+  b.disc(29, 60, 7.5, F);                         // Thornwood Glade (combat clearing 4)
   b.line([[29, 60], [38, 66], [46, 73], [53, 78]], 5, F); // loop back to Deep Forest
   b.line([[29, 60], [31, 50], [32, 42]], 4.5, F); // towards the sealed valley path
   b.line([[32, 42], [32, 29]], 4, F);
@@ -122,7 +122,7 @@ export function buildForest(b) {
   b.rect(1, 94, 3, 97, T.CAVE);
   b.secretRect(0, 93, 5, 98, 2);
 
-  // ---------------- SECRET 3: Moonlit Shrine (hidden path through odd silver trees west of Goblin Glade)
+  // ---------------- SECRET 3: Moonlit Shrine (hidden path through odd silver trees west of Thornwood Glade)
   b.line([[23, 58], [16, 54], [11, 50]], 2, F);
   b.disc(9, 48, 4.5, F, { noise: 0.8 });
   b.secretRect(4, 43, 21, 58, 3);
@@ -181,7 +181,7 @@ export function buildForest(b) {
   b.interact({ id: 'lore_elder', kind: 'lore', tx: 19, ty: 75, lore: 'elder_tree', prompt: 'Touch the Elder Tree' });
   b.interact({ id: 'ws_forest', kind: 'waystone', tx: 55, ty: 106, name: 'River Crossing', prompt: 'Waystone' });
 
-  // ---- Goblin Glade
+  // ---- Thornwood Glade
   b.prop('crate_a', 24, 57, { solid: true }); b.prop('barrel_b', 34, 55, { solid: true }); b.prop('firewood', 33, 64, {});
   b.prop('tent', 28, 54, { solid: true, footprint: [[-1, 0], [0, 0], [1, 0]], scale: 0.8 });
 
@@ -225,7 +225,7 @@ export function buildForest(b) {
   b.interact({ id: 'lore_cave', kind: 'lore', tx: 75, ty: 35, lore: 'cave_mural', prompt: 'Examine Mural', secret: 1 });
   b.interact({ id: 'node_moon1', kind: 'resource', tx: 77, ty: 37, item: 'moon_crystal', secret: 1 });
   b.npc({ id: 'wanderer', name: 'Hollow Wanderer', role: '???', tx: 80, ty: 38, look: 'wanderer', secret: 1 });
-  b.spawn('crystal_alpha', 85, 42, { id: 'alpha', unique: true, count: 1, radius: 0 });
+  b.spawn('elder_treant', 85, 42, { id: 'alpha', unique: true, count: 1, radius: 0 });
   b.light(84, 41, 150, '#7a40c0', { a: 0.3 });
 
   // ---- Crystal Glade
@@ -251,7 +251,7 @@ export function buildForest(b) {
   b.interact({ id: 'sign_valley', kind: 'sign', tx: 34, ty: 44, prompt: 'Read Sign', text: 'The old road north is choked with corrupted thorns.\nThey pulse in rhythm with something deep in the ruins…' });
 
   // ---------------- SPAWNS (before / after the Guardian falls)
-  const W = 'wolf', G = 'goblin', C = 'crystal_beast';
+  const W = 'wolf', G = 'leafling', C = 'treant';
   b.spawn(W, 47, 144, { count: 2, radius: 3, cond: 'always', tutorial: true });
   b.spawn(W, 38, 120, { count: 3, radius: 4, cond: 'before' });
   b.spawn(W, 38, 120, { count: 2, radius: 4, cond: 'after' });
@@ -260,7 +260,7 @@ export function buildForest(b) {
   b.spawn(W, 54, 78, { count: 2, radius: 4, cond: 'before' });
   b.spawn(G, 52, 80, { count: 2, radius: 4, cond: 'before' });
   b.spawn(W, 53, 80, { count: 2, radius: 4, cond: 'after' });
-  // (V2.2) the Goblin Glade itself is Grukk's boss arena: his pack waits on the paths into it
+  // (V2.2) the Thornwood Glade itself is the Thornbound Elder's arena: its brood waits on the paths into it
   b.spawn(G, 38, 66, { count: 2, radius: 2, cond: 'before' });
   b.spawn(G, 24, 68, { count: 1, radius: 2, cond: 'before' });
   b.spawn(G, 38, 66, { count: 1, radius: 2, cond: 'after' });

@@ -9,7 +9,7 @@ import { LOOT_TABLES } from '../data/lootTables.js';
 //  1 kill  : Level + Pattern
 //  3 kills : Weakness + Drop
 //  5 kills : HP        (lore fragments can reveal fields early)
-const ORDER = ['wolf', 'goblin', 'crystal_beast', 'crystal_alpha', 'thornling', 'guardian', 'wraith'];
+const ORDER = ['rabbit', 'wolf', 'leafling', 'treant', 'elder_treant', 'thornling', 'guardian', 'armadillo', 'quill_lizard', 'rock_rhino', 'burrower', 'crystal_golem', 'void_scarab', 'bronze_hoplite', 'rune_wisp'];
 
 export class Knowledge {
   constructor(game) {

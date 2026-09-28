@@ -84,146 +84,6 @@ function wolfSet(pal) {
   };
 }
 
-// ---------------- FOREST GOBLIN 40x42, feet at y=40
-function goblinFrame(pal, pose) {
-  const { club = 0, lean = 0, step = 0, squat = 0 } = pose; // club: 0 rest, 1 raised, 2 slammed
-  return frame(44, 44, (g) => {
-    const cx = 18 + lean, by = 40 - squat;
-    // legs
-    px(g, pal.skinDark, cx - 5 + step, by - 8, 4, 8);
-    px(g, pal.skinDark, cx + 2 - step, by - 8, 4, 8);
-    px(g, '#2a1c14', cx - 6 + step, by - 2, 6, 2); px(g, '#2a1c14', cx + 1 - step, by - 2, 6, 2);
-    // body tunic
-    ell(g, pal.cloth, cx, by - 15, 8, 9);
-    px(g, pal.clothDark, cx - 8, by - 12, 16, 3);
-    px(g, '#8a6a3a', cx - 7, by - 12, 14, 1);
-    // head
-    const hy = by - 27 + squat * 0.5;
-    ell(g, pal.skin, cx + 2, hy, 7, 6);
-    poly(g, pal.skin, [[cx - 4, hy - 1], [cx - 12, hy - 5], [cx - 4, hy + 2]]);
-    poly(g, pal.skin, [[cx + 7, hy - 2], [cx + 14, hy - 7], [cx + 8, hy + 2]]);
-    px(g, pal.skinDark, cx - 3, hy + 3, 10, 2);
-    px(g, pal.eye, cx + 4, hy - 1, 2, 2); px(g, pal.eye, cx + 1, hy - 1, 2, 1);
-    px(g, '#e8e0c8', cx + 5, hy + 3, 1, 2);
-    // arm + club
-    g.save();
-    const ax = cx + 5, ay = by - 18;
-    const ang = club === 0 ? 0.6 : club === 1 ? -2.2 : 1.35;
-    g.translate(ax, ay);
-    g.rotate(ang);
-    px(g, pal.skin, 0, -2, 7, 4);
-    px(g, '#5a3a20', 5, -2, 14, 4);
-    px(g, '#6e4a28', 16, -4, 7, 8);
-    px(g, '#8a8a90', 18, -5, 2, 2); px(g, '#8a8a90', 21, 3, 2, 2);
-    g.restore();
-  });
-}
-
-function goblinSet(pal) {
-  return {
-    w: 44, h: 44, ax: 18, ay: 40,
-    idle: [goblinFrame(pal, {}), goblinFrame(pal, { squat: 1 })],
-    move: [goblinFrame(pal, { step: 2 }), goblinFrame(pal, { step: 0, squat: 1 }), goblinFrame(pal, { step: -2 }), goblinFrame(pal, { step: 0, squat: 1 })],
-    windup: [goblinFrame(pal, { club: 1, lean: -2, squat: 2 })],
-    attack: [goblinFrame(pal, { club: 2, lean: 3 }), goblinFrame(pal, { club: 2, lean: 2, squat: 2 })],
-    hurt: [goblinFrame(pal, { lean: -3, squat: 1 })],
-  };
-}
-
-// ---------------- CRYSTAL BEAST 64x48, feet at y=45
-function beastFrame(pal, pose) {
-  const { legs = [0, 0], armored = true, crouch = 0, rear = 0, core = 1 } = pose;
-  return frame(66, 50, (g) => {
-    const by = 28 + crouch - rear;
-    // legs
-    px(g, pal.dark, 14 + legs[0], by + 8, 7, 12 - crouch + rear);
-    px(g, pal.dark, 42 + legs[1], by + 8, 7, 12 - crouch + rear);
-    px(g, pal.mid, 22 - legs[0], by + 9, 6, 11 - crouch + rear);
-    px(g, pal.mid, 48 - legs[1], by + 9, 6, 11 - crouch + rear);
-    // body
-    ell(g, pal.mid, 32, by, 22, 12);
-    ell(g, pal.light, 34, by + 4, 16, 6);
-    ell(g, pal.dark, 30, by - 5, 19, 6);
-    // rear weak point (crystal core) — glows when armour is broken
-    ell(g, core ? '#ff9ad8' : '#6a3a5a', 12, by - 2, 4, 4);
-    if (core) px(g, '#fff0ff', 11, by - 3, 2, 2);
-    // head
-    ell(g, pal.mid, 55, by + 2 - rear, 9, 8);
-    px(g, pal.dark, 56, by + 5 - rear, 9, 3);
-    px(g, '#5af0ff', 58, by - 1 - rear, 3, 2);
-    px(g, '#d8d8e0', 62, by + 7 - rear, 2, 3);
-    // crystals on back
-    if (armored) {
-      const spikes = [[18, 10], [25, 15], [32, 17], [39, 14], [46, 10]];
-      spikes.forEach(([x, h], i) => {
-        poly(g, i % 2 ? pal.cry : pal.cryDark, [[x - 4, by - 8], [x, by - 8 - h], [x + 4, by - 8]]);
-        px(g, pal.cryLight, x - 1, by - 6 - h * 0.8, 1, h * 0.6);
-      });
-    } else {
-      for (const x of [18, 26, 34, 42]) poly(g, pal.cryDark, [[x - 3, by - 8], [x, by - 12], [x + 3, by - 8]]);
-    }
-  });
-}
-
-function beastSet(pal) {
-  const make = (armored) => ({
-    idle: [beastFrame(pal, { armored }), beastFrame(pal, { armored, crouch: 1 })],
-    move: [beastFrame(pal, { armored, legs: [2, -2] }), beastFrame(pal, { armored }), beastFrame(pal, { armored, legs: [-2, 2] }), beastFrame(pal, { armored })],
-    windup: [beastFrame(pal, { armored, rear: 5 })],
-    attack: [beastFrame(pal, { armored, crouch: 4 }), beastFrame(pal, { armored, crouch: 2 })],
-    hurt: [beastFrame(pal, { armored, crouch: 2, legs: [1, 1] })],
-  });
-  return { w: 66, h: 50, ax: 33, ay: 46, ...make(true), broken: make(false) };
-}
-
-// ---------------- THORNLING (boss summon) 30x26
-function thornFrame(pose) {
-  const { hop = 0, open = 0 } = pose;
-  return frame(30, 28, (g) => {
-    const by = 24 - hop;
-    for (let i = 0; i < 5; i++) poly(g, i % 2 ? '#3a5a2a' : '#2a4020', [[8 + i * 3, by - 6], [6 + i * 4, by - 18 - (i % 2) * 4], [12 + i * 3, by - 7]]);
-    ell(g, '#4a3a24', 15, by - 5, 9, 6);
-    px(g, '#2a1c10', 8, by - 1, 3, 3); px(g, '#2a1c10', 19, by - 1, 3, 3);
-    px(g, '#9affd8', 18, by - 7, 3, 2);
-    if (open) px(g, '#1a0a0a', 20, by - 4, 5, open);
-    px(g, '#5af0ff', 11, by - 12, 2, 2);
-  });
-}
-function thornSet() {
-  return {
-    w: 30, h: 28, ax: 15, ay: 24,
-    idle: [thornFrame({}), thornFrame({ hop: 1 })],
-    move: [thornFrame({ hop: 2 }), thornFrame({}), thornFrame({ hop: 3 }), thornFrame({})],
-    windup: [thornFrame({ open: 2 })], attack: [thornFrame({ hop: 4, open: 3 }), thornFrame({ open: 2 })], hurt: [thornFrame({ hop: 1 })],
-  };
-}
-
-// ---------------- RUNE WRAITH (valley) 36x48 floating
-function wraithFrame(pose) {
-  const { bob = 0, cast = 0 } = pose;
-  return frame(40, 50, (g) => {
-    const cy = 22 + bob;
-    poly(g, '#221a34', [[20, cy - 16], [31, cy + 2], [29, cy + 22], [24, cy + 18], [20, cy + 24], [16, cy + 18], [11, cy + 22], [9, cy + 2]]);
-    poly(g, '#3a2c58', [[20, cy - 16], [27, cy - 2], [20, cy + 6], [13, cy - 2]]);
-    ell(g, '#0a0612', 20, cy - 6, 5, 5);
-    px(g, '#ffd070', 17, cy - 7, 2, 2); px(g, '#ffd070', 21, cy - 7, 2, 2);
-    px(g, '#c89a4a', 14, cy + 6, 12, 1); px(g, '#c89a4a', 19, cy + 3, 2, 8);
-    // arms
-    const armY = cast ? cy - 8 : cy + 2;
-    poly(g, '#221a34', [[10, cy], [2, armY], [5, armY + 3], [12, cy + 4]]);
-    poly(g, '#221a34', [[30, cy], [38, armY], [35, armY + 3], [28, cy + 4]]);
-    if (cast) { ell(g, '#e0b0ff', 3, armY, 3, 3); ell(g, '#e0b0ff', 37, armY, 3, 3); }
-  });
-}
-function wraithSet() {
-  return {
-    w: 40, h: 50, ax: 20, ay: 46,
-    idle: [wraithFrame({}), wraithFrame({ bob: -2 })],
-    move: [wraithFrame({ bob: -1 }), wraithFrame({ bob: -3 }), wraithFrame({ bob: -1 }), wraithFrame({ bob: 0 })],
-    windup: [wraithFrame({ cast: 1, bob: -3 })], attack: [wraithFrame({ cast: 1 }), wraithFrame({ cast: 1, bob: -1 })], hurt: [wraithFrame({ bob: 2 })],
-  };
-}
-
 // ---------------- NPC humanoids 26x44 (front view)
 export function npcSprite(look) {
   const L = {
@@ -275,18 +135,11 @@ export function npcSprite(look) {
 const PALS = {
   wolf: { dark: '#2a2e3d', mid: '#3e4458', light: '#6a7088', eye: '#ffd040' },
   wolfC: { dark: '#231a33', mid: '#3a2c52', light: '#5a4a78', eye: '#ff40ff' },
-  goblin: { skin: '#6a8a42', skinDark: '#4a6230', cloth: '#5a4030', clothDark: '#3a2a20', eye: '#ffe060' },
-  goblinC: { skin: '#6a6a52', skinDark: '#4a4238', cloth: '#3a2a44', clothDark: '#24182c', eye: '#ff50ff' },
-  beast: { dark: '#2a3040', mid: '#3e4658', light: '#566070', cry: '#5af0ff', cryDark: '#2aa0c8', cryLight: '#dffcff' },
-  alpha: { dark: '#2a2038', mid: '#403458', light: '#5a4c78', cry: '#c080ff', cryDark: '#7a40c8', cryLight: '#f4e0ff' },
 };
 
 export function buildMonsterSprites() {
   return {
     wolf: wolfSet(PALS.wolf), wolfC: wolfSet(PALS.wolfC),
-    goblin: goblinSet(PALS.goblin), goblinC: goblinSet(PALS.goblinC),
-    crystal_beast: beastSet(PALS.beast), crystal_alpha: beastSet(PALS.alpha),
-    thornling: thornSet(), wraith: wraithSet(),
   };
 }
 

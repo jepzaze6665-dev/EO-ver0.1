@@ -87,14 +87,14 @@ export const ITEMS = {
   crag_horn: { name: 'Crag Horn', cat: 'Material', rarity: 'uncommon', icon: 'fang', color: '#d8c8a0', desc: 'The stone horn of a Crag Rhino.', sell: 30 },
   hare_pelt: { name: 'Hare Pelt', cat: 'Material', rarity: 'common', icon: 'cloak', color: '#e8dcc8', desc: 'Soft pelt of a Whisper Hare.', sell: 4 },
   wolf_fang: { name: 'Wolf Fang', cat: 'Material', rarity: 'common', icon: 'fang', color: '#d8d0c0', desc: 'Dropped by Forest Wolves.', sell: 8 },
-  goblin_iron: { name: 'Goblin Iron', cat: 'Material', rarity: 'common', icon: 'ore', color: '#8a8a90', desc: 'Crude iron scraps.', sell: 12 },
+  goblin_iron: { name: 'Ironbark Splinter', cat: 'Material', rarity: 'common', icon: 'ore', color: '#8a7a60', desc: 'Bark hard as iron, shed by the forest spirits.', sell: 12 },
   crystal_shard: { name: 'Crystal Shard', cat: 'Material', rarity: 'uncommon', icon: 'shard', color: '#5af0ff', desc: 'Humming shard of forest crystal.', sell: 18 },
   moon_crystal: { name: 'Moonlit Crystal', cat: 'Material', rarity: 'rare', icon: 'shard', color: '#d0a0ff', desc: 'Rare crystal grown in darkness.', sell: 60 },
   guardian_heartwood: { name: 'Guardian Heartwood', cat: 'Material', rarity: 'legendary', icon: 'ore', color: '#7af0c0', desc: 'Living wood from the Guardian. A smith in the Valley may know its use.', sell: 200 },
   // ---- quest
   // boss trophies (data/bosses.js rewards.items) — lore materials for later crafting
   hollow_fang_pelt: { name: 'Hollow Fang Pelt', cat: 'Material', rarity: 'rare', icon: 'fang', color: '#ffb070', desc: 'Trophy of Hollow Fang, the alpha that denned by the River Crossing.', sell: 60 },
-  warchief_totem: { name: "Warchief's Thorn Totem", cat: 'Material', rarity: 'epic', icon: 'rune', color: '#b060ff', desc: 'Trophy of the A2 boss. Its thorns still twitch toward the ruins.', sell: 120 },
+  warchief_totem: { name: 'Thornbound Totem', cat: 'Material', rarity: 'epic', icon: 'rune', color: '#b060ff', desc: 'Trophy of the Thornbound Elder. Its thorns still twitch toward the ruins.', sell: 120 },
   seal_fragment: { name: 'Ancient Seal Fragment', cat: 'Quest Item', rarity: 'quest', icon: 'rune', color: '#5af0ff', desc: 'Resonates with the sealed Guardian Gate.' },
 };
 

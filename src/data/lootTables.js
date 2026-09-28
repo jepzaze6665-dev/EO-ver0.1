@@ -10,11 +10,14 @@ export const LOOT_TABLES = {
   armadillo: { gold: [14, 24], drops: [{ item: 'stone_scute', chance: 0.6 }, { item: 'hp_potion', chance: 0.08 }] },
   rock_rhino: { gold: [24, 40], drops: [{ item: 'crag_horn', chance: 0.45 }, { item: 'stone_scute', chance: 0.3 }, { item: 'hp_potion', chance: 0.12 }] },
   wolf: { gold: [2, 6], drops: [{ item: 'wolf_fang', chance: 0.6 }] },
-  goblin: { gold: [6, 14], drops: [{ item: 'goblin_iron', chance: 0.5 }, { item: 'hp_potion', chance: 0.12 }] },
-  crystal_beast: { gold: [10, 20], drops: [{ item: 'crystal_shard', chance: 0.75 }] },
-  crystal_alpha: { gold: [60, 90], drops: [{ item: 'moon_crystal', chance: 1 }, { item: 'crystal_shard', chance: 1, count: 3 }] },
+  leafling: { gold: [6, 14], drops: [{ item: 'goblin_iron', chance: 0.5 }, { item: 'hp_potion', chance: 0.12 }] },
+  treant: { gold: [10, 20], drops: [{ item: 'crystal_shard', chance: 0.75 }, { item: 'goblin_iron', chance: 0.3 }] },
+  elder_treant: { gold: [60, 90], drops: [{ item: 'moon_crystal', chance: 1 }, { item: 'crystal_shard', chance: 1, count: 3 }] },
+  quill_lizard: { gold: [16, 26], drops: [{ item: 'stone_scute', chance: 0.5 }, { item: 'hp_potion', chance: 0.1 }] },
+  burrower: { gold: [22, 36], drops: [{ item: 'crag_horn', chance: 0.4 }, { item: 'stone_scute', chance: 0.4 }, { item: 'hp_potion', chance: 0.12 }] },
+  void_scarab: { gold: [18, 30], drops: [{ item: 'rune_crystal', chance: 0.3 }] },
+  rune_wisp: { gold: [30, 48], drops: [{ item: 'rune_crystal', chance: 0.5 }, { item: 'shadow_tonic', chance: 0.12 }] },
   thornling: { gold: [0, 2], drops: [] },
-  wraith: { gold: [15, 30], drops: [{ item: 'moon_crystal', chance: 0.25 }] },
   elite: { gold: [20, 40], drops: [{ item: 'hp_potion', chance: 0.5 }, { item: 'shadow_tonic', chance: 0.25 }] }, // extra roll for elites
   // area bosses (data/bosses.js rewards.loot) — rolled once, on the first kill
   rune_knight: { gold: [200, 200], drops: [{ item: 'rune_crystal', chance: 1, count: 4 }, { item: 'bronze_plate', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 4 }] },

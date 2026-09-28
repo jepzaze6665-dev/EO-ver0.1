@@ -3,7 +3,7 @@ import { TEAM } from '../core/constants.js';
 import { TAU, angleTo, wrapAngle } from '../core/math.js';
 import { Assets } from '../core/assets.js';
 
-// Pooled projectiles for both teams (crystal shards, wraith orbs, crescent waves).
+// Pooled projectiles for both teams (crystal shards, seed / sap orbs, crescent waves).
 export class Projectiles {
   constructor(game) {
     this.game = game;

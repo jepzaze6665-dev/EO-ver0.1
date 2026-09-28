@@ -99,7 +99,7 @@ export const QUESTS = {
     description: 'Two beasts rule parts of the forest. Neither blocks the road — but the Guild pays well for their trophies.',
     objectives: [
       { id: 'fang', text: 'Defeat Hollow Fang (Howling Den) · optional', type: 'boss', boss: 'mini_hollow_fang', marker: [58.5, 113] },
-      { id: 'grukk', text: 'Defeat Grukk the Thornbound (Goblin Glade) · optional', type: 'boss', boss: 'mini_grukk', marker: [29.5, 60] },
+      { id: 'grukk', text: 'Defeat the Thornbound Elder (Thornwood Glade) · optional', type: 'boss', boss: 'mini_grukk', marker: [29.5, 60] },
     ],
     rewards: { exp: 120, gold: 120, items: { shadow_tonic: 1 } },
     requirements: [{ type: 'quest', id: 'beyond_lumina', label: 'Finish First Steps Beyond Lumina' }],

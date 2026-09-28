@@ -18,7 +18,7 @@ export const MONSTERS = {
       { id: 'pounce', range: 100, min: 45, windup: 0.6, recover: 0.6, cd: 3.5, power: 10, shape: { shape: 'line', len: 95, width: 12 }, kind: 'dash', dashTime: 0.2 },
     ],
   },
-  // ---------------- A2 ANCIENT VALLEY (owner's sheets desgin/monster/A2, art data/monsterArt.js). Lv 10-13 for a
+  // ---------------- A2 ANCIENT VALLEY (owner's sheets desgin/monster/A/A2, art data/monsterArt.js). Lv 10-13 for a
   // player arriving at LV 10 after the Guardian. Each attack has a clear counter (read -> dodge -> punish):
   armadillo: {
     name: 'Stoneback Armadillo', level: 10, hp: 700, def: 12, speed: 84, radius: 12, height: 26, mass: 1.6,
@@ -49,7 +49,30 @@ export const MONSTERS = {
       { id: 'stomp', range: 64, min: 0, windup: 0.9, recover: 0.8, cd: 5, power: 30, shape: { shape: 'circle', r: 78 }, kind: 'strike', knock: 160, heavy: true, status: [{ id: 'slow', dur: 1.6 }] },
     ],
   },
-  // ---------------- A3 RUNE CITADEL (owner's sheets desgin/monster/A3). Lv 14-16.
+  // B0: A2's extra sheets
+  quill_lizard: {
+    name: 'Quillback Lizard', level: 11, hp: 620, def: 9, speed: 108, radius: 11, height: 26, mass: 1.2,
+    detect: 170, leash: 480, exp: 95, loot: 'quill_lizard', weakness: ['physical'], sprite: 'quill_lizard', poise: 45, turn: 9,
+    role: 'skirmisher', flank: true,
+    pattern: 'Tail Whip / Quill Spray / Spin Rush', desc: 'Circles to your side. Its quills rise before a spray — and after a Spin Rush it is dizzy for a moment.',
+    attacks: [
+      { id: 'whip', range: 42, min: 0, windup: 0.45, recover: 0.5, cd: 1.4, power: 26, shape: { shape: 'cone', r: 50, half: 1.0 }, kind: 'strike', knock: 150 },
+      { id: 'quills', range: 220, min: 60, windup: 0.8, recover: 0.7, cd: 4, power: 20, shape: { shape: 'cone', r: 200, half: 0.5 }, kind: 'volley', count: 5, spread: 0.8, speed: 250, projColor: '#e8c070' },
+      { id: 'spin', range: 170, min: 60, windup: 0.7, recover: 0.8, cd: 5, power: 32, shape: { shape: 'line', len: 170, width: 24 }, kind: 'dash', dashTime: 0.32, knock: 220, exposes: 1.2, exposeText: 'DIZZY!' },
+    ],
+  },
+  burrower: {
+    name: 'Thornshell Burrower', level: 12, hp: 1150, def: 14, speed: 64, radius: 15, height: 30, mass: 2.6, superArmor: true,
+    detect: 150, leash: 440, exp: 125, loot: 'burrower', weakness: ['shadow'], sprite: 'burrower', poise: 80, turn: 3,
+    role: 'bruiser',
+    pattern: 'Pincer Snap / Burrow Ambush', desc: 'Digs under the ground and bursts up where it aims — watch the circle, not the shell. Stuck in the dirt afterwards.',
+    attacks: [
+      { id: 'snap', range: 44, min: 0, windup: 0.55, recover: 0.6, cd: 1.7, power: 30, shape: { shape: 'cone', r: 52, half: 0.7 }, kind: 'strike', knock: 170 },
+      // burrow: the telegraph is ahead of it (where it will surface); heavy, a miss leaves it stuck
+      { id: 'burrow', range: 150, min: 60, windup: 1.1, recover: 1.1, cd: 5.5, power: 40, shape: { shape: 'circle', r: 56, offset: 110 }, kind: 'strike', knock: 260, heavy: true, opening: true, missRecover: 1.8, guardBreak: true },
+    ],
+  },
+  // ---------------- A3 RUNE CITADEL (owner's sheets desgin/monster/A/A3). Lv 14-16.
   crystal_golem: {
     name: 'Crystal Golem', level: 14, hp: 2400, def: 14, armor: 900, speed: 50, radius: 16, height: 42, mass: 3.5, superArmor: true,
     detect: 150, leash: 420, exp: 170, loot: 'crystal_golem', weakness: ['physical'], sprite: 'crystal_golem', poise: 120, turn: 2,
@@ -77,8 +100,29 @@ export const MONSTERS = {
       { id: 'phalanx', range: 130, min: 30, windup: 0.9, recover: 0.9, cd: 4.5, power: 38, shape: { shape: 'cone', r: 130, half: 0.22 }, kind: 'strike', knock: 240, guardBreak: true, needsAlly: { type: 'bronze_hoplite', within: 120 } },
     ],
   },
+  // B0: A3's extra sheets
+  void_scarab: {
+    name: 'Void Scarab', level: 14, hp: 520, def: 10, speed: 116, radius: 10, height: 24, mass: 0.9,
+    detect: 170, leash: 480, exp: 70, loot: 'void_scarab', weakness: ['physical'], sprite: 'void_scarab', poise: 30, turn: 10,
+    role: 'swarm',
+    pattern: 'Void Claw / Void Ring', desc: 'Swarms in threes out of the dark alleys. The purple glow on its shell means a ring is coming.',
+    attacks: [
+      { id: 'claw', range: 36, min: 0, windup: 0.4, recover: 0.45, cd: 1.2, power: 26, shape: { shape: 'cone', r: 42, half: 0.9 }, kind: 'strike', knock: 120 },
+      { id: 'ring', range: 60, min: 0, windup: 0.8, recover: 0.8, cd: 4.5, power: 28, shape: { shape: 'ring', r0: 16, r: 66 }, kind: 'strike', knock: 160, status: [{ id: 'slow', dur: 1.2 }] },
+    ],
+  },
+  rune_wisp: {
+    name: 'Rune Wisp', level: 15, hp: 720, def: 8, speed: 96, radius: 10, height: 30, mass: 0.7, float: true,
+    detect: 210, leash: 520, exp: 120, loot: 'rune_wisp', weakness: ['shadow'], sprite: 'rune_wisp', poise: 30, turn: 10, role: 'caster',
+    keepAway: 120, blinkWhenHit: 4,
+    pattern: 'Blue Flame Breath / Flame Dash', desc: 'A soul-flame bound to the runes. Keeps its distance, breathes a long line of blue fire and blinks away when pressed.',
+    attacks: [
+      { id: 'breath', range: 190, min: 0, windup: 0.8, recover: 0.7, cd: 3, power: 30, shape: { shape: 'cone', r: 180, half: 0.18 }, kind: 'strike', knock: 120, status: [{ id: 'burn', dur: 3 }] },
+      { id: 'dash', range: 180, min: 60, windup: 0.65, recover: 0.8, cd: 4.5, power: 26, shape: { shape: 'line', len: 180, width: 18 }, kind: 'dash', dashTime: 0.25, knock: 180 },
+    ],
+  },
   wolf: {
-    name: 'Forest Wolf', level: 2, hp: 70, def: 2, speed: 128, radius: 10, height: 30, mass: 0.8,
+    name: 'Forest Wolf', level: 2, hp: 70, def: 2, speed: 128, radius: 10, height: 30, mass: 0.8, corruptible: true,
     detect: 150, leash: 520, exp: 18, loot: 'wolf', weakness: ['shadow'], sprite: 'wolf', poise: 18, turn: 12,
     role: 'skirmisher', flank: true, punishIdle: 1.0, // circles to your side / back, lunges at a player standing still
     pattern: 'Charge / Bite', desc: 'Hunts in packs. Watch for the crouch before the lunge.',
@@ -87,34 +131,35 @@ export const MONSTERS = {
       { id: 'lunge', range: 125, min: 55, windup: 0.52, recover: 0.55, cd: 3.2, power: 18, shape: { shape: 'line', len: 125, width: 13 }, kind: 'dash', dashTime: 0.2, punish: true },
     ],
   },
-  goblin: {
-    name: 'Forest Goblin', level: 4, hp: 130, def: 5, speed: 82, radius: 11, height: 40, mass: 1.1,
-    detect: 140, leash: 480, exp: 30, loot: 'goblin', weakness: ['physical'], sprite: 'goblin', poise: 30, turn: 8, role: 'bruiser',
-    pattern: 'Swipe / Overhead Slam', desc: 'Raises its club high before a heavy slam — it is exposed afterwards.',
+  // B0: A1's field monsters from the owner's sheets (the canvas-only goblins / crystal beasts are gone)
+  leafling: {
+    name: 'Leafling', level: 3, hp: 90, def: 3, speed: 96, radius: 9, height: 26, mass: 0.6, float: true, corruptible: true,
+    detect: 150, leash: 480, exp: 26, loot: 'leafling', weakness: ['physical'], sprite: 'leafling', poise: 20, turn: 10, role: 'caster',
+    keepAway: 90, pattern: 'Seed Shot / Bloom', desc: 'A forest spirit that keeps its distance and spits seeds. Its heart glows before it blooms — step out of the ring.',
     attacks: [
-      { id: 'swipe', range: 40, min: 0, windup: 0.45, recover: 0.45, cd: 1.4, power: 16, shape: { shape: 'cone', r: 46, half: 0.95 }, kind: 'strike' },
-      { id: 'slam', range: 75, min: 0, windup: 0.95, recover: 1.0, cd: 3.4, power: 32, shape: { shape: 'circle', r: 50, offset: 34 }, kind: 'strike', knock: 260, heavy: true, opening: true, missRecover: 2.0 },
+      { id: 'seed', range: 200, min: 0, windup: 0.6, recover: 0.6, cd: 2.2, power: 14, shape: { shape: 'cone', r: 170, half: 0.25 }, kind: 'volley', count: 1, spread: 0, speed: 210, projColor: '#8af06a' },
+      { id: 'bloom', range: 56, min: 0, windup: 0.85, recover: 0.8, cd: 5, power: 18, shape: { shape: 'circle', r: 58 }, kind: 'strike', knock: 140, status: [{ id: 'root', dur: 0.9 }] },
     ],
   },
-  crystal_beast: {
-    name: 'Crystal Beast', level: 6, hp: 240, def: 10, armor: 120, speed: 56, radius: 18, height: 44, mass: 2.5,
-    detect: 130, leash: 420, exp: 50, loot: 'crystal_beast', weakness: ['shadow'], sprite: 'crystal_beast', poise: 60, turn: 1.6, role: 'tank',
-    superArmor: true, weakPoint: true,
-    pattern: 'Spike Ring / Crystal Ram', desc: 'Crystal armour absorbs most damage. Its glowing core is on its back — it turns slowly.',
+  treant: {
+    name: 'Bramble Treant', level: 5, hp: 300, def: 7, speed: 58, radius: 14, height: 34, mass: 2.4, superArmor: true, corruptible: true,
+    detect: 140, leash: 440, exp: 48, loot: 'treant', weakness: ['shadow'], sprite: 'treant', poise: 60, turn: 3, role: 'bruiser',
+    pattern: 'Branch Swipe / Root Slam / Sap Orb', desc: 'Slow and heavy. It lifts both branches before the Root Slam — a slam that hits nothing leaves it rooted in place.',
     attacks: [
-      { id: 'ring', range: 72, min: 0, windup: 1.0, recover: 1.0, cd: 3.5, power: 26, shape: { shape: 'ring', r0: 22, r: 84 }, kind: 'strike', knock: 220 },
-      { id: 'ram', range: 130, min: 40, windup: 0.85, recover: 1.4, cd: 4, power: 30, shape: { shape: 'line', len: 130, width: 20 }, kind: 'dash', dashTime: 0.3, exposes: 1.4 },
+      { id: 'swipe', range: 42, min: 0, windup: 0.55, recover: 0.55, cd: 1.6, power: 18, shape: { shape: 'cone', r: 50, half: 0.9 }, kind: 'strike', knock: 150 },
+      { id: 'slam', range: 72, min: 0, windup: 1.0, recover: 1.0, cd: 3.6, power: 34, shape: { shape: 'circle', r: 54, offset: 30 }, kind: 'strike', knock: 260, heavy: true, opening: true, missRecover: 2.0 },
+      { id: 'orb', range: 220, min: 80, windup: 0.8, recover: 0.7, cd: 4.5, power: 20, shape: { shape: 'cone', r: 190, half: 0.3 }, kind: 'volley', count: 1, spread: 0, speed: 170, projKind: 'orb', projColor: '#8af06a' },
     ],
   },
-  crystal_alpha: {
-    name: 'Amethyst Behemoth', level: 8, hp: 720, def: 12, armor: 260, speed: 64, radius: 24, height: 56, mass: 5, scale: 1.45,
-    detect: 190, leash: 400, exp: 240, loot: 'crystal_alpha', weakness: ['physical'], sprite: 'crystal_alpha', poise: 140, turn: 1.8, role: 'tank',
-    superArmor: true, weakPoint: true, miniBoss: true,
-    pattern: 'Spike Ring / Ram / Shard Barrage', desc: 'Guardian of the hidden cave. Break its amethyst armour, then punish the core.',
+  elder_treant: {
+    name: 'Elder Treant', level: 8, hp: 760, def: 12, armor: 220, speed: 56, radius: 22, height: 50, mass: 5, scale: 1.55,
+    detect: 190, leash: 400, exp: 240, loot: 'elder_treant', weakness: ['physical'], sprite: 'treant', poise: 140, turn: 1.8, role: 'tank',
+    superArmor: true, miniBoss: true, shardColor: '#8af06a',
+    pattern: 'Root Ring / Trample / Sap Barrage', desc: 'The oldest tree of the hidden cave. Break its bark armour, then strike the glowing heartwood.',
     attacks: [
       { id: 'ring', range: 90, min: 0, windup: 1.0, recover: 0.9, cd: 3.4, power: 34, shape: { shape: 'ring', r0: 28, r: 110 }, kind: 'strike', knock: 260 },
-      { id: 'ram', range: 170, min: 50, windup: 0.8, recover: 1.2, cd: 4.5, power: 38, shape: { shape: 'line', len: 170, width: 26 }, kind: 'dash', dashTime: 0.32 },
-      { id: 'barrage', range: 260, min: 90, windup: 0.9, recover: 0.8, cd: 5, power: 22, shape: { shape: 'cone', r: 200, half: 0.55 }, kind: 'volley', count: 5, spread: 0.9, speed: 230 },
+      { id: 'trample', range: 170, min: 50, windup: 0.8, recover: 1.2, cd: 4.5, power: 38, shape: { shape: 'line', len: 170, width: 26 }, kind: 'dash', dashTime: 0.32 },
+      { id: 'barrage', range: 260, min: 90, windup: 0.9, recover: 0.8, cd: 5, power: 22, shape: { shape: 'cone', r: 200, half: 0.55 }, kind: 'volley', count: 5, spread: 0.9, speed: 230, projKind: 'orb', projColor: '#8af06a' },
     ],
   },
   thornling: {
@@ -122,16 +167,6 @@ export const MONSTERS = {
     detect: 600, leash: 2000, exp: 8, loot: 'thornling', weakness: ['shadow'], sprite: 'thornling', poise: 10, turn: 12, role: 'swarm',
     pattern: 'Snap', desc: 'Roots given hunger by the Guardian.',
     attacks: [{ id: 'snap', range: 32, min: 0, windup: 0.4, recover: 0.5, cd: 1.3, power: 12, shape: { shape: 'cone', r: 36, half: 0.8 }, kind: 'strike' }],
-  },
-  wraith: {
-    name: 'Rune Wraith', level: 12, hp: 180, def: 6, speed: 90, radius: 11, height: 44, mass: 0.9, float: true,
-    detect: 200, leash: 520, exp: 70, loot: 'wraith', weakness: ['physical'], sprite: 'wraith', poise: 25, turn: 10, role: 'caster',
-    pattern: 'Rune Orbs / Blink', desc: 'A remnant of the valley wardens. Keeps its distance and blinks away when pressed.',
-    keepAway: 110,
-    attacks: [
-      { id: 'orbs', range: 230, min: 0, windup: 0.75, recover: 0.7, cd: 2.4, power: 18, shape: { shape: 'cone', r: 180, half: 0.45 }, kind: 'volley', count: 3, spread: 0.55, speed: 170, projKind: 'orb', homing: 0.9 },
-      { id: 'nova', range: 60, min: 0, windup: 0.7, recover: 0.9, cd: 4, power: 20, shape: { shape: 'circle', r: 64 }, kind: 'strike', blinkAfter: true },
-    ],
   },
   guardian: {
     name: 'Guardian of the Forest', title: 'Warden of the Whispering Heart', level: 10, hp: 12000, def: 18, radius: 30, height: 90, boss: true,

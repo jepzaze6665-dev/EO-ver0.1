@@ -38,6 +38,13 @@ export const FIELD_A2 = {
       { id: 'a2_arch', type: 'armadillo', count: 3, tx: 138, ty: 120, radius: 5 },
       { id: 'a2_upper', type: 'rock_rhino', count: 2, tx: 80, ty: 64, radius: 5 },
       { id: 'a2_upper_b', type: 'armadillo', count: 2, tx: 72, ty: 60, radius: 3 },
+      // B0: the owner's extra A2 sheets — lizards flank in the open terraces, burrowers ambush on the fords and paths
+      { id: 'a2_pines_liz', type: 'quill_lizard', count: 2, tx: 66, ty: 150, radius: 3 },
+      { id: 'a2_fords_burrow', type: 'burrower', count: 1, tx: 92, ty: 140, radius: 2 },
+      { id: 'a2_commons_liz', type: 'quill_lizard', count: 2, tx: 88, ty: 116, radius: 3 },
+      { id: 'a2_temple_burrow', type: 'burrower', count: 1, tx: 44, ty: 96, radius: 2 },
+      { id: 'a2_arch_liz', type: 'quill_lizard', count: 2, tx: 130, ty: 112, radius: 3 },
+      { id: 'a2_upper_burrow', type: 'burrower', count: 2, tx: 88, ty: 70, radius: 4 },
       // Elite: a Crag Rhino guards the Gilded Shrine (killed once)
       { id: 'a2_shrine_warden', type: 'rock_rhino', elite: true, unique: true, count: 1, tx: 138, ty: 66, radius: 0 },
     ],

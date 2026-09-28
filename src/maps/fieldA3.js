@@ -35,6 +35,14 @@ export const FIELD_A3 = {
       { id: 'a3_archive', type: 'crystal_golem', count: 2, tx: 46, ty: 80, radius: 4 },
       { id: 'a3_barracks', type: 'bronze_hoplite', count: 3, tx: 122, ty: 80, radius: 3 },
       { id: 'a3_golden', type: 'bronze_hoplite', count: 2, tx: 84, ty: 60, radius: 2 },
+      // B0: the owner's extra A3 sheets — scarabs swarm the alleys in threes, wisps haunt the shrine and the archive
+      { id: 'a3_gate_scarabs', type: 'void_scarab', count: 3, tx: 58, ty: 170, radius: 3 },
+      { id: 'a3_lamp_scarabs', type: 'void_scarab', count: 3, tx: 108, ty: 170, radius: 3 },
+      { id: 'a3_shrine_wisp', type: 'rune_wisp', count: 1, tx: 54, ty: 110, radius: 2 },
+      { id: 'a3_well_scarabs', type: 'void_scarab', count: 3, tx: 132, ty: 110, radius: 3 },
+      { id: 'a3_archive_wisp', type: 'rune_wisp', count: 2, tx: 40, ty: 70, radius: 3 },
+      { id: 'a3_barracks_scarabs', type: 'void_scarab', count: 3, tx: 110, ty: 88, radius: 3 },
+      { id: 'a3_golden_wisp', type: 'rune_wisp', count: 1, tx: 92, ty: 62, radius: 2 },
       // Elite: a Crystal Golem guards the Golden Gate (killed once)
       { id: 'a3_gate_warden', type: 'crystal_golem', elite: true, unique: true, count: 1, tx: 84, ty: 54, radius: 0 },
     ],

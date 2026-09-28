@@ -51,6 +51,33 @@ export const MONSTER_ART = {
     },
   },
   // ---------------- A2 ANCIENT VALLEY (sheets built; monsters join the game in W3b)
+  // B0: owner's extra A1 sheets. The Leafling art is also the Guardian's Thornling adds.
+  leafling: {
+    sheet: 'leafling', replaces: ['leafling', 'thornling'], corrupt: '150,70,200',
+    anims: {
+      idle: ['idle', [4, 5, 6]], move: ['walk', [3, 4, 5, 6]], windup: ['telegraph', [4, 5, 6]], attack: ['attack', [4, 5]], hurt: ['hit', [1, 2, 3]],
+      death: 'death', front: ['idle', [0, 1, 2]], bloom: 'special',
+    },
+    attacks: {
+      seed: { windup: ['telegraph', [4, 5]], attack: ['attack', [4, 5, 6]] },
+      bloom: { windup: ['special', [0]], attack: ['special', [1, 2, 3, 4, 5, 6]] },
+      snap: { windup: ['attack', [1]], attack: ['attack', [3]] }, // Thornling
+    },
+    fps: { idle: 5, move: 8 },
+  },
+  treant: {
+    sheet: 'treant', replaces: ['treant'], corrupt: '150,70,200',
+    anims: { idle: 'idle', move: 'walk', windup: ['attack', [0, 1]], attack: ['attack', [2, 3]], hurt: 'hit', death: 'death', roots: 'special' },
+    attacks: {
+      swipe: { windup: ['attack', [0, 1]], attack: ['attack', [2, 3]] },
+      slam: { windup: 'telegraph', attack: ['special', [6]] },          // branches up -> green ring
+      orb: { windup: ['special', [0, 1, 2, 3]], attack: ['attack', [4]] },
+      ring: { windup: 'telegraph', attack: ['special', [6]] },          // Elder Treant
+      trample: { windup: 'telegraph', attack: 'walk' },
+      barrage: { windup: ['special', [0, 1, 2, 3]], attack: ['attack', [4]] },
+    },
+    fps: { idle: 4, move: 7 },
+  },
   armadillo: {
     sheet: 'armadillo', replaces: ['armadillo'],
     anims: {
@@ -84,7 +111,52 @@ export const MONSTER_ART = {
     },
     fps: { eruption: 7, enrage: 8, run: 12, stagger: 7 },
   },
+  quill_lizard: {
+    sheet: 'quill_lizard', replaces: ['quill_lizard'],
+    anims: {
+      idle: ['walk', [0]], move: 'walk', windup: ['attack', [0]], attack: ['attack', [1, 2]], hurt: 'hit', death: 'death',
+      front: ['front', [0, 1, 2, 3]], back: ['back', [0, 1, 2, 3]], spin: 'spin',
+    },
+    attacks: {
+      whip: { windup: ['attack', [0]], attack: ['attack', [1, 2]] },
+      quills: { windup: ['spikes', [0, 1]], attack: ['spikes', [2, 3, 4]] },   // quills rise -> spray
+      spin: { windup: ['spikes', [1]], attack: ['spin', [2, 3, 4]] },
+    },
+    fps: { move: 10 },
+  },
+  burrower: {
+    sheet: 'burrower', replaces: ['burrower'],
+    anims: { idle: 'idle', move: 'walk', windup: ['attack', [0]], attack: ['attack', [1]], hurt: 'hit', death: 'death', burrow: 'special' },
+    attacks: {
+      snap: { windup: ['attack', [0]], attack: ['attack', [1]] },
+      burrow: { windup: 'telegraph', attack: 'special' },                   // digs in -> bursts out, pincers first
+    },
+  },
   // ---------------- A3 RUNE CITADEL
+  // rows = directions; columns: 0 idle · 1-2 walk · 3 attack · 4 hit · 5 telegraph · 6 special · 7-9 death
+  void_scarab: {
+    sheet: 'void_scarab', replaces: ['void_scarab'],
+    anims: {
+      idle: ['right', [0]], move: ['right', [1, 2]], windup: ['right', [5]], attack: ['right', [3]], hurt: ['right', [4]],
+      death: ['right', [7, 8, 9]], front: ['down', [0, 1, 2]],
+    },
+    attacks: {
+      claw: { windup: ['right', [5]], attack: ['right', [3]] },
+      ring: { windup: ['right', [5]], attack: ['right', [6]] },
+    },
+    fps: { move: 10 },
+  },
+  rune_wisp: {
+    sheet: 'rune_wisp', replaces: ['rune_wisp'],
+    anims: {
+      idle: ['idle', [0]], move: ['idle_b', [0]], windup: 'telegraph', attack: ['dash', [1]], hurt: 'hit', death: 'death', front: ['idle', [0]],
+    },
+    attacks: {
+      breath: { windup: ['telegraph', [0, 1]], attack: ['breath', [0]] },
+      dash: { windup: 'telegraph', attack: ['dash', [1, 2]] },
+    },
+    fps: { idle: 4 },
+  },
   crystal_golem: {
     sheet: 'crystal_golem', replaces: ['crystal_golem'],
     anims: {
