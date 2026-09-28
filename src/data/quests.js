@@ -64,8 +64,8 @@ export const QUESTS = {
     id: 'burning_rift', name: 'THE BURNING RIFT', giver: null, ordered: true, priority: 1,
     description: 'The valley kings fled their summer court when the mountain woke. Something still burns in the rift to the north.',
     objectives: [
-      { id: 'rift', text: 'Climb north to the Magma Rift', type: 'flag', flag: 'riftFound', marker: [84, 40], markerMap: 'a2' },
-      { id: 'boss', text: 'Defeat the Magma Beast (A2 Boss)', type: 'boss', boss: 'boss_a2', marker: [84, 26], markerMap: 'a2' },
+      { id: 'rift', text: 'Climb north to the Magma Rift', type: 'flag', flag: 'riftFound', marker: [84, 44], markerMap: 'a2' },
+      { id: 'boss', text: 'Defeat the Magma Beast (A2 Boss)', type: 'boss', boss: 'boss_a2', marker: [84, 22], markerMap: 'rift' },
     ],
     rewards: { exp: 250, gold: 200, items: { hp_potion: 3 } },
     requirements: [],

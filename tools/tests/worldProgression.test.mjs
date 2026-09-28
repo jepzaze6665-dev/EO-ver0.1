@@ -52,7 +52,7 @@ test('every live boss: its map exists, arena, phases, moves, rewards are valid',
 test('Route A (W2): A1 boss = the Guardian; A2 / A3 bosses planned; A3 is the major boss; A1 mini-bosses optional', () => {
   const [a1, a2, a3] = ROUTES.A.steps.map((s) => BOSSES[s.boss]);
   ok(a1.impl === 'guardian' && a1.type === 'area' && a1.map === 'arena' && a1.unlocks.includes('a2'), 'A1 boss');
-  ok(!a2.planned && a2.map === 'a2' && a2.phases.length === 2 && a2.level > a1.level, 'A2 boss live (W3c), after the A1 boss');
+  ok(!a2.planned && a2.map === 'rift' && MAPS.find((m) => m.id === 'rift').parent === 'a2' && a2.phases.length === 2 && a2.level > a1.level, 'A2 boss live, in its own arena map (rift, part of A2)');
   ok(a3.planned && a3.type === 'major', 'A3 major boss planned');
   const minis = liveBosses().filter((b) => b.type === 'mini');
   ok(minis.length === 2 && minis.every((b) => b.map === 'a1' && b.level < a1.level), 'minis in A1, weaker than its boss');

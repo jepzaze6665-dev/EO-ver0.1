@@ -31,6 +31,9 @@
 //  rewards                  : { exp, loot (table in data/lootTables.js), gold, items: { id: n }, lore } — first kill only
 //  unlocks                  : map ids this boss opens (info for UI/tools; the unlock itself = map `requires` + world triggers)
 //  teaches                  : one line shown in the route panel (what this fight tests)
+//  look.vfx                 : { charge, slash, impact, bolt, eruption, nova, phase, pool } VFX strips the fight uses
+//  arena.cameraLock         : hold the camera on the arena while engaged (like the Guardian's arena)
+//  mechanics                : [{ type, ... }] the boss's signature rules (boss/mechanics.js: overheat, lava_pools, ...)
 export const BOSS_TYPE = { AREA: 'area', MAJOR: 'major', MINI: 'mini' };
 
 export const BOSSES = {
@@ -91,12 +94,14 @@ export const BOSSES = {
     teaches: 'Everything A1 taught · weak windows · arena hazards · the final attack',
     arena: { name: 'Guardian Arena', center: [132.5, 28], radius: 15.5, trigger: 13.6, bossSpawn: [132, 22], entry: [135, 42] },
     appear: [{ type: 'flag', flag: 'gateOpened', label: 'Open the Guardian Gate' }], // it sleeps behind the sealed gate
+    // the owner's A1 boss VFX sheet (tools/build-boss-vfx.js, 'g_*'), played by boss/guardian.js
+    look: { vfx: { slash: 'g_slash', quake: 'g_quake', impact: 'g_shockwave', roots: 'g_pillar', crystal: 'g_burst', summon: 'g_eruption', nova: 'g_shockwave', phase: 'g_vortex' } },
     phases: [
       { name: 'PHASE I', sub: 'Claw · Charge · Leap · Smash', hpBelow: 1 },
       { name: 'PHASE II', sub: 'Roots · Crystal volleys · Thornlings', hpBelow: 0.7 },
       { name: 'PHASE III — ENRAGED', sub: 'Combos · Nova · the Last Root', hpBelow: 0.3 },
     ],
-    mechanics: ['Weak windows after heavy blows', 'Root patches + corruption pools (arena)', 'Summoned thornlings', 'Final attack: Last Root of the Forest'],
+    notes: ['Weak windows after heavy blows', 'Root patches + corruption pools (arena)', 'Summoned thornlings', 'Final attack: Last Root of the Forest'],
     rewards: { exp: 500, loot: 'guardian', lore: 'guardian_rest' },
     unlocks: ['a2'],
   },
@@ -106,15 +111,24 @@ export const BOSSES = {
   // run, eruption, fireball, stagger, and a red enraged form for phase 2.
   boss_a2: {
     id: 'boss_a2', name: 'MAGMA BEAST', title: 'Lord of the Magma Rift', type: 'area', impl: 'area',
-    route: 'A', map: 'a2', level: 14, recommendedLevel: 13,
-    teaches: 'Burning ground · ranged pressure · punish the charge · a faster second phase',
+    route: 'A', map: 'rift', level: 14, recommendedLevel: 13,
+    teaches: 'Heat rhythm: survive the OVERHEAT blast, then burst its core · lava pools shrink the arena',
     stats: { hp: 16000, def: 12, speed: 96, radius: 26, height: 70, mass: 7, weakness: ['shadow'], superArmor: true, poise: 1000 },
     look: {
       sprite: 'magma_beast', scale: 1.15, aura: '255,120,40',
       anims: { hurt: 'stagger', roar: 'enrage' },
       phaseAnims: { 2: { idle: 'enrage', walk: 'run' } }, // MOLTEN FURY: the red form
+      // the owner's A2 boss VFX sheet (tools/build-boss-vfx.js, 'm_*')
+      vfx: { charge: 'm_orb', slash: 'm_slash', impact: 'm_crater', bolt: 'm_bolt', eruption: 'm_eruption', nova: 'm_shockwave', phase: 'm_vortex', pool: 'm_sigil' },
     },
-    arena: { name: 'Magma Rift', center: [84, 26], radius: 8.5, trigger: 6.5, bossSpawn: [84, 23], entry: [84, 38] },
+    // a large round arena like the Guardian's; exits seal and the camera holds the arena while it fights
+    arena: { name: 'Magma Rift', center: [84, 22], radius: 14.5, trigger: 12, bossSpawn: [84, 16], entry: [84, 36], cameraLock: true },
+    // SIGNATURE (boss/mechanics.js): every fire move heats it; at 100% it OVERHEATS — survive the blast, then burst
+    // its exposed core. Eruptions leave lava pools that burn: the arena shrinks until they cool.
+    mechanics: [
+      { type: 'overheat', max: 100, weak: 5.5, phase2Mult: 1.25, gain: { fireball: 15, fire_fan: 18, eruption: 20, lava_rain: 24, magma_nova: 22, charge: 8, bite: 5 }, blast: { r: 190, power: 46, windup: 1.7 } },
+      { type: 'lava_pools', from: ['eruption', 'lava_rain'], life: 7, life2: 9, max: 14 },
+    ],
     appear: [],
     phases: [
       { name: 'MOLTEN HIDE', sub: 'Bite · Charge · Fireballs · Eruptions', hpBelow: 1, moves: ['bite', 'charge', 'fireball', 'eruption'] },

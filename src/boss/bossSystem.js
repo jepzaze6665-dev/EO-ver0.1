@@ -118,12 +118,14 @@ export class BossSystem {
     enc.leaveT = 0;
     this.impl(enc).engage(g, enc);
     if (enc.def.impl === 'area') g.ui.showBossBar(true);
+    if (enc.def.arena && enc.def.arena.cameraLock) this.lockCamera(enc, true);
     g.events.emit('bossEngaged', { bossId: enc.id, boss: enc.def, major: enc.def.type === 'major' });
   }
   // player died or left: the boss heals, goes back to its spawn and waits (IDLE) — nothing is lost
   reset(enc) {
     const g = this.game;
     this.impl(enc).reset(g, enc);
+    this.lockCamera(enc, false);
     if (this.engaged === enc) this.engaged = null;
     g.ui.showBossBar(false);
     g.combat.telegraphs.clear();
@@ -134,6 +136,15 @@ export class BossSystem {
     this.restoreMusic();
   }
   resetEngaged() { if (this.engaged) this.reset(this.engaged); }
+  // arena.cameraLock: the camera stays on the arena during the fight (the Guardian's arena does the same)
+  lockCamera(enc, on) {
+    const g = this.game;
+    if (on) {
+      const a = this.arenaPx(enc), pad = 2 * TILE;
+      g.camera.lock = { x0: a.x - a.r - pad, y0: a.y - a.r - pad * 1.5, x1: a.x + a.r + pad, y1: a.y + a.r + pad };
+      enc.cameraLocked = true;
+    } else if (enc.cameraLocked) { g.camera.lock = null; enc.cameraLocked = false; }
+  }
   // a boss killed in an earlier session never shows up again
   hideDefeated(enc) {
     const e = enc.entity;
@@ -159,6 +170,7 @@ export class BossSystem {
     g.ui.showBossBar(false);
     this.engaged = null;
     this.restoreMusic();
+    this.lockCamera(enc, false);
     g.after(1.1, () => {
       g.ui.callout(enc.def.type === 'major' ? 'MAJOR BOSS DEFEATED' : enc.def.type === 'mini' ? 'MINI BOSS DEFEATED' : 'AREA BOSS DEFEATED', enc.def.name, '#ffe8b0');
       g.audio.sfx('victory');

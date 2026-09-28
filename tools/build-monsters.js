@@ -314,15 +314,19 @@ function buildMonster(id, def, probe) {
   return { file: `assets/monsters/${id}.png`, fw, fh, ax, ay, scale: +s.toFixed(4), anims };
 }
 
-const probe = process.argv.includes('--probe');
-const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
-const meta = {};
-const metaFile = path.join(ROOT, 'assets/monsters/monsters.json');
-if (!probe && only.length && fs.existsSync(metaFile)) Object.assign(meta, JSON.parse(fs.readFileSync(metaFile, 'utf8')));
-for (const [id, def] of Object.entries(SHEETS)) {
-  if (only.length && !only.includes(id)) continue;
-  meta[id] = buildMonster(id, def, probe);
-  console.log(`${id}: ${Object.keys(meta[id].anims).length} anims, cell ${meta[id].fw}x${meta[id].fh}`);
+if (require.main === module) {
+  const probe = process.argv.includes('--probe');
+  const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+  const meta = {};
+  const metaFile = path.join(ROOT, 'assets/monsters/monsters.json');
+  if (!probe && only.length && fs.existsSync(metaFile)) Object.assign(meta, JSON.parse(fs.readFileSync(metaFile, 'utf8')));
+  for (const [id, def] of Object.entries(SHEETS)) {
+    if (only.length && !only.includes(id)) continue;
+    meta[id] = buildMonster(id, def, probe);
+    console.log(`${id}: ${Object.keys(meta[id].anims).length} anims, cell ${meta[id].fw}x${meta[id].fh}`);
+  }
+  if (!probe) fs.writeFileSync(metaFile, JSON.stringify(meta, null, 1));
 }
-if (!probe) fs.writeFileSync(metaFile, JSON.stringify(meta, null, 1));
-module.exports = { SHEETS };
+// shared with tools/build-boss-vfx.js
+module.exports = { SHEETS, removeBackground, projection, runs, fitSegments, crop, scaleImage, bbox, mirror };
+

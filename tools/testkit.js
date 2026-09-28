@@ -964,20 +964,33 @@ export function a2BossCheck(g, classId = 'umbral_sword', { god = true, level = 1
   w.changeMap('a2', { entry: [84.5, 190] }); g.simulate(0.5);
   ok('A2 first visit starts THE BURNING RIFT', q.isActive('burning_rift'), Object.keys(q.active).join(','));
   const enc = g.bosses.get('boss_a2');
-  goto(g, 84, 44); walk(g, 'KeyW', 0.6);
-  ok('Magma Rift found (flag + quest step) · boss waits (IDLE)', w.state.flags.riftFound && q.active.burning_rift.done.rift && enc.state === 'idle', `${enc.state} rift=${w.state.flags.riftFound}`);
+  w.transitions.autoConfirm = true; // the rift gate asks first (like A1's arena gate)
+  let asked = false; const ask0 = g.ui.panels.confirm.bind(g.ui.panels);
+  goto(g, 84, 48);
+  for (let k = 0; k < 8 && w.mapId !== 'rift'; k++) walk(g, 'KeyW', 0.4);
+  ok('Magma Rift = its own boss-arena map (entered through the gate) · flag + quest step · boss waits', w.mapId === 'rift' && w.mapDef.type === 'boss_arena' && w.state.flags.riftFound && q.active.burning_rift.done.rift && enc.state === 'idle', `map=${w.mapId} ${enc.state} rift=${w.state.flags.riftFound}`);
   p.setLevel(level); p.hp = p.maxHp; g.inventory.add('hp_potion', 4, true);
-  goto(g, 84, 38);
-  for (let k = 0; k < 8 && enc.state !== 'engaged'; k++) walk(g, 'KeyW', 0.4); // classes walk at different speeds
-  ok('Engaged when the player walks in (arena lock)', enc.state === 'engaged' && w.inBossFight(), enc.state);
-  const e = enc.entity, moves = new Set(), anims = new Set(), phases = new Set();
+  goto(g, 84, 36);
+  for (let k = 0; k < 10 && enc.state !== 'engaged'; k++) walk(g, 'KeyW', 0.4); // classes walk at different speeds
+  const ar = g.bosses.arenaPx(enc);
+  ok('Engaged: exits sealed, camera held on the large arena (like A1)', enc.state === 'engaged' && w.inBossFight() && !!g.camera.lock && ar.r >= 14 * TILE && w.mapDef.exits.every((x) => !w.transitions.isOpen(x)), `${enc.state} lock=${!!g.camera.lock} r=${(ar.r / TILE).toFixed(1)}`);
+  const e = enc.entity, moves = new Set(), anims = new Set(), phases = new Set(), fxUsed = new Set();
+  let overheats = 0, overheatWeak = 0, maxPools = 0;
+  const onHeat = () => overheats++; g.events.on('bossOverheated', onHeat);
+  const spawn0 = g.vfx.sprite.bind(g.vfx); g.vfx.sprite = (n, ...a) => { if (/^m_/.test(n)) fxUsed.add(n); return spawn0(n, ...a); };
+  const pools = e.mech.find((m) => m.pools);
   let t = 0;
   for (; t < seconds && enc.state !== 'defeated' && !p.dead; t += 0.5) {
-    g.simulate(0.5, (gg, i) => { bot(gg, i, { god }); if (e.curMove) moves.add(Object.keys(e.def.moves).find((k) => e.def.moves[k] === e.curMove)); if (!e.dead && e.sprites && e.sprites.sheet) { const fr = e.sheetFrame(e.sprites); for (const [n, list] of Object.entries(e.sprites.anims)) if (list.includes(fr)) anims.add(n); } });
+    g.simulate(0.5, (gg, i) => { bot(gg, i, { god }); if (e.curMove) moves.add(Object.keys(e.def.moves).find((k) => e.def.moves[k] === e.curMove)); if (!e.dead && e.sprites && e.sprites.sheet) { const fr = e.sheetFrame(e.sprites); for (const [n, list] of Object.entries(e.sprites.anims)) if (list.includes(fr)) anims.add(n); } if (e.state === 'weak' && overheats) overheatWeak++; if (pools) maxPools = Math.max(maxPools, pools.pools.length); });
     phases.add(e.phase);
   }
   releaseInput(g);
   g.simulate(6);
+  g.vfx.sprite = spawn0; g.events.off('bossOverheated', onHeat);
+  ok('Signature: it OVERHEATS (blast) then collapses in a long weak window', overheats > 0 && overheatWeak > 0, `overheats=${overheats} weak frames after=${overheatWeak}`);
+  ok('Signature: eruptions leave lava pools on the arena floor', maxPools > 0, `max pools=${maxPools}`);
+  ok('The owner\'s A2 boss VFX play in the fight', fxUsed.size >= 5, [...fxUsed].join(','));
+  ok('Camera released after the fight', !g.camera.lock || enc.state !== 'defeated');
   const all = Object.keys(e.def.moves);
   // move coverage is random over a short fight: checked in the mechanics run (god), reported in balance runs
   if (god) ok(`Every move used (${all.length})`, all.every((m) => moves.has(m)), `used ${[...moves].join(',')}`);

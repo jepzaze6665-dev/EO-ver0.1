@@ -6,7 +6,9 @@ import { TEAM, TILE } from '../core/constants.js';
 import { Monster } from '../monsters/monster.js';
 import { flashOf } from '../monsters/monsterSprites.js';
 import { frameAt } from '../monsters/sheetSprites.js';
+import { MECHANICS } from './mechanics.js';
 import { angleTo, dist, rand, TAU, lerp, easeOutCubic } from '../core/math.js';
+import { Assets } from '../core/assets.js';
 
 // AREA BOSS — one generic, data-driven boss entity (data: data/bosses.js). It never names a boss: stats, look,
 // phases and attack patterns ("moves") all come from its data entry. The fight lifecycle (engage, arena lock,
@@ -49,6 +51,9 @@ export class AreaBoss extends Entity {
     this.sprites = (this.look.sprite && game.monsterSprites[this.look.sprite]) || null; // no sprite -> placeholder shape
     this.summons = [];
     this.animT = rand(0, 2);
+    for (const [id, m] of Object.entries(def.moves || {})) if (!m.id) m.id = id;
+    // signature mechanics (boss/mechanics.js): heat, lava pools, ... — what makes this fight its own
+    this.mech = (def.mechanics || []).filter((m) => MECHANICS[m.type]).map((m) => new MECHANICS[m.type](this, m));
     this.reset();
   }
   get name() { return this.def.name; }
@@ -73,8 +78,19 @@ export class AreaBoss extends Entity {
     this.hurtable = false;
     this.dead = false; this.deathT = 0;
     this.clearSummons();
+    for (const x of this.mech || []) if (x.reset) x.reset();
     this.game.combat.telegraphs.cancelOwner(this);
   }
+  // the boss's own effect (data look.vfx[key]: a VFX strip, e.g. the owner's boss sheets). false = none set
+  fx(key, x, y, ang = 0, o = {}) {
+    const n = this.look.vfx && this.look.vfx[key];
+    if (!n) return false;
+    this.game.vfx.sprite(n, x, y, ang, { life: 0.5, glow: 0.5, ...o });
+    return true;
+  }
+  // HUD tags (boss bar): the mechanics' state (e.g. HEAT 64%)
+  hudState() { return { tags: (this.mech || []).flatMap((x) => (x.tags ? x.tags() : [])) }; }
+  mechHook(name, a, b) { for (const x of this.mech) if (x[name]) x[name](a, b); }
   wake() {
     const g = this.game;
     this.state = 'intro';
@@ -190,6 +206,7 @@ export class AreaBoss extends Entity {
     g.audio.sfx('roar');
     g.camera.shake(0.7);
     g.vfx.flash(this.look.aura || '255,120,120', 0.35, 1.6);
+    this.fx('phase', this.x, this.y - this.height * 0.4, 0, { scale: 2.4, life: 1.1 });
     g.ui.callout(ph.name, ph.sub || '', '#e0b0ff');
     if (ph.shockwave) {
       const tel = this.tele({ shape: 'ring', x: this.x, y: this.y, r0: 20, r: 170, total: 1.1 });
@@ -222,6 +239,7 @@ export class AreaBoss extends Entity {
     if (this.dead) { this.deathT += dt; return; }
     this.status.update(dt);
     if (this.state === 'dormant') { this.pose = 'idle'; return; }
+    this.mechHook('update', dt);
     this.applyKnockback(dt, g.world.map);
     for (const k in this.cds) this.cds[k] -= dt;
     // crowd control works on bosses, but never chains: a stun / root is followed by a short immunity
@@ -260,6 +278,7 @@ export class AreaBoss extends Entity {
   think() {
     const g = this.game, p = g.player;
     if (p.dead) { this.pose = 'idle'; return; }
+    for (const x of this.mech) { const turn = x.wantsTurn && x.wantsTurn(); if (turn) { this.run(turn); return; } }
     const d = dist(this.x, this.y, p.x, p.y);
     const ids = this.phaseDef.moves || [];
     const pool = [];
@@ -292,6 +311,7 @@ export class AreaBoss extends Entity {
     if (kind) yield* kind.call(this, m);
     this.curMove = null;
     this.pose = 'idle';
+    this.mechHook('onMoveDone', m.id, m);
   }
 }
 
@@ -304,12 +324,13 @@ const KINDS = {
     const off = s.offset || 0;
     const base = { x: this.x + Math.cos(this.facing) * off, y: this.y + Math.sin(this.facing) * off, total: this.wind(m.windup) };
     const tel = this.tele(s.shape === 'cone' ? { ...base, shape: 'cone', r: s.r, half: s.half, ang: this.facing } : s.shape === 'ring' ? { ...base, shape: 'ring', r0: s.r0, r: s.r } : { ...base, shape: 'circle', r: s.r }, m);
+    this.fx('charge', this.x, this.y, 0, { follow: this, off: 0, life: tel.total, scale: 1.2 });
     g.audio.sfx('windup_big');
     yield tel.total;
     this.pose = 'attack';
     const struck = this.hit(tel, m);
-    if (s.shape === 'cone') g.vfx.sprite('shards', this.x + Math.cos(this.facing) * s.r * 0.6, this.y - 20 + Math.sin(this.facing) * s.r * 0.4, this.facing, { scale: 1.1, life: 0.26 });
-    else g.vfx.ring(tel.x, tel.y, s.r0 || 10, s.r, { color: this.look.aura || '220,200,160', life: 0.4, width: 6 });
+    if (s.shape === 'cone') { if (!this.fx('slash', this.x + Math.cos(this.facing) * s.r * 0.55, this.y - 18 + Math.sin(this.facing) * s.r * 0.35, this.facing, { scale: s.r / 70, life: 0.32 })) g.vfx.sprite('shards', this.x + Math.cos(this.facing) * s.r * 0.6, this.y - 20 + Math.sin(this.facing) * s.r * 0.4, this.facing, { scale: 1.1, life: 0.26 }); }
+    else { g.vfx.ring(tel.x, tel.y, s.r0 || 10, s.r, { color: this.look.aura || '220,200,160', life: 0.4, width: 6 }); this.fx('impact', tel.x, tel.y, 0, { scale: s.r / 50, life: 0.55, ground: true, squash: 0.7 }); }
     g.camera.shake(s.shape === 'cone' ? 0.25 : 0.45);
     g.audio.sfx(s.shape === 'cone' ? 'claw' : 'slam_big');
     yield this.wind((m.recover || 0.5) * this.missed(struck, m));
@@ -341,6 +362,7 @@ const KINDS = {
     };
     g.camera.shake(0.4);
     g.vfx.ring(this.x, this.y, 8, 60, { color: '255,220,160', life: 0.35, width: 5 });
+    this.fx('impact', this.x, this.y, 0, { scale: 1.3, life: 0.5, ground: true, squash: 0.7 });
     yield this.wind((m.recover || 0.6) * this.missed(hitDone, m));
     if (m.opening) this.enterWeak(m.opening, 'OPENING');
   },
@@ -386,14 +408,17 @@ const KINDS = {
       const a = this.facing + (n > 1 ? (i / (n - 1) - 0.5) * spread : 0);
       tels.push(this.tele({ shape: 'line', x: this.x, y: this.y - 10, ang: a, len: 260, width: 5, total: this.wind(m.windup) }, m));
     }
+    this.fx('charge', this.x, this.y, 0, { follow: this, off: 20, life: tels[0].total, scale: 1.1 });
     g.audio.sfx('cast');
     yield tels[0].total;
     this.pose = 'attack';
     const col = (m.color && m.color.startsWith('#') && m.color) || '#ff9a60';
+    const bolt = this.look.vfx && this.look.vfx.bolt, bd = bolt && Assets.vfx[bolt];
     for (const t of tels) {
       g.combat.projectiles.fire({
         x: this.x + Math.cos(t.ang) * 26, y: this.y - 24 + Math.sin(t.ang) * 26, vx: Math.cos(t.ang) * (m.speed || 240), vy: Math.sin(t.ang) * (m.speed || 240),
-        r: 6, life: 2.2, owner: this, power: m.power, kind: 'shard', color: col, wallStop: true, dmgType: m.dmg || 'physical', status: m.status || null,
+        r: 6, life: 2.2, owner: this, power: m.power, color: col, wallStop: true, dmgType: m.dmg || 'physical', status: m.status || null,
+        ...(bd ? { kind: 'sprite', sprite: bolt, frames: [...Array(bd.frames).keys()].slice(1, -1), fps: 14, scale: 0.8 } : { kind: 'shard' }),
       });
     }
     g.audio.sfx('shoot');
@@ -427,6 +452,8 @@ const KINDS = {
       const tel = this.tele({ shape: 'circle', x: s.x, y: s.y, r: m.r, total }, m);
       tel.onResolve = () => {
         this.hit(tel, m);
+        this.fx('eruption', s.x, s.y, 0, { scale: m.r / 34, life: 0.6 });
+        this.mechHook('onImpact', { x: s.x, y: s.y, r: m.r, move: m });
         g.vfx.burst(s.x, s.y - 4, `rgb(${(m.color && !m.color.startsWith('#') && m.color) || '255,140,90'})`, 8, 90);
         g.vfx.ring(s.x, s.y, 4, m.r, { color: '255,210,170', life: 0.25 });
       };
@@ -444,7 +471,7 @@ const KINDS = {
     const rings = m.rings || 3, w = m.width || 60, gap = m.gap || 70;
     for (let i = 0; i < rings; i++) {
       const tel = this.tele({ shape: 'ring', x: this.x, y: this.y, r0: 24 + i * gap, r: 24 + i * gap + w, total: this.wind(m.windup) + i * 0.35 }, m);
-      tel.onResolve = () => { this.hit(tel, m); g.vfx.ring(tel.x, tel.y, tel.r0, tel.r, { color: this.look.aura || '220,70,255', life: 0.3, width: 8 }); };
+      tel.onResolve = () => { this.hit(tel, m); g.vfx.ring(tel.x, tel.y, tel.r0, tel.r, { color: this.look.aura || '220,70,255', life: 0.3, width: 8 }); this.fx('nova', tel.x, tel.y, 0, { scale: tel.r / 42, life: 0.45, ground: true, squash: 0.6 }); };
     }
     yield this.wind(m.windup) + rings * 0.35 + 0.2;
     yield this.wind(m.recover || 0.6);
@@ -479,6 +506,7 @@ const KINDS = {
 // ---------------- render (placeholder art: an existing monster sprite, scaled up, with a boss aura)
 AreaBoss.prototype.draw = function draw(ctx) {
   const g = this.game, t = this.animT;
+  if (!this.dead) for (const m of this.mech) if (m.draw) m.draw(ctx);
   const x = Math.round(this.x), y = Math.round(this.y);
   const alpha = this.dead ? Math.max(0, 1 - Math.max(0, this.deathT - 1.2)) : 1;
   if (alpha <= 0) return;

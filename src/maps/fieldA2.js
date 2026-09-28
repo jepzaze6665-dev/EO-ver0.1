@@ -44,5 +44,13 @@ export const FIELD_A2 = {
   },
   exits: [
     { id: 'south_road', rect: [80, 202, 88, 203], to: 'arena', entry: [136, 14.5], label: 'Guardian Arena' },
+    {
+      id: 'rift_gate', rect: [81, 43, 87, 43], to: 'rift', entry: [84, 38], label: 'Magma Rift',
+      confirm: {
+        title: 'The Magma Rift',
+        text: 'The ground beyond glows red. Something vast breathes in the heat.\nOnce it wakes, the rift seals behind you until one of you falls.\n\nEnter the Magma Rift?',
+        yes: 'Enter', no: 'Not yet',
+      },
+    },
   ],
 };

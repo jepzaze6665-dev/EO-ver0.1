@@ -46,6 +46,7 @@ export const Z = {
   VALLEY: 6,
   CAVE: 7,
   ANCIENT: 8, // A2 Ancient Valley grid (world/levels/ancientValley.js)
+  RIFT: 9, // A2 boss arena: the Magma Rift (maps/magmaRift.js)
 };
 
 export const ZONE_INFO = {
@@ -57,6 +58,7 @@ export const ZONE_INFO = {
   [Z.VALLEY]: { name: 'VALEHAVEN', sub: 'Secret City · Hidden Valley', safe: true, music: 'valley' },
   [Z.CAVE]: { name: 'HIDDEN CAVE', sub: 'Secret Area Discovered', music: 'cave' },
   [Z.ANCIENT]: { name: 'ANCIENT VALLEY', sub: 'Terraces of a fallen kingdom', music: 'ancient' },
+  [Z.RIFT]: { name: 'MAGMA RIFT', sub: 'A2 Boss · the burning heart of the valley', music: 'arena' },
 };
 
 export const TEAM = { PLAYER: 1, ENEMY: 2, NEUTRAL: 3 };

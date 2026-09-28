@@ -33,6 +33,8 @@ export async function loadAll(onProgress) {
   Assets.data.playerAtlas = Assets.data.atlases.ub; // v1 alias
   const propMeta = await loadJSON('assets/props/props.json');
   const vfxMeta = await loadJSON('assets/vfx/vfx.json');
+  // boss effects (tools/build-boss-vfx.js), same strip format; optional
+  Object.assign(vfxMeta, await loadJSON('assets/vfx/boss.json').catch(() => ({})));
   const uiMeta = await loadJSON('assets/ui/ui.json');
   // monster sheets (tools/build-monsters.js); optional: without it every monster keeps its canvas placeholder
   Assets.data.monsters = await loadJSON('assets/monsters/monsters.json').catch(() => ({}));

@@ -13,7 +13,7 @@ const G = T.GRASS, V = T.VALLEY, D = T.DIRT;
 
 export const VALLEY_PLACES = {
   gate: [84, 192], pines: [60, 158], fords: [98, 132], commons: [84, 104], temple: [34, 98], arch: [140, 118],
-  shrine: [138, 62], lake: [32, 166], upper: [80, 62], rift: [84, 24], hollow: [148, 176],
+  shrine: [138, 62], lake: [32, 166], upper: [80, 62], rift: [84, 22], hollow: [148, 176],
 };
 
 export function buildAncientValleyTerrain(b) {
@@ -32,7 +32,6 @@ export function buildAncientValleyTerrain(b) {
   meadow(P.gate, 13, 11); meadow(P.pines, 20, 13); meadow(P.fords, 18, 12); meadow(P.commons, 22, 15, V);
   meadow(P.temple, 18, 16); meadow(P.arch, 15, 13); meadow(P.shrine, 15, 12, V); meadow(P.lake, 17, 13);
   meadow(P.upper, 18, 12); meadow(P.hollow, 6, 5);
-  b.ellipse(P.rift[0], P.rift[1] + 2, 20, 16, T.SCORCHED, { noise: 2 });
   // flower patches
   for (const [x, y, rr] of [[54, 154, 4], [92, 100, 3], [132, 64, 3], [26, 162, 3], [88, 196, 2]]) b.disc(x, y, rr, T.FLOWERS, { only: [G, V] });
 
@@ -76,14 +75,17 @@ export function buildAncientValleyTerrain(b) {
   // the quiet cleft to the hidden hollow (narrow on purpose)
   b.line([[94, 194], [120, 186], [142, 178]], 2, D, { noise: 0.3, seed: 41 });
 
-  // ---------------- MAGMA RIFT: lava cracks around a clear fighting ground
+  // ---------------- MAGMA RIFT = the A2 boss arena (its own map: maps/magmaRift.js, zone RIFT above row 41). A round
+  // fighting ground as large as the Guardian's, ringed by a lava moat, one road in from the south (like A1's arena)
   const [rx, ry] = P.rift;
-  for (const pts of [[[64, 12], [70, 20], [66, 32]], [[104, 10], [98, 20], [104, 34]], [[74, 40], [70, 34]], [[96, 40], [100, 34]]]) b.line(pts, 2.2, T.LAVA, { noise: 0.6, seed: 51 });
-  for (const [x, y, rr] of [[66, 24, 3], [102, 24, 2.6], [84, 8, 3.4]]) b.disc(x, y, rr, T.LAVA, { noise: 0.8 });
-  b.disc(rx, ry + 2, 9, T.SCORCHED); // the boss's ground stays clear of lava
+  b.disc(rx, ry, 19.5, T.LAVA, { noise: 0.9, seed: 52 });
+  b.disc(rx, ry, 16.5, T.SCORCHED, { noise: 0.5, seed: 53 });
+  b.line([[rx, 44], [rx, ry + 12]], 6, T.SCORCHED, { noise: 0.5 });  // the causeway over the moat
+  b.line([[rx, 44], [rx, 38]], 5, D, { noise: 0.6 });
+  for (let ty = 0; ty <= 41; ty++) for (let tx = 58; tx <= 110; tx++) b.m.zone[b.m.idx(tx, ty)] = Z.RIFT;
 
   // ---------------- sub-areas (banners, map labels)
-  const sub = { gate: [P.gate, 13], pines: [P.pines, 18], fords: [P.fords, 14], commons: [P.commons, 18], temple: [P.temple, 16], arch: [P.arch, 14], shrine: [P.shrine, 13], lake: [P.lake, 15], upper: [P.upper, 14], rift: [[rx, ry + 2], 20], hollow: [P.hollow, 7] };
+  const sub = { gate: [P.gate, 13], pines: [P.pines, 18], fords: [P.fords, 14], commons: [P.commons, 18], temple: [P.temple, 16], arch: [P.arch, 14], shrine: [P.shrine, 13], lake: [P.lake, 15], upper: [P.upper, 14], rift: [[rx, ry], 21], hollow: [P.hollow, 7] };
   for (const [k, [[x, y], rr]] of Object.entries(sub)) b.subDisc(x, y, rr, A[k]);
 
   // ---------------- landmarks + ruins (owner's A2 props)
@@ -119,12 +121,15 @@ export function buildAncientValleyTerrain(b) {
     const rock = r.chance(0.2);
     b.prop(rock ? r.pick(['v_rocks', 'v_rock_heap', 'v_rock_pillar', 'v_cliff_a']) : r.pick(PINES), tx, ty, { dx: r.range(-8, 8), dy: r.range(-6, 2), flip: r.chance(0.5), tree: !rock });
   }
-  // the rift: dead trees, bones and ember light
-  b.scatter(rx - 20, ry - 14, rx + 20, ry + 18, ['v_dead_a', 'v_dead_c', 'v_bare_a', 'v_bare_b'], 14, { on: [T.SCORCHED], solid: true, minGap: 4, keepClear: [[rx, ry + 2, 10]] });
-  b.scatter(rx - 20, ry - 14, rx + 20, ry + 18, ['v_skulls', 'v_pebbles', 'v_rubble_a'], 18, { on: [T.SCORCHED], minGap: 3 });
-  for (let ty = 0; ty < 48; ty += 3) for (let tx = 56; tx < 114; tx += 3) if (m.get(tx, ty) === T.LAVA) b.light(tx, ty, 70, '#ff6a20', { a: 0.5, flicker: true });
-  b.light(rx, ry + 2, 150, '#ff7a30', { a: 0.35, flicker: true });
+  // the rift: bones and rubble on the rim (the fighting ground stays clear), ember light from the moat
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2 + 0.2;
+    if (Math.abs(a - Math.PI / 2) < 0.35) continue; // keep the causeway clear
+    b.prop(r.pick(['v_skulls', 'v_rubble_a', 'v_pebbles', 'v_dead_a', 'v_bare_a']), rx + Math.cos(a) * 15.5, ry + Math.sin(a) * 15.5, { flip: r.chance(0.5) });
+  }
+  for (let i = 0; i < 18; i++) { const a = (i / 18) * Math.PI * 2; b.light(rx + Math.cos(a) * 18, ry + Math.sin(a) * 18, 80, '#ff6a20', { a: 0.5, flicker: true }); }
+  b.light(rx, ry, 170, '#ff7a30', { a: 0.3, flicker: true });
 
   b.regions.playerSpawn = { x: 84.5 * TILE, y: 192 * TILE };
-  b.regions.bossRift = { x: rx * TILE, y: (ry + 2) * TILE };
+  b.regions.bossRift = { x: rx * TILE, y: ry * TILE };
 }

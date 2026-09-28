@@ -3,6 +3,7 @@ import { POISE } from '../data/poise.js';
 import { Entity } from '../core/entity.js';
 import { TEAM } from '../core/constants.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
+import { BOSSES } from '../data/bosses.js';
 import { Monster } from '../monsters/monster.js';
 import { flashOf } from '../monsters/monsterSprites.js';
 import { frameAt } from '../monsters/sheetSprites.js';
@@ -162,6 +163,7 @@ export class Guardian extends Entity {
     yield 1.3;
     this.strike(t, 22, 420);
     g.vfx.ring(this.x, this.y, 20, 200, { life: 0.6, color: ph === 3 ? '200,90,255' : '120,240,255', width: 8, fill: true });
+    this.fx('phase', this.x, this.y - 50, 0, { scale: 2.6, life: 1.1 });
     yield 0.9;
     this.hurtable = true;
     this.state = 'fight';
@@ -195,6 +197,13 @@ export class Guardian extends Entity {
   }
 
   // Boss UI snapshot — the HUD draws this and never reads boss internals (logic / presentation split)
+  // boss VFX from the data (boss_a1 look.vfx: the owner's A1 sheet); false when not set
+  fx(key, x, y, ang = 0, o = {}) {
+    const d = BOSSES.boss_a1, n = d && d.look && d.look.vfx && d.look.vfx[key];
+    if (!n) return false;
+    this.game.vfx.sprite(n, x, y, ang, { life: 0.5, glow: 0.5, ...o });
+    return true;
+  }
   hudState() {
     const weak = this.status.has('vulnerable'), P3 = this.phase === 3;
     return {
@@ -319,7 +328,7 @@ export class Guardian extends Entity {
     this.pose = 'claw'; this.poseT = 0;
     this.x += Math.cos(this.facing) * 12; this.y += Math.sin(this.facing) * 12;
     this.strike(tel, 34, 240);
-    g.vfx.sprite('shards', this.x + Math.cos(this.facing) * 70, this.y - 30 + Math.sin(this.facing) * 50, this.facing, { scale: 1.3, life: 0.28 });
+    if (!this.fx('slash', this.x + Math.cos(this.facing) * 70, this.y - 30 + Math.sin(this.facing) * 50, this.facing, { scale: 1.4, life: 0.32 })) g.vfx.sprite('shards', this.x + Math.cos(this.facing) * 70, this.y - 30 + Math.sin(this.facing) * 50, this.facing, { scale: 1.3, life: 0.28 });
     g.camera.shake(0.25);
     g.audio.sfx('claw');
     yield this.wind(fast ? 0.25 : 0.55);
@@ -337,6 +346,7 @@ export class Guardian extends Entity {
     this.strike(tel, 46, 360, { guardBreak: true }); // Combat 2.0: smash breaks a normal guard
     g.camera.shake(0.6);
     g.vfx.ring(this.x, this.y, 10, 130, { color: '200,220,160', life: 0.45, width: 7 });
+    this.fx('quake', this.x, this.y, 0, { scale: 2, life: 0.6, ground: true, squash: 0.7 });
     g.vfx.shards(this.x, this.y, '#8a7a5a', 26, 200);
     g.audio.sfx('slam_big');
     yield 0.35;
@@ -370,6 +380,7 @@ export class Guardian extends Entity {
     // crash into the rim
     g.camera.shake(0.7);
     g.vfx.ring(this.x, this.y, 10, 80, { color: '255,220,160', life: 0.4, width: 6 });
+    this.fx('impact', this.x, this.y, 0, { scale: 1.4, life: 0.5, ground: true, squash: 0.7 });
     g.vfx.shards(this.x, this.y - 30, '#5af0ff', 20, 180);
     g.audio.sfx('crash');
     if (!chain) this.enterWeak(this.phase === 3 ? 1.6 : 2.4, 'CRASHED — WEAK WINDOW');
@@ -412,6 +423,7 @@ export class Guardian extends Entity {
     this.strike(tel, 42, 340, { guardBreak: true });
     g.camera.shake(0.75);
     g.vfx.ring(this.x, this.y, 10, 110, { color: '220,220,180', life: 0.45, width: 7 });
+    this.fx('quake', this.x, this.y, 0, { scale: 1.8, life: 0.6, ground: true, squash: 0.7 });
     g.vfx.shards(this.x, this.y, '#8a7a5a', 22, 200);
     g.audio.sfx('slam_big');
     if (this.phase === 1) { this.enterWeak(1.3, 'OPENING'); return; }
@@ -434,6 +446,7 @@ export class Guardian extends Entity {
         const tel = this.tele({ shape: 'circle', x, y, r: 30, total: this.wind(0.75), color: '120,255,120' });
         tel.onResolve = () => {
           this.strike(tel, 28, 200);
+          this.fx('roots', x, y, 0, { scale: 1.1, life: 0.6 });
           g.vfx.burst(x, y - 6, '#6adf6a', 10, 100);
           g.vfx.shards(x, y, '#3a5a2a', 8, 120);
           g.world.rootSpike(x, y);
@@ -483,6 +496,7 @@ export class Guardian extends Entity {
       const tel = this.tele({ shape: 'circle', x: s.x, y: s.y, r: 48, total: this.wind(1.1) + i * 0.08, color: '90,240,255' });
       tel.onResolve = () => {
         this.strike(tel, 30, 200);
+        this.fx('crystal', s.x, s.y - 10, 0, { scale: 0.8, life: 0.4 });
         g.vfx.shards(s.x, s.y, this.phase === 3 ? '#c080ff' : '#5af0ff', 14, 170);
         g.vfx.ring(s.x, s.y, 4, 50, { color: '150,240,255', life: 0.3 });
         g.camera.shake(0.12);
@@ -511,6 +525,7 @@ export class Guardian extends Entity {
       m.aggro = true; m.setState('chase');
       g.world.monsters.push(m);
       this.summons.push(m);
+      this.fx('summon', s.x, s.y, 0, { scale: 1, life: 0.6 });
       g.vfx.burst(s.x, s.y, '#6adf6a', 16, 120);
     }
     yield 0.6;
@@ -534,6 +549,7 @@ export class Guardian extends Entity {
       tel.onResolve = () => {
         this.strike(tel, 30, 220);
         g.vfx.ring(this.x, this.y, tel.r0, tel.r, { color: '200,90,255', life: 0.35, width: 10 });
+        this.fx('nova', this.x, this.y, 0, { scale: tel.r / 50, life: 0.45, ground: true, squash: 0.6 });
       };
     }
     yield 1.9;
