@@ -135,8 +135,25 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   no wraiths; old `valley` map id is gone, quest id `valley` kept). Save v2 adds `worldProgress`; older saves are
   migrated (visited maps / guardian flag → defeated bosses). Quest `route_a` (priority 1) is the spine, started by a
   world trigger after `beyond_lumina`. HUD: route panel, generic boss bar (area / major), idle boss labels, locked
-  exit text; world map lists route progress. Save backend is swappable (`save.js` localStorageBackend).
+  exit text; world map lists route progress. Save storage = `src/save/storage.js` adapters (merged with V2.1 P14).
   Boss HP (bot, god mode): A1 4500 ≈ 35 s at LV 4, A2 9000 ≈ 75 s at LV 7, Guardian 12000 ≈ 90 s at LV 10.
-- Next (owner decides): Route B maps + bosses (Phase 13-14: add maps/b1..b3 + fill the `planned` boss entries), real
+- Later (owner decides): Route B maps + bosses (add maps/b1..b3 + fill the `planned` boss entries), real
   hidden events per map, City 2 services, balance pass with a human player.
+- **Current: COMBAT 2.0 "Fast Action + Souls-lite Decision Combat"** (owner's spec §38-69). Already existed before it:
+  Perfect Dodge (projectiles + enemyStrike, slow-mo, purple flash), Aegis guard + perfect guard (guardSystem), monster
+  stagger meter, `vulnerable` openings after heavy enemy attacks, boss weak windows, Shadow Mark → Shadow Break (Q).
+  Owner decisions: **Sprint removed** (Shift freed); **Guard/Parry stays Aegis-only** (Shift / RMB / Q hold for Aegis;
+  other classes: RMB stays = the Q special); **party = foundation only** (attack slots, downed state, target lists
+  over "players", solo-playable; no networking). Phase plan:
+  C1 Stamina core (shared resource, 100, regen after delay; dodge 22 replaces dodge charges; guard drain / parry cost;
+     optional skill `stamina` cost in data) + remove sprint + HUD stamina bar.
+  C2 Dodge 2.0 + Perfect Dodge rewards (generic: +1 mark / resource via class hook, small cooldown cut, counter window).
+  C3 Counter Window (generic status after perfect dodge / parry / enemy whiff: less DEF, more damage taken).
+  C4 Poise (stagger → poise with regen, visible on bosses/elites; Guard Break on heavy hits for Aegis).
+  C5 Enemy commitment + roles (startup/active/recovery data, miss → recovery; wolf flank, goblin, crystal weak point).
+  C6 Attack Slot system (limited simultaneous attackers, party-ready target selection).
+  C7 Skill commitment tiers (fast / medium / high data) + Shadow Break / Eclipse Sever feel pass.
+  C8 Combat UI (◇◇◇ 0/3 + SHADOW BREAK READY, DODGE [SPACE] hint until learned, quest UI fades in combat, boss poise).
+  C9 Party foundation (Downed state + revive interface, ENCOUNTER FAILED → checkpoint + boss reset).
+  C10 Anti-tanking + balance + full regression. Next: C1.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).
