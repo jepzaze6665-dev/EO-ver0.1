@@ -14,7 +14,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (V2.2 vertical slice, 29 steps: walks every boss gate on foot, 3 boss fights, City 2, save/load),
   `T.bossReset(__game)` (death mid-fight resets the boss)
-  `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` / `T.uiCheck(__game)` (Combat 2.0),
+  `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` / `T.uiCheck(__game)` / `await T.partyCheck(__game)` (Combat 2.0),
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -213,5 +213,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   route panel fade to 22% while the fight is intense (boss fight, anyone holding an attack slot on you, or 2+ aggro
   enemies on the map — `hud.intenseFight()`) and come back after; boss bar meter = POISE left (label POISE / WEAK).
   Already there: HP / STA / resource / EXP frame, ◇◇◇ n/3 + SHADOW BREAK READY, skill bar 1-5 Q R F.
-  `T.uiCheck(g)` (6 steps). Next: C9.
+  `T.uiCheck(g)` (6 steps).
+  Done C9 (party foundation, no networking): `src/party/partySystem.js` (game.party, members; solo = party of one) +
+  `src/data/party.js` (max 4; downed: bleedOut 20 s, reviveTime 3 s hold [E], range 48, reviveHp 30%). 0 HP →
+  Player.onDeath → game.onPlayerDeath(p) → party.onDefeated: teammates standing → DOWNED (`p.downed`, not dead,
+  no damage, drawn lying down, enemies ignore it: game.players() = standing members) else ENCOUNTER FAILED
+  (event 'encounterFailed', death panel = "ENCOUNTER FAILED" + Return to Checkpoint → game.respawn(): party.reset,
+  last waystone / village, engaged boss resets). Revive = party.tryRevive(reviver, dt) each frame the reviver holds
+  it (local: hold E); a hit on the reviver or letting go interrupts. HUD: DOWNED + bleed-out + revive bars,
+  "[Hold E] Revive" prompt. classChange swaps the party member. `await T.partyCheck(g)` (8 steps, uses a real second
+  Player object as a test ally) + tools/tests/party.test.mjs. Next: C10.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

@@ -1,3 +1,4 @@
+import { PARTY } from '../data/party.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { ITEMS, RARITY_COLOR, CATEGORIES, RECIPES, SHOP } from '../items/items.js';
 import { iconURL } from './icons.js';
@@ -530,7 +531,7 @@ export class Panels {
   }
   death() {
     const g = this.game;
-    const el = this.show('death', `<div class="death"><h1>YOU HAVE FALLEN</h1><p>The shadows recede… but the lesson remains.</p><button class="primary">Rise Again</button></div>`, 'dark');
+    const el = this.show('death', `<div class="death"><h1>${esc(PARTY.failed.title)}</h1><p>${esc(PARTY.failed.text)}</p><button class="primary">Return to Checkpoint</button></div>`, 'dark');
     el.querySelector('button').onclick = () => { this.close(); g.respawn(); };
   }
   ending(stats) {

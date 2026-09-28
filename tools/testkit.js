@@ -752,3 +752,36 @@ export function uiCheck(g) {
   releaseInput(g);
   return R;
 }
+
+// COMBAT 2.0 C9: party foundation in the real game — solo ENCOUNTER FAILED + checkpoint, then a test ally for
+// downed / revive / interrupt (the ally is a real Player object that is not driven by input).
+export async function partyCheck(g) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  const { CLASSES } = await import('../src/skills/classes.js');
+  g.newGame('umbral_sword'); releaseInput(g);
+  let p = g.player; goto(g, 38, 121); g.simulate(0.3);
+  const ev = []; for (const n of ['encounterFailed', 'playerDowned', 'playerRevived', 'reviveInterrupted']) g.events.on(n, () => ev.push(n));
+  const kill = (who) => { who.invulnT = 0; who.dodging = false; g.combat.dealDamage({ x: who.x + 10, y: who.y, team: 'enemy' }, who, { power: 99999, noCrit: true }); };
+  kill(p); g.simulate(2);
+  ok('Solo: 0 HP -> ENCOUNTER FAILED screen', p.dead && ev.includes('encounterFailed') && g.ui.panels.current && /ENCOUNTER FAILED/.test(document.body.innerText), g.ui.panels.current && g.ui.panels.current.name);
+  g.ui.panels.close(true); g.respawn(); g.simulate(0.3);
+  ok('Return to Checkpoint: alive again, party reset', !p.dead && !p.downed && p.hp === p.maxHp && !g.party.failed);
+  // a second party member (test ally)
+  const cls = CLASSES.aegis_guardian, ally = new p.constructor(g, cls, g.spritesFor(cls));
+  ally.x = p.x + 20; ally.y = p.y; ally.recomputeStats(); ally.hp = ally.maxHp;
+  g.party.add(ally);
+  ok('Party of 2: game.players() lists both', g.players().length === 2);
+  kill(p); g.simulate(0.2);
+  ok('Party: the fallen player is DOWNED (not dead), enemies ignore it', p.downed && !p.dead && !g.players().includes(p) && ev.includes('playerDowned') && !ev.slice(1).includes('encounterFailed'));
+  const hp0 = p.hp; g.combat.dealDamage({ x: p.x, y: p.y, team: 'enemy' }, p, { power: 50 });
+  ok('Downed player takes no more damage', p.hp === hp0);
+  g.simulate(1, (gg) => g.party.tryRevive(ally, 1 / 60));
+  g.combat.dealDamage({ x: ally.x + 10, y: ally.y, team: 'enemy' }, ally, { power: 1, noCrit: true });
+  ok('A hit on the reviver interrupts the revive', ev.includes('reviveInterrupted') && g.party.progress(p) === 0);
+  let t = 0; while (p.downed && t < 5) { g.simulate(0.1, () => g.party.tryRevive(ally, 1 / 60)); t += 0.1; }
+  ok('Holding revive for 3 s brings the player back (30% HP)', !p.downed && !p.dead && Math.abs(p.hp - Math.round(p.maxHp * 0.3)) <= 1 && ev.includes('playerRevived'), `${t.toFixed(1)}s hp ${p.hp}`);
+  kill(p); g.simulate(0.1); kill(ally); g.simulate(2);
+  ok('Everyone down -> ENCOUNTER FAILED', g.party.failed && p.dead && ally.dead && ev.filter((e) => e === 'encounterFailed').length === 2);
+  g.ui.panels.close(true); g.party.remove(ally); ally.dispose(); g.respawn(); releaseInput(g);
+  return R;
+}

@@ -50,6 +50,7 @@ export function changeClass(game, toId, opts = {}) {
   if (game.summons) game.summons.clearOwner(old, 'classChanged');
 
   game.player = p;
+  if (game.party) { game.party.remove(old); game.party.add(p); }
   game.classId = toId;
   game.spriteReport = game.validateSprites ? game.validateSprites(to.preset) : game.spriteReport;
   game.progression.history.push({ from: from.id, to: toId, level: p.level });

@@ -1,3 +1,4 @@
+import { PARTY } from '../data/party.js';
 import { COMBAT_UI } from '../data/combatUI.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
@@ -108,6 +109,7 @@ export class HUD {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.drawStealth(ctx, W, H);
     this.drawNameplates(ctx, u);
+    this.drawParty(ctx, u);
     this.drawBossLabels(ctx, u);
     this.drawExits(ctx, u);
     g.vfx.drawScreen(ctx, (x, y) => this.toScreen(x, y), g.renderer.scale);
@@ -453,6 +455,23 @@ export class HUD {
       ctx.globalAlpha = 1;
       y += 42 * u;
     }
+  }
+
+  // PARTY (§63): a downed member shows DOWNED, its bleed-out time and the revive progress; near one: [Hold E] Revive
+  drawParty(ctx, u) {
+    const g = this.game, party = g.party;
+    if (!party) return;
+    const R = PARTY.downed;
+    for (const m of party.members) {
+      if (!m.downed) continue;
+      const s = this.toScreen(m.x, m.y - 70), w = 60 * u;
+      this.text(ctx, 'DOWNED', s.x, s.y, 11 * u, `rgba(255,150,130,${0.7 + 0.3 * Math.sin(g.time * 6)})`, { align: 'center' });
+      this.bar(ctx, s.x - w / 2, s.y + 4 * u, w, 4 * u, 1 - m.downedT / R.bleedOut, '#ff7060', '#6a1a14');
+      const pr = party.progress(m);
+      if (pr > 0) this.bar(ctx, s.x - w / 2, s.y + 10 * u, w, 5 * u, pr, '#8af0a0', '#1a6a2c');
+    }
+    const p = g.player, near = !p.downed && !p.dead && party.downedNear(p);
+    if (near) { const s = this.toScreen(near.x, near.y - 92); this.text(ctx, '[Hold E] Revive', s.x, s.y, 11 * u, '#dfffe0', { align: 'center' }); }
   }
 
   // current target (combat/targetSystem.js): marker over it + a small frame at the top (hidden when the boss bar shows it)

@@ -1,3 +1,4 @@
+import { PartySystem } from '../party/partySystem.js';
 import { COMBAT_UI } from '../data/combatUI.js';
 import { EventBus } from './events.js';
 import { Input } from '../input/input.js';
@@ -199,6 +200,9 @@ export class Game {
     this.summons = new SummonSystem(SUMMONS, { onEvent: (name, data) => this.events.emit(name, data) });
     this.world = new World(this);
     this.player = new Player(this, cls, this.spritesFor(cls));
+    // PARTY (party/partySystem.js, data/party.js): the players of this world — solo = a party of one
+    this.party = new PartySystem(this);
+    this.party.add(this.player);
     // V2.2 world progression: defeated bosses / unlocked maps / world events (world/worldProgression.js),
     // every boss fight (boss/bossSystem.js + data/bosses.js), world triggers (data/worldTriggers.js)
     this.worldProgress = new WorldProgression(this);
@@ -326,7 +330,7 @@ export class Game {
   }
 
   // ---------------- helpers used by systems
-  controlsEnabled() { return this.state === 'play' && !this.ui.panelOpen && !this.player.dead; }
+  controlsEnabled() { return this.state === 'play' && !this.ui.panelOpen && !this.player.dead && !this.player.downed; }
   mouseWorld() {
     const r = this.renderer, m = this.input.mouse;
     return this.camera.toWorld((m.x * r.dpr) / r.scale, (m.y * r.dpr) / r.scale);
@@ -342,17 +346,26 @@ export class Game {
     for (const tm of due) tm.fn();
   }
   // every player in this world (solo today; a party of up to 4 later) — enemies and enemy strikes use this list
-  players() { return this.player ? [this.player] : []; }
+  // (downed / defeated members are left out: enemies ignore them)
+  players() { return this.party ? this.party.members.filter((m) => !m.dead && !m.downed) : this.player ? [this.player] : []; }
   slowMo(scale, dur) { this.timeScale = Math.min(this.timeScale, scale); this.slowT = Math.max(this.slowT, dur); }
 
-  onPlayerDeath() {
+  // a player reached 0 HP: the party decides — DOWNED (teammates can revive) or ENCOUNTER FAILED (nobody standing)
+  onPlayerDeath(p = this.player) {
+    const r = this.party ? this.party.onDefeated(p) : ((p.dead = true), 'failed');
+    if (r === 'downed') {
+      if (p === this.player) this.ui.banner('DOWNED', 'Hold on — a teammate can revive you', '#ff9a80', 3);
+      return r;
+    }
     this.stats.deaths++;
     this.audio.sfx('death');
     this.slowMo(0.3, 1.2);
     this.after(1.6, () => this.ui.panels.death(), true);
+    return r;
   }
   respawn() {
     const w = this.world, p = this.player;
+    if (this.party) this.party.reset(); // checkpoint: every member stands up again
     if (this.bosses.engaged) this.bosses.resetEngaged(); // any boss: heals + waits in its arena again
     else if (w.bossActive) w.resetBoss();
     this.combat.clear();
@@ -518,6 +531,7 @@ export class Game {
     this.world.update(sdt);
     this.targets.update(this.player);
     this.combat.update(sdt);
+    this.party.update(sdt);
     this.attackSlots.update(sdt);
     this.attackSlots.prune((a) => a.dead || a.state !== 'attack' || !this.world.onMap(a));
     this.marks.update(sdt, { inCombat: (e) => (e === this.player ? this.combat.inCombat : true) });

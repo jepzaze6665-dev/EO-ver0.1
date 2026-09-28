@@ -270,7 +270,7 @@ export class Player extends Entity {
 
   // ---------------- defense
   invulnerable() {
-    return this.invulnT > 0 || this.dodging || (this.action && this.action.invuln && this.action.t >= this.action.invuln[0] && this.action.t <= this.action.invuln[1]);
+    return this.invulnT > 0 || this.dodging || this.downed || (this.action && this.action.invuln && this.action.t >= this.action.invuln[0] && this.action.t <= this.action.invuln[1]);
   }
   canPerfect() {
     return isPerfectDodge(this.game.time, this.dodgeStart, this.perfectCooldown, this.mods.perfectWindow || 0);
@@ -309,11 +309,11 @@ export class Player extends Entity {
     }
   }
   onDeath() {
-    this.dead = true;
     this.guardState.active = false;
     this.deathT = 0;
     this.endAction(true);
-    this.game.onPlayerDeath();
+    this.dodging = false;
+    this.game.onPlayerDeath(this); // party: downed (revivable) or defeated -> sets dead / downed
   }
 
   // ---------------- actions
@@ -409,6 +409,7 @@ export class Player extends Entity {
     this.flash = Math.max(0, this.flash - dt);
     this.markPulse = Math.max(0, this.markPulse - dt * 2);
     if (this.dead) { this.deathT += dt; return; }
+    if (this.downed) { this.vx = this.vy = 0; this.moving = false; return; } // waits for a teammate (party/partySystem.js)
 
     this.invulnT = Math.max(0, this.invulnT - dt);
     this.hurtT = Math.max(0, this.hurtT - dt);
@@ -442,6 +443,7 @@ export class Player extends Entity {
       else if (input.pressed('KeyQ') || input.mouse.rightPressed) input.pushBuffer('break');
       for (let i = 1; i <= 5; i++) if (input.pressed('Digit' + i)) input.pushBuffer('skill' + i);
       if (input.pressed('KeyR')) g.inventory.quickUse('hp_potion');
+      if (input.isDown('KeyE') && g.party) g.party.tryRevive(this, dt); // hold [E] next to a downed teammate
       if (input.pressed('KeyF')) g.inventory.quickUse('shadow_tonic');
 
       if (input.peek('dodge') && this.tryDodge()) input.consume('dodge');
@@ -568,6 +570,10 @@ export class Player extends Entity {
     if (this.dead) {
       const f = this.sprites.frame('death', Math.min(1, this.deathT / 0.6), dir4(this.facing));
       this.sprites.draw(ctx, f, this.x, y, Math.max(0.25, 1 - this.deathT * 0.4));
+      return;
+    }
+    if (this.downed) { // party: lying on the ground, waiting for a revive (pulses so teammates spot it)
+      this.sprites.draw(ctx, this.sprites.frame('death', 1, dir4(this.facing)), this.x, y, 0.75 + 0.2 * Math.sin(g.time * 4));
       return;
     }
     const f = this.currentFrame();

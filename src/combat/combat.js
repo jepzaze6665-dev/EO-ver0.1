@@ -124,6 +124,7 @@ export class Combat {
   // src: attacker entity (player or monster). opts: power, type, knock, stagger, crit bonus, flags
   dealDamage(src, target, opts) {
     const g = this.game;
+    if (target.downed) return { amount: 0, crit: false, killed: false, tags: ['downed'] }; // party: a downed player waits for a revive
     const fromPlayer = src && src.team === TEAM.PLAYER;
     const ang = src ? angleTo(src.x, src.y, target.x, target.y) : rand(0, TAU);
     // 1) CALCULATE — pure, data in / result out (combat/damageSystem.js)
