@@ -5,6 +5,8 @@
 //  drops : [{ item, chance 0..1, count? (default 1) }] — each rolled independently
 export const LOOT_TABLES = {
   rabbit: { gold: [1, 3], drops: [{ item: 'hare_pelt', chance: 0.5 }] },
+  armadillo: { gold: [14, 24], drops: [{ item: 'stone_scute', chance: 0.6 }, { item: 'hp_potion', chance: 0.08 }] },
+  rock_rhino: { gold: [24, 40], drops: [{ item: 'crag_horn', chance: 0.45 }, { item: 'stone_scute', chance: 0.3 }, { item: 'hp_potion', chance: 0.12 }] },
   wolf: { gold: [2, 6], drops: [{ item: 'wolf_fang', chance: 0.6 }] },
   goblin: { gold: [6, 14], drops: [{ item: 'goblin_iron', chance: 0.5 }, { item: 'hp_potion', chance: 0.12 }] },
   crystal_beast: { gold: [10, 20], drops: [{ item: 'crystal_shard', chance: 0.75 }] },

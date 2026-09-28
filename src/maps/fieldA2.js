@@ -26,6 +26,21 @@ export const FIELD_A2 = {
       { id: 'a2_gate_plaque', kind: 'sign', tx: 88, ty: 191, prompt: 'Read Plaque', title: 'Valley Gate', text: PLAQUE },
       { id: 'ws_a2_gate', kind: 'waystone', tx: 79, ty: 194, name: 'Valley Gate', prompt: 'Waystone' },
     ],
+    // packs per terrace: the Valley Gate stays quiet; armadillos on the open terraces, rhinos guard the ruins
+    spawns: [
+      { id: 'a2_pines', type: 'armadillo', count: 3, tx: 58, ty: 156, radius: 5 },
+      { id: 'a2_lake', type: 'armadillo', count: 2, tx: 40, ty: 160, radius: 3 },
+      { id: 'a2_fords', type: 'armadillo', count: 2, tx: 98, ty: 134, radius: 4 },
+      { id: 'a2_fords_rhino', type: 'rock_rhino', count: 1, tx: 104, ty: 130, radius: 2 },
+      { id: 'a2_commons', type: 'armadillo', count: 2, tx: 78, ty: 112, radius: 4 },
+      { id: 'a2_temple', type: 'rock_rhino', count: 2, tx: 36, ty: 102, radius: 5 },
+      { id: 'a2_temple_b', type: 'armadillo', count: 1, tx: 28, ty: 96, radius: 2 },
+      { id: 'a2_arch', type: 'armadillo', count: 3, tx: 138, ty: 120, radius: 5 },
+      { id: 'a2_upper', type: 'rock_rhino', count: 2, tx: 80, ty: 64, radius: 5 },
+      { id: 'a2_upper_b', type: 'armadillo', count: 2, tx: 72, ty: 60, radius: 3 },
+      // Elite: a Crag Rhino guards the Gilded Shrine (killed once)
+      { id: 'a2_shrine_warden', type: 'rock_rhino', elite: true, unique: true, count: 1, tx: 138, ty: 66, radius: 0 },
+    ],
   },
   exits: [
     { id: 'south_road', rect: [80, 202, 88, 203], to: 'arena', entry: [136, 14.5], label: 'Guardian Arena' },

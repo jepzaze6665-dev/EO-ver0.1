@@ -18,6 +18,35 @@ export const MONSTERS = {
       { id: 'pounce', range: 100, min: 45, windup: 0.6, recover: 0.6, cd: 3.5, power: 10, shape: { shape: 'line', len: 95, width: 12 }, kind: 'dash', dashTime: 0.2 },
     ],
   },
+  // ---------------- A2 ANCIENT VALLEY (owner's sheets desgin/monster/A2, art data/monsterArt.js). Lv 10-13 for a
+  // player arriving at LV 10 after the Guardian. Each attack has a clear counter (read -> dodge -> punish):
+  armadillo: {
+    name: 'Stoneback Armadillo', level: 10, hp: 700, def: 12, speed: 84, radius: 12, height: 26, mass: 1.6,
+    detect: 150, leash: 460, exp: 80, loot: 'armadillo', weakness: ['shadow'], sprite: 'armadillo', poise: 50, turn: 6,
+    role: 'skirmisher',
+    pattern: 'Tail Sweep / Boulder Roll / Spike Burst', desc: 'Curls into a stone ball and rolls straight at you — step aside, then strike while it reels.',
+    attacks: [
+      // tail sweep: a quick circle around it — back off or dodge out
+      { id: 'tail', range: 40, min: 0, windup: 0.5, recover: 0.5, cd: 1.6, power: 24, shape: { shape: 'circle', r: 44 }, kind: 'strike', knock: 140 },
+      // boulder roll: line telegraph, a fast roll along it, then DIZZY (vulnerable) — dodge sideways and punish
+      { id: 'roll', range: 190, min: 70, windup: 0.75, recover: 0.8, cd: 4.2, power: 34, shape: { shape: 'line', len: 190, width: 22 }, kind: 'dash', dashTime: 0.34, exposes: 1.4, exposeText: 'DIZZY!', knock: 240 },
+      // spike burst (heavy): stone spikes erupt in a ring — leave the ring before it resolves
+      { id: 'spikes', range: 70, min: 0, windup: 0.95, recover: 0.9, cd: 6, power: 32, shape: { shape: 'ring', r0: 18, r: 72 }, kind: 'strike', knock: 200, heavy: true },
+    ],
+  },
+  rock_rhino: {
+    name: 'Crag Rhino', level: 12, hp: 1300, def: 10, speed: 70, radius: 17, height: 40, mass: 3.2, superArmor: true,
+    detect: 170, leash: 480, exp: 130, loot: 'rock_rhino', weakness: ['physical'], sprite: 'rock_rhino', poise: 90, turn: 2.2,
+    role: 'bruiser',
+    pattern: 'Horn Gore / Rampage Charge / Tremor Stomp', desc: 'Turns slowly and charges in a straight line. A missed charge leaves it stumbling — flank it.',
+    attacks: [
+      { id: 'gore', range: 50, min: 0, windup: 0.6, recover: 0.6, cd: 1.8, power: 32, shape: { shape: 'cone', r: 58, half: 0.7 }, kind: 'strike', knock: 180 },
+      // rampage charge: long, guard-breaking; misses leave it recovering much longer (flank + punish)
+      { id: 'charge', range: 240, min: 90, windup: 1.0, recover: 1.0, cd: 5.5, power: 44, shape: { shape: 'line', len: 240, width: 30 }, kind: 'dash', dashTime: 0.42, guardBreak: true, knock: 280, missRecover: 1.9, exposes: 1.2, exposeText: 'STUMBLING!' },
+      // tremor stomp (heavy): the ground shakes around it and slows — step out of the circle
+      { id: 'stomp', range: 64, min: 0, windup: 0.9, recover: 0.8, cd: 5, power: 30, shape: { shape: 'circle', r: 78 }, kind: 'strike', knock: 160, heavy: true, status: [{ id: 'slow', dur: 1.6 }] },
+    ],
+  },
   wolf: {
     name: 'Forest Wolf', level: 2, hp: 70, def: 2, speed: 128, radius: 10, height: 30, mass: 0.8,
     detect: 150, leash: 520, exp: 18, loot: 'wolf', weakness: ['shadow'], sprite: 'wolf', poise: 18, turn: 12,

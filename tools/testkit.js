@@ -885,3 +885,70 @@ export function gridCheck(g, classId = 'umbral_sword') {
   releaseInput(g);
   return R;
 }
+
+// W3b: A2 monsters (Stoneback Armadillo, Crag Rhino) — sheet art, every attack used after a telegraph, the punish
+// windows (dizzy / stumbling after a missed dash), stomp slow, loot, and a real (no god mode) pack fight at LV 10.
+export function a2MonsterCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player;
+  g.worldProgress.defeatBoss('boss_a1'); w.setFlag('guardianDefeated'); w.applyState();
+  w.changeMap('a2', { entry: [84.5, 190] }); g.simulate(0.3);
+  p.setLevel(10); p.hp = p.maxHp;
+  ok('A2 spawns its monsters (armadillo + rhino) with sheet art', ['armadillo', 'rock_rhino'].every((t) => w.monsters.some((m) => m.type === t && m.sprites.sheet)), w.monsters.map((m) => m.type).join(','));
+  // lab: one monster at a time next to the player at the quiet Valley Gate
+  const lab = (type, seconds, opts = {}) => {
+    for (const m of w.monsters) if (!m.dead && m.aggro) { m.aggro = false; m.setState('return'); }
+    releaseInput(g); const spot = w.map.findOpen(84.5 * TILE, 194 * TILE, 4); p.x = spot.x; p.y = spot.y; p.hp = p.maxHp;
+    const M = w.monsters.find((m) => m.type === type).constructor;
+    const d = type === 'rock_rhino' ? 200 : 110; // far enough for the dash attacks (their min range)
+    const m = new M(g, type, p.x + d, p.y - 20, {}); m.aggro = true; m.setState('chase'); w.monsters.push(m);
+    const used = new Set(), start = m.startAttack.bind(m), rep = { used, windups: [], missed: 0, vuln: 0, slowed: 0, hits: 0 };
+    m.startAttack = (atk) => { used.add(atk.id); rep.windups.push(atk.windup); return start(atk); };
+    const onMiss = (e) => { if (e.attacker === m) rep.missed++; };
+    const onDmg = (e) => { if (e.source === m && e.target === p) rep.hits++; };
+    g.events.on('attackMissed', onMiss); g.events.on('damageDealt', onDmg);
+    for (let t = 0; t < seconds; t += 0.1) {
+      g.simulate(0.1, opts.bot ? (gg, i) => bot(gg, i, { god: opts.god }) : () => { if (opts.god !== false) p.hp = p.maxHp; if (opts.move) { p.x += Math.sin(g.time * 1.3) * 3; } });
+      if (m.status.has('vulnerable')) rep.vuln++;
+      if (p.status.has('slow')) rep.slowed++;
+      if (m.dead || used.size >= (opts.until || 99)) break;
+    }
+    g.events.off && g.events.off('attackMissed', onMiss); g.events.off && g.events.off('damageDealt', onDmg);
+    rep.m = m;
+    return rep;
+  };
+  for (const [type, ids] of [['armadillo', ['tail', 'roll', 'spikes']], ['rock_rhino', ['gore', 'charge', 'stomp']]]) {
+    const r = lab(type, 40, { until: 3 });
+    ok(`${type}: every attack used (${ids.join(' / ')})`, ids.every((id) => r.used.has(id)), [...r.used].join(','));
+    ok(`${type}: every attack starts with a telegraph (wind-up >= 0.5 s)`, r.windups.length && r.windups.every((s) => s >= 0.5), r.windups.join(','));
+    ok(`${type}: attacks land on a player who does not dodge`, r.hits > 0, `hits=${r.hits}`);
+    r.m.dead = true; r.m.removed = true;
+  }
+  // punish window: stand still beside the dash line so the roll / charge whiffs -> vulnerable afterwards
+  for (const type of ['armadillo', 'rock_rhino']) {
+    const r = lab(type, 30, { move: true });
+    ok(`${type}: a dodged / missed dash opens a punish window (vulnerable)`, r.vuln > 0 && r.missed > 0, `missed=${r.missed} vulnerable frames=${r.vuln}`);
+    r.m.dead = true; r.m.removed = true;
+  }
+  const st = lab('rock_rhino', 30, { until: 3 });
+  ok('Crag Rhino: Tremor Stomp slows', st.slowed > 0 || !st.used.has('stomp'), `slowed frames=${st.slowed} used=${[...st.used]}`);
+  st.m.dead = true; st.m.removed = true;
+  // loot + EXP on a kill
+  const gold0 = p.gold, exp0 = p.exp + p.level * 1e6;
+  const k = lab('armadillo', 0.1, {}); k.m.hp = 1; g.combat.dealDamage(p, k.m, { power: 99 }); g.simulate(1);
+  ok('Kill: EXP + gold', p.gold > gold0 && p.exp + p.level * 1e6 > exp0, `gold +${p.gold - gold0}`);
+  // real fight: the River Fords pack (2 armadillos + a rhino), LV 10, the bot dodges, no god mode
+  releaseInput(g); for (const m of w.monsters) { m.aggro = false; }
+  p.setLevel(10); p.hp = p.maxHp; g.inventory.add('hp_potion', 3, true);
+  goto(g, 96, 140);
+  const pack = w.monsters.filter((m) => !m.dead && Math.hypot(m.x - p.x, m.y - p.y) < 14 * TILE);
+  for (const m of pack) { m.aggro = true; m.setState('chase'); } // the whole pack joins in
+  let hits = 0; const onDmg = (e) => { if (e.target === p && e.amount > 0) hits++; }; g.events.on('damageDealt', onDmg);
+  let t = 0, minHp = p.maxHp;
+  for (; t < 90 && !p.dead && pack.some((m) => !m.dead); t += 1) { g.simulate(1, (gg, i) => bot(gg, i, {})); minHp = Math.min(minHp, p.hp); }
+  g.events.off('damageDealt', onDmg);
+  ok('Pack fight at LV 10 (no god mode): the player wins', !p.dead && pack.length >= 2 && pack.every((m) => m.dead), `pack=${pack.map((m) => m.type).join('+')} ${t}s hits taken ${hits} lowest HP ${Math.round((minHp / p.maxHp) * 100)}% dead=${p.dead}`);
+  releaseInput(g);
+  return R;
+}

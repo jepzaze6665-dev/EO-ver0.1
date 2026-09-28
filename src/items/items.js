@@ -78,6 +78,8 @@ export const ITEMS = {
   hp_potion: { name: 'Healing Draught', cat: 'Consumable', rarity: 'common', icon: 'potion', color: '#e05060', desc: 'Restores 40% HP. [R]', price: 30, use: 'heal' },
   shadow_tonic: { name: 'Shadow Tonic', cat: 'Consumable', rarity: 'common', icon: 'potion', color: '#a060ff', desc: 'Restores 50 class resource (SHADOW / ASTRAL). [F]', price: 40, use: 'shadow' },
   // ---- materials
+  stone_scute: { name: 'Stone Scute', cat: 'Material', rarity: 'common', icon: 'ore', color: '#b09a78', desc: 'A plate of an Ancient Valley armadillo\'s shell.', sell: 16 },
+  crag_horn: { name: 'Crag Horn', cat: 'Material', rarity: 'uncommon', icon: 'fang', color: '#d8c8a0', desc: 'The stone horn of a Crag Rhino.', sell: 30 },
   hare_pelt: { name: 'Hare Pelt', cat: 'Material', rarity: 'common', icon: 'cloak', color: '#e8dcc8', desc: 'Soft pelt of a Whisper Hare.', sell: 4 },
   wolf_fang: { name: 'Wolf Fang', cat: 'Material', rarity: 'common', icon: 'fang', color: '#d8d0c0', desc: 'Dropped by Forest Wolves.', sell: 8 },
   goblin_iron: { name: 'Goblin Iron', cat: 'Material', rarity: 'common', icon: 'ore', color: '#8a8a90', desc: 'Crude iron scraps.', sell: 12 },

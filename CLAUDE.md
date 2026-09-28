@@ -314,7 +314,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   boss ground at `regions.bossRift`), sides Sunken Temple / Golden Arch → Gilded Shrine (loop) / Mirror Lake, hidden slot
   Quiet Hollow; river on the east + south, each road crosses it once (auto BRIDGE tiles). New tiles T.SCORCHED (walkable)
   and T.LAVA (solid, shots fly over). Waystone `ws_a2_gate`. Landmarks are per grid (`landmarks` in world/levels).
-  Next: W3b A2 monsters (armadillo + rock rhino from the sheets: combat data, packs, spawns), W3c the Magma Beast boss in the
-  Magma Rift, W4 A3 Rune Citadel (owner's A3 sheets fit: dark stone + gold + purple crystal) + rune knight (major),
+  W3b done (A2 monsters): `armadillo` Stoneback Armadillo Lv 10 (hp 700, skirmisher: tail circle · Boulder Roll dash ->
+  DIZZY vulnerable 1.4 s · Spike Burst ring, heavy) and `rock_rhino` Crag Rhino Lv 12 (hp 1300, bruiser, superArmor, slow
+  turn: Horn Gore cone · Rampage Charge dash, guardBreak, missRecover 1.9 + STUMBLING · Tremor Stomp circle + slow);
+  art per attack in monsterArt `attacks`; loot stone_scute / crag_horn; packs per terrace in maps/fieldA2.js
+  `content.spawns` (+ Elite rhino at the Gilded Shrine). Monster attacks may carry `status` and `exposeText` (generic;
+  the back-core turn after a dash is only for `weakPoint` monsters). `T.a2MonsterCheck(g, classId)` (12 steps: every
+  attack used after a telegraph, punish windows, slow, loot, a no-god LV 10 pack fight) — 12/12 for all 4 classes.
+  Bots dodge almost perfectly (take 0-1 hits): real difficulty needs a human playtest.
+  Next: W3c the Magma Beast boss in the Magma Rift, W4 A3 Rune Citadel (owner's A3 sheets fit: dark stone + gold + purple crystal) + rune knight (major),
   W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

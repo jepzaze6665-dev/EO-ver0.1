@@ -57,6 +57,11 @@ export const MONSTER_ART = {
       idle: ['walk', [0]], move: 'walk', windup: ['attack', [0, 1]], attack: ['attack', [2, 3]], hurt: 'hit', death: 'death',
       front: ['front', [0, 1, 2]], back: 'back', roll: 'special',
     },
+    attacks: {
+      tail: { windup: ['attack', [0]], attack: ['attack', [1, 2, 3]] },
+      roll: { windup: ['special', [0]], attack: ['special', [1]] },     // curls (red outline) -> spinning ball
+      spikes: { windup: ['special', [0]], attack: ['special', [2, 3]] }, // stone spikes / rock burst
+    },
   },
   rock_rhino: {
     sheet: 'rock_rhino', replaces: ['rock_rhino'],
@@ -64,6 +69,11 @@ export const MONSTER_ART = {
       idle: ['walk', [0]], move: 'walk', windup: ['gore', [0, 1]], attack: ['gore', [2, 3, 4]], hurt: 'hit', death: 'death',
       front: ['views', [0]], back: ['views', [1]], stomp: 'stomp',
     },
+    attacks: {
+      charge: { windup: ['stomp', [0, 1]], attack: 'walk' },          // dust aura build-up -> runs
+      stomp: { windup: ['stomp', [0, 1]], attack: ['stomp', [2, 3, 4]] },
+    },
+    fps: { move: 9 },
   },
   magma_beast: {
     sheet: 'magma_beast', replaces: ['magma_beast'],
