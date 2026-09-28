@@ -114,6 +114,25 @@ const SHEETS = {
     file: 'B/B1/3', height: 22,
     rows: [['idle', 4], ['walk', 4], ['attack', 4], ['hit', 4], ['telegraph', 4], ['special', 4], ['death', 4]],
   },
+  // ---------------- B2 CRYSTAL CAVERNS
+  crystal_slime: {
+    file: 'B/B2/1', height: 24, // sides drawn facing left
+    rows: [['front', 7], ['back', 7], ['side', 7, { flip: true }], ['side_b', 7, { flip: true }], ['attack', 7, { flip: true }], ['hit', 7],
+      ['special', 7], ['death', 7, { flip: true }]],
+  },
+  cave_spider: {
+    file: 'B/B2/2', height: 30, region: [250, 100, 2048, 2048], // one pose per action row x direction columns
+    rows: [['idle', 4], ['walk', 6], ['attack', 4], ['hit', 4], ['telegraph', 4], ['special', 4], ['death', 4]],
+  },
+  crystal_bat: {
+    file: 'B/B2/3', height: 28, region: [230, 90, 2048, 2048],
+    rows: [['idle', 4], ['walk', 6], ['attack', 5], ['hit', 5], ['telegraph', 4], ['special', 6], ['death', 5]],
+  },
+  moss_tortoise: {
+    file: 'B/B2/4', height: 38, region: [150, 0, 2048, 2048], flip: true, // DOWN / UP / SIDE rows per action: the side row (faces left)
+    rows: [['idle', 5, { y: [192, 266] }], ['walk', 7, { y: [476, 549] }], ['attack', 7, { y: [745, 823] }], ['telegraph', 7, { y: [1040, 1118] }],
+      ['special', 8, { y: [1345, 1427] }], ['hit', 8, { y: [1646, 1726] }], ['death', 6, { y: [1917, 1988] }]],
+  },
   // B1 BOSS: HOARFANG, a giant frost wolf (faces right on every row)
   hoarfang: {
     file: 'B/B1/BOSS', height: 76,

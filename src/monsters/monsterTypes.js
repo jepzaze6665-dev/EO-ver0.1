@@ -121,6 +121,49 @@ export const MONSTERS = {
       { id: 'dash', range: 180, min: 60, windup: 0.65, recover: 0.8, cd: 4.5, power: 26, shape: { shape: 'line', len: 180, width: 18 }, kind: 'dash', dashTime: 0.25, knock: 180 },
     ],
   },
+  // ---------------- B2 CRYSTAL CAVERNS (owner's sheets desgin/monster/B/B2). Lv 10-13 like A2.
+  crystal_slime: {
+    name: 'Prism Slime', level: 10, hp: 520, def: 6, speed: 78, radius: 11, height: 24, mass: 1,
+    detect: 140, leash: 440, exp: 60, loot: 'crystal_slime', weakness: ['physical'], sprite: 'crystal_slime', poise: 30, turn: 8,
+    role: 'swarm',
+    pattern: 'Glob Rush / Crystal Pulse', desc: 'Jiggles closer in groups. It sinks down before a pulse that slows — step off the ring. A rush that misses leaves it splattered.',
+    attacks: [
+      { id: 'rush', range: 120, min: 40, windup: 0.55, recover: 0.7, cd: 2.8, power: 22, shape: { shape: 'line', len: 120, width: 18 }, kind: 'dash', dashTime: 0.25, knock: 150, exposes: 0.9, exposeText: 'SPLATTERED!' },
+      { id: 'pulse', range: 56, min: 0, windup: 0.85, recover: 0.8, cd: 5, power: 22, shape: { shape: 'ring', r0: 14, r: 64 }, kind: 'strike', knock: 160, status: [{ id: 'slow', dur: 1.4 }] },
+    ],
+  },
+  cave_spider: {
+    name: 'Shardback Spider', level: 11, hp: 700, def: 9, speed: 112, radius: 12, height: 30, mass: 1.2,
+    detect: 170, leash: 480, exp: 90, loot: 'cave_spider', weakness: ['shadow'], sprite: 'cave_spider', poise: 40, turn: 10,
+    role: 'skirmisher', flank: true,
+    pattern: 'Fang / Web Shot / Shard Eruption', desc: 'Scuttles to your side. Its web roots you in place; the glowing ring under it means shards are about to burst from the floor.',
+    attacks: [
+      { id: 'fang', range: 40, min: 0, windup: 0.45, recover: 0.5, cd: 1.4, power: 26, shape: { shape: 'cone', r: 46, half: 0.8 }, kind: 'strike', knock: 130 },
+      { id: 'web', range: 220, min: 70, windup: 0.7, recover: 0.6, cd: 4.5, power: 14, shape: { shape: 'cone', r: 200, half: 0.2 }, kind: 'volley', count: 1, spread: 0, speed: 240, projKind: 'orb', projColor: '#cfe8ff', status: [{ id: 'root', dur: 1 }] },
+      { id: 'eruption', range: 70, min: 0, windup: 0.95, recover: 0.9, cd: 6, power: 34, shape: { shape: 'circle', r: 76 }, kind: 'strike', knock: 220, heavy: true, opening: true },
+    ],
+  },
+  crystal_bat: {
+    name: 'Glimmer Bat', level: 12, hp: 560, def: 6, speed: 124, radius: 10, height: 28, mass: 0.6, float: true,
+    detect: 210, leash: 520, exp: 85, loot: 'crystal_bat', weakness: ['physical'], sprite: 'crystal_bat', poise: 25, turn: 12,
+    role: 'caster', keepAway: 110,
+    pattern: 'Wing Slash / Shard Storm', desc: 'Flits out of reach, then swoops through you. When it spreads its wings, crystal shards rain out in every direction.',
+    attacks: [
+      { id: 'swoop', range: 170, min: 50, windup: 0.6, recover: 0.8, cd: 3, power: 24, shape: { shape: 'line', len: 170, width: 18 }, kind: 'dash', dashTime: 0.26, knock: 150 },
+      { id: 'storm', range: 220, min: 0, windup: 0.85, recover: 0.8, cd: 5, power: 18, shape: { shape: 'cone', r: 200, half: 1.2 }, kind: 'volley', count: 6, spread: 2.2, speed: 230, projColor: '#9ad8ff' },
+    ],
+  },
+  moss_tortoise: {
+    name: 'Mossgem Tortoise', level: 13, hp: 1900, def: 16, armor: 600, speed: 46, radius: 18, height: 38, mass: 4, superArmor: true,
+    detect: 150, leash: 420, exp: 160, loot: 'moss_tortoise', weakness: ['shadow'], sprite: 'moss_tortoise', poise: 110, turn: 1.8,
+    role: 'tank', weakPoint: true,
+    pattern: 'Snap / Shell Quake / Pebble Volley', desc: 'Its emerald shell shrugs off blows — hit its soft back. The shell glows before a quake that throws everyone off their feet.',
+    attacks: [
+      { id: 'snap', range: 50, min: 0, windup: 0.6, recover: 0.7, cd: 2, power: 36, shape: { shape: 'cone', r: 58, half: 0.7 }, kind: 'strike', knock: 220 },
+      { id: 'quake', range: 90, min: 0, windup: 1.1, recover: 1.2, cd: 6, power: 38, shape: { shape: 'circle', r: 100 }, kind: 'strike', knock: 260, heavy: true, opening: true, guardBreak: true },
+      { id: 'pebbles', range: 240, min: 55, windup: 0.8, recover: 0.8, cd: 4, power: 22, shape: { shape: 'cone', r: 220, half: 0.5 }, kind: 'volley', count: 4, spread: 0.7, speed: 220, projColor: '#9aa890' },
+    ],
+  },
   // ---------------- B1 FROSTWIND PLAINS (owner's sheets desgin/monster/B/B1). Route B's first map: Lv 1-8 like A1.
   snow_hare: {
     name: 'Snowdrift Hare', level: 1, hp: 40, def: 0, speed: 120, radius: 8, height: 22, mass: 0.5,
@@ -177,10 +220,10 @@ export const MONSTERS = {
   leafling: {
     name: 'Leafling', level: 3, hp: 90, def: 3, speed: 96, radius: 9, height: 26, mass: 0.6, float: true, corruptible: true,
     detect: 150, leash: 480, exp: 26, loot: 'leafling', weakness: ['physical'], sprite: 'leafling', poise: 20, turn: 10, role: 'caster',
-    keepAway: 90, pattern: 'Seed Shot / Bloom', desc: 'A forest spirit that keeps its distance and spits seeds. Its heart glows before it blooms — step out of the ring.',
+    keepAway: 72, pattern: 'Seed Shot / Bloom', desc: 'A forest spirit that keeps its distance and spits seeds. Its heart glows before it blooms — step out of the ring.',
     attacks: [
       { id: 'seed', range: 200, min: 0, windup: 0.6, recover: 0.6, cd: 2.2, power: 14, shape: { shape: 'cone', r: 170, half: 0.25 }, kind: 'volley', count: 1, spread: 0, speed: 210, projColor: '#8af06a' },
-      { id: 'bloom', range: 56, min: 0, windup: 0.85, recover: 0.8, cd: 5, power: 18, shape: { shape: 'circle', r: 58 }, kind: 'strike', knock: 140, status: [{ id: 'root', dur: 0.9 }] },
+      { id: 'bloom', range: 78, min: 0, windup: 0.85, recover: 0.8, cd: 5, power: 18, shape: { shape: 'circle', r: 80 }, kind: 'strike', knock: 140, status: [{ id: 'root', dur: 0.9 }] },
     ],
   },
   treant: {

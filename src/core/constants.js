@@ -53,6 +53,7 @@ export const Z = {
   ASTERIA: 12, // City 2 Asteria City grid (world/levels/asteria.js)
   FROSTWIND: 13, // B1 Frostwind Plains grid (world/levels/frostwind.js)
   FROST_ARENA: 14, // B1 boss arena (the Frost Arena, SE of B1)
+  CAVERNS: 15, // B2 Crystal Caverns grid (world/levels/caverns.js)
 };
 
 export const ZONE_INFO = {
@@ -70,6 +71,7 @@ export const ZONE_INFO = {
   [Z.ASTERIA]: { name: 'ASTERIA CITY', sub: 'City 2 · Safe Zone', safe: true, music: 'asteria' },
   [Z.FROSTWIND]: { name: 'FROSTWIND PLAINS', sub: 'Route B · the Eastern Road', music: 'frost' },
   [Z.FROST_ARENA]: { name: 'THE FROST ARENA', sub: 'Route B · B1 Boss', music: 'gate' },
+  [Z.CAVERNS]: { name: 'CRYSTAL CAVERNS', sub: 'Route B · beneath the Frostpeak foothills', music: 'caverns' },
 };
 
 export const TEAM = { PLAYER: 1, ENEMY: 2, NEUTRAL: 3 };

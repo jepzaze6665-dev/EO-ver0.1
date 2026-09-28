@@ -94,6 +94,18 @@ export const QUESTS = {
     rewards: { exp: 250, gold: 150, items: { hp_potion: 3 } },
     requirements: [],
   },
+  // Route B spine for B2 (starts on the first visit to the Crystal Caverns)
+  crystal_depths: {
+    id: 'crystal_depths', name: 'THE CRYSTAL DEPTHS', giver: null, ordered: true, priority: 1,
+    description: 'The road to Frostpeak runs under the mountain. Cross the Underground Lake and find what woke the Heart of the Caverns.',
+    objectives: [
+      { id: 'lake', text: 'Cross the Underground Lake', type: 'flag', flag: 'b2Lake', marker: [92, 98], markerMap: 'b2' },
+      { id: 'ruins', text: 'Reach the Sunken Ruins', type: 'flag', flag: 'b2Ruins', marker: [143, 76], markerMap: 'b2' },
+      { id: 'heart', text: 'Find the Heart of the Caverns', type: 'flag', flag: 'b2Heart', marker: [124, 29], markerMap: 'b2' },
+    ],
+    rewards: { exp: 350, gold: 200, items: { hp_potion: 3 } },
+    requirements: [],
+  },
   // City 2 (W5): starts on the first visit to Asteria City (data/worldTriggers.js city2_first_visit)
   asteria: {
     id: 'asteria', name: 'THE LIVING CITY', giver: null, ordered: true, priority: 1,

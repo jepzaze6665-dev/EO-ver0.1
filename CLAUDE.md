@@ -425,5 +425,16 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   trigger b1_boss_defeated. WorldMap: props > 300 px go to `bigProps` (culled by their box, not the anchor chunk). The
   owner's whole-arena prop f_frost_arena is NOT used as a floor (its rock walls cross the fight when scaled).
   `T.b1BossCheck(g, classId, { god, level: 9 })` 11/11; no god LV 9: RP 73 s · AW 91.5 s · UB 93 s · AG 104.5 s.
-  Next: B2 Crystal Caverns (map + 4 monsters), B2 boss, B3 (Phase BOSS sheet = the Crystal Warden's main body).
+  B2a done: map `b2` CRYSTAL CAVERNS on grid `caverns` (168×208, zone Z.CAVERNS, music 'caverns', dark tint, skin 'caverns'
+  from the B2 tileset — card boxes), terrain `maps/crystalCaverns.js` from the reference: solid rock with chambers joined by
+  stone paths — Frozen Tunnel (NW entry) · Glittering Hall · Northern Gallery · Crystal Field · Old Mine (scaffolds, rails,
+  lanterns) · Underground Lake (deep water, bridge) · Sunken Ruins · Eastern Plaza · Glowroot Grotto · Sealed Crystal Vault
+  (Elite tortoise) · twin pools · Abyssal Arch (SE, sign: B3 later) · Heart of the Caverns (NE, gate cavern_heart_gate, event
+  b2_heart_open = the B2 boss, next phase). Props `k_*` (B2 prop sheet). Reached from the Frost Arena's south road (gate
+  b2_road_gate + exit south_road; B2 requires boss_b1), exit north_tunnel back. Monsters (desgin/monster/B/B2):
+  `crystal_slime` (swarm: glob rush -> SPLATTERED / crystal pulse ring + slow), `cave_spider` (flank: fang / web shot = root /
+  shard eruption heavy), `crystal_bat` (float caster: swoop / shard storm 6-way volley), `moss_tortoise` (tank, armour +
+  back weak point: snap / shell quake guardBreak / pebble volley). Quest `crystal_depths` (lake -> ruins -> the Heart).
+  `T.b2Check(g)` 7/7; spriteMonsterCheck 16/16 (Leafling keepAway 72 + bloom 78 so the bloom actually fires).
+  Next: B2b the B2 boss in the Heart of the Caverns (owner's B2 BOSS + VFX + AURA sheets), then B3.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

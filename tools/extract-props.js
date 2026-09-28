@@ -19,7 +19,8 @@ const A2P = '../A/a2/image-bf40810d-ac8c-4bed-a831-af8840274bbe-0';
 const A3P = '../A/a3/image-cffd3904-429f-435a-85d6-3b6b93bed0a8-0';
 const CP = '../City/ASTERIA CITY/image-6fbe1327-6060-4dcf-be43-116029029bdb-0';
 const B1P = '../B/B1/image-53b4c9a1-506f-42b5-904f-7281d8bc5b1f-0';
-const SCALE = { [A2P]: 0.5, [A3P]: 0.5, [B1P]: 0.5 }; // the city sheet (CP) stays full size: its buildings are drawn large
+const B2P = '../B/B2/image-b4a161fc-56d2-45fc-9b60-7300aa39c577-0';
+const SCALE = { [A2P]: 0.5, [A3P]: 0.5, [B1P]: 0.5, [B2P]: 0.5 }; // the city sheet (CP) stays full size: its buildings are drawn large
 // sheets whose background is not the navy of the old sets: their own background test. `fillHoles` = box mode keeps
 // background-coloured pixels enclosed by the prop (dark grey stone inside the city buildings)
 const GREY_BG = (r, g, b) => { const l = (r + g + b) / 3; return l >= 24 && l <= 58 && Math.max(r, g, b) - Math.min(r, g, b) <= 8; };
@@ -183,6 +184,32 @@ const MANIFEST = {
   f_snow_bush_b: [B1P, 453, 1338, 524, 1414], f_column_a: [B1P, 1838, 1255, 1906, 1409], f_column_b: [B1P, 1920, 1249, 1971, 1405], f_ice_altar: [B1P, 743, 1917, 865, 2005],
   f_ice_spikes: [B1P, 896, 1795, 1013, 1894], f_well: [B1P, 643, 1831, 719, 1923], f_ruin_tower: [B1P, 409, 1789, 520, 2010], f_bones_a: [B1P, 1549, 1800, 1619, 1854],
   f_bones_b: [B1P, 1646, 1810, 1711, 1866], f_bones_c: [B1P, 1943, 1960, 2018, 2010], f_logs: [B1P, 1153, 1803, 1225, 1870],
+  // ---- B2 CRYSTAL CAVERNS (owner's sheet desgin/Map/B/B2): crystal clusters, basalt pillars, rune circles, waterfalls,
+  // cave walls, mine gear (scaffolds, rails, carts, lanterns), ruins (arch gate, shrine), bones
+  k_crystal_big: [B2P, 18, 15, 220, 268], k_crystal_a: [B2P, 238, 49, 349, 238], k_crystal_violet: [B2P, 381, 23, 553, 247], k_crystal_twin: [B2P, 573, 54, 770, 235],
+  k_crystal_violet_b: [B2P, 787, 39, 947, 233], k_crystal_violet_c: [B2P, 967, 36, 1103, 241], k_pillar_glow: [B2P, 1120, 47, 1190, 228], k_pillar_violet: [B2P, 1339, 49, 1434, 246],
+  k_pillar_blue: [B2P, 1437, 36, 1522, 235], k_crystal_field: [B2P, 16, 278, 193, 428], k_spire: [B2P, 216, 262, 343, 422], k_rune_circle: [B2P, 371, 253, 547, 428],
+  k_rune_pool: [B2P, 569, 254, 756, 427], k_cave_arch: [B2P, 783, 268, 954, 429], k_cave_glow: [B2P, 1177, 268, 1320, 427], k_cave_violet: [B2P, 1344, 265, 1528, 434],
+  k_column_a: [B2P, 1706, 90, 1774, 232], k_column_b: [B2P, 1954, 61, 2023, 232], k_column_c: [B2P, 1849, 269, 1916, 400], k_column_d: [B2P, 1958, 268, 2028, 408],
+  k_obelisk: [B2P, 1653, 260, 1728, 397], k_wall_a: [B2P, 347, 448, 508, 597], k_wall_b: [B2P, 526, 455, 651, 597], k_wall_violet: [B2P, 679, 448, 874, 606],
+  k_shrine: [B2P, 1259, 448, 1381, 581], k_column_e: [B2P, 1558, 439, 1625, 595], k_column_f: [B2P, 1657, 436, 1744, 596], k_arch_gate: [B2P, 1758, 424, 1939, 639],
+  k_column_glow: [B2P, 1952, 473, 2031, 630], k_scaffold_a: [B2P, 1811, 644, 1899, 773], k_scaffold_b: [B2P, 1925, 646, 2028, 842], k_rune_plate: [B2P, 1369, 770, 1496, 855],
+  k_violet_ore: [B2P, 1250, 774, 1342, 864], k_mine_lift: [B2P, 1529, 870, 1610, 1002], k_mine_frame: [B2P, 1934, 869, 2028, 1000], k_post: [B2P, 1864, 861, 1911, 1000],
+  k_cliff_a: [B2P, 21, 1305, 166, 1481], k_cliff_b: [B2P, 191, 1305, 289, 1478], k_cliff_c: [B2P, 301, 1305, 390, 1477], k_cliff_d: [B2P, 415, 1304, 522, 1474],
+  k_cliff_e: [B2P, 528, 1309, 623, 1474], k_cliff_f: [B2P, 641, 1304, 748, 1477], k_cliff_violet: [B2P, 776, 1311, 913, 1480], k_cliff_g: [B2P, 937, 1311, 1030, 1473],
+  k_cliff_h: [B2P, 1053, 1308, 1185, 1469], k_waterfall_a: [B2P, 400, 1495, 538, 1680], k_waterfall_b: [B2P, 556, 1498, 703, 1687],
+  k_crane: [B2P, 1243, 1035, 1320, 1213], k_lantern_hang: [B2P, 1325, 1051, 1385, 1199], k_cart: [B2P, 1492, 1020, 1588, 1114], k_rails_a: [B2P, 1747, 1026, 1859, 1138],
+  k_rails_b: [B2P, 1847, 1028, 2021, 1153], k_winch: [B2P, 1838, 1162, 1961, 1303], k_lamp: [B2P, 1227, 1220, 1264, 1304], k_sign: [B2P, 1481, 1229, 1541, 1284],
+  k_mine_box: [B2P, 1690, 1214, 1807, 1299], k_gear_well: [B2P, 1784, 1367, 1907, 1433], k_lamp_frame: [B2P, 1935, 1330, 2011, 1442],
+  k_crystal_s1: [B2P, 731, 1592, 822, 1687], k_crystal_s2: [B2P, 868, 1589, 960, 1684], k_crystal_s3: [B2P, 987, 1594, 1061, 1680], k_crystal_ice: [B2P, 1206, 1441, 1292, 1550],
+  k_crystal_dark: [B2P, 1261, 1581, 1331, 1676], k_crystal_mix: [B2P, 1477, 1580, 1642, 1688], k_crystal_altar: [B2P, 1902, 1572, 2018, 1684], k_crystal_blue: [B2P, 1674, 1575, 1736, 1665],
+  k_crystal_m1: [B2P, 140, 1686, 221, 1848], k_crystal_m2: [B2P, 239, 1701, 330, 1850], k_crystal_m3: [B2P, 346, 1697, 426, 1855], k_crystal_m4: [B2P, 466, 1701, 587, 1844],
+  k_crystal_violet_s: [B2P, 23, 1679, 124, 1852], k_candle_a: [B2P, 1387, 1468, 1432, 1544], k_candle_b: [B2P, 1593, 1483, 1632, 1547], k_crate_a: [B2P, 1863, 1461, 1933, 1550],
+  k_crate_b: [B2P, 1646, 1705, 1707, 1785], k_crate_c: [B2P, 1723, 1711, 1804, 1800], k_barrel_a: [B2P, 1819, 1705, 1881, 1792], k_barrel_b: [B2P, 1903, 1719, 1962, 1797],
+  k_gem_a: [B2P, 608, 1820, 674, 1898], k_gem_b: [B2P, 695, 1820, 759, 1895], k_gem_c: [B2P, 868, 1817, 938, 1897], k_gem_d: [B2P, 949, 1822, 1010, 1893],
+  k_gem_e: [B2P, 620, 1919, 681, 2000], k_gem_f: [B2P, 810, 1910, 877, 2000], k_gems_violet: [B2P, 1021, 1817, 1128, 1893], k_rubble: [B2P, 888, 1921, 964, 1991],
+  k_rubble_b: [B2P, 1097, 1914, 1216, 2000], k_skull_pile: [B2P, 704, 1923, 798, 1998], k_skull: [B2P, 1324, 1912, 1385, 1995], k_skeleton: [B2P, 1499, 1823, 1530, 1885],
+  k_crystal_c1: [B2P, 30, 1873, 110, 1967], k_crystal_c2: [B2P, 135, 1882, 214, 2007], k_crystal_c3: [B2P, 238, 1866, 329, 1992], k_crystal_c4: [B2P, 472, 1871, 580, 1997],
 };
 
 function bgLike(r, g, b) {

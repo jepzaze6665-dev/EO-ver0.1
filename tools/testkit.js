@@ -1200,7 +1200,8 @@ export function spriteMonsterCheck(g, classId = 'umbral_sword') {
   ok('Summons use sheet art too (Guardian thornlings, Thornbound Elder leaflings)', !noArt.size, [...noArt].join(','));
   const labs = [['leafling', 'lumina', 'a1', [47, 150]], ['treant', 'a1', 'a1', [47, 150]], ['quill_lizard', 'a2', 'a2', [84.5, 190]],
     ['burrower', 'a2', 'a2', [84.5, 190]], ['void_scarab', 'a3', 'a3', [84, 190]], ['rune_wisp', 'a3', 'a3', [84, 190]],
-    ['snow_hare', 'b1', 'b1', [20, 27]], ['rime_wolf', 'b1', 'b1', [20, 27]], ['frost_harrier', 'b1', 'b1', [20, 27]], ['frost_bear', 'b1', 'b1', [20, 27]]];
+    ['snow_hare', 'b1', 'b1', [20, 27]], ['rime_wolf', 'b1', 'b1', [20, 27]], ['frost_harrier', 'b1', 'b1', [20, 27]], ['frost_bear', 'b1', 'b1', [20, 27]],
+    ['crystal_slime', 'b2', 'b2', [39, 33]], ['cave_spider', 'b2', 'b2', [39, 33]], ['crystal_bat', 'b2', 'b2', [39, 33]], ['moss_tortoise', 'b2', 'b2', [39, 33]]];
   for (const [type, , map, spot] of labs) {
     w.changeMap(map, { entry: spot }); g.simulate(0.3);
     for (const m of w.monsters) if (!m.dead) { m.dead = true; m.deathT = 99; }
@@ -1223,7 +1224,7 @@ export function spriteMonsterCheck(g, classId = 'umbral_sword') {
 // a monster type draws sheet art when its sprite key is a sheet set (monsterArt `replaces`)
 let MonCtor = null; // the Monster class, taken from the first live monster seen (testkit imports nothing)
 const MONSTERS_OF = (g, t) => { if (g.world.monsters[0]) MonCtor = g.world.monsters[0].constructor; if (!MonCtor) return true; const m = new MonCtor(g, t, 0, 0, {}); return !!(m.def.boss || (m.sprites && m.sprites.sheet)); }; // bosses (boss: true) draw their own sheets
-const MONSTER_LEVEL = { leafling: 3, treant: 5, quill_lizard: 11, burrower: 12, void_scarab: 14, rune_wisp: 15, snow_hare: 2, rime_wolf: 4, frost_harrier: 5, frost_bear: 7 };
+const MONSTER_LEVEL = { leafling: 3, treant: 5, quill_lizard: 11, burrower: 12, void_scarab: 14, rune_wisp: 15, snow_hare: 2, rime_wolf: 4, frost_harrier: 5, frost_bear: 7, crystal_slime: 10, cave_spider: 11, crystal_bat: 12, moss_tortoise: 13 };
 
 // B1: Route B's first map — Lumina's Eastern Road on foot, FROSTWIND PLAINS on its own grid, the Frost Arena sealed
 // until its boss exists, route B status, the waystone, save / load on the new grid.
@@ -1232,7 +1233,7 @@ export function routeBCheck(g, classId = 'umbral_sword') {
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress;
   const st = wp.routeStatus('B');
-  ok('Route B playable: B1 built, B2 / B3 planned', st.route.playable && !st.steps[0].planned && st.steps[0].unlocked && st.steps[1].planned, JSON.stringify(st.steps.map((s) => [s.id, s.planned, s.unlocked])));
+  ok('Route B playable: B1 + B2 built (B2 locked until Hoarfang), B3 planned', st.route.playable && !st.steps[0].planned && st.steps[0].unlocked && !st.steps[1].planned && !st.steps[1].unlocked && st.steps[2].planned, JSON.stringify(st.steps.map((s) => [s.id, s.planned, s.unlocked])));
   goto(g, 60, 180);
   for (let k = 0; k < 30 && w.mapId !== 'b1'; k++) walk(g, 'KeyD', 0.3);
   g.simulate(2.5);
@@ -1312,5 +1313,36 @@ export function b1BossCheck(g, classId = 'umbral_sword', { god = true, level = 9
   ok('2 phases (WHITEOUT at 55%) · HUD tags well-formed', phases.has(1) && phases.has(2) && !st.badTag, [...phases].join(','));
   ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_b1') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
   if (enc.state === 'defeated') ok('Rewards once (Heart of the Winter Alpha + lore) · quest done · banner · route B step 1 done · camera free', g.inventory.count('frost_heart') === 1 && w.state.lore.hoarfang && q.isDone('eastern_road') && trig.includes('b1_boss_defeated') && wp.routeStatus('B').steps[0].bossDefeated && !g.camera.lock);
+  return R;
+}
+
+// B2a: the Crystal Caverns — locked until Hoarfang falls, the Frost Arena's south road on foot, the cave on its own grid,
+// quest THE CRYSTAL DEPTHS (lake -> ruins -> the Heart), the Heart sealed until its boss exists, waystone, save / load, back.
+export function b2Check(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
+  ok('Before Hoarfang: B2 locked (the south road gate stays shut)', !wp.isMapUnlocked('b2') && /Hoarfang/.test(wp.lockReason('b2') || ''), wp.lockReason('b2'));
+  wp.defeatBoss('boss_b1');
+  w.changeMap('frost_arena', { entry: [142, 158] }); g.simulate(0.3);
+  goto(g, 142, 162);
+  for (let k = 0; k < 12 && w.mapId !== 'b2'; k++) walk(g, 'KeyS', 0.3);
+  g.simulate(2.5);
+  ok('Hoarfang down: south road -> CRYSTAL CAVERNS (grid caverns) · quest THE CRYSTAL DEPTHS', w.mapId === 'b2' && w.gridId === 'caverns' && q.isActive('crystal_depths'), `map=${w.mapId} grid=${w.gridId}`);
+  use(g, 'ws_b2_hall'); g.ui.panels.close(true);
+  ok('Glittering Hall waystone attuned', w.state.waystones.ws_b2_hall);
+  for (const [x, y] of [[92, 98], [143, 78], [74, 28]]) { goto(g, x, y); g.simulate(0.6); }
+  ok('Quest: lake crossed · ruins reached · the Heart found', q.isDone('crystal_depths'), JSON.stringify(q.active.crystal_depths && q.active.crystal_depths.done));
+  goto(g, 118, 29);
+  for (let k = 0; k < 10; k++) walk(g, 'KeyD', 0.3);
+  ok('The Heart of the Caverns is sealed until its guardian exists (gate holds)', p.x < 125 * TILE, `x=${(p.x / TILE).toFixed(1)}`);
+  goto(g, 92, 98); g.simulate(0.3);
+  const pos = [p.x, p.y];
+  g.saveGame(); w.changeMap('lumina'); g.simulate(0.3); const loaded = g.loadGame();
+  ok('Save / load in B2 (grid caverns, on the lake bridge)', loaded && g.world.mapId === 'b2' && g.world.gridId === 'caverns' && Math.hypot(g.player.x - pos[0], g.player.y - pos[1]) < 40, `map=${g.world.mapId}`);
+  const w2 = g.world;
+  goto(g, 7, 12);
+  for (let k = 0; k < 12 && w2.mapId !== 'frost_arena'; k++) walk(g, 'KeyA', 0.3);
+  ok('Back up the tunnel to the Frost Arena', w2.mapId === 'frost_arena', `map=${w2.mapId}`);
   return R;
 }

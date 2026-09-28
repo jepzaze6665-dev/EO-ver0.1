@@ -171,6 +171,49 @@ export const MONSTER_ART = {
     attacks: { eruption: { windup: ['telegraph', [3]], attack: ['special', [3]] } },
     fps: { move: 5, idle: 3 },
   },
+  // ---------------- B2 CRYSTAL CAVERNS
+  crystal_slime: {
+    sheet: 'crystal_slime', replaces: ['crystal_slime'],
+    anims: {
+      idle: ['front', [0, 1, 2, 3, 4, 5, 6]], move: 'side', windup: ['special', [0, 1, 2]], attack: ['attack', [2, 3, 4]], hurt: ['hit', [4, 5]], death: 'death',
+      front: ['front', [0, 1, 2, 3]], back: 'back',
+    },
+    attacks: {
+      rush: { windup: ['attack', [0, 1]], attack: ['attack', [3, 4]] },
+      pulse: { windup: ['special', [0, 1, 2, 3]], attack: ['special', [4, 5]] },
+    },
+    fps: { idle: 5, move: 7 },
+  },
+  // one pose per action row; columns = directions (0 down · 1 up · 2 left · 3 right)
+  cave_spider: {
+    sheet: 'cave_spider', replaces: ['cave_spider'],
+    anims: {
+      idle: ['idle', [3]], move: [['idle', [3]], ['telegraph', [3]]], windup: ['telegraph', [3]], attack: ['attack', [3]], hurt: ['hit', [3]], death: ['death', [3]],
+      front: ['walk', [0, 1]], back: [['idle', [1]], ['walk', [2]]],
+    },
+    attacks: { eruption: { windup: ['telegraph', [3]], attack: ['special', [3]] } },
+    fps: { move: 8, idle: 3 },
+  },
+  crystal_bat: {
+    sheet: 'crystal_bat', replaces: ['crystal_bat'],
+    anims: {
+      idle: ['walk', [0, 1, 2, 3]], move: ['walk', [0, 1, 2, 3]], windup: ['telegraph', [0, 1]], attack: ['attack', [0, 2]], hurt: ['hit', [0, 1]], death: 'death',
+    },
+    attacks: {
+      swoop: { windup: ['telegraph', [0, 1]], attack: ['attack', [0, 2, 3]] },
+      storm: { windup: ['special', [0, 1]], attack: ['special', [3, 4]] },
+    },
+    fps: { idle: 8, move: 10 },
+  },
+  moss_tortoise: {
+    sheet: 'moss_tortoise', replaces: ['moss_tortoise'],
+    anims: { idle: 'idle', move: 'walk', windup: ['attack', [0, 1]], attack: ['attack', [2, 3, 4]], hurt: 'hit', death: 'death' },
+    attacks: {
+      quake: { windup: 'special', attack: ['special', [5, 6]] },
+      pebbles: { windup: 'telegraph', attack: ['attack', [4, 5]] },
+    },
+    fps: { idle: 4, move: 6 },
+  },
   // B1 BOSS: Hoarfang (a giant frost wolf)
   hoarfang: {
     sheet: 'hoarfang', replaces: ['hoarfang'],

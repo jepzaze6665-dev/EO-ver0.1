@@ -31,10 +31,17 @@ export const WORLD_TRIGGERS = [
     id: 'b1_first_visit', on: 'mapEntered', match: { id: 'b1', first: true },
     actions: [{ type: 'cutscene', title: 'FROSTWIND PLAINS', sub: 'Route B · B1', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:eastern_road'],
   },
+  {
+    id: 'b2_first_visit', on: 'mapEntered', match: { id: 'b2', first: true },
+    actions: [{ type: 'cutscene', title: 'CRYSTAL CAVERNS', sub: 'Route B · B2', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:crystal_depths'],
+  },
+  { id: 'b2_lake_found', on: 'areaDiscovered', match: { name: 'Underground Lake' }, actions: ['set_flag:b2Lake'] },
+  { id: 'b2_ruins_found', on: 'areaDiscovered', match: { name: 'Sunken Ruins' }, actions: ['set_flag:b2Ruins'] },
+  { id: 'b2_heart_found', on: 'areaDiscovered', match: { name: 'Northern Gallery' }, actions: ['set_flag:b2Heart'] },
   { id: 'b1_cross_found', on: 'areaDiscovered', match: { name: 'Frostwind Crossroads' }, actions: ['set_flag:b1Crossroads'] },
   {
     id: 'b1_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_b1' },
-    actions: [{ type: 'banner', title: 'THE WINTER ALPHA FALLS', text: 'The pack scatters. South of the arena the road to the Crystal Caverns (B2) waits for a later update.', color: '#bfe6ff' }],
+    actions: [{ type: 'banner', title: 'THE WINTER ALPHA FALLS', text: 'The pack scatters. The stairs south of the arena lead down into the Crystal Caverns (B2).', color: '#bfe6ff' }],
   },
 
   // ---- A1 optional mini-bosses (W2): a side quest, rewards once, no gate

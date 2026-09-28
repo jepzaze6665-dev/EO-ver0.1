@@ -79,5 +79,24 @@
    "SHALLOW": 11,
    "face:cliff": 12
   }
+ },
+ "caverns": {
+  "file": "assets/tiles/caverns.png",
+  "tile": 32,
+  "variants": 4,
+  "rows": {
+   "GRASS": 0,
+   "DIRT": 1,
+   "COBBLE": 2,
+   "RUIN": 3,
+   "ARENA": 4,
+   "CORRUPT": 5,
+   "MOSS_STONE": 6,
+   "CLIFF": 7,
+   "WATER": 8,
+   "DEEP_WATER": 9,
+   "SHALLOW": 10,
+   "face:cliff": 11
+  }
  }
 }
