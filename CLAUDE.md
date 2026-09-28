@@ -332,6 +332,19 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   flag riftFound via trigger), rewards magma_heart + lore 'magma_beast', trigger a2_boss_defeated (A3 coming later).
   `T.a2BossCheck(g, classId, { god, level, seconds })` 8/8. No-god balance at LV 13: RP 88 s · UB 102 s · AW 108 s ·
   AG 149 s, all win.
+  W3d done (owner feedback: boss VFX sheets, arenas like A1, less repetitive fights): BOSS VFX = `node
+  tools/build-boss-vfx.js [--preview]` cuts `desgin/monster/<A1|A2|A3>/VFX BOSS/*` (13 rows each; light sheets flood-
+  removed, the dark A2 sheet by glow extraction; `counts` splits touching frames) → `assets/vfx/boss/*.png + boss.json`
+  merged into Assets.vfx: `g_*` green (A1), `m_*` orange (A2), `r_*` blue-gold (A3) — orb, slash, burst, shockwave /
+  crater / spikes, bolt, blast, sigil, quake / eruption / pillar, crystal, spark, dome, vortex, shatter. Bosses name them
+  in `look.vfx` (AreaBoss `fx(key)`: charge, slash, impact, bolt (sprite projectiles), eruption, nova, phase, pool; the
+  Guardian's own code plays boss_a1 look.vfx). ARENAS like A1: A2's Magma Rift is its own boss_arena map `rift` (zone
+  Z.RIFT, parent a2, confirm gate `rift_gate`, arena r 14.5 ringed by a lava moat) + generic `arena.cameraLock`
+  (BossSystem.lockCamera). SIGNATURE MECHANICS: `src/boss/mechanics.js` (data `mechanics: [{ type }]`, hooks reset /
+  update / onMoveDone / onImpact / wantsTurn / tags): Magma Beast = `overheat` (fire moves add HEAT → OVERHEAT blast →
+  5.5 s collapse) + `lava_pools` (eruptions leave burning pools). HUD shows mechanic tags (HEAT n%). The Guardian's
+  descriptive list is `notes`. Tests: `tools/tests/bossVfx.test.mjs`; a2BossCheck 12/12; no-god LV 13: UB 102 · AW 104 ·
+  RP 95 · AG 145 s.
   Next: W4 A3 Rune Citadel (owner's A3 sheets fit: dark stone + gold + purple crystal) + rune knight (major),
   W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).
