@@ -1,3 +1,5 @@
+import { Poise } from '../combat/poiseSystem.js';
+import { POISE } from '../data/poise.js';
 import { Entity } from '../core/entity.js';
 import { TEAM } from '../core/constants.js';
 import { MONSTERS, CORRUPT_MOD, ELITE_MOD, MONSTER_STATE as S } from './monsterTypes.js';
@@ -41,7 +43,8 @@ export class Monster extends Entity {
     this.stuckT = 0; this.lastPos = { x, y };
     this.facing = rand(0, TAU);
     this.cds = {};
-    this.stagger = 0;
+    // POISE (combat/poiseSystem.js, rules data/poise.js): hits wear it down, at 0 the monster STAGGERS
+    this.poise = new Poise((d.poise ?? d.staggerMax) * (this.mod.hp > 2 ? 2 : 1), POISE.monster);
     this.animT = rand(0, 1);
     this.patrolTarget = null;
     this.alertT = 0;
@@ -85,12 +88,11 @@ export class Monster extends Entity {
     this.aggro = true;
     g.knowledge.encounter(this.type);
     if (this.state === S.IDLE || this.state === S.PATROL || this.state === S.RETURN) this.setState(S.CHASE);
-    this.stagger += opts.stagger || 5;
-    const canStagger = !this.superArmor && !(this.cur && this.cur.heavy && this.phase === 'windup' && this.stagger < this.def.staggerMax * 2);
-    if (this.stagger >= this.def.staggerMax && canStagger) {
-      this.stagger = 0;
-      this.interrupt(0.35);
+    const heavy = !!(this.cur && this.cur.heavy && this.phase === 'windup'); // heavy wind-up = armoured
+    if (this.poise.hit(opts.stagger, { heavy, big: opts.big, counter: this.status.has('counter_window'), canBreak: !this.superArmor })) {
+      this.interrupt(POISE.monster.breakTime);
       g.vfx.text(this.x, this.y - this.height - 8, 'STAGGER', { color: '#ffe6a0', size: 9 });
+      g.events.emit('poiseBroken', { target: this, source: src });
     }
     if (this.type === 'wraith') {
       this.hitCount = (this.hitCount || 0) + 1;
@@ -122,6 +124,7 @@ export class Monster extends Entity {
     this.animT += dt;
     this.flash = Math.max(0, this.flash - dt);
     this.showBar = Math.max(0, this.showBar - dt);
+    this.poise.update(dt);
     if (this.dead) { this.deathT += dt; return; }
     this.status.update(dt);
     this.applyKnockback(dt, map);
@@ -295,7 +298,7 @@ export class Monster extends Entity {
     if (!atk || this.dead) return;
     const power = atk.power * this.mod.power;
     if (atk.kind === 'strike') {
-      g.combat.enemyStrike(this, this.curShape, power, { knock: atk.knock });
+      g.combat.enemyStrike(this, this.curShape, power, { knock: atk.knock, guardBreak: atk.guardBreak ?? atk.heavy, unblockable: atk.unblockable });
       this.phase = 'recover';
       this.stateT = 0;
       if (atk.shape.shape === 'circle' || atk.shape.shape === 'ring') {

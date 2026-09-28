@@ -1,3 +1,5 @@
+import { Poise } from '../combat/poiseSystem.js';
+import { POISE } from '../data/poise.js';
 import { Entity } from '../core/entity.js';
 import { TEAM, TILE } from '../core/constants.js';
 import { Monster } from '../monsters/monster.js';
@@ -35,7 +37,7 @@ export class AreaBoss extends Entity {
     this.mass = st.mass || 5;
     this.weakness = st.weakness || [];
     this.superArmor = st.superArmor !== false;
-    this.staggerMax = st.staggerMax || 300;
+    this.poise = new Poise(st.poise ?? st.staggerMax ?? 300, POISE.boss); // full break = STAGGERED weak window
     this.level = def.level;
     this.home = { x: this.x, y: this.y };
     this.center = { x: a.center[0] * TILE, y: a.center[1] * TILE };
@@ -60,7 +62,7 @@ export class AreaBoss extends Entity {
     this.co = null; this.wait = 0; this.waitFn = null;
     this.cds = {};
     this.lastMove = null;
-    this.staggerMeter = 0;
+    this.poise.reset();
     this.pendingPhase = false;
     this.weakT = 0; this.ccImmuneT = 0; this.air = 0;
     this.status.clear();
@@ -125,7 +127,7 @@ export class AreaBoss extends Entity {
     return this.game.combat.telegraphs.add({ owner: this, color: (m && m.color && !m.color.startsWith('#') && m.color) || (magic ? '176,96,255' : '255,60,60'), ...def });
   }
   hit(shape, m, extra = {}) {
-    return this.game.combat.enemyStrike(this, shape, m.power, { knock: m.knock ?? 180, type: m.dmg || 'physical', status: m.status, ...extra });
+    return this.game.combat.enemyStrike(this, shape, m.power, { knock: m.knock ?? 180, type: m.dmg || 'physical', status: m.status, guardBreak: m.guardBreak, unblockable: m.unblockable, ...extra });
   }
 
   // ---------------- combat reactions
@@ -133,8 +135,7 @@ export class AreaBoss extends Entity {
     if (this.state === 'dormant') return;
     this.applyFloor();
     if (this.state === 'fight') {
-      this.staggerMeter += (opts.stagger || 5) * (opts.big ? 1.2 : 1);
-      if (this.staggerMeter >= this.staggerMax) { this.staggerMeter = 0; this.enterWeak(3, 'STAGGERED'); }
+      if (this.poise.hit(opts.stagger, { big: opts.big, counter: this.status.has('counter_window') })) { this.enterWeak(3, 'STAGGERED'); this.game.events.emit('poiseBroken', { target: this, source: src }); }
     }
     this.checkPhase();
   }
@@ -205,6 +206,7 @@ export class AreaBoss extends Entity {
   update(dt) {
     const g = this.game;
     this.animT += dt;
+    if (this.state === 'fight') this.poise.update(dt);
     this.flash = Math.max(0, this.flash - dt);
     this.moving = false;
     if (this.dead) { this.deathT += dt; return; }

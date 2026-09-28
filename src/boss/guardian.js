@@ -1,3 +1,5 @@
+import { Poise } from '../combat/poiseSystem.js';
+import { POISE } from '../data/poise.js';
 import { Entity } from '../core/entity.js';
 import { TEAM } from '../core/constants.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
@@ -9,7 +11,7 @@ import { angleTo, dist, rand, TAU, wrapAngle, clamp, pick, lerp, easeOutCubic } 
 // Attacks are generator "moves": they yield seconds to wait, or a per-frame function
 // that returns true when finished. Weak Windows open after heavy attacks, charge
 // crashes and full stagger — the moment for Shadow Mark 3/3 -> Shadow Break -> Eclipse Sever.
-export const STAGGER_MAX = 900;
+export const STAGGER_MAX = 900; // the Guardian's poise (data/poise.js rules: POISE.boss)
 
 export class Guardian extends Entity {
   constructor(game, x, y) {
@@ -35,7 +37,7 @@ export class Guardian extends Entity {
     this.animT = 0;
     this.co = null; this.wait = 0; this.waitFn = null;
     this.cds = {};
-    this.staggerMeter = 0;
+    this.poise = new Poise(STAGGER_MAX, POISE.boss);
     this.air = 0; // jump height
     this.lastMoves = [];
     this.summons = [];
@@ -75,7 +77,7 @@ export class Guardian extends Entity {
     this.pose = 'sleep';
     this.co = null; this.wait = 0; this.waitFn = null;
     this.status.clear();
-    this.staggerMeter = 0;
+    this.poise.reset();
     this.air = 0;
     this.x = this.home.x; this.y = this.home.y;
     this.hurtable = false;
@@ -104,10 +106,10 @@ export class Guardian extends Entity {
     const floor = this.phase === 1 ? 0.69 : this.phase === 2 ? 0.29 : this.finalDone ? 0 : 0.11;
     if (this.hp < this.maxHp * floor) this.hp = Math.ceil(this.maxHp * floor);
     if (this.state !== 'weak') {
-      this.staggerMeter += (opts.stagger || 5) * (opts.big ? 1.2 : 1);
-      if (this.staggerMeter >= STAGGER_MAX && this.state === 'fight') {
-        this.staggerMeter = 0;
+      // poise can empty mid-move; the break waits for the next hit while it is in its 'fight' state
+      if (this.poise.hit(opts.stagger, { big: opts.big, counter: this.status.has('counter_window'), canBreak: this.state === 'fight' })) {
         this.enterWeak(4, 'STAGGERED');
+        this.game.events.emit('poiseBroken', { target: this, source: src });
       }
     }
     this.checkPhase();
@@ -197,7 +199,7 @@ export class Guardian extends Entity {
       name: this.def.name.toUpperCase(), hp: this.hp, maxHp: this.maxHp,
       phase: this.phase, phaseLabel: ['', 'PHASE I', 'PHASE II', 'PHASE III — ENRAGED'][this.phase], phaseMarks: [0.7, 0.3],
       color: P3 ? ['#c050ff', '#50106a'] : ['#50e0b0', '#106a50'], titleColor: P3 ? '#e8a0ff' : '#dffcff',
-      meter: weak ? { pct: (this.weakT || 0) / 4, color: ['#9af8ff', '#3ab0d0'] } : { pct: this.staggerMeter / STAGGER_MAX, color: ['#ffd070', '#a07020'] },
+      meter: weak ? { pct: (this.weakT || 0) / 4, color: ['#9af8ff', '#3ab0d0'] } : { pct: 1 - this.poise.ratio(), color: ['#ffd070', '#a07020'] },
       tags: [this.status.has('heartwood_ward') && { label: `WARDED ×${this.livingSummons().length}`, color: '#7af0a0' }, weak && { label: 'CORE EXPOSED', color: '#9af8ff' }].filter(Boolean),
     };
   }
@@ -223,6 +225,7 @@ export class Guardian extends Entity {
   update(dt) {
     const g = this.game;
     this.animT += dt;
+    if (this.state === 'fight') this.poise.update(dt);
     this.poseT += dt;
     this.flash = Math.max(0, this.flash - dt);
     this.walking = false;
@@ -329,7 +332,7 @@ export class Guardian extends Entity {
     g.audio.sfx('windup_big');
     yield tel.total;
     this.pose = 'slam'; this.poseT = 0;
-    this.strike(tel, 46, 360);
+    this.strike(tel, 46, 360, { guardBreak: true }); // Combat 2.0: smash breaks a normal guard
     g.camera.shake(0.6);
     g.vfx.ring(this.x, this.y, 10, 130, { color: '200,220,160', life: 0.45, width: 7 });
     g.vfx.shards(this.x, this.y, '#8a7a5a', 26, 200);
@@ -358,7 +361,7 @@ export class Guardian extends Entity {
       const step = sp * dt;
       this.x += Math.cos(ang) * step; this.y += Math.sin(ang) * step;
       travelled += step;
-      if (!hit && this.strike({ shape: 'circle', x: this.x, y: this.y, r: this.radius + 8 }, 40, 380, { knockAng: ang + (Math.random() < 0.5 ? 1.2 : -1.2) })) hit = true;
+      if (!hit && this.strike({ shape: 'circle', x: this.x, y: this.y, r: this.radius + 8 }, 40, 380, { guardBreak: true, knockAng: ang + (Math.random() < 0.5 ? 1.2 : -1.2) })) hit = true;
       if (Math.random() < 0.8) g.vfx.particle(this.x + rand(-20, 20), this.y, { color: 'rgba(120,110,90,0.8)', vy: -20, life: 0.5, size: 4 });
       return !this.inArena(this.x, this.y, 34) || travelled > len + 20;
     };
@@ -404,7 +407,7 @@ export class Guardian extends Entity {
     };
     this.air = 0;
     this.pose = 'slam'; this.poseT = 0;
-    this.strike(tel, 42, 340);
+    this.strike(tel, 42, 340, { guardBreak: true });
     g.camera.shake(0.75);
     g.vfx.ring(this.x, this.y, 10, 110, { color: '220,220,180', life: 0.45, width: 7 });
     g.vfx.shards(this.x, this.y, '#8a7a5a', 22, 200);
@@ -548,7 +551,7 @@ export class Guardian extends Entity {
     g.ui.callout('LAST ROOT OF THE FOREST', 'The arena erupts — get close to its heart!', '#ff90ff');
     const tel = this.tele({ shape: 'ring', x: this.x, y: this.y, r0: 110, r: this.game.world.regions.arenaRadius, total: 2.4, color: '255,60,200' });
     yield 2.4;
-    this.strike(tel, 58, 420);
+    this.strike(tel, 58, 420, { unblockable: true }); // the Final Attack: no guard, no parry — dodge it
     g.vfx.ring(this.x, this.y, 110, this.game.world.regions.arenaRadius, { color: '255,90,220', life: 0.6, width: 14 });
     g.vfx.shards(this.x, this.y - 40, '#ff80ff', 50, 320);
     g.camera.shake(1);

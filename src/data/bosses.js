@@ -9,7 +9,7 @@
 //  monster                  : (optional) MONSTERS id it is known as (codex, quest objectives written before V2.2)
 //  level, recommendedLevel  : shown in the boss bar / route panel
 //  planned                  : true = design placeholder only (Route B) — never spawned, has no map yet
-//  stats                    : hp, def, speed, radius, height, mass, weakness[], superArmor, staggerMax
+//  stats                    : hp, def, speed, radius, height, mass, weakness[], superArmor, poise
 //  look                     : placeholder art — an existing monster sprite scaled up + an aura (no new asset files)
 //  arena                    : tile coordinates — center, radius (collision boundary while engaged),
 //                             trigger (step inside this radius = the fight starts), bossSpawn, entry (arena entrance)
@@ -24,7 +24,8 @@
 //      pattern : many circles in a layout                         layout 'cross' | 'ring' | 'scatter', count, r, step, delay
 //      nova    : rings expanding from the boss (dodge through)   rings, width, gap
 //      summon  : calls adds (summoned monsters give no EXP/loot) monster, count, max, corrupted
-//    common: range / min (distance to the player it is used at), windup, recover, cd, weight, power,
+//    common: range / min (distance to the player it is used at), windup, recover, cd, weight, power, guardBreak / unblockable
+//            (Combat 2.0: smashes a normal block / ignores guard + parry),
 //            dmg ('physical' | 'magic' | ...), knock, status [{ id, dur }], opening (weak window seconds after it)
 //  rewards                  : { exp, loot (table in data/lootTables.js), gold, items: { id: n }, lore } — first kill only
 //  unlocks                  : map ids this boss opens (info for UI/tools; the unlock itself = map `requires` + world triggers)
@@ -37,7 +38,7 @@ export const BOSSES = {
     id: 'boss_a1', name: 'HOLLOW FANG', title: 'Alpha of the Whispering Forest', type: 'area', impl: 'area',
     route: 'A', map: 'a1', level: 5, recommendedLevel: 4,
     teaches: 'Basic combat · read the red ground · dodge the lunge',
-    stats: { hp: 4500, def: 4, speed: 112, radius: 20, height: 44, mass: 5, weakness: ['shadow'], superArmor: true, staggerMax: 650 },
+    stats: { hp: 4500, def: 4, speed: 112, radius: 20, height: 44, mass: 5, weakness: ['shadow'], superArmor: true, poise: 650 },
     look: { sprite: 'wolf', scale: 2.2, aura: '255,176,112' },
     arena: { name: 'Howling Den', center: [58.5, 113.5], radius: 5.8, trigger: 4.4, bossSpawn: [58.5, 115], entry: [57.5, 106.5] },
     appear: [],
@@ -46,7 +47,7 @@ export const BOSSES = {
     ],
     moves: {
       bite: { kind: 'strike', range: 70, windup: 0.62, recover: 0.5, cd: 1.3, weight: 4, power: 22, knock: 160, shape: { shape: 'cone', r: 78, half: 0.9 } },
-      lunge: { kind: 'dash', range: 240, min: 90, windup: 0.85, recover: 0.8, cd: 4.5, weight: 3, power: 28, knock: 240, len: 230, width: 34, opening: 1.8 },
+      lunge: { kind: 'dash', guardBreak: true, range: 240, min: 90, windup: 0.85, recover: 0.8, cd: 4.5, weight: 3, power: 28, knock: 240, len: 230, width: 34, opening: 1.8 },
       howl: { kind: 'strike', range: 150, windup: 1.0, recover: 0.7, cd: 7, weight: 2, power: 18, knock: 200, dmg: 'magic', shape: { shape: 'circle', r: 118 }, status: [{ id: 'slow', dur: 2 }], opening: 1.4 },
     },
     rewards: { exp: 150, loot: 'boss_a1', items: { hollow_fang_pelt: 1 }, lore: 'hollow_fang' },
@@ -57,7 +58,7 @@ export const BOSSES = {
     id: 'boss_a2', name: 'GRUKK THE THORNBOUND', title: 'Warchief of the Goblin Glade', type: 'area', impl: 'area',
     route: 'A', map: 'a2', level: 8, recommendedLevel: 7,
     teaches: 'AoE patterns · movement · adds · a second phase',
-    stats: { hp: 9000, def: 7, speed: 92, radius: 20, height: 56, mass: 6, weakness: ['physical'], superArmor: true, staggerMax: 850 },
+    stats: { hp: 9000, def: 7, speed: 92, radius: 20, height: 56, mass: 6, weakness: ['physical'], superArmor: true, poise: 850 },
     look: { sprite: 'goblinC', scale: 2.1, aura: '176,96,255' },
     arena: { name: 'Goblin Glade', center: [29.5, 60.5], radius: 6.4, trigger: 4.8, bossSpawn: [29.5, 58.5], entry: [36.5, 64.5] },
     appear: [],
@@ -70,7 +71,7 @@ export const BOSSES = {
     ],
     moves: {
       cleave: { kind: 'strike', range: 80, windup: 0.7, recover: 0.55, cd: 1.6, weight: 4, power: 30, knock: 200, shape: { shape: 'cone', r: 92, half: 1.1 } },
-      leap: { kind: 'leap', range: 320, min: 110, windup: 1.1, recover: 0.6, cd: 5, weight: 3, power: 34, knock: 280, r: 84, track: 0.6, opening: 1.6 },
+      leap: { kind: 'leap', guardBreak: true, range: 320, min: 110, windup: 1.1, recover: 0.6, cd: 5, weight: 3, power: 34, knock: 280, r: 84, track: 0.6, opening: 1.6 },
       drums: { kind: 'pattern', layout: 'cross', range: 400, windup: 0.9, recover: 0.6, cd: 7, weight: 2, power: 24, knock: 180, count: 4, r: 30, step: 58, delay: 0.14 },
       thorn_ring: { kind: 'pattern', layout: 'ring', range: 400, windup: 1.2, recover: 0.8, cd: 9, weight: 2, power: 26, knock: 200, count: 11, r: 34, dist: 110, dmg: 'magic', status: [{ id: 'root', dur: 0.8 }], color: '120,255,120' },
       spears: { kind: 'volley', range: 360, min: 90, windup: 0.8, recover: 0.6, cd: 6, weight: 2, power: 18, count: 5, spread: 0.8, speed: 260, dmg: 'magic', status: [{ id: 'poison', dur: 3 }], color: '#b060ff' },

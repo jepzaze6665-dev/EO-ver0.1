@@ -211,7 +211,8 @@ export class Combat {
 
   // ---------------- enemy strikes (resolved at the end of a telegraph)
   // shape: telegraph-like {shape, x,y,r,ang,half,len,width,r0}
-  // extra: knock, knockAng, type ('physical' | 'magic' | ...), status [{ id, dur }] applied when the hit lands, onHit
+  // extra: knock, knockAng, type ('physical' | 'magic' | ...), status [{ id, dur }] applied when the hit lands, onHit,
+  //        guardBreak (smashes a normal block; parry beats it), unblockable (ignores guard + parry: dodge it)
   enemyStrike(attacker, shape, power, extra = {}) {
     const p = this.game.player;
     if (p.dead) return false;
@@ -226,7 +227,7 @@ export class Combat {
       return false;
     }
     if (!this.testShape(shape, hurt)) return false;
-    const info = this.dealDamage(attacker, p, { power, knock: extra.knock ?? 160, knockAng: extra.knockAng, type: extra.type || 'physical' });
+    const info = this.dealDamage(attacker, p, { power, knock: extra.knock ?? 160, knockAng: extra.knockAng, type: extra.type || 'physical', guardBreak: extra.guardBreak, unblockable: extra.unblockable });
     if (extra.status && !info.blocked && !p.dead) for (const s of extra.status) p.status.add(s.id, s.dur, { source: attacker });
     if (extra.onHit) extra.onHit(p);
     return true;

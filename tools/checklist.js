@@ -59,12 +59,14 @@ export function runChecklist(g, classId = 'umbral_sword') {
   releaseInput(g); g.simulate(0.3); // end the bot's action / guard first
   const skill = p.cls.skills.find((s) => (s.cooldown || 0) > 1 && !s.ultimate) || p.cls.skills[0];
   p.resources.set(p.primaryResource, p.resources.max(p.primaryResource));
-  p.skillSys.cooldowns.clear(skill.id); g.combat.lastCombatTime = g.time;
+  // monsters may still be mid-attack: each try starts from a free player (not hurt, no action / guard / stun)
+  const free = () => { p.hurtT = 0; p.endAction(true); p.setGuard(false); p.status.remove('guard_broken'); p.status.remove('stun'); };
+  p.skillSys.cooldowns.clear(skill.id); g.combat.lastCombatTime = g.time; free();
   const used = p.trySkill(skill); g.simulate(0.1);
   ok('Use a class skill', used && ev.skillUsed.some((e) => e.caster === p), skill.id);
   ok('Resource system works', ev.resourceChanged.some((e) => e.entity === p), `${p.primaryResource} changes: ${ev.resourceChanged.filter((e) => e.entity === p).length}`);
   g.simulate(1); // let the cast finish (a skill can't be used mid-action either)
-  const again = p.trySkill(skill);
+  free(); const again = p.trySkill(skill);
   ok('Cooldown blocks a second cast', !again && ev.skillFailed.some((e) => e.reason === 'cooldown'), `${skill.id} cd ${skill.cooldown}s`);
   releaseInput(g);
   for (const [x, y] of [[38, 121], [20, 112], [22, 131], [47, 144]]) {

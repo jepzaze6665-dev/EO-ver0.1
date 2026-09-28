@@ -569,3 +569,44 @@ export function counterCheck(g, classId = 'umbral_sword') {
   releaseInput(g);
   return R;
 }
+
+// COMBAT 2.0 C4: poise (monster stagger, immunity, regen, heavy armour) + Aegis Guard Break / parry / unblockable.
+export function poiseCheck(g) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame('aegis_guardian'); releaseInput(g);
+  const p = g.player; goto(g, 38, 121); g.simulate(0.3);
+  const foe = g.world.monsters.filter((m) => !m.dead && g.world.onMap(m)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+  for (const m of g.world.monsters) if (m !== foe && g.world.onMap(m)) { m.dead = true; m.deathT = 99; }
+  foe.x = p.x + 50; foe.y = p.y; foe.hp = foe.maxHp = 50000;
+  let breaks = 0; g.events.on('poiseBroken', (e) => { if (e.target === foe) breaks++; });
+  const poke = (st) => g.combat.dealDamage(p, foe, { power: 0.1, noCrit: true, stagger: st, knock: 0 });
+  const max = foe.poise.max;
+  poke(max * 0.6);
+  ok('A hit lowers poise, no stagger yet', breaks === 0 && foe.poise.value < max, `${foe.poise.value}/${max}`);
+  poke(max * 0.6);
+  ok('Poise at 0 -> STAGGER (interrupted)', breaks === 1 && foe.state === 'hit', foe.state);
+  poke(max * 2);
+  ok('Break immunity: no immediate second stagger', breaks === 1);
+  foe.poise.immuneT = 0; poke(max * 0.5); g.simulate(4);
+  ok('Poise regenerates when not hit', foe.poise.value === max, `${foe.poise.value}/${max}`);
+  // Guard Break
+  const strike = (extra) => g.combat.enemyStrike(foe, { shape: 'circle', x: p.x, y: p.y, r: 40 }, 20, extra);
+  // hold right-click toward the foe through the real input path (early = raised just now -> PARRY window)
+  const inp = g.input, face = () => { const r = g.renderer, cam = g.camera; inp.mouse.x = ((foe.x - cam.left) * cam.zoom * r.scale) / r.dpr; inp.mouse.y = ((foe.y - 12 - cam.top) * cam.zoom * r.scale) / r.dpr; };
+  const guardUp = (early) => {
+    inp.mouse.right = false; g.simulate(0.4, face); // lower + guard recover time
+    p.status.clear(); p.hp = p.maxHp; p.invulnT = 0; p.endAction(true); p.resources.fill('stamina'); // endAction: a parry counter has i-frames
+    inp.mouse.right = true; g.simulate(early ? 0.03 : 0.5, face);
+  };
+  let broken = 0; g.events.on('guardBroken', () => broken++);
+  guardUp(false); const hp0 = p.hp; strike({});
+  ok('Normal attack: held guard blocks it', p.guardState.active && p.hp > hp0 - 20 && broken === 0, `hp -${hp0 - p.hp}`);
+  guardUp(false); const hp1 = p.hp, st1 = p.resources.get('stamina'); strike({ guardBreak: true });
+  ok('Heavy (guardBreak) attack: GUARD BREAK — guard down, stunned, stamina lost, part of the damage through', !p.guardState.active && p.status.has('guard_broken') && broken === 1 && p.hp < hp1 && p.resources.get('stamina') < st1 - 20, `hp -${hp1 - p.hp}`);
+  guardUp(true); const hp2 = p.hp; strike({ guardBreak: true });
+  ok('Parry beats a heavy attack (no damage, no break)', p.hp === hp2 && broken === 1);
+  guardUp(true); const hp3 = p.hp; strike({ unblockable: true });
+  ok('Unblockable attack ignores guard and parry', p.hp < hp3 && broken === 1, `hp -${hp3 - p.hp}`);
+  inp.mouse.right = false; releaseInput(g);
+  return R;
+}

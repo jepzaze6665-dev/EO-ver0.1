@@ -220,16 +220,26 @@ export class Player extends Entity {
   drainGuard(amount, src = null) {
     const r = STAMINA.resource;
     this.resources.drain(r, amount, 'guard');
-    if (this.guardState.active && this.resources.get(r) <= 0) {
-      this.setGuard(false);
-      this.game.vfx.text(this.x, this.y - 72, 'GUARD BROKEN', { color: '#ff9a80', size: 12, life: 1 });
-      this.game.events.emit('guardBroken', { player: this, source: src });
-    }
+    if (this.guardState.active && this.resources.get(r) <= 0) this.guardBreak(src, 'stamina');
+  }
+  // GUARD BREAK: guard drops, a short stun, stamina lost (data/stamina.js guardBreak)
+  guardBreak(src = null, reason = 'heavy') {
+    const g = this.game, gb = STAMINA.guardBreak;
+    this.setGuard(false);
+    this.resources.drain(STAMINA.resource, gb.staminaLoss, 'guardBreak');
+    this.status.add('guard_broken', gb.stun);
+    g.vfx.text(this.x, this.y - 72, 'GUARD BREAK', { color: '#ff9a80', size: 13, life: 1.1 });
+    g.camera.shake(0.3);
+    g.audio.sfx('crash');
+    g.events.emit('guardBroken', { player: this, source: src, reason });
   }
   // called by combat.dealDamage for every incoming hit
-  tryBlock(src) {
-    if (!this.cls.guard || !this.guardState.active || this.dead) return null;
-    return evaluateBlock(this.cls.guard, this.guardState, this.aim, src.x - this.x, src.y - this.y, this.game.time);
+  tryBlock(src, opts = {}) {
+    if (!this.cls.guard || !this.guardState.active || this.dead || opts.unblockable) return null; // unblockable: dodge it
+    const res = evaluateBlock(this.cls.guard, this.guardState, this.aim, src.x - this.x, src.y - this.y, this.game.time);
+    // a guardBreak attack smashes a normal block (a parry still beats it): part of the hit goes through
+    if (res && !res.perfect && opts.guardBreak) return { ...res, guardBreak: true, mult: Math.max(res.mult, STAMINA.guardBreak.damageTaken) };
+    return res;
   }
   onBlock(res, src, opts, ang, raw = 0) {
     const g = this.game, fx = this.x + Math.cos(this.aim) * 16, fy = this.y - 16 + Math.sin(this.aim) * 16;
@@ -248,7 +258,8 @@ export class Player extends Entity {
       g.vfx.text(fx, fy - 20, 'BLOCK', { color: '#ffe8a0', size: 9 });
       g.camera.shake(0.12);
       if (this.cls.onGuardBlock) this.cls.onGuardBlock(this, g, src);
-      this.drainGuard(clamp(raw * STAMINA.blockPerDamage, STAMINA.blockMin, STAMINA.blockMax), src);
+      if (res.guardBreak) this.guardBreak(src, 'heavy');
+      else this.drainGuard(clamp(raw * STAMINA.blockPerDamage, STAMINA.blockMin, STAMINA.blockMax), src);
     }
     if (this.cls.guard.fx) g.vfx.sprite(this.cls.guard.fx, fx, fy, 0, { scale: res.perfect ? 0.9 : 0.55, life: 0.25, glow: 0.5 });
   }

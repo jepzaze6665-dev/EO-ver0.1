@@ -25,6 +25,8 @@ export const STATUSES = {
   taunted: { id: 'taunted', category: 'debuff', maxStacks: 1, stacking: 'refresh', flags: ['taunted'], modifiers: { damageMult: 0.8 }, display: { label: 'TAUNTED', color: '#ffd070' } },
   vulnerable: { id: 'vulnerable', category: 'debuff', maxStacks: 1, stacking: 'longest', vulnerable: true, display: { label: 'VULNERABLE', color: '#9af8ff' } },
   // Combat 2.0 Counter Window (combat/counterSystem.js, data/counter.js): the attacker was beaten — punish it now
+  // Guard Break (data/stamina.js guardBreak): the guard was smashed open — no acting for a moment
+  guard_broken: { id: 'guard_broken', category: 'control', maxStacks: 1, stacking: 'longest', flags: ['cannotAct'], modifiers: { moveMult: 0.4 }, display: { label: 'GUARD BREAK', color: '#ff9a80' } },
   counter_window: { id: 'counter_window', category: 'debuff', maxStacks: 1, stacking: 'longest', modifiers: { damageTakenMult: 1.2, defenseMult: 0.5 }, display: { label: 'COUNTER', color: '#ffb060' } },
   curse: { id: 'curse', category: 'debuff', maxStacks: 3, stacking: 'stack', perStack: true, modifiers: { damageTakenMult: 1.06 }, display: { label: 'CURSE', color: '#d070ff' } },
   // ---- damage over time

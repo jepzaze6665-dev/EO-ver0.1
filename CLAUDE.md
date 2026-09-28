@@ -14,7 +14,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (V2.2 vertical slice, 29 steps: walks every boss gate on foot, 3 boss fights, City 2, save/load),
   `T.bossReset(__game)` (death mid-fight resets the boss)
-  `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` (Combat 2.0 dodge, Perfect Dodge, Counter Window),
+  `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` (Combat 2.0),
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -175,5 +175,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   { marks, resource }` (UB +1 mark +5); hitboxes may carry `counterMult` (UB Twin Fang 1.3, Eclipse Sever 1.25).
   New status modifier `defenseMult` (damageSystem target.defenseMult). `game.sharedWorld` (false): when true,
   slow-mo / hit stop never touch the simulation (party / online: client-side presentation only).
-  `T.counterCheck(g, classId)` (7 steps) + tools/tests/counter.test.mjs. Next: C4.
+  `T.counterCheck(g, classId)` (7 steps) + tools/tests/counter.test.mjs.
+  Done C4: POISE = `src/combat/poiseSystem.js` (Poise class, pure) + rules `src/data/poise.js` (monster: regen after
+  2 s, break immunity 2.5 s = no stun-lock, heavy wind-up armour ×0.5; boss: slow regen while fighting; counter ×1.5,
+  big ×1.2). Data field `poise` replaces `staggerMax` (monsterTypes.js, bosses.js stats; elites ×2); Monster /
+  AreaBoss / Guardian use it ('poiseBroken' event; bosses → STAGGERED weak window as before; boss bar = poise used up;
+  elites show a poise bar in the target frame). GUARD BREAK (Aegis): `STAMINA.guardBreak` + status `guard_broken`;
+  stamina empty or a `guardBreak` attack blocked without a parry → guard down, 0.7 s stun, −30 stamina, 60% damage
+  through; parry beats it; `unblockable` ignores guard + parry. Tagged: monster `heavy` attacks, A1 lunge, A2 leap,
+  Guardian smash / charge / jump (guardBreak), Guardian Final Attack (unblockable). `T.poiseCheck(g)` (8 steps) +
+  tools/tests/poise.test.mjs. Checklist step 11/13 hardened (monsters could leave the player hurt → flaky). Next: C5.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

@@ -9,4 +9,7 @@ export const STAMINA = {
   blockPerDamage: 0.4,  // blocked hit: this × the damage it would have dealt …
   blockMin: 4, blockMax: 25, // … clamped to this range. Guard drops when stamina runs out ('guardBroken')
   parryRefund: 12,      // a perfect guard (parry) gives stamina back
+  // GUARD BREAK (§45): stamina runs out, or a `guardBreak` attack is blocked without a parry. A parry still beats it;
+  // `unblockable` attacks ignore guard and parry — dodge them.
+  guardBreak: { stun: 0.7, staminaLoss: 30, damageTaken: 0.6 }, // stun = status 'guard_broken'; damageTaken = share that goes through
 };

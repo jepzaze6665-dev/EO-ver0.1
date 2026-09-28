@@ -453,6 +453,8 @@ export class HUD {
     this.text(ctx, lvl ? `${name}  Lv.${lvl}` : name, W / 2, y, 13 * u, '#f0e8e0', { align: 'center' });
     this.bar(ctx, x, y + 6 * u, w, 10 * u, t.hp / t.maxHp, '#ff6070', '#901828');
     this.text(ctx, `${Math.ceil(t.hp)} / ${Math.ceil(t.maxHp)}`, W / 2, y + 15 * u, 9 * u, '#fff', { align: 'center' });
+    // POISE (Combat 2.0 §48): shown for elites (bosses show it in the boss bar) — gold = poise left
+    if (t.poise && t.elite) this.bar(ctx, x, y + 18 * u, w, 3 * u, t.poise.ratio(), '#ffd070', '#7a5a18');
   }
 
   // boss bar (any boss — data from boss/bossSystem.js barInfo). Major bosses get a bigger, gold-framed bar.

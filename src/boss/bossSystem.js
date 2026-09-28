@@ -2,7 +2,6 @@ import { TILE, ZONE_INFO } from '../core/constants.js';
 import { BOSSES, liveBosses } from '../data/bosses.js';
 import { BOSS_STATE as S, nextBossState, isFighting } from './bossState.js';
 import { AreaBoss } from './areaBoss.js';
-import { STAGGER_MAX } from './guardian.js';
 import { dist, angleTo, TAU } from '../core/math.js';
 
 // BOSS SYSTEM — runs every boss encounter from data/bosses.js through the state machine in boss/bossState.js:
@@ -193,11 +192,10 @@ export class BossSystem {
     if (!enc || !enc.entity) return null;
     const e = enc.entity, def = enc.def, phases = def.phases || [];
     const weak = e.status.has('vulnerable');
-    const staggerMax = e.staggerMax || STAGGER_MAX;
     return {
       id: enc.id, name: def.name, title: def.title, type: def.type, level: def.level, entity: e,
       hp: e.hp, maxHp: e.maxHp, phase: e.phase || 1, phaseCount: phases.length || 1, phaseName: this.phaseName(enc),
-      thresholds: phases.slice(1).map((p) => p.hpBelow), weak, weakPct: weak ? (e.weakT || 0) / 4 : 0, stagger: (e.staggerMeter || 0) / staggerMax,
+      thresholds: phases.slice(1).map((p) => p.hpBelow), weak, weakPct: weak ? (e.weakT || 0) / 4 : 0, stagger: e.poise ? 1 - e.poise.ratio() : 0, // poise used up (data/poise.js)
       color: def.look && def.look.aura,
     };
   }
