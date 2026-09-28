@@ -1,6 +1,6 @@
 import { PARTY } from '../data/party.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
-import { ITEMS, RARITY_COLOR, CATEGORIES, RECIPES, SHOP } from '../items/items.js';
+import { ITEMS, RARITY_COLOR, CATEGORIES, RECIPES, SHOPS } from '../items/items.js';
 import { iconURL } from './icons.js';
 import { dialogueFor, LORE } from '../world/narrative.js';
 import { QUESTS } from '../quests/quests.js';
@@ -354,12 +354,12 @@ export class Panels {
   // ---------------- shop / smith / storage / teleport
   shop() {
     const g = this.game, p = g.player;
-    const sellable = g.inventory.list('Material');
+    const sellable = g.inventory.list('Material'), shop = SHOPS[this.dialogueNpc] || SHOPS.merchant;
     const el = this.show('shop', `
       <div class="panel">
-        <h2>Lysa's Goods <span class="gold-inline">${p.gold} G</span></h2>
+        <h2>${esc(shop.title)} <span class="gold-inline">${p.gold} G</span></h2>
         <h3>Buy</h3>
-        ${SHOP.map((id) => { const d = ITEMS[id]; return `<div class="row"><img src="${iconURL(d.icon, d.color)}"><div class="grow"><b style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</b><div class="muted small">${esc(d.modText || d.desc)}</div></div><button data-buy="${id}" ${!p.canAfford(d.price) ? 'disabled' : ''}>${d.price} G</button></div>`; }).join('')}
+        ${shop.stock.map((id) => { const d = ITEMS[id]; return `<div class="row"><img src="${iconURL(d.icon, d.color)}"><div class="grow"><b style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</b><div class="muted small">${esc(d.modText || d.desc)}</div></div><button data-buy="${id}" ${!p.canAfford(d.price) ? 'disabled' : ''}>${d.price} G</button></div>`; }).join('')}
         <h3>Sell materials</h3>
         ${sellable.map(({ id, n, def }) => `<div class="row"><img src="${iconURL(def.icon, def.color)}"><div class="grow">${esc(def.name)} ×${n}</div><button data-sell="${id}">+${def.sell} G</button></div>`).join('') || '<div class="muted">No materials to sell.</div>'}
         <button class="close">Close</button>

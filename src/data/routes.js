@@ -5,13 +5,13 @@
 //  from, to            : city map ids at both ends
 //  steps[]             : the route in order — { map, boss } (map ids: maps/mapRegistry.js, bosses: data/bosses.js)
 //  playable            : false = architecture only (the maps are not built yet; shown as "coming soon")
-//  cityPlanned         : true = the destination city has no map yet (W5 builds City 2)
+//  cityPlanned         : true = the destination city has no map yet (City 2 = Asteria City since W5)
 //
 // Steps without a built map are shown as planned. City 2 opens when EITHER route's major boss falls — the player
 // never has to finish both routes. Both routes aim for similar difficulty but different bosses / lore / secrets.
 export const ROUTES = {
   A: {
-    id: 'A', name: 'ROUTE A', sub: 'The Forest Road', from: 'lumina', to: 'city2', cityPlanned: true, playable: true,
+    id: 'A', name: 'ROUTE A', sub: 'The Forest Road', from: 'lumina', to: 'city2', playable: true,
     steps: [
       { map: 'a1', boss: 'boss_a1' }, // Whispering Forest — its boss (the Guardian) waits in the Guardian Arena (map 'arena')
       { map: 'a2', boss: 'boss_a2' }, // Ancient Valley (own grid) — boss planned (W3c)
@@ -19,7 +19,7 @@ export const ROUTES = {
     ],
   },
   B: {
-    id: 'B', name: 'ROUTE B', sub: 'The Eastern Road', from: 'lumina', to: 'city2', cityPlanned: true, playable: false,
+    id: 'B', name: 'ROUTE B', sub: 'The Eastern Road', from: 'lumina', to: 'city2', playable: false,
     steps: [
       { map: 'b1', boss: 'boss_b1', name: 'B1' },
       { map: 'b2', boss: 'boss_b2', name: 'B2' },

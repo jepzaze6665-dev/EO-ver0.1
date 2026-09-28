@@ -236,6 +236,8 @@ export function npcSprite(look) {
     villager: { robe: '#7a5a6a', trim: '#e0d0c0', hair: '#5a3a2a', skin: '#e8b890' },
     wanderer: { robe: '#1a1428', trim: '#8a60c0', hair: '#1a1428', skin: '#3a3050', hood: true, glow: '#b080ff' },
     scout: { robe: '#3a5a3a', trim: '#b0a060', hair: '#7a3a2a', skin: '#e0b090', extra: 'bow' },
+    guildmaster: { robe: '#24346a', trim: '#e0c070', hair: '#d8d0c0', skin: '#e0b894', extra: 'staff' },
+    knight: { robe: '#5a6478', trim: '#d8b060', hair: '#4a3a2a', skin: '#d8a880', extra: 'sword' },
   }[look] || { robe: '#555', trim: '#999', hair: '#333', skin: '#dba' };
   const make = (bob) => frame(28, 46, (g) => {
     const s = L.small ? 0.8 : 1;

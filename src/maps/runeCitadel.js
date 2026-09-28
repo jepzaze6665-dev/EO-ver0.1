@@ -49,11 +49,12 @@ export function buildRuneCitadelTerrain(b) {
   // ---------------- the Sanctum (A3 boss arena, zone SANCTUM = map 'sanctum', maps/sanctum.js): behind the Golden Gate
   b.disc(P.sanctum[0], P.sanctum[1], 16, A, { noise: 0.4 });
   b.rect(81, 40, 87, 45, C);
+  b.rect(82, 2, 86, 9, C); // the north road to City 2 (gate city2_road_gate, maps/sanctum.js)
   for (let y = 0; y <= 45; y++) for (let x = 56; x <= 112; x++) m.zone[m.idx(x, y)] = Z.SANCTUM;
   b.rect(80, 46, 88, 47, T.RUIN_WALL); // the Golden Gate's wall: the way in is the gate itself (exit golden_gate, maps/fieldA3.js)
   // the Sanctum floor: a rune circle under the arena, blue lamps on the rim
   b.prop('c_plaza_ring', P.sanctum[0], P.sanctum[1] + 3, { layer: 'ground', scale: 1.4 });
-  for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2 + 0.3; if (Math.abs(a - Math.PI / 2) < 0.4) continue; const x = P.sanctum[0] + Math.cos(a) * 15.5, y = P.sanctum[1] + Math.sin(a) * 15.5; b.prop('c_lamp_d', x, y, { solid: true }); b.light(x, y - 1, 70, '#8ab8ff', { a: 0.5, flicker: true }); }
+  for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2 + 0.3; if (Math.abs(a - Math.PI / 2) < 0.4 || Math.abs(a - Math.PI * 1.5) < 0.4) continue; const x = P.sanctum[0] + Math.cos(a) * 15.5, y = P.sanctum[1] + Math.sin(a) * 15.5; b.prop('c_lamp_d', x, y, { solid: true }); b.light(x, y - 1, 70, '#8ab8ff', { a: 0.5, flicker: true }); }
 
   // ---------------- landmarks
   b.prop('c_statue_plaza', P.winged[0], P.winged[1] + 2, { layer: 'ground', scale: 0.9 });

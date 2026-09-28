@@ -39,5 +39,25 @@
    "face:cliff": 12,
    "face:wall": 13
   }
+ },
+ "asteria": {
+  "file": "assets/tiles/asteria.png",
+  "tile": 32,
+  "variants": 4,
+  "rows": {
+   "GRASS": 0,
+   "FLOWERS": 1,
+   "DIRT": 2,
+   "COBBLE": 3,
+   "ARENA": 4,
+   "RUIN": 5,
+   "MOSS_STONE": 6,
+   "CLIFF": 7,
+   "WATER": 8,
+   "DEEP_WATER": 9,
+   "SHALLOW": 10,
+   "face:cliff": 11,
+   "face:wall": 12
+  }
  }
 }

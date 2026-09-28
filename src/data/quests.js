@@ -82,6 +82,17 @@ export const QUESTS = {
     rewards: { exp: 400, gold: 300, items: { hp_potion: 3 } },
     requirements: [],
   },
+  // City 2 (W5): starts on the first visit to Asteria City (data/worldTriggers.js city2_first_visit)
+  asteria: {
+    id: 'asteria', name: 'THE LIVING CITY', giver: null, ordered: true, priority: 1,
+    description: 'Beyond the Sanctum lies the half of Asteria the runes never took. The Adventurer Guild keeps its hall here.',
+    objectives: [
+      { id: 'plaza', text: 'Reach the Crystal Plaza', type: 'flag', flag: 'asteriaPlaza', marker: [80, 72], markerMap: 'city2' },
+      { id: 'guild', text: 'Meet Guildmaster Seraphine (Guild Quarter)', type: 'talk', npc: 'a_guildmaster', marker: [123, 64], markerMap: 'city2' },
+    ],
+    rewards: { exp: 300, gold: 250, items: { hp_potion: 3 } },
+    requirements: [],
+  },
   // A1's optional mini-bosses (W2): the old area bosses keep their arenas and rewards, but lock nothing
   forest_hunts: {
     id: 'forest_hunts', name: 'HUNTS OF THE WHISPERING FOREST', giver: null, side: true,

@@ -111,4 +111,9 @@ export const RECIPES = [
   { out: 'crystalbreaker', mats: { crystal_shard: 4, goblin_iron: 2 }, gold: 180 },
 ];
 
-export const SHOP = ['hp_potion', 'shadow_tonic', 'hunters_charm'];
+// shops per NPC (dialogue action 'shop' opens the shop of the NPC you talk to)
+export const SHOPS = {
+  merchant: { title: "Lysa's Goods", stock: ['hp_potion', 'shadow_tonic', 'hunters_charm'] },
+  a_merchant: { title: 'Asterian Bazaar', stock: ['hp_potion', 'shadow_tonic', 'hunters_charm'] },
+};
+export const SHOP = SHOPS.merchant.stock;

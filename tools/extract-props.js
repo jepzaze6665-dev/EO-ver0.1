@@ -17,7 +17,13 @@ const F = 'FOREST SET.png', A = 'FANTASY SET.png', V = 'VILLAGE SET.png';
 // Coordinates in the manifest are in the sheet's own pixels. A2 = Ancient Valley props, names 'v_*'.
 const A2P = '../A/a2/image-bf40810d-ac8c-4bed-a831-af8840274bbe-0';
 const A3P = '../A/a3/image-cffd3904-429f-435a-85d6-3b6b93bed0a8-0';
-const SCALE = { [A2P]: 0.5, [A3P]: 0.5 };
+const CP = '../City/ASTERIA CITY/image-6fbe1327-6060-4dcf-be43-116029029bdb-0';
+const SCALE = { [A2P]: 0.5, [A3P]: 0.5 }; // the city sheet (CP) stays full size: its buildings are drawn large
+// sheets whose background is not the navy of the old sets: their own background test. `fillHoles` = box mode keeps
+// background-coloured pixels enclosed by the prop (dark grey stone inside the city buildings)
+const GREY_BG = (r, g, b) => { const l = (r + g + b) / 3; return l >= 24 && l <= 58 && Math.max(r, g, b) - Math.min(r, g, b) <= 8; };
+const SHEET_BG = { [CP]: GREY_BG };
+const FILL_HOLES = new Set([CP]);
 const MANIFEST = {
   // ---- forest
   tree_small_a: [F, 35, 90], tree_small_b: [F, 78, 88],
@@ -122,6 +128,37 @@ const MANIFEST = {
   c_bush_wide: [A3P, 712, 1415, 927, 1528], c_bush_e: [A3P, 941, 1419, 1113, 1543], c_dead_tree: [A3P, 1206, 1403, 1495, 1616], c_dead_tree_b: [A3P, 1662, 1447, 1936, 1607],
   c_rock_a: [A3P, 1901, 1403, 2033, 1536], c_grass_patch: [A3P, 218, 1533, 384, 1614], c_lamp_a: [A3P, 1093, 1633, 1135, 1713], c_lamp_b: [A3P, 1155, 1633, 1193, 1714],
   c_lamp_c: [A3P, 1375, 1632, 1414, 1719], c_lamp_d: [A3P, 1503, 1630, 1548, 1721], c_rock_crystal: [A3P, 1834, 1594, 2031, 1820], c_debris: [A3P, 663, 1625, 797, 1698],
+  // ---- CITY 2 ASTERIA (owner's sheet desgin/Map/City/ASTERIA CITY, grey background, boxes): castle, walls + towers,
+  // blue noble houses, red / green homes, market tents, forges, cathedral, guild hall, crystals, trees, lamps, ponds
+  a_castle_gate: [CP, 23, 10, 429, 253], a_wall_a: [CP, 460, 63, 575, 189], a_wall_tower: [CP, 585, 42, 640, 186], a_wall_b: [CP, 652, 50, 750, 186],
+  a_wall_gate: [CP, 780, 53, 881, 187], a_tower_round: [CP, 887, 30, 987, 192], a_tower_b: [CP, 1011, 16, 1113, 203], a_tower_thin: [CP, 1137, 60, 1203, 193],
+  a_spire_blue: [CP, 1214, 33, 1315, 188], a_chapel_blue: [CP, 1333, 11, 1454, 195], a_wall_stairs: [CP, 1477, 48, 1715, 198], a_tower_round_b: [CP, 1735, 45, 1839, 205],
+  a_wall_corner: [CP, 1859, 24, 2013, 216], a_keep_blue: [CP, 394, 197, 543, 429], a_castle_blue: [CP, 561, 192, 739, 406], a_hall_blue: [CP, 761, 210, 885, 412],
+  a_house_blue_a: [CP, 902, 208, 1064, 398], a_manor_blue_b: [CP, 1086, 207, 1242, 387], a_house_red_a: [CP, 1283, 207, 1447, 363], a_house_red_tower: [CP, 1488, 196, 1595, 352],
+  a_dome_blue: [CP, 1430, 364, 1643, 567], a_house_red_b: [CP, 1638, 224, 1815, 360], a_house_red_c: [CP, 1835, 207, 2005, 373], a_manor_blue_a: [CP, 28, 263, 213, 419],
+  a_house_blue_b: [CP, 250, 273, 373, 413], a_crystal_fountain: [CP, 739, 424, 871, 647], a_crystal_purple: [CP, 1089, 394, 1197, 530], a_crystal_green: [CP, 1098, 537, 1199, 664],
+  a_cathedral: [CP, 1213, 362, 1423, 575], a_guild_hall: [CP, 1663, 376, 2001, 578],
+  a_tent_purple: [CP, 30, 440, 105, 551], a_tent_gold: [CP, 106, 440, 192, 551], a_tent_white: [CP, 208, 436, 287, 551], a_tent_gold_b: [CP, 291, 440, 377, 555],
+  a_tent_red: [CP, 389, 444, 462, 550], a_tent_blue: [CP, 467, 443, 540, 549], a_tent_purple_b: [CP, 552, 438, 624, 549], a_stall_house: [CP, 646, 427, 733, 555],
+  a_tent_purple_c: [CP, 28, 561, 94, 668], a_tent_red_b: [CP, 199, 563, 289, 669], a_tent_yellow: [CP, 294, 564, 373, 668], a_tent_red_c: [CP, 563, 561, 645, 672],
+  a_booth_blue: [CP, 650, 569, 731, 670],
+  a_manor_blue_c: [CP, 24, 683, 188, 826], a_house_blue_c: [CP, 194, 677, 306, 824], a_houses_green: [CP, 328, 686, 495, 834], a_house_green_a: [CP, 509, 673, 603, 827],
+  a_house_green_b: [CP, 623, 687, 781, 831], a_house_green_c: [CP, 805, 675, 914, 833], a_house_green_d: [CP, 937, 683, 1056, 828], a_house_green_e: [CP, 1071, 679, 1176, 824],
+  a_forge_a: [CP, 1199, 590, 1369, 815], a_forge_b: [CP, 1379, 572, 1569, 820], a_forge_c: [CP, 1584, 585, 1840, 830], a_arena_hall: [CP, 1848, 569, 2030, 849],
+  a_ruin_tower_a: [CP, 85, 1067, 259, 1284], a_ruin_court: [CP, 267, 1073, 452, 1293], a_ruin_tower_b: [CP, 455, 1080, 609, 1294], a_ruin_gatehouse: [CP, 607, 1069, 977, 1298],
+  a_ruin_keep_a: [CP, 1472, 844, 1617, 1068], a_ruin_keep_b: [CP, 1619, 829, 1795, 1059], a_ruin_keep_c: [CP, 1802, 847, 2031, 1054],
+  a_pine_a: [CP, 28, 1297, 110, 1453], a_pine_b: [CP, 111, 1297, 185, 1453], a_pine_c: [CP, 186, 1297, 255, 1453], a_pine_d: [CP, 256, 1297, 348, 1453],
+  a_tree_tall_a: [CP, 1413, 1089, 1492, 1288], a_tree_tall_b: [CP, 1496, 1089, 1561, 1297], a_tree_round: [CP, 1639, 1079, 1718, 1199], a_tree_pine_s: [CP, 1816, 1070, 1897, 1196],
+  a_dead_tree: [CP, 1568, 1088, 1632, 1187], a_tree_s: [CP, 1561, 1191, 1629, 1292], a_tree_c: [CP, 1462, 1318, 1525, 1403], a_tree_d: [CP, 1537, 1316, 1606, 1403],
+  a_tree_e: [CP, 1703, 1311, 1780, 1410], a_tree_f: [CP, 1167, 1252, 1230, 1330], a_tree_g: [CP, 1243, 1254, 1312, 1332], a_bush_a: [CP, 1615, 1335, 1692, 1402],
+  a_bush_b: [CP, 1361, 1338, 1441, 1401], a_log: [CP, 1790, 1204, 1903, 1301],
+  a_cry_purple: [CP, 373, 1306, 483, 1447], a_cry_violet: [CP, 495, 1314, 576, 1438], a_cry_blue: [CP, 589, 1308, 695, 1439], a_cry_green: [CP, 701, 1311, 796, 1440],
+  a_cry_red: [CP, 800, 1306, 888, 1437], a_lamp_banner: [CP, 911, 1315, 950, 1414], a_lamp_a: [CP, 971, 1337, 1005, 1413], a_lamp_b: [CP, 1033, 1359, 1066, 1423],
+  a_banner_blue: [CP, 1089, 1343, 1121, 1422], a_banner_stand_a: [CP, 738, 1461, 777, 1556], a_banner_stand_b: [CP, 791, 1456, 830, 1555], a_banner_stand_c: [CP, 845, 1458, 885, 1553],
+  a_lantern_tower: [CP, 898, 1427, 960, 1563], a_bench: [CP, 992, 1454, 1057, 1495], a_fence: [CP, 1679, 1423, 1773, 1478], a_wall_low: [CP, 1898, 1425, 1992, 1480],
+  a_wall_low_b: [CP, 1877, 1507, 2000, 1570], a_arch_gate: [CP, 1617, 1502, 1717, 1574], a_statue_s: [CP, 1408, 1406, 1489, 1488], a_barrel: [CP, 1150, 1438, 1184, 1490],
+  a_crate: [CP, 993, 1525, 1045, 1561], a_pond_a: [CP, 26, 1599, 166, 1721], a_pond_b: [CP, 188, 1614, 345, 1722], a_waterfall: [CP, 813, 1588, 890, 1735],
+  a_pond_rock: [CP, 1886, 1592, 2012, 1722],
 };
 
 function bgLike(r, g, b) {
@@ -138,7 +175,8 @@ function loadSheet(name) {
   const img = png.read(file);
   const { width: w, height: h, data } = img;
   const fg = new Uint8Array(w * h);
-  for (let p = 0; p < w * h; p++) fg[p] = bgLike(data[p * 4], data[p * 4 + 1], data[p * 4 + 2]) ? 0 : 1;
+  const isBg = SHEET_BG[name] || bgLike;
+  for (let p = 0; p < w * h; p++) fg[p] = isBg(data[p * 4], data[p * 4 + 1], data[p * 4 + 2]) ? 0 : 1;
   // remove isolated specks (noise) : need at least 2 fg neighbours
   const clean = new Uint8Array(w * h);
   for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
@@ -194,6 +232,18 @@ function extract(entry) {
       if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
     }
     const inBox = keep; keep = (p) => { const x = p % w, y = (p / w) | 0; return x >= bx0 && x <= bx1 && y >= by0 && y <= by1 && inBox(p); };
+    if (FILL_HOLES.has(sheet)) {
+      // background reachable from the box edge = outside; any other background pixel is a hole inside the prop
+      const bw = bx1 - bx0 + 1, bh = by1 - by0 + 1, out = new Uint8Array(bw * bh), st = [];
+      const seed = (x, y) => { const k = (y - by0) * bw + (x - bx0); if (!out[k] && !fg[y * w + x]) { out[k] = 1; st.push(k); } };
+      for (let x = bx0; x <= bx1; x++) { seed(x, by0); seed(x, by1); }
+      for (let y = by0; y <= by1; y++) { seed(bx0, y); seed(bx1, y); }
+      while (st.length) {
+        const k = st.pop(), x = bx0 + (k % bw), y = by0 + ((k / bw) | 0);
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + dx, Y = y + dy; if (X >= bx0 && X <= bx1 && Y >= by0 && Y <= by1) seed(X, Y); }
+      }
+      keep = (p) => { const x = p % w, y = (p / w) | 0; return x >= bx0 && x <= bx1 && y >= by0 && y <= by1 && !out[(y - by0) * bw + (x - bx0)]; };
+    }
   }
   if (x1 < 0) return null;
   const out = png.create(x1 - x0 + 1, y1 - y0 + 1);

@@ -9,7 +9,12 @@ export const SANCTUM = {
   requires: [],
   region: { zones: [Z.SANCTUM] },
   spawn: [84, 40],
+  // the north road to City 2 stays shut until the knight falls (sealed like every exit while he fights)
+  gates: [
+    { id: 'city2_road_gate', rect: [82, 6, 86, 6], requires: [{ type: 'map_unlocked', map: 'city2', label: 'Defeat the Rune Knight (A3 Major Boss)' }], color: '255,224,138', label: 'Road to Asteria City' },
+  ],
   exits: [
     { id: 'sanctum_gate', rect: [81, 44, 87, 44], to: 'a3', entry: [84, 52], label: 'Golden Gate' },
+    { id: 'north_road', rect: [83, 2, 85, 2], to: 'city2', entry: [80, 154], label: 'Asteria City' },
   ],
 };

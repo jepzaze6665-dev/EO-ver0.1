@@ -17,6 +17,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `T.bossReset(__game)` (death mid-fight resets the boss)
   `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` / `T.uiCheck(__game)` / `await T.partyCheck(__game)` / `T.tankCheck(__game)` (Combat 2.0),
   `T.gridCheck(__game)` (W1 multi-grid: lock/unlock, load/unload + cleanup, save/load + fog on another grid, no leaks, respawn),
+  `T.cityCheck(__game)` (City 2: unlock, north road, services, quest, save/load), `T.a3BossCheck(__game, classId)`,
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -51,7 +52,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   kept, so terrain changes survive). `changeMap` loads the target map's grid; MapManager lookups by position are per
   grid (`idAt(x, y, gridId?)`); quest tile markers are on START_GRID unless they name `map`. Secrets are world-wide
   (`world.secretsFound`); fog per grid (`revealed` + `revealedGrids` in the save); respawn = `world.checkpoint()`.
-  Grids: `whispering` (the original world, `world/levels/whispering.js`) and `ashen` (placeholder, maps/ashenBadlands.js).
+  Grids: `whispering` (A1 + Lumina + Valehaven), `ancient_valley` (A2 + Magma Rift), `citadel` (A3 + Sanctum), `asteria` (City 2).
 - Don't build yet (spec): multiplayer/network, accounts/DB, guild, trading, PvP, real secret classes / secret bosses, world events.
 - If a request would break the architecture: explain the problem, propose a better way, then implement.
 
@@ -370,5 +371,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Quest fix (generic): in ordered quests a flag step that unlocks late ticks if its flag was already set. Camera ignores a
   non-finite aim (a NaN mouse once froze it). `T.a3BossCheck(g, classId, { god, level: 17 })` 12/12 (god) ·
   no god, LV 17: UB ≈ 178 s · AW ≈ 185 s · AG ≈ 273 s · RP ≈ 150 s, all WIN.
-  Next: W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase).
+  W5 done: CITY 2 = ASTERIA CITY from the owner's art (desgin/Map/City/ASTERIA CITY: prop sheet + tileset, reference
+  desgin/Map/Ref/ASTERIA CITY). Grid `asteria` 160×160 (world/levels/asteria.js, zone Z.ASTERIA, music 'asteria', skin
+  'asteria'), terrain `maps/asteriaCity.js` (laid out 1:1 from the reference, 8 ref px = 1 tile): moat + wall + great
+  South Gate, avenues + canal, Crystal Plaza (fountain), Asteria Keep, Noble Quarter / Rosewall Homes / Greenroof Lane
+  (rows of houses with lanes), Grand Bazaar, Guild Quarter, Forge Row, Hall of Records, Old Quarter ruins, Fountain Garden,
+  forest ring. Map `city2` (maps/city2.js, safe, requires any Major Boss: boss_a3 | boss_b3), reached by the Sanctum's
+  north road (gate city2_road_gate + exit north_road; exit south_road back). Services = NPCs in map content: Guildmaster
+  Seraphine (quest `asteria` THE LIVING CITY: reach the plaza + meet her), Odo (shop — items.js `SHOPS` per NPC id,
+  panels.shop uses the NPC you talk to), Hilde (smith), Sir Callum, Archivist Imre, citizens; waystone + storage.
+  City props `a_*` are extracted at FULL size (no SCALE: the sheet's buildings are meant to be large; scales in the
+  terrain are final); extract-props: per-sheet background test `SHEET_BG` (grey sheet) + `FILL_HOLES` (box mode keeps
+  background-coloured pixels enclosed by a prop). routes: `cityPlanned` gone. `tools/mapOverview.js` (O.show(__game, 4)):
+  whole-map render of the loaded grid. `T.cityCheck(g)` 11/11.
+  Next: F3 combat debug (hitbox / frame / phase), City 2 content (owner decides), Route B.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

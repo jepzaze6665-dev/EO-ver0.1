@@ -6,9 +6,10 @@ import { FIELD_A2 } from './fieldA2.js';
 import { MAGMA_RIFT } from './magmaRift.js';
 import { FIELD_A3 } from './fieldA3.js';
 import { SANCTUM } from './sanctum.js';
+import { CITY2 } from './city2.js';
 
 // Every playable map. Order = region priority when a tile of one grid could match two maps.
-//   City 1 Lumina Village -> A1 Whispering Forest (+ arena) -> A2 Ancient Valley (+ Magma Rift) -> A3 Rune Citadel -> City 2 (planned)
+//   City 1 Lumina Village -> A1 Whispering Forest (+ arena) -> A2 Ancient Valley (+ Magma Rift) -> A3 Rune Citadel (+ Sanctum) -> City 2 Asteria City
 //   Valehaven = secret city inside A1's grid (not a route step). Route B (B1 -> B2 -> B3) is data only for now
 //   (data/routes.js): its maps are added here when they are built.
 // Map fields:
@@ -20,5 +21,5 @@ import { SANCTUM } from './sanctum.js';
 //   hiddenAreas: data/hidden.js ids that live here (route panel "secrets found"; content = data/hidden.js)
 //   corruptedMonsters (true | { minTy, maxTy }) / monsterMods [{ zones, mod }]: how hard spawns are, by part of the map
 //   exits / spawn / region / content: see maps/luminaVillage.js
-export const MAPS = [LUMINA_VILLAGE, FIELD_A1, MAJOR_BOSS_ARENA, VALEHAVEN, FIELD_A2, MAGMA_RIFT, FIELD_A3, SANCTUM];
+export const MAPS = [LUMINA_VILLAGE, FIELD_A1, MAJOR_BOSS_ARENA, VALEHAVEN, FIELD_A2, MAGMA_RIFT, FIELD_A3, SANCTUM, CITY2];
 export const START_MAP = 'lumina';

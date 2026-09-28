@@ -183,12 +183,15 @@ test('route status: steps, current boss, completion', () => {
   const { g } = fakeGame(), wp = g.worldProgress;
   wp.refreshUnlocks('start');
   let st = wp.routeStatus('A');
-  eq(st.steps.length, 3); ok(!st.complete && st.city === null, 'fresh (City 2 planned: no map)');
+  eq(st.steps.length, 3); ok(!st.complete && st.city && st.city.id === 'city2' && !st.city.unlocked, 'fresh: City 2 (Asteria) built but locked');
   ok(st.steps[0].id === 'a1' && !st.steps[0].planned && st.steps[1].id === 'a2' && st.steps[2].id === 'a3' && !st.steps[2].planned, 'A1 / A2 / A3 built');
   wp.defeatBoss('boss_a1');
   st = wp.routeStatus('A');
   ok(st.steps[0].bossDefeated && st.steps[1].unlocked && !st.complete, 'A1 done, A2 open');
   ok(wp.routeStatus('B').steps.every((s) => s.planned), 'route B is planned only');
+  for (const b of ['boss_a2', 'boss_a3']) wp.defeatBoss(b);
+  st = wp.routeStatus('A');
+  ok(st.complete && st.city.unlocked, 'Rune Knight down: Route A complete, City 2 open');
 });
 
 console.log('world triggers');

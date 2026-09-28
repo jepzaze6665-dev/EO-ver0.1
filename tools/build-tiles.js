@@ -17,6 +17,7 @@ const ROOT = path.join(__dirname, '..');
 const TILE = 32, VARIANTS = 4;
 const A2 = 'desgin/Map/A/a2/image-11462af1-b6f1-43a6-96f9-71e6baef142e-0';
 const A3 = 'desgin/Map/A/a3/image-092dabfa-467b-48b0-901c-8dad361ac42e-0';
+const CITY = 'desgin/Map/City/ASTERIA CITY/image-c0f27881-0e5a-4221-ab7f-192ea8b07205-0';
 
 // skin -> sheet + rows. Each row: [name, region [x0, y0, x1, y1] (sheet px), picks (card indices in reading order)]
 //   name = a tile type of core/constants.js T, or 'face:<cliff|wall|cave>' for vertical wall faces.
@@ -58,6 +59,25 @@ const SKINS = {
       ['SHALLOW', [1669, 36, 1961, 410], [2, 3, 2, 3]],
       ['face:cliff', [1620, 1495, 1850, 1580], [0, 1, 2, 0]],
       ['face:wall', [620, 1495, 1000, 1580], [0, 1, 2, 3]],
+    ],
+  },
+  // CITY 2 ASTERIA (owner's sheet desgin/Map/City/ASTERIA CITY): green lawns, pale pavers, blue moat water, ~76 px cards
+  asteria: {
+    src: CITY, grade: { sat: 0.9, dark: 0.86 },
+    rows: [
+      ['GRASS', [10, 40, 690, 375], [0, 1, 8, 9]],
+      ['FLOWERS', [10, 40, 690, 375], [7, 15, 31, 15]],
+      ['DIRT', [700, 40, 1352, 375], [0, 1, 8, 9]],
+      ['COBBLE', [1356, 40, 2040, 375], [0, 1, 8, 9]],
+      ['ARENA', [1356, 40, 2040, 375], [16, 17, 5, 13]],
+      ['RUIN', [1356, 40, 2040, 375], [14, 15, 22, 23]],
+      ['MOSS_STONE', [1356, 40, 2040, 375], [2, 10, 18, 26]],
+      ['CLIFF', [385, 1600, 565, 1700], [0, 1, 0, 1]],
+      ['WATER', [10, 515, 620, 770], [0, 1, 7, 8]],
+      ['DEEP_WATER', [10, 515, 620, 770], [3, 10, 3, 10]],
+      ['SHALLOW', [10, 515, 620, 770], [11, 12, 11, 12]],
+      ['face:cliff', [190, 1600, 380, 1700], [0, 1, 2, 0]],
+      ['face:wall', [565, 1600, 745, 1700], [0, 1, 0, 1]],
     ],
   },
 };

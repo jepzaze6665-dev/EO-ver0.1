@@ -103,6 +103,7 @@ export class Renderer {
       case Z.RIFT: return { r: 48, g: 10, b: 0, a: 0.34 };
       case Z.CITADEL: return { r: 8, g: 12, b: 30, a: 0.42 };
       case Z.SANCTUM: return { r: 10, g: 14, b: 40, a: 0.46 };
+      case Z.ASTERIA: return { r: 30, g: 22, b: 12, a: 0.1 };
     }
     return { r: 10, g: 10, b: 20, a: 0.4 };
   }

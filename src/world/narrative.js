@@ -187,6 +187,54 @@ export function dialogueFor(id, g) {
         ],
         options: [{ label: 'Farewell', action: 'close' }],
       };
+    // ---- CITY 2 ASTERIA (maps/city2.js)
+    case 'a_guildmaster':
+      if (q.isDone('asteria')) return {
+        lines: [
+          'The Guild board fills faster than we can post it. The roads east are still unsurveyed — when the Guild opens them, you will hear it first.',
+          'Rest while you can. Asteria has had three hundred years of silence; it can spare you a quiet night.',
+        ],
+        options: [{ label: 'Farewell', action: 'close' }],
+      };
+      return {
+        lines: [
+          `Seraphine, Guildmaster of Asteria. So you are the ${g.player.cls.name} who walked out of the Sanctum.`,
+          'For three hundred years the Warden held that gate. Nothing from the dead city came through — and nothing from our side went back.',
+          'You broke the silence, and the city noticed. The Bazaar, the forges, the waystone by the fountain — they are yours to use.',
+          'The Guild has work beyond these walls. For now: welcome to Asteria.',
+        ],
+        options: [{ label: 'Thank you', action: 'close' }],
+      };
+    case 'a_merchant':
+      return {
+        lines: ['Odo, of the Asterian Bazaar! Draughts from the plaza crystal, charms from the old city — all fairly priced, mostly.'],
+        options: [{ label: 'Trade', action: 'shop' }, { label: 'Leave', action: 'close' }],
+      };
+    case 'a_smith':
+      return {
+        lines: ['Hilde. My forge has burned since before the Warden took his post. Bring bronze plate, rune crystals, magma cores — I know what to do with them.'],
+        options: [{ label: 'Forge equipment', action: 'smith' }, { label: 'Leave', action: 'close' }],
+      };
+    case 'a_gate_guard':
+      return {
+        lines: [
+          'Sir Callum, South Gate. That road leads back to the Sanctum and the dead city beyond it.',
+          'We watched the Warden from the walls every night. Never thought we’d see him fall — or see someone walk up that road.',
+        ],
+        options: [{ label: 'Farewell', action: 'close' }],
+      };
+    case 'a_scholar':
+      return {
+        lines: [
+          'Imre, keeper of the Hall of Records. The old city south of here was Asteria too, once — the half the runes consumed.',
+          'The knights you met there were not guarding the ruins from us. They were guarding us from what the runes became.',
+        ],
+        options: [{ label: 'Farewell', action: 'close' }],
+      };
+    case 'a_citizen':
+      return { lines: ['A traveler from the south road? My grandmother said no one had come that way in her lifetime, or hers.'], options: [{ label: 'Bye', action: 'close' }] };
+    case 'a_child':
+      return { lines: ['Did you really beat the Rune Knight? Was he THIS big? Mama says the crystal in the plaza sings when heroes come.'], options: [{ label: 'Bye', action: 'close' }] };
     // A3 — wounded Guild scout in the ruins courtyard (the last warning before the boss)
     case 'kael':
       if (restored) return {

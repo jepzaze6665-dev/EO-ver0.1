@@ -86,10 +86,15 @@ export const WORLD_TRIGGERS = [
 
   {
     id: 'a3_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_a3' },
-    actions: [{ type: 'banner', title: 'ROUTE A COMPLETE', text: 'The last Warden of Asteria rests. The road beyond leads to City 2 (coming in a later update).', color: '#ffe08a' }],
+    actions: [{ type: 'banner', title: 'ROUTE A COMPLETE', text: 'The last Warden of Asteria rests. The north road out of the Sanctum leads to City 2 — Asteria City.', color: '#ffe08a' }],
   },
 
-  // ---- A3 Major Boss -> City 2: added with City 2 (W5); the unlock itself = City 2's map `requires`.
+  // ---- City 2 Asteria (W5): the unlock itself = boss_a3 `unlocks` + City 2's map `requires`
+  {
+    id: 'city2_first_visit', on: 'mapEntered', match: { id: 'city2', first: true },
+    actions: [{ type: 'cutscene', title: 'ASTERIA CITY', sub: 'City 2 · Safe Zone', focus: 'player', zoom: 1.3, time: 2.4 }, 'accept_quest:asteria'],
+  },
+  { id: 'city2_plaza_found', on: 'areaDiscovered', match: { name: 'Crystal Plaza' }, actions: ['set_flag:asteriaPlaza'] },
 
   // ---- Valehaven: the secret city of the Ancient Valley (hidden road behind the Sealed Path, open once the forest heals)
   {

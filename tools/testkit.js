@@ -1129,3 +1129,50 @@ export function a3BossCheck(g, classId = 'umbral_sword', { god = true, level = 1
   if (enc.state === 'defeated') ok('Rewards once (crest + lore) · quest done · ROUTE A COMPLETE', g.inventory.count('asterian_crest') === 1 && w.state.lore.rune_knight && q.isDone('fallen_city') && trig.includes('a3_boss_defeated') && wp.routeStatus('A').complete && !g.camera.lock);
   return R;
 }
+
+// W5: City 2 ASTERIA CITY — locked until a Major Boss falls, the north road out of the Sanctum, a safe city on its own
+// grid, every service (shop / smith / storage / waystone / guild), quest THE LIVING CITY, the gate on foot, save/load, back.
+export function cityCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
+  for (const b of ['boss_a1', 'boss_a2']) wp.defeatBoss(b);
+  w.setFlag('guardianDefeated'); w.applyState();
+  ok('Before the Rune Knight: City 2 locked (road gate shut)', !wp.isMapUnlocked('city2') && !!wp.lockReason('city2'), wp.lockReason('city2'));
+  wp.defeatBoss('boss_a3');
+  const st = wp.routeStatus('A');
+  ok('Rune Knight down: City 2 unlocked · Route A complete', wp.isMapUnlocked('city2') && st.complete && st.city && st.city.unlocked);
+  w.changeMap('sanctum', { entry: [84, 12] }); g.simulate(0.3);
+  for (let k = 0; k < 20 && w.mapId !== 'city2'; k++) walk(g, 'KeyW', 0.3);
+  g.simulate(3);
+  ok('North road out of the Sanctum -> ASTERIA CITY (own grid)', w.mapId === 'city2' && w.gridId === 'asteria', `map=${w.mapId} grid=${w.gridId}`);
+  ok('Safe city: no hostiles · quest THE LIVING CITY started', w.mapDef.safe && w.hostiles().length === 0 && q.isActive('asteria'));
+  // the gate on foot: from the bridge up the avenue to the plaza
+  goto(g, 80, 146);
+  for (let k = 0; k < 90 && p.y > 78 * TILE; k++) walk(g, 'KeyW', 0.25);
+  ok('Through the South Gate on foot to the Crystal Plaza', p.y <= 78 * TILE && w.state.flags.asteriaPlaza, `pos=${(p.x / TILE).toFixed(1)},${(p.y / TILE).toFixed(1)}`);
+  // services
+  use(g, 'npc_a_merchant'); g.ui.panels.dialogueAction('shop');
+  const shopEl = document.querySelector('.panel h2');
+  ok('Asterian Bazaar: the merchant opens the city shop', shopEl && /Asterian Bazaar/.test(shopEl.textContent), shopEl && shopEl.textContent);
+  g.ui.panels.close(true);
+  use(g, 'npc_a_smith'); g.ui.panels.dialogueAction('smith');
+  ok('Forge: the smith opens the forge', g.ui.panels.current && g.ui.panels.current.name === 'smith', g.ui.panels.current && g.ui.panels.current.name);
+  g.ui.panels.close(true);
+  use(g, 'ws_asteria'); g.ui.panels.close(true);
+  use(g, 'a_storage'); const storageOpen = g.ui.panels.current && g.ui.panels.current.name; g.ui.panels.close(true);
+  ok('Waystone attuned · storage opens', w.state.waystones.ws_asteria && storageOpen === 'storage', `storage=${storageOpen}`);
+  const gold = p.gold;
+  use(g, 'npc_a_guildmaster'); g.ui.panels.close(true);
+  ok('Guildmaster Seraphine: THE LIVING CITY complete (+gold)', q.isDone('asteria') && p.gold > gold, `gold ${gold} -> ${p.gold}`);
+  // save / load on the city grid
+  const pos = [p.x, p.y];
+  g.saveGame(); g.world.changeMap('lumina'); g.simulate(0.3); const loaded = g.loadGame(); // (newGame would delete the save)
+  ok('Save / load in the city (grid asteria, same spot)', loaded && g.world.mapId === 'city2' && g.world.gridId === 'asteria' && Math.hypot(g.player.x - pos[0], g.player.y - pos[1]) < 40, `map=${g.world.mapId}`);
+  // back out: the south road returns to the Sanctum
+  const w2 = g.world;
+  goto(g, 80, 150);
+  for (let k = 0; k < 20 && w2.mapId !== 'sanctum'; k++) walk(g, 'KeyS', 0.3);
+  ok('South road back to the Sanctum', w2.mapId === 'sanctum', `map=${w2.mapId}`);
+  return R;
+}
