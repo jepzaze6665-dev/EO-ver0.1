@@ -7,6 +7,7 @@ import { Entity } from '../core/entity.js';
 import { TEAM } from '../core/constants.js';
 import { MONSTERS, CORRUPT_MOD, ELITE_MOD, MONSTER_STATE as S } from './monsterTypes.js';
 import { flashOf } from './monsterSprites.js';
+import { frameAt } from './sheetSprites.js';
 import { angleTo, wrapAngle, rand, TAU, dist, clamp, pick } from '../core/math.js';
 
 // Generic monster with a data-driven attack list and the state machine (names in MONSTER_STATE):
@@ -97,6 +98,13 @@ export class Monster extends Entity {
       g.vfx.text(this.x, this.y - this.height - 8, 'STAGGER', { color: '#ffe6a0', size: 9 });
       g.events.emit('poiseBroken', { target: this, source: src });
     }
+    const en = this.def.enrage;
+    if (en && !this.enraged && !this.dead && this.hp > 0 && this.hp <= this.maxHp * en.below) {
+      this.enraged = true; this.enrageT = en.time || 0.6;
+      this.mod.speed *= en.speed || 1; this.mod.power *= en.power || 1;
+      g.vfx.text(this.x, this.y - this.height - 8, 'ENRAGED', { color: '#ff6a5a', size: 9 });
+      g.events.emit('monsterEnraged', { monster: this });
+    }
     if (this.type === 'wraith') {
       this.hitCount = (this.hitCount || 0) + 1;
       if (this.hitCount >= 4 && this.state !== S.ATTACK) { this.hitCount = 0; this.blink(); }
@@ -131,6 +139,7 @@ export class Monster extends Entity {
     if (!this.target || this.target.dead || this.retargetT <= 0) { this.target = pickTarget(this, g.players()) || g.player; this.retargetT = ATTACK_SLOTS.retargetEvery; }
     const p = this.target;
     this.animT += dt;
+    if (this.enrageT > 0) this.enrageT -= dt;
     this.flash = Math.max(0, this.flash - dt);
     this.showBar = Math.max(0, this.showBar - dt);
     this.poise.update(dt);
@@ -422,11 +431,33 @@ export class Monster extends Entity {
     const s = this.sprites;
     return this.armor <= 0 && s.broken ? s.broken : s;
   }
+  // sheet art (data/monsterArt.js): whole animations — the wind-up frames are spread over the telegraph (STARTUP),
+  // the attack frames play through ACTIVE / RECOVERY, death plays before the corpse fades
+  sheetFrame(set) {
+    const atk = this.cur, per = atk && set.attacks[atk.id];
+    if (this.dead) return set.death ? frameAt(set.death, this.deathT, set.death.length / 0.55, false) : set.hurt[0];
+    if (this.state === S.HIT || this.status.has('stun')) return frameAt(set.hurt, this.stateT, 10, false);
+    if (this.enrageT > 0 && set.anims.enrage && this.state !== S.ATTACK) return frameAt(set.anims.enrage, (this.def.enrage.time || 0.6) - this.enrageT, 8, false);
+    if (this.state === S.ATTACK && atk) {
+      if (this.phase === 'windup') {
+        const w = (per && per.windup) || set.windup;
+        return w[Math.min(w.length - 1, Math.floor((this.stateT / Math.max(0.05, atk.windup)) * w.length))];
+      }
+      const a = (per && per.attack) || set.attack;
+      return this.phase === 'active' ? frameAt(a, this.stateT, 14) : frameAt(a, this.stateT, 12, false);
+    }
+    // facing the camera / away from it: front / back rows when the sheet has them
+    const sy = Math.sin(this.facing);
+    const v = Math.abs(sy) > 0.8 ? (sy > 0 ? set.anims.front : set.anims.back) : null;
+    if (this.moving) return frameAt(v || set.move, this.animT, set.fps.move);
+    return frameAt(v || set.idle, this.animT, set.fps.idle);
+  }
   draw(ctx) {
     const g = this.game;
     const set = this.frameSet();
     let fr;
-    if (this.dead) fr = set.hurt[0];
+    if (set.sheet) fr = this.sheetFrame(set);
+    else if (this.dead) fr = set.hurt[0];
     else if (this.state === S.HIT || this.status.has('stun')) fr = set.hurt[0];
     else if (this.state === S.ATTACK) {
       if (this.phase === 'windup') fr = set.windup[0];
@@ -442,7 +473,7 @@ export class Monster extends Entity {
     const x = Math.round(this.x + (this.shakeX || 0)), y = Math.round(this.y);
     this.shakeX = 0;
     let alpha = 1;
-    if (this.dead) alpha = Math.max(0, 1 - this.deathT / 0.6);
+    if (this.dead) alpha = set.sheet ? Math.max(0, 1 - Math.max(0, this.deathT - 0.5) / 0.3) : Math.max(0, 1 - this.deathT / 0.6);
     // shadow
     ctx.fillStyle = `rgba(0,0,0,${0.35 * alpha})`;
     ctx.beginPath(); ctx.ellipse(x, y, this.radius * 1.2, this.radius * 0.45, 0, 0, TAU); ctx.fill();
@@ -451,10 +482,10 @@ export class Monster extends Entity {
     ctx.globalAlpha = alpha;
     ctx.translate(x, y + floatY);
     if (flip) ctx.scale(-1, 1);
-    if (this.dead) ctx.rotate(Math.min(1, this.deathT * 3) * 0.4);
+    if (this.dead && !set.sheet) ctx.rotate(Math.min(1, this.deathT * 3) * 0.4);
     ctx.drawImage(fr, -ax, -ay, w, h);
-    if (this.flash > 0 || this.dead) {
-      ctx.globalAlpha = this.dead ? Math.max(0, 0.8 - this.deathT * 2) : Math.min(1, this.flash * 10);
+    if (this.flash > 0 || (this.dead && this.deathT < (set.sheet ? 0.12 : 0.4))) {
+      ctx.globalAlpha = this.dead ? Math.max(0, (set.sheet ? 0.5 : 0.8) - this.deathT * (set.sheet ? 4 : 2)) : Math.min(1, this.flash * 10);
       ctx.drawImage(flashOf(fr), -ax, -ay, w, h);
     }
     if (this.status.has('vulnerable') && !this.dead) {

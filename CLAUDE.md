@@ -52,6 +52,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - `node tools/build-vfx.js` → `assets/vfx/*.png + vfx.json` (right-facing strips, rotated at runtime;
   per-file `rows` (front view for caster-centred effects) and `mirrorFrames`).
 - `tools/tests/sprites.test.mjs` fails if any class animation uses an empty frame.
+- Monsters: raw sheets `desgin/monster/<A1|A2|A3>/<1|2|boss>` (no extension, 2048² AI sheets, checkerboard / flat bg,
+  different frame count per row) → `node tools/build-monsters.js [id]` (`--probe` = print rows / frames + previews in
+  <os tmp>/eo-monster-probe) → `assets/monsters/<id>.png + monsters.json` (one atlas per monster, shared cell, feet
+  pivot, rows mirrored to face right). Row layout per sheet = `SHEETS` in the tool. Which frames play = data
+  `src/data/monsterArt.js` (idle/move/windup/attack/hurt/death/front/back + extras, per-attack overrides, boss `poses`,
+  `replaces` sprite keys, `corrupt` tint → the 'C' variant). `src/monsters/sheetSprites.js` builds sets in the same shape
+  as the canvas placeholders (monsterSprites.js), so Monster / AreaBoss / Guardian draw them; `tools/tests/monsterArt.test.mjs`.
 - UI kit (PIXEL-ART style — the owner dropped the first painterly kit as not matching the game): `desgin/UI/{plate,frame_kit,slot_frame,bar_frame,crystal}.png`
   (AI sheets, black background) → `node tools/build-ui.js` → `assets/ui/*.png + ui.json` ({ file, w, h, slice? }; background flood-removed
   from the chosen edges + soft fringe, pieces found as blobs, named in reading order or by 3×3 grid). Loaded as
@@ -254,4 +261,20 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Checked in game: title, Inventory, Skills, ESC menu, dialogue. ui.test checks the CSS only uses existing images.
   Owner: Shadow Mark stays as it is (no crystal icons). Next: U4 = HP / stamina / resource bars + boss bar with
   bar_frame; U5 title screen.
+- **Current: WORLD V3 "Equal-size maps + monster art"** (owner, 2026-09-28): the WHOLE current world grid (forest,
+  river, Crystal Glade, ruins, valley) becomes **A1 Whispering Forest**; **A2 = Ashen Badlands** (volcanic canyon: rock,
+  lava, dust) and **A3 = Rune Citadel** (white stone + bronze, glowing runes, crystal) are NEW maps of the SAME size
+  (~168×208), each its own grid, only the current map loaded. Bosses: **Guardian = A1 boss** (new antler/crystal art,
+  purple corrupted form), Hollow Fang + Grukk → optional A1 mini-bosses, A2 boss = magma beast, A3 major boss = rune
+  knight. Monster sets: A1 hare / frost wolf / Guardian · A2 armadillo / rock rhino / magma beast · A3 crystal golem /
+  bronze hoplite / rune knight. Map reference art exists in `desgin/Map/A/`.
+  Done M1 (monster sprite pipeline): build-monsters tool + atlases for all 9 sheets, sheetSprites loader, Monster.draw
+  plays whole anims (wind-up spread over the telegraph, death anim, front/back rows, enrage), Guardian draws its sheet by
+  pose (`drawSheetBody`, canvas body kept as fallback `drawCanvasBody`), wolves (+ Hollow Fang) = frost wolf art,
+  corrupted = purple tint. New A1 monster **Whisper Hare** (`rabbit`, Lv 1, Forest Entrance meadow, loot `hare_pelt`)
+  with generic monster `enrage` data (below HP% → speed/power ×, 'monsterEnraged'). Checked: unit tests, combatTest
+  101/101, checklist 31/31, routeA all pass, no console errors.
+  Next: W1 multi-grid world (a grid per map + map loader load/unload; old world = A1 grid incl. Lumina), W2 move bosses
+  (Guardian → A1, Route/quests/tests follow), W3 A2 Ashen Badlands map + its monsters/boss, W4 A3 Rune Citadel + boss,
+  W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase) from the monster spec.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

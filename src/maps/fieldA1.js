@@ -39,7 +39,10 @@ export const FIELD_A1 = {
       { id: 'a1_glade_warning', kind: 'sign', tx: 62, ty: 121, prompt: 'Read Warning', title: 'Warning', text: GLADE_WARNING },
       { id: 'a1_glade_warning_east', kind: 'sign', tx: 74, ty: 130, prompt: 'Read Warning', title: 'Warning', text: GLADE_WARNING },
     ],
-    spawns: [],
+    spawns: [
+      // Forest Entrance meadow: Whisper Hares (Lv. 1, the first thing to fight)
+      { id: 'a1_hares', type: 'rabbit', count: 3, tx: 57, ty: 147, radius: 3, cond: 'always' },
+    ],
   },
   exits: [
     { id: 'to_lumina', rect: [44, 156, 51, 157], to: 'lumina', entry: [47.5, 161.5], label: 'Lumina Village' },

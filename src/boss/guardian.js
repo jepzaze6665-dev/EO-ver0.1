@@ -4,6 +4,8 @@ import { Entity } from '../core/entity.js';
 import { TEAM } from '../core/constants.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
 import { Monster } from '../monsters/monster.js';
+import { flashOf } from '../monsters/monsterSprites.js';
+import { frameAt } from '../monsters/sheetSprites.js';
 import { angleTo, dist, rand, TAU, wrapAngle, clamp, pick, lerp, easeOutCubic } from '../core/math.js';
 
 // GUARDIAN OF THE FOREST — 3-phase boss = Route A's Major Boss (data/bosses.js boss_a3; lifecycle: boss/bossSystem.js).
@@ -583,6 +585,57 @@ export class Guardian extends Entity {
     ctx.scale(this.drawScale, this.drawScale);
     const flip = Math.cos(this.facing) < 0;
     if (flip) ctx.scale(-1, 1);
+    const art = g.monsterSprites.forest_guardian;
+    if (art && art.sheet) this.drawSheetBody(ctx, art, P3);
+    else this.drawCanvasBody(ctx, t, P3);
+    ctx.restore();
+
+    // flash overlay (simple white body glow)
+    if (this.flash > 0 && !this.dead && !(art && art.sheet)) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = `rgba(255,255,255,${this.flash * 3})`;
+      ctx.beginPath(); ctx.ellipse(x, y - 76 - this.air, 80, 48, 0, 0, TAU); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    if (this.state === 'dormant') {
+      ctx.fillStyle = 'rgba(200,255,255,0.8)';
+      ctx.font = '8px monospace';
+      const zz = Math.floor(t * 1.5) % 3;
+      ctx.fillText('z'.repeat(zz + 1), x + 70, y - 140 - zz * 3);
+    }
+  }
+
+  // the owner's sheet art (data/monsterArt.js forest_guardian): pose -> animation, phase 3 = corrupted form
+  drawSheetBody(ctx, art, P3) {
+    const map = art.poses || {};
+    if (this.pose !== this.lastPose) { this.lastPose = this.pose; this.poseT0 = this.animT; }
+    const pt = this.animT - (this.poseT0 || 0);
+    let fr;
+    if (this.dead) {
+      const d = (P3 && art.anims.death_corrupt) || art.death || art.idle;
+      fr = frameAt(d, this.deathT, d.length / 1.8, false);
+    } else {
+      const name = (P3 && map.corrupted && map.corrupted[this.pose]) || map[this.pose] || 'idle';
+      const frames = art.anims[name] || art.idle;
+      const loop = (map.loop || []).includes(this.pose);
+      fr = frameAt(frames, loop ? this.animT : pt, art.fps[name] || 9, loop);
+    }
+    const s = 1 / this.drawScale * 1.25; // sheet frames are drawn at game size (ctx is scaled by drawScale)
+    const w = art.w * s, h = art.h * s, ax = art.ax * s, ay = art.ay * s;
+    if (this.state === 'dormant') ctx.filter = 'brightness(0.75)';
+    ctx.drawImage(fr, -ax, -ay, w, h);
+    ctx.filter = 'none';
+    if (this.flash > 0 && !this.dead) { ctx.globalAlpha = Math.min(1, this.flash * 10); ctx.drawImage(flashOf(fr), -ax, -ay, w, h); }
+    if (this.status.has('vulnerable') && !this.dead) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.25 + 0.2 * Math.sin(this.game.time * 14);
+      ctx.drawImage(flashOf(fr), -ax, -ay, w, h);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+  }
+
+  // canvas-shape placeholder body (used when the sheet art is missing)
+  drawCanvasBody(ctx, t, P3) {
     const pose = this.pose;
     let bodyY = -48 + Math.sin(t * 2) * 1.5, headLift = 0, frontLeg = 0, lean = 0, squash = 1;
     if (pose === 'walk') { frontLeg = Math.sin(t * 8) * 6; bodyY += Math.abs(Math.sin(t * 8)) * -2; }
@@ -681,20 +734,5 @@ export class Guardian extends Entity {
       ctx.lineWidth = 1;
     };
     antler(hx - 4, hy - 4, -1, 1.1); antler(hx + 4, hy - 6, 1, 1);
-    ctx.restore();
-
-    // flash overlay (simple white body glow)
-    if (this.flash > 0 && !this.dead) {
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.fillStyle = `rgba(255,255,255,${this.flash * 3})`;
-      ctx.beginPath(); ctx.ellipse(x, y - 76 - this.air, 80, 48, 0, 0, TAU); ctx.fill();
-      ctx.globalCompositeOperation = 'source-over';
-    }
-    if (this.state === 'dormant') {
-      ctx.fillStyle = 'rgba(200,255,255,0.8)';
-      ctx.font = '8px monospace';
-      const zz = Math.floor(t * 1.5) % 3;
-      ctx.fillText('z'.repeat(zz + 1), x + 70, y - 140 - zz * 3);
-    }
   }
 }

@@ -17,6 +17,7 @@ import { World } from '../world/world.js';
 import { Player } from '../player/player.js';
 import { PlayerSprites } from '../player/playerSprites.js';
 import { buildMonsterSprites } from '../monsters/monsterSprites.js';
+import { buildSheetSprites } from '../monsters/sheetSprites.js';
 import { CLASSES, DEFAULT_CLASS } from '../skills/classes.js';
 import { ThreadSystem } from '../combat/threadSystem.js';
 import { SummonSystem } from '../combat/summonSystem.js';
@@ -62,7 +63,8 @@ export class Game {
     this.combat = new Combat(this);
     this.ui = new UI(this);
     this.save = new SaveSystem(this);
-    this.monsterSprites = buildMonsterSprites();
+    // canvas placeholders, replaced by the owner's sheet art where data/monsterArt.js has an entry
+    this.monsterSprites = { ...buildMonsterSprites(), ...buildSheetSprites() };
     this.spriteCache = {}; // class preset -> PlayerSprites (built once)
     this.classId = DEFAULT_CLASS;
     this.state = 'boot';

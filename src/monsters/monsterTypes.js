@@ -6,6 +6,18 @@
 // Combat 2.0 (data/enemyCombat.js): windup = STARTUP, strike/dash = ACTIVE, recover = RECOVERY (longer after a miss:
 // missRecover); role · flank · punishIdle + attack `punish` = roles §51.
 export const MONSTERS = {
+  // A1 forest entrance critter (owner's sheet art, data/monsterArt.js). ENRAGE (generic, any monster may use it):
+  // below `below` HP the monster flares up once — speed / power ×, the sheet's enrage animation plays for `time` s.
+  rabbit: {
+    name: 'Whisper Hare', level: 1, hp: 38, def: 0, speed: 118, radius: 8, height: 20, mass: 0.5,
+    detect: 110, leash: 380, exp: 7, loot: 'rabbit', weakness: ['physical'], sprite: 'rabbit', poise: 8, turn: 12,
+    role: 'skirmisher', pattern: 'Hop Kick / Pounce', desc: 'Harmless until cornered. A wounded hare flares red and pounces faster.',
+    enrage: { below: 0.5, speed: 1.3, power: 1.25, time: 0.7 },
+    attacks: [
+      { id: 'kick', range: 30, min: 0, windup: 0.42, recover: 0.45, cd: 1.3, power: 7, shape: { shape: 'cone', r: 34, half: 0.8 }, kind: 'strike', knock: 90 },
+      { id: 'pounce', range: 100, min: 45, windup: 0.6, recover: 0.6, cd: 3.5, power: 10, shape: { shape: 'line', len: 95, width: 12 }, kind: 'dash', dashTime: 0.2 },
+    ],
+  },
   wolf: {
     name: 'Forest Wolf', level: 2, hp: 70, def: 2, speed: 128, radius: 10, height: 30, mass: 0.8,
     detect: 150, leash: 520, exp: 18, loot: 'wolf', weakness: ['shadow'], sprite: 'wolf', poise: 18, turn: 12,

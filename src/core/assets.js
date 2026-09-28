@@ -33,11 +33,14 @@ export async function loadAll(onProgress) {
   const propMeta = await loadJSON('assets/props/props.json');
   const vfxMeta = await loadJSON('assets/vfx/vfx.json');
   const uiMeta = await loadJSON('assets/ui/ui.json');
+  // monster sheets (tools/build-monsters.js); optional: without it every monster keeps its canvas placeholder
+  Assets.data.monsters = await loadJSON('assets/monsters/monsters.json').catch(() => ({}));
   const jobs = [];
   for (const [key, atlas] of Object.entries(Assets.data.atlases)) for (const [name, s] of Object.entries(atlas.sheets)) jobs.push([`player_${key}_${name}`, s.file]);
   jobs.push(['props', 'assets/props/props.png']);
   for (const [name, v] of Object.entries(vfxMeta)) jobs.push(['vfx_' + name, v.file]);
   for (const [name, v] of Object.entries(uiMeta)) jobs.push(['ui_' + name, v.file]);
+  for (const [name, v] of Object.entries(Assets.data.monsters)) jobs.push(['monster_' + name, v.file]);
   let done = 0;
   await Promise.all(
     jobs.map(async ([key, src]) => {
