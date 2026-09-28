@@ -44,6 +44,16 @@ const SHEETS = [
     names: ['form', 'ring', 'bigring', 'void', 'burst'],
     counts: { void: 9, burst: 10 },
   },
+  {
+    prefix: 'c', dir: 'desgin/monster/B/B2/VFX BOSS', bg: 'light', skipX: 60, clearLines: true, // B2 amethyst (the Colossus)
+    names: ['spark', 'slash', 'burst', 'spikes', 'bolt', 'blast', 'sigil', 'crater', 'star', 'sparkle', 'pillar', 'eruption', 'shatter'],
+    counts: { slash: 7, crater: 8, star: 9, pillar: 11, eruption: 9, shatter: 9 },
+  },
+  {
+    prefix: 'ca', dir: 'desgin/monster/B/B2/AURA Phase BOSS', bg: 'light', // B2 phase aura: gather -> ring -> vortex -> surge -> burst
+    names: ['form', 'ring', 'vortex', 'surge', 'burst'],
+    counts: { ring: 8, vortex: 8, surge: 7, burst: 9 },
+  },
 ];
 
 // dark background: keep the glow. alpha = brightness above the background, colour un-mixed from the background

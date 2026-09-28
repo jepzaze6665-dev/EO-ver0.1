@@ -214,6 +214,16 @@ export const MONSTER_ART = {
     },
     fps: { idle: 4, move: 6 },
   },
+  // B2 BOSS: the Amethyst Colossus
+  amethyst_colossus: {
+    sheet: 'amethyst_colossus', replaces: ['amethyst_colossus'],
+    anims: {
+      idle: 'idle', move: 'walk', charge: 'charge', windup: ['strike', [0, 1]], attack: ['strike', [2, 3, 4]], hurt: ['hit', [0, 1, 2]], death: 'death',
+      strike_wind: ['strike', [0, 1]], strike_hit: ['strike', [2, 3, 4, 5]], slam_wind: ['slam', [0, 1, 2, 3]], slam_hit: ['slam', [4, 5, 6, 7]],
+      glow: ['glow', [0, 1, 2, 3, 4, 5, 6]], stagger: ['hit', [3, 4, 5, 6]],
+    },
+    fps: { charge: 12, glow: 8 },
+  },
   // B1 BOSS: Hoarfang (a giant frost wolf)
   hoarfang: {
     sheet: 'hoarfang', replaces: ['hoarfang'],

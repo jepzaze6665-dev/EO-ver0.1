@@ -169,6 +169,8 @@ export class AreaBoss extends Entity {
     this.checkPhase();
   }
   onDot() { this.applyFloor(); this.checkPhase(); }
+  // armour (a mechanic sets this.armor, e.g. crystal_armor): combat calls this when it breaks
+  onArmorBreak() { this.mechHook('onArmorBreak'); }
   onBlockedHit() { this.applyFloor(); this.checkPhase(); } // a shield-stance block still chips HP: same floors
   // every phase must be played: HP cannot drop past the next phase threshold before the transition
   applyFloor() {

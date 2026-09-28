@@ -101,7 +101,8 @@ export const QUESTS = {
     objectives: [
       { id: 'lake', text: 'Cross the Underground Lake', type: 'flag', flag: 'b2Lake', marker: [92, 98], markerMap: 'b2' },
       { id: 'ruins', text: 'Reach the Sunken Ruins', type: 'flag', flag: 'b2Ruins', marker: [143, 76], markerMap: 'b2' },
-      { id: 'heart', text: 'Find the Heart of the Caverns', type: 'flag', flag: 'b2Heart', marker: [124, 29], markerMap: 'b2' },
+      { id: 'heart', text: 'Find the Heart of the Caverns', type: 'flag', flag: 'b2Heart', marker: [121, 29], markerMap: 'b2' },
+      { id: 'boss', text: 'Defeat the Amethyst Colossus (B2 Boss)', type: 'boss', boss: 'boss_b2', marker: [142, 30], markerMap: 'crystal_heart' },
     ],
     rewards: { exp: 350, gold: 200, items: { hp_potion: 3 } },
     requirements: [],

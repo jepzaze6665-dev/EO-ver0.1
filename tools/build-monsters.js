@@ -133,6 +133,11 @@ const SHEETS = {
     rows: [['idle', 5, { y: [192, 266] }], ['walk', 7, { y: [476, 549] }], ['attack', 7, { y: [745, 823] }], ['telegraph', 7, { y: [1040, 1118] }],
       ['special', 8, { y: [1345, 1427] }], ['hit', 8, { y: [1646, 1726] }], ['death', 6, { y: [1917, 1988] }]],
   },
+  // B2 BOSS: the AMETHYST COLOSSUS (a giant crystal golem, faces right)
+  amethyst_colossus: {
+    file: 'B/B2/BOSS', height: 84,
+    rows: [['idle', 8], ['walk', 9], ['charge', 9], ['slam', 8], ['strike', 7], ['hit', 10], ['glow', 10], ['death', 10]],
+  },
   // B1 BOSS: HOARFANG, a giant frost wolf (faces right on every row)
   hoarfang: {
     file: 'B/B1/BOSS', height: 76,

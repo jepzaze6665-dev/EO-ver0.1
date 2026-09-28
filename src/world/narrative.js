@@ -50,6 +50,10 @@ export const LORE = {
     title: 'The Magma Beast of the Rift',
     text: 'When the mountain woke, it did not stop at the valley\'s edge. The beast crawled up out of the rift and the kings fled their summer court.\nNow the rift cools. Past it, carved into the far cliffs, a road leads toward a citadel of rune and bronze.',
   },
+  amethyst_colossus: {
+    title: 'The Amethyst Colossus',
+    text: 'The miners dug into the Heart looking for amethyst and found it looking back. Every crystal they broke, it grew again — on itself.\nWith it fallen, the caverns are only caverns. The arch to Frostpeak is still sealed with frost from the other side.',
+  },
   hoarfang: {
     title: 'Hoarfang, the Winter Alpha',
     text: 'The nomads say the frost did not come to the plains — it was called, by a wolf the size of a cart, howling from the old arena.\nWith it fallen, the snow will not melt. But for the first time in years the road south is quiet.',

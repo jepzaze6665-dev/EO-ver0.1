@@ -1,5 +1,6 @@
 import { dist, TAU, angleTo, wrapAngle } from '../core/math.js';
 import { TILE as TILE_PX } from '../core/constants.js';
+import { Breakable } from '../exploration/breakable.js';
 
 // BOSS MECHANICS — the signature rule that makes one boss fight different from another (data: data/bosses.js
 // `mechanics: [{ type, ... }]`). An AreaBoss owns a list of these and calls their hooks; no boss is named here.
@@ -376,5 +377,76 @@ class Glacier {
   tags() { return this.pillars.length ? [{ label: `ICE PILLARS ${this.pillars.length} — HIDE BEHIND ONE`, color: '#bfe6ff' }] : []; }
 }
 
-export const MECHANICS = { overheat: Overheat, lava_pools: LavaPools, stance: Stance, rune_sequence: RuneSequence, echoes: Echoes, judgement: Judgement, frostbite: Frostbite, glacier: Glacier };
+// crystal_armor: the boss wears crystal ARMOR (damageSystem armour: most damage absorbed while it holds). Breaking it =
+// SHATTERED (a long weak window). Then it grows crystal CLUSTERS around the arena (breakable, `hp` each); after `grow` s
+// every cluster still standing is ABSORBED and gives back `per` of the armour. Smash the clusters and it stays bare.
+class CrystalArmor {
+  constructor(boss, d) { this.b = boss; this.d = { armor: 2400, weak: 5, clusters: 3, clusters2: 4, hp: 260, grow: 8, delay: 5, dist: 150, per: 0.4, prop: 'k_crystal_twin', ...d }; this.reset(); }
+  reset() {
+    if (this.list) this.clear();
+    this.list = []; this.t = -1; this.growT = 0; this.breaks = 0; this.absorbed = 0; this.smashed = 0;
+    this.b.armor = this.b.maxArmor = this.d.armor;
+  }
+  clear() {
+    const w = this.b.game.world;
+    for (const c of this.list) { c.dead = true; if (c.prop) c.prop.visible = false; const i = w.breakables.indexOf(c); if (i >= 0) w.breakables.splice(i, 1); }
+    this.list = [];
+  }
+  onArmorBreak() {
+    const b = this.b, g = b.game;
+    this.breaks++;
+    g.vfx.text(b.x, b.y - b.height - 20, 'ARMOR SHATTERED!', { color: '#d8b8ff', size: 14 });
+    b.fx('shatter', b.x, b.y - 30, 0, { scale: 1.3, life: 0.7 });
+    g.camera.shake(0.6); g.audio.sfx('shatter');
+    g.events.emit('bossArmorBroken', { bossId: b.bossId });
+    b.enterWeak(this.d.weak, 'SHATTERED');
+    this.t = this.d.delay; // regrowth starts after the weak window
+  }
+  update(dt) {
+    const b = this.b, g = b.game, d = this.d;
+    if (b.dead) { this.clear(); return; }
+    this.list = this.list.filter((c) => { if (c.dead && !c.counted) { c.counted = true; this.smashed++; g.events.emit('bossClusterSmashed', { bossId: b.bossId }); } return !c.dead; });
+    if (this.t > 0 && b.state === 'fight') { this.t -= dt; if (this.t <= 0) this.grow(); }
+    if (this.growT > 0) {
+      this.growT -= dt;
+      for (const c of this.list) if (Math.random() < dt * 6) g.vfx.particle(c.x + (Math.random() - 0.5) * 24, c.y - 20 - Math.random() * 20, { color: '#c89aff', vy: -30, life: 0.6, size: 2, add: true });
+      if (this.growT <= 0) this.absorb();
+    }
+  }
+  grow() {
+    const b = this.b, g = b.game, d = this.d, w = g.world;
+    const n = b.phase >= 2 ? d.clusters2 : d.clusters, a0 = Math.random() * Math.PI * 2;
+    g.ui.callout('CRYSTAL GROWTH', 'Smash the clusters before it absorbs them!', '#d8b8ff');
+    for (let k = 0; k < n; k++) {
+      const a = a0 + (k / n) * Math.PI * 2, c = b.clampToArena(b.center.x + Math.cos(a) * d.dist, b.center.y + Math.sin(a) * d.dist, 40);
+      const prop = w.map.addProp({ name: d.prop, x: c.x, y: c.y + 10, scale: 0.9 });
+      const br = new Breakable(g, c.x, c.y, { kind: 'crystal', hp: d.hp, radius: 16, height: 40, prop, label: 'Crystal Cluster' });
+      const onDeath0 = br.onDeath.bind(br); br.onDeath = () => { onDeath0(); prop.visible = false; };
+      w.breakables.push(br);
+      this.list.push(br);
+      b.fx('spikes', c.x, c.y + 6, 0, { scale: 0.9, life: 0.6 });
+    }
+    this.growT = d.grow;
+  }
+  absorb() {
+    const b = this.b, g = b.game, d = this.d, left = this.list.length;
+    for (const c of this.list) g.vfx.beam(c.x, c.y - 20, Math.atan2(b.y - 40 - (c.y - 20), b.x - c.x), Math.hypot(b.x - c.x, b.y - 40 - (c.y - 20)), 6, { color: '200,150,255', life: 0.5 });
+    this.clear();
+    if (!left) { g.vfx.text(b.x, b.y - b.height - 20, 'NO CRYSTALS LEFT', { color: '#9af8ff', size: 12 }); this.t = d.delay * 2.4; return; } // it tries again later
+    this.absorbed += left;
+    b.armor = Math.min(b.maxArmor, (b.armor || 0) + b.maxArmor * d.per * left);
+    g.vfx.text(b.x, b.y - b.height - 20, `ARMOR +${Math.round(d.per * left * 100)}%`, { color: '#d8b8ff', size: 13 });
+    b.fx('burst', b.x, b.y - 30, 0, { scale: 1.4, life: 0.6 });
+    g.events.emit('bossArmorRestored', { bossId: b.bossId, clusters: left });
+    this.t = -1; // armoured again: the next growth follows the next break
+  }
+  tags() {
+    const b = this.b, out = [];
+    if (b.armor > 0) out.push({ label: `ARMOR ${Math.ceil((b.armor / b.maxArmor) * 100)}%`, color: '#d8b8ff' });
+    if (this.list.length) out.push({ label: `SMASH ${this.list.length} · ${Math.ceil(this.growT)}s`, color: '#ff9ad8' });
+    return out;
+  }
+}
+
+export const MECHANICS = { overheat: Overheat, lava_pools: LavaPools, stance: Stance, rune_sequence: RuneSequence, echoes: Echoes, judgement: Judgement, frostbite: Frostbite, glacier: Glacier, crystal_armor: CrystalArmor };
 export const MECHANIC_TYPES = Object.keys(MECHANICS);

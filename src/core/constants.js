@@ -54,6 +54,7 @@ export const Z = {
   FROSTWIND: 13, // B1 Frostwind Plains grid (world/levels/frostwind.js)
   FROST_ARENA: 14, // B1 boss arena (the Frost Arena, SE of B1)
   CAVERNS: 15, // B2 Crystal Caverns grid (world/levels/caverns.js)
+  CAVERN_HEART: 16, // B2 boss arena (the Heart of the Caverns)
 };
 
 export const ZONE_INFO = {
@@ -72,6 +73,7 @@ export const ZONE_INFO = {
   [Z.FROSTWIND]: { name: 'FROSTWIND PLAINS', sub: 'Route B · the Eastern Road', music: 'frost' },
   [Z.FROST_ARENA]: { name: 'THE FROST ARENA', sub: 'Route B · B1 Boss', music: 'gate' },
   [Z.CAVERNS]: { name: 'CRYSTAL CAVERNS', sub: 'Route B · beneath the Frostpeak foothills', music: 'caverns' },
+  [Z.CAVERN_HEART]: { name: 'HEART OF THE CAVERNS', sub: 'Route B · B2 Boss', music: 'gate' },
 };
 
 export const TEAM = { PLAYER: 1, ENEMY: 2, NEUTRAL: 3 };

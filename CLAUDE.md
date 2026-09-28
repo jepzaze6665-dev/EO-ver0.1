@@ -436,5 +436,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   shard eruption heavy), `crystal_bat` (float caster: swoop / shard storm 6-way volley), `moss_tortoise` (tank, armour +
   back weak point: snap / shell quake guardBreak / pebble volley). Quest `crystal_depths` (lake -> ruins -> the Heart).
   `T.b2Check(g)` 7/7; spriteMonsterCheck 16/16 (Leafling keepAway 72 + bloom 78 so the bloom actually fires).
-  Next: B2b the B2 boss in the Heart of the Caverns (owner's B2 BOSS + VFX + AURA sheets), then B3.
+  B2b done: boss_b2 AMETHYST COLOSSUS (area, Lv 14, 15000 HP) in map `crystal_heart` (maps/crystalHeart.js, zone
+  Z.CAVERN_HEART = tiles x >= 123 within 20 of the Heart; B2 exit heart_gate with confirm, arena exit heart_west). Art: B2
+  BOSS sheet (crystal golem, 8 rows), VFX `c_*`, AURA `ca_*` via look.phaseAura. Phase 1 CRYSTAL SHELL (combo fists with a
+  late 3rd, charge, slam, crystal spikes cross), phase 2 RESONANCE at 50% (+ prism volley, crystal rain, resonance nova).
+  Mechanic `crystal_armor`: the boss gets `armor` (damageSystem armour: 70% absorbed); AreaBoss.onArmorBreak -> mechanic ->
+  SHATTERED weak; then CLUSTERS (Breakables + a prop, `hp` 260) grow around the arena; after `grow` s each one left is
+  absorbed (+40% armour each); all smashed -> it tries again later. Quest crystal_depths gets the boss step; item
+  amethyst_core, lore, trigger b2_boss_defeated (B3 next). `T.b2BossCheck(g, c, { god, level: 13 })` 8-10 steps;
+  no god LV 13: RP 129 s · UB 158.5 s · AW 165 s · AG 207.5 s (a bit longer than A2 — the armour; human playtest).
+  Next: B3 FROSTPEAK (map + 4 monsters), then the B3 major boss from the Phase BOSS sheet (Crystal Warden, 4 phases).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

@@ -35,6 +35,10 @@ export const WORLD_TRIGGERS = [
     id: 'b2_first_visit', on: 'mapEntered', match: { id: 'b2', first: true },
     actions: [{ type: 'cutscene', title: 'CRYSTAL CAVERNS', sub: 'Route B · B2', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:crystal_depths'],
   },
+  {
+    id: 'b2_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_b2' },
+    actions: [{ type: 'banner', title: 'THE HEART FALLS SILENT', text: 'The crystals dim. Beyond the Abyssal Arch the road climbs to Frostpeak (B3) — coming in the next update.', color: '#d8b8ff' }],
+  },
   { id: 'b2_lake_found', on: 'areaDiscovered', match: { name: 'Underground Lake' }, actions: ['set_flag:b2Lake'] },
   { id: 'b2_ruins_found', on: 'areaDiscovered', match: { name: 'Sunken Ruins' }, actions: ['set_flag:b2Ruins'] },
   { id: 'b2_heart_found', on: 'areaDiscovered', match: { name: 'Northern Gallery' }, actions: ['set_flag:b2Heart'] },

@@ -3,11 +3,11 @@ import { Z } from '../core/constants.js';
 // B2 — CRYSTAL CAVERNS (own grid: world/levels/caverns.js, terrain maps/crystalCaverns.js). Route B's second map: a
 // cave system of glowing crystal under the Frostpeak foothills, entered from the Frost Arena's south road once Hoarfang
 // falls. Monsters from the owner's sheets (desgin/monster/B/B2): Prism Slime, Shardback Spider, Glimmer Bat and the
-// Mossgem Tortoise. The Heart of the Caverns (NE) holds the B2 boss — sealed until its fight exists (next phase).
+// Mossgem Tortoise. The Heart of the Caverns (NE) holds the B2 boss, the Amethyst Colossus (maps/crystalHeart.js).
 const NOTICE = [
   'GUILD MARKER — scratched into the tunnel wall',
   '"Crystal Caverns. The lake is crossable by the old bridge. The miners left in a hurry — the Heart woke up."',
-  'The Heart of the Caverns (north-east) is sealed by living crystal. Do not touch it.',
+  'The Heart of the Caverns (north-east): the crystal there moves. Do not go alone.',
 ].join('\n');
 
 export const FIELD_B2 = {
@@ -17,9 +17,6 @@ export const FIELD_B2 = {
   hiddenAreas: [],
   region: { zones: [Z.CAVERNS] },
   spawn: [7, 12],
-  gates: [
-    { id: 'cavern_heart_gate', rect: [124, 25, 124, 33], requires: [{ type: 'event', id: 'b2_heart_open', label: 'Living crystal seals the Heart (its guardian arrives in the next update)' }], color: '176,112,255', label: 'Heart of the Caverns' },
-  ],
   content: {
     interactables: [
       { id: 'b2_tunnel_notice', kind: 'sign', tx: 12, ty: 15, prompt: 'Read Marker', title: 'Frozen Tunnel', text: NOTICE },
@@ -45,5 +42,13 @@ export const FIELD_B2 = {
   },
   exits: [
     { id: 'north_tunnel', rect: [2, 11, 2, 13], to: 'frost_arena', entry: [142, 163], label: 'The Frost Arena' },
+    {
+      id: 'heart_gate', rect: [121, 26, 121, 32], to: 'crystal_heart', entry: [128, 29], label: 'Heart of the Caverns',
+      confirm: {
+        title: 'Heart of the Caverns',
+        text: 'The crystal ahead hums like a heartbeat — and something in it stands up.\nOnce the Colossus wakes, the Heart seals until one of you falls.\n\nEnter the Heart of the Caverns?',
+        yes: 'Enter', no: 'Not yet',
+      },
+    },
   ],
 };

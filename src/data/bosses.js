@@ -243,7 +243,46 @@ export const BOSSES = {
     rewards: { exp: 700, gold: 280, loot: 'hoarfang', items: { frost_heart: 1 }, lore: 'hoarfang' },
     unlocks: ['b2'],
   },
-  boss_b2: { id: 'boss_b2', name: 'B2 AREA BOSS', title: 'Route B · to be designed', type: 'area', impl: 'area', route: 'B', map: 'b2', planned: true, unlocks: ['b3'] },
+  // B2 AREA BOSS (B2b): the AMETHYST COLOSSUS in the Heart of the Caverns (maps/crystalHeart.js). Art = the owner's B2 boss
+  // sheet (a giant crystal golem); effects = the B2 VFX sheet ('c_*'); its phase change plays the B2 AURA sheet ('ca_*').
+  // SIGNATURE crystal_armor: break its crystal ARMOR (SHATTERED), then smash the clusters it grows before it absorbs them.
+  boss_b2: {
+    id: 'boss_b2', name: 'AMETHYST COLOSSUS', title: 'Heart of the Crystal Caverns', type: 'area', impl: 'area',
+    route: 'B', map: 'crystal_heart', level: 14, recommendedLevel: 13,
+    teaches: 'Break the armour · smash the crystal clusters before they are absorbed · wait for the late third fist',
+    stats: { hp: 15000, def: 12, speed: 88, radius: 28, height: 76, mass: 9, weakness: ['physical'], superArmor: true, poise: 1000 },
+    look: {
+      sprite: 'amethyst_colossus', scale: 1.15, aura: '190,140,255',
+      anims: { hurt: 'hit', roar: 'glow' },
+      phaseAnims: { 2: { idle: 'glow' } },
+      vfx: { charge: 'c_spark', slash: 'c_slash', impact: 'c_crater', bolt: 'c_bolt', eruption: 'c_spikes', nova: 'c_eruption', phase: 'c_burst', shatter: 'c_shatter', burst: 'c_burst', spikes: 'c_spikes', sigil: 'c_sigil' },
+      phaseAura: { 2: { transition: ['ca_form', 'ca_ring', 'ca_vortex', 'ca_surge', 'ca_burst'], step: 0.3, stepLife: 0.55, loop: 'ca_ring', loopLife: 0.9, scale: 1.3 } },
+    },
+    arena: { name: 'Heart of the Caverns', center: [142, 30], radius: 14.5, trigger: 11, bossSpawn: [142, 24], entry: [128, 29], cameraLock: true },
+    appear: [],
+    phases: [
+      { name: 'CRYSTAL SHELL', sub: 'Break the armour — then smash what it grows', hpBelow: 1, moves: ['fists', 'charge', 'slam', 'crystal_spikes'] },
+      { name: 'RESONANCE', sub: 'The Heart sings — crystals fall from the ceiling', hpBelow: 0.5, windup: 0.9, speed: 1.1, shockwave: 26, moves: ['fists', 'charge', 'slam', 'prism_volley', 'crystal_rain', 'resonance'] },
+    ],
+    moves: {
+      fists: {
+        kind: 'combo', range: 100, cd: 4, weight: 3, power: 30, knock: 200, recover: 0.8, opening: 1.1, shape: { shape: 'cone', r: 96, half: 0.8 },
+        hits: [{ windup: 0.55 }, { windup: 0.45, track: true }, { windup: 1.1, track: true, power: 44, shape: { shape: 'cone', r: 116, half: 1.1 } }],
+        anim: { windup: 'strike_wind', attack: 'strike_hit' },
+      },
+      charge: { kind: 'dash', guardBreak: true, range: 300, min: 120, windup: 1.0, recover: 1.0, cd: 5.5, weight: 2, power: 40, knock: 300, len: 260, width: 46, opening: 1.5, anim: { windup: 'charge', attack: 'charge' } },
+      slam: { kind: 'strike', range: 110, windup: 1.0, recover: 1.0, cd: 4.5, weight: 2.5, power: 42, knock: 280, heavy: true, opening: 1.2, shape: { shape: 'circle', r: 88, offset: 44 }, anim: { windup: 'slam_wind', attack: 'slam_hit' } },
+      crystal_spikes: { kind: 'pattern', layout: 'cross', range: 400, windup: 0.9, recover: 0.6, cd: 6, weight: 2, power: 26, knock: 180, count: 4, r: 30, step: 60, delay: 0.12, dmg: 'magic', color: '190,140,255', anim: { roar: 'slam_hit' } },
+      prism_volley: { kind: 'volley', range: 380, min: 100, windup: 0.8, recover: 0.6, cd: 4, weight: 2.5, power: 26, count: 5, spread: 0.8, speed: 270, dmg: 'magic', color: '#c89aff', anim: { windup: 'glow', attack: 'strike_hit' } },
+      crystal_rain: { kind: 'pattern', layout: 'scatter', range: 999, windup: 1.0, recover: 0.8, cd: 7, weight: 2, power: 28, count: 9, r: 38, delay: 0.1, dmg: 'magic', color: '190,140,255', anim: { roar: 'glow' } },
+      resonance: { kind: 'nova', range: 999, windup: 1.1, recover: 0.9, cd: 9, weight: 1.5, power: 26, rings: 3, width: 46, gap: 72, dmg: 'magic', color: '190,140,255', anim: { roar: 'glow' } },
+    },
+    mechanics: [
+      { type: 'crystal_armor', armor: 2400, weak: 5, clusters: 3, clusters2: 4, hp: 260, grow: 8, delay: 5, dist: 150, per: 0.4 },
+    ],
+    rewards: { exp: 1000, gold: 380, loot: 'amethyst_colossus', items: { amethyst_core: 1 }, lore: 'amethyst_colossus' },
+    unlocks: ['b3'],
+  },
   boss_b3: { id: 'boss_b3', name: 'B3 MAJOR BOSS', title: 'Route B · to be designed', type: 'major', impl: 'area', route: 'B', map: 'b3', planned: true, unlocks: ['city2'] },
 };
 

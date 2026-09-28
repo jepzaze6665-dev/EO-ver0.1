@@ -397,5 +397,131 @@
   "fh": 145,
   "frames": 10,
   "set": "boss"
+ },
+ "c_spark": {
+  "file": "assets/vfx/boss/c_spark.png",
+  "fw": 49,
+  "fh": 55,
+  "frames": 12,
+  "set": "boss"
+ },
+ "c_slash": {
+  "file": "assets/vfx/boss/c_slash.png",
+  "fw": 242,
+  "fh": 55,
+  "frames": 7,
+  "set": "boss"
+ },
+ "c_burst": {
+  "file": "assets/vfx/boss/c_burst.png",
+  "fw": 114,
+  "fh": 76,
+  "frames": 11,
+  "set": "boss"
+ },
+ "c_spikes": {
+  "file": "assets/vfx/boss/c_spikes.png",
+  "fw": 139,
+  "fh": 86,
+  "frames": 8,
+  "set": "boss"
+ },
+ "c_bolt": {
+  "file": "assets/vfx/boss/c_bolt.png",
+  "fw": 136,
+  "fh": 53,
+  "frames": 8,
+  "set": "boss"
+ },
+ "c_blast": {
+  "file": "assets/vfx/boss/c_blast.png",
+  "fw": 95,
+  "fh": 71,
+  "frames": 9,
+  "set": "boss"
+ },
+ "c_sigil": {
+  "file": "assets/vfx/boss/c_sigil.png",
+  "fw": 88,
+  "fh": 58,
+  "frames": 12,
+  "set": "boss"
+ },
+ "c_crater": {
+  "file": "assets/vfx/boss/c_crater.png",
+  "fw": 217,
+  "fh": 89,
+  "frames": 8,
+  "set": "boss"
+ },
+ "c_star": {
+  "file": "assets/vfx/boss/c_star.png",
+  "fw": 260,
+  "fh": 115,
+  "frames": 8,
+  "set": "boss"
+ },
+ "c_sparkle": {
+  "file": "assets/vfx/boss/c_sparkle.png",
+  "fw": 107,
+  "fh": 89,
+  "frames": 12,
+  "set": "boss"
+ },
+ "c_pillar": {
+  "file": "assets/vfx/boss/c_pillar.png",
+  "fw": 279,
+  "fh": 42,
+  "frames": 10,
+  "set": "boss"
+ },
+ "c_eruption": {
+  "file": "assets/vfx/boss/c_eruption.png",
+  "fw": 269,
+  "fh": 90,
+  "frames": 8,
+  "set": "boss"
+ },
+ "c_shatter": {
+  "file": "assets/vfx/boss/c_shatter.png",
+  "fw": 478,
+  "fh": 104,
+  "frames": 7,
+  "set": "boss"
+ },
+ "ca_form": {
+  "file": "assets/vfx/boss/ca_form.png",
+  "fw": 105,
+  "fh": 111,
+  "frames": 8,
+  "set": "boss"
+ },
+ "ca_ring": {
+  "file": "assets/vfx/boss/ca_ring.png",
+  "fw": 122,
+  "fh": 127,
+  "frames": 8,
+  "set": "boss"
+ },
+ "ca_vortex": {
+  "file": "assets/vfx/boss/ca_vortex.png",
+  "fw": 144,
+  "fh": 147,
+  "frames": 8,
+  "set": "boss"
+ },
+ "ca_surge": {
+  "file": "assets/vfx/boss/ca_surge.png",
+  "fw": 163,
+  "fh": 199,
+  "frames": 7,
+  "set": "boss"
+ },
+ "ca_burst": {
+  "file": "assets/vfx/boss/ca_burst.png",
+  "fw": 131,
+  "fh": 136,
+  "frames": 9,
+  "set": "boss"
  }
 }

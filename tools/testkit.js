@@ -1332,10 +1332,14 @@ export function b2Check(g, classId = 'umbral_sword') {
   use(g, 'ws_b2_hall'); g.ui.panels.close(true);
   ok('Glittering Hall waystone attuned', w.state.waystones.ws_b2_hall);
   for (const [x, y] of [[92, 98], [143, 78], [74, 28]]) { goto(g, x, y); g.simulate(0.6); }
-  ok('Quest: lake crossed · ruins reached · the Heart found', q.isDone('crystal_depths'), JSON.stringify(q.active.crystal_depths && q.active.crystal_depths.done));
-  goto(g, 118, 29);
-  for (let k = 0; k < 10; k++) walk(g, 'KeyD', 0.3);
-  ok('The Heart of the Caverns is sealed until its guardian exists (gate holds)', p.x < 125 * TILE, `x=${(p.x / TILE).toFixed(1)}`);
+  const qd = q.active.crystal_depths && q.active.crystal_depths.done;
+  ok('Quest: lake crossed · ruins reached · the Heart found (boss step next)', qd && qd.lake && qd.ruins && qd.heart && !qd.boss, JSON.stringify(qd));
+  let asked = false; const ask0 = g.ui.panels.confirm.bind(g.ui.panels);
+  g.ui.panels.confirm = (t, b, y, n, onYes, onNo) => { asked = true; g.ui.panels.confirm = ask0; onNo(); };
+  goto(g, 117, 29);
+  for (let k = 0; k < 8 && !asked; k++) walk(g, 'KeyD', 0.25);
+  g.ui.panels.confirm = ask0;
+  ok('The Heart of the Caverns asks first · "Not yet" stays in B2', asked && w.mapId === 'b2', `asked=${asked} map=${w.mapId}`);
   goto(g, 92, 98); g.simulate(0.3);
   const pos = [p.x, p.y];
   g.saveGame(); w.changeMap('lumina'); g.simulate(0.3); const loaded = g.loadGame();
@@ -1344,5 +1348,58 @@ export function b2Check(g, classId = 'umbral_sword') {
   goto(g, 7, 12);
   for (let k = 0; k < 12 && w2.mapId !== 'frost_arena'; k++) walk(g, 'KeyA', 0.3);
   ok('Back up the tunnel to the Frost Arena', w2.mapId === 'frost_arena', `map=${w2.mapId}`);
+  return R;
+}
+
+// B2b: the AMETHYST COLOSSUS in the Heart of the Caverns — confirm gate, arena, CRYSTAL ARMOR (break it -> SHATTERED),
+// clusters (smash them or they are absorbed back into armour), 2 phases + the AURA sheet, rewards, quest.
+export function b2BossCheck(g, classId = 'umbral_sword', { god = true, level = 13, seconds = 360 } = {}) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
+  wp.defeatBoss('boss_b1');
+  const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
+  w.changeMap('b2', { entry: [7, 12] }); g.simulate(0.5);
+  for (const [x, y] of [[92, 98], [143, 78], [74, 28]]) { goto(g, x, y); g.simulate(0.5); }
+  w.transitions.autoConfirm = true;
+  goto(g, 117, 29);
+  for (let k = 0; k < 10 && w.mapId !== 'crystal_heart'; k++) walk(g, 'KeyD', 0.3);
+  const enc = g.bosses.get('boss_b2');
+  ok('Heart of the Caverns = its own boss-arena map · the Colossus waits', w.mapId === 'crystal_heart' && w.mapDef.type === 'boss_arena' && enc.state === 'idle', `map=${w.mapId} ${enc.state}`);
+  p.setLevel(level); p.hp = p.maxHp; g.inventory.add('hp_potion', 5, true);
+  for (let k = 0; k < 12 && enc.state !== 'engaged'; k++) walk(g, 'KeyD', 0.3);
+  ok('Engaged: exits sealed, camera held on the arena', enc.state === 'engaged' && !!g.camera.lock && w.mapDef.exits.every((x) => !w.transitions.isOpen(x)), enc.state);
+  const e = enc.entity, moves = new Set(), phases = new Set(), fxUsed = new Set();
+  const st = { broken: 0, restored: 0, smashed: 0, armored0: e.armor > 0, badTag: false };
+  const on = (n, f) => { g.events.on(n, f); return [n, f]; };
+  const subs = [on('bossArmorBroken', () => st.broken++), on('bossArmorRestored', () => st.restored++), on('bossClusterSmashed', () => st.smashed++)];
+  const spawn0 = g.vfx.sprite.bind(g.vfx); g.vfx.sprite = (n, ...a) => { if (/^ca?_/.test(n)) fxUsed.add(n); return spawn0(n, ...a); };
+  const arm = e.mech.find((m) => m.list && m.absorb);
+  let t = 0, round = 0;
+  for (; t < seconds && enc.state !== 'defeated' && !p.dead; t += 0.5) {
+    g.simulate(0.5, (gg, i) => {
+      // the bot hits the nearest hostile — clusters are hostile breakables. In god runs: leave the FIRST growth alone
+      // (it must be absorbed = armour back), smash the later ones.
+      const target = arm.list.length && round > 0 ? arm.list[0] : null;
+      bot(gg, i, { god, target, breakables: round > 0 });
+      if (e.curMove) moves.add(Object.keys(e.def.moves).find((k) => e.def.moves[k] === e.curMove));
+      for (const tg of e.hudState().tags) if (!tg || typeof tg.label !== 'string') st.badTag = true;
+    });
+    if (st.restored && round === 0) round = 1;
+    if (!god && arm.list.length) round = 1;
+    phases.add(e.phase);
+  }
+  releaseInput(g);
+  g.simulate(6);
+  g.vfx.sprite = spawn0;
+  for (const [n, f] of subs) g.events.off(n, f);
+  ok('CRYSTAL ARMOR: starts armoured, breaks (SHATTERED)', st.armored0 && st.broken > 0, `broken=${st.broken}`);
+  if (god) ok('Clusters left standing are absorbed back into armour', st.restored > 0, `restored=${st.restored}`);
+  ok('Clusters can be smashed', st.smashed > 0, `smashed=${st.smashed}`);
+  ok('Phase change plays the B2 AURA sheet (ca_*) and the B2 VFX (c_*)', [...fxUsed].some((n) => n.startsWith('ca_')) && [...fxUsed].filter((n) => n.startsWith('c_')).length >= 3, [...fxUsed].join(','));
+  if (god) ok('Every move used', Object.keys(e.def.moves).every((m) => moves.has(m)), [...moves].join(','));
+  ok('2 phases (RESONANCE at 50%) · HUD tags well-formed', phases.has(1) && phases.has(2) && !st.badTag, [...phases].join(','));
+  ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_b2') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
+  if (enc.state === 'defeated') ok('Rewards once (Amethyst Core + lore) · quest done · banner · no clusters left · camera free', g.inventory.count('amethyst_core') === 1 && w.state.lore.amethyst_colossus && q.isDone('crystal_depths') && trig.includes('b2_boss_defeated') && !arm.list.length && !g.camera.lock);
   return R;
 }

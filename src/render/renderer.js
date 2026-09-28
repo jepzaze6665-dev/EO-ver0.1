@@ -107,6 +107,7 @@ export class Renderer {
       case Z.FROSTWIND: return { r: 14, g: 22, b: 40, a: 0.2 };
       case Z.FROST_ARENA: return { r: 12, g: 20, b: 44, a: 0.3 };
       case Z.CAVERNS: return { r: 6, g: 6, b: 22, a: 0.55 };
+      case Z.CAVERN_HEART: return { r: 14, g: 6, b: 30, a: 0.45 };
     }
     return { r: 10, g: 10, b: 20, a: 0.4 };
   }

@@ -28,6 +28,7 @@ export const LOOT_TABLES = {
   frost_bear: { gold: [10, 22], drops: [{ item: 'frost_pelt', chance: 0.7 }, { item: 'hp_potion', chance: 0.15 }] },
   elite: { gold: [20, 40], drops: [{ item: 'hp_potion', chance: 0.5 }, { item: 'shadow_tonic', chance: 0.25 }] }, // extra roll for elites
   // area bosses (data/bosses.js rewards.loot) — rolled once, on the first kill
+  amethyst_colossus: { gold: [170, 170], drops: [{ item: 'moon_crystal', chance: 1, count: 3 }, { item: 'crystal_shard', chance: 1, count: 5 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }] },
   hoarfang: { gold: [140, 140], drops: [{ item: 'frost_pelt', chance: 1, count: 4 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }] },
   rune_knight: { gold: [200, 200], drops: [{ item: 'rune_crystal', chance: 1, count: 4 }, { item: 'bronze_plate', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 4 }] },
   magma_beast: { gold: [120, 120], drops: [{ item: 'ember_core', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }] },

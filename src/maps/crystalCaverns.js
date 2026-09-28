@@ -78,10 +78,13 @@ export function buildCrystalCavernsTerrain(b) {
     { b.prop(n, x, y, { solid: true, footprint: [[-1, 0], [0, 0], [1, 0]] }); lit(x, y, n.includes('violet') ? '#b070ff' : '#7ab8ff', 110, 0.55); }
   b.prop('k_rune_circle', P.gallery[0], P.gallery[1] + 2, { layer: 'ground' }); lit(P.gallery[0], P.gallery[1], '#7ab8ff', 90);
   b.prop('k_rune_pool', P.field[0] - 6, P.field[1] + 4, { layer: 'ground' });
-  // the Heart of the Caverns: the giant crystal (the B2 boss waits here — next phase)
-  b.prop('k_crystal_big', P.heart[0], P.heart[1] - 4, { solid: true, scale: 1.8, footprint: [[-1, 0], [0, 0], [1, 0], [-1, -1], [0, -1], [1, -1]] });
-  lit(P.heart[0], P.heart[1] - 4, '#b070ff', 200, 0.6);
-  for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; b.prop(i % 2 ? 'k_crystal_violet_s' : 'k_crystal_s1', P.heart[0] + Math.cos(a) * 14, P.heart[1] + Math.sin(a) * 13, { solid: true }); }
+  // the Heart of the Caverns (B2 boss arena, zone CAVERN_HEART = map 'crystal_heart'): the giant crystal on the north rim,
+  // crystals ringing the arena, the floor left clear for the fight
+  for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) if (x >= 123 && Math.hypot(x - P.heart[0], y - P.heart[1]) <= 20) m.zone[m.idx(x, y)] = Z.CAVERN_HEART;
+  b.prop('k_crystal_big', P.heart[0], P.heart[1] - 16, { scale: 1.8 });
+  lit(P.heart[0], P.heart[1] - 14, '#b070ff', 220, 0.6);
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; if (Math.abs(Math.cos(a) + 1) < 0.2) continue; b.prop(i % 2 ? 'k_crystal_violet_s' : 'k_crystal_s1', P.heart[0] + Math.cos(a) * 16.5, P.heart[1] + Math.sin(a) * 16, { solid: true }); }
+  b.prop('k_rune_circle', P.heart[0], P.heart[1] + 4, { layer: 'ground', scale: 1.4 });
   // the Old Mine: scaffolds, rails, carts, lanterns
   for (const [n, x, y] of [['k_scaffold_a', 24, 86], ['k_scaffold_b', 40, 84], ['k_mine_lift', 30, 98], ['k_crane', 20, 96], ['k_mine_frame', 42, 100], ['k_mine_box', 36, 88]])
     b.prop(n, x, y, { solid: true });
