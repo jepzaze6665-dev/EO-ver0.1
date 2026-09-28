@@ -1,3 +1,5 @@
+import { ATTACK_SLOTS } from '../data/attackSlots.js';
+import { pickTarget } from '../combat/targeting.js';
 import { ENEMY_COMBAT } from '../data/enemyCombat.js';
 import { Poise } from '../combat/poiseSystem.js';
 import { POISE } from '../data/poise.js';
@@ -107,6 +109,7 @@ export class Monster extends Entity {
     this.hurtLen = t;
   }
   onDeath(src) {
+    this.game.attackSlots.release(this, true);
     this.dead = true;
     this.deathT = 0;
     this.state = S.DEAD;
@@ -115,13 +118,18 @@ export class Monster extends Entity {
   }
 
   setState(s) {
+    if (this.state === S.ATTACK && s !== S.ATTACK) this.game.attackSlots.release(this); // attack over: give the slot back
     this.state = s;
     this.stateT = 0;
   }
 
   // ---------------- update
   update(dt) {
-    const g = this.game, map = g.world.map, p = g.player;
+    const g = this.game, map = g.world.map;
+    // TARGET (combat/targeting.js): who to fight among the players (solo = the one player; party-ready)
+    this.retargetT = (this.retargetT || 0) - dt;
+    if (!this.target || this.target.dead || this.retargetT <= 0) { this.target = pickTarget(this, g.players()) || g.player; this.retargetT = ATTACK_SLOTS.retargetEvery; }
+    const p = this.target;
     this.animT += dt;
     this.flash = Math.max(0, this.flash - dt);
     this.showBar = Math.max(0, this.showBar - dt);
@@ -175,7 +183,16 @@ export class Monster extends Entity {
         if (this.stuckT > 2.5 && !this.summoned) { this.stuckT = 0; this.aggro = false; this.setState(S.RETURN); break; }
         const ang = angleTo(this.x, this.y, p.x, p.y);
         const atk = hidden ? null : this.chooseAttack(dP);
-        if (atk) { this.startAttack(atk); break; }
+        // ATTACK SLOTS (combat/attackSlots.js): only a few enemies may attack one player at once — the rest wait
+        if (atk && (this.def.boss || g.attackSlots.request(this, p, g.attackSlots.costOf(atk)))) { this.waiting = false; this.startAttack(atk); break; }
+        this.waiting = !!atk;
+        if (this.waiting && !this.def.keepAway) {
+          // hold just outside reach and circle — repositioning instead of piling in
+          const hold = (this.def.attacks[0].range || 40) * ATTACK_SLOTS.waitRange, side = this.id % 2 ? 1 : -1;
+          this.moveDir(dP < hold ? ang + Math.PI + side * 0.9 : ang + side * Math.PI / 2, speed * 0.55, dt);
+          this.turnTo(ang, dt, this.def.turn);
+          break;
+        }
         // approach / keep-away
         const want = this.def.keepAway;
         if (want && dP < want) {
@@ -231,7 +248,7 @@ export class Monster extends Entity {
   }
 
   lookForPlayer(dP, detect) {
-    const g = this.game, p = g.player;
+    const g = this.game, p = this.target || g.player;
     if (p.dead || g.world.inSafeZone(p)) return;
     if (p.status.flag('stealth')) detect *= 0.3; // a stealthed player is only noticed up close
     if (dP < detect && g.world.map.lineOfSight(this.x, this.y - 8, p.x, p.y - 8)) {
@@ -273,19 +290,19 @@ export class Monster extends Entity {
   // ---------------- attacks
   chooseAttack(dP) {
     // skirmishers punish a player standing still: their `punish` attack ignores its cooldown
-    const punish = this.def.punishIdle && (this.game.player.idleT || 0) >= this.def.punishIdle;
+    const punish = this.def.punishIdle && ((this.target || this.game.player).idleT || 0) >= this.def.punishIdle;
     const opts = this.def.attacks.filter((a) => ((this.cds[a.id] || 0) <= 0 || (punish && a.punish)) && dP <= a.range && dP >= a.min);
     if (!opts.length) return null;
     // the slow-turning beasts only attack what is roughly in front of them (their back stays exposed)
     if (this.def.turn < 3) {
-      const p = this.game.player;
+      const p = this.target || this.game.player;
       if (Math.abs(wrapAngle(angleTo(this.x, this.y, p.x, p.y) - this.facing)) > 0.6 && this.stateT < 2.5) return null;
     }
     return pick(opts);
   }
 
   startAttack(atk) {
-    const g = this.game, p = g.player;
+    const g = this.game, p = this.target || g.player;
     this.cur = atk;
     this.missed = false;
     this.phase = 'windup';
@@ -341,7 +358,7 @@ export class Monster extends Entity {
     if (this.phase === 'windup') {
       // light tracking during early windup for fast monsters
       if (this.def.turn >= 8 && this.stateT < atk.windup * 0.35 && atk.kind !== 'dash') {
-        const p = g.player;
+        const p = this.target || g.player;
         this.turnTo(angleTo(this.x, this.y, p.x, p.y), dt, 3);
       }
       if (atk.kind === 'dash' && this.stateT < atk.windup * 0.5) {
@@ -358,7 +375,7 @@ export class Monster extends Entity {
       if (!this.dashHit) {
         const hitShape = { shape: 'circle', x: this.x, y: this.y, r: this.radius + 6 };
         if (g.combat.enemyStrike(this, hitShape, atk.power * this.mod.power, { knock: 220, knockAng: ang })) this.dashHit = true;
-        else if (g.player.invulnerable() && Math.hypot(g.player.x - this.x, g.player.y - this.y) < this.radius + 20) this.dashHit = true;
+        else if (g.players().some((q) => q.invulnerable() && Math.hypot(q.x - this.x, q.y - this.y) < this.radius + 20)) this.dashHit = true;
       }
       if (Math.random() < 0.6) g.vfx.particle(this.x, this.y, { color: 'rgba(140,130,120,0.6)', life: 0.3, size: 3, vy: -10 });
       if (this.stateT >= atk.dashTime) {
@@ -382,11 +399,11 @@ export class Monster extends Entity {
     const g = this.game;
     this.missed = true;
     g.vfx.text(this.x, this.y - this.height - 8, 'MISS', { color: '#c8c8d8', size: 9, life: 0.6 });
-    g.events.emit('attackMissed', { attacker: this, player: g.player, attack: atk.id });
+    g.events.emit('attackMissed', { attacker: this, player: this.target || g.player, attack: atk.id });
   }
 
   blink() {
-    const g = this.game, p = g.player, map = g.world.map;
+    const g = this.game, p = this.target || g.player, map = g.world.map;
     g.vfx.burst(this.x, this.y - 20, '#c080ff', 20, 120);
     for (let i = 0; i < 8; i++) {
       const a = rand(0, TAU), r = rand(110, 170);

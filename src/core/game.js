@@ -22,6 +22,7 @@ import { SUMMONS } from '../data/summons.js';
 import { Progression } from '../progression/progression.js';
 import { ExperienceSystem } from '../progression/experienceSystem.js';
 import { CounterSystem } from '../combat/counterSystem.js';
+import { AttackSlots } from '../combat/attackSlots.js';
 import { LootSystem } from '../loot/lootSystem.js';
 import { HiddenSystem } from '../world/hiddenSystem.js';
 import { WorldProgression } from '../world/worldProgression.js';
@@ -175,6 +176,7 @@ export class Game {
     // enemyDefeated -> EXP / loot (rules in data/levels.js, data/lootTables.js)
     this.experience = new ExperienceSystem(this);
     this.counters = new CounterSystem(this); // Combat 2.0 Counter Window
+    this.attackSlots = new AttackSlots(); // Combat 2.0: enemies take turns (data/attackSlots.js)
     this.loot = new LootSystem(this);
     // hidden areas / triggers / rare events (data/hidden.js)
     this.hidden = new HiddenSystem(this);
@@ -337,6 +339,8 @@ export class Game {
     this.timers = this.timers.filter((tm) => tm.t > 0);
     for (const tm of due) tm.fn();
   }
+  // every player in this world (solo today; a party of up to 4 later) — enemies and enemy strikes use this list
+  players() { return this.player ? [this.player] : []; }
   slowMo(scale, dur) { this.timeScale = Math.min(this.timeScale, scale); this.slowT = Math.max(this.slowT, dur); }
 
   onPlayerDeath() {
@@ -512,6 +516,8 @@ export class Game {
     this.world.update(sdt);
     this.targets.update(this.player);
     this.combat.update(sdt);
+    this.attackSlots.update(sdt);
+    this.attackSlots.prune((a) => a.dead || a.state !== 'attack' || !this.world.onMap(a));
     this.marks.update(sdt, { inCombat: (e) => (e === this.player ? this.combat.inCombat : true) });
     this.threads.update(sdt, {
       targets: (owner) => (owner === this.player ? this.world.hostiles().filter((e) => !e.isBreakable) : [this.player]),

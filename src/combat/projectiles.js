@@ -44,7 +44,8 @@ export class Projectiles {
       p.ang = Math.atan2(p.vy, p.vx);
       p.rot += dt * 10;
       // targets are tested BEFORE walls: things embedded in walls (cracks, wall-bound foes) stay hittable
-      this.hitTargets(p, g, pl);
+      if (p.team === TEAM.ENEMY && g.players) { for (const q of g.players()) if (p.active) this.hitTargets(p, g, q); } // every player
+      else this.hitTargets(p, g, pl);
       if (p.active && p.wallStop && map.blocksShot(p.x, p.y)) {
         // a shot that strikes a wall also strikes what is built into that wall (cracked walls, seals)
         if (p.team !== TEAM.ENEMY) {

@@ -214,7 +214,11 @@ export class Combat {
   // extra: knock, knockAng, type ('physical' | 'magic' | ...), status [{ id, dur }] applied when the hit lands, onHit,
   //        guardBreak (smashes a normal block; parry beats it), unblockable (ignores guard + parry: dodge it)
   enemyStrike(attacker, shape, power, extra = {}) {
-    const p = this.game.player;
+    let any = false; // every player in the shape (party-ready)
+    for (const p of this.game.players()) if (this.strikePlayer(p, attacker, shape, power, extra)) any = true;
+    return any;
+  }
+  strikePlayer(p, attacker, shape, power, extra) {
     if (p.dead) return false;
     const hurt = { x: p.x, y: p.y, radius: p.hurtRadius || p.radius };
     const hit = this.testShape(shape, hurt) || (p.dodging && p.dodgeOrigin && this.testShape(shape, { x: p.dodgeOrigin.x, y: p.dodgeOrigin.y, radius: hurt.radius }));

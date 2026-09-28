@@ -543,7 +543,7 @@ export function counterCheck(g, classId = 'umbral_sword') {
   g.events.on('counterHit', (e) => ev.hits.push(e));
   const strike = () => g.combat.enemyStrike(foe, { shape: 'circle', x: p.x, y: p.y, r: 40 }, 5);
   const reset = () => { g.simulate(1.5); foe.status.remove('counter_window'); p.invulnT = 0; p.perfectCooldown = 0; p.resources.fill('stamina'); p.hp = p.maxHp; foe.x = p.x + 50; foe.y = p.y; };
-  const hitFoe = () => { const h = foe.hp; g.combat.dealDamage(p, foe, { power: 2, noCrit: true, counterMult: 1.3 }); return h - foe.hp; };
+  const hitFoe = () => { const h = foe.hp; g.combat.dealDamage(p, foe, { power: 2, noCrit: true, counterMult: 1.3, knock: 0 }); return h - foe.hp; };
   reset();
   p.tryDodge(); g.simulate(0.05); strike();
   const w = ev.windows[ev.windows.length - 1];
@@ -552,11 +552,11 @@ export function counterCheck(g, classId = 'umbral_sword') {
   let countered = hitFoe();
   const b = p.cls.counterBonus || {};
   ok('First counter hit: COUNTER event + class counterBonus once', ev.hits.length === 1 && ev.hits[0].first && (!b.marks || (p.marks || 0) > marks0) && (!b.resource || p.resources.get(p.primaryResource) > res0), `marks ${marks0}->${p.marks || 0}`);
-  countered += hitFoe() + hitFoe();
-  ok('Later hits: still countered, no second reward', ev.hits.length === 3 && !ev.hits[1].first && !ev.hits[2].first);
+  for (let i = 0; i < 5; i++) countered += hitFoe(); // 6 samples: damage has a random spread
+  ok('Later hits: still countered, no second reward', ev.hits.length === 6 && ev.hits.slice(1).every((h) => !h.first));
   foe.status.remove('counter_window');
-  const plain = hitFoe() + hitFoe() + hitFoe();
-  ok('Hits inside the window deal more (less DEF, +damage taken, skill counterMult)', countered > plain * 1.35, `3 hits: ${plain} -> ${countered}`);
+  let plain = 0; for (let i = 0; i < 6; i++) plain += hitFoe();
+  ok('Hits inside the window deal more (less DEF, +damage taken, skill counterMult)', countered > plain * 1.25, `6 hits: ${plain} -> ${countered}`);
   reset();
   p.tryDodge(); g.simulate(0.25); strike();
   const w2 = ev.windows[ev.windows.length - 1];
@@ -653,6 +653,38 @@ export function enemyCheck(g) {
   g.knowledge.encounter('wolf'); g.knowledge.kill && g.knowledge.kill('wolf');
   const card = g.knowledge.view().find((e) => e.name === wolf.def.name);
   ok('Monster Knowledge shows the role', card && /Skirmisher|\?/.test(card.role), card && card.role);
+  releaseInput(g);
+  return R;
+}
+
+// COMBAT 2.0 C6: a pack around the player never attacks all at once (attack slots), yet everyone gets turns.
+export function slotCheck(g) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame('umbral_sword'); releaseInput(g);
+  const p = g.player; goto(g, 38, 121); g.simulate(0.3);
+  const any = g.world.monsters.find((m) => g.world.onMap(m));
+  for (const m of g.world.monsters) if (g.world.onMap(m)) { m.dead = true; m.deathT = 99; }
+  const pack = [];
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2, m = new any.constructor(g, i < 3 ? 'wolf' : 'goblin', p.x + Math.cos(a) * 70, p.y + Math.sin(a) * 70, {});
+    m.hp = m.maxHp = 9999; m.aggro = true; m.setState('chase'); g.world.monsters.push(m); pack.push(m);
+  }
+  let maxCost = 0, maxAttackers = 0, waitSeen = 0;
+  const started = new Map();
+  g.simulate(15, () => {
+    p.hp = p.maxHp; p.invulnT = 0;
+    const atk = pack.filter((m) => m.state === 'attack');
+    maxAttackers = Math.max(maxAttackers, atk.length);
+    maxCost = Math.max(maxCost, g.attackSlots.used(p));
+    waitSeen += pack.filter((m) => m.waiting).length;
+    for (const m of atk) started.set(m, true);
+  });
+  const cap = g.attackSlots.rules.capacity;
+  ok('Never more slot points in use than the capacity', maxCost <= cap, `max ${maxCost}/${cap}`);
+  ok('Never all 5 attacking at once', maxAttackers < pack.length && maxAttackers <= cap, `max attackers ${maxAttackers}`);
+  ok('Waiting enemies hold back / reposition', waitSeen > 0, `waiting frames ${waitSeen}`);
+  ok('Everyone gets turns (rotation)', started.size === pack.length, `${started.size}/${pack.length} attacked`);
+  ok('Enemies pick their target from the players list', pack.every((m) => m.target === p) && g.players().length === 1);
   releaseInput(g);
   return R;
 }

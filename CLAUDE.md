@@ -14,7 +14,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (V2.2 vertical slice, 29 steps: walks every boss gate on foot, 3 boss fights, City 2, save/load),
   `T.bossReset(__game)` (death mid-fight resets the boss)
-  `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` (Combat 2.0),
+  `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` (Combat 2.0),
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -191,5 +191,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   skirmisher / bruiser / tank / caster / swarm, shown in the codex + a fight hint): wolf `flank` (orbits to the
   player's side / back) + `punishIdle` 1 s (lunge `punish: true` ignores its cooldown vs a player standing still,
   Player.idleT); goblin bruiser; crystal tanks (existing armour / back core). `T.enemyCheck(g)` (5 steps) +
-  tools/tests/enemyCombat.test.mjs. Next: C6.
+  tools/tests/enemyCombat.test.mjs.
+  Done C6: ATTACK SLOTS `src/combat/attackSlots.js` (pure, game.attackSlots) + `src/data/attackSlots.js`: each player
+  has capacity 3 points (normal attack 1, heavy 2); a monster must hold points from wind-up to end of recovery (released
+  on leaving ATTACK / death, back after 0.25 s; stale holders pruned); without them it waits (`monster.waiting`) and
+  circles just outside reach. Bosses don't use slots, their adds do. TARGETING `src/combat/targeting.js` (pure
+  scoreTarget / pickTarget over `game.players()` — solo = [player], party-ready): taunt > vulnerable (guard-broken /
+  stunned) > low HP > skirmishers → ranged classes > sticky current > distance; re-picked every 1.5 s (`monster.target`).
+  combat.enemyStrike + enemy projectiles hit every player in `game.players()`. `T.slotCheck(g)` (5 steps: 5-monster
+  pack never exceeds capacity, all get turns) + tools/tests/attackSlots.test.mjs. counterCheck damage compare now
+  uses knock 0 + 6 samples (was flaky). Next: C7.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).
