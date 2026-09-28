@@ -94,6 +94,8 @@ export class Quests {
       // a finalizing objective (e.g. the boss) completes whatever the player skipped before it
       const fin = q.objectives.findIndex((o) => o.finalizes && st.done[o.id]);
       if (fin > 0) for (const o of q.objectives.slice(0, fin)) if (!st.done[o.id]) { st.done[o.id] = true; changed = true; }
+      // ordered: a step that just unlocked may already be satisfied (its flag was set earlier, e.g. passing the gate first)
+      if (changed && q.ordered) for (let o = this.current(qid); o && o.type === 'flag' && this.game.world.state.flags[o.flag]; o = this.current(qid)) this.markDone(qid, o);
       if (changed) { this.checkComplete(qid); this.game.save.dirty = true; }
     }
   }

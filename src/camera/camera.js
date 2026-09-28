@@ -31,7 +31,7 @@ export class Camera {
   update(dt, target, aim) {
     this.time += dt;
     let tx = target.x, ty = target.y - 8;
-    if (aim) {
+    if (aim && Number.isFinite(aim.x) && Number.isFinite(aim.y)) { // a bad mouse value must never poison the camera
       tx += clamp((aim.x - target.x) * 0.12, -48, 48);
       ty += clamp((aim.y - target.y) * 0.12, -32, 32);
     }

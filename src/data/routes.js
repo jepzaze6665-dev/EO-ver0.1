@@ -15,7 +15,7 @@ export const ROUTES = {
     steps: [
       { map: 'a1', boss: 'boss_a1' }, // Whispering Forest — its boss (the Guardian) waits in the Guardian Arena (map 'arena')
       { map: 'a2', boss: 'boss_a2' }, // Ancient Valley (own grid) — boss planned (W3c)
-      { map: 'a3', boss: 'boss_a3', name: 'A3' }, // Rune Citadel (own grid) — its boss, the Rune Knight, arrives in W4b
+      { map: 'a3', boss: 'boss_a3', name: 'A3' }, // Rune Citadel (own grid) — Major Boss: the Rune Knight in the Sanctum
     ],
   },
   B: {

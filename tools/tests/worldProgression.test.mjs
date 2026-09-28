@@ -22,7 +22,7 @@ const eq = (a, b, msg = '') => { if (a !== b) throw new Error(`${msg} expected $
 const ok = (c, msg) => { if (!c) throw new Error(msg); };
 
 const mapIds = new Set(MAPS.map((m) => m.id));
-const MOVE_KINDS = ['strike', 'dash', 'leap', 'volley', 'pattern', 'nova', 'summon']; // boss/areaBoss.js KINDS
+const MOVE_KINDS = ['combo', 'strike', 'dash', 'leap', 'volley', 'pattern', 'nova', 'summon']; // boss/areaBoss.js KINDS
 
 console.log('boss data');
 test('every live boss: its map exists, arena, phases, moves, rewards are valid', () => {
@@ -46,14 +46,14 @@ test('every live boss: its map exists, arena, phases, moves, rewards are valid',
     if (r.loot) ok(LOOT_TABLES[r.loot], `${b.id}: loot table ${r.loot}`);
     for (const it of Object.keys(r.items || {})) ok(ITEMS[it], `${b.id}: item ${it}`);
     if (r.lore) ok(LORE[r.lore], `${b.id}: lore ${r.lore}`);
-    for (const u of b.unlocks || []) ok(mapIds.has(u) || Object.values(ROUTES).some((rt) => rt.steps.some((s) => s.map === u)), `${b.id}: unlocks ${u}`);
+    for (const u of b.unlocks || []) ok(mapIds.has(u) || Object.values(ROUTES).some((rt) => rt.steps.some((s) => s.map === u) || (rt.cityPlanned && rt.to === u)), `${b.id}: unlocks ${u}`);
   }
 });
 test('Route A (W2): A1 boss = the Guardian; A2 / A3 bosses planned; A3 is the major boss; A1 mini-bosses optional', () => {
   const [a1, a2, a3] = ROUTES.A.steps.map((s) => BOSSES[s.boss]);
   ok(a1.impl === 'guardian' && a1.type === 'area' && a1.map === 'arena' && a1.unlocks.includes('a2'), 'A1 boss');
   ok(!a2.planned && a2.map === 'rift' && MAPS.find((m) => m.id === 'rift').parent === 'a2' && a2.phases.length === 2 && a2.level > a1.level, 'A2 boss live, in its own arena map (rift, part of A2)');
-  ok(a3.planned && a3.type === 'major', 'A3 major boss planned');
+  ok(!a3.planned && a3.type === 'major' && a3.map === 'sanctum' && a3.phases.length === 3 && a3.level > a2.level, 'A3 major boss live, 3 phases, in its own arena');
   const minis = liveBosses().filter((b) => b.type === 'mini');
   ok(minis.length === 2 && minis.every((b) => b.map === 'a1' && b.level < a1.level), 'minis in A1, weaker than its boss');
 });

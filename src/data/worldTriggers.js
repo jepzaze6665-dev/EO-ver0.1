@@ -81,7 +81,12 @@ export const WORLD_TRIGGERS = [
   { id: 'a3_winged_found', on: 'areaDiscovered', match: { name: 'Winged Plaza' }, actions: ['set_flag:wingedPlaza'] },
   {
     id: 'a3_golden_found', on: 'areaDiscovered', match: { name: 'Golden Gate' },
-    actions: ['set_flag:goldenGate', { type: 'notify', title: 'THE GOLDEN GATE', text: 'Something waits in the Sanctum beyond. The gate does not open yet.', color: '#ffe08a' }],
+    actions: ['set_flag:goldenGate', { type: 'notify', title: 'THE GOLDEN GATE', text: 'The Sanctum lies beyond. Its last Warden still stands guard.', color: '#ffe08a' }],
+  },
+
+  {
+    id: 'a3_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_a3' },
+    actions: [{ type: 'banner', title: 'ROUTE A COMPLETE', text: 'The last Warden of Asteria rests. The road beyond leads to City 2 (coming in a later update).', color: '#ffe08a' }],
   },
 
   // ---- A3 Major Boss -> City 2: added with City 2 (W5); the unlock itself = City 2's map `requires`.

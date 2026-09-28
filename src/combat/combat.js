@@ -170,7 +170,8 @@ export class Combat {
     const kb = (opts.knock || 0) * (target.superArmor ? 0.15 : 1);
     if (kb > 0) target.knockback(opts.knockAng ?? ang, kb);
     // DoT ticks skip hurt reactions (no stagger / i-frames); entities may still count them via onDot
-    if (opts.dot) { if (target.onDot) target.onDot(amount, src, opts); } else if (opts.blocked) { /* blocked: no stagger */ } else if (target.onHurt) target.onHurt(amount, src, opts, ang);
+    // blocked hits: no stagger, only the floors (onBlockedHit)
+    if (opts.dot) { if (target.onDot) target.onDot(amount, src, opts); } else if (opts.blocked) { if (target.onBlockedHit) target.onBlockedHit(amount, src, opts); } else if (target.onHurt) target.onHurt(amount, src, opts, ang);
 
     // feedback
     const hx = target.x, hy = target.y - (target.height || 30) * 0.5;

@@ -78,6 +78,7 @@ export const ITEMS = {
   hp_potion: { name: 'Healing Draught', cat: 'Consumable', rarity: 'common', icon: 'potion', color: '#e05060', desc: 'Restores 40% HP. [R]', price: 30, use: 'heal' },
   shadow_tonic: { name: 'Shadow Tonic', cat: 'Consumable', rarity: 'common', icon: 'potion', color: '#a060ff', desc: 'Restores 50 class resource (SHADOW / ASTRAL). [F]', price: 40, use: 'shadow' },
   // ---- materials
+  asterian_crest: { name: 'Asterian Crest', cat: 'Material', rarity: 'rare', icon: 'sigil', color: '#9ad8ff', desc: 'The crest of the last Warden of Asteria. It still hums with runes.', sell: 200 },
   rune_crystal: { name: 'Rune Crystal', cat: 'Material', rarity: 'uncommon', icon: 'shard', color: '#8ab8ff', desc: 'A chest crystal of a Citadel golem, still humming.', sell: 36 },
   bronze_plate: { name: 'Bronze Plate', cat: 'Material', rarity: 'uncommon', icon: 'shield', color: '#d0a060', desc: 'A dented plate from a Bronze Hoplite\'s armour.', sell: 34 },
   magma_heart: { name: 'Magma Heart', cat: 'Material', rarity: 'rare', icon: 'heart', color: '#ff7a30', desc: 'Still warm. Trophy of the Magma Beast of the Ancient Valley.', sell: 120 },

@@ -21,12 +21,13 @@ export function bot(g, i, opts = {}) {
     if (rem < lead && rem > 0 && g.combat.testShape(t, p)) {
       // guard classes raise the guard toward the attacker at the last moment (-> Perfect Guard)
       if (p.cls.guard && t.owner && !t.owner.dead) {
-        const r = g.renderer, cam = g.camera;
-        inp.mouse.x = ((t.owner.x - cam.left) * cam.zoom * r.scale) / r.dpr;
-        inp.mouse.y = ((t.owner.y - 12 - cam.top) * cam.zoom * r.scale) / r.dpr;
+        // guard toward the attacker (or the telegraph itself when its owner is a mechanic, e.g. boss runes)
+        const r = g.renderer, cam = g.camera, src = Number.isFinite(t.owner.x) ? t.owner : t;
+        inp.mouse.x = ((src.x - cam.left) * cam.zoom * r.scale) / r.dpr;
+        inp.mouse.y = ((src.y - 12 - cam.top) * cam.zoom * r.scale) / r.dpr;
         inp.down.add('KeyQ');
         // big attackers land their damage a few frames after the telegraph resolves: keep the shield up
-        p._botGuard = { until: g.time + rem + 0.35, x: t.owner.x, y: t.owner.y };
+        p._botGuard = { until: g.time + rem + 0.35, x: src.x, y: src.y };
         return;
       }
       press(Math.atan2(p.y - t.y, p.x - t.x));
@@ -908,11 +909,14 @@ export function a2MonsterCheck(g, classId = 'umbral_sword') {
     const onMiss = (e) => { if (e.attacker === m) rep.missed++; };
     const onDmg = (e) => { if (e.source === m && e.target === p) rep.hits++; };
     g.events.on('attackMissed', onMiss); g.events.on('damageDealt', onDmg);
+    let tailT = null;
     for (let t = 0; t < seconds; t += 0.1) {
       g.simulate(0.1, opts.bot ? (gg, i) => bot(gg, i, { god: opts.god }) : () => { if (opts.god !== false) p.hp = p.maxHp; if (opts.move) { p.x += Math.sin(g.time * 1.3) * 3; } });
       if (m.status.has('vulnerable')) rep.vuln++;
       if (p.status.has('slow')) rep.slowed++;
-      if (m.dead || used.size >= (opts.until || 99)) break;
+      // `tail`: keep going a little after the last new attack starts, so it can land (e.g. the stomp's slow)
+      if (used.size >= (opts.until || 99) && tailT === null) tailT = opts.tail || 0;
+      if (m.dead || (tailT !== null && (tailT -= 0.1) < 0)) break;
     }
     g.events.off && g.events.off('attackMissed', onMiss); g.events.off && g.events.off('damageDealt', onDmg);
     rep.m = m;
@@ -931,7 +935,7 @@ export function a2MonsterCheck(g, classId = 'umbral_sword') {
     ok(`${type}: a dodged / missed dash opens a punish window (vulnerable)`, r.vuln > 0 && r.missed > 0, `missed=${r.missed} vulnerable frames=${r.vuln}`);
     r.m.dead = true; r.m.removed = true;
   }
-  const st = lab('rock_rhino', 30, { until: 3 });
+  const st = lab('rock_rhino', 30, { until: 3, tail: 2 });
   ok('Crag Rhino: Tremor Stomp slows', st.slowed > 0 || !st.used.has('stomp'), `slowed frames=${st.slowed} used=${[...st.used]}`);
   st.m.dead = true; st.m.removed = true;
   // loot + EXP on a kill
@@ -1072,5 +1076,56 @@ export function a3MonsterCheck(g, classId = 'umbral_sword') {
   for (; t < 120 && !p.dead && pack.some((m) => !m.dead); t += 1) { g.simulate(1, (gg, i) => bot(gg, i, {})); minHp = Math.min(minHp, p.hp); }
   ok('Winged Plaza pack at LV 15 (no god mode): the player wins', !p.dead && pack.length >= 2 && pack.every((m) => m.dead), `pack=${pack.map((m) => m.type).join('+')} ${t}s lowest HP ${Math.round((minHp / p.maxHp) * 100)}% dead=${p.dead}`);
   releaseInput(g);
+  return R;
+}
+
+// W4b: the A3 Major Boss (Rune Knight) in the Sanctum — gate, arena like A1, stances (shield blocks / guard break),
+// rune sequence, echoes copying attacks, the final judgement (a dome is safe), 3 phases, rewards, Route A complete.
+export function a3BossCheck(g, classId = 'umbral_sword', { god = true, level = 17, seconds = 420 } = {}) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
+  for (const b of ['boss_a1', 'boss_a2']) wp.defeatBoss(b);
+  w.setFlag('guardianDefeated'); w.applyState();
+  const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
+  w.changeMap('a3', { entry: [84, 58] }); g.simulate(0.5);
+  ok('A3 first visit starts THE FALLEN CITY', q.isActive('fallen_city'));
+  goto(g, 84, 118); g.simulate(0.6); goto(g, 84, 57); g.simulate(0.6); // Golden Gate seen first (entry), then the plaza: the gate step still ticks
+  ok('Quest steps: Winged Plaza + Golden Gate found', q.active.fallen_city.done.plaza && q.active.fallen_city.done.gate, JSON.stringify(q.active.fallen_city.done));
+  w.transitions.autoConfirm = true;
+  goto(g, 84, 53);
+  for (let k = 0; k < 8 && w.mapId !== 'sanctum'; k++) walk(g, 'KeyW', 0.4);
+  const enc = g.bosses.get('boss_a3');
+  ok('The Sanctum = its own boss-arena map behind the Golden Gate · the knight waits', w.mapId === 'sanctum' && w.mapDef.type === 'boss_arena' && enc.state === 'idle', `map=${w.mapId} ${enc.state}`);
+  p.setLevel(level); p.hp = p.maxHp; g.inventory.add('hp_potion', 5, true);
+  goto(g, 84, 38);
+  for (let k = 0; k < 10 && enc.state !== 'engaged'; k++) walk(g, 'KeyW', 0.4);
+  ok('Engaged: exits sealed, camera held on the arena', enc.state === 'engaged' && !!g.camera.lock && w.mapDef.exits.every((x) => !w.transitions.isOpen(x)), enc.state);
+  const e = enc.entity, st = { stances: new Set(), blocked: 0, broken: 0, bursts: 0, phases: new Set(), moves: new Set(), judgement: null };
+  const on = (n, f) => { g.events.on(n, f); return [n, f]; };
+  const subs = [on('damageBlocked', (x) => { if (x.target === e) st.blocked++; }), on('bossGuardBroken', () => st.broken++), on('runeBurst', () => st.bursts++), on('bossJudgement', (x) => { st.judgement = x; })];
+  const stance = e.mech.find((m) => m.stances || (m.d && m.d.stances)), echoes = e.mech.find((m) => m.copies !== undefined), judge = e.mech.find((m) => m.domes !== undefined || (m.d && m.d.domes));
+  let t = 0;
+  for (; t < seconds && enc.state !== 'defeated' && !p.dead; t += 0.5) {
+    g.simulate(0.5, (gg, i) => {
+      bot(gg, i, { god });
+      st.stances.add(stance.cur);
+      if (e.curMove && e.curMove.id) st.moves.add(e.curMove.id);
+      // mechanics run: step into a dome when the judgement starts (balance runs let the bot fend for itself)
+      if (god && judge.domes && judge.done && !st.judgement) { p.x = judge.domes[0].x; p.y = judge.domes[0].y; p.kx = p.ky = 0; }
+    });
+    st.phases.add(e.phase);
+  }
+  releaseInput(g);
+  g.simulate(6);
+  for (const [n, f] of subs) g.events.off(n, f);
+  ok('Stances: SWORD and SHIELD both used; the shield blocked frontal hits', st.stances.has('sword') && st.stances.has('shield') && st.blocked > 0, `stances=${[...st.stances]} blocked=${st.blocked} broken=${st.broken}`);
+  ok('Phase 2: RUNE SCRIPT runes burst in sequence', st.bursts >= 4, `bursts=${st.bursts}`);
+  ok('Phase 3: ECHOES copy its attacks', echoes.copies > 0, `copies=${echoes.copies}`);
+  ok(`Final attack: ASTERIAN JUDGEMENT${god ? ' — a dome is safe' : ''}`, st.judgement && (!god || st.judgement.safe > 0), JSON.stringify(st.judgement));
+  if (god) ok('Moves used (5)', ['rune_slash', 'triple_cut', 'lunge', 'shield_bash', 'rune_bolts'].every((m) => st.moves.has(m)), [...st.moves].join(','));
+  ok('3 phases', [1, 2, 3].every((ph) => st.phases.has(ph)), [...st.phases].join(','));
+  ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_a3') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
+  if (enc.state === 'defeated') ok('Rewards once (crest + lore) · quest done · ROUTE A COMPLETE', g.inventory.count('asterian_crest') === 1 && w.state.lore.rune_knight && q.isDone('fallen_city') && trig.includes('a3_boss_defeated') && wp.routeStatus('A').complete && !g.camera.lock);
   return R;
 }

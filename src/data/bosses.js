@@ -149,7 +149,54 @@ export const BOSSES = {
     rewards: { exp: 800, gold: 300, loot: 'magma_beast', items: { magma_heart: 1 }, lore: 'magma_beast' },
     unlocks: ['a3'],
   },
-  boss_a3: { id: 'boss_a3', name: 'RUNE KNIGHT', title: 'Warden of the Rune Citadel · coming soon', type: 'major', impl: 'area', route: 'A', map: 'a3', planned: true, unlocks: ['city2'] },
+  // A3 MAJOR BOSS (W4b): the Rune Knight in the Sanctum behind the Golden Gate (maps/sanctum.js). Art = the owner's A3
+  // boss sheet; effects = the A3 VFX sheet ('r_*'). A duel: SWORD / SHIELD stances, the RUNE SCRIPT (phase 2),
+  // ECHOES of Asteria's soldiers (phase 3) and the FINAL JUDGEMENT (only the blue domes are safe).
+  boss_a3: {
+    id: 'boss_a3', name: 'RUNE KNIGHT', title: 'Last Warden of Asteria', type: 'major', impl: 'area',
+    route: 'A', map: 'sanctum', level: 18, recommendedLevel: 17,
+    teaches: 'Read the stance · wait out the late blade · remember the rune order · find the dome',
+    stats: { hp: 24000, def: 16, speed: 110, radius: 20, height: 60, mass: 8, weakness: ['shadow'], superArmor: true, poise: 1300 },
+    look: {
+      sprite: 'rune_knight', scale: 1.1, aura: '140,190,255',
+      anims: { hurt: 'stagger', roar: 'rune_cast' },
+      vfx: { charge: 'r_orb', slash: 'r_slash', impact: 'r_blast', bolt: 'r_bolt', eruption: 'r_pillar', nova: 'r_burst', phase: 'r_vortex', sigil: 'r_sigil', dome: 'r_dome', shatter: 'r_shatter', spark: 'r_spark', echo: 'r_crystal' },
+    },
+    arena: { name: 'The Sanctum', center: [84, 24], radius: 14.5, trigger: 12, bossSpawn: [84, 17], entry: [84, 38], cameraLock: true },
+    appear: [],
+    phases: [
+      { name: 'RUNE BLADE', sub: 'Sword and shield — read its stance', hpBelow: 1, moves: ['rune_slash', 'triple_cut', 'lunge', 'shield_bash', 'rune_bolts'] },
+      { name: 'RUNE SCRIPT', sub: 'The floor remembers — so must you', hpBelow: 0.65, windup: 0.9, speed: 1.1, shockwave: 28, moves: ['rune_slash', 'triple_cut', 'lunge', 'shield_bash', 'rune_bolts'] },
+      { name: 'ECHOES OF ASTERIA', sub: 'Its soldiers answer the call', hpBelow: 0.3, windup: 0.85, speed: 1.2, shockwave: 30, moves: ['rune_slash', 'triple_cut', 'lunge', 'shield_bash', 'rune_bolts'] },
+    ],
+    moves: {
+      rune_slash: { kind: 'strike', range: 90, windup: 0.65, recover: 0.6, cd: 1.8, weight: 3, power: 42, knock: 220, shape: { shape: 'cone', r: 96, half: 0.85 }, anim: { windup: 'slash_wind', attack: 'slash_hit' } },
+      // three cuts: quick, quick — then a LATE heavy blade (dodging early gets you hit)
+      triple_cut: {
+        kind: 'combo', range: 100, cd: 5, weight: 2.5, power: 34, knock: 200, recover: 0.8, opening: 1.2, shape: { shape: 'cone', r: 90, half: 0.8 },
+        hits: [{ windup: 0.55 }, { windup: 0.4, track: true }, { windup: 1.05, track: true, power: 50, shape: { shape: 'cone', r: 110, half: 1.1 } }],
+        anim: { windup: 'slash_wind', attack: 'combo_hit' },
+      },
+      lunge: { kind: 'dash', guardBreak: true, range: 320, min: 120, windup: 0.85, recover: 0.9, cd: 5, weight: 2, power: 44, knock: 300, len: 280, width: 36, opening: 1.3, anim: { windup: 'lunge_wind', attack: 'lunge_go' } },
+      shield_bash: { kind: 'strike', range: 70, windup: 0.5, recover: 0.55, cd: 2, weight: 3, power: 36, knock: 320, shape: { shape: 'cone', r: 72, half: 0.9 }, anim: { windup: 'stance', attack: 'combo_hit' } },
+      rune_bolts: { kind: 'volley', range: 380, min: 100, windup: 0.75, recover: 0.6, cd: 4, weight: 2.5, power: 30, count: 3, spread: 0.5, speed: 280, dmg: 'magic', color: '#9ad8ff', anim: { windup: 'rune_cast', attack: 'rune_cast' } },
+    },
+    // SIGNATURE (boss/mechanics.js). Order = priority when several want the next turn.
+    mechanics: [
+      { type: 'judgement', at: 0.15, domes: 3, domeR: 46, windup: 3.2, power: 80, weak: 6, anim: 'plunge', name: 'ASTERIAN JUDGEMENT' },
+      { type: 'echoes', phase: 3, count: 2, life: 14, every: 22, delay: 0.3, sprite: 'bronze_hoplite' },
+      { type: 'rune_sequence', phase: 2, every: 11, count: 4, r: 56, power: 36, gap: 0.55, delay: 1.1, anim: 'rune_cast' },
+      {
+        type: 'stance', switchEvery: { sword: 3, shield: 2 }, breakWeak: 4,
+        stances: {
+          sword: { label: 'SWORD STANCE', hint: 'Fast cuts — the last one comes late', moves: ['rune_slash', 'triple_cut', 'lunge'] },
+          shield: { label: 'SHIELD STANCE', hint: 'Strike its back — or break the guard', moves: ['shield_bash', 'rune_bolts'], block: { arc: 1.3, mult: 0.1 }, guardHp: 1400, anims: { idle: 'stance', walk: 'stance' } },
+        },
+      },
+    ],
+    rewards: { exp: 1500, gold: 500, loot: 'rune_knight', items: { asterian_crest: 1 }, lore: 'rune_knight' },
+    unlocks: ['city2'],
+  },
 
   // ---------------- ROUTE B (architecture only — Phase 13/14 builds the maps; nothing here is spawned yet)
   boss_b1: { id: 'boss_b1', name: 'B1 AREA BOSS', title: 'Route B · to be designed', type: 'area', impl: 'area', route: 'B', map: 'b1', planned: true, unlocks: ['b2'] },

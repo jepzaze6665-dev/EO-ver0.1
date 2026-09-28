@@ -77,7 +77,7 @@ export const QUESTS = {
     objectives: [
       { id: 'plaza', text: 'Reach the Winged Plaza', type: 'flag', flag: 'wingedPlaza', marker: [84, 118], markerMap: 'a3' },
       { id: 'gate', text: 'Find the Golden Gate', type: 'flag', flag: 'goldenGate', marker: [84, 56], markerMap: 'a3' },
-      { id: 'boss', text: 'Defeat the Rune Knight (A3 Major Boss — coming soon)', type: 'boss', boss: 'boss_a3', marker: [84, 56], markerMap: 'a3' },
+      { id: 'boss', text: 'Defeat the Rune Knight (A3 Major Boss)', type: 'boss', boss: 'boss_a3', marker: [84, 24], markerMap: 'sanctum' },
     ],
     rewards: { exp: 400, gold: 300, items: { hp_potion: 3 } },
     requirements: [],

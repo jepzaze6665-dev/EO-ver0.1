@@ -113,8 +113,11 @@ export const MONSTER_ART = {
   rune_knight: {
     sheet: 'rune_knight', replaces: ['rune_knight'],
     anims: {
-      idle: 'idle', move: 'walk', windup: ['slash', [0, 1, 2, 3]], attack: ['slash', [4, 5, 6]], hurt: ['guard', [0, 1]],
-      death: 'death', lunge: 'lunge', combo: 'combo', nova: 'nova', guard: 'guard', stance: 'stance',
+      idle: 'idle', move: 'walk', windup: ['slash', [0, 1, 2, 3]], attack: ['slash', [4, 5, 6]], hurt: ['guard', [3, 4, 5]],
+      death: 'death', stance: 'stance', stagger: ['guard', [3, 4, 5, 6]],
+      slash_wind: ['slash', [0, 1, 2, 3]], slash_hit: ['slash', [4, 5, 6]], combo_hit: ['combo', [0, 1, 2, 3]],
+      lunge_wind: ['lunge', [0, 1]], lunge_go: ['lunge', [2, 3, 4, 5, 6]], rune_cast: ['nova', [1, 2, 3, 4, 5]], plunge: ['combo', [5, 6]],
     },
+    fps: { stance: 6, rune_cast: 7, combo_hit: 11 },
   },
 };

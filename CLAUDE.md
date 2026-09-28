@@ -357,6 +357,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   made distinct: dash `bounces` (armadillo roll ricochets off walls, can hit again) and `steer`/`steerMax` (rhino charge
   bends once). build-monsters row opts `mirrorFrames`. `T.a3MonsterCheck(g, classId)` 8/8 for all 4 classes.
   Bots take ~no hits in pack fights: A3 balance needs a human playtest. (slotCheck "everyone gets turns" can flake once.)
-  Next: W4b the Rune Knight (A3 major) in the Sanctum: stances, rune sequence, echoes, Asterian Judgement (owner's A3 sheets fit: dark stone + gold + purple crystal) + rune knight (major),
-  W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase).
+  W4b done: A3 MAJOR BOSS = RUNE KNIGHT (boss_a3 live: Lv 18, 24000 HP, poise 1300) in the SANCTUM = own boss_arena map
+  `maps/sanctum.js` (zone Z.SANCTUM, camera lock, sealed), reached by exit `golden_gate` (confirm) from A3; rewards 1500 EXP,
+  500 G, loot 'rune_knight', `asterian_crest`, lore; unlocks city2; trigger a3_boss_defeated = ROUTE A COMPLETE banner.
+  AreaBoss: KIND `combo` (hits[] each with windup / shape / power / track — a late last hit punishes early dodges),
+  mechanics may `filterMoves` (move pool), `tryBlock`/`onBlock` (shield), `onTelegraph` (copy), `poseAnim`, `hpFloor`
+  (applyFloor = max of the phase floor and every mechanic's floor). combat: a BLOCKED hit calls `target.onBlockedHit`
+  (bosses keep their floors). New mechanics (boss/mechanics.js): `stance` (sword / shield switch; shield blocks the front
+  ×0.1, guard HP breaks → GUARD BROKEN weak), `rune_sequence` (phase 2, sigils I-IV burst in order; the runes are
+  telegraphs OWNED BY THE MECHANIC so a stagger doesn't erase them), `echoes` (phase 3 ghost hoplites copy its telegraphs),
+  `judgement` (HP floor 15% until the blast resolves; interrupted = re-cast; only the blue domes are safe → EXHAUSTED weak).
+  Quest fix (generic): in ordered quests a flag step that unlocks late ticks if its flag was already set. Camera ignores a
+  non-finite aim (a NaN mouse once froze it). `T.a3BossCheck(g, classId, { god, level: 17 })` 12/12 (god) ·
+  no god, LV 17: UB ≈ 178 s · AW ≈ 185 s · AG ≈ 273 s · RP ≈ 150 s, all WIN.
+  Next: W5 City 2 after A3, then F3 combat debug (hitbox / frame / phase).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

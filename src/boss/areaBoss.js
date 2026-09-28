@@ -91,6 +91,9 @@ export class AreaBoss extends Entity {
   // HUD tags (boss bar): the mechanics' state (e.g. HEAT 64%)
   hudState() { return { tags: (this.mech || []).flatMap((x) => (x.tags ? x.tags() : [])) }; }
   mechHook(name, a, b) { for (const x of this.mech) if (x[name]) x[name](a, b); }
+  // combat asks tryBlock like a guarding player: a mechanic (stance) may raise a shield
+  tryBlock(src, opts) { for (const x of this.mech) { const r = x.tryBlock && x.tryBlock(src, opts); if (r) { this.blockedBy = x; return r; } } return null; }
+  onBlock(block, src, opts, ang, raw) { if (this.blockedBy && this.blockedBy.onBlock) this.blockedBy.onBlock(block, src, opts, ang, raw); }
   wake() {
     const g = this.game;
     this.state = 'intro';
@@ -166,10 +169,12 @@ export class AreaBoss extends Entity {
     this.checkPhase();
   }
   onDot() { this.applyFloor(); this.checkPhase(); }
+  onBlockedHit() { this.applyFloor(); this.checkPhase(); } // a shield-stance block still chips HP: same floors
   // every phase must be played: HP cannot drop past the next phase threshold before the transition
   applyFloor() {
     const next = this.def.phases[this.phase];
-    const floor = next ? next.hpBelow - 0.01 : 0;
+    let floor = next ? next.hpBelow - 0.01 : 0;
+    for (const x of this.mech) if (x.hpFloor) floor = Math.max(floor, x.hpFloor()); // e.g. a final attack not seen yet
     if (this.hp < this.maxHp * floor) this.hp = Math.ceil(this.maxHp * floor);
   }
   checkPhase() {
@@ -280,7 +285,8 @@ export class AreaBoss extends Entity {
     if (p.dead) { this.pose = 'idle'; return; }
     for (const x of this.mech) { const turn = x.wantsTurn && x.wantsTurn(); if (turn) { this.run(turn); return; } }
     const d = dist(this.x, this.y, p.x, p.y);
-    const ids = this.phaseDef.moves || [];
+    let ids = this.phaseDef.moves || [];
+    for (const x of this.mech) if (x.filterMoves) ids = x.filterMoves(ids);
     const pool = [];
     for (const id of ids) {
       const m = this.def.moves[id];
@@ -316,7 +322,35 @@ export class AreaBoss extends Entity {
 }
 
 // ---------------- move kinds (data: data/bosses.js `moves`)
+// telegraph shape from move data (cone in front · circle at an offset · ring around)
+function shapeTel(b, s, total) {
+  const off = s.offset || 0, base = { x: b.x + Math.cos(b.facing) * off, y: b.y + Math.sin(b.facing) * off, total };
+  return s.shape === 'cone' ? { ...base, shape: 'cone', r: s.r, half: s.half, ang: b.facing } : s.shape === 'ring' ? { ...base, shape: 'ring', r0: s.r0, r: s.r } : { ...base, shape: 'circle', r: s.r };
+}
 const KINDS = {
+  // combo: several strikes in a row, each with its own wind-up (hits[]: { windup, shape?, power?, track? }). A late
+  // last hit (long windup) punishes an early dodge — wait for it. track = turn to the player before that hit.
+  *combo(m) {
+    const g = this.game;
+    this.facePlayer();
+    let any = false;
+    for (let i = 0; i < m.hits.length; i++) {
+      const h = m.hits[i], s = h.shape || m.shape;
+      if (h.track) this.facePlayer();
+      this.pose = 'windup';
+      const tel = this.tele(shapeTel(this, s, this.wind(h.windup)), m);
+      this.mechHook('onTelegraph', tel, m);
+      g.audio.sfx(i === m.hits.length - 1 ? 'windup_big' : 'enemy_swing');
+      yield tel.total;
+      this.pose = 'attack';
+      if (this.hit(tel, { ...m, power: h.power ?? m.power })) any = true;
+      if (!this.fx('slash', this.x + Math.cos(this.facing) * s.r * 0.55, this.y - 18 + Math.sin(this.facing) * s.r * 0.35, this.facing, { scale: s.r / 70, life: 0.3 })) g.vfx.sprite('shards', this.x + Math.cos(this.facing) * s.r * 0.6, this.y - 20, this.facing, { scale: 1, life: 0.24 });
+      g.camera.shake(i === m.hits.length - 1 ? 0.4 : 0.2);
+      yield h.after ?? 0.12;
+    }
+    yield this.wind((m.recover || 0.6) * this.missed(any, m));
+    if (m.opening) this.enterWeak(m.opening, 'OPENING');
+  },
   *strike(m) {
     const g = this.game, s = m.shape;
     this.facePlayer();
@@ -325,6 +359,7 @@ const KINDS = {
     const base = { x: this.x + Math.cos(this.facing) * off, y: this.y + Math.sin(this.facing) * off, total: this.wind(m.windup) };
     const tel = this.tele(s.shape === 'cone' ? { ...base, shape: 'cone', r: s.r, half: s.half, ang: this.facing } : s.shape === 'ring' ? { ...base, shape: 'ring', r0: s.r0, r: s.r } : { ...base, shape: 'circle', r: s.r }, m);
     this.fx('charge', this.x, this.y, 0, { follow: this, off: 0, life: tel.total, scale: 1.2 });
+    this.mechHook('onTelegraph', tel, m);
     g.audio.sfx('windup_big');
     yield tel.total;
     this.pose = 'attack';
@@ -344,6 +379,7 @@ const KINDS = {
     let len = 0;
     while (len < m.len && this.inArena(this.x + Math.cos(ang) * (len + this.radius), this.y + Math.sin(ang) * (len + this.radius), 8)) len += 12;
     const tel = this.tele({ shape: 'line', x: this.x, y: this.y, ang, len: len + this.radius, width: m.width, total: this.wind(m.windup) }, m);
+    this.mechHook('onTelegraph', tel, m);
     g.audio.sfx('windup_big');
     yield tel.total;
     this.pose = 'attack';
@@ -584,7 +620,9 @@ AreaBoss.prototype.sheetFrame = function sheetFrame(set) {
   const look = this.look, A = set.anims;
   if (this.dead) { const d = set.death || set.hurt; return frameAt(d, this.deathT, d.length / 1.4, false); }
   const pick = (o) => o && o[this.pose] && A[o[this.pose]] ? o[this.pose] : null;
-  const name = pick(this.curMove && this.curMove.anim) || pick(look.phaseAnims && look.phaseAnims[this.phase]) || pick(look.anims) || DEFAULT_POSE_ANIM[this.pose];
+  let mechAnim = null;
+  for (const x of this.mech) { const n = x.poseAnim && x.poseAnim(this.pose); if (n && A[n]) { mechAnim = n; break; } }
+  const name = pick(this.curMove && this.curMove.anim) || mechAnim || pick(look.phaseAnims && look.phaseAnims[this.phase]) || pick(look.anims) || DEFAULT_POSE_ANIM[this.pose];
   const frames = A[name] || set.idle;
   const loop = this.pose === 'idle' || this.pose === 'walk';
   const fps = (set.fps && set.fps[name]) || (loop ? (this.pose === 'walk' ? 9 : 6) : this.pose === 'attack' ? 12 : 8);

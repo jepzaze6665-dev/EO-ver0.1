@@ -41,5 +41,13 @@ export const FIELD_A3 = {
   },
   exits: [
     { id: 'south_gate', rect: [80, 203, 88, 204], to: 'rift', entry: [101, 22], label: 'Magma Rift' },
+    {
+      id: 'golden_gate', rect: [83, 49, 85, 49], to: 'sanctum', entry: [84, 40], label: 'The Sanctum',
+      confirm: {
+        title: 'The Sanctum',
+        text: 'Behind the Golden Gate a knight in bronze and runes still keeps his watch.\nOnce he raises his blade, the Sanctum seals until one of you falls.\n\nEnter the Sanctum?',
+        yes: 'Enter', no: 'Not yet',
+      },
+    },
   ],
 };
