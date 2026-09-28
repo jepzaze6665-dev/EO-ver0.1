@@ -50,5 +50,36 @@
   "file": "assets/ui/frame_corner_br.png",
   "w": 64,
   "h": 60
+ },
+ "slot_normal": {
+  "file": "assets/ui/slot_normal.png",
+  "w": 224,
+  "h": 241
+ },
+ "slot_hover": {
+  "file": "assets/ui/slot_hover.png",
+  "w": 224,
+  "h": 241
+ },
+ "slot_pressed": {
+  "file": "assets/ui/slot_pressed.png",
+  "w": 224,
+  "h": 241
+ },
+ "slot_disabled": {
+  "file": "assets/ui/slot_disabled.png",
+  "w": 224,
+  "h": 241
+ },
+ "bar_frame": {
+  "file": "assets/ui/bar_frame.png",
+  "w": 614,
+  "h": 106,
+  "slice": 95
+ },
+ "crystal": {
+  "file": "assets/ui/crystal.png",
+  "w": 177,
+  "h": 276
  }
 }

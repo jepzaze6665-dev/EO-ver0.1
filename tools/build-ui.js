@@ -24,7 +24,28 @@ const SHEETS = {
     scale: 0.5, grid3: true, grow: 0, whole: { name: 'frame', slice: 130 }, // pieces sit a few px apart: no merging
     names: ['frame_corner_tl', 'frame_edge_top', 'frame_corner_tr', 'frame_edge_left', 'frame_edge_right', 'frame_corner_bl', 'frame_edge_bottom', 'frame_corner_br'],
   },
+  // skill slot (transparent sheet): the other states are generated from it (see VARIANTS) — one art, four states
+  slot_frame: { scale: 0.25, names: ['slot_normal'], variants: { slot_hover: 'glow', slot_pressed: 'dark', slot_disabled: 'grey' } },
+  // long bar frame (HP / stamina / boss): the inner slot is see-through; the bar is drawn behind it
+  bar_frame: { scale: 0.5, names: ['bar_frame'], slice: 190 },
+  // shadow crystal (Shadow Mark / emblem): its loose shards belong to it — merge them into one piece
+  crystal: { scale: 0.25, names: ['crystal'], grow: 12, largest: true },
 };
+
+// generated state variants (pure pixel maths on the cut piece)
+const VARIANTS = {
+  glow: (r, g, b) => [Math.min(255, r * 1.25 + 18), Math.min(255, g * 1.1 + 6), Math.min(255, b * 1.35 + 30)],
+  dark: (r, g, b) => [r * 0.7, g * 0.7, b * 0.75],
+  grey: (r, g, b) => { const l = (r * 0.3 + g * 0.59 + b * 0.11) * 0.8; return [l, l, l * 1.05]; },
+};
+function variant(img, kind) {
+  const out = png.create(img.width, img.height), fn = VARIANTS[kind];
+  for (let i = 0; i < img.data.length; i += 4) {
+    const [r, g, b] = fn(img.data[i], img.data[i + 1], img.data[i + 2]);
+    out.data[i] = r; out.data[i + 1] = g; out.data[i + 2] = b; out.data[i + 3] = img.data[i + 3];
+  }
+  return out;
+}
 const BG_MAX = 24;     // "background" = every channel below this (black sheets) …
 const FRINGE = 56;     // … and pixels next to the background darker than this fade out (soft edge)
 const CELL = 4, GROW = 1, MIN_CELLS = 60; // blob search grid (px), merge distance (cells), ignore sparks
@@ -142,6 +163,11 @@ for (const [sheet, cfg] of Object.entries(SHEETS)) {
     png.write(path.join(OUT, name + '.png'), out);
     const slice = typeof cfg.slice === 'number' ? Math.round(cfg.slice * cfg.scale) : cfg.slice && cfg.slice[name] ? Math.round(cfg.slice[name] * cfg.scale) : undefined;
     atlas[name] = { file: `assets/ui/${name}.png`, w: out.width, h: out.height, ...(slice ? { slice } : {}) };
+    if (i === 0) for (const [vn, kind] of Object.entries(cfg.variants || {})) {
+      png.write(path.join(OUT, vn + '.png'), variant(out, kind));
+      atlas[vn] = { file: `assets/ui/${vn}.png`, w: out.width, h: out.height };
+      console.log(`    ${vn.padEnd(18)} ${out.width}x${out.height}  (${kind} of ${name})`);
+    }
     console.log(`    ${name.padEnd(18)} ${out.width}x${out.height}${slice ? `  slice ${slice}` : ''}`);
   });
 }

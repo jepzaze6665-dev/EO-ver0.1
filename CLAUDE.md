@@ -52,7 +52,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - `node tools/build-vfx.js` → `assets/vfx/*.png + vfx.json` (right-facing strips, rotated at runtime;
   per-file `rows` (front view for caster-centred effects) and `mirrorFrames`).
 - `tools/tests/sprites.test.mjs` fails if any class animation uses an empty frame.
-- UI kit (PIXEL-ART style — the owner dropped the first painterly kit as not matching the game): `desgin/UI/{plate,frame_kit}.png`
+- UI kit (PIXEL-ART style — the owner dropped the first painterly kit as not matching the game): `desgin/UI/{plate,frame_kit,slot_frame,bar_frame,crystal}.png`
   (AI sheets, black background) → `node tools/build-ui.js` → `assets/ui/*.png + ui.json` ({ file, w, h, slice? }; background flood-removed
   from the chosen edges + soft fringe, pieces found as blobs, named in reading order or by 3×3 grid). Loaded as
   `Assets.ui[name]` (core/assets.js). `tools/tests/ui.test.mjs` checks every piece exists / is cut out.
@@ -242,6 +242,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   back to the plain boxes (hud falls back when `slot_normal` is absent) until a pixel slot frame exists. Fit check in the
   real game (runtime-only preview): frame + plate sit well with the tiles / sprites; the plate's centre gems stretch
   under 9-slice and touch short text — draw plates as caps + middle, text kept clear of the gems.
-  Next: U3 = windows (HTML panels: Inventory / Skills / Class / Knowledge / Quest / dialogue) with the pixel frame + plate
-  buttons; later (needs art in the same pixel style): skill-slot frame, bars, boss bar, portrait ring.
+  Then the owner added 3 more pixel pieces, all usable: `slot_frame` → `slot_normal` + GENERATED `slot_hover` (glow) /
+  `slot_pressed` (dark) / `slot_disabled` (grey) (build-ui `variants`) — the U2 skill bar picks them up again (checked
+  in game: ready / cooldown / no-stamina / Q ready glow); `bar_frame` (614×106, see-through slot, slice 95 = end caps) for
+  HP / stamina / boss bars; `crystal` (shadow crystal + shards, 177×276) for Shadow Mark icons / emblem.
+  Next: U3 = windows (HTML panels) with the pixel frame + plate buttons; U4 = player frame bars + boss bar with
+  bar_frame, Shadow Mark crystals; U5 title screen.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).
