@@ -473,6 +473,8 @@ export class Player extends Entity {
     }
     this.applyKnockback(dt, map);
     this.moving = Math.hypot(this.vx, this.vy) > 20;
+    // standing still (no move / action / dodge / guard): skirmishers punish it (data/enemyCombat.js)
+    this.idleT = this.moving || this.action || this.dodging || this.guardState.active ? 0 : (this.idleT || 0) + dt;
 
     // ---- action timeline
     const a = this.action;

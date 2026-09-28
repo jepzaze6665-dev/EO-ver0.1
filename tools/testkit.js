@@ -610,3 +610,49 @@ export function poiseCheck(g) {
   inp.mouse.right = false; releaseInput(g);
   return R;
 }
+
+// COMBAT 2.0 C5: enemy attack commitment (miss -> longer recovery + Counter Window) and roles (flank, punish idle).
+export function enemyCheck(g) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame('umbral_sword'); releaseInput(g);
+  const p = g.player; goto(g, 38, 121); g.simulate(0.3);
+  const any = g.world.monsters.find((m) => g.world.onMap(m));
+  for (const m of g.world.monsters) if (g.world.onMap(m)) { m.dead = true; m.deathT = 99; }
+  const spawn = (type, dx, dy) => { const m = new any.constructor(g, type, p.x + dx, p.y + dy, {}); m.hp = m.maxHp = 9999; g.world.monsters.push(m); return m; };
+  const missed = [], windows = []; g.events.on('attackMissed', (e) => missed.push(e)); g.events.on('counterWindow', (e) => windows.push(e));
+  // time an attack from start to the end of its recovery
+  const timeAttack = (m, id, away) => {
+    m.cds = {}; m.x = p.x + 40; m.y = p.y; m.facing = Math.PI; m.setState('chase');
+    m.startAttack(m.def.attacks.find((a) => a.id === id));
+    if (away) { p.x -= 200; }
+    let t = 0; while (m.state === 'attack' && t < 6) { g.simulate(0.05, () => { p.hp = p.maxHp; p.invulnT = 0; }); t += 0.05; }
+    if (away) p.x += 200;
+    return t;
+  };
+  const gob = spawn('goblin', 40, 0);
+  const tHit = timeAttack(gob, 'slam', false);
+  g.simulate(0.5); gob.status.remove('counter_window');
+  const tMiss = timeAttack(gob, 'slam', true);
+  const slam = gob.def.attacks.find((a) => a.id === 'slam');
+  ok('Goblin slam that misses: MISS event + much longer recovery (bruiser)', missed.some((e) => e.attacker === gob) && tMiss > tHit + slam.recover * 0.8, `hit ${tHit.toFixed(2)}s / miss ${tMiss.toFixed(2)}s`);
+  ok('A missed attack opens a Counter Window (whiff)', windows.some((e) => e.target === gob && e.reason === 'whiff'), windows.map((e) => e.reason).join(','));
+  gob.dead = true; gob.deathT = 99;
+  // wolf: punishes standing still (lunge off cooldown)
+  const wolf = spawn('wolf', 90, 0); wolf.aggro = true;
+  wolf.cds = { lunge: 5 }; p.idleT = 0;
+  const moving = wolf.chooseAttack(90);
+  p.idleT = 2;
+  const idle = wolf.chooseAttack(90);
+  ok('Wolf punishes a player standing still (lunge ignores its cooldown)', !moving && idle && idle.id === 'lunge', `moving=${moving && moving.id} idle=${idle && idle.id}`);
+  // wolf: flanks — ends up at the player's side / back, not in front of its face
+  p.idleT = 0; p.facing = 0; wolf.x = p.x + 150; wolf.y = p.y; wolf.cds = { bite: 99, lunge: 99 }; wolf.setState('chase');
+  g.simulate(2.2, () => { p.facing = 0; p.hp = p.maxHp; });
+  const rel = Math.abs(Math.atan2(Math.sin(Math.atan2(wolf.y - p.y, wolf.x - p.x) - p.facing), Math.cos(Math.atan2(wolf.y - p.y, wolf.x - p.x) - p.facing)));
+  ok('Wolf flanks: moves to the side / back of the player', rel > 1.2, `angle from facing ${(rel * 57.3).toFixed(0)}°`);
+  // codex shows the role
+  g.knowledge.encounter('wolf'); g.knowledge.kill && g.knowledge.kill('wolf');
+  const card = g.knowledge.view().find((e) => e.name === wolf.def.name);
+  ok('Monster Knowledge shows the role', card && /Skirmisher|\?/.test(card.role), card && card.role);
+  releaseInput(g);
+  return R;
+}

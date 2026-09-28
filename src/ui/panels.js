@@ -300,9 +300,10 @@ export class Panels {
           <div class="kv"><span>HP</span><b>${e.hp}</b></div>
           <div class="kv"><span>Weakness</span><b>${esc(e.weakness)}</b></div>
           <div class="kv"><span>Pattern</span><b>${esc(e.pattern)}</b></div>
+          <div class="kv"><span>Role</span><b>${esc(e.role)}</b></div>
           <div class="kv"><span>Drop</span><b>${esc(e.drop)}</b></div>
           <div class="kv"><span>Defeated</span><b>${e.kills}</b></div>
-          <p>${esc(e.desc)}</p>
+          <p>${esc(e.desc)}</p>${e.roleHint ? `<div class="muted small">⚔ ${esc(e.roleHint)}</div>` : ''}
         </div>`).join('') || '<div class="empty">No monsters encountered yet. The world is waiting to be learned.</div>'}
         <div class="muted small">Knowledge grows as you fight: 1 kill reveals level & pattern, 3 kills weakness & drops, 5 kills HP. Lore fragments reveal secrets early.</div></div>`;
     } else {

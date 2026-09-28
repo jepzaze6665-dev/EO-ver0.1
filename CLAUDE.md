@@ -14,7 +14,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (V2.2 vertical slice, 29 steps: walks every boss gate on foot, 3 boss fights, City 2, save/load),
   `T.bossReset(__game)` (death mid-fight resets the boss)
-  `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` (Combat 2.0),
+  `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` (Combat 2.0),
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -184,5 +184,12 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   stamina empty or a `guardBreak` attack blocked without a parry → guard down, 0.7 s stun, −30 stamina, 60% damage
   through; parry beats it; `unblockable` ignores guard + parry. Tagged: monster `heavy` attacks, A1 lunge, A2 leap,
   Guardian smash / charge / jump (guardBreak), Guardian Final Attack (unblockable). `T.poiseCheck(g)` (8 steps) +
-  tools/tests/poise.test.mjs. Checklist step 11/13 hardened (monsters could leave the player hurt → flaky). Next: C5.
+  tools/tests/poise.test.mjs. Checklist step 11/13 hardened (monsters could leave the player hurt → flaky).
+  Done C5: `src/data/enemyCombat.js` (STARTUP = windup → ACTIVE → RECOVERY; roles). A monster / area-boss attack that
+  hits nobody = 'attackMissed' + MISS text + recovery × missRecoverMult 1.5 (bosses 1.3, attack `missRecover`, goblin
+  slam 2.0) → CounterSystem opens a 'whiff' window (unless a dodge already did). Roles in monster data (`role`:
+  skirmisher / bruiser / tank / caster / swarm, shown in the codex + a fight hint): wolf `flank` (orbits to the
+  player's side / back) + `punishIdle` 1 s (lunge `punish: true` ignores its cooldown vs a player standing still,
+  Player.idleT); goblin bruiser; crystal tanks (existing armour / back core). `T.enemyCheck(g)` (5 steps) +
+  tools/tests/enemyCombat.test.mjs. Next: C6.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

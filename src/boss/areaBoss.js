@@ -1,3 +1,4 @@
+import { ENEMY_COMBAT } from '../data/enemyCombat.js';
 import { Poise } from '../combat/poiseSystem.js';
 import { POISE } from '../data/poise.js';
 import { Entity } from '../core/entity.js';
@@ -125,6 +126,14 @@ export class AreaBoss extends Entity {
   tele(def, m) {
     const magic = m && m.dmg && m.dmg !== 'physical';
     return this.game.combat.telegraphs.add({ owner: this, color: (m && m.color && !m.color.startsWith('#') && m.color) || (magic ? '176,96,255' : '255,60,60'), ...def });
+  }
+  // after a move: did it land? a miss = 'attackMissed' (Counter Window) + longer recovery (data/enemyCombat.js)
+  missed(landed, m) {
+    if (landed) return 1;
+    const g = this.game;
+    g.vfx.text(this.x, this.y - this.height - 12, 'MISS', { color: '#c8c8d8', size: 11, life: 0.7 });
+    g.events.emit('attackMissed', { attacker: this, player: g.player, attack: m.id || m.kind });
+    return m.missRecover ?? ENEMY_COMBAT.bossMissRecoverMult;
   }
   hit(shape, m, extra = {}) {
     return this.game.combat.enemyStrike(this, shape, m.power, { knock: m.knock ?? 180, type: m.dmg || 'physical', status: m.status, guardBreak: m.guardBreak, unblockable: m.unblockable, ...extra });
@@ -295,12 +304,12 @@ const KINDS = {
     g.audio.sfx('windup_big');
     yield tel.total;
     this.pose = 'attack';
-    this.hit(tel, m);
+    const struck = this.hit(tel, m);
     if (s.shape === 'cone') g.vfx.sprite('shards', this.x + Math.cos(this.facing) * s.r * 0.6, this.y - 20 + Math.sin(this.facing) * s.r * 0.4, this.facing, { scale: 1.1, life: 0.26 });
     else g.vfx.ring(tel.x, tel.y, s.r0 || 10, s.r, { color: this.look.aura || '220,200,160', life: 0.4, width: 6 });
     g.camera.shake(s.shape === 'cone' ? 0.25 : 0.45);
     g.audio.sfx(s.shape === 'cone' ? 'claw' : 'slam_big');
-    yield this.wind(m.recover || 0.5);
+    yield this.wind((m.recover || 0.5) * this.missed(struck, m));
     if (m.opening) this.enterWeak(m.opening, 'OPENING');
   },
   *dash(m) {
@@ -329,7 +338,7 @@ const KINDS = {
     };
     g.camera.shake(0.4);
     g.vfx.ring(this.x, this.y, 8, 60, { color: '255,220,160', life: 0.35, width: 5 });
-    yield this.wind(m.recover || 0.6);
+    yield this.wind((m.recover || 0.6) * this.missed(hitDone, m));
     if (m.opening) this.enterWeak(m.opening, 'OPENING');
   },
   *leap(m) {
@@ -357,12 +366,12 @@ const KINDS = {
     };
     this.air = 0;
     if (g.world.map.circleBlocked(this.x, this.y, this.radius)) { const pos = g.world.map.findOpen(this.x, this.y, 3); this.x = pos.x; this.y = pos.y; }
-    this.hit(tel, m);
+    const landed = this.hit(tel, m);
     g.camera.shake(0.6);
     g.vfx.ring(this.x, this.y, 10, m.r, { color: '220,210,170', life: 0.45, width: 7 });
     g.vfx.shards(this.x, this.y, '#8a7a5a', 18, 180);
     g.audio.sfx('slam_big');
-    yield this.wind(m.recover || 0.6);
+    yield this.wind((m.recover || 0.6) * this.missed(landed, m));
     if (m.opening) this.enterWeak(m.opening, 'OPENING');
   },
   *volley(m) {

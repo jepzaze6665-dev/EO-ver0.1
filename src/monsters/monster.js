@@ -1,3 +1,4 @@
+import { ENEMY_COMBAT } from '../data/enemyCombat.js';
 import { Poise } from '../combat/poiseSystem.js';
 import { POISE } from '../data/poise.js';
 import { Entity } from '../core/entity.js';
@@ -180,11 +181,16 @@ export class Monster extends Entity {
         if (want && dP < want) {
           this.moveDir(ang + Math.PI, speed * 0.8, dt);
         } else if (dP > (this.def.attacks[0].range * 0.8)) {
-          // wolves circle a little while approaching
-          // wolves circle the player while their charge recharges, then commit
-          const circling = this.type === 'wolf' && dP < 150 && (this.cds.lunge || 0) > 0;
-          const side = this.id % 2 ? 1 : -1;
-          this.moveDir(circling ? ang + side * 1.25 : ang, circling ? speed * 0.8 : speed, dt);
+          // flankers (data flank) go for the player's side / back instead of walking into its face
+          const fl = ENEMY_COMBAT.flank;
+          if (this.def.flank && dP < fl.range) {
+            // orbit around the player toward its back (never straight through its face), then close in
+            const side = this.id % 2 ? 1 : -1, back = p.facing + Math.PI + side * fl.angle;
+            const cur = angleTo(p.x, p.y, this.x, this.y), diff = wrapAngle(back - cur), step = clamp(diff, -0.9, 0.9);
+            const r = Math.abs(diff) > 0.5 ? clamp(dP, fl.dist + 30, 90) : fl.dist;
+            const tx = p.x + Math.cos(cur + step) * r, ty = p.y + Math.sin(cur + step) * r;
+            this.moveDir(angleTo(this.x, this.y, tx, ty), speed, dt);
+          } else this.moveDir(ang, speed, dt);
         }
         this.turnTo(ang, dt, this.def.turn);
         break;
@@ -266,7 +272,9 @@ export class Monster extends Entity {
 
   // ---------------- attacks
   chooseAttack(dP) {
-    const opts = this.def.attacks.filter((a) => (this.cds[a.id] || 0) <= 0 && dP <= a.range && dP >= a.min);
+    // skirmishers punish a player standing still: their `punish` attack ignores its cooldown
+    const punish = this.def.punishIdle && (this.game.player.idleT || 0) >= this.def.punishIdle;
+    const opts = this.def.attacks.filter((a) => ((this.cds[a.id] || 0) <= 0 || (punish && a.punish)) && dP <= a.range && dP >= a.min);
     if (!opts.length) return null;
     // the slow-turning beasts only attack what is roughly in front of them (their back stays exposed)
     if (this.def.turn < 3) {
@@ -279,6 +287,7 @@ export class Monster extends Entity {
   startAttack(atk) {
     const g = this.game, p = g.player;
     this.cur = atk;
+    this.missed = false;
     this.phase = 'windup';
     this.setState(S.ATTACK);
     if (this.def.turn >= 3) this.facing = angleTo(this.x, this.y, p.x, p.y);
@@ -298,7 +307,7 @@ export class Monster extends Entity {
     if (!atk || this.dead) return;
     const power = atk.power * this.mod.power;
     if (atk.kind === 'strike') {
-      g.combat.enemyStrike(this, this.curShape, power, { knock: atk.knock, guardBreak: atk.guardBreak ?? atk.heavy, unblockable: atk.unblockable });
+      if (!g.combat.enemyStrike(this, this.curShape, power, { knock: atk.knock, guardBreak: atk.guardBreak ?? atk.heavy, unblockable: atk.unblockable })) this.onMiss(atk);
       this.phase = 'recover';
       this.stateT = 0;
       if (atk.shape.shape === 'circle' || atk.shape.shape === 'ring') {
@@ -354,17 +363,26 @@ export class Monster extends Entity {
       if (Math.random() < 0.6) g.vfx.particle(this.x, this.y, { color: 'rgba(140,130,120,0.6)', life: 0.3, size: 3, vy: -10 });
       if (this.stateT >= atk.dashTime) {
         this.phase = 'recover'; this.stateT = 0;
+        if (!this.dashHit) this.onMiss(atk);
         if (atk.exposes) { this.status.add('vulnerable', atk.exposes); this.facing += Math.PI * 0.6; g.vfx.text(this.x, this.y - this.height - 8, 'CORE EXPOSED!', { color: '#ff9ad8', size: 10 }); }
       }
       return;
     }
-    // recover
-    if (this.stateT >= atk.recover) {
+    // recover (longer after a miss — data/enemyCombat.js)
+    if (this.stateT >= atk.recover * (this.missed ? atk.missRecover ?? ENEMY_COMBAT.missRecoverMult : 1)) {
       this.cds[atk.id] = atk.cd;
       for (const a of this.def.attacks) this.cds[a.id] = Math.max(this.cds[a.id] || 0, 0.4);
       this.cur = null;
       this.setState(S.CHASE);
     }
+  }
+
+  // the attack hit nobody: longer recovery + a Counter Window for the player (combat/counterSystem.js)
+  onMiss(atk) {
+    const g = this.game;
+    this.missed = true;
+    g.vfx.text(this.x, this.y - this.height - 8, 'MISS', { color: '#c8c8d8', size: 9, life: 0.6 });
+    g.events.emit('attackMissed', { attacker: this, player: g.player, attack: atk.id });
   }
 
   blink() {

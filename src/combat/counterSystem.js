@@ -1,7 +1,7 @@
 import { COUNTER, counterDuration } from '../data/counter.js';
 
 // COUNTER SYSTEM (Combat 2.0 §47) — turns "the player beat that attack" events into a Counter Window on the attacker.
-//   attackDodged (perfect -> 'perfectDodge', normal -> 'whiff')  ·  perfectGuard -> 'parry'
+//   attackDodged (perfect -> 'perfectDodge', normal -> 'whiff')  ·  perfectGuard -> 'parry'  ·  attackMissed -> 'whiff'
 // The window is a status (data/statuses.js 'counter_window': less DEF, more damage taken). The first hit the player
 // lands inside it pays the class's `counterBonus` data ({ marks, resource }) and shows COUNTER!.
 // Events out: counterWindow { target, player, reason, duration } · counterHit { ...damageDealt, player, first }
@@ -13,6 +13,8 @@ export class CounterSystem {
     const ev = game.events;
     ev.on('attackDodged', (e) => this.open(e.attacker, e.perfect ? 'perfectDodge' : 'whiff', e.player));
     ev.on('perfectGuard', (e) => this.open(e.source, 'parry', e.player));
+    // any missed enemy attack (Combat 2.0 §50) — skipped when a dodge already opened a window for it
+    ev.on('attackMissed', (e) => { if (!(e.attacker && e.attacker.status && e.attacker.status.has(rules.status))) this.open(e.attacker, 'whiff', e.player); });
     ev.on('damageDealt', (e) => this.onHit(e));
   }
   open(target, reason, player) {

@@ -1,3 +1,4 @@
+import { ENEMY_COMBAT } from '../data/enemyCombat.js';
 import { MONSTERS } from './monsterTypes.js';
 import { ITEMS } from '../items/items.js';
 import { LOOT_TABLES } from '../data/lootTables.js';
@@ -54,6 +55,9 @@ export class Knowledge {
         hp: q(k >= 5 || e.reveal.hp, d.hp),
         weakness: q(k >= 3 || e.reveal.weakness, (d.weakness || []).map((w) => w[0].toUpperCase() + w.slice(1)).join(', ')),
         pattern: q(k >= 1 || e.reveal.pattern, d.pattern),
+        // role (data/enemyCombat.js): 'Bruiser' + a short how-to-fight hint
+        role: q(k >= 1 || e.reveal.pattern, d.role ? (ENEMY_COMBAT.roles[d.role] || d.role).split(' — ')[0] : '—'),
+        roleHint: (k >= 1 || e.reveal.pattern) && d.role ? (ENEMY_COMBAT.roles[d.role] || '').split(' — ')[1] || '' : '',
         drop: q(k >= 3 || e.reveal.drop, ((LOOT_TABLES[d.loot] || {}).drops || []).map((x) => ITEMS[x.item].name).join(', ') || '—'),
         desc: k >= 1 || e.reveal.pattern ? d.desc : 'Little is known. Fight it to learn more.',
       };
