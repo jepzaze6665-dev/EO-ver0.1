@@ -5,7 +5,7 @@ import { MONSTERS } from '../monsters/monsterTypes.js';
 import { icon } from './icons.js';
 import { TILE, T, Z } from '../core/constants.js';
 import { clamp, TAU, easeOutCubic } from '../core/math.js';
-import { makeCanvas } from '../core/assets.js';
+import { Assets, makeCanvas } from '../core/assets.js';
 import { RARITY_COLOR } from '../items/items.js';
 import { RESOURCES } from '../data/resources.js';
 import { STAMINA } from '../data/stamina.js';
@@ -257,14 +257,20 @@ export class HUD {
 
   drawSkillBar(ctx, W, H, u) {
     const g = this.game, p = g.player, cls = p.cls;
-    const size = 50 * u, gap = 8 * u;
+    // UI kit slot frames (assets/ui slot_*): the icon sits in the frame's see-through middle (≈ 63% of it)
+    const kit = !!(Assets.ui && Assets.ui.slot_normal && Assets.ui.slot_normal.img);
+    const size = (kit ? 64 : 50) * u, gap = (kit ? 2 : 8) * u, pad = kit ? size * 0.19 : 5 * u;
     // keys 1-5 come from the player's loadout (Skills tab), not from fixed slots in the class data
     const binds = p.loadout.bindings();
     const slots = [...binds.map((b) => ({ s: b.skill, key: b.key })), { s: cls.special, key: 'Q', special: true }, { potion: 'hp_potion', key: 'R' }, { potion: 'shadow_tonic', key: 'F' }];
     const total = slots.length * size + (slots.length - 1) * gap + 14 * u;
     let x = W / 2 - total / 2;
     const y = H - size - 22 * u;
-    this.panel(ctx, x - 10 * u, y - 10 * u, total + 20 * u, size + 20 * u, 0.6);
+    if (kit) { // soft dark band under the frames instead of a box
+      const gr = ctx.createLinearGradient(0, y - 6 * u, 0, y + size + 6 * u);
+      gr.addColorStop(0, 'rgba(8,4,16,0)'); gr.addColorStop(0.3, 'rgba(8,4,16,0.55)'); gr.addColorStop(1, 'rgba(8,4,16,0.7)');
+      ctx.fillStyle = gr; ctx.fillRect(x - 24 * u, y - 6 * u, total + 48 * u, size + 12 * u);
+    } else this.panel(ctx, x - 10 * u, y - 10 * u, total + 20 * u, size + 20 * u, 0.6);
     // dodge hint: bright when there is stamina for a dodge
     // (a tutorial hint: it fades out for good once the player has learned to dodge — data/combatUI.js)
     if (this.dodgeHintA > 0) { ctx.globalAlpha = this.dodgeHintA; this.text(ctx, 'DODGE [SPACE]', W / 2, y - 18 * u, 9 * u, p.resources.canAfford(STAMINA.resource, STAMINA.dodge) ? '#9af8ff' : 'rgba(150,120,120,0.8)', { align: 'center' }); ctx.globalAlpha = 1; }
@@ -275,50 +281,76 @@ export class HUD {
     }
     slots.forEach((sl, i) => {
       if (i === binds.length) x += 14 * u;
-      const sx = x, sy = y;
+      const sx = x, sy = y, ix = sx + pad, iy = sy + pad, is = size - pad * 2; // icon box
       ctx.fillStyle = 'rgba(20,12,34,0.95)';
-      ctx.fillRect(sx, sy, size, size);
+      ctx.fillRect(ix, iy, is, is);
       let ready = true, cdPct = 0, cdLeft = 0, label = '';
       if (sl.potion) {
         const n = g.inventory.count(sl.potion);
         ctx.imageSmoothingEnabled = true;
-        ctx.drawImage(icon('potion', sl.potion === 'hp_potion' ? '#e05060' : '#a060ff'), sx + 7 * u, sy + 7 * u, size - 14 * u, size - 14 * u);
-        this.text(ctx, String(n), sx + size - 4 * u, sy + size - 5 * u, 12 * u, n ? '#fff' : '#888', { align: 'right' });
+        ctx.drawImage(icon('potion', sl.potion === 'hp_potion' ? '#e05060' : '#a060ff'), ix + 2 * u, iy + 2 * u, is - 4 * u, is - 4 * u);
+        this.text(ctx, String(n), ix + is - 1 * u, iy + is - 2 * u, 12 * u, n ? '#fff' : '#888', { align: 'right' });
         ready = n > 0 && g.inventory.potionCd <= 0;
       } else {
         const s = sl.s;
         ctx.imageSmoothingEnabled = true;
-        ctx.drawImage(icon(s.icon), sx + 5 * u, sy + 5 * u, size - 10 * u, size - 10 * u);
+        ctx.drawImage(icon(s.icon), ix, iy, is, is);
         // same readiness rules as the SkillSystem: cooldown, cost and data requirements
         const reqOk = (s.requirements || []).every((r) => REQUIREMENTS[r.type] && REQUIREMENTS[r.type](p, r));
         cdLeft = p.skillSys.cooldowns.remaining(s.id);
         cdPct = cdLeft > 0.5 ? p.skillSys.cooldowns.ratio(s.id) : 0;
-        ready = cdLeft <= 0 && reqOk && (!s.cost || p.resources.canAfford(p.skillSys.costResource(s), s.cost));
+        const staOk = !staminaCost(s) || p.resources.canAfford(STAMINA.resource, staminaCost(s));
+        ready = cdLeft <= 0 && reqOk && staOk && (!s.cost || p.resources.canAfford(p.skillSys.costResource(s), s.cost));
+        sl.state = cdLeft > 0 ? 'cooldown' : !ready ? 'disabled' : p.action && p.action.name === s.id ? 'pressed' : 'ready';
+        sl.noSta = !staOk;
         if (s.cost) label = String(s.cost);
-        if (sl.special && ready && (s.requirements || []).length) { ctx.strokeStyle = `rgba(230,200,255,${0.6 + 0.4 * Math.sin(g.time * 8)})`; ctx.lineWidth = 3 * u; ctx.strokeRect(sx - 1, sy - 1, size + 2, size + 2); }
+        sl.glow = sl.special && ready && (s.requirements || []).length > 0; // e.g. SHADOW BREAK READY
+        if (sl.glow && !kit) { ctx.strokeStyle = `rgba(230,200,255,${0.6 + 0.4 * Math.sin(g.time * 8)})`; ctx.lineWidth = 3 * u; ctx.strokeRect(sx - 1, sy - 1, size + 2, size + 2); }
       }
-      if (!ready) { ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(sx, sy, size, size); }
+      if (!ready) { ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(ix, iy, is, is); }
       if (cdPct > 0) {
         ctx.fillStyle = 'rgba(10,0,30,0.6)';
         ctx.beginPath(); ctx.moveTo(sx + size / 2, sy + size / 2);
         ctx.arc(sx + size / 2, sy + size / 2, size * 0.75, -Math.PI / 2, -Math.PI / 2 + TAU * cdPct); ctx.closePath();
-        ctx.save(); ctx.beginPath(); ctx.rect(sx, sy, size, size); ctx.clip();
+        ctx.save(); ctx.beginPath(); ctx.rect(ix, iy, is, is); ctx.clip();
         ctx.beginPath(); ctx.moveTo(sx + size / 2, sy + size / 2); ctx.arc(sx + size / 2, sy + size / 2, size * 0.75, -Math.PI / 2, -Math.PI / 2 + TAU * cdPct); ctx.closePath(); ctx.fill();
         ctx.restore();
         this.text(ctx, cdLeft.toFixed(cdLeft < 3 ? 1 : 0), sx + size / 2, sy + size / 2 + 6 * u, 16 * u, '#fff', { align: 'center' });
       }
-      ctx.strokeStyle = sl.s && sl.s.ultimate ? '#ffb040' : sl.special ? '#c080ff' : 'rgba(160,120,230,0.8)';
-      ctx.lineWidth = 1.5 * u;
-      ctx.strokeRect(sx + 0.5, sy + 0.5, size - 1, size - 1);
-      // key binding
-      ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(sx, sy, 15 * u, 15 * u);
-      this.text(ctx, sl.key, sx + 7.5 * u, sy + 12 * u, 11 * u, '#ffe8a0', { align: 'center', stroke: false });
-      if (label && !sl.special) this.text(ctx, label, sx + size - 3 * u, sy + size - 4 * u, 9 * u, p.resources.canAfford(sl.s.costResource || p.primaryResource, +label) ? '#c9a0ff' : '#ff6a6a', { align: 'right' });
-      // hover tooltip
       const m = g.input.mouse, mx = m.x * g.renderer.dpr, my = m.y * g.renderer.dpr;
-      if (mx > sx && mx < sx + size && my > sy && my < sy + size && sl.s) this.tooltip(ctx, sx, sy - 8 * u, sl.s, u);
+      const hover = mx > sx && mx < sx + size && my > sy && my < sy + size;
+      if (kit) {
+        // frame state (UI kit): disabled / pressed / hover or "ready" glow / normal. Cooldown keeps the normal frame:
+        // the live radial sweep above shows the real time left (the kit's cooldown frame has a fixed ring drawn in)
+        const st = sl.potion ? (ready ? 'normal' : 'disabled') : sl.state === 'disabled' ? 'disabled' : sl.state === 'pressed' ? 'pressed' : 'normal';
+        const frame = st !== 'normal' ? 'slot_' + st : hover || sl.glow ? 'slot_hover' : 'slot_normal';
+        if (sl.glow) ctx.globalAlpha = 0.75 + 0.25 * Math.sin(g.time * 8);
+        this.uiImage(ctx, frame, sx, sy, size, size);
+        ctx.globalAlpha = 1;
+      } else {
+        ctx.strokeStyle = sl.s && sl.s.ultimate ? '#ffb040' : sl.special ? '#c080ff' : 'rgba(160,120,230,0.8)';
+        ctx.lineWidth = 1.5 * u;
+        ctx.strokeRect(sx + 0.5, sy + 0.5, size - 1, size - 1);
+      }
+      // key binding (top-left of the icon) + cost (bottom-right) — red when the class resource / stamina is short
+      ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(ix, iy, 13 * u, 13 * u);
+      this.text(ctx, sl.key, ix + 6.5 * u, iy + 10.5 * u, 10 * u, sl.s && sl.s.ultimate ? '#ffc060' : '#ffe8a0', { align: 'center', stroke: false });
+      if (label && !sl.special) this.text(ctx, label, ix + is - 1 * u, iy + is - 2 * u, 9 * u, p.resources.canAfford(sl.s.costResource || p.primaryResource, +label) ? '#c9a0ff' : '#ff6a6a', { align: 'right' });
+      if (sl.noSta && !(cdLeft > 0)) this.text(ctx, 'STA', ix + 1 * u, iy + is - 2 * u, 8 * u, '#ff7060');
+      // hover tooltip
+      if (hover && sl.s) this.tooltip(ctx, sx, sy - 8 * u, sl.s, u);
       x += size + gap;
     });
+  }
+
+  // draw one UI-kit piece (assets/ui, tools/build-ui.js) stretched to a box
+  uiImage(ctx, name, x, y, w, h) {
+    const a = Assets.ui && Assets.ui[name];
+    if (!a || !a.img) return false;
+    const sm = ctx.imageSmoothingEnabled; ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(a.img, x, y, w, h);
+    ctx.imageSmoothingEnabled = sm;
+    return true;
   }
 
   tooltip(ctx, x, y, s, u) {

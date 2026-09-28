@@ -239,5 +239,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   states, 4 button states (slice 35), panel kit (panel_frame slice 24 + corners / edges), ring_frame (see-through
   middle), boss_bar (crest + name plate, the bar runs off the sheet edges — no end caps), emblem (rough smoke edges,
   menu only)); U2 skill bar frames; U3 HTML panels + buttons via CSS border-image; U4 boss bar + ring portrait;
-  U5 title screen emblem. Next: U2.
+  U5 title screen emblem.
+  Done U2: skill bar uses the kit frames (hud.drawSkillBar; `hud.uiImage(ctx, name, x, y, w, h)` draws any kit piece):
+  64u frames, icon in the ~63% see-through middle; slot_disabled when not usable (resource / stamina / requirement / no
+  potions — a red STA tag when stamina is short), slot_pressed while that skill's action plays, slot_hover on mouse-over
+  and pulsing for a special whose requirements are met (SHADOW BREAK READY); cooldown keeps the normal frame + the live
+  radial sweep (the kit's cooldown frame has a fixed ring baked in). Old boxes remain as fallback without the kit.
+  Next: U3.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).
