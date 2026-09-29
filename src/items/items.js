@@ -35,6 +35,10 @@ export const ITEMS = {
     name: 'Dawn Aegis & Holy Sword', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'dawn_shield', color: '#8ad0ff',
     stats: { atk: 0, def: 1 }, desc: 'A white-silver shield holding a blue dawn, and a holy longsword. Signature weapon of the Warden of Dawn.',
   },
+  bastion_aegis: {
+    name: 'Bulwark Shield & Bastion Sword', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'bulwark', color: '#f0c850',
+    stats: { atk: 0, def: 2 }, desc: 'A gilded tower shield and a heavy bastion sword. Signature weapon of the Bulwark Sentinel.',
+  },
   aegis_shield: {
     name: 'Aegis Shield & Blade', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'shield', color: '#ffd070',
     stats: { atk: 0 }, desc: 'A knight longsword and the gilded Aegis shield. Signature weapon of the Aegis Guardian.',
@@ -68,6 +72,10 @@ export const ITEMS = {
   dawn_plate: {
     name: 'Dawnward Plate', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#e8eef8',
     stats: { def: 2, hp: 20 }, desc: 'Silver plate that catches the first light. Worn by those who guard others first.',
+  },
+  fortress_plate: {
+    name: 'Fortress Plate', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#c8a050',
+    stats: { def: 3, hp: 25 }, desc: 'Gold-chased steel over a midnight cape. Built to stand where others fall.',
   },
   aegis_plate: {
     name: 'Aegis Plate', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#c8d0e0',

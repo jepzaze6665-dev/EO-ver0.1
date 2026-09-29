@@ -646,6 +646,105 @@ export function wardenChecks(g) {
   return rows;
 }
 
+// ---------------- BULWARK SENTINEL (Class 2 of the Aegis): Bastion / Fortified / taunt / Shieldwall by position /
+// mitigation / Counterweight cap / Citadel of One duration
+export function bulwarkChecks(g) {
+  const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'bulwark_sentinel', test: name, pass: !!pass, detail });
+  const R = 'bastion', r0 = (n) => Math.round(n);
+  let { p, d } = atDummy(g, 'bulwark_sentinel');
+  const cls = p.cls, inFight = () => { g.combat.lastCombatTime = g.time; };
+  ok('Class data: preset bs, Bastion, own skills + guard + passives', p.sprites.preset === 'bs' && p.primaryResource === R && p.skillSys.get('citadel_of_one') && cls.special.id === 'bulwark_guard' && cls.passives.length >= 2 && g.equipment.slots.weapon === 'bastion_aegis', `${p.sprites.preset} ${p.primaryResource} ${g.equipment.slots.weapon}`);
+  const hitMe = (power = 20, extra = {}) => { p.invulnT = 0; const hp0 = p.hp; g.combat.dealDamage({ x: p.x + 20, y: p.y, team: 'enemy' }, p, { power, noCrit: true, knock: 0, ...extra }); return hp0 - p.hp; };
+
+  // Bastion from hits, x2 in Iron Bastion
+  p.resources.set(R, 0); p.hp = p.maxHp; hitMe(20); const plainGain = p.resources.get(R);
+  ok('Taking a hit builds Bastion (capped per hit)', plainGain >= 1 && plainGain <= 6, `+${plainGain.toFixed(1)}`);
+  const plainDmg = hitMe(30);
+  g.simulate(0.3, inFight); p.resources.set(R, 0); cast(g, 'iron_bastion', d); p.hp = p.maxHp; // (after the hurt reaction)
+  const stDmg = hitMe(30), stGain = p.resources.get(R);
+  ok('Iron Bastion: 40% less damage, slower, double Bastion from hits', p.status.has('iron_bastion') && stDmg <= Math.ceil(plainDmg * 0.6) + 1 && p.status.moveMult() < 0.6 && stGain > plainGain * 1.5, `dmg ${plainDmg}->${stDmg} gain ${plainGain.toFixed(1)}->${stGain.toFixed(1)}`);
+  g.simulate(0.3, inFight); const re = p.trySkill(p.skillSys.get('iron_bastion'));
+  ok('Iron Bastion: pressing again leaves the stance', re && !p.status.has('iron_bastion'));
+
+  // Fortified threshold
+  p.resources.set(R, 69); g.simulate(0.1, inFight);
+  ok('Below 70: not fortified', !p.status.has('fortified'));
+  p.resources.set(R, 75); g.simulate(0.1, inFight);
+  const fortOn = p.status.has('fortified');
+  const b0 = p.resources.get(R); g.simulate(1, inFight);
+  ok('At 70 Bastion: FORTIFIED (+DEF, no knockback) and it drains Bastion', fortOn && p.status.has('fortified') && p.resources.get(R) < b0 - 3, `${r0(b0)} -> ${r0(p.resources.get(R))}`);
+  const x0 = p.x; hitMe(5, { knock: 400 }); g.simulate(0.3, inFight);
+  ok('Fortified: no knockback', Math.abs(p.x - x0) < 1, `moved ${(p.x - x0).toFixed(1)}`);
+  p.resources.set(R, 9); g.simulate(0.1, inFight);
+  ok('Fortified ends under 10 Bastion; cannot restart at once (lockout)', !p.status.has('fortified') && (() => { p.resources.set(R, 90); g.simulate(0.1, inFight); return !p.status.has('fortified'); })());
+
+  // Unbroken: knockback halved (no fortify)
+  ({ p, d } = atDummy(g, 'bulwark_sentinel'));
+  const kx = p.x; p.invulnT = 0; g.combat.dealDamage({ x: p.x - 20, y: p.y, team: 'enemy' }, p, { power: 1, knock: 300, noCrit: true }); g.simulate(0.4);
+  const bulwarkKb = Math.abs(p.x - kx);
+  ok('Unbroken: knockback resisted (knockResist 0.5), tenacity shortens stuns', bulwarkKb > 0 && p.stats.knockResist >= 0.5 && (() => { p.status.add('stun', 1); const t = p.status.get('stun').t; p.status.remove('stun'); return t <= 0.71; })(), `moved ${bulwarkKb.toFixed(1)}`);
+
+  // Taunt
+  ({ p, d } = atDummy(g, 'bulwark_sentinel'));
+  const foes = g.world.dummies.filter((t) => Math.hypot(t.x - p.x, t.y - p.y) < 170);
+  p.resources.set(R, 0); cast(g, 'absolute_provocation', d); idle(g);
+  ok('Absolute Provocation: every foe within 170 taunted + marked, Bastion +4 each (cap 16)', foes.length && foes.every((t) => t.status.has('taunted') && g.marks.get(t, 'guardian_mark')) && p.resources.get(R) <= 16 + 1e-6 && p.resources.get(R) >= 4, `${foes.length} foes, bastion ${r0(p.resources.get(R))}`);
+
+  // Fortress Step
+  ({ p, d } = atDummy(g, 'bulwark_sentinel', 60));
+  const sx = p.y; cast(g, 'fortress_step', d); idle(g);
+  ok('Fortress Step: steps forward, marks the target', Math.abs(p.y - sx) > 20 && g.marks.get(d, 'guardian_mark') > 0, `moved ${r0(Math.abs(p.y - sx))}`);
+
+  // Counterweight cap
+  ({ p, d } = atDummy(g, 'bulwark_sentinel'));
+  p.weight = 0; const low = cls.counterPower(p, 0);
+  p.weight = p.maxHp * 5; p.lastWeightT = g.time; const high = cls.counterPower(p, 0);
+  ok('Counterweight: more damage taken = stronger counter, capped', Math.abs(low - cls.weight.basePower) < 1e-9 && Math.abs(high - cls.weight.maxPower) < 1e-9 && high > low, `${low} .. ${high}`);
+  p.hp = p.maxHp; p.weight = 0; for (let i = 0; i < 3; i++) { hitMe(25); }
+  g.simulate(0.3); const stored = p.weight;
+  let dealt = 0; g.events.on('damageDealt', (e) => { if (e.source === p && e.opts && e.opts.skillId === 'counterweight') dealt += e.amount; });
+  cast(g, 'counterweight', d); idle(g);
+  ok('Counterweight uses up the stored weight', stored > 0 && p.weight === 0 && dealt > 0, `stored ${r0(stored)} dealt ${dealt}`);
+  p.weight = 50; p.lastWeightT = g.time - 10; g.simulate(0.1);
+  ok('Stored weight is forgotten after 6 s without being hit', p.weight === 0);
+
+  // Shieldwall by position (an ally in front / behind)
+  const A = CLASSES.aegis_guardian, ally = new p.constructor(g, A, g.spritesFor(A));
+  ally.recomputeStats(); ally.hp = ally.maxHp; g.party.add(ally);
+  const tickAlly = () => { ally.status.update(STEP); inFight(); };
+  p.resources.set(R, 40); aim(g, p.x + 100, p.y); g.simulate(STEP * 2);
+  const wr = p.trySkill(p.skillSys.get('shieldwall')); g.simulate(0.4, tickAlly);
+  const wall = (p.walls || [])[0];
+  ally.x = p.x - 40; ally.y = p.y; g.simulate(0.2, tickAlly);
+  const behind = ally.status.has('shieldwall');
+  ally.x = wall ? wall.x + 60 : p.x + 100; g.simulate(0.4, tickAlly);
+  const front = ally.status.has('shieldwall');
+  ok('Shieldwall: protects the ones BEHIND it (you too), not in front; 20 Bastion', wr && wall && behind && !front && p.status.has('shieldwall') && r0(p.resources.get(R)) <= 20, `behind ${behind} front ${front}`);
+  ally.x = p.x - 40; g.simulate(6.5, tickAlly);
+  ok('Shieldwall ends after 6 s', !(p.walls || []).length && !ally.status.has('shieldwall'));
+
+  // Citadel of One
+  p.resources.set(R, 49);
+  ok('Citadel of One needs 50 Bastion', !p.skillSys.use('citadel_of_one').ok);
+  p.resources.set(R, 55); ally.x = p.x - 50; ally.y = p.y;
+  const ur = p.trySkill(p.skillSys.get('citadel_of_one')); g.simulate(1.8, tickAlly);
+  const spd = p.status.moveMult(), dc = p.dodgeCost();
+  ok('Citadel: fortress mode (-50% damage, no knockback), allies nearby warded, taunt pulse', ur && p.status.has('citadel') && p.status.flag('unshakable') && ally.status.has('citadel_ward') && d.status.has('taunted'), `ward ${ally.status.has('citadel_ward')}`);
+  ok('Citadel trade-off: very slow, dodges cost double', spd <= 0.36 && dc >= 40, `move x${spd.toFixed(2)} dodge ${dc}`);
+  p.weight = p.maxHp * 5; p.lastWeightT = g.time;
+  ok('Citadel: Counterweight ×1.5, still under the hard cap', cls.counterPower(p, 0) <= cls.weight.hardCap && cls.counterPower(p, 0) > cls.weight.maxPower);
+  g.simulate(10, tickAlly);
+  ok('Citadel ends after 10 s', !p.status.has('citadel'));
+
+  // Iron Will
+  p.hp = Math.round(p.maxHp * 0.3); g.simulate(0.1);
+  ok('Iron Will: under 40% HP, +50% DEF', p.status.has('iron_will'));
+  const res = p.resources.get(R), cds = ['iron_bastion', 'fortress_step', 'absolute_provocation', 'counterweight', 'shieldwall', 'citadel_of_one'].map((id) => p.skillSys.cooldowns.remaining(id));
+  ok('No negative / overfull resource, no negative cooldown', res >= 0 && res <= 100 && cds.every((c) => c >= 0), `bastion ${r0(res)}`);
+  g.party.remove(ally); ally.dispose(); releaseInput(g);
+  return rows;
+}
+
 // ---------------- Phase 13: class change, proven with a mock Class 2 registered from data only
 export function classChangeChecks(g) {
   const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'class_change', test: name, pass: !!pass, detail });
@@ -730,7 +829,7 @@ export function balance(g, classId, loadout, botOpts = {}) {
 export function runAll(g, { withBalance = true } = {}) {
   const rows = [], bal = [];
   for (const c of [...STARTING_CLASSES, ...ADVANCED]) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
-  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...wardenChecks(g), ...classChangeChecks(g));
+  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...wardenChecks(g), ...bulwarkChecks(g), ...classChangeChecks(g));
   if (withBalance) for (const c of [...STARTING_CLASSES, ...ADVANCED]) bal.push(balance(g, c));
   return { passed: rows.filter((r) => r.pass).length, total: rows.length, rows, balance: bal };
 }

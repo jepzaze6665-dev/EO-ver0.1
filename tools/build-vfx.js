@@ -52,6 +52,15 @@ const SETS = {
     feather: 40,
     recenter: { SK3: true }, // the magic-circle frames sit unevenly in their cells (the circle jumped sideways)
   },
+  // Bulwark Sentinel (gold fortress + blue steel light). SK3 has an opaque fake-checker background -> not used.
+  // SK1 / SK4 carry direction labels in the first column (stripped); SK4 has 8 rows (2 sets), row 0 = front view.
+  bs: {
+    src: 'desgin/VFX/AG/BS', detectRows: true, clean: true, feather: 40,
+    names: { SK1: 'bs_aegis', SK2: 'bs_charge', SK4: 'bs_wall', SK5: 'bs_crest', SK6: 'bs_pillar', SK7: 'bs_citadel' },
+    rows: { SK1: 0, SK2: 3, SK4: 0, SK5: 0, SK6: 0, SK7: 0 },
+    stripLabel: { SK1: 118, SK4: 80 },
+    dropLow: { SK1: 0.86 }, recenter: { SK1: true },
+  },
   aw: {
     src: 'desgin/VFX/AW', detectRows: true, clean: true,
     names: { SK1: 'aw_needle', SK2: 'aw_star', SK3: 'aw_comet', SK4: 'aw_sigil', SK5: 'aw_nova', SK6: 'aw_orb', UT: 'aw_starfall' },
@@ -130,7 +139,9 @@ function extractRow(img, file, set) {
     }
   }
   // pixels of the wanted (right-facing) row
-  const inRow = (l, y) => (comps[l].n >= DUST) && nearestRow(comps[l].n > 4000 ? y : comps[l].sy / comps[l].n) === ROW;
+  // dropLow: small blobs whose centre sits in the bottom part of the row's run (frame-number badges under each frame)
+  const low = set.dropLow && set.dropLow[file], lowY = low ? runs[ROW][0] + low * (runs[ROW][1] - runs[ROW][0]) : Infinity;
+  const inRow = (l, y) => (comps[l].n >= DUST) && !(comps[l].n <= 4000 && comps[l].sy / comps[l].n > lowY) && nearestRow(comps[l].n > 4000 ? y : comps[l].sy / comps[l].n) === ROW;
   // column projection of that row -> cut lines at the emptiest column near each grid boundary
   const proj = new Float64Array(W);
   for (let p = 0; p < W * H; p++) { const l = lab[p]; if (l >= 0 && inRow(l, (p / W) | 0)) proj[p % W] += A[p]; }
@@ -151,7 +162,7 @@ function extractRow(img, file, set) {
   for (let p = 0; p < W * H; p++) {
     const l = lab[p]; if (l < 0) continue;
     const x = p % W, y = (p / W) | 0;
-    if (!inRow(l, y)) continue;
+    if (!inRow(l, y) || y > lowY + 6) continue; // dropLow: nothing under the badge line either
     let k = owner[l], a = A[p];
     if (k === -2) {
       k = colOfX(x);

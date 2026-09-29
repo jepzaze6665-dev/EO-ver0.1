@@ -93,6 +93,18 @@ export const RESOURCES = {
     tiers: [{ at: 60, label: 'RADIANT', stats: { barrierPower: 0.2 } }],
     colors: ['#ffe08a', '#6a5a20'],
   },
+  // Bulwark Sentinel: BASTION — built by blocking, taking hits (more inside Iron Bastion), perfect guards and taunting
+  // (per-source caps in the class). At 70 the Bulwark becomes FORTIFIED (class code: status 'fortified', drains
+  // Bastion while it lasts, ends at 10 or after 8 s, then 6 s before it can start again). Spent by Shieldwall and the
+  // ultimate. Fades slowly in a fight when nothing feeds it.
+  bastion: {
+    id: 'bastion', name: 'Bastion', label: 'BASTION',
+    max: 100, start: 0, respawn: 0,
+    regen: { inCombat: 0, outOfCombat: 0 },
+    decay: { inCombat: 2, outOfCombat: 10, delay: 5 },
+    gainStat: 'bastionGain',
+    colors: ['#f0c850', '#5a4414'],
+  },
   // Phase 6 (Astral Weaver) — defined now so the pool is proven to be class-agnostic.
   astral_charge: {
     id: 'astral_charge', name: 'Astral Charge', label: 'ASTRAL',

@@ -164,7 +164,25 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   weapon + gameplay loop (class `loop`). Tests: tools/tests/warden.test.mjs (16), C.wardenChecks (24, uses a real second
   Player as the ally; its statuses are ticked by the test). Bot balance: 3-dummy 72 DPS (AG 92), Guardian WIN 190 s with
   45 damage taken (AG 135 s / 111) — support tank by design, needs a human playtest.
-  Next: AG2 Bulwark Sentinel (Bastion resource, Fortified state), then AG3 Oathbreaker (Broken Oath, counters).
+  Polish: anim data may carry `side: { sheet, cols }` = what the left / right views play instead (playerSprites.frame;
+  sprites.test checks it) — AG ATK1 turns the head away from the blow in both side rows, so AG side attacks use DEF / SK2.
+  build-vfx set options `feather` (glow crossing a frame / row cut fades out over N source px), `recenter` (frames off
+  their grid cell), `dropLow` (frame-number badges under the row), `stripLabel` (direction labels in column 0).
+  Done AG2 = BULWARK SENTINEL (`src/skills/bulwarkSentinel.js`, preset 'bs' (detected sides), VFX set 'bs': bs_aegis /
+  bs_charge (side) / bs_wall / bs_crest / bs_pillar / bs_citadel; BS SK3 VFX has an opaque checker bg -> unused):
+  resource BASTION (hit taken +5% HP -> +5, cap 6/hit, x2 in Iron Bastion; block 8; perfect guard 15; taunt 4/foe cap 16;
+  step 4/foe cap 12; decay in fight after 5 s). FORTIFIED (class tick) at 70: status fortified 8 s (+40% DEF, guardBlockMult
+  0.5, unshakable), drains 5/s, ends under 10, 6 s lockout. Q Bulwark Guard (arc 1.35, 80%). Skills: Iron Bastion (fast
+  stance 8 s -40% dmg / -45% speed, RECAST ends it) · Fortress Step (lunge, big poise, stun, mark) · Absolute Provocation
+  (AoE taunt r 170) · Counterweight (p.weight = damage taken + blocked, cap 60% max HP, forgotten after 6 s; power 1.6 ->
+  3.4, ×1.5 in the Citadel, hard cap 4.5; the perfect-guard riposte spends half) · Shieldwall (20 Bastion: p.walls, members
+  BEHIND it (depth 120, half-width 70) -40%) · ult Citadel of One (50: 10 s unshakable -50% dmg, guardBlockMult, taunt pulse
+  r 220 / s, allies within 130 citadel_ward -20%; price: move ×0.35, dodge cost ×2). Passives Iron Will (< 40% HP DEF ×1.5)
+  + Unbroken (base stats tenacity 0.3, knockResist 0.5, poiseResist 0.4). NEW generic: stats knockResist (combat
+  knockback) / poiseResist (player poise), status modifier guardBlockMult (Player.tryBlock). checklist picks a non-recast
+  skill for the cooldown step and walks slow classes further. Tests: tools/tests/bulwark.test.mjs (9), C.bulwarkChecks (23).
+  Bot balance: 3-dummy 75 DPS, Guardian WIN 175 s (138 damage taken).
+  Next: AG3 Oathbreaker (Broken Oath, counters, risk).
 - Later Class 2 work: AW / AG paths need the owner's class data.
   Unused RP art: `sk6` (anim `harvest`) is mapped but no skill plays it yet.
 - **Current: V2.1 "Class × World Integration"** (owner's 16-phase spec: Lumina → A1 → A2 → A3 → Boss Arena, EXP/loot/

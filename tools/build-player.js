@@ -2,7 +2,7 @@
 // into clean alpha sprite strips + an atlas description consumed by src/player/playerSprites.js.
 // Every class preset is normalised to the SAME visual standard (body height, canvas, pivot).
 // Usage: node tools/build-player.js            (all classes)
-//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wd)
+//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wd | bs)
 const fs = require('fs');
 const path = require('path');
 const png = require('./png.js');
@@ -128,6 +128,23 @@ PRESETS.wd = { out: 'assets/player/wd', nearestBody: true, bg: PRESETS.ag.bg, fa
   sk5: [WD + 'SK5', 4],
   sk6: [WD + 'SK6', 4],
   ult: [WD + 'UT', 4],
+} };
+// Bulwark Sentinel (Class 2 of Aegis Guardian): gold / steel fortress plate, tower shield, bastion sword
+const BS = 'desgin/class cr/AG/BS/';
+PRESETS.bs = { out: 'assets/player/bs', nearestBody: true, bg: PRESETS.ag.bg, sheets: {
+  walk: [BS + 'WALK 1', 4],
+  idle: [BS + 'WALK 2', 4],
+  atk1: [BS + 'ATK1', 4],
+  atk2: [BS + 'ATK2', 4],
+  dash: [BS + 'DASH', 4],
+  hit: [BS + 'HIT', 4],
+  sk1: [BS + 'SK1', 4],
+  sk2: [BS + 'SK2', 4],
+  sk3: [BS + 'SK3', 4],
+  sk4: [BS + 'SK4', 4],
+  sk5: [BS + 'SK5', 4],
+  sk6: [BS + 'SK6', 4],
+  ult: [BS + 'UT', 4],
 } };
 const AW = 'desgin/class cr/AW/';
 PRESETS.aw = { out: 'assets/player/aw', sheets: {

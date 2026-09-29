@@ -167,7 +167,9 @@ export class Combat {
     this.lastCombatTime = g.time;
 
     // knockback & stagger
-    const kb = (opts.knock || 0) * (target.superArmor ? 0.15 : 1) * (target.status && target.status.flag('unshakable') ? 0 : 1);
+    // stat knockResist (0..1) shortens knockback; the status flag 'unshakable' removes it
+    const kr = 1 - Math.min(1, Math.max(0, (target.stats && target.stats.knockResist) || 0));
+    const kb = (opts.knock || 0) * (target.superArmor ? 0.15 : 1) * (target.status && target.status.flag('unshakable') ? 0 : 1) * kr;
     if (kb > 0) target.knockback(opts.knockAng ?? ang, kb);
     // DoT ticks skip hurt reactions (no stagger / i-frames); entities may still count them via onDot
     // blocked hits: no stagger, only the floors (onBlockedHit)

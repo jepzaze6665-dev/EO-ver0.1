@@ -255,7 +255,9 @@ export class Player extends Entity {
     const a = this.action;
     if (a && a.counter && !opts.unblockable && !this.dead && a.t >= a.counter.from && a.t <= a.counter.to) return { perfect: true, mult: 0, counter: true };
     if (!this.cls.guard || !this.guardState.active || this.dead || opts.unblockable) return null; // unblockable: dodge it
-    const res = evaluateBlock(this.cls.guard, this.guardState, this.aim, src.x - this.x, src.y - this.y, this.game.time);
+    let res = evaluateBlock(this.cls.guard, this.guardState, this.aim, src.x - this.x, src.y - this.y, this.game.time);
+    // status modifier guardBlockMult (e.g. FORTIFIED): a normal block lets even less through
+    if (res && !res.perfect) res = { ...res, mult: res.mult * this.status.modifier('guardBlockMult') };
     // a guardBreak attack smashes a normal block (a parry still beats it): part of the hit goes through
     if (res && !res.perfect && opts.guardBreak) return { ...res, guardBreak: true, mult: Math.max(res.mult, STAMINA.guardBreak.damageTaken) };
     return res;
@@ -329,7 +331,9 @@ export class Player extends Entity {
     }
     // POISE: hits in a row break it -> STAGGERED + EXPOSED (a single hit never does — data/antiTank.js)
     const at = ANTI_TANK, hp = at.hitPoise;
-    const pd = clamp((amount / Math.max(1, this.maxHp)) * hp.perHpShare, hp.min, hp.max) + (opts && (opts.guardBreak || opts.heavy) ? at.heavyBonus : 0);
+    // stat poiseResist (0..0.8): hits wear the player's poise down slower (Bulwark UNBROKEN)
+    const pr = 1 - clamp((this.stats && this.stats.poiseResist) || 0, 0, 0.8);
+    const pd = (clamp((amount / Math.max(1, this.maxHp)) * hp.perHpShare, hp.min, hp.max) + (opts && (opts.guardBreak || opts.heavy) ? at.heavyBonus : 0)) * pr;
     if (this.poise.hit(pd, { canBreak: !steady })) this.onStaggered(src, ang);
   }
   onStaggered(src, ang) {

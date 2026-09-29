@@ -57,7 +57,8 @@ export function runChecklist(g, classId = 'umbral_sword') {
   ok('Attack a monster', basic.length > 0 || ev.damageDealt.some((e) => e.source === p), `${ev.damageDealt.filter((e) => e.source === p).length} hits`);
   // skill + resource + cooldown through the real skill pipeline
   releaseInput(g); g.simulate(0.3); // end the bot's action / guard first
-  const skill = p.cls.skills.find((s) => (s.cooldown || 0) > 1 && !s.ultimate) || p.cls.skills[0];
+  // (not a stance / recast skill: its second press is the recast, not a cooldown test)
+  const skill = p.cls.skills.find((s) => (s.cooldown || 0) > 1 && !s.ultimate && !s.recast) || p.cls.skills[0];
   p.resources.set(p.primaryResource, p.resources.max(p.primaryResource));
   // monsters may still be mid-attack: each try starts from a free player (not hurt, no action / guard / stun)
   const free = () => { p.hurtT = 0; p.endAction(true); p.setGuard(false); p.status.remove('guard_broken'); p.status.remove('stun'); };
@@ -84,7 +85,9 @@ export function runChecklist(g, classId = 'umbral_sword') {
   // 19-21 through A1 (W2: one map from the forest edge to the ruins) -> the Guardian Arena
   releaseInput(g); goto(g, 50, 101.5); hold(g, 'KeyW', 1.2);
   ok('Walk across the river (Deep Forest, A1)', w().mapId === 'a1' && p.y < 98 * 32, w().mapId);
+  // walk east until the ruins zone (slow classes such as the Bulwark need longer; stops as soon as it is reached)
   releaseInput(g); goto(g, 90, 71); hold(g, 'KeyD', 2.2);
+  for (let t = 0; t < 1.6 && w().currentZone !== 3; t += 0.2) hold(g, 'KeyD', 0.2);
   ok('Walk the Ancient Path into the Ruins (A1)', w().mapId === 'a1' && w().currentZone === 3, `${w().mapId} zone=${w().currentZone}`);
   use(g, 'ancient_shrine'); g.ui.panels.close(true); use(g, 'gate_seal'); g.ui.panels.close(true);
   releaseInput(g); goto(g, 135, 51); hold(g, 'KeyW', 1);

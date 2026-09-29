@@ -282,6 +282,34 @@ export function icon(name, color = '#b070ff') {
       glow('#ffd88a', 2, () => g.arc(16, 25, 13, Math.PI, 0));
       for (const x of [9, 16, 23]) glow('#fff4d0', 1.5, () => { g.moveTo(x, 25); g.lineTo(x, x === 16 ? 8 : 15); });
       break;
+    // ---- Bulwark Sentinel (gold tower shield, steel, blue light)
+    case 'bulwark': case 'iron_bastion':
+      g.fillStyle = '#c8a050'; g.fillRect(8, 4, 16, 22); g.beginPath(); g.moveTo(8, 26); g.lineTo(16, 30); g.lineTo(24, 26); g.fill();
+      g.fillStyle = '#2a3a6a'; g.fillRect(12, 8, 8, 16);
+      glow('#9ac8ff', 1.5, () => { g.moveTo(16, 9); g.lineTo(16, 23); });
+      if (name === 'iron_bastion') glow('#fff0c0', 2, () => g.ellipse(16, 28, 13, 3, 0, 0, 7));
+      break;
+    case 'fortress_step':
+      g.fillStyle = '#c8a050'; g.fillRect(12, 6, 11, 20);
+      for (let i = 0; i < 3; i++) glow('#9ac8ff', 2, () => { g.moveTo(3, 10 + i * 6); g.lineTo(10, 10 + i * 6); });
+      glow('#fff0c0', 2, () => { g.moveTo(25, 8); g.lineTo(29, 16); g.lineTo(25, 24); });
+      break;
+    case 'provocation':
+      for (let i = 0; i < 3; i++) glow(['#5a4414', '#f0c850', '#fff0c0'][i], 2, () => g.ellipse(16, 23, 5 + i * 5, 2.5 + i * 2, 0, 0, 7));
+      g.fillStyle = '#fff0c0'; g.fillRect(14, 4, 4, 11); g.fillRect(14, 17, 4, 3);
+      break;
+    case 'counterweight':
+      glow('#f0c850', 3, () => { g.moveTo(16, 4); g.lineTo(16, 26); g.moveTo(6, 10); g.lineTo(26, 10); });
+      glow('#9ac8ff', 2, () => { g.moveTo(6, 10); g.lineTo(3, 20); g.lineTo(9, 20); g.closePath(); g.moveTo(26, 10); g.lineTo(23, 16); g.lineTo(29, 16); g.closePath(); });
+      break;
+    case 'shieldwall':
+      for (let i = 0; i < 3; i++) { g.fillStyle = i === 1 ? '#f0c850' : '#c8a050'; g.fillRect(4 + i * 9, 6 + (i === 1 ? 0 : 3), 8, 20); g.fillStyle = '#2a3a6a'; g.fillRect(6 + i * 9, 10 + (i === 1 ? 0 : 3), 4, 10); }
+      break;
+    case 'citadel':
+      g.fillStyle = '#c8a050'; g.fillRect(6, 14, 20, 14); for (const x of [6, 13, 20]) g.fillRect(x, 8, 6, 8);
+      g.fillStyle = '#2a3a6a'; g.fillRect(14, 20, 4, 8);
+      glow('#9ac8ff', 1.5, () => g.arc(16, 20, 14, Math.PI * 1.1, Math.PI * 1.9));
+      break;
     case 'ore':
       g.fillStyle = '#5a5a60'; g.beginPath(); g.moveTo(6, 22); g.lineTo(12, 8); g.lineTo(24, 10); g.lineTo(27, 24); g.closePath(); g.fill();
       g.fillStyle = color; g.fillRect(12, 14, 5, 4); g.fillRect(19, 17, 4, 3);

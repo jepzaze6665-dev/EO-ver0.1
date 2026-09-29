@@ -7,6 +7,7 @@
 //               'refresh' -> every application resets the duration
 //               'stack'   -> +1 stack per application, duration refreshed
 //  modifiers  : moveMult / damageMult (dealt) / damageTakenMult / defenseMult (× DEF against incoming hits) — multiplied per stack when perStack
+//               guardBlockMult (× damage let through a normal block) / dodgeCostMult / attackSpeedMult
 //               values in `data` passed to add() (e.g. { mult: 1.3 }) override `mult`
 //  flags      : cannotAct (no move/attack/skill), cannotMove, cannotCast (no skills),
 //               stealth (monsters lose track / hold their attacks), taunted (monster must chase its taunter),
@@ -61,6 +62,13 @@ export const STATUSES = {
   guardian_march: { id: 'guardian_march', category: 'defense', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { damageTakenMult: 0.5 }, display: { label: 'MARCH', color: '#8ad0ff' } },
   last_light: { id: 'last_light', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.8 }, display: { label: 'LAST LIGHT', color: '#fff0b0' } },
   shared_resolve: { id: 'shared_resolve', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { defenseMult: 1.3 }, display: { label: 'RESOLVE', color: '#bfe6ff' } },
+  // ---- Bulwark Sentinel (skills/bulwarkSentinel.js)
+  iron_bastion: { id: 'iron_bastion', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.6, moveMult: 0.55 }, display: { label: 'IRON BASTION', color: '#e8c86a' } },
+  fortified: { id: 'fortified', category: 'buff', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { defenseMult: 1.4, guardBlockMult: 0.5 }, display: { label: 'FORTIFIED', color: '#ffd24a' } },
+  shieldwall: { id: 'shieldwall', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.6 }, display: { label: 'SHIELDWALL', color: '#9ac8ff' } },
+  citadel: { id: 'citadel', category: 'defense', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { damageTakenMult: 0.5, moveMult: 0.35, dodgeCostMult: 2, guardBlockMult: 0.5 }, display: { label: 'CITADEL', color: '#ffe8a0' } },
+  citadel_ward: { id: 'citadel_ward', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.8 }, display: { label: 'WARDED', color: '#bfe0ff' } },
+  iron_will: { id: 'iron_will', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { defenseMult: 1.5 }, display: { label: 'IRON WILL', color: '#e0b060' } },
   damage_reduction: { id: 'damage_reduction', category: 'defense', maxStacks: 1, stacking: 'longest', modifiers: { damageTakenMult: 0.8 }, display: { label: 'GUARD', color: '#c8d8ff' } },
 };
 

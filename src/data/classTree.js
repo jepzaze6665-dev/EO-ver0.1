@@ -86,8 +86,8 @@ export const CLASS_TREE = {
     trial: 'trial_warden_of_dawn',
   },
   bulwark_sentinel: {
-    id: 'bulwark_sentinel', name: 'Bulwark Sentinel', tier: 2, parent: 'aegis_guardian', playable: false, resource: 'Bastion',
-    role: 'Immovable Tank', description: 'An unbreakable wall: the more it blocks, the stronger it stands.',
+    id: 'bulwark_sentinel', name: 'Bulwark Sentinel', tier: 2, parent: 'aegis_guardian', playable: true, resource: 'Bastion',
+    role: 'Main Tank · Damage Mitigation · Frontline', description: 'An unbreakable wall: the more it blocks, the stronger it stands — taunts, shieldwalls and a fortress of one.',
     requirements: [...CLASS2_BASE, { type: 'counter', counter: 'blocks', min: 60 }],
     trial: 'trial_bulwark_sentinel',
   },
