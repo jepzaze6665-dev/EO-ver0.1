@@ -141,8 +141,8 @@ const SHEETS = {
     rows: [['down', 8], ['up', 8], ['side', 8], ['side_b', 8], ['quarter', 8], ['quarter_b', 8], ['quarter_c', 8]],
   },
   yeti: {
-    file: 'B/B3/2', height: 50, region: [220, 0, 2048, 2048],
-    rows: [['idle', 3], ['walk', 10], ['attack', 8], ['hit', 5], ['telegraph', 7], ['special', 7], ['death', 6]],
+    file: 'B/B3/2', height: 50, region: [160, 0, 2048, 2048], // row labels end at x ≤ 150; the first poses start at x 181 (220 clipped them)
+    rows: [['idle', 3], ['walk', 10], ['attack', 8], ['hit', 5], ['telegraph', 7, { x: [210, 2048] }], ['special', 7], ['death', 6]],
   },
   // rows = directions (down, up, left, right); columns idle · walk ×2 · attack · hit · telegraph · special · death
   frost_imp: {

@@ -714,7 +714,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it
   can't leak through thin outline gaps). Used by frost_bear + rime_wolf (whose config still named 'B/B1/1': the file is 1.png).
-  Check white sprites on a dark / magenta backdrop — holes are invisible on white. Seen: yeti frames clipped on the left (frame
-  slicing, not holes) — not fixed yet.
+  Check white sprites on a dark / magenta backdrop — holes are invisible on white.
+  Yeti fix: sheet region x0 220 clipped the first pose of several rows (they start at x 181) -> region x0 160 (row labels end
+  ≤ 150) + telegraph row `x: [210, 2048]` (its long "TELEGRAPH" label reached past 200; the pose starts at 217).
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.
