@@ -37,7 +37,7 @@ export function levelMods(skill, level = 1) {
   if (!skill || !Array.isArray(skill.levels) || !skill.levels.length) return NONE;
   const e = skill.levels[Math.max(0, Math.min(skill.levels.length, level) - 1)] || {};
   return {
-    power: e.power ?? 1, area: e.area ?? 1, cooldown: e.cooldown ?? 1, cost: e.cost ?? 1,
+    power: e.power ?? 1, area: e.area ?? 1, cooldown: e.cooldown ?? 1, cost: e.cost ?? 1, charges: e.charges ?? 0,
     flags: e.flags || {}, values: e.values || {}, text: e.text || '',
   };
 }

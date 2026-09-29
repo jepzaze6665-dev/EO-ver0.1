@@ -41,7 +41,7 @@ export function withEvolution(mods, evo) {
   return {
     ...mods,
     power: mods.power * (evo.power ?? 1), area: mods.area * (evo.area ?? 1),
-    cooldown: mods.cooldown * (evo.cooldown ?? 1), cost: mods.cost * (evo.cost ?? 1),
+    cooldown: mods.cooldown * (evo.cooldown ?? 1), cost: mods.cost * (evo.cost ?? 1), charges: (mods.charges || 0) + (evo.charges || 0),
     flags: { ...mods.flags, ...(evo.flags || {}) }, values: { ...mods.values, ...(evo.values || {}) },
     evolution: evo.id,
   };

@@ -7,6 +7,7 @@ import { BladeOfEchoes } from './bladeOfEchoes.js';
 import { WardenOfDawn } from './wardenOfDawn.js';
 import { BulwarkSentinel } from './bulwarkSentinel.js';
 import { Oathbreaker } from './oathbreaker.js';
+import { applySkillProgression } from '../data/skillProgression.js';
 
 // CLASS REGISTRY — adding a class (Class 2, Awakening, Secret Class) = add its data file here.
 // Nothing else in the core changes: Player / SkillSystem / HUD read the class data.
@@ -22,5 +23,7 @@ export const CLASSES = {
   bulwark_sentinel: BulwarkSentinel,
   oathbreaker: Oathbreaker,
 };
+// Skill System S7: skill levels / tree unlocks / categories / evolutions from data (data/skillProgression.js)
+applySkillProgression(CLASSES);
 export const STARTING_CLASSES = ['astral_weaver', 'umbral_sword', 'aegis_guardian'];
 export const DEFAULT_CLASS = 'umbral_sword';

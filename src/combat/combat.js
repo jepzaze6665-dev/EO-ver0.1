@@ -2,6 +2,7 @@ import { TEAM } from '../core/constants.js';
 import { angleTo, inCone, inLine, rand, TAU } from '../core/math.js';
 import { Telegraphs } from './telegraph.js';
 import { Projectiles } from './projectiles.js';
+import { echoHitbox } from '../progression/skillTraits.js';
 import { computeDamage } from './damageSystem.js';
 import { STATUSES } from '../data/statuses.js';
 import { THREADS } from '../data/threads.js';
@@ -18,8 +19,11 @@ export function applySkillMods(o, sizeKeys) {
   const m = o.owner && o.owner.castMods;
   if (m && m.skillId && !o.skillId) o.skillId = m.skillId; // which skill it belongs to -> 'skillHit' (mastery)
   if (!m || o.noSkillMods) return o;
+  // a per-target power function (powerFor) computes its own number, so its RESULT is scaled; it sees the base power
+  if (m.power !== 1 && o.powerFor) { const f = o.powerFor, base = o.power, k = m.power; o.powerFor = (t, h) => f(t, { ...h, power: base }) * k; }
   if (m.power !== 1 && Number.isFinite(o.power)) o.power *= m.power;
   if (m.area !== 1) for (const k of sizeKeys) if (Number.isFinite(o[k])) o[k] *= m.area;
+  if (m.values && m.values.poiseMult && Number.isFinite(o.stagger)) o.stagger *= m.values.poiseMult; // trait: poise break
   return o;
 }
 
@@ -43,6 +47,7 @@ export class Combat {
       team: TEAM.PLAYER, ...def,
     };
     applySkillMods(hb, ['r', 'r0', 'len', 'width']);
+    echoHitbox(this, def, hb); // trait 'echo' (progression/skillTraits.js)
     if (hb.follow && hb.owner) { hb.x = hb.owner.x; hb.y = hb.owner.y; }
     this.hitboxes.push(hb);
     return hb;

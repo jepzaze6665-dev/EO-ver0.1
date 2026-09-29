@@ -625,5 +625,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   applied last in Player.skillMods (limits: cooldown ≥ ×0.4, cost ≥ ×0.3, +2 charges max). resourceGain = + class resource the
   first time each cast hits (game.js). Items hunger_rune / shade_charm (Shade Step 2/2) / eclipse_relic (merchant shops).
   HUD: "n/m" charges + next-charge bar; Skills tab: charges + "⚙" gear lines. skillModifiers.test.mjs.
+  Done S7: GENERIC SKILL TRAITS `src/progression/skillTraits.js` (levels / evolutions switch them on by data, no class code):
+  flags echo (every hitbox of the cast repeats once, values echoDelay 0.5 / echoPower 0.4; combat.spawnHitbox -> echoHitbox) ·
+  lifesteal (≤ 4% max HP per hit) · refund (resource on kill) · reset (cooldown cut on kill, cdOnKill 99 = full) · haste; values
+  poiseMult (× stagger, applySkillMods); level / evolution field `charges`. installSkillTraits(game) listens to skillUsed /
+  skillHit. Per-class data `src/data/skillProgression.js` (Claude's design, owner asked): category + 5 levels (ladders
+  damage / support, Lv 5 = a trait) for every active skill of all 9 classes, tree unlocks for Astral / Aegis (Class 2: none),
+  2 evolutions on one signature skill per class (+ Umbral Shade Step: Twin Shade / Shade Reaper); applySkillProgression
+  (skills/classes.js) only fills fields a skill lacks. CORE FIX: a hitbox with `powerFor` now gets the skill-level power too
+  (applySkillMods wraps powerFor: result × power, it sees the base power). skillProgression.test.mjs.
+  SKILL SYSTEM S1-S7 COMPLETE. (duskChecks / echoChecks "live fight" steps can flake once after other suites; rerun.)
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.
