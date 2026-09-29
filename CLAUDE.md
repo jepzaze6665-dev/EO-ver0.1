@@ -575,5 +575,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   scale (no hue shift on the blue Warden). City 2 has TWO roads: South Gate = Route A (Sanctum), EAST GATE = Route B (the
   summit north road arrives at [154,67]; exit east_road, bridge over the moat, towers).
   Next: owner decides (Route A/B both complete; City 2 content, balance with a human player, F3 debug overlay).
+- **Current: SKILL SYSTEM** (owner's 35-section spec, checked against the game: EXTEND the existing SkillSystem /
+  loadout / classes, never rewrite them; keys stay 1-4 + 5 ult + Q; E = interact / revive). Phases: S1 classProgress + save
+  · S2 skill level · S3 mastery · S4 evolution + UI · S5 skill tree / points / class level · S6 equipment skill modifiers +
+  generic charges · S7 data for the other classes.
+  Done S1: `src/progression/classProgress.js` (pure, game.classProgress): per class { level, exp, mastery, loadout, skills:
+  { id: { level, masteryXp, masteryLevel, evolution } } }; class change keeps the old entry (its skills = LOCKED via
+  `lockedSkills(CLASSES)`, `usable(skill)` = active class or `sharedClassIds`) and restores each class's own loadout.
+  SAVE_VERSION 4 (v3 -> v4 seeds it from player.loadout). tools/tests/classProgress.test.mjs.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.

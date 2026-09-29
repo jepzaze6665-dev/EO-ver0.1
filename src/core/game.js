@@ -24,6 +24,7 @@ import { ThreadSystem } from '../combat/threadSystem.js';
 import { SummonSystem } from '../combat/summonSystem.js';
 import { SUMMONS } from '../data/summons.js';
 import { Progression } from '../progression/progression.js';
+import { ClassProgress } from '../progression/classProgress.js';
 import { ExperienceSystem } from '../progression/experienceSystem.js';
 import { CounterSystem } from '../combat/counterSystem.js';
 import { AttackSlots } from '../combat/attackSlots.js';
@@ -193,6 +194,9 @@ export class Game {
     });
     // class records / trials / unlocks (rules in data/classTree.js)
     this.progression = new Progression(this);
+    // per-class skill progress (progression/classProgress.js): old classes are kept, their skills locked
+    this.classProgress = new ClassProgress();
+    this.classProgress.switchTo(classId);
     this.combat.clear();
     this.ui.hud.reset();
     // generic marks on any entity (rules in data/marks.js); events go through the session bus
@@ -273,7 +277,9 @@ export class Game {
     p.setLevel(d.player.level, d.player.exp); // repaired to the current level rules (old saves too)
     p.hp = Math.min(p.maxHp, d.player.hp || p.maxHp); p.shadow = d.player.shadow ?? 40;
     if (d.player.resources) p.resources.load(d.player.resources);
-    p.loadout.load(d.player.loadout); // invalid / missing ids fall back to the class default
+    this.classProgress.load(d.classProgress);
+    // the class's own saved loadout wins; invalid / missing ids fall back to the class default
+    p.loadout.load(this.classProgress.switchTo(p.cls.id) || d.player.loadout);
     this.world.applyState();
     // saved map + position; a position that no longer belongs to a map falls back to that map's spawn
     const saved = this.world.mapManager.get(d.player.map) || null;

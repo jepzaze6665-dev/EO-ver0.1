@@ -39,6 +39,8 @@ export function changeClass(game, toId, opts = {}) {
   }
 
   const p = new Player(game, to, game.spritesFor(to));
+  // class progress: keep the old class's loadout + skills (now LOCKED), restore the new class's own loadout
+  if (game.classProgress) { const saved = game.classProgress.switchTo(toId, old.loadout.serialize()); if (saved) p.loadout.load(saved); }
   p.x = old.x; p.y = old.y; p.facing = old.facing;
   p.level = old.level; p.exp = old.exp; p.gold = old.gold;
   p.recomputeStats();

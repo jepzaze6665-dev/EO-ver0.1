@@ -4,12 +4,16 @@
 // Format v3: { v, savedAt, playTime,
 //   player: { classId, level, exp, gold, hp, resources, loadout, map, x, y },
 //   inventory, equipment, quests, progression, world (flags, maps, hidden, ...), knowledge, stats }
-export const SAVE_VERSION = 3;
+// v4 (Skill System S1): + classProgress { active, classes: { id: { level, exp, mastery, loadout, skills } } }
+export const SAVE_VERSION = 4;
 
 // older formats -> current. v1 (V1 / V2 saves): no map (the loader finds it from the position) + no hidden state.
 const MIGRATIONS = {
   1: (d) => ({ ...d, v: 2, player: { ...d.player, map: d.player.map || null }, world: { maps: {}, hidden: {}, ...(d.world || {}) } }),
   2: migrateV2,
+  // v3 -> v4: the current class's loadout becomes its classProgress entry (other classes start empty)
+  3: (d) => ({ ...d, v: 4, classProgress: d.classProgress || { active: d.player.classId || null,
+    classes: d.player.classId ? { [d.player.classId]: { level: 1, exp: 0, mastery: 0, loadout: d.player.loadout || null, skills: {} } } : {} } }),
 };
 
 // v2 -> v3 (W2 world restructure): the old A1 / A2 / A3 maps are ONE map A1; the Guardian became the A1 boss and the old
@@ -70,6 +74,7 @@ export function validate(d) {
       ...d, player,
       inventory: section(d.inventory), equipment: section(d.equipment), quests: section(d.quests),
       progression: section(d.progression), world: section(d.world), knowledge: section(d.knowledge), stats: section(d.stats),
+      classProgress: section(d.classProgress),
       playTime: num(d.playTime, 0, 1e9, 0),
     },
   };

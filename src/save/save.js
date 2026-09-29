@@ -47,6 +47,7 @@ export class SaveSystem {
       equipment: g.equipment.serialize(),
       quests: g.quests.serialize(),
       progression: g.progression.serialize(),
+      classProgress: g.classProgress ? (g.classProgress.rememberLoadout(p.loadout.serialize()), g.classProgress.serialize()) : undefined,
       world: g.world.serialize(),
       worldProgress: g.worldProgress.serialize(),
       knowledge: g.knowledge.serialize(),
