@@ -105,7 +105,10 @@ export class World {
       .map((b) => ({ x: b.arena.center[0] * TILE, y: b.arena.center[1] * TILE, r: (b.arena.radius + ARENA_CLEAR) * TILE }));
     const nearArena = (d) => arenas.some((a) => Math.hypot(d.x - a.x, d.y - a.y) < a.r);
     L.spawnPoints = L.spawnPoints.filter((sp) => !ordinary(sp.def) || !nearArena(sp.def));
-    L.spawnPoints.push(...densify(L.spawnPoints, map, (x, y) => this.mapManager.idAt(x, y, id), DIFFICULTY.spawnDensity, def.seed || 1).filter((sp) => !nearArena(sp.def)));
+    // new packs never land on a resting spot (NPCs, waystones)
+    const rest = [...L.npcs, ...L.interactables.filter((it) => it.kind === 'waystone')];
+    const nearRest = (d) => rest.some((r) => Math.hypot(d.x - r.x, d.y - r.y) < 8 * TILE);
+    L.spawnPoints.push(...densify(L.spawnPoints, map, (x, y) => this.mapManager.idAt(x, y, id), DIFFICULTY.spawnDensity, def.seed || 1).filter((sp) => !nearArena(sp.def) && !nearRest(sp.def)));
     if (def.setup) def.setup(this, L);
     return L;
   }

@@ -25,6 +25,9 @@ export function densify(spawnPoints, map, mapAt, rules, seed = 1) {
   const out = [];
   const taken = spawnPoints.map((sp) => ({ x: sp.def.x, y: sp.def.y }));
   for (const [mapId, list] of Object.entries(perMap)) {
+    // per-map override (e.g. B1 is ~4× bigger than the other maps): { density, spread: 'map' }
+    const r = { ...rules, ...((rules.perMap && rules.perMap[mapId]) || {}) };
+    if (r.spread === 'map') { out.push(...spreadOverMap(list, map, mapAt, mapId, r, rand, taken)); continue; }
     const total = list.reduce((s, sp) => s + sp.def.count, 0);
     // only SOME packs grow (packChance), so most of the extra monsters arrive as new packs spread over the map
     for (const sp of list) if (sp.def.count >= 2 && rand() < (rules.packChance ?? 1)) sp.def = { ...sp.def, count: sp.def.count + (rules.packBonus || 0) };
@@ -46,6 +49,30 @@ export function densify(spawnPoints, map, mapAt, rules, seed = 1) {
       taken.push({ x, y });
       want -= count;
     }
+  }
+  return out;
+}
+
+// SPREAD mode (big maps): new packs go to random open spots anywhere in the map, far from every other pack; each copies
+// the NEAREST existing pack (its monsters belong to that part of the map), one smaller (≥ 1).
+function spreadOverMap(list, map, mapAt, mapId, r, rand, taken) {
+  const out = [];
+  let want = Math.round(list.reduce((s, sp) => s + sp.def.count, 0) * r.density) - list.reduce((s, sp) => s + sp.def.count, 0);
+  for (let tries = 0; want > 0 && tries < 4000; tries++) {
+    const tx = 1 + Math.floor(rand() * (map.w - 2)), ty = 1 + Math.floor(rand() * (map.h - 2));
+    const x = (tx + 0.5) * TILE, y = (ty + 0.5) * TILE;
+    let open = true;
+    for (let oy = -1; oy <= 1 && open; oy++) for (let ox = -1; ox <= 1; ox++) if (map.isTerrainSolid(tx + ox, ty + oy)) { open = false; break; }
+    if (!open || mapAt(x, y) !== mapId) continue;
+    if (taken.some((t) => Math.hypot(t.x - x, t.y - y) < (r.spreadGap || r.gap) * TILE)) continue;
+    let src = null, best = Infinity;
+    for (const sp of list) { const d = Math.hypot(sp.def.x - x, sp.def.y - y); if (d < best) { best = d; src = sp.def; } }
+    const count = Math.max(1, Math.min(want, src.count - 1));
+    const def = { ...src, x, y, count, extra: true };
+    delete def.id; delete def.tx; delete def.ty;
+    out.push({ def, alive: [], respawnT: 0, active: false });
+    taken.push({ x, y });
+    want -= count;
   }
   return out;
 }

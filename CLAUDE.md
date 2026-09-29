@@ -705,5 +705,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   weaker than its map boss). checklist fix: the hunt step keeps fighting (idle in a pack got the bot killed) + free() clears
   'staggered'. Regression green: checklist 31/31 ×3 classes, routeA, playthrough, a1Loop, mapTour, grid, city, routeB / b2 / b3,
   a2 / a3 monsters, combat 58, slot / enemy / tank / bossReset.
+  + owner "B1 is big, monsters hard to find": spawnDensity.perMap = per-map override; b1 { density 3.2, spread 'map', spreadGap 11 }
+  = SPREAD mode (spawnDensity.js spreadOverMap: random open spots anywhere in the map, each copying the NEAREST pack). B1 has ~4×
+  the open ground of other maps: 31 monsters / 15 packs / 31% of ground within 15 tiles of a pack -> 65 / 50 / 81% (a1 89%,
+  a2 69%, b2 67%). b1 levelBand.exp 1.5 -> 1.0 (the bonus only made up for the few monsters). New packs never within 8 tiles
+  of an NPC / waystone (World.buildGrid). Pacing now: A 10 / 21 / 30 -> LV 31 · B 15 / 26 / 38 -> LV 39.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.

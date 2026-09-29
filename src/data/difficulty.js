@@ -14,7 +14,12 @@ export const DIFFICULTY = {
   expRate: 0.5, // owner: 0.75 -> 0.40 -> 0.50 together with more monsters per map (spawnDensity)
   // MORE MONSTERS PER MAP (world/spawnDensity.js): × ordinary monsters of each map (packs +packBonus, the rest = new packs
   // minDist-maxDist tiles from an existing one, never closer than gap tiles to another pack)
-  spawnDensity: { density: 1.5, packBonus: 1, packChance: 0.35, minDist: 7, maxDist: 14, gap: 6 },
+  spawnDensity: {
+    density: 1.5, packBonus: 1, packChance: 0.35, minDist: 7, maxDist: 14, gap: 6,
+    // per-map overrides. B1 (owner: "the map is big, monsters are hard to find") is ~4× the ground of the others:
+    // new packs spread over the WHOLE map (spread 'map'), at least spreadGap tiles apart
+    perMap: { b1: { density: 3.2, spread: 'map', spreadGap: 11 } },
+  },
   // seconds before a cleared pack comes back (the player must be > 700 px away)
   respawnTime: 35,
 };

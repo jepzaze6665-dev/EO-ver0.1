@@ -14,7 +14,7 @@ const NOTICE = [
 export const FIELD_B1 = {
   id: 'b1', name: 'FROSTWIND PLAINS', short: 'B1', sub: 'Route B · B1 — Frostwind Plains · Lv. 1 – 17',
   // LEVEL REWORK L3: old band -> new band; Route B monsters are tougher and pay more (data/levelScaling.js routeMod.B)
-  levelBand: { from: [1, 9], to: [1, 17], exp: 1.5 }, monsterMod: LEVEL_SCALING.routeMod.B, grid: 'frostwind',
+  levelBand: { from: [1, 9], to: [1, 17], exp: 1.0 }, monsterMod: LEVEL_SCALING.routeMod.B, grid: 'frostwind', // exp was 1.5 while B1 had few monsters
   type: 'field', route: 'B', nextMap: 'b2', bossId: 'boss_b1',
   requires: [],
   hiddenAreas: [],
