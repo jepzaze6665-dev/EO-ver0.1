@@ -205,7 +205,8 @@ export const BOSSES = {
   // FROSTBITE punishes standing still, and ABSOLUTE ZERO sweeps the arena — hide behind the ice pillars it raises.
   boss_b1: {
     id: 'boss_b1', name: 'HOARFANG', title: 'The Winter Alpha', type: 'area', impl: 'area',
-    route: 'B', map: 'frost_arena', level: 10, recommendedLevel: 9,
+    route: 'B', map: 'frost_arena', level: 17, nativeLevel: 10, recommendedLevel: 16,
+    difficulty: { hp: 1.15, power: 1.15 }, // Route B: harder than its level (Level rework L3)
     teaches: 'Wait for the late bite · keep moving (frostbite) · hide behind the ice from ABSOLUTE ZERO',
     stats: { hp: 11000, def: 10, speed: 128, radius: 24, height: 64, mass: 6, weakness: ['physical'], superArmor: true, poise: 800 },
     look: {
@@ -248,7 +249,8 @@ export const BOSSES = {
   // SIGNATURE crystal_armor: break its crystal ARMOR (SHATTERED), then smash the clusters it grows before it absorbs them.
   boss_b2: {
     id: 'boss_b2', name: 'AMETHYST COLOSSUS', title: 'Heart of the Crystal Caverns', type: 'area', impl: 'area',
-    route: 'B', map: 'crystal_heart', level: 14, recommendedLevel: 13,
+    route: 'B', map: 'crystal_heart', level: 31, nativeLevel: 14, recommendedLevel: 30,
+    difficulty: { hp: 1.2, power: 1.2, windup: 0.95 },
     teaches: 'Break the armour · smash the crystal clusters before they are absorbed · wait for the late third fist',
     stats: { hp: 15000, def: 12, speed: 88, radius: 28, height: 76, mass: 9, weakness: ['physical'], superArmor: true, poise: 1000 },
     look: {
@@ -289,7 +291,9 @@ export const BOSSES = {
   // the Warden repeat its attacks), then the final SHATTERED ECLIPSE (break the pylons before the charge completes).
   boss_b3: {
     id: 'boss_b3', name: 'CRYSTAL WARDEN', title: 'Keeper of the Frozen Summit', type: 'major', impl: 'area',
-    route: 'B', map: 'summit', level: 18, recommendedLevel: 17,
+    route: 'B', map: 'summit', level: 45, nativeLevel: 18, recommendedLevel: 43,
+    // the hardest fight of version 1 (owner): tougher, hits harder, shorter telegraphs (party-ready: AreaBoss partyScale)
+    difficulty: { hp: 1.3, power: 1.25, windup: 0.9 },
     teaches: 'Read four forms · remember the sigil order · watch the reflections · break the pylons in time',
     stats: { hp: 24000, def: 16, speed: 104, radius: 22, height: 64, mass: 8, weakness: ['physical'], superArmor: true, poise: 1300 },
     look: {

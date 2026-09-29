@@ -10,6 +10,7 @@ import { MECHANICS } from './mechanics.js';
 import { angleTo, dist, rand, TAU, lerp, easeOutCubic } from '../core/math.js';
 import { Assets } from '../core/assets.js';
 import { bossScale, shiftBand } from '../progression/levelScaling.js';
+import { partyScale } from '../progression/levelScaling.js';
 
 // AREA BOSS — one generic, data-driven boss entity (data: data/bosses.js). It never names a boss: stats, look,
 // phases and attack patterns ("moves") all come from its data entry. The fight lifecycle (engage, arena lock,
@@ -38,14 +39,16 @@ export class AreaBoss extends Entity {
     // LEVEL SCALING: stats were tuned at def.nativeLevel; the boss now lives at def.level
     const ls = this.levelScale = bossScale(def);
     this.levelPowerMult = ls.power;
-    this.maxHp = this.hp = Math.round(st.hp * ls.hp);
+    // PARTY (future party system): more players = more HP / poise; solo = ×1 (progression/levelScaling.js partyScale)
+    const ps = this.partyScale = partyScale(game.party ? game.party.members.length : 1);
+    this.maxHp = this.hp = Math.round(st.hp * ls.hp * ps.hp);
     this.defense = Math.round((st.def || 0) * ls.def);
     this.radius = st.radius || 18;
     this.height = st.height || 44;
     this.mass = st.mass || 5;
     this.weakness = st.weakness || [];
     this.superArmor = st.superArmor !== false;
-    this.poise = new Poise(st.poise ?? st.staggerMax ?? 300, POISE.boss); // full break = STAGGERED weak window
+    this.poise = new Poise((st.poise ?? st.staggerMax ?? 300) * ps.poise, POISE.boss); // full break = STAGGERED weak window
     this.level = def.level;
     this.home = { x: this.x, y: this.y };
     this.center = { x: a.center[0] * TILE, y: a.center[1] * TILE };
@@ -128,7 +131,7 @@ export class AreaBoss extends Entity {
     this.co = null; this.wait = 0; this.waitFn = null; this.air = 0; this.curMove = null;
     this.game.combat.telegraphs.cancelOwner(this);
   }
-  wind(t) { return t * ((this.phaseDef && this.phaseDef.windup) || 1); }
+  wind(t) { return t * ((this.phaseDef && this.phaseDef.windup) || 1) * ((this.levelScale && this.levelScale.windup) || 1); }
   speed() { return this.def.stats.speed * ((this.phaseDef && this.phaseDef.speed) || 1) * this.status.moveMult(); }
   facePlayer() { const p = this.game.player; this.facing = angleTo(this.x, this.y, p.x, p.y); }
   inArena(x, y, pad = 0) { return dist(x, y, this.center.x, this.center.y) < this.arenaR - pad; }
@@ -246,6 +249,8 @@ export class AreaBoss extends Entity {
     this.interruptMove();
     this.pose = 'hurt';
     for (const s of this.summons) if (!s.dead) { s.hp = 0; s.onDeath(null); }
+    // mechanics that own world objects (crystal clusters, pylons) remove them now — their update stops with the boss
+    for (const x of this.mech || []) if (x.clear) x.clear();
     this.game.bosses.onEntityDeath(this, src);
   }
 

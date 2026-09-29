@@ -38,7 +38,11 @@ export function remapLevel(nativeLevel, band) {
 }
 
 // BOSSES: data `level` = the new level, `nativeLevel` = the level its stats were tuned at (default: same)
-export function bossScale(def) { return scaleFor(def.nativeLevel ?? def.level, def.level); }
+// + boss data `difficulty: { hp, power, windup }` (Route B bosses are harder than the level alone)
+export function bossScale(def) {
+  const s = scaleFor(def.nativeLevel ?? def.level, def.level), d = def.difficulty || {};
+  return { ...s, hp: s.hp * (d.hp || 1), power: s.power * (d.power || 1), windup: d.windup || 1 };
+}
 // band that shifts summoned adds by the same number of levels as their boss
 export function shiftBand(shift) { return shift ? { from: [0, 200], to: [shift, 200 + shift] } : null; }
 

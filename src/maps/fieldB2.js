@@ -1,4 +1,5 @@
 import { Z } from '../core/constants.js';
+import { LEVEL_SCALING } from '../data/levelScaling.js';
 
 // B2 — CRYSTAL CAVERNS (own grid: world/levels/caverns.js, terrain maps/crystalCaverns.js). Route B's second map: a
 // cave system of glowing crystal under the Frostpeak foothills, entered from the Frost Arena's south road once Hoarfang
@@ -11,7 +12,9 @@ const NOTICE = [
 ].join('\n');
 
 export const FIELD_B2 = {
-  id: 'b2', name: 'CRYSTAL CAVERNS', short: 'B2', sub: 'Route B · B2 — Crystal Caverns · Lv. 10 – 13', grid: 'caverns',
+  id: 'b2', name: 'CRYSTAL CAVERNS', short: 'B2', sub: 'Route B · B2 — Crystal Caverns · Lv. 17 – 31',
+  // LEVEL REWORK L3: old band -> new band; Route B monsters are tougher and pay more (data/levelScaling.js routeMod.B)
+  levelBand: { from: [10, 14], to: [17, 31] }, monsterMod: LEVEL_SCALING.routeMod.B, grid: 'caverns',
   type: 'field', route: 'B', nextMap: 'b3', bossId: 'boss_b2',
   requires: [{ type: 'boss_defeated', boss: 'boss_b1', label: 'Defeat Hoarfang (B1 Boss)' }],
   hiddenAreas: [],

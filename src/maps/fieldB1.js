@@ -1,4 +1,5 @@
 import { Z } from '../core/constants.js';
+import { LEVEL_SCALING } from '../data/levelScaling.js';
 
 // B1 — FROSTWIND PLAINS (own grid: world/levels/frostwind.js, terrain maps/frostwind.js). Route B's first map: snow
 // fields east of Lumina, a frozen lake and the Frost Arena. Monsters from the owner's sheets (desgin/monster/B/B1):
@@ -11,7 +12,9 @@ const NOTICE = [
 ].join('\n');
 
 export const FIELD_B1 = {
-  id: 'b1', name: 'FROSTWIND PLAINS', short: 'B1', sub: 'Route B · B1 — Frostwind Plains · Lv. 1 – 9', grid: 'frostwind',
+  id: 'b1', name: 'FROSTWIND PLAINS', short: 'B1', sub: 'Route B · B1 — Frostwind Plains · Lv. 1 – 17',
+  // LEVEL REWORK L3: old band -> new band; Route B monsters are tougher and pay more (data/levelScaling.js routeMod.B)
+  levelBand: { from: [1, 9], to: [1, 17] }, monsterMod: LEVEL_SCALING.routeMod.B, grid: 'frostwind',
   type: 'field', route: 'B', nextMap: 'b2', bossId: 'boss_b1',
   requires: [],
   hiddenAreas: [],

@@ -385,7 +385,7 @@ class CrystalArmor {
   reset() {
     if (this.list) this.clear();
     this.list = []; this.t = -1; this.growT = 0; this.breaks = 0; this.absorbed = 0; this.smashed = 0;
-    this.b.armor = this.b.maxArmor = this.d.armor;
+    this.b.armor = this.b.maxArmor = Math.round(this.d.armor * ((this.b.levelScale && this.b.levelScale.hp) || 1));
   }
   clear() {
     const w = this.b.game.world;
@@ -420,7 +420,7 @@ class CrystalArmor {
     for (let k = 0; k < n; k++) {
       const a = a0 + (k / n) * Math.PI * 2, c = b.clampToArena(b.center.x + Math.cos(a) * d.dist, b.center.y + Math.sin(a) * d.dist, 40);
       const prop = w.map.addProp({ name: d.prop, x: c.x, y: c.y + 10, scale: 0.9 });
-      const br = new Breakable(g, c.x, c.y, { kind: 'crystal', hp: d.hp, radius: 16, height: 40, prop, label: 'Crystal Cluster' });
+      const br = new Breakable(g, c.x, c.y, { kind: 'crystal', hp: Math.round(d.hp * ((b.levelScale && b.levelScale.hp) || 1)), radius: 16, height: 40, prop, label: 'Crystal Cluster' });
       const onDeath0 = br.onDeath.bind(br); br.onDeath = () => { onDeath0(); prop.visible = false; };
       w.breakables.push(br);
       this.list.push(br);
@@ -487,7 +487,7 @@ class Pylons {
     for (let k = 0; k < d.count; k++) {
       const a = a0 + (k / d.count) * Math.PI * 2, c = b.clampToArena(b.center.x + Math.cos(a) * d.dist, b.center.y + Math.sin(a) * d.dist, 40);
       const prop = w.map.addProp({ name: d.prop, x: c.x, y: c.y + 10, scale: 0.8 });
-      const br = new Breakable(g, c.x, c.y, { kind: 'crystal', hp: d.hp, radius: 18, height: 50, prop, label: 'Eclipse Pylon' });
+      const br = new Breakable(g, c.x, c.y, { kind: 'crystal', hp: Math.round(d.hp * ((this.b.levelScale && this.b.levelScale.hp) || 1)), radius: 18, height: 50, prop, label: 'Eclipse Pylon' });
       const onDeath0 = br.onDeath.bind(br); br.onDeath = () => { onDeath0(); prop.visible = false; g.events.emit('bossPylonBroken', { bossId: b.bossId }); };
       w.breakables.push(br);
       this.list.push(br);

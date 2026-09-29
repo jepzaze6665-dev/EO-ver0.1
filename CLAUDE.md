@@ -655,5 +655,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   botOpts.level default 13). No-god bot results (same feel as before): Guardian UB 85 s · AW 130 s · AG 150 s; Magma Beast UB 95 ·
   AW 103 · AG 143; Rune Knight UB 156 · AW 180.5 · AG 257.5 — all WIN. routeA 26/26, playthrough 17/17, checklist 31/31,
   a2 / a3 monster checks 12/12 + 8/8. Not yet: quest / hidden EXP rewards are still old numbers (L4 pacing).
+  Done L3 (Route B, harder): map levelBand b1 [1,9]->[1,17] · b2 [10,14]->[17,31] · b3 [14,18]->[31,45] + map `monsterMod` =
+  LEVEL_SCALING.routeMod.B (hp / power ×1.2, EXP ×1.25, detect ×1.1). Bosses Hoarfang 17 · Amethyst Colossus 31 · Crystal
+  Warden 45 (rec 16 / 30 / 43) with boss data `difficulty: { hp, power, windup }` (B1 1.15 · B2 1.2 + windup 0.95 · B3 hp 1.3 /
+  power 1.25 / windup 0.9 = shorter telegraphs); bossScale folds difficulty in, AreaBoss.wind() × levelScale.windup.
+  PARTY-READY: every AreaBoss × partyScale(game.party.members) (hp +75% / poise +50% per extra player; solo ×1). Mechanic
+  objects follow the boss level (crystal armour, cluster / pylon HP × levelScale.hp). BUG FIX: AreaBoss.onDeath clears
+  mechanics that own world objects (clusters / pylons stayed up when the boss died mid-growth). Tests: testkit b1 / b2 / b3
+  BossCheck defaults 16 / 30 / 43; levelScaling.test (owner table + B difficulty). No-god bots: Hoarfang UB 101 · AG 123.5 s;
+  Colossus UB 186.5 · AW 216 s; Crystal Warden UB 225.5 · AW 274 · AG 324 · RP 202 s — all WIN, B3 ≈ +30-55% longer than before.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.

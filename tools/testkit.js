@@ -1275,7 +1275,7 @@ export function routeBCheck(g, classId = 'umbral_sword') {
 // B1b: HOARFANG, the B1 boss, in the Frost Arena — quest THE EASTERN ROAD, arena gate, 2 phases, the owner's AURA sheet on
 // the phase change, FROSTBITE (standing still freezes you), ABSOLUTE ZERO (only an ice pillar gives cover), the pack howl,
 // rewards once. god: the bot's damage is ignored and it steps behind a pillar when ABSOLUTE ZERO starts.
-export function b1BossCheck(g, classId = 'umbral_sword', { god = true, level = 9, seconds = 300 } = {}) {
+export function b1BossCheck(g, classId = 'umbral_sword', { god = true, level = 16, seconds = 300 } = {}) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
@@ -1366,7 +1366,7 @@ export function b2Check(g, classId = 'umbral_sword') {
 
 // B2b: the AMETHYST COLOSSUS in the Heart of the Caverns — confirm gate, arena, CRYSTAL ARMOR (break it -> SHATTERED),
 // clusters (smash them or they are absorbed back into armour), 2 phases + the AURA sheet, rewards, quest.
-export function b2BossCheck(g, classId = 'umbral_sword', { god = true, level = 13, seconds = 360 } = {}) {
+export function b2BossCheck(g, classId = 'umbral_sword', { god = true, level = 30, seconds = 360 } = {}) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
@@ -1456,7 +1456,7 @@ export function b3Check(g, classId = 'umbral_sword') {
 // B3b: the CRYSTAL WARDEN (B3 major) on the Summit Citadel — confirm gate, arena, 4 phases (forms change), FROST SCRIPT
 // sigils, REFLECTIONS, SHATTERED ECLIPSE (break the pylons in time -> EXPOSED; god mode lets it fail once first), rewards,
 // ROUTE B COMPLETE, the north road to City 2.
-export function b3BossCheck(g, classId = 'umbral_sword', { god = true, level = 17, seconds = 480 } = {}) {
+export function b3BossCheck(g, classId = 'umbral_sword', { god = true, level = 43, seconds = 480 } = {}) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;

@@ -1,5 +1,6 @@
 // Unit tests for level scaling (Level rework L1). Run:  node tools/tests/levelScaling.test.mjs
-import { scaleFor, remapLevel, partyScale, playerPower, playerHp } from '../../src/progression/levelScaling.js';
+import { scaleFor, remapLevel, partyScale, playerPower, playerHp, bossScale } from '../../src/progression/levelScaling.js';
+import { BOSSES } from '../../src/data/bosses.js';
 import { LEVELS } from '../../src/data/levels.js';
 import { expToNext } from '../../src/progression/experience.js';
 import { CLASS_TREE } from '../../src/data/classTree.js';
@@ -43,6 +44,17 @@ test('remapLevel: old band -> new band (clamped) with its slope', () => {
 });
 test('party scaling (future party system): solo = 1', () => {
   eq(partyScale(1).hp, 1); eq(partyScale(4).hp, 1 + 3 * 0.75); eq(partyScale(0).hp, 1);
+});
+test('owner level table: Route A bosses 14 / 26 / 38, Route B 17 / 31 / 45', () => {
+  const lv = (id) => BOSSES[id].level;
+  eq(lv('boss_a1'), 14); eq(lv('boss_a2'), 26); eq(lv('boss_a3'), 38);
+  eq(lv('boss_b1'), 17); eq(lv('boss_b2'), 31); eq(lv('boss_b3'), 45);
+});
+test('Route B bosses are harder than their level alone; B3 the hardest (shorter telegraphs)', () => {
+  const k = (id) => bossScale(BOSSES[id]).hp / scaleFor(BOSSES[id].nativeLevel, BOSSES[id].level).hp;
+  ok(k('boss_b1') > 1 && k('boss_b2') > k('boss_b1') && k('boss_b3') > k('boss_b2'), 'B difficulty climbs');
+  eq(k('boss_a2'), 1, 'Route A: level only');
+  ok(bossScale(BOSSES.boss_b3).windup < 1, 'B3 telegraphs shorter');
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

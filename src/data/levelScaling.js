@@ -12,6 +12,10 @@ export const LEVEL_SCALING = {
   player: { atk: 20, atkPerLevel: 1.5, hp: 240, hpPerLevel: 12 },
   // floor for scale factors (a monster moved DOWN in level never becomes trivial)
   minMult: 0.5,
+  // ROUTE DIFFICULTY (owner: A easier, B harder and pays more) — map `monsterMod` for field monsters
+  routeMod: {
+    B: { hp: 1.2, power: 1.2, exp: 1.25, detect: 1.1 },
+  },
   // party scaling (future party system, spec: B3 boss must be party-ready): × per extra party member
   party: { hp: 0.75, poise: 0.5 },
 };

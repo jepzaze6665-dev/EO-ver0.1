@@ -1,4 +1,5 @@
 import { Z } from '../core/constants.js';
+import { LEVEL_SCALING } from '../data/levelScaling.js';
 
 // B3 — FROSTPEAK (own grid: world/levels/frostpeak.js, terrain maps/frostpeak.js). Route B's last map: the mountain above
 // the caverns, climbed from the South Gate to the Summit Citadel. Monsters from the owner's sheets (desgin/monster/B/B3):
@@ -11,7 +12,9 @@ const NOTICE = [
 ].join('\n');
 
 export const FIELD_B3 = {
-  id: 'b3', name: 'FROSTPEAK', short: 'B3', sub: 'Route B · B3 — Frostpeak · Lv. 14 – 17', grid: 'frostpeak',
+  id: 'b3', name: 'FROSTPEAK', short: 'B3', sub: 'Route B · B3 — Frostpeak · Lv. 31 – 45',
+  // LEVEL REWORK L3: old band -> new band; Route B monsters are tougher and pay more (data/levelScaling.js routeMod.B)
+  levelBand: { from: [14, 18], to: [31, 45] }, monsterMod: LEVEL_SCALING.routeMod.B, grid: 'frostpeak',
   type: 'field', route: 'B', nextMap: 'city2', bossId: 'boss_b3',
   requires: [{ type: 'boss_defeated', boss: 'boss_b2', label: 'Defeat the Amethyst Colossus (B2 Boss)' }],
   hiddenAreas: [],
