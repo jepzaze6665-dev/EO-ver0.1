@@ -14,21 +14,23 @@ const C = '#ff4a5a', CR = '255,74,90', PALE = '#ffd8dc';
 const E = 'echo';
 
 // animation table for the 'be' preset (tools/build-player.js be → assets/player/be)
+// hit: the IMPACT columns (blade actually swinging). Every damage event of an action must land while one of them is
+// on screen (tools/tests/echoes.test.mjs checks it), so the hit never comes before the swing.
 export const BE_ANIMS = {
   idle: { sheet: 'idle', cols: [0, 1, 2, 3, 4, 5], fps: 4, loop: true },
   walk: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 9, loop: true },
   run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 13, loop: true },
-  atk1: { sheet: 'atk1', cols: [1, 2, 3, 4] },
-  atk2: { sheet: 'atk2', cols: [1, 2, 3, 4] },          // thrust
-  atk3: { sheet: 'sk1', cols: [1, 2, 3, 4] },           // crimson crescent finisher
+  atk1: { sheet: 'atk1', cols: [1, 2, 3, 3, 4], hit: [3] },
+  atk2: { sheet: 'atk2', cols: [1, 2, 3, 3, 4], hit: [3] }, // thrust
+  atk3: { sheet: 'sk1', cols: [1, 2, 3, 4], hit: [2, 3] }, // crimson crescent finisher
   dodge: { sheet: 'dash', cols: [1, 2, 3, 4] },
-  echoSlash: { sheet: 'sk1', cols: [1, 2, 3, 4] },
+  echoSlash: { sheet: 'sk1', cols: [1, 2, 3, 4], hit: [2, 3] },
   stance: { sheet: 'sk6', cols: [1, 1, 1, 1, 2] },       // blade raised, waiting
-  counterStrike: { sheet: 'sk2', cols: [2, 3, 3, 4] },  // the crimson X
-  rewind: { sheet: 'sk3', cols: [1, 2, 3, 3, 4] },
+  counterStrike: { sheet: 'sk2', cols: [2, 3, 3, 4], hit: [3] }, // the crimson X
+  rewind: { sheet: 'sk3', cols: [1, 2, 3, 3, 4], hit: [3] },
   memory: { sheet: 'sk4', cols: [1, 2, 3, 4] },
-  lastStand: { sheet: 'sk5', cols: [1, 2, 3, 3, 4] },
-  recollection: { sheet: 'ult', cols: [1, 2, 3, 3, 4] },
+  lastStand: { sheet: 'sk5', cols: [1, 2, 3, 3, 4], hit: [3] },
+  recollection: { sheet: 'ult', cols: [1, 2, 3, 3, 4], hit: [3] },
   hurt: { sheet: 'hit', cols: [1, 2] },
   death: { sheet: 'hit', cols: [1, 2, 3, 4] },
 };
@@ -126,8 +128,8 @@ export const BladeOfEchoes = {
   basic(p, g, a, step) {
     const cls = p.cls;
     const defs = [
-      { dur: 0.32, at: 0.09, anim: 'atk1', r: 62, half: 1.0, power: 1.05, lunge: 12 },
-      { dur: 0.34, at: 0.1, anim: 'atk2', r: 72, half: 0.6, power: 1.15, lunge: 16 },
+      { dur: 0.32, at: 0.13, anim: 'atk1', r: 62, half: 1.0, power: 1.05, lunge: 12 },
+      { dur: 0.34, at: 0.14, anim: 'atk2', r: 72, half: 0.6, power: 1.15, lunge: 16 },
       { dur: 0.44, at: 0.14, anim: 'atk3', r: 70, half: 1.3, power: 1.7, lunge: 20, combo: true, knock: 200 },
     ];
     const d = defs[step];
@@ -155,7 +157,7 @@ export const BladeOfEchoes = {
     const pw = k.power * power(p) * (p.status.has('last_stand') ? 1 + k.lastStandBonus : 1);
     return {
       name: 'counter_strike', dur: 0.4, anim: 'counterStrike', moveMul: 0, ang: a, cancelAt: 0.3, invuln: [0, 0.4], superArmor: true,
-      events: [[0.08, () => {
+      events: [[0.11, () => {
         g.audio.sfx('ult_slash');
         g.vfx.sprite('be_bloom', p.x + Math.cos(a) * 34, p.y - 16 + Math.sin(a) * 34, a, { scale: 1.1, life: 0.3, glow: 0.6 });
         g.vfx.sprite('be_slash', p.x + Math.cos(a) * 30, p.y - 14 + Math.sin(a) * 30, a, { scale: 1.0, life: 0.25, glow: 0.5 });
@@ -214,7 +216,7 @@ export const BladeOfEchoes = {
               g.vfx.text(p.x, p.y - 70, 'REWIND', { color: PALE, size: 11 });
               if (lost > 0 && p.resources.spend(E, cls.charge.rewindCost, 'skill:rewind_edge')) p.heal(Math.round(lost * cls.rewind.heal), 'rewind');
             },
-            events: [[0.12, () => {
+            events: [[0.17, () => {
               g.audio.sfx('slash_heavy');
               g.vfx.ring(p.x, p.y, 10, 64, { life: 0.3, color: CR, width: 3 });
               g.combat.spawnHitbox({ owner: p, x: p.x, y: p.y - 8, shape: 'circle', r: 64, power: 1.3 * power(p), type: 'physical', knock: 120, stagger: 20, hitStop: 0.05, shake: 0.12 });
@@ -227,7 +229,7 @@ export const BladeOfEchoes = {
         if (s) { s.facing = p.facing; s.hpAt = p.hp; }
         return {
           name: 'rewind_edge', dur: 0.25, anim: 'rewind', moveMul: 0.6, ang: a, cancelAt: 0.1,
-          events: [[0.05, () => { g.audio.sfx('mark'); g.vfx.ring(p.x, p.y, 30, 6, { life: 0.35, color: CR, width: 2 }); }]],
+          start: () => { g.audio.sfx('mark'); g.vfx.ring(p.x, p.y, 30, 6, { life: 0.35, color: CR, width: 2 }); },
         };
       },
     },
@@ -264,7 +266,7 @@ export const BladeOfEchoes = {
         const cls = p.cls;
         return {
           name: 'last_stand', dur: 0.4, anim: 'lastStand', moveMul: 0, ang: a, cancelAt: 0.3,
-          events: [[0.15, () => {
+          events: [[0.17, () => {
             p.status.add('last_stand', cls.lastStand.dur, { source: p, refresh: true });
             p.resources.addModifier({ id: 'last_stand', resource: E, kind: 'gainMult', value: cls.lastStand.echoGain });
             g.audio.sfx('ult_charge');
@@ -327,18 +329,27 @@ export const BladeOfEchoes = {
         return;
       }
       const anim = st.kind === 'counter' ? 'counterStrike' : st.kind === 'skill' ? 'echoSlash' : st.id === 'basic1' ? 'atk2' : st.id === 'basic2' ? 'atk3' : 'atk1';
-      g.summons.act(s, anim, 0.28);
-      g.vfx.sprite(st.kind === 'counter' ? 'be_bloom' : 'be_slash', s.x + Math.cos(a) * 30, s.y - 14 + Math.sin(a) * 30, a, { scale: st.kind === 'counter' ? 1.0 : 0.8, life: 0.24, glow: 0.5 });
-      g.combat.spawnHitbox({ owner: p, x: s.x, y: s.y - 10, ang: a, shape: 'cone', r: 72, half: 1.1, power: pw, type: 'physical', knock: st.kind === 'counter' ? 160 : 80, stagger: st.kind === 'counter' ? 50 : 14, hitStop: 0.05, shake: 0.1, big: st.kind === 'counter' });
+      const dur = 0.28, ad = BE_ANIMS[anim];
+      g.summons.act(s, anim, dur);
+      // the hit lands when the copy's animation reaches its impact frame (same rule as the player's own actions)
+      const k = ad.hit ? ad.cols.indexOf(ad.hit[0]) : 1;
+      g.after((k / ad.cols.length) * dur + 0.01, () => {
+        if (!g.summons.list.includes(s) || p.disposed) return;
+        g.vfx.sprite(st.kind === 'counter' ? 'be_bloom' : 'be_slash', s.x + Math.cos(a) * 30, s.y - 14 + Math.sin(a) * 30, a, { scale: st.kind === 'counter' ? 1.0 : 0.8, life: 0.24, glow: 0.5 });
+        g.combat.spawnHitbox({ owner: p, x: s.x, y: s.y - 10, ang: a, shape: 'cone', r: 72, half: 1.1, power: pw, type: 'physical', knock: st.kind === 'counter' ? 160 : 80, stagger: st.kind === 'counter' ? 50 : 14, hitStop: 0.05, shake: 0.1, big: st.kind === 'counter' });
+      });
     }));
     g.after(0.25 + steps.length * rc.interval, () => { // FINALE: the memory closes with a crimson cross
       if (!g.summons.list.includes(s) || p.disposed) return;
       g.summons.act(s, 'counterStrike', 0.4);
-      g.vfx.sprite('be_recall', s.x, s.y - 16, s.facing, { scale: 1.3, life: 0.35, glow: 0.7 });
-      g.vfx.sprite('be_bloom', s.x, s.y - 16, s.facing + Math.PI / 2, { scale: 1.3, life: 0.35, glow: 0.7 });
-      g.camera.shake(0.35);
-      g.audio.sfx('boom_small');
-      g.combat.spawnHitbox({ owner: p, x: s.x, y: s.y - 8, shape: 'circle', r: 90, power: rc.finale * power(p), type: 'physical', knock: 200, stagger: 60, hitStop: 0.1, shake: 0.3, big: true });
+      g.after(0.11, () => { // on the X frame of its swing
+        if (!g.summons.list.includes(s) || p.disposed) return;
+        g.vfx.sprite('be_recall', s.x, s.y - 16, s.facing, { scale: 1.3, life: 0.35, glow: 0.7 });
+        g.vfx.sprite('be_bloom', s.x, s.y - 16, s.facing + Math.PI / 2, { scale: 1.3, life: 0.35, glow: 0.7 });
+        g.camera.shake(0.35);
+        g.audio.sfx('boom_small');
+        g.combat.spawnHitbox({ owner: p, x: s.x, y: s.y - 8, shape: 'circle', r: 90, power: rc.finale * power(p), type: 'physical', knock: 200, stagger: 60, hitStop: 0.1, shake: 0.3, big: true });
+      });
     });
     return s;
   },

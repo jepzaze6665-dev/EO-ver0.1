@@ -137,6 +137,24 @@ test('Blade of Recollection replays the recorded steps in order, re-targets, end
   const g2 = fakeGame([]); B.record(g2.p, { kind: 'basic', id: 'basic0' });
   play(skill('blade_of_recollection').cast(g2.p, g2.g, 0)); g2.g.runTimers(); ok(g2.g.hitboxes.length >= 2, 'plays with no target');
 });
+test('timing: every hit of every action lands on an IMPACT frame of its animation (anims[].hit)', () => {
+  const { g, p } = fakeGame([{ x: 60, y: 0, dead: false }]);
+  const acts = [0, 1, 2].map((k) => B.basic(p, g, 0, k));
+  for (const s of [...B.skills, B.special]) { p.hp = 50; B.record(p, { kind: 'skill', id: 'echo_slash' }); acts.push(s.cast(p, g, 0)); if (s.recast) acts.push(s.recast.cast(p, g, 0)); }
+  acts.push(B.counterStrike(p, g, { x: 40, y: 0 }));
+  const bad = [];
+  let checked = 0;
+  for (const a of acts) {
+    const an = B.anims[a.anim];
+    if (!an || !an.hit || !a.events) continue;
+    for (const [t] of a.events) {
+      const col = an.cols[Math.min(an.cols.length - 1, Math.floor((t / a.dur) * an.cols.length))];
+      checked++;
+      if (!an.hit.includes(col)) bad.push(`${a.name} @${t}s shows col ${col} (impact ${an.hit})`);
+    }
+  }
+  ok(checked >= 8 && !bad.length, bad.join('; ') || 'checked ' + checked);
+});
 test('taking damage builds Echo (clamped); Last Stand needs low HP', () => {
   const { g, p } = fakeGame();
   B.on.damageTaken(p, g, { target: p, amount: 1, opts: {} }); eq(p.resources.get('echo'), B.charge.hurtMin, 'min');

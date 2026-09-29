@@ -92,7 +92,8 @@ PRESETS.dr = { out: 'assets/player/dr', sheets: {
 } };
 // Blade of Echoes (Class 2 of Umbral Sword): long crimson memory blade, white / red coat
 const BE = 'desgin/class cr/UB/BE/';
-PRESETS.be = { out: 'assets/player/be', sheets: {
+// nearestBody: its long blade is often drawn a pixel away from the hand (see componentFrames)
+PRESETS.be = { out: 'assets/player/be', nearestBody: true, sheets: {
   walk: [BE + 'walk1.png', 4],
   idle: [BE + 'walk2', 4],
   atk1: [BE + 'atk1', 4],
@@ -394,7 +395,11 @@ function validate(sheet, rows) {
 // pixels belongs to the frame whose character body it contains (or, for loose effects such as
 // magic circles, sparks and constellations, the frame its centre falls in). A frame may therefore
 // be wider than its grid cell and effects are never sliced. Returns one cropped RGBA image per frame.
-function componentFrames(img, y0, y1, xs, n = COLS) {
+// opts.nearestBody: a loose piece without a body in it (a blade drawn a pixel away from the hand) goes to the body it
+// is closest to (pixel distance, up to NEAREST_R px) instead of the cell holding most of it — otherwise a long blade
+// that crosses a cell split lands in the NEXT frame (hand cut off here, a floating sword there).
+const NEAREST_R = 40;
+function componentFrames(img, y0, y1, xs, n = COLS, opts = {}) {
   const W = img.width, H = y1 - y0, d = img.data;
   const lab = new Int32Array(W * H).fill(-1), comps = [];
   const at = (x, y) => ((y0 + y) * W + x) * 4;
@@ -434,6 +439,47 @@ function componentFrames(img, y0, y1, xs, n = COLS) {
     if (best >= 0) return best;
     const cx = c.sx / c.n; let k = 0; while (k < n - 1 && cx >= xs[k + 1]) k++; return k;
   });
+  if (opts.nearestBody) {
+    // the character of frame k = the blob with the most body (dark) pixels in cell k; every other blob is a loose piece
+    const main = [...Array(n)].map((_, k) => { let best = -1; comps.forEach((c, i) => { if (c.dark[k] >= BODY_MIN && (best < 0 || c.dark[k] > comps[best].dark[k])) best = i; }); return best; });
+    const isMain = new Set(main.filter((i) => i >= 0));
+    // a blob only holds the bodies it is the MAIN blob of: a dark blade crossing a split is not a second character
+    comps.forEach((c, i) => {
+      if (owner[i] === -1) return;
+      bodies[i] = bodies[i].filter((b) => main[b.k] === i);
+      if (bodies[i].length > 1) owner[i] = -2;
+      else if (bodies[i].length === 1) owner[i] = bodies[i][0].k;
+    });
+    const bodyAt = new Int8Array(W * H).fill(-1);
+    for (let p = 0; p < W * H; p++) {
+      const l = lab[p];
+      if (l < 0 || !isMain.has(l)) continue;
+      const ks = main.map((m, k) => (m === l ? k : -1)).filter((k) => k >= 0);
+      if (ks.length === 1) { bodyAt[p] = ks[0]; continue; }
+      const x = p % W, y = (p / W) | 0; let best = -1, bd = Infinity; // one blob, two characters: nearest body centre
+      for (const k of ks) { const dd = (c => (c.dx[k] / c.dark[k] - x) ** 2 + (c.dy[k] / c.dark[k] - y) ** 2)(comps[l]); if (dd < bd) { bd = dd; best = k; } }
+      bodyAt[p] = best;
+    }
+    comps.forEach((c, i) => {
+      if (owner[i] === -1 || isMain.has(i) || c.n < 30) return;
+      // multi-source BFS from the piece's pixels over any pixel, until a body pixel is reached
+      const bx0 = Math.max(0, c.minx - NEAREST_R), bx1 = Math.min(W - 1, c.maxx + NEAREST_R), by0 = Math.max(0, c.miny - NEAREST_R), by1 = Math.min(H - 1, c.maxy + NEAREST_R);
+      const bw = bx1 - bx0 + 1, dist = new Int16Array(bw * (by1 - by0 + 1)).fill(-1), q = [];
+      for (let y = c.miny; y <= c.maxy; y++) for (let x = c.minx; x <= c.maxx; x++) if (lab[y * W + x] === i) { dist[(y - by0) * bw + x - bx0] = 0; q.push(x, y); }
+      for (let h = 0; h < q.length; h += 2) {
+        const x = q[h], y = q[h + 1], dd = dist[(y - by0) * bw + x - bx0];
+        const k = bodyAt[y * W + x];
+        if (k >= 0) { owner[i] = k; bodies[i] = []; return; }
+        if (dd >= NEAREST_R) continue;
+        for (const [ax, ay] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = x + ax, ny = y + ay;
+          if (nx < bx0 || ny < by0 || nx > bx1 || ny > by1) continue;
+          const o = (ny - by0) * bw + nx - bx0;
+          if (dist[o] < 0) { dist[o] = dd + 1; q.push(nx, ny); }
+        }
+      }
+    });
+  }
   const pixelOwner = (l, x, y) => {
     const o = owner[l];
     if (o !== -2) return o;
@@ -473,7 +519,7 @@ function componentFrames(img, y0, y1, xs, n = COLS) {
 
 const [CW, CH] = STD.canvas, [PX, PY] = STD.pivot;
 function buildPreset(key) {
-const { out: outRel, sheets: SHEETS, facing: FACING } = PRESETS[key];
+const { out: outRel, sheets: SHEETS, facing: FACING, nearestBody } = PRESETS[key];
 const OUT = path.join(ROOT, outRel);
 fs.mkdirSync(OUT, { recursive: true });
 console.log('== preset', key, '->', outRel);
@@ -488,7 +534,7 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
   for (let r = 0; r < rows; r++) {
     const bx = bodyProjection(img, ys[r], ys[r + 1]), px = projection(img, false, ys[r], ys[r + 1]);
     const xs = blobSplits(bx, n, img.width) || blobSplits(px, n, img.width) || splits(px, n, img.width);
-    const frames = componentFrames(img, ys[r], ys[r + 1], xs, n);
+    const frames = componentFrames(img, ys[r], ys[r + 1], xs, n, { nearestBody });
     while (frames.length < COLS) frames.push(frames[frames.length - 1]); // short rows: hold the last pose
     for (let c = 0; c < COLS; c++) {
       const f = frames[c];

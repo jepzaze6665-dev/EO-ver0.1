@@ -137,6 +137,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   cross). Passive Persistent Memory: counter = -3 s Rewind Edge. Gear memory_blade / echo_coat. Bot: counter-stance classes
   (special tag 'counter') press Q on telegraphs instead of dodging. Tests: tools/tests/echoes.test.mjs, C.echoChecks (12).
   Balance: 3-dummy bot 124 DPS (lowest of the line, by design); Guardian WIN 90 s with 9 perfect counters, 79 dmg taken.
+  BE polish (owner: hit timing, reversed VFX, cut-off hands): build-player preset option `nearestBody` (be only) = only the
+  LARGEST dark blob of a cell is that frame's body; a blade crossing a cell split no longer counts as a second body and
+  loose pieces go to the nearest body by pixel distance (fixed swords moving to the next frame). build-vfx mirrors be_slash
+  / be_crescent / be_recall (drawn hollow-side first). Anim data `hit: [cols]` = impact frames; every BE hit event lands on
+  one (echoes.test "timing"), the crimson copy's hits wait for its impact frame too.
   Next: Class 2 skill tree / skill points / class level (spec §8-9), combat loadout slots (§15), class-selection UI (§16).
 - Later Class 2 work: AW / AG paths need the owner's class data.
   Unused RP art: `sk6` (anim `harvest`) is mapped but no skill plays it yet.
