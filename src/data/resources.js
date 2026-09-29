@@ -105,6 +105,18 @@ export const RESOURCES = {
     gainStat: 'bastionGain',
     colors: ['#f0c850', '#5a4414'],
   },
+  // Oathbreaker: BROKEN OATH — pain turned into power. Built by taking hits (more from bosses), blocking with Defiant
+  // Guard (part of the blocked damage converts), perfect guards and counters (every source capped by the class); spent
+  // by Sinful Counter (all of it, up to 60: damage scales with what was spent, capped) and the ultimate. Tier UNBOUND 70.
+  broken_oath: {
+    id: 'broken_oath', name: 'Broken Oath', label: 'OATH',
+    max: 100, start: 0, respawn: 0,
+    regen: { inCombat: 0, outOfCombat: 0 },
+    decay: { inCombat: 0, outOfCombat: 10, delay: 4 },
+    gainStat: 'oathGain',
+    tiers: [{ at: 70, label: 'UNBOUND', stats: { physicalDmg: 0.1, crit: 0.05 } }],
+    colors: ['#b060ff', '#3a0c5a'],
+  },
   // Phase 6 (Astral Weaver) — defined now so the pool is proven to be class-agnostic.
   astral_charge: {
     id: 'astral_charge', name: 'Astral Charge', label: 'ASTRAL',

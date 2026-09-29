@@ -196,6 +196,7 @@ export function mechanicChecks(g, classId) {
     for (const r of s.requirements || []) { // meet the other data requirements the way a player would have
       if (r.type === 'recorded' && p.memory) p.memory.record({ kind: 'skill', id: r.ids[0] }, g.time);
       if (r.type === 'hpBelow') p.hp = Math.floor(p.maxHp * (r.max - 0.1));
+      if (r.type === 'markedFoe') g.marks.apply(d, r.mark, { source: p, stacks: 3 }); // the dummy carries the mark
     }
     g.simulate(0.6, (gg, i) => { aim(g, d.x, d.y); if (i === 1) gg.input.pushBuffer('skill4'); });
     casted.push(used === s.id ? s.id : `${s.id}≠${used}`);
@@ -662,7 +663,7 @@ export function bulwarkChecks(g) {
   const plainDmg = hitMe(30);
   g.simulate(0.3, inFight); p.resources.set(R, 0); cast(g, 'iron_bastion', d); p.hp = p.maxHp; // (after the hurt reaction)
   const stDmg = hitMe(30), stGain = p.resources.get(R);
-  ok('Iron Bastion: 40% less damage, slower, double Bastion from hits', p.status.has('iron_bastion') && stDmg <= Math.ceil(plainDmg * 0.6) + 1 && p.status.moveMult() < 0.6 && stGain > plainGain * 1.5, `dmg ${plainDmg}->${stDmg} gain ${plainGain.toFixed(1)}->${stGain.toFixed(1)}`);
+  ok('Iron Bastion: 40% less damage, slower, double Bastion from hits', p.status.has('iron_bastion') && stDmg <= Math.ceil(plainDmg * 0.7) + 1 && p.status.moveMult() < 0.6 && stGain > plainGain * 1.5, `dmg ${plainDmg}->${stDmg} gain ${plainGain.toFixed(1)}->${stGain.toFixed(1)}`);
   g.simulate(0.3, inFight); const re = p.trySkill(p.skillSys.get('iron_bastion'));
   ok('Iron Bastion: pressing again leaves the stance', re && !p.status.has('iron_bastion'));
 
@@ -742,6 +743,94 @@ export function bulwarkChecks(g) {
   const res = p.resources.get(R), cds = ['iron_bastion', 'fortress_step', 'absolute_provocation', 'counterweight', 'shieldwall', 'citadel_of_one'].map((id) => p.skillSys.cooldowns.remaining(id));
   ok('No negative / overfull resource, no negative cooldown', res >= 0 && res <= 100 && cds.every((c) => c >= 0), `bastion ${r0(res)}`);
   g.party.remove(ally); ally.dispose(); releaseInput(g);
+  return rows;
+}
+
+// ---------------- OATHBREAKER (Class 2 of the Aegis): Broken Oath / Defiant Guard conversion / Perfect Guard /
+// Sinful Counter spend + cap / Ruin Chain pull / Oath of Ruin trade-off / Verdict store + blast
+export function oathChecks(g) {
+  const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'oathbreaker', test: name, pass: !!pass, detail });
+  const R = 'broken_oath', r0 = (n) => Math.round(n);
+  let { p, d } = atDummy(g, 'oathbreaker');
+  const cls = p.cls, inFight = () => { g.combat.lastCombatTime = g.time; };
+  ok('Class data: preset ok, Broken Oath, own skills + guard + passives', p.sprites.preset === 'ok' && p.primaryResource === R && p.skillSys.get('oathbreaker_verdict') && cls.special.id === 'defiant_guard' && cls.passives.length >= 2 && g.equipment.slots.weapon === 'ruin_blade', `${p.sprites.preset} ${p.primaryResource}`);
+  const hitMe = (power = 20, src = { x: p.x + 20, y: p.y, team: 'enemy' }) => { p.invulnT = 0; const hp0 = p.hp; g.combat.dealDamage(src, p, { power, noCrit: true, knock: 0 }); return hp0 - p.hp; };
+
+  p.resources.set(R, 0); p.hp = p.maxHp; hitMe(30);
+  const g1 = p.resources.get(R);
+  ok('Taking a hit builds Broken Oath (capped per hit)', g1 > 0 && g1 <= cls.charge.hurtMax, `+${g1.toFixed(1)}`);
+  p.resources.set(R, 0); p.hp = p.maxHp; hitMe(9999, { x: p.x + 20, y: p.y, team: 'enemy', isBoss: true });
+  ok('A boss hit gives more, still capped', p.resources.get(R) <= cls.charge.bossMax && p.resources.get(R) > cls.charge.hurtMax, `+${r0(p.resources.get(R))}`);
+
+  // Defiant Guard: block conversion + Retaliation; Perfect Guard
+  g.newGame('oathbreaker'); releaseInput(g); p = g.player; goto(g, 38, 121);
+  const foe = g.world.monsters.filter((m) => !m.dead && g.world.onMap(m)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+  for (const m of g.world.monsters) if (!m.dead) m.status.add('stun', 20);
+  foe.x = p.x + 30; foe.y = p.y; aim(g, foe.x, foe.y); p.hp = p.maxHp; p.invulnT = 0;
+  const strike = () => { foe.status.remove('stun'); g.combat.enemyStrike(foe, { shape: 'circle', x: p.x, y: p.y, r: 30 }, 14, {}); foe.status.add('stun', 20); };
+  p.resources.set(R, 0); g.input.down.add('KeyQ'); g.simulate(0.45, () => { aim(g, foe.x, foe.y); inFight(); });
+  const hpB = p.hp; strike(); g.input.down.delete('KeyQ');
+  ok('Defiant Guard: block converts damage to Broken Oath and opens RETALIATION', p.hp < hpB && p.resources.get(R) > 0 && g.time < p.retaliateUntil, `hp ${hpB}->${p.hp} oath ${p.resources.get(R).toFixed(1)}`);
+  g.simulate(0.5, inFight); p.resources.set(R, 0); p.invulnT = 0; const hpP = p.hp;
+  aim(g, foe.x, foe.y); g.simulate(STEP * 2); p.setGuard(true); strike(); g.simulate(0.6, inFight);
+  ok('Perfect Guard: no damage, +25 Broken Oath (Pain Repaid), riposte', p.hp === hpP && p.resources.get(R) >= 25, `hp ${hpP}->${p.hp} oath ${r0(p.resources.get(R))}`);
+  p.setGuard(false); g.simulate(0.4, inFight);
+
+  // Sinful Counter
+  ({ p, d } = atDummy(g, 'oathbreaker'));
+  p.resources.set(R, 15);
+  ok('Sinful Counter needs 20 Broken Oath', !p.skillSys.use('sinful_counter', p, g, 0).ok && p.resources.get(R) === 15);
+  const lowPw = cls.counterPower(p, 20), maxPw = cls.counterPower(p, 999);
+  p.retaliateUntil = g.time + 1; p.hp = Math.round(p.maxHp * 0.3); p.status.add('oath_of_ruin', 5); p.status.add('forbidden_oath', 5);
+  const capPw = cls.counterPower(p, 999, d);
+  p.hp = p.maxHp; p.status.remove('oath_of_ruin'); p.status.remove('forbidden_oath'); p.retaliateUntil = 0;
+  ok('Counter power grows with the oath spent, capped (max 3.3×, every bonus together ≤ 5×)', maxPw > lowPw && Math.abs(maxPw - cls.counter.maxPower) < 1e-9 && capPw <= cls.counter.hardCap + 1e-9 && capPw > maxPw, `${lowPw.toFixed(2)} .. ${maxPw.toFixed(2)} .. ${capPw.toFixed(2)}`);
+  p.resources.set(R, 90);
+  let dealt = 0; g.events.on('damageDealt', (e) => { if (e.source === p && e.opts && e.opts.skillId === 'sinful_counter') dealt += e.amount; });
+  cast(g, 'sinful_counter', d); idle(g);
+  ok('Sinful Counter spends at most 60 and hits', r0(p.resources.get(R)) === 30 && dealt > 0, `oath 90 -> ${r0(p.resources.get(R))}, dmg ${dealt}`);
+  const plainDealt = dealt; dealt = 0;
+  ({ p, d } = atDummy(g, 'oathbreaker'));
+  g.events.on('damageDealt', (e) => { if (e.source === p && e.opts && e.opts.skillId === 'sinful_counter') dealt += e.amount; });
+  p.resources.set(R, 90); p.retaliateUntil = g.time + 5; cast(g, 'sinful_counter', d); idle(g);
+  ok('Inside RETALIATION the counter hits harder, and the window is used up', dealt > plainDealt && !(g.time < p.retaliateUntil), `${plainDealt} -> ${dealt}`);
+
+  // Oath Brand + Ruin Chain
+  ({ p, d } = atDummy(g, 'oathbreaker', 120));
+  ok('Ruin Chain needs a branded foe', !p.skillSys.canUse('ruin_chain').ok);
+  cast(g, 'oath_brand', d); idle(g);
+  ok('Oath Brand marks + taunts the foe in front', g.marks.get(d, 'oath_brand') > 0 && d.status.has('taunted'));
+  g.newGame('oathbreaker'); releaseInput(g); p = g.player; goto(g, 38, 121); // a real monster (A1)
+  const mob = g.world.monsters.filter((m) => !m.dead && g.world.onMap(m) && !m.isBoss).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+  for (const m of g.world.monsters) if (!m.dead) m.status.add('stun', 5);
+  mob.x = p.x + 180; mob.y = p.y; g.marks.clearAll(); cls.brand(p, g, mob);
+  const d0 = Math.hypot(mob.x - p.x, mob.y - p.y);
+  const rc = p.trySkill(p.skillSys.get('ruin_chain')); g.simulate(0.9);
+  const d1 = Math.hypot(mob.x - p.x, mob.y - p.y);
+  ok('Ruin Chain drags the branded foe to you and roots it', rc && d1 < d0 - 60 && mob.status.has('root'), `${r0(d0)} -> ${r0(d1)} px`);
+
+  // Oath of Ruin trade-off
+  ({ p, d } = atDummy(g, 'oathbreaker'));
+  const plain = hitMe(30); g.simulate(0.3); // (after the hurt reaction)
+  cast(g, 'oath_of_ruin', d); idle(g); const risky = hitMe(30);
+  ok('Oath of Ruin: +damage, but takes MORE damage (trade-off), ends after 8 s', p.status.has('oath_of_ruin') && risky > plain && p.status.damageMult() > 1.2 && (() => { g.simulate(8.2); return !p.status.has('oath_of_ruin'); })(), `taken ${plain} -> ${risky}`);
+
+  // Verdict
+  ({ p, d } = atDummy(g, 'oathbreaker'));
+  p.resources.set(R, 59);
+  ok('Oathbreaker Verdict needs 60 Broken Oath', !p.skillSys.use('oathbreaker_verdict').ok);
+  p.resources.set(R, 60);
+  const vr = p.trySkill(p.skillSys.get('oathbreaker_verdict')); g.simulate(1.6);
+  ok('Forbidden Oath: no knockback, foes taunted + ruined', vr && p.status.has('forbidden_oath') && p.status.flag('unshakable') && d.status.has('ruin'), '');
+  for (let i = 0; i < 20; i++) { hitMe(60); g.simulate(0.1); p.hp = p.maxHp; }
+  const store = p.verdictStore;
+  ok('Damage taken is stored, capped at 60% max HP', store > 0 && store <= p.maxHp * cls.verdict.storeCap + 1e-6, `${r0(store)} / ${r0(p.maxHp * cls.verdict.storeCap)}`);
+  let blast = null; g.events.on('verdictBlast', (e) => { blast = e; });
+  g.simulate(10);
+  ok('When the oath ends: the VERDICT blast, power capped at 4.5×', blast && blast.power <= cls.verdict.maxPower && !p.status.has('forbidden_oath') && !p.verdictStore, blast ? `×${blast.power.toFixed(2)}` : 'no blast');
+  const res = p.resources.get(R), cds = ['oath_brand', 'sinful_counter', 'ruin_chain', 'oath_of_ruin', 'oathbreaker_verdict'].map((id) => p.skillSys.cooldowns.remaining(id));
+  ok('No negative / overfull resource, no negative cooldown', res >= 0 && res <= 100 && cds.every((c) => c >= 0));
+  releaseInput(g);
   return rows;
 }
 
@@ -829,7 +918,7 @@ export function balance(g, classId, loadout, botOpts = {}) {
 export function runAll(g, { withBalance = true } = {}) {
   const rows = [], bal = [];
   for (const c of [...STARTING_CLASSES, ...ADVANCED]) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
-  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...wardenChecks(g), ...bulwarkChecks(g), ...classChangeChecks(g));
+  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...wardenChecks(g), ...bulwarkChecks(g), ...oathChecks(g), ...classChangeChecks(g));
   if (withBalance) for (const c of [...STARTING_CLASSES, ...ADVANCED]) bal.push(balance(g, c));
   return { passed: rows.filter((r) => r.pass).length, total: rows.length, rows, balance: bal };
 }

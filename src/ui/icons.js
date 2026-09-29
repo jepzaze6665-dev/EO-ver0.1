@@ -310,6 +310,28 @@ export function icon(name, color = '#b070ff') {
       g.fillStyle = '#2a3a6a'; g.fillRect(14, 20, 4, 8);
       glow('#9ac8ff', 1.5, () => g.arc(16, 20, 14, Math.PI * 1.1, Math.PI * 1.9));
       break;
+    // ---- Oathbreaker (black blade, violet corruption, crimson oath)
+    case 'oath_brand':
+      glow('#3a0c5a', 5, () => g.arc(16, 16, 10, 0, 7));
+      glow('#b060ff', 2, () => { g.arc(16, 16, 10, 0, 7); g.moveTo(16, 8); g.lineTo(16, 24); g.moveTo(9, 13); g.lineTo(23, 19); });
+      break;
+    case 'sinful_counter':
+      glow('#3a0c5a', 6, () => g.arc(8, 24, 20, -1.3, 0.1));
+      glow('#b060ff', 3, () => g.arc(8, 24, 20, -1.3, 0.1));
+      glow('#ff5070', 1.5, () => g.arc(8, 24, 15, -1.2, 0));
+      break;
+    case 'ruin_chain':
+      for (let i = 0; i < 4; i++) glow(i % 2 ? '#ecd0ff' : '#b060ff', 2.5, () => g.ellipse(7 + i * 6, 25 - i * 6, 4, 2.4, -0.8, 0, 7));
+      g.fillStyle = '#ff5070'; g.fillRect(25, 4, 4, 4);
+      break;
+    case 'oath_of_ruin':
+      g.fillStyle = '#3a0c5a'; g.beginPath(); g.moveTo(16, 3); g.lineTo(26, 9); g.lineTo(24, 21); g.lineTo(16, 29); g.lineTo(8, 21); g.lineTo(6, 9); g.closePath(); g.fill();
+      glow('#ff5070', 2, () => { g.moveTo(10, 8); g.lineTo(22, 26); g.moveTo(22, 8); g.lineTo(13, 20); });
+      break;
+    case 'verdict':
+      for (const x of [7, 12, 16, 20, 25]) glow('#b060ff', 2, () => { g.moveTo(x, 28); g.lineTo(x + (x - 16) * 0.3, 10 + Math.abs(x - 16)); });
+      glow('#ecd0ff', 2.5, () => g.ellipse(16, 28, 12, 3, 0, 0, 7));
+      break;
     case 'ore':
       g.fillStyle = '#5a5a60'; g.beginPath(); g.moveTo(6, 22); g.lineTo(12, 8); g.lineTo(24, 10); g.lineTo(27, 24); g.closePath(); g.fill();
       g.fillStyle = color; g.fillRect(12, 14, 5, 4); g.fillRect(19, 17, 4, 3);

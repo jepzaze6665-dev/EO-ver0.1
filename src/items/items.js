@@ -39,6 +39,10 @@ export const ITEMS = {
     name: 'Bulwark Shield & Bastion Sword', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'bulwark', color: '#f0c850',
     stats: { atk: 0, def: 2 }, desc: 'A gilded tower shield and a heavy bastion sword. Signature weapon of the Bulwark Sentinel.',
   },
+  ruin_blade: {
+    name: 'Ruin Blade & Broken Aegis', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'oath_brand', color: '#b060ff',
+    stats: { atk: 2 }, desc: 'A black greatsword that drinks the pain of its wielder, and a shattered oath-shield. Signature weapon of the Oathbreaker.',
+  },
   aegis_shield: {
     name: 'Aegis Shield & Blade', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'shield', color: '#ffd070',
     stats: { atk: 0 }, desc: 'A knight longsword and the gilded Aegis shield. Signature weapon of the Aegis Guardian.',
@@ -76,6 +80,10 @@ export const ITEMS = {
   fortress_plate: {
     name: 'Fortress Plate', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#c8a050',
     stats: { def: 3, hp: 25 }, desc: 'Gold-chased steel over a midnight cape. Built to stand where others fall.',
+  },
+  oathbreaker_plate: {
+    name: 'Oathbreaker Plate', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#4a2a6a',
+    stats: { def: 1, hp: 15 }, desc: 'Black spiked plate with a torn violet mantle. Every scar is a vow unmade.',
   },
   aegis_plate: {
     name: 'Aegis Plate', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#c8d0e0',

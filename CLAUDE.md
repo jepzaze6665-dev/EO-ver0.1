@@ -182,7 +182,25 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   knockback) / poiseResist (player poise), status modifier guardBlockMult (Player.tryBlock). checklist picks a non-recast
   skill for the cooldown step and walks slow classes further. Tests: tools/tests/bulwark.test.mjs (9), C.bulwarkChecks (23).
   Bot balance: 3-dummy 75 DPS, Guardian WIN 175 s (138 damage taken).
-  Next: AG3 Oathbreaker (Broken Oath, counters, risk).
+  Polish 2: build-player sheet opt `swapSides: [cols]` (exchange side-row columns drawn the wrong way), preset opts
+  `bg.glowToAlpha` (+ `glowCool`: only cool light) = effect glow painted over the white sheet becomes translucent (no white
+  halo), `edgeFade`, `splitFeather`. build-vfx `checker` (opaque fake-checker VFX sheets -> removeChecker). GENERIC STATUS
+  AURA: status data `aura: { color, ring, columns, body, motes, scale }` drawn by Player.drawAura while the status lasts
+  (citadel, fortified, oath_of_ruin, forbidden_oath).
+  Done AG3 = OATHBREAKER (`src/skills/oathbreaker.js`, preset 'ok' (ATK2 / SK6 = 5 poses per row), VFX set 'ok': ok_brand /
+  ok_defy / ok_flare / ok_spikes / ok_sigil / ok_crescent / ok_verdict): resource BROKEN OATH (hits taken ≤ 8, boss hits ≤ 12,
+  Defiant Guard converts half the blocked damage ≤ 8, perfect guard 15 + Pain Repaid 10, brand 4, chain 5, Oath of Ruin 10;
+  tier UNBOUND 70). Q Defiant Guard (65%, slow; a block opens RETALIATION 1.5 s). Skills: Oath Brand (mark oath_brand in
+  data/marks.js: taunt, counters ×1.2) · Sinful Counter (requirement 20; spends ≤ 60; 1.2 + 0.035/pt, max 3.3; ×1.4 in
+  Retaliation, ×1.3 Forsaken < 40% HP, ×1.2 Oath of Ruin, ×1.5 Forbidden, ×1.2 brand; HARD CAP 5×) · Ruin Chain (requirement
+  markedFoe oath_brand 280: slides the foe to you via map.moveCircle, root 1 s; bosses get status ruin) · Oath of Ruin (8 s:
+  +25% dmg, DEF ×0.6, damage taken ×1.15, taunt r 150) · ult Oathbreaker Verdict (60: forbidden_oath 10 s, unshakable,
+  pulses taunt + ruin r 150; stores 40% of damage taken ≤ 60% max HP; when it ends the class tick plays verdict_end: blast
+  2 + 4×share, max 4.5×). Tests: tools/tests/oathbreaker.test.mjs (6), C.oathChecks (18). combatTest loadout step now
+  meets 'markedFoe' requirements. Bot balance: 3-dummy 116 DPS (highest of the Aegis line), Guardian WIN 110 s but 347
+  damage taken (the risk).
+  AEGIS CLASS 2 COMPLETE (Warden / Bulwark / Oathbreaker). Next: owner decides (skill tree / class level / loadout slots,
+  human balance pass).
 - Later Class 2 work: AW / AG paths need the owner's class data.
   Unused RP art: `sk6` (anim `harvest`) is mapped but no skill plays it yet.
 - **Current: V2.1 "Class × World Integration"** (owner's 16-phase spec: Lumina → A1 → A2 → A3 → Boss Arena, EXP/loot/

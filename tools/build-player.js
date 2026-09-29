@@ -2,7 +2,7 @@
 // into clean alpha sprite strips + an atlas description consumed by src/player/playerSprites.js.
 // Every class preset is normalised to the SAME visual standard (body height, canvas, pivot).
 // Usage: node tools/build-player.js            (all classes)
-//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wd | bs)
+//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wd | bs | ok)
 const fs = require('fs');
 const path = require('path');
 const png = require('./png.js');
@@ -147,6 +147,26 @@ PRESETS.bs = { out: 'assets/player/bs', nearestBody: true, edgeFade: 8, splitFea
   sk6: [BS + 'SK6', 4],
   ult: [BS + 'UT', 4],
 } };
+// Oathbreaker (Class 2 of Aegis Guardian): black-violet spiked plate, ruin blade. Dark armour -> default background rule;
+// its purple glow over the white sheet -> glowToAlpha
+const OK = 'desgin/class cr/AG/OK/';
+PRESETS.ok = { out: 'assets/player/ok', nearestBody: true, edgeFade: 8, splitFeather: 60, bg: { strict: 212, strictSat: 20, loose: 175, looseSat: 26, glowToAlpha: true, glowCool: true }, sheets: { // = DEFAULT_BG + violet glow
+  walk: [OK + 'WLAK1.PNG', 4],
+  idle: [OK + 'WLAK2', 4],
+  atk1: [OK + 'ATK1', 4],
+  atk2: [OK + 'ATK2', 4, { frames: 5 }], // 5 poses per row (the big crescent)
+  dash: [OK + 'DASH', 4],
+  guard: [OK + 'DEF', 4],
+  parry: [OK + 'PARRY', 4],
+  hit: [OK + 'HIT', 4],
+  sk1: [OK + 'SK1', 4],
+  sk2: [OK + 'SK2', 4],
+  sk3: [OK + 'SK3', 4],
+  sk4: [OK + 'SK4', 4],
+  sk5: [OK + 'SK5', 4],
+  sk6: [OK + 'SK6', 4, { frames: 5 }],
+  ult: [OK + 'UT', 4],
+} };
 const AW = 'desgin/class cr/AW/';
 PRESETS.aw = { out: 'assets/player/aw', sheets: {
   walk: [AW + 'AW2', 4],
@@ -194,7 +214,8 @@ function removeBackground(img, bg = DEFAULT_BG) {
   if (bg.glowToAlpha) {
     const [gMin, gDepth] = [bg.glowMin ?? 150, bg.glowDepth ?? 40], dep = new Int16Array(w * h).fill(-1), q = [];
     for (let p = 0; p < w * h; p++) if (mark[p]) { dep[p] = 0; q.push(p); }
-    const light = (p) => { const i = p * 4; return Math.min(data[i], data[i + 1], data[i + 2]) > gMin; };
+    // glowCool: only cool (blue / violet / white) light counts as glow — warm skin next to the outline stays opaque
+    const light = (p) => { const i = p * 4; return Math.min(data[i], data[i + 1], data[i + 2]) > gMin && (!bg.glowCool || data[i + 2] >= data[i] - 6); };
     for (let k = 0; k < q.length; k++) {
       const p = q[k], x = p % w, y = (p / w) | 0;
       if (dep[p] >= gDepth) continue;

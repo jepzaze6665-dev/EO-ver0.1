@@ -28,6 +28,12 @@ export const MARKS = {
     idleDecay: null, onMax: 'hold', clearOnDeath: true, tags: ['enemy', 'shadow', 'reaper'],
     display: { color: '#a070ff', full: '#e8c8ff' },
   },
+  // Oathbreaker: OATH BRAND on an enemy — it takes more from your counters, must fight you, and Ruin Chain needs it
+  oath_brand: {
+    id: 'oath_brand', name: 'Oath Brand', maxStacks: 1, duration: 10, refreshOnStack: true,
+    idleDecay: null, onMax: 'hold', clearOnDeath: true, tags: ['enemy', 'taunt', 'oath'],
+    display: { color: '#b060ff', full: '#e8c0ff' },
+  },
   // Phase 6 (Astral Weaver): placed on enemies, 3 stacks -> Constellation Break
   star_mark: {
     id: 'star_mark', name: 'Star Mark', maxStacks: 3, duration: 6, refreshOnStack: true,

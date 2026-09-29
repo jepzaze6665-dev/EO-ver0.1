@@ -92,8 +92,8 @@ export const CLASS_TREE = {
     trial: 'trial_bulwark_sentinel',
   },
   oathbreaker: {
-    id: 'oathbreaker', name: 'Oathbreaker', tier: 2, parent: 'aegis_guardian', playable: false, resource: 'Broken Oath',
-    role: 'Offensive Tank · Punisher', description: 'Breaks the oath of pure defence to punish those who strike the shield.',
+    id: 'oathbreaker', name: 'Oathbreaker', tier: 2, parent: 'aegis_guardian', playable: true, resource: 'Broken Oath',
+    role: 'Counter Tank · Aggro DPS · Bruiser', description: 'Breaks the oath of pure defence: takes the blows, guards, and returns the pain as ruin.',
     requirements: [...CLASS2_BASE, { type: 'counter', counter: 'judgments', min: 15 }],
     trial: 'trial_oathbreaker',
   },

@@ -52,6 +52,13 @@ const SETS = {
     feather: 40,
     recenter: { SK3: true }, // the magic-circle frames sit unevenly in their cells (the circle jumped sideways)
   },
+  // Oathbreaker (purple corruption / crimson oath). SK2 + SK7 have an opaque fake checker background (removeChecker).
+  ok: {
+    src: 'desgin/VFX/AG/OK', detectRows: true, clean: false, feather: 40,
+    names: { SK1: 'ok_brand', SK2: 'ok_defy', SK3: 'ok_flare', SK4: 'ok_spikes', SK5: 'ok_sigil', SK6: 'ok_crescent', SK7: 'ok_verdict' },
+    rows: { SK1: 0, SK2: 0, SK4: 0, SK5: 0, SK7: 0 }, // SK3 / SK6 side view (row 3)
+    checker: { SK2: true, SK7: true },
+  },
   // Bulwark Sentinel (gold fortress + blue steel light). SK3 has an opaque fake-checker background -> not used.
   // SK1 / SK4 carry direction labels in the first column (stripped); SK4 has 8 rows (2 sets), row 0 = front view.
   bs: {
@@ -109,6 +116,24 @@ function cleanFrame(out, x0, fw, fh) {
 // them and the cut is feathered; 4) each frame keeps its cell centre as pivot, and the output frame
 // is enlarged to fit the widest effect, so nothing is sliced by a grid line.
 const SOFT_FLOOR = 18, DUST = 14, CUT_FEATHER = 8;
+// opaque fake-checkerboard sheets (light grey / white squares): flood the light, unsaturated background from every
+// light pixel, then un-mix the glow at the edge from white (colour -> alpha)
+function removeChecker(img) {
+  const { width: w, height: h, data } = img, mark = new Uint8Array(w * h), st = [];
+  const bg = (p, loose) => { const i = p * 4, mn = Math.min(data[i], data[i + 1], data[i + 2]), mx = Math.max(data[i], data[i + 1], data[i + 2]); return loose ? mn > 185 && mx - mn < 22 : mn > 215 && mx - mn < 12; };
+  for (let p = 0; p < w * h; p++) if (bg(p, false)) { mark[p] = 1; st.push(p); }
+  while (st.length) {
+    const p = st.pop(), x = p % w, y = (p / w) | 0;
+    for (const q of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, y > 0 ? p - w : -1, y < h - 1 ? p + w : -1]) if (q >= 0 && !mark[q] && bg(q, true)) { mark[q] = 1; st.push(q); }
+  }
+  for (let p = 0; p < w * h; p++) {
+    const i = p * 4;
+    if (mark[p]) { data[i + 3] = 0; continue; }
+    const a = Math.max(255 - data[i], 255 - data[i + 1], 255 - data[i + 2]) / 255; // light glow -> translucent
+    if (a < 0.6) { for (let c = 0; c < 3; c++) data[i + c] = Math.max(0, Math.min(255, Math.round((data[i + c] - 255 * (1 - a)) / Math.max(0.05, a)))); data[i + 3] = Math.round(a * 255); }
+  }
+}
+
 function extractRow(img, file, set) {
   const ROW = set.rows && set.rows[file] !== undefined ? set.rows[file] : ROW_DEFAULT;
   const W = img.width, H = img.height, d = img.data, cw = W / COLS;
@@ -217,6 +242,7 @@ const meta = {};
 for (const [setName, set] of Object.entries(SETS)) {
   for (const [file, name] of Object.entries(set.names)) {
     const img = png.read(path.join(ROOT, set.src, file));
+    if (set.checker && set.checker[file]) removeChecker(img);
     if (set.detectRows) {
       const { out, fw, fh } = extractRow(img, file, set);
       png.write(path.join(OUT, name + '.png'), out);

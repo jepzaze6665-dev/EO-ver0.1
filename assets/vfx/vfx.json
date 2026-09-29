@@ -293,6 +293,55 @@
   "frames": 6,
   "set": "dw"
  },
+ "ok_brand": {
+  "file": "assets/vfx/ok_brand.png",
+  "fw": 102,
+  "fh": 128,
+  "frames": 6,
+  "set": "ok"
+ },
+ "ok_defy": {
+  "file": "assets/vfx/ok_defy.png",
+  "fw": 86,
+  "fh": 128,
+  "frames": 6,
+  "set": "ok"
+ },
+ "ok_flare": {
+  "file": "assets/vfx/ok_flare.png",
+  "fw": 128,
+  "fh": 158,
+  "frames": 6,
+  "set": "ok"
+ },
+ "ok_spikes": {
+  "file": "assets/vfx/ok_spikes.png",
+  "fw": 106,
+  "fh": 158,
+  "frames": 6,
+  "set": "ok"
+ },
+ "ok_sigil": {
+  "file": "assets/vfx/ok_sigil.png",
+  "fw": 86,
+  "fh": 128,
+  "frames": 6,
+  "set": "ok"
+ },
+ "ok_crescent": {
+  "file": "assets/vfx/ok_crescent.png",
+  "fw": 106,
+  "fh": 158,
+  "frames": 6,
+  "set": "ok"
+ },
+ "ok_verdict": {
+  "file": "assets/vfx/ok_verdict.png",
+  "fw": 94,
+  "fh": 128,
+  "frames": 6,
+  "set": "ok"
+ },
  "bs_aegis": {
   "file": "assets/vfx/bs_aegis.png",
   "fw": 106,

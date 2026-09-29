@@ -70,6 +70,11 @@ export const STATUSES = {
   citadel: { id: 'citadel', category: 'defense', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { damageTakenMult: 0.5, moveMult: 0.35, dodgeCostMult: 2, guardBlockMult: 0.5 }, aura: { color: '140,200,255', ring: 1.6, columns: 6, body: 0.1, motes: 1 }, display: { label: 'CITADEL', color: '#ffe8a0' } },
   citadel_ward: { id: 'citadel_ward', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.8 }, display: { label: 'WARDED', color: '#bfe0ff' } },
   iron_will: { id: 'iron_will', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { defenseMult: 1.5 }, display: { label: 'IRON WILL', color: '#e0b060' } },
+  // ---- Oathbreaker (skills/oathbreaker.js)
+  defiant_guard: { id: 'defiant_guard', category: 'buff', maxStacks: 1, stacking: 'refresh', display: { label: 'DEFIANT', color: '#c080ff' } },
+  oath_of_ruin: { id: 'oath_of_ruin', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { damageMult: 1.25, defenseMult: 0.6, damageTakenMult: 1.15 }, aura: { color: '200,60,90', ring: 0.9, body: 0.06 }, display: { label: 'OATH OF RUIN', color: '#ff6080' } },
+  forbidden_oath: { id: 'forbidden_oath', category: 'buff', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { damageMult: 1.15 }, aura: { color: '170,70,255', ring: 1.4, columns: 5, body: 0.1, motes: 1 }, display: { label: 'FORBIDDEN OATH', color: '#d080ff' } },
+  ruin: { id: 'ruin', category: 'debuff', maxStacks: 1, stacking: 'refresh', modifiers: { defenseMult: 0.8, damageMult: 0.9 }, display: { label: 'RUIN', color: '#b060ff' } },
   damage_reduction: { id: 'damage_reduction', category: 'defense', maxStacks: 1, stacking: 'longest', modifiers: { damageTakenMult: 0.8 }, display: { label: 'GUARD', color: '#c8d8ff' } },
 };
 
