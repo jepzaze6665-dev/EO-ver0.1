@@ -290,10 +290,14 @@ export class Player extends Entity {
     const g = this.game;
     this.perfectCooldown = DODGE.perfectCooldown;
     g.slowMo(DODGE.slowMo[0], DODGE.slowMo[1]);
-    g.vfx.flash('150,60,255', 0.35, 3);
-    g.vfx.text(this.x, this.y - 70, 'PERFECT DODGE', { color: '#f2d8ff', size: 13, life: 1.3 });
-    g.vfx.ring(this.x, this.y, 8, 70, { life: 0.4, color: '200,120,255', width: 3 });
-    g.vfx.burst(this.x, this.y - 20, '#c080ff', 22, 150);
+    // colours = the class theme (data: theme.color), so every class flashes in its own colour
+    const hex = (this.cls.theme && this.cls.theme.color) || '#c080ff';
+    const n = parseInt(hex.slice(1), 16), rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    const mix = (k) => rgb.map((v) => Math.round(v + (255 - v) * k)); // toward white
+    g.vfx.flash(rgb.map((v) => Math.round(v * 0.7)).join(','), 0.35, 3);
+    g.vfx.text(this.x, this.y - 70, 'PERFECT DODGE', { color: `rgb(${mix(0.75).join(',')})`, size: 13, life: 1.3 });
+    g.vfx.ring(this.x, this.y, 8, 70, { life: 0.4, color: mix(0.25).join(','), width: 3 });
+    g.vfx.burst(this.x, this.y - 20, hex, 22, 150);
     g.camera.punch(0.08);
     g.audio.sfx('perfect');
     // rewards = class data (data/dodge.js explains the fields); the class hook adds anything special
