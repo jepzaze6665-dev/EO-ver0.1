@@ -102,11 +102,12 @@ const SHEETS = {
   },
   // ---------------- B1 FROSTWIND PLAINS: one pose per action row, one column per direction (0 down · 1 up · 2 left · 3 right)
   rime_wolf: {
-    file: 'B/B1/1', height: 36, region: [300, 0, 2048, 2048],
+    file: 'B/B1/1.png', height: 36, region: [300, 0, 2048, 2048], pocket: 1e9, bgErode: 2, // white fur: same fix as frost_bear
     rows: [['idle', 4], ['walk', 4], ['attack', 4], ['hit', 4], ['telegraph', 4], ['special', 4], ['death', 4]],
   },
   frost_bear: {
-    file: 'B/B1/2', height: 54, region: [260, 0, 2048, 2048],
+    file: 'B/B1/2', height: 54, region: [260, 0, 2048, 2048], pocket: 1e9, bgErode: 2, // WHITE fur = the checkerboard's tone: no enclosed "pockets" (the bear's outline is complete, big
+    // white fur areas are not gaps) and the edge flood can't leak through a thin outline gap
     rows: [['idle', 4, { y: [41, 288] }], ['walk', 4, { y: [316, 555] }], ['attack', 4, { y: [581, 803] }], ['hit', 4, { y: [826, 1070] }],
       ['telegraph', 4, { y: [1094, 1337] }], ['special', 4, { y: [1354, 1681] }], ['death', 4, { y: [1721, 1975] }]],
   },
@@ -199,10 +200,30 @@ function measureBackground(img) {
   return { lo: Math.min(...tones) - 10, hi: Math.max(...tones) + 10 };
 }
 
-function removeBackground(img, pocket = 40) {
+// erode (sheet option `bgErode: r`): white / light-grey art on a light sheet (a white bear's fur) has the SAME tone as the
+// background, so a normal flood leaks into the body through every small gap in the outline. With r > 0 the flood only
+// travels through "core" background (every pixel within r is background-toned) and is then widened back by r px:
+// gaps up to 2r px wide in the outline stop it.
+function removeBackground(img, pocket = 40, erode = 0) {
   const { width: w, height: h, data } = img;
   const bg = measureBackground(img);
-  const isBg = (p) => { const i = p * 4, l = lum(data, i); return neutral(data, i) <= 16 && l >= bg.lo && l <= bg.hi; };
+  const tone = (p) => { const i = p * 4, l = lum(data, i); return neutral(data, i) <= 16 && l >= bg.lo && l <= bg.hi; };
+  let isBg = tone;
+  if (erode > 0) {
+    const toneMap = new Uint8Array(w * h);
+    for (let p = 0; p < w * h; p++) toneMap[p] = tone(p) ? 1 : 0;
+    const core = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      let all = 1;
+      for (let dy = -erode; dy <= erode && all; dy++) for (let dx = -erode; dx <= erode; dx++) {
+        const xx = x + dx, yy = y + dy;
+        if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue; // off-sheet counts as background
+        if (!toneMap[yy * w + xx]) { all = 0; break; }
+      }
+      core[y * w + x] = all;
+    }
+    isBg = (p) => core[p] === 1;
+  }
   const mark = new Uint8Array(w * h); // 1 = background, 2 = shadow
   const st = [];
   for (let x = 0; x < w; x++) for (const y of [0, h - 1]) { const p = y * w + x; if (isBg(p)) { mark[p] = 1; st.push(p); } }
@@ -230,6 +251,17 @@ function removeBackground(img, pocket = 40) {
       }
     }
     if (comp.length >= pocket) for (const q of comp) mark[q] = 1; // sheet `pocket`: small sprites need a smaller size
+  }
+  if (erode > 0) { // widen the eroded background back by r px, over background-toned pixels only
+    for (let pass = 0; pass < erode; pass++) {
+      const add = [];
+      for (let p = 0; p < w * h; p++) {
+        if (mark[p] || !tone(p)) continue;
+        const x = p % w;
+        if ((x > 0 && mark[p - 1] === 1) || (x < w - 1 && mark[p + 1] === 1) || (p >= w && mark[p - w] === 1) || (p < w * (h - 1) && mark[p + w] === 1)) add.push(p);
+      }
+      for (const p of add) mark[p] = 1;
+    }
   }
   // soft grey shadows touching the background -> translucent black
   for (let p = 0; p < w * h; p++) if (mark[p] === 1) st.push(p);
@@ -423,7 +455,7 @@ function centreOf(im, bb) {
 
 function buildMonster(id, def, probe) {
   const img = png.read(path.join(ROOT, SRC, def.file));
-  const bg = removeBackground(img, def.pocket);
+  const bg = removeBackground(img, def.pocket, def.bgErode || 0);
   if (def.darkBg) {
     // dark checkerboard sheets: background = dark NEUTRAL pixels in [minLum, lum] that form a LARGE connected region.
     // The art's own dark greys sit inside its black outline (below minLum), so they are separate small regions and stay.

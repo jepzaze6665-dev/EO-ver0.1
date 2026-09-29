@@ -710,5 +710,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   the open ground of other maps: 31 monsters / 15 packs / 31% of ground within 15 tiles of a pack -> 65 / 50 / 81% (a1 89%,
   a2 69%, b2 67%). b1 levelBand.exp 1.5 -> 1.0 (the bonus only made up for the few monsters). New packs never within 8 tiles
   of an NPC / waystone (World.buildGrid). Pacing now: A 10 / 21 / 30 -> LV 31 · B 15 / 26 / 38 -> LV 39.
+- Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
+  step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
+  (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it
+  can't leak through thin outline gaps). Used by frost_bear + rime_wolf (whose config still named 'B/B1/1': the file is 1.png).
+  Check white sprites on a dark / magenta backdrop — holes are invisible on white. Seen: yeti frames clipped on the left (frame
+  slicing, not holes) — not fixed yet.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.
