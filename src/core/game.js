@@ -200,6 +200,11 @@ export class Game {
     this.classProgress.switchTo(classId);
     // skill mastery XP from real use (progression/masterySystem.js, rules data/skillMastery.js)
     this.mastery = new MasterySystem(this);
+    // class level feedback (S5) — a tier-1 class levels with the character, so only other classes show it
+    this.events.on('classLevelUp', (e) => {
+      if (e.entity.classFollowsCharacter()) return;
+      this.ui.notify('Class Level', `${e.entity.cls.name} — Class LV ${e.level} · +skill point`, '#e0c070');
+    });
     // skill evolution feedback (progression/skillEvolution.js)
     this.events.on('skillEvolved', (e) => {
       const s = e.player.skillSys.get(e.skillId), evo = s && (s.evolutions || []).find((x) => x.id === e.evolution);

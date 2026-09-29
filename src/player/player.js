@@ -14,6 +14,8 @@ import { Loadout } from './loadout.js';
 import { levelMods, maxLevel, pointsEarned, pointsSpent, upgradeCheck } from '../progression/skillLevels.js';
 import { masteryReward } from '../progression/masterySystem.js';
 import { evolutionById, evolutionCheck, withEvolution, EVOLUTION_RULES } from '../progression/skillEvolution.js';
+import { SKILL_TREE, skillUnlockCheck } from '../data/skillTree.js';
+import { CLASS_TREE } from '../data/classTree.js';
 import { ActionRecorder } from '../combat/actionRecorder.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
 import { LEVELS } from '../data/levels.js';
@@ -128,7 +130,24 @@ export class Player extends Entity {
     const s = normalizeExp(level, exp);
     this.level = s.level; this.exp = s.exp;
     this.recomputeStats();
+    if (this.classFollowsCharacter()) this.game.classProgress.syncLevel(this.cls.id, this.level, this.exp);
   }
+  // ---------------- CLASS LEVEL (S5, data/skillTree.js): per class; a tier-1 class mirrors the character level
+  classFollowsCharacter() {
+    const node = CLASS_TREE[this.cls.id];
+    return !!(this.game.classProgress && node && SKILL_TREE.followsCharacterTiers.includes(node.tier));
+  }
+  classLevel() {
+    const cp = this.game.classProgress, c = cp && cp.classes[this.cls.id];
+    return c ? c.level : 1;
+  }
+  skillUnlockCheck(skill) {
+    return skillUnlockCheck(skill, {
+      classLevel: this.classLevel(), skill: (id) => this.skillSys.get(id),
+      nameOf: (id) => (this.skillSys.get(id) || { name: id }).name,
+    });
+  }
+  skillUnlocked(skill) { return this.skillUnlockCheck(skill).ok; }
   // rules in data/levels.js + progression/experience.js; feedback is the UI's job (listens to 'levelUp')
   gainExp(n) {
     if (!(n > 0) || this.isMaxLevel) return;
@@ -137,6 +156,13 @@ export class Player extends Entity {
     this.level = s.level; this.exp = s.exp;
     const ev = this.game.events;
     if (ev) ev.emit('expGained', { entity: this, amount: n, level: this.level, exp: this.exp });
+    // class EXP for the active class ('classLevelUp'); a tier-1 class simply mirrors the character
+    const cpr = this.game.classProgress;
+    if (cpr) {
+      const before = this.classLevel();
+      if (this.classFollowsCharacter()) cpr.syncLevel(this.cls.id, s.level, s.exp); else cpr.addClassExp(this.cls.id, n);
+      if (this.classLevel() > before && ev) ev.emit('classLevelUp', { entity: this, classId: this.cls.id, from: before, level: this.classLevel() });
+    }
     if (!s.levelsGained) return;
     this.recomputeStats();
     const lu = LEVELS.levelUp;
@@ -258,12 +284,13 @@ export class Player extends Entity {
   skillsById() { return Object.fromEntries(this.skillSys.list().map((s) => [s.id, s])); }
   skillPointsLeft() {
     const cp = this.game.classProgress;
-    return pointsEarned(this.level) - pointsSpent(cp && cp.classes[this.cls.id], this.skillsById());
+    return pointsEarned(this.classLevel()) - pointsSpent(cp && cp.classes[this.cls.id], this.skillsById());
   }
   upgradeCheck(id) {
     const s = this.skillSys.get(id);
     if (!s) return { ok: false, reason: 'unknown' };
-    return upgradeCheck(s, this.skillLevel(id), this.level, this.skillPointsLeft());
+    if (!this.skillUnlocked(s)) return { ok: false, reason: 'locked' };
+    return upgradeCheck(s, this.skillLevel(id), this.classLevel(), this.skillPointsLeft());
   }
   // spend skill points: Lv n -> n + 1 (event 'skillLevelUp')
   upgradeSkill(id) {
@@ -510,6 +537,8 @@ export class Player extends Entity {
   setSkillSlot(i, id) {
     const g = this.game;
     if (g.combat.inCombat) { g.ui.toast('Cannot change skills in combat', 1); g.audio.sfx('deny'); return false; }
+    const sk = this.skillSys.get(id);
+    if (sk && !this.skillUnlocked(sk)) { g.ui.toast(`Locked — ${this.skillUnlockCheck(sk).missing.join(', ')}`, 1.2); g.audio.sfx('deny'); return false; }
     if (!this.loadout.assign(i, id)) return false;
     g.events.emit('loadoutChanged', { player: this, slots: this.loadout.serialize() });
     g.audio.sfx('equip');

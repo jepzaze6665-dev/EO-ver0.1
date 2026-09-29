@@ -605,5 +605,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   2+ Marks) · Shadow Wave (wide, -25%, 2+ hits = extra Mark, cd +15%) · Phantom Cut (Lv 5; -20%, clone re-slash 0.6 s later).
   Skills tab: "◆ name" on the card + [Evolution ▸] panel (original + options, gameplay/damage/utility/resource/cooldown,
   missing requirements, Choose). A hitbox fired later (g.after) must name `skillId` itself. evolution.test.mjs.
+  Done S5: SKILL TREE + CLASS LEVEL `src/data/skillTree.js`: skill data `unlock: { classLevel, requires: [ids] }` +
+  `category` (OFFENSE / MOBILITY / UTILITY / RESOURCE / BURST / PASSIVE). CLASS LEVEL per class in classProgress (level / exp,
+  same curve as the character): a tier-1 class MIRRORS the character level (setLevel / gainExp sync), other classes get class
+  EXP from every expGained while active (`addClassExp`, 'classLevelUp'). Skill points + skill-level gates use class level.
+  Locked skills: SkillSystem SKILL_FAIL.LOCKED (caster.skillUnlocked), cannot be slotted, HUD slot = dark + lock + "LV n";
+  HUD also shows skill level (gold) / ◆ evolved and the leveled cost. Umbral: Slash 1 · Step 2 · Twin Fang 4 · Arc 6 · Veil 8 ·
+  Phantom Edge 10 · ult 10 (spec said 20: kept at the Class 2 level for boss balance) · Shadow Break 1 (tutorial). Skills tab:
+  Class LV / class EXP, tree strip in unlock order, category chips, "Unlocks with". Class 2 skills have no `unlock` yet (S7).
+  **`SKILL_TREE.unlockAll = true` is set by tools/testkit.js on import** (combatTest / checklist import it): bots and regression
+  use every skill at any level; to check the real locks, reload the page without loading the dev tools. skillTree.test.mjs.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.

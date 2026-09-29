@@ -18,9 +18,9 @@
 // A skill without `levels` has one level (ultimates / specials by default).
 
 export const SKILL_LEVEL_RULES = {
-  // character level needed to RAISE a skill to level n (index = n - 1). Keeps power creep tied to the level cap (30).
+  // CLASS level needed to RAISE a skill to level n (index = n - 1). Keeps power creep tied to the level cap (30).
   charLevelFor: [1, 3, 6, 10, 15],
-  // skill points: 1 per character level after the first, per class (S5 replaces this with class level / trees)
+  // skill points: 1 per CLASS level after the first (S5: class level, data/skillTree.js)
   pointsPerLevel: 1,
   // points to raise a skill to level n (index = n - 1)
   pointCost: [0, 1, 1, 2, 2],
@@ -54,6 +54,7 @@ export function pointsSpent(classEntry, skillsById) {
 export function pointsEarned(charLevel) { return Math.max(0, (charLevel - 1) * SKILL_LEVEL_RULES.pointsPerLevel); }
 
 // can `skill` go from `current` to current + 1? -> { ok, reason?, cost, need? }
+// (classLevel since S5; the rules field keeps its old name)
 export function upgradeCheck(skill, current, charLevel, pointsLeft) {
   const next = current + 1;
   if (next > maxLevel(skill)) return { ok: false, reason: 'max' };

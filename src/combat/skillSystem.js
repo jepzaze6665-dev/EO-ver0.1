@@ -21,7 +21,7 @@ import { Cooldowns } from './cooldownSystem.js';
 // Caster interface (duck-typed): resources (ResourcePool), stats.cdr, primaryResource,
 //   canAct(skill) -> bool, and whatever fields REQUIREMENTS read.
 export const SKILL_FAIL = {
-  UNKNOWN: 'unknown', BUSY: 'busy', SILENCED: 'silenced', COOLDOWN: 'cooldown', REQUIREMENT: 'requirement', RESOURCE: 'resource', STAMINA: 'stamina',
+  UNKNOWN: 'unknown', LOCKED: 'locked', BUSY: 'busy', SILENCED: 'silenced', COOLDOWN: 'cooldown', REQUIREMENT: 'requirement', RESOURCE: 'resource', STAMINA: 'stamina',
 };
 
 // Requirement checks are data -> predicate. New condition types register here, not in the pipeline.
@@ -72,6 +72,8 @@ export class SkillSystem {
   canUse(id) {
     const s = this.skills[id];
     if (!s) return { ok: false, reason: SKILL_FAIL.UNKNOWN };
+    // SKILL TREE (data/skillTree.js): not unlocked yet at this class level
+    if (this.caster.skillUnlocked && !this.caster.skillUnlocked(s)) return { ok: false, reason: SKILL_FAIL.LOCKED, skill: s };
     if (this.caster.canAct && !this.caster.canAct(s)) return { ok: false, reason: SKILL_FAIL.BUSY, skill: s };
     // status effects (silence) — any caster with a StatusSet; basic attacks are not skills-that-cast
     if (this.caster.status && this.caster.status.canCast && !this.caster.status.canCast() && s.type !== 'basic') return { ok: false, reason: SKILL_FAIL.SILENCED, skill: s };

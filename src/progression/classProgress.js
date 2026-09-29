@@ -15,6 +15,8 @@
 //   - character level / EXP / gold / items / quests are NOT here (they belong to the character, not the class).
 // Class level, skill level, mastery and evolution only get their rules in later phases (S2-S5); this file stores them.
 
+import { addExp, normalize } from './experience.js';
+
 export const SKILL_DEFAULT = () => ({ level: 1, masteryXp: 0, masteryLevel: 0, evolution: null });
 export const CLASS_DEFAULT = () => ({ level: 1, exp: 0, mastery: 0, loadout: null, skills: {} });
 
@@ -53,6 +55,18 @@ export class ClassProgress {
     if (this.active && oldLoadout) this.ensure(this.active).loadout = [...oldLoadout];
     this.active = classId;
     return this.ensure(classId).loadout;
+  }
+  // CLASS LEVEL (S5): EXP earned while this class is active, same curve as the character (data/levels.js)
+  // -> levels gained
+  addClassExp(classId, amount) {
+    const c = this.ensure(classId), s = addExp(c.level, c.exp, amount);
+    c.level = s.level; c.exp = s.exp;
+    return s.levelsGained;
+  }
+  // a class whose level follows the character (tier 1): copy the character level / EXP
+  syncLevel(classId, level, exp = 0) {
+    const c = this.ensure(classId), s = normalize(level, exp);
+    c.level = s.level; c.exp = s.exp;
   }
   rememberLoadout(slots) { if (this.active) this.ensure(this.active).loadout = [...slots]; }
 

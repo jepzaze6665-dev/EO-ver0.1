@@ -1,6 +1,10 @@
 // Browser-side test harness (import from the console: await import('/tools/testkit.js')).
 // Drives the real game through window.__game using the deterministic simulate() hook.
 const TILE = 32;
+// SKILL TREE (data/skillTree.js): regression tests / bots use every skill at any level. combatTest.js and
+// checklist.js import this file, so loading any of the dev tools switches the unlock gate off for the session.
+import { SKILL_TREE } from '../src/data/skillTree.js';
+SKILL_TREE.unlockAll = true;
 
 export function bot(g, i, opts = {}) {
   const p = g.player, inp = g.input;

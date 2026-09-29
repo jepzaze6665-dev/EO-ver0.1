@@ -14,6 +14,8 @@ import { levelMods, maxLevel } from '../progression/skillLevels.js';
 import { masteryInfo, masteryReward } from '../progression/masterySystem.js';
 import { MASTERY } from '../data/skillMastery.js';
 import { evolutionsOf, evolutionById } from '../progression/skillEvolution.js';
+import { SKILL_TREE } from '../data/skillTree.js';
+import { expToNext } from '../progression/experience.js';
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
 const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>Passives</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">passive</span><div class="small">${esc(x.desc)}</div></div></div>`).join('')}` : '');
@@ -252,9 +254,12 @@ export class Panels {
         return `<div class="small sk-evo">${cur ? `<b style="color:#ff9ad0">◆ ${esc(cur.name)}</b>` : '<span class="muted">◇ Not evolved</span>'}
           <button data-evo-open="${s.id}">Evolution ▸</button></div>`;
       };
-      const card = (s, extra = '') => `<div class="skill-card${lo.slots.includes(s.id) ? ' on' : ''}">
-          <img src="${iconURL(s.icon)}"><div class="sk-body"><b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).join(', ')}</span>
-          <div class="small">${esc(s.desc || '')}</div>${lvRow(s)}${masteryRow(s)}${evoRow(s)}${extra}</div></div>`;
+      // SKILL TREE (data/skillTree.js): category chip + what a locked skill still needs
+      const catTag = (s) => { const c = SKILL_TREE.categories[s.category]; return c ? `<span class="small" style="color:${c.color}">[${c.label}]</span> ` : ''; };
+      const lockRow = (s) => { const r = p.skillUnlockCheck(s); return r.ok ? '' : `<div class="small" style="color:#ffb070">🔒 Unlocks with: ${r.missing.map(esc).join(', ')}</div>`; };
+      const card = (s, extra = '') => `<div class="skill-card${lo.slots.includes(s.id) ? ' on' : ''}"${p.skillUnlocked(s) ? '' : ' style="opacity:.6"'}>
+          <img src="${iconURL(s.icon)}"><div class="sk-body">${catTag(s)}<b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).join(', ')}</span>
+          <div class="small">${esc(s.desc || '')}</div>${lockRow(s)}${lvRow(s)}${masteryRow(s)}${evoRow(s)}${extra}</div></div>`;
       const evoSkill = this.evoSel && p.skillSys.get(this.evoSel);
       if (evoSkill && evolutionsOf(evoSkill).length) {
         const s = evoSkill, cur = p.skillEvolution(s.id), mi = masteryInfo(g.classProgress.peekSkill(p.cls.id, s.id));
@@ -282,9 +287,13 @@ export class Panels {
       } else
       body = `<div class="skills-layout">
         <div><h3>${esc(p.cls.name)} — Skill Loadout</h3>
-          <p class="small">Skill points: <b style="color:#e0c070">${p.skillPointsLeft()}</b> <span class="muted">(1 per character level)</span></p>
+          <p class="small">Class LV <b style="color:#e0c070">${p.classLevel()}</b>${p.classFollowsCharacter() ? ' <span class="muted">(= character level)</span>' : ` <span class="muted">(${Math.floor((g.classProgress.classes[p.cls.id] || {}).exp || 0)}/${expToNext(p.classLevel())} class EXP)</span>`}
+            · Skill points: <b style="color:#e0c070">${Math.max(0, p.skillPointsLeft())}</b> <span class="muted">(1 per class level)</span></p>
+          <div class="small sk-tree" style="display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px">${[...p.cls.skills, p.cls.special].filter(Boolean)
+            .sort((a, b) => ((a.unlock && a.unlock.classLevel) || 1) - ((b.unlock && b.unlock.classLevel) || 1))
+            .map((s) => { const ok = p.skillUnlocked(s); return `<span title="${esc(s.name)}" style="padding:2px 6px;border-radius:4px;border:1px solid ${ok ? '#6a58a0' : '#3a3040'};color:${ok ? '#e8dcff' : '#8a7a70'}">${ok ? '' : '🔒'}LV ${(s.unlock && s.unlock.classLevel) || 1} ${esc(s.name)}</span>`; }).join('<span class="muted">›</span>')}</div>
           <p class="muted small">Keys <b>1-4</b> are yours to choose. <b>5</b> is always the ultimate and <b>Q</b> the class special. Changes are locked while in combat.</p>
-          ${lo.pool().map((s) => card(s, `<div class="slot-btns">${[0, 1, 2, 3].map((i) => `<button data-slot="${i}" data-skill="${s.id}" class="${lo.slots[i] === s.id ? 'on' : ''}">${i + 1}</button>`).join('')}</div>`)).join('')}
+          ${[...lo.pool()].sort((a, b) => ((a.unlock && a.unlock.classLevel) || 1) - ((b.unlock && b.unlock.classLevel) || 1)).map((s) => card(s, !p.skillUnlocked(s) ? '' : `<div class="slot-btns">${[0, 1, 2, 3].map((i) => `<button data-slot="${i}" data-skill="${s.id}" class="${lo.slots[i] === s.id ? 'on' : ''}">${i + 1}</button>`).join('')}</div>`)).join('')}
         </div>
         <div><h3>Fixed</h3>${[lo.ultimate(), p.cls.special].filter(Boolean).map((s) => card(s, `<div class="muted small">Key ${s.ultimate ? '5' : 'Q'}</div>`)).join('')}${passiveRows(p.cls)}</div>
       </div>`;

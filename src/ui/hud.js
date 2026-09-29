@@ -307,10 +307,14 @@ export class HUD {
         cdLeft = p.skillSys.cooldowns.remaining(s.id);
         cdPct = cdLeft > 0.5 ? p.skillSys.cooldowns.ratio(s.id) : 0;
         const staOk = !staminaCost(s) || p.resources.canAfford(STAMINA.resource, staminaCost(s));
-        ready = cdLeft <= 0 && reqOk && staOk && (!s.cost || p.resources.canAfford(p.skillSys.costResource(s), s.cost));
+        const cost = p.skillSys.costFor(s); // skill level / mastery adjusted
+        sl.locked = p.skillUnlocked ? !p.skillUnlocked(s) : false; // SKILL TREE: not unlocked at this class level
+        ready = !sl.locked && cdLeft <= 0 && reqOk && staOk && (!cost || p.resources.canAfford(p.skillSys.costResource(s), cost));
         sl.state = cdLeft > 0 ? 'cooldown' : !ready ? 'disabled' : p.action && p.action.name === s.id ? 'pressed' : 'ready';
         sl.noSta = !staOk;
-        if (s.cost) label = String(s.cost);
+        if (cost) label = String(cost);
+        sl.level = p.skillLevel ? p.skillLevel(s.id) : 1;
+        sl.evolved = p.skillEvolution ? !!p.skillEvolution(s.id) : false;
         sl.glow = sl.special && ready && (s.requirements || []).length > 0; // e.g. SHADOW BREAK READY
         // RECAST open (SkillSystem recast: Flash Step's 2nd dash, Mirage Shift's return): usable again right now
         if (p.skillSys.recastLeft(s.id) > 0) { ready = true; cdPct = 0; sl.state = 'ready'; sl.glow = true; label = 'AGAIN'; }
@@ -346,7 +350,16 @@ export class HUD {
       this.text(ctx, sl.key, ix + 6.5 * u, iy + 10.5 * u, 10 * u, sl.s && sl.s.ultimate ? '#ffc060' : '#ffe8a0', { align: 'center', stroke: false });
       if (label === 'AGAIN') this.text(ctx, label, ix + is - 1 * u, iy + is - 2 * u, 8 * u, '#9af8ff', { align: 'right' });
       else if (label && !sl.special) this.text(ctx, label, ix + is - 1 * u, iy + is - 2 * u, 9 * u, p.resources.canAfford(sl.s.costResource || p.primaryResource, +label) ? '#c9a0ff' : '#ff6a6a', { align: 'right' });
-      if (sl.noSta && !(cdLeft > 0)) this.text(ctx, 'STA', ix + 1 * u, iy + is - 2 * u, 8 * u, '#ff7060');
+      if (sl.noSta && !(cdLeft > 0) && !sl.locked) this.text(ctx, 'STA', ix + 1 * u, iy + is - 2 * u, 8 * u, '#ff7060');
+      // skill level (top-right) + evolution diamond; LOCKED = dark + lock + the class level it needs
+      if (sl.s && sl.level > 1) this.text(ctx, `${sl.evolved ? '◆' : ''}${sl.level}`, ix + is - 1 * u, iy + 9 * u, 8 * u, sl.evolved ? '#ff9ad0' : '#e0c070', { align: 'right' });
+      else if (sl.s && sl.evolved) this.text(ctx, '◆', ix + is - 1 * u, iy + 9 * u, 8 * u, '#ff9ad0', { align: 'right' });
+      if (sl.locked) {
+        ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(ix, iy, is, is);
+        this.text(ctx, '🔒', ix + is / 2, iy + is / 2 + 4 * u, 13 * u, '#ddd', { align: 'center', stroke: false });
+        const need = sl.s.unlock && sl.s.unlock.classLevel;
+        if (need) this.text(ctx, `LV${need}`, ix + is / 2, iy + is - 2 * u, 8 * u, '#ffb070', { align: 'center' });
+      }
       // hover tooltip
       if (hover && sl.s) this.tooltip(ctx, sx, sy - 8 * u, sl.s, u);
       x += size + gap;

@@ -78,7 +78,7 @@ export const UmbralSword = {
 
   skills: [
     {
-      slot: 1, id: 'shadow_slash', tier: 'fast', name: 'Shadow Slash', type: 'active', cooldown: 3.5, cost: 8, stamina: 8, targeting: 'direction', tags: ['melee', 'shadow', 'mark'], icon: 'slash',
+      slot: 1, id: 'shadow_slash', category: 'OFFENSE', tier: 'fast', name: 'Shadow Slash', type: 'active', cooldown: 3.5, cost: 8, stamina: 8, targeting: 'direction', tags: ['melee', 'shadow', 'mark'], icon: 'slash',
       desc: 'Lunge and cut the enemy in front. Builds 1 Shadow Mark.',
       // SKILL LEVELS (progression/skillLevels.js): power / area / cooldown / cost are applied by the core, flags here
       levels: [
@@ -160,7 +160,7 @@ export const UmbralSword = {
       },
     },
     {
-      slot: 2, id: 'twin_fang', tier: 'medium', name: 'Twin Fang', type: 'active', cooldown: 6, cost: 12, stamina: 12, targeting: 'direction', tags: ['melee', 'shadow', 'mark', 'multi-hit'], icon: 'twin',
+      slot: 2, id: 'twin_fang', category: 'OFFENSE', unlock: { classLevel: 4, requires: ['shadow_slash'] }, tier: 'medium', name: 'Twin Fang', type: 'active', cooldown: 6, cost: 12, stamina: 12, targeting: 'direction', tags: ['melee', 'shadow', 'mark', 'multi-hit'], icon: 'twin',
       desc: 'Two rapid crossing cuts that shred through guards. Builds a Shadow Mark on hit.',
       levels: [
         { text: 'Base: 1 Shadow Mark' },
@@ -187,7 +187,7 @@ export const UmbralSword = {
       },
     },
     {
-      slot: 3, id: 'shade_step', tier: 'fast', name: 'Shade Step', type: 'active', cooldown: 4.5, cost: 10, stamina: 15, targeting: 'direction', tags: ['dash', 'mobility', 'invulnerable', 'mark'], icon: 'step',
+      slot: 3, id: 'shade_step', category: 'MOBILITY', unlock: { classLevel: 2 }, tier: 'fast', name: 'Shade Step', type: 'active', cooldown: 4.5, cost: 10, stamina: 15, targeting: 'direction', tags: ['dash', 'mobility', 'invulnerable', 'mark'], icon: 'step',
       desc: 'Dash through enemies as a shadow. Invulnerable; can trigger Perfect Dodge. Builds a Mark on hit.',
       levels: [
         { text: 'Base: 165 px dash' },
@@ -225,7 +225,7 @@ export const UmbralSword = {
       },
     },
     {
-      slot: 4, id: 'shadow_arc', tier: 'medium', name: 'Shadow Arc', type: 'active', cooldown: 8, cost: 22, stamina: 20, targeting: 'direction', tags: ['aoe', 'shadow'], icon: 'arc',
+      slot: 4, id: 'shadow_arc', category: 'OFFENSE', unlock: { classLevel: 6, requires: ['twin_fang'] }, tier: 'medium', name: 'Shadow Arc', type: 'active', cooldown: 8, cost: 22, stamina: 20, targeting: 'direction', tags: ['aoe', 'shadow'], icon: 'arc',
       desc: 'Release a wide crescent of shadow that sweeps through groups. Hitting 3+ enemies builds a Mark.',
       levels: [
         { text: 'Base: 3 enemies hit = 1 Mark' },
@@ -254,7 +254,7 @@ export const UmbralSword = {
       },
     },
     {
-      id: 'shadow_veil', tier: 'fast', name: 'Shadow Veil', type: 'active', cooldown: 12, cost: 15, targeting: 'self', tags: ['stealth', 'utility', 'mark'], icon: 'veil_shadow',
+      id: 'shadow_veil', category: 'UTILITY', unlock: { classLevel: 8, requires: ['shade_step'] }, tier: 'fast', name: 'Shadow Veil', type: 'active', cooldown: 12, cost: 15, targeting: 'self', tags: ['stealth', 'utility', 'mark'], icon: 'veil_shadow',
       levels: [
         { text: 'Base: 3 s veil' },
         { cooldown: 0.9, text: '-10% cooldown' },
@@ -277,7 +277,7 @@ export const UmbralSword = {
       },
     },
     {
-      id: 'phantom_edge', tier: 'fast', name: 'Phantom Edge', type: 'active', cooldown: 5, cost: 12, targeting: 'direction', tags: ['ranged', 'shadow', 'mark', 'pierce'], icon: 'phantom',
+      id: 'phantom_edge', category: 'OFFENSE', unlock: { classLevel: 10, requires: ['shade_step'] }, tier: 'fast', name: 'Phantom Edge', type: 'active', cooldown: 5, cost: 12, targeting: 'direction', tags: ['ranged', 'shadow', 'mark', 'pierce'], icon: 'phantom',
       levels: [
         { text: 'Base: marks on the way out' },
         { power: 1.1, text: '+10% damage' },
@@ -308,7 +308,7 @@ export const UmbralSword = {
       },
     },
     {
-      slot: 5, id: 'eclipse_sever', tier: 'high', name: 'Eclipse Sever', type: 'ultimate', cooldown: 24, cost: 50, stamina: 30, targeting: 'direction', tags: ['burst', 'shadow', 'consumes-marks'], icon: 'eclipse', ultimate: true,
+      slot: 5, id: 'eclipse_sever', category: 'BURST', unlock: { classLevel: 10 }, tier: 'high', name: 'Eclipse Sever', type: 'ultimate', cooldown: 24, cost: 50, stamina: 30, targeting: 'direction', tags: ['burst', 'shadow', 'consumes-marks'], icon: 'eclipse', ultimate: true,
       desc: 'ULTIMATE. Summon a black eclipse and sever everything ahead. Consumes all Shadow Marks for bonus damage.',
       cast(p, g, a) {
         return {
@@ -353,7 +353,7 @@ export const UmbralSword = {
 
   // ---------------- SHADOW BREAK (Q / right click) — needs 3 Marks
   special: {
-    id: 'shadow_break', tier: 'high', stamina: 0, name: 'Shadow Break', type: 'special', slot: 'Q', key: 'Q', icon: 'break',
+    id: 'shadow_break', category: 'BURST', tier: 'high', stamina: 0, name: 'Shadow Break', type: 'special', slot: 'Q', key: 'Q', icon: 'break',
     cost: 0, cooldown: 0.4, targeting: 'self', tags: ['burst', 'aoe', 'consumes-marks'],
     requirements: [{ type: 'mark', mark: 'shadow_mark', min: 3, label: '3 Shadow Marks' }],
     desc: 'Detonate 3 Shadow Marks: a massive burst around you. Devastating during a Weak Window.',
