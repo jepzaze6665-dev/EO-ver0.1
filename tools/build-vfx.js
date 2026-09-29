@@ -55,11 +55,11 @@ const SETS = {
   // Bulwark Sentinel (gold fortress + blue steel light). SK3 has an opaque fake-checker background -> not used.
   // SK1 / SK4 carry direction labels in the first column (stripped); SK4 has 8 rows (2 sets), row 0 = front view.
   bs: {
-    src: 'desgin/VFX/AG/BS', detectRows: true, clean: true, feather: 40,
+    src: 'desgin/VFX/AG/BS', detectRows: true, clean: false, feather: 40, // clean off: its speckled glow lost pixels (holes)
     names: { SK1: 'bs_aegis', SK2: 'bs_charge', SK4: 'bs_wall', SK5: 'bs_crest', SK6: 'bs_pillar', SK7: 'bs_citadel' },
     rows: { SK1: 0, SK2: 3, SK4: 0, SK5: 0, SK6: 0, SK7: 0 },
     stripLabel: { SK1: 118, SK4: 80 },
-    dropLow: { SK1: 0.86 }, recenter: { SK1: true },
+    dropLow: { SK1: 0.86 }, recenter: { SK1: true, SK4: true },
   },
   aw: {
     src: 'desgin/VFX/AW', detectRows: true, clean: true,

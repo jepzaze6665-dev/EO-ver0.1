@@ -18,6 +18,7 @@
 //  absorb     : shield — data.amount points of damage absorbed before HP
 //  vulnerable : target takes the weak-window bonus from combat/damageSystem.js
 //  display    : UI only (short label + colour)
+//  aura       : drawn around the holder while active (Player.drawAura) — { color: 'r,g,b', ring, columns, body, motes, scale }
 export const STATUSES = {
   // ---- control
   stun: { id: 'stun', category: 'control', maxStacks: 1, stacking: 'longest', flags: ['cannotAct'], display: { label: 'STUN', color: '#ffe070' } },
@@ -64,9 +65,9 @@ export const STATUSES = {
   shared_resolve: { id: 'shared_resolve', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { defenseMult: 1.3 }, display: { label: 'RESOLVE', color: '#bfe6ff' } },
   // ---- Bulwark Sentinel (skills/bulwarkSentinel.js)
   iron_bastion: { id: 'iron_bastion', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.6, moveMult: 0.55 }, display: { label: 'IRON BASTION', color: '#e8c86a' } },
-  fortified: { id: 'fortified', category: 'buff', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { defenseMult: 1.4, guardBlockMult: 0.5 }, display: { label: 'FORTIFIED', color: '#ffd24a' } },
+  fortified: { id: 'fortified', category: 'buff', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { defenseMult: 1.4, guardBlockMult: 0.5 }, aura: { color: '255,200,90', ring: 0.9, body: 0.06 }, display: { label: 'FORTIFIED', color: '#ffd24a' } },
   shieldwall: { id: 'shieldwall', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.6 }, display: { label: 'SHIELDWALL', color: '#9ac8ff' } },
-  citadel: { id: 'citadel', category: 'defense', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { damageTakenMult: 0.5, moveMult: 0.35, dodgeCostMult: 2, guardBlockMult: 0.5 }, display: { label: 'CITADEL', color: '#ffe8a0' } },
+  citadel: { id: 'citadel', category: 'defense', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { damageTakenMult: 0.5, moveMult: 0.35, dodgeCostMult: 2, guardBlockMult: 0.5 }, aura: { color: '140,200,255', ring: 1.6, columns: 6, body: 0.1, motes: 1 }, display: { label: 'CITADEL', color: '#ffe8a0' } },
   citadel_ward: { id: 'citadel_ward', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.8 }, display: { label: 'WARDED', color: '#bfe0ff' } },
   iron_will: { id: 'iron_will', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { defenseMult: 1.5 }, display: { label: 'IRON WILL', color: '#e0b060' } },
   damage_reduction: { id: 'damage_reduction', category: 'defense', maxStacks: 1, stacking: 'longest', modifiers: { damageTakenMult: 0.8 }, display: { label: 'GUARD', color: '#c8d8ff' } },

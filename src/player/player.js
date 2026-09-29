@@ -9,6 +9,7 @@ import { ResourcePool } from '../combat/resourceSystem.js';
 import { RESOURCES } from '../data/resources.js';
 import { SkillSystem } from '../combat/skillSystem.js';
 import { MARKS } from '../data/marks.js';
+import { STATUSES } from '../data/statuses.js';
 import { Loadout } from './loadout.js';
 import { ActionRecorder } from '../combat/actionRecorder.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
@@ -611,12 +612,45 @@ export class Player extends Entity {
     return this.sprites.frame(this.anim, t, dir, variant);
   }
 
+  // STATUS AURA (data/statuses.js 'aura'): while a mode is active it stays visible — ground ring + glow under the feet,
+  // light columns, a tinted pulse on the body, rising motes. { color: 'r,g,b', ring, columns, body, motes, scale }
+  drawAura(ctx, a, layer, f, y) {
+    const g = this.game, t = g.time, s = a.scale || 1, c = a.color, pulse = 0.5 + 0.5 * Math.sin(t * 4);
+    if (layer === 'under') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const R = 30 * s * (a.ring || 1);
+      const gr = ctx.createRadialGradient(this.x, this.y, 2, this.x, this.y, R);
+      gr.addColorStop(0, `rgba(${c},${0.35 + 0.15 * pulse})`); gr.addColorStop(1, `rgba(${c},0)`);
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(this.x, this.y, R, R * 0.42, 0, 0, TAU); ctx.fill();
+      ctx.strokeStyle = `rgba(${c},${0.55 + 0.3 * pulse})`; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(this.x, this.y, R * (0.8 + 0.08 * pulse), R * 0.34 * (0.8 + 0.08 * pulse), 0, 0, TAU); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(this.x, this.y, R * 0.55, R * 0.23, 0, 0, TAU); ctx.stroke();
+      for (let i = 0; i < (a.columns || 0); i++) { // light columns around the body (a fortress of light)
+        const ang = (i / a.columns) * TAU + t * 0.6, cx = this.x + Math.cos(ang) * R * 0.8, cy = this.y + Math.sin(ang) * R * 0.34;
+        const h = (34 + 10 * Math.sin(t * 3 + i)) * s, lg = ctx.createLinearGradient(cx, cy, cx, cy - h);
+        lg.addColorStop(0, `rgba(${c},0.5)`); lg.addColorStop(1, `rgba(${c},0)`);
+        ctx.fillStyle = lg; ctx.fillRect(cx - 2, cy - h, 4, h);
+      }
+      ctx.restore();
+      if (a.motes && Math.random() < a.motes * 0.2) { // ~12 motes a second at 60 fps
+        const ang = Math.random() * TAU, r = Math.random() * R * 0.8;
+        g.vfx.particle(this.x + Math.cos(ang) * r, this.y + Math.sin(ang) * r * 0.4, { vx: 0, vy: -40 - Math.random() * 30, color: `rgb(${c})`, life: 0.8, size: 2, grav: 0, drag: 0.5 });
+      }
+    } else if (a.body && f) { // tinted glow pulse over the body (class ghost / flash sheets)
+      ctx.globalCompositeOperation = 'lighter';
+      this.sprites.draw(ctx, this.currentFrame('flash'), this.x, y, a.body * (0.4 + 0.6 * pulse));
+      ctx.globalCompositeOperation = 'source-over';
+    }
+  }
   draw(ctx) {
     const g = this.game;
     // shadow
     const sk = this.stealthK || 0; // stealth: body fades to ~35%, shadow almost gone
     ctx.fillStyle = `rgba(0,0,0,${0.35 * (1 - sk * 0.7)})`;
     ctx.beginPath(); ctx.ellipse(this.x, this.y, 12, 4.5, 0, 0, TAU); ctx.fill();
+    const auras = this.status.list().map((s) => STATUSES[s.id].aura).filter(Boolean); // status data 'aura' (a mode is on)
+    for (const a of auras) this.drawAura(ctx, a, 'under');
     if (this.markId && this.marks >= this.maxMarks) {
       ctx.fillStyle = MARKS[this.markId].display.color;
       ctx.globalAlpha = 0.3 + 0.15 * Math.sin(g.time * 8);
@@ -649,6 +683,7 @@ export class Player extends Entity {
       const ff = this.currentFrame('flash');
       this.sprites.draw(ctx, ff, this.x, y, Math.min(1, this.flash * 8) * 0.8);
     }
+    for (const a of auras) this.drawAura(ctx, a, 'over', f, y);
     if (this.status.has('surge')) {
       ctx.globalCompositeOperation = 'lighter';
       this.sprites.draw(ctx, this.currentFrame('ghost'), this.x, y, 0.18 + 0.08 * Math.sin(g.time * 10));

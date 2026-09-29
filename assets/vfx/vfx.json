@@ -309,7 +309,7 @@
  },
  "bs_wall": {
   "file": "assets/vfx/bs_wall.png",
-  "fw": 104,
+  "fw": 86,
   "fh": 128,
   "frames": 6,
   "set": "bs"

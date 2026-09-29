@@ -26,7 +26,7 @@ export const WD_ANIMS = {
   guard: { sheet: 'sk1', cols: [1], side: { sheet: 'walk', cols: [0] } },
   dawnShield: { sheet: 'sk1', cols: [1, 2, 2, 4] },
   radiantChain: { sheet: 'sk2', cols: [1, 2, 3, 3, 4] },
-  dawnBastion: { sheet: 'sk3', cols: [1, 2, 3, 3, 4] },
+  dawnBastion: { sheet: 'sk3', cols: [1, 2, 3, 3, 3] }, // col 4 thrusts backwards in both side rows
   march: { sheet: 'sk4', cols: [1, 2, 2, 3, 3, 4] },
   grace: { sheet: 'sk5', cols: [1, 2, 3, 3, 4] },
   counter: { sheet: 'sk6', cols: [2, 3, 3, 4] },   // pillar of light -> riposte

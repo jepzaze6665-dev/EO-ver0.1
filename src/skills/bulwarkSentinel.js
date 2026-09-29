@@ -309,7 +309,9 @@ export const BulwarkSentinel = {
               g.vfx.sprite('bs_citadel', p.x, p.y - 34, 0, { scale: 1.6, life: 0.9, glow: 0.4, alpha: 0.9 });
               g.vfx.ring(p.x, p.y, 20, c.tauntRadius, { life: 0.5, width: 5, color: HOLY, fill: true });
               g.vfx.text(p.x, p.y - 92, 'CITADEL OF ONE', { color: PALE, size: 14, life: 1.2 });
-              p.status.add('citadel', c.duration, { source: p, refresh: true });
+              p.status.add('citadel', c.duration, { source: p, refresh: true }); // + its aura (data/statuses.js)
+              // the fortress stays around the Bulwark for the whole mode (faint held frame, follows it)
+              g.vfx.sprite('bs_citadel', 0, 0, 0, { follow: p, off: 22, scale: 1.1, life: c.duration, frame: 3, glow: 0.2, alpha: 0.3 } /* off: that frame's fortress sits left of its centre */);
               p.citadelPulse = 0;
               g.combat.spawnHitbox({ owner: p, x: p.x, y: p.y - 8, shape: 'circle', r: 110, power: 2.2, type: 'holy', knock: 280, stagger: 60, hitStop: 0.12, shake: 0.4, big: true });
             }],

@@ -115,7 +115,7 @@ PRESETS.be = { out: 'assets/player/be', nearestBody: true, sheets: {
 // facing: row 3 is the only side row drawn consistently (row 2 turns its head / cuts the other way, DASH / SK2 draw
 // both rows facing right) -> row 3 = right, mirrored for the left, so the head always faces the blow
 const WD = 'desgin/class cr/AG/WD/';
-PRESETS.wd = { out: 'assets/player/wd', nearestBody: true, bg: PRESETS.ag.bg, facing: { right: 3, left: 3, flipLeft: true }, sheets: {
+PRESETS.wd = { out: 'assets/player/wd', nearestBody: true, edgeFade: 8, splitFeather: 60, bg: PRESETS.ag.bg, facing: { right: 3, left: 3, flipLeft: true }, sheets: {
   walk: [WD + 'WALK 1', 4],
   atk1: [WD + 'ATK1', 4],
   atk2: [WD + 'ATK2', 4],
@@ -126,12 +126,13 @@ PRESETS.wd = { out: 'assets/player/wd', nearestBody: true, bg: PRESETS.ag.bg, fa
   sk3: [WD + 'SK3', 4],
   sk4: [WD + 'SK4', 4],
   sk5: [WD + 'SK5', 4],
-  sk6: [WD + 'SK6', 4],
+  sk6: [WD + 'SK6', 4, { swapSides: [3] }], // col 3 of the right row shows the back of the head
   ult: [WD + 'UT', 4],
 } };
 // Bulwark Sentinel (Class 2 of Aegis Guardian): gold / steel fortress plate, tower shield, bastion sword
 const BS = 'desgin/class cr/AG/BS/';
-PRESETS.bs = { out: 'assets/player/bs', nearestBody: true, bg: PRESETS.ag.bg, sheets: {
+// glowToAlpha: its gold skill glow is painted over the white sheet (it came out as a white halo around the body)
+PRESETS.bs = { out: 'assets/player/bs', nearestBody: true, edgeFade: 8, splitFeather: 60, bg: { ...PRESETS.ag.bg, glowToAlpha: true }, sheets: {
   walk: [BS + 'WALK 1', 4],
   idle: [BS + 'WALK 2', 4],
   atk1: [BS + 'ATK1', 4],
@@ -185,8 +186,34 @@ function removeBackground(img, bg = DEFAULT_BG) {
     for (const q of nb) if (q >= 0 && !mark[q] && isBg(q * 4, true)) { mark[q] = 1; stack.push(q); }
   }
   if (bg.holes) fillPockets(mark, w, h, bg.holes);
+  // glowToAlpha: effect glow painted over the WHITE sheet is opaque cream (a white halo in game). Pixels reachable from
+  // the background through light pixels (every channel > glowMin), at most glowDepth px deep, get "colour to alpha"
+  // against white: the whiteness becomes transparency, the tint stays (cream glow -> translucent gold).
+  // Armour highlights are enclosed by the dark outline, so the fill never reaches them.
+  const glow = new Uint8Array(w * h);
+  if (bg.glowToAlpha) {
+    const [gMin, gDepth] = [bg.glowMin ?? 150, bg.glowDepth ?? 40], dep = new Int16Array(w * h).fill(-1), q = [];
+    for (let p = 0; p < w * h; p++) if (mark[p]) { dep[p] = 0; q.push(p); }
+    const light = (p) => { const i = p * 4; return Math.min(data[i], data[i + 1], data[i + 2]) > gMin; };
+    for (let k = 0; k < q.length; k++) {
+      const p = q[k], x = p % w, y = (p / w) | 0;
+      if (dep[p] >= gDepth) continue;
+      for (const n of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, y > 0 ? p - w : -1, y < h - 1 ? p + w : -1]) {
+        if (n < 0 || dep[n] >= 0 || mark[n] || !light(n)) continue;
+        dep[n] = dep[p] + 1; glow[n] = 1; q.push(n);
+      }
+    }
+    for (let p = 0; p < w * h; p++) {
+      if (!glow[p]) continue;
+      const i = p * 4, a = Math.max(255 - data[i], 255 - data[i + 1], 255 - data[i + 2]) / 255;
+      if (a < 0.04) { mark[p] = 1; continue; }
+      for (let c = 0; c < 3; c++) data[i + c] = Math.max(0, Math.min(255, Math.round((data[i + c] - 255 * (1 - a)) / a)));
+      data[i + 3] = Math.round(a * 255 * (data[i + 3] / 255));
+    }
+  }
   for (let p = 0; p < w * h; p++) {
     if (mark[p]) { data[p * 4 + 3] = 0; continue; }
+    if (glow[p]) continue; // already un-mixed from white
     // soften light fringe pixels touching the background (un-mix from white)
     const x = p % w, y = (p / w) | 0;
     const touches = (x > 0 && mark[p - 1]) || (x < w - 1 && mark[p + 1]) || (y > 0 && mark[p - w]) || (y < h - 1 && mark[p + w]);
@@ -304,7 +331,7 @@ function analyseCell(img, x0, y0, cw, ch) {
 
 // FEATHER: effects that cross a source cell border fade out over this many output px
 // instead of ending on a hard straight line.
-const FEATHER = 4;
+let FEATHER = 4; // per preset: cutFeather
 function downscale(src, sx, sy, sw, sh, scale, clip) {
   const dw = Math.max(1, Math.round(sw * scale)), dh = Math.max(1, Math.round(sh * scale));
   const out = png.create(dw, dh);
@@ -585,7 +612,14 @@ function componentFrames(img, y0, y1, xs, n = COLS, opts = {}) {
           if (nx >= 0 && ny >= 0 && nx < W && ny < H) { const m = lab[ny * W + nx]; if (owns(m, k) && pixelOwner(m, nx, ny) === k) own = true; }
         }
       }
-      if (own) d.copy(f.data, (y * fw + x) * 4, at(sx, sy), at(sx, sy) + 4);
+      if (own) {
+        d.copy(f.data, (y * fw + x) * 4, at(sx, sy), at(sx, sy) + 4);
+        // opts.splitFeather: an effect shared by two frames is split by nearest body -> fade near that seam
+        if (opts.splitFeather && l >= 0 && owner[l] === -2) {
+          const ds = bodies[l].map((b) => ({ k: b.k, d: Math.hypot(b.x - sx, b.y - sy) })).sort((p, q) => p.d - q.d);
+          if (ds.length > 1) f.data[(y * fw + x) * 4 + 3] = Math.round(f.data[(y * fw + x) * 4 + 3] * Math.min(1, (ds[1].d - ds[0].d) / opts.splitFeather));
+        }
+      }
     }
     if (bBot >= 0) f.body = { top: bTop - miny, bottom: bBot - miny };
     frames.push(f);
@@ -595,7 +629,8 @@ function componentFrames(img, y0, y1, xs, n = COLS, opts = {}) {
 
 const [CW, CH] = STD.canvas, [PX, PY] = STD.pivot;
 function buildPreset(key) {
-const { out: outRel, sheets: SHEETS, facing: FACING, nearestBody, bg } = PRESETS[key];
+const { out: outRel, sheets: SHEETS, facing: FACING, nearestBody, bg, edgeFade, splitFeather, cutFeather } = PRESETS[key];
+FEATHER = cutFeather || 4;
 const OUT = path.join(ROOT, outRel);
 fs.mkdirSync(OUT, { recursive: true });
 console.log('== preset', key, '->', outRel);
@@ -610,7 +645,7 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
   for (let r = 0; r < rows; r++) {
     const bx = bodyProjection(img, ys[r], ys[r + 1]), px = projection(img, false, ys[r], ys[r + 1]);
     const xs = blobSplits(bx, n, img.width) || blobSplits(px, n, img.width) || splits(px, n, img.width);
-    const frames = componentFrames(img, ys[r], ys[r + 1], xs, n, { nearestBody });
+    const frames = componentFrames(img, ys[r], ys[r + 1], xs, n, { nearestBody, splitFeather });
     while (frames.length < COLS) frames.push(frames[frames.length - 1]); // short rows: hold the last pose
     for (let c = 0; c < COLS; c++) {
       const f = frames[c];
@@ -640,8 +675,19 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
       const h = darkHeight(f);
       if (h > bestH || (h === bestH && Math.abs(shift) < bestShift)) { frame = f; bestH = h; bestShift = Math.abs(shift); }
     }
+    // edgeFade: effects reaching the canvas edge (a ground ring below the feet) fade out instead of a straight cut
+    if (edgeFade) for (let y = 0; y < frame.height; y++) for (let x = 0; x < frame.width; x++) {
+      const e = Math.min(x, y, frame.width - 1 - x, frame.height - 1 - y);
+      if (e < edgeFade) { const i = (y * frame.width + x) * 4 + 3; frame.data[i] = Math.round(frame.data[i] * (e / edgeFade)); }
+    }
     blit(sheet, frame, c * CW, r * CH);
   });
+  // swapSides: [cols] — the AI drew these columns of the two side rows the wrong way round (the right-facing row
+  // looks / strikes left and vice versa): exchange them so each side row faces its own way
+  for (const c of opt.swapSides || []) for (let base = 0; base < rows; base += 4) for (let y = 0; y < CH; y++) {
+    const a = ((base + 2) * CH + y) * sheet.width * 4 + c * CW * 4, b = ((base + 3) * CH + y) * sheet.width * 4 + c * CW * 4;
+    const tmp = Buffer.from(sheet.data.subarray(a, a + CW * 4)); sheet.data.copy(sheet.data, a, b, b + CW * 4); tmp.copy(sheet.data, b);
+  }
   png.write(path.join(OUT, name + '.png'), sheet);
   const sides = [];
   const face = opt.facing || FACING; // per-sheet facing override > preset facing > detected
