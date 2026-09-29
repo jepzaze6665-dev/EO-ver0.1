@@ -22,7 +22,8 @@ export const WD_ANIMS = {
   atk2: { sheet: 'atk1', cols: [2, 3, 3] },        // lunging thrust
   atk3: { sheet: 'atk2', cols: [1, 2, 3, 3, 4] },  // blue dawn arc
   dodge: { sheet: 'dash', cols: [1, 2, 3, 4] },
-  guard: { sheet: 'sk1', cols: [1] },              // shield square to the front
+  // shield square to the front; the side views of SK1 col 1 lose the shield -> the walk stance (shield forward)
+  guard: { sheet: 'sk1', cols: [1], side: { sheet: 'walk', cols: [0] } },
   dawnShield: { sheet: 'sk1', cols: [1, 2, 2, 4] },
   radiantChain: { sheet: 'sk2', cols: [1, 2, 3, 3, 4] },
   dawnBastion: { sheet: 'sk3', cols: [1, 2, 3, 3, 4] },

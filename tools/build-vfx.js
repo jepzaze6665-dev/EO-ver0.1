@@ -47,6 +47,10 @@ const SETS = {
     src: 'desgin/VFX/AG/DW', detectRows: true, clean: true,
     names: { SK1: 'dw_shield', SK2: 'dw_burst', SK3: 'dw_circle', SK4: 'dw_crest', SK5: 'dw_pillar', SK6: 'dw_knight', SK7: 'dw_dome' },
     rows: { SK1: 0, SK2: 0, SK3: 0, SK5: 0, SK6: 0, SK7: 0 },
+    // the glow of these sheets joins neighbouring frames / rows into one blob: fade it out over 40 source px at the
+    // cut (column AND row) instead of a straight edge
+    feather: 40,
+    recenter: { SK3: true }, // the magic-circle frames sit unevenly in their cells (the circle jumped sideways)
   },
   aw: {
     src: 'desgin/VFX/AW', detectRows: true, clean: true,
@@ -138,6 +142,9 @@ function extractRow(img, file, set) {
   }
   cuts.push(W);
   const colOfX = (x) => { let k = 0; while (k < COLS - 1 && x >= cuts[k + 1]) k++; return k; };
+  const FEATHER = set.feather || CUT_FEATHER;
+  // row boundaries (half-way to the neighbouring rows): big blobs split per pixel fade out there when set.feather is on
+  const rb0 = ROW > 0 ? (rowC[ROW - 1] + rowC[ROW]) / 2 : -Infinity, rb1 = ROW < rowC.length - 1 ? (rowC[ROW] + rowC[ROW + 1]) / 2 : Infinity;
   // blob -> frame: whole blob by centroid, unless it crosses a cut (then per pixel, feathered)
   const owner = comps.map((c) => (colOfX(c.minx) === colOfX(c.maxx) ? colOfX(c.sx / c.n) : -2));
   const frames = [...Array(COLS)].map(() => ({ px: [], minx: 1e9, maxx: -1, miny: 1e9, maxy: -1 }));
@@ -149,8 +156,9 @@ function extractRow(img, file, set) {
     if (k === -2) {
       k = colOfX(x);
       const dist = Math.min(k > 0 ? x - cuts[k] : Infinity, k < COLS - 1 ? cuts[k + 1] - 1 - x : Infinity);
-      a = Math.round(a * Math.min(1, dist / CUT_FEATHER));
+      a = Math.round(a * Math.min(1, dist / FEATHER));
     }
+    if (set.feather) a = Math.round(a * Math.max(0, Math.min(1, Math.min(y - rb0, rb1 - y) / FEATHER))); // nothing from the next row
     if (!a) continue;
     const f = frames[k];
     f.px.push(p, a);
@@ -159,13 +167,16 @@ function extractRow(img, file, set) {
   // common frame size around each cell centre / the row centre
   const cy = rowC[ROW];
   let hw = cw / 2, hh = H / 8;
-  frames.forEach((f, k) => { if (f.maxx < 0) return; const cx = (k + 0.5) * cw; hw = Math.max(hw, cx - f.minx + 2, f.maxx - cx + 3); hh = Math.max(hh, cy - f.miny + 2, f.maxy - cy + 3); });
+  // recenter: frames drawn off their grid cell (a sheet laid out unevenly) are centred on their own content
+  const rec = set.recenter && set.recenter[file];
+  const fcx = (f, k) => (rec && f.maxx >= 0 ? (f.minx + f.maxx) / 2 : (k + 0.5) * cw);
+  frames.forEach((f, k) => { if (f.maxx < 0) return; const cx = fcx(f, k); hw = Math.max(hw, cx - f.minx + 2, f.maxx - cx + 3); hh = Math.max(hh, cy - f.miny + 2, f.maxy - cy + 3); });
   const fw = Math.ceil(hw * SCALE) * 2, fh = Math.ceil(hh * SCALE) * 2;
   const out = png.create(fw * COLS, fh);
   frames.forEach((f, k) => {
     // accumulate owned pixels into 2x2 output blocks (premultiplied)
     const acc = new Float64Array(fw * fh * 4);
-    const ox = (k + 0.5) * cw - fw / 2 / SCALE, oy = cy - fh / 2 / SCALE;
+    const ox = fcx(f, k) - fw / 2 / SCALE, oy = cy - fh / 2 / SCALE;
     for (let i = 0; i < f.px.length; i += 2) {
       const p = f.px[i], a = f.px[i + 1] / 255, x = p % W, y = (p / W) | 0;
       const X = Math.floor((x - ox) * SCALE), Y = Math.floor((y - oy) * SCALE);

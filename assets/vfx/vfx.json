@@ -260,7 +260,7 @@
  },
  "dw_circle": {
   "file": "assets/vfx/dw_circle.png",
-  "fw": 114,
+  "fw": 106,
   "fh": 158,
   "frames": 6,
   "set": "dw"

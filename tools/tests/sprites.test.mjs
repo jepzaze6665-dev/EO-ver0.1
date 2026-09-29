@@ -14,14 +14,15 @@ for (const cls of Object.values(CLASSES)) {
   const atlas = JSON.parse(readFileSync(new URL('../../' + PLAYER_PRESETS[cls.preset], import.meta.url), 'utf8'));
   test(`${cls.name}: every animation uses existing, non-empty frames in all 4 directions`, () => {
     const bad = [];
-    for (const [anim, a] of Object.entries(cls.anims)) {
+    const views = (a) => (a.side ? [[a, [0, 1]], [{ ...a, ...a.side }, [2, 3]]] : [[a, [0, 1, 2, 3]]]); // side override = rows 2-3
+    for (const [anim, a0] of Object.entries(cls.anims)) for (const [a, dirs] of views(a0)) {
       const s = atlas.sheets[a.sheet];
       ok(s, `animation "${anim}" -> missing sheet "${a.sheet}"`);
       const empty = new Set((s.emptyFrames || []).map(([r, c]) => r + ',' + c));
       const base = a.rowOffset || 0;
       for (const col of a.cols) {
         ok(col >= 0 && col < s.cols, `animation "${anim}" -> column ${col} out of range`);
-        for (let r = base; r < base + 4; r++) if (empty.has(r + ',' + col)) bad.push(`${anim}[row ${r}, col ${col}]`);
+        for (const dd of dirs) { const r = base + dd; if (empty.has(r + ',' + col)) bad.push(`${anim}[row ${r}, col ${col}]`); }
       }
     }
     ok(!bad.length, 'empty frames used: ' + bad.join(', '));

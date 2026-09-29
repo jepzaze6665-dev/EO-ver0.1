@@ -6,6 +6,8 @@ import { Assets, makeCanvas } from '../core/assets.js';
 // To swap in new art, export sheets with the same grid + anchor and update atlas.json.
 
 // animation name -> sheet + column sequence (Umbral Sword table; other classes pass their own)
+//   side: { sheet?, cols?, fps? } — used instead for the left / right views (dir 2 / 3), for AI sheets whose side rows
+//   draw the head and the blow facing different ways (the character seemed to spin mid-attack)
 export const ANIMS = {
   idle: { sheet: 'walk', cols: [0] },
   walk: { sheet: 'walk', cols: [1, 2, 3, 4, 5], fps: 10, loop: true },
@@ -39,12 +41,13 @@ export class PlayerSprites {
       this.sheets[name] = { ...s, img, flash: tint(img, '#ffffff'), ghost: tint(img, ghostColor) };
     }
     // every animation must point at a sheet that exists (catches typos at load, not mid-fight)
-    for (const [k, a] of Object.entries(anims)) if (!this.sheets[a.sheet]) throw new Error(`Animation "${k}" uses missing sheet "${a.sheet}" (${preset})`);
+    for (const [k, a] of Object.entries(anims)) for (const sh of [a.sheet, a.side && a.side.sheet]) if (sh && !this.sheets[sh]) throw new Error(`Animation "${k}" uses missing sheet "${sh}" (${preset})`);
   }
 
   // returns a drawable frame descriptor
   frame(animName, t, dir, variant = 'img') {
-    const a = this.anims[animName] || this.anims.idle;
+    const a0 = this.anims[animName] || this.anims.idle;
+    const a = dir >= 2 && a0.side ? { ...a0, ...a0.side } : a0;
     const s = this.sheets[a.sheet];
     let idx;
     if (a.fps) idx = Math.floor(t * a.fps) % a.cols.length;

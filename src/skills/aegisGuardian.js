@@ -16,19 +16,21 @@ export const AG_ANIMS = {
   idle: { sheet: 'walk', cols: [0] },
   walk: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 8, loop: true, bob: 2 },
   run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 12, loop: true, bob: 3 },
-  atk1: { sheet: 'atk1', cols: [1, 2] },          // overhead cut
-  atk2: { sheet: 'atk1', cols: [3, 3] },          // thrust
-  atk3: { sheet: 'atk1', cols: [1, 2, 2, 2] },    // full sweeping arc
+  // ATK1's side rows turn the head away from the blow (both rows) -> side views use DEF (shield step + thrust) and
+  // SK2 (sweeping arc), which keep head and blade on the same side
+  atk1: { sheet: 'atk1', cols: [1, 2], side: { sheet: 'guard', cols: [1, 4] } },          // overhead cut
+  atk2: { sheet: 'atk1', cols: [3, 3], side: { sheet: 'guard', cols: [3, 4, 4] } },       // thrust
+  atk3: { sheet: 'atk1', cols: [1, 2, 2, 2], side: { sheet: 'sk2', cols: [1, 2, 3, 3] } }, // full sweeping arc
   dodge: { sheet: 'dash', cols: [2, 3, 4] },      // real dash art (lean + speed lines)
   guard: { sheet: 'guard', cols: [3] },           // shield square to the front in all 4 directions
   shieldBash: { sheet: 'sk1', cols: [1, 2, 3, 4] },
   guardianSlash: { sheet: 'sk2', cols: [1, 2, 3, 4] },
   challenge: { sheet: 'sk4', cols: [1, 2, 3, 3, 4] },
-  barrier: { sheet: 'sk5', cols: [1, 2, 3, 3, 4] },
+  barrier: { sheet: 'sk5', cols: [1, 3, 3, 5] },     // col 2 / 4 point the sword opposite the head
   counter: { sheet: 'sk6', cols: [3, 3, 4, 4] },  // golden flash on the shield -> riposte
   perfectGuard: { sheet: 'guard', cols: [3, 3, 4] }, // shield up -> riposte thrust
   ascension: { sheet: 'ult', cols: [1, 2, 2, 3, 3, 4] },
-  hurt: { sheet: 'hit', cols: [2, 3] },
+  hurt: { sheet: 'hit', cols: [1, 2] },
   death: { sheet: 'hit', cols: [2, 3, 3] },
 };
 
