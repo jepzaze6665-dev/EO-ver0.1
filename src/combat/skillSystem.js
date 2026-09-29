@@ -63,8 +63,11 @@ export class SkillSystem {
   costResource(skill) { return skill.costResource || this.caster.primaryResource; }
   cooldownFor(skill) {
     const cdr = Math.min(MAX_CDR, Math.max(0, (this.caster.stats && this.caster.stats.cdr) || 0));
-    return (skill.cooldown || 0) * (1 - cdr);
+    return (skill.cooldown || 0) * (1 - cdr) * this.mods(skill).cooldown;
   }
+  // SKILL LEVELS (progression/skillLevels.js): the caster may scale a skill's numbers (caster.skillMods(skill))
+  mods(skill) { return (this.caster.skillMods && this.caster.skillMods(skill)) || { cooldown: 1, cost: 1 }; }
+  costFor(skill) { return skill.cost ? Math.round(skill.cost * this.mods(skill).cost) : 0; }
 
   canUse(id) {
     const s = this.skills[id];
@@ -78,7 +81,7 @@ export class SkillSystem {
       const check = REQUIREMENTS[r.type];
       if (!check || !check(this.caster, r)) return { ok: false, reason: SKILL_FAIL.REQUIREMENT, skill: s, requirement: r };
     }
-    if (s.cost && !this.caster.resources.canAfford(this.costResource(s), s.cost)) {
+    if (s.cost && !this.caster.resources.canAfford(this.costResource(s), this.costFor(s))) {
       return { ok: false, reason: SKILL_FAIL.RESOURCE, skill: s, resource: this.costResource(s) };
     }
     // COMBAT 2.0: stamina (skill.stamina, else its tier's default — data/skillTiers.js) on top of the class resource cost
@@ -104,7 +107,7 @@ export class SkillSystem {
       if (this.onUsed) this.onUsed({ caster: this.caster, skillId: id, skill: s, recast: true });
       return { ok: true, skill: s, result, recast: true };
     }
-    if (s.cost) this.caster.resources.spend(this.costResource(s), s.cost, 'skill:' + id);
+    if (s.cost) this.caster.resources.spend(this.costResource(s), this.costFor(s), 'skill:' + id);
     const sta = staminaCost(s);
     if (sta && this.caster.resources.has(STAMINA.resource)) this.caster.resources.spend(STAMINA.resource, sta, 'skill:' + id);
     this.cooldowns.start(id, this.cooldownFor(s));

@@ -10,6 +10,7 @@ import { RESOURCES } from '../data/resources.js';
 import { CLASS_COUNTERS, CLASS_TREE } from '../data/classTree.js';
 import { classChangeCheck } from '../progression/classChange.js';
 import { ROUTES } from '../data/routes.js';
+import { levelMods, maxLevel } from '../progression/skillLevels.js';
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
 const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>Passives</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">passive</span><div class="small">${esc(x.desc)}</div></div></div>`).join('')}` : '');
@@ -222,12 +223,23 @@ export class Panels {
     } else if (this.invTab === 'skills') {
       // generic loadout editor: every class skill, keys 1-4 are chosen here (5 = ultimate, Q = special)
       const tierTag = (s) => { const t = SKILL_TIERS[s.tier]; return t ? `<span style="color:${t.color}">${t.label}</span> · ` : ''; };
-      const p = g.player, lo = p.loadout, cd = (s) => `${tierTag(s)}CD ${s.cooldown}s${s.cost ? ` · ${s.cost} ${RESOURCES[s.costResource || p.primaryResource].label}` : ''}${staminaCost(s) ? ` · ${staminaCost(s)} STA` : ''}`;
+      const p = g.player, lo = p.loadout, cd = (s) => `${tierTag(s)}CD ${+p.skillSys.cooldownFor(s).toFixed(1)}s${s.cost ? ` · ${p.skillSys.costFor(s)} ${RESOURCES[s.costResource || p.primaryResource].label}` : ''}${staminaCost(s) ? ` · ${staminaCost(s)} STA` : ''}`;
+      // SKILL LEVEL (progression/skillLevels.js): Lv n / max, this level's effect, next level's effect + [+] button
+      const UPG_WHY = { max: 'MAX', level: (r) => `needs LV ${r.need}`, points: (r) => `needs ${r.cost} pt` };
+      const lvRow = (s) => {
+        const max = maxLevel(s);
+        if (max <= 1) return '';
+        const lv = p.skillLevel(s.id), cur = levelMods(s, lv), next = lv < max ? levelMods(s, lv + 1) : null, r = p.upgradeCheck(s.id);
+        const why = !r.ok && UPG_WHY[r.reason] ? (typeof UPG_WHY[r.reason] === 'function' ? UPG_WHY[r.reason](r) : UPG_WHY[r.reason]) : '';
+        return `<div class="small sk-level"><b style="color:#e0c070">Lv ${lv}/${max}</b> ${esc(cur.text)}
+          ${next ? `<br><span class="muted">Next: ${esc(next.text)}</span> ${r.ok ? `<button data-upgrade="${s.id}">+ Level (${r.cost} pt)</button>` : `<span class="muted">(${why})</span>`}` : ''}</div>`;
+      };
       const card = (s, extra = '') => `<div class="skill-card${lo.slots.includes(s.id) ? ' on' : ''}">
           <img src="${iconURL(s.icon)}"><div class="sk-body"><b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).join(', ')}</span>
-          <div class="small">${esc(s.desc || '')}</div>${extra}</div></div>`;
+          <div class="small">${esc(s.desc || '')}</div>${lvRow(s)}${extra}</div></div>`;
       body = `<div class="skills-layout">
         <div><h3>${esc(p.cls.name)} — Skill Loadout</h3>
+          <p class="small">Skill points: <b style="color:#e0c070">${p.skillPointsLeft()}</b> <span class="muted">(1 per character level)</span></p>
           <p class="muted small">Keys <b>1-4</b> are yours to choose. <b>5</b> is always the ultimate and <b>Q</b> the class special. Changes are locked while in combat.</p>
           ${lo.pool().map((s) => card(s, `<div class="slot-btns">${[0, 1, 2, 3].map((i) => `<button data-slot="${i}" data-skill="${s.id}" class="${lo.slots[i] === s.id ? 'on' : ''}">${i + 1}</button>`).join('')}</div>`)).join('')}
         </div>
@@ -325,7 +337,7 @@ export class Panels {
         <div class="content">${body}</div>
       </div>`);
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],[data-slot],[data-trial],[data-abandon],[data-change],[data-node],.x');
+      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],[data-slot],[data-upgrade],[data-trial],[data-abandon],[data-change],[data-node],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
       if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
@@ -334,6 +346,7 @@ export class Panels {
       else if (t.dataset.use) { g.inventory.use(t.dataset.use); this.inventory(); }
       else if (t.dataset.equip) { g.equipment.equip(t.dataset.equip); if (!g.inventory.has(this.selected)) this.selected = null; this.inventory(); }
       else if (t.dataset.unequip) { g.equipment.unequip(t.dataset.unequip); this.inventory(); }
+      else if (t.dataset.upgrade) { const r = g.player.upgradeSkill(t.dataset.upgrade); g.audio.sfx(r.ok ? 'levelup' : 'deny'); this.inventory(); }
       else if (t.dataset.slot) { g.player.setSkillSlot(+t.dataset.slot, t.dataset.skill); this.inventory(); }
       else if (t.dataset.trial) { const r = g.progression.startTrial(t.dataset.trial); if (!r.ok) g.ui.toast(r.reason === 'busy' ? 'Finish your current trial first' : 'Requirements not met', 1.2); this.inventory(); }
       else if (t.dataset.abandon) { g.progression.abandonTrial(t.dataset.abandon); this.inventory(); }

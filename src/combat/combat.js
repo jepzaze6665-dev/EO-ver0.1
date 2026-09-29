@@ -12,6 +12,16 @@ import { THREADS } from '../data/threads.js';
 import { DODGE } from '../data/dodge.js'; // dodge / perfect dodge rules (PERFECT_WINDOW moved there)
 export { DODGE };
 
+// skill level modifiers of the action being run (Player.castMods, progression/skillLevels.js): power × and size ×.
+// def.noSkillMods opts out (e.g. a hitbox whose power the class already scaled itself).
+export function applySkillMods(o, sizeKeys) {
+  const m = o.owner && o.owner.castMods;
+  if (!m || o.noSkillMods) return o;
+  if (m.power !== 1 && Number.isFinite(o.power)) o.power *= m.power;
+  if (m.area !== 1) for (const k of sizeKeys) if (Number.isFinite(o[k])) o[k] *= m.area;
+  return o;
+}
+
 export class Combat {
   constructor(game) {
     this.game = game;
@@ -31,6 +41,7 @@ export class Combat {
       hitStop: 0.05, shake: 0.12, maxTargets: 99, hit: new Set(), hits: 0,
       team: TEAM.PLAYER, ...def,
     };
+    applySkillMods(hb, ['r', 'r0', 'len', 'width']);
     if (hb.follow && hb.owner) { hb.x = hb.owner.x; hb.y = hb.owner.y; }
     this.hitboxes.push(hb);
     return hb;

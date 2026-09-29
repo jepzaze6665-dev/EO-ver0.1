@@ -2,6 +2,7 @@ import { Pool } from '../core/pool.js';
 import { TEAM } from '../core/constants.js';
 import { TAU, angleTo, wrapAngle } from '../core/math.js';
 import { Assets } from '../core/assets.js';
+import { applySkillMods } from './combat.js';
 
 // Pooled projectiles for both teams (crystal shards, seed / sap orbs, crescent waves).
 export class Projectiles {
@@ -18,6 +19,7 @@ export class Projectiles {
       kind: 'shard', pierce: false, homing: 0, delay: 0, perfectDone: false, color: '#5af0ff', dmgType: 'physical', status: null,
       knock: 120, onHit: null, wallStop: true, accel: 0, rot: 0,
     }, def);
+    applySkillMods(p, ['r']); // skill level power / area of the action that fired it
     p.ang = Math.atan2(p.vy, p.vx);
     return p;
   }

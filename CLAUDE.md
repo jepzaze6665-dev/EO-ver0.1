@@ -583,5 +583,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   { id: { level, masteryXp, masteryLevel, evolution } } }; class change keeps the old entry (its skills = LOCKED via
   `lockedSkills(CLASSES)`, `usable(skill)` = active class or `sharedClassIds`) and restores each class's own loadout.
   SAVE_VERSION 4 (v3 -> v4 seeds it from player.loadout). tools/tests/classProgress.test.mjs.
+  Done S2: SKILL LEVEL `src/progression/skillLevels.js` (pure): skill data `levels: [{ power, area, cooldown, cost, flags,
+  values, text }]` (full set per level). CORE applies power / area (Player.castMods while an action's events run ->
+  `applySkillMods` in combat.spawnHitbox + projectiles.fire; `noSkillMods` opts out; a later g.after must set p.castMods
+  itself) and cooldown / cost (SkillSystem.cooldownFor / costFor via caster.skillMods). Class code reads NEW BEHAVIOUR through
+  `p.skillFlag(id, f)` / `p.skillValue(id, k, d)`. Points: 1 per character level after 1, per class (derived, no save
+  field); raising to Lv n needs char LV [1,3,6,10,15] and [0,1,1,2,2] points; `p.upgradeSkill(id)` -> 'skillLevelUp'.
+  Umbral 6 actives have 5 levels (Lv 5 = shadow trail / every cut marks / 195 px + haste / 2-hit mark / 4 s veil + mark /
+  return mark); ult + special = 1 level. Skills tab: points, Lv n/5, this + next level text, [+ Level]. skillLevels.test.mjs.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.

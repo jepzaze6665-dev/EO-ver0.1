@@ -11,6 +11,7 @@ import { SkillSystem } from '../combat/skillSystem.js';
 import { MARKS } from '../data/marks.js';
 import { STATUSES } from '../data/statuses.js';
 import { Loadout } from './loadout.js';
+import { levelMods, maxLevel, pointsEarned, pointsSpent, upgradeCheck } from '../progression/skillLevels.js';
 import { ActionRecorder } from '../combat/actionRecorder.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
 import { LEVELS } from '../data/levels.js';
@@ -200,6 +201,34 @@ export class Player extends Entity {
     }
   }
   consumeMarks(n) { return this.markId ? this.game.marks.consume(this, this.markId, n) : 0; }
+  // ---------------- SKILL LEVELS (progression/skillLevels.js + game.classProgress). Skills of this class only.
+  skillLevel(id) {
+    const cp = this.game.classProgress, s = cp && cp.peekSkill(this.cls.id, id);
+    return s ? s.level : 1;
+  }
+  skillMods(skill) { return levelMods(skill, this.skillLevel(skill.id)); }
+  skillFlag(id, flag) { const s = this.skillSys.get(id); return !!(s && this.skillMods(s).flags[flag]); }
+  skillValue(id, key, dflt) { const s = this.skillSys.get(id); const v = s && this.skillMods(s).values[key]; return v ?? dflt; }
+  skillsById() { return Object.fromEntries(this.skillSys.list().map((s) => [s.id, s])); }
+  skillPointsLeft() {
+    const cp = this.game.classProgress;
+    return pointsEarned(this.level) - pointsSpent(cp && cp.classes[this.cls.id], this.skillsById());
+  }
+  upgradeCheck(id) {
+    const s = this.skillSys.get(id);
+    if (!s) return { ok: false, reason: 'unknown' };
+    return upgradeCheck(s, this.skillLevel(id), this.level, this.skillPointsLeft());
+  }
+  // spend skill points: Lv n -> n + 1 (event 'skillLevelUp')
+  upgradeSkill(id) {
+    const r = this.upgradeCheck(id);
+    if (!r.ok) return r;
+    const e = this.game.classProgress.skill(this.cls.id, id);
+    e.level++;
+    this.game.events.emit('skillLevelUp', { player: this, skillId: id, level: e.level, max: maxLevel(this.skillSys.get(id)) });
+    this.game.save.dirty = true;
+    return { ok: true, level: e.level };
+  }
   reduceCooldowns(sec) { this.skillSys.cooldowns.reduceAll(sec); }
 
   // class change: detach this character's class from the world (passive listeners, guard, action)
@@ -426,7 +455,8 @@ export class Player extends Entity {
 
   trySkill(skill) {
     const r = this.skillSys.use(skill.id, this, this.game, this.aim);
-    if (r.ok && r.result) this.startAction(r.result); // some skills (a held guard) have no action timeline
+    // the action carries its skill's level modifiers: hitboxes / projectiles spawned by its events pick them up
+    if (r.ok && r.result) { if (!r.recast) r.result.skillMods = this.skillMods(skill); this.startAction(r.result); } // some skills (a held guard) have no action timeline
     return r.ok;
   }
   tryBreak() { return this.trySkill(this.cls.special); }
@@ -554,8 +584,10 @@ export class Player extends Entity {
         if (!blocked) map.moveCircle(this, Math.cos(ang) * a.lunge.dist * f, Math.sin(ang) * a.lunge.dist * f);
       }
       if (a.ghostEvery) this.stepGhost(dt, a.ghostEvery);
+      this.castMods = a.skillMods || null; // read by combat.spawnHitbox / projectiles.fire (skill level power / area)
       if (a.update) a.update(a.t, dt);
       for (const ev of a.events) if (!ev.done && a.t >= ev.t) { ev.done = true; ev.fn(); }
+      this.castMods = null;
       if (a.t >= a.dur) this.endAction();
       this.facing = a.ang ?? this.facing;
     } else if (this.dodging) {

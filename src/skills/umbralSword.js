@@ -80,6 +80,14 @@ export const UmbralSword = {
     {
       slot: 1, id: 'shadow_slash', tier: 'fast', name: 'Shadow Slash', type: 'active', cooldown: 3.5, cost: 8, stamina: 8, targeting: 'direction', tags: ['melee', 'shadow', 'mark'], icon: 'slash',
       desc: 'Lunge and cut the enemy in front. Builds 1 Shadow Mark.',
+      // SKILL LEVELS (progression/skillLevels.js): power / area / cooldown / cost are applied by the core, flags here
+      levels: [
+        { text: 'Base: 1 Shadow Mark' },
+        { power: 1.1, text: '+10% damage' },
+        { power: 1.2, area: 1.15, text: 'Wider cut (+15% reach)' },
+        { power: 1.2, area: 1.15, cost: 0.75, text: 'Costs 25% less Shadow' },
+        { power: 1.3, area: 1.15, cost: 0.75, flags: { shadowTrail: true }, text: 'SHADOW TRAIL: a second shadow cut follows 0.3 s later' },
+      ],
       cast(p, g, a) {
         let marked = false;
         return {
@@ -93,6 +101,15 @@ export const UmbralSword = {
               owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 76, half: 0.8, power: 2.1, type: 'shadow', knock: 180, stagger: 25, hitStop: 0.07, shake: 0.2,
               onHit: () => { p.gainResource(3); if (!marked) { marked = true; p.addMark(1); } },
             });
+            // Lv 5: the shadow trail repeats the cut (its power is set here -> noSkillMods)
+            if (p.skillFlag('shadow_slash', 'shadowTrail')) {
+              const x = p.x, y = p.y;
+              g.after(0.3, () => {
+                g.vfx.sprite('slash', x + Math.cos(a) * 34, y - 14 + Math.sin(a) * 34, a, { scale: 1.2, life: 0.26, flipY: true });
+                g.vfx.shadowSmoke(x, y, 4);
+                g.combat.spawnHitbox({ owner: p, x, y: y - 10, ang: a, shape: 'cone', r: 80, half: 0.8, power: 1.0, noSkillMods: true, type: 'shadow', knock: 60, stagger: 12, hitStop: 0.04, shake: 0.1 });
+              });
+            }
           }]],
         };
       },
@@ -100,16 +117,25 @@ export const UmbralSword = {
     {
       slot: 2, id: 'twin_fang', tier: 'medium', name: 'Twin Fang', type: 'active', cooldown: 6, cost: 12, stamina: 12, targeting: 'direction', tags: ['melee', 'shadow', 'mark', 'multi-hit'], icon: 'twin',
       desc: 'Two rapid crossing cuts that shred through guards. Builds a Shadow Mark on hit.',
+      levels: [
+        { text: 'Base: 1 Shadow Mark' },
+        { power: 1.1, text: '+10% damage' },
+        { power: 1.1, cooldown: 0.85, text: '-15% cooldown' },
+        { power: 1.2, cooldown: 0.85, text: '+20% damage' },
+        { power: 1.2, cooldown: 0.85, flags: { markEachCut: true }, text: 'FANG MEMORY: every cut can build a Shadow Mark' },
+      ],
       cast(p, g, a) {
         const triple = p.mods.twinFangTriple;
         const times = triple ? [0.07, 0.2, 0.33] : [0.07, 0.22];
+        const eachCut = p.skillFlag('twin_fang', 'markEachCut'); // Lv 5
+        const cutMarked = times.map(() => false);
         let marked = false;
         const ev = times.map((t, i) => [t, () => {
           swing(p, g, a, { r: 36, life: 0.16, sfx: 'swing_fast', noSprite: true });
           g.vfx.sprite('twin', p.x + Math.cos(a) * 28, p.y - 14 + Math.sin(a) * 28, a, { scale: 1.05, life: 0.24, flipY: i % 2 === 1 });
           g.combat.spawnHitbox({
             owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 60, half: 1.1, power: 1.35, counterMult: 1.3, type: 'shadow', knock: 80, stagger: 14, hitStop: 0.05, shake: 0.12,
-            onHit: () => { p.gainResource(2); if (!marked) { marked = true; p.addMark(1); } },
+            onHit: () => { p.gainResource(2); if (!cutMarked[i]) { cutMarked[i] = true; if (!marked || eachCut) { marked = true; p.addMark(1); } } },
           });
         }]);
         return { name: 'twin_fang', dur: triple ? 0.5 : 0.42, anim: 'twinFang', moveMul: 0.5, ang: a, cancelAt: 0.15, events: ev, lunge: { dist: 18, t0: 0, t1: 0.2 } };
@@ -118,6 +144,13 @@ export const UmbralSword = {
     {
       slot: 3, id: 'shade_step', tier: 'fast', name: 'Shade Step', type: 'active', cooldown: 4.5, cost: 10, stamina: 15, targeting: 'direction', tags: ['dash', 'mobility', 'invulnerable', 'mark'], icon: 'step',
       desc: 'Dash through enemies as a shadow. Invulnerable; can trigger Perfect Dodge. Builds a Mark on hit.',
+      levels: [
+        { text: 'Base: 165 px dash' },
+        { power: 1.15, text: '+15% damage' },
+        { power: 1.15, values: { dist: 195 }, text: 'Longer dash (195 px)' },
+        { power: 1.15, cooldown: 0.8, values: { dist: 195 }, text: '-20% cooldown' },
+        { power: 1.3, cooldown: 0.8, values: { dist: 195 }, flags: { afterStep: true }, text: 'SHADOW ACCEL: move 30% faster for 1.5 s after the dash' },
+      ],
       cast(p, g, a) {
         const mv = g.input.moveVector();
         const ang = mv.x || mv.y ? Math.atan2(mv.y, mv.x) : a;
@@ -126,10 +159,11 @@ export const UmbralSword = {
         p.beginDodge(ang, true);
         g.audio.sfx('dash');
         return {
-          name: 'shade_step', dur: 0.22, anim: 'shadeStep', moveMul: 0, ang, cancelAt: 0.22, invuln: [0, 0.3], dash: { ang, dist: 165 },
+          name: 'shade_step', dur: 0.22, anim: 'shadeStep', moveMul: 0, ang, cancelAt: 0.22, invuln: [0, 0.3], dash: { ang, dist: p.skillValue('shade_step', 'dist', 165) },
           ghostEvery: 0.025,
           events: [[0.2, () => {
             const len = Math.hypot(p.x - sx, p.y - sy);
+            if (p.skillFlag('shade_step', 'afterStep')) p.status.add('haste', 1.5, { mult: 1.3, refresh: true }); // Lv 5
             g.combat.spawnHitbox({
               owner: p, x: sx, y: sy - 8, ang: Math.atan2(p.y - sy, p.x - sx), shape: 'line', len: len + 10, width: 22, power: 1.3, type: 'shadow', knock: 60, stagger: 12, hitStop: 0.05,
               onHit: (t) => { g.vfx.sprite('shards', t.x, t.y - 16, rand(0, TAU), { scale: 0.5, life: 0.2 }); if (!marked) { marked = true; p.addMark(1); } },
@@ -148,6 +182,13 @@ export const UmbralSword = {
     {
       slot: 4, id: 'shadow_arc', tier: 'medium', name: 'Shadow Arc', type: 'active', cooldown: 8, cost: 22, stamina: 20, targeting: 'direction', tags: ['aoe', 'shadow'], icon: 'arc',
       desc: 'Release a wide crescent of shadow that sweeps through groups. Hitting 3+ enemies builds a Mark.',
+      levels: [
+        { text: 'Base: 3 enemies hit = 1 Mark' },
+        { power: 1.1, text: '+10% damage' },
+        { power: 1.1, cost: 0.8, text: 'Costs 20% less Shadow' },
+        { power: 1.2, cost: 0.8, text: '+20% damage' },
+        { power: 1.2, cost: 0.8, values: { markAt: 2 }, text: 'HUNGRY ARC: 2 enemies hit already build a Mark' },
+      ],
       cast(p, g, a) {
         let hits = 0, marked = false;
         return {
@@ -160,7 +201,7 @@ export const UmbralSword = {
               g.combat.spawnHitbox({
                 owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'arcband', r0: 10, r: 40, half: 1.3, life: 0.28, power: 1.9, type: 'shadow', knock: 170, stagger: 20, hitStop: 0.05, shake: 0.22,
                 grow: (hb, dt) => { hb.r = Math.min(155, hb.r + dt * 420); hb.r0 = Math.max(10, hb.r - 60); },
-                onHit: () => { hits++; p.gainResource(2); if (hits >= 3 && !marked) { marked = true; p.addMark(1); } },
+                onHit: () => { hits++; p.gainResource(2); if (hits >= p.skillValue('shadow_arc', 'markAt', 3) && !marked) { marked = true; p.addMark(1); } },
               });
             }],
           ],
@@ -169,12 +210,20 @@ export const UmbralSword = {
     },
     {
       id: 'shadow_veil', tier: 'fast', name: 'Shadow Veil', type: 'active', cooldown: 12, cost: 15, targeting: 'self', tags: ['stealth', 'utility', 'mark'], icon: 'veil_shadow',
+      levels: [
+        { text: 'Base: 3 s veil' },
+        { cooldown: 0.9, text: '-10% cooldown' },
+        { cooldown: 0.9, values: { time: 3.5 }, text: 'Veil lasts 3.5 s' },
+        { cooldown: 0.8, values: { time: 3.5 }, text: '-20% cooldown' },
+        { cooldown: 0.8, values: { time: 4 }, flags: { veilMark: true }, text: 'DEEP SHADOW: 4 s veil and +1 Shadow Mark when it starts' },
+      ],
       desc: 'Melt into shadow for 3 s: monsters lose track of you and you move faster. Your next hit is an AMBUSH (+60% damage, +1 Shadow Mark).',
       cast(p, g, a) {
         return {
           name: 'shadow_veil', dur: 0.3, anim: 'aura', moveMul: 0.4, ang: a, cancelAt: 0.12,
           events: [[0.08, () => {
-            p.status.add('veiled', 3, { source: p, refresh: true });
+            p.status.add('veiled', p.skillValue('shadow_veil', 'time', 3), { source: p, refresh: true });
+            if (p.skillFlag('shadow_veil', 'veilMark')) p.addMark(1); // Lv 5
             g.audio.sfx('dash');
             g.vfx.shadowSmoke(p.x, p.y, 14, { vy: -40 });
             g.vfx.ring(p.x, p.y, 6, 46, { life: 0.3, color: '120,60,200', width: 2 });
@@ -184,14 +233,21 @@ export const UmbralSword = {
     },
     {
       id: 'phantom_edge', tier: 'fast', name: 'Phantom Edge', type: 'active', cooldown: 5, cost: 12, targeting: 'direction', tags: ['ranged', 'shadow', 'mark', 'pierce'], icon: 'phantom',
+      levels: [
+        { text: 'Base: marks on the way out' },
+        { power: 1.1, text: '+10% damage' },
+        { power: 1.1, area: 1.25, text: 'Bigger blade (+25% size)' },
+        { power: 1.2, area: 1.25, text: '+20% damage' },
+        { power: 1.2, area: 1.25, flags: { returnMark: true }, text: 'RETURNING SHADE: the blade can mark again on its way back' },
+      ],
       desc: 'Hurl a phantom blade that pierces everything, then returns to you. Marks the first enemy hit on the way out.',
       cast(p, g, a) {
-        let marked = false;
+        let marked = false, backMarked = false;
         const blade = (x, y, ang, back) => g.combat.projectiles.fire({
           x, y, vx: Math.cos(ang) * 540, vy: Math.sin(ang) * 540, r: 12, life: 0.4,
           team: TEAM.PLAYER, owner: p, kind: 'sprite', sprite: 'twin', frames: [2, 3, 4, 3], fps: 20, scale: 0.7,
           pierce: true, power: back ? 1.0 : 1.3, type: 'shadow', knock: 70, stagger: 12, hitStop: 0.04, shake: 0.1, color: '#b070ff', trail: true, wallStop: !back,
-          onHit: () => { p.gainResource(2); if (!back && !marked) { marked = true; p.addMark(1); } },
+          onHit: () => { p.gainResource(2); if (!back && !marked) { marked = true; p.addMark(1); } else if (back && !backMarked && p.skillFlag('phantom_edge', 'returnMark')) { backMarked = true; p.addMark(1); } },
         });
         return {
           name: 'phantom_edge', dur: 0.32, anim: 'atk2', moveMul: 0.5, ang: a, cancelAt: 0.14,
@@ -200,7 +256,8 @@ export const UmbralSword = {
             const sx = p.x + Math.cos(a) * 14, sy = p.y - 14 + Math.sin(a) * 14;
             const out = blade(sx, sy, a, false);
             // the blade turns around where it is after 0.4 s and flies back to the Umbral Sword
-            g.after(0.4, () => { const bx = out.active ? out.x : sx + Math.cos(a) * 216, by = out.active ? out.y : sy + Math.sin(a) * 216; blade(bx, by, Math.atan2(p.y - 14 - by, p.x - bx), true); });
+            const mods = p.castMods; // the return blade flies later: it keeps this cast's skill level
+            g.after(0.4, () => { p.castMods = mods; const bx = out.active ? out.x : sx + Math.cos(a) * 216, by = out.active ? out.y : sy + Math.sin(a) * 216; blade(bx, by, Math.atan2(p.y - 14 - by, p.x - bx), true); p.castMods = null; });
           }]],
         };
       },
