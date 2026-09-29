@@ -200,6 +200,15 @@ export class Game {
     this.classProgress.switchTo(classId);
     // skill mastery XP from real use (progression/masterySystem.js, rules data/skillMastery.js)
     this.mastery = new MasterySystem(this);
+    // gear 'resourceGain' skill modifier: + class resource the first time each cast hits (progression/skillModifiers.js)
+    const gearPaid = {};
+    this.events.on('skillUsed', (e) => { if (e.caster === this.player) gearPaid[e.skillId] = false; });
+    this.events.on('skillHit', (e) => {
+      const p = this.player, s = e.source === p && p.skillSys.get(e.skillId);
+      if (!s || gearPaid[e.skillId] !== false) return;
+      const n = p.skillMods(s).resourceGain;
+      if (n > 0) { gearPaid[e.skillId] = true; p.gainResource(n, true); }
+    });
     // class level feedback (S5) — a tier-1 class levels with the character, so only other classes show it
     this.events.on('classLevelUp', (e) => {
       if (e.entity.classFollowsCharacter()) return;

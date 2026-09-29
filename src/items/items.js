@@ -95,6 +95,28 @@ export const ITEMS = {
     stats: { shadowDmg: 0.1 }, mods: { sigil: true, perfectWindow: 0.06 },
     desc: 'A black medallion found in the Hidden Cave.', modText: 'Shadow Break +40% and releases a second wave. Perfect Dodge window +60ms.',
   },
+  // SKILL MODIFIER gear (Skill System S6, progression/skillModifiers.js): changes skills through data
+  hunger_rune: {
+    name: 'Rune of Hunger', cat: 'Armor', slot: 'accessory', rarity: 'rare', icon: 'sigil', color: '#c080ff',
+    stats: {}, skillModifiers: [
+      { skillId: 'shadow_slash', stat: 'damage', operation: 'MULTIPLY', value: 1.1 },
+      { skillId: 'shadow_slash', stat: 'resourceGain', operation: 'ADD', value: 5 },
+    ],
+    desc: 'A rune that drinks from every cut.', modText: 'Shadow Slash +10% damage and +5 Shadow when it hits.', price: 320,
+  },
+  shade_charm: {
+    name: 'Shade Charm', cat: 'Armor', slot: 'accessory', rarity: 'rare', icon: 'charm', color: '#8a70ff',
+    stats: {}, skillModifiers: [{ skillId: 'shade_step', stat: 'charges', operation: 'ADD', value: 1 }],
+    desc: 'Two shadows follow its wearer.', modText: 'Shade Step gains 1 extra charge (2 / 2).', price: 360,
+  },
+  eclipse_relic: {
+    name: 'Eclipse Relic', cat: 'Armor', slot: 'accessory', rarity: 'epic', icon: 'heart', color: '#e0a0ff',
+    stats: {}, skillModifiers: [
+      { skillId: 'eclipse_sever', stat: 'cooldown', operation: 'MULTIPLY', value: 0.9 },
+      { tag: 'shadow', stat: 'damage', operation: 'MULTIPLY', value: 1.03 },
+    ],
+    desc: 'A shard of the first eclipse.', modText: 'Eclipse Sever -10% cooldown · shadow skills +3% damage.', price: 520,
+  },
   hunters_charm: {
     name: "Hunter's Charm", cat: 'Armor', slot: 'accessory', rarity: 'rare', icon: 'charm', color: '#80d080',
     stats: { crit: 0.08, shadowGain: 0.25 }, desc: 'A charm of braided fang and silver.', modText: 'Shadow gain +25%.', price: 260,
@@ -157,7 +179,7 @@ export const RECIPES = [
 
 // shops per NPC (dialogue action 'shop' opens the shop of the NPC you talk to)
 export const SHOPS = {
-  merchant: { title: "Lysa's Goods", stock: ['hp_potion', 'shadow_tonic', 'hunters_charm'] },
-  a_merchant: { title: 'Asterian Bazaar', stock: ['hp_potion', 'shadow_tonic', 'hunters_charm'] },
+  merchant: { title: "Lysa's Goods", stock: ['hp_potion', 'shadow_tonic', 'hunters_charm', 'hunger_rune', 'shade_charm'] },
+  a_merchant: { title: 'Asterian Bazaar', stock: ['hp_potion', 'shadow_tonic', 'hunters_charm', 'hunger_rune', 'shade_charm', 'eclipse_relic'] },
 };
 export const SHOP = SHOPS.merchant.stock;

@@ -15,6 +15,7 @@ import { masteryInfo, masteryReward } from '../progression/masterySystem.js';
 import { MASTERY } from '../data/skillMastery.js';
 import { evolutionsOf, evolutionById } from '../progression/skillEvolution.js';
 import { SKILL_TREE } from '../data/skillTree.js';
+import { describe as describeMod } from '../progression/skillModifiers.js';
 import { expToNext } from '../progression/experience.js';
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
@@ -256,10 +257,16 @@ export class Panels {
       };
       // SKILL TREE (data/skillTree.js): category chip + what a locked skill still needs
       const catTag = (s) => { const c = SKILL_TREE.categories[s.category]; return c ? `<span class="small" style="color:${c.color}">[${c.label}]</span> ` : ''; };
+      // S6: charges + equipment / rune modifiers acting on this skill
+      const gearRow = (s) => {
+        const m = p.skillMods(s), ch = p.skillSys.maxCharges(s);
+        const lines = (m.gear || []).map((x) => describeMod(x, (id) => (p.skillSys.get(id) || { name: id }).name));
+        return (ch > 1 ? `<div class="small" style="color:#9af8ff">Charges: ${ch}</div>` : '') + lines.map((l) => `<div class="small" style="color:#9af8ff">⚙ ${esc(l)}</div>`).join('');
+      };
       const lockRow = (s) => { const r = p.skillUnlockCheck(s); return r.ok ? '' : `<div class="small" style="color:#ffb070">🔒 Unlocks with: ${r.missing.map(esc).join(', ')}</div>`; };
       const card = (s, extra = '') => `<div class="skill-card${lo.slots.includes(s.id) ? ' on' : ''}"${p.skillUnlocked(s) ? '' : ' style="opacity:.6"'}>
           <img src="${iconURL(s.icon)}"><div class="sk-body">${catTag(s)}<b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).join(', ')}</span>
-          <div class="small">${esc(s.desc || '')}</div>${lockRow(s)}${lvRow(s)}${masteryRow(s)}${evoRow(s)}${extra}</div></div>`;
+          <div class="small">${esc(s.desc || '')}</div>${lockRow(s)}${gearRow(s)}${lvRow(s)}${masteryRow(s)}${evoRow(s)}${extra}</div></div>`;
       const evoSkill = this.evoSel && p.skillSys.get(this.evoSel);
       if (evoSkill && evolutionsOf(evoSkill).length) {
         const s = evoSkill, cur = p.skillEvolution(s.id), mi = masteryInfo(g.classProgress.peekSkill(p.cls.id, s.id));
@@ -288,7 +295,7 @@ export class Panels {
       body = `<div class="skills-layout">
         <div><h3>${esc(p.cls.name)} — Skill Loadout</h3>
           <p class="small">Class LV <b style="color:#e0c070">${p.classLevel()}</b>${p.classFollowsCharacter() ? ' <span class="muted">(= character level)</span>' : ` <span class="muted">(${Math.floor((g.classProgress.classes[p.cls.id] || {}).exp || 0)}/${expToNext(p.classLevel())} class EXP)</span>`}
-            · Skill points: <b style="color:#e0c070">${Math.max(0, p.skillPointsLeft())}</b> <span class="muted">(1 per class level)</span></p>
+            · Skill points: <b style="color:#e0c070">${Math.max(0, p.skillPointsLeft())}</b> <span class="muted">(1 per ${SKILL_TREE.pointsFrom === 'class' ? 'class' : 'character'} level · each class has its own points)</span></p>
           <div class="small sk-tree" style="display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px">${[...p.cls.skills, p.cls.special].filter(Boolean)
             .sort((a, b) => ((a.unlock && a.unlock.classLevel) || 1) - ((b.unlock && b.unlock.classLevel) || 1))
             .map((s) => { const ok = p.skillUnlocked(s); return `<span title="${esc(s.name)}" style="padding:2px 6px;border-radius:4px;border:1px solid ${ok ? '#6a58a0' : '#3a3040'};color:${ok ? '#e8dcff' : '#8a7a70'}">${ok ? '' : '🔒'}LV ${(s.unlock && s.unlock.classLevel) || 1} ${esc(s.name)}</span>`; }).join('<span class="muted">›</span>')}</div>

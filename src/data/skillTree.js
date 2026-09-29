@@ -7,6 +7,11 @@
 export const SKILL_TREE = {
   // dev / regression tools (tools/combatTest.js, testkit.js, checklist.js) set this to true: every skill usable at any level
   unlockAll: false,
+  // OWNER DECISION (after S5): what gives skill points and unlocks skills — 'character' (default) or 'class'.
+  // 'character' = a new class (Class 2, later Awakening) arrives with ALL its points at the current character level:
+  // no regrind after a class change. Every class still spends its own points (each class has its own pool).
+  // Class level is still tracked (classProgress) for future rules (awakening trials, titles).
+  pointsFrom: 'character',
   // class tree tiers whose class level mirrors the character level (data/classTree.js `tier`)
   followsCharacterTiers: [1],
   categories: {
@@ -24,7 +29,7 @@ export const SKILL_TREE = {
 export function skillUnlockCheck(skill, ctx) {
   if (SKILL_TREE.unlockAll || !skill || !skill.unlock) return { ok: true, missing: [] };
   const u = skill.unlock, missing = [];
-  if (u.classLevel && ctx.classLevel < u.classLevel) missing.push(`Class LV ${u.classLevel}`);
+  if (u.classLevel && ctx.classLevel < u.classLevel) missing.push(`${SKILL_TREE.pointsFrom === 'class' ? 'Class ' : ''}LV ${u.classLevel}`);
   // prerequisite skills must themselves be unlocked
   for (const id of u.requires || []) {
     const req = ctx.skill && ctx.skill(id);

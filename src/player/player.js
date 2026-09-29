@@ -15,6 +15,7 @@ import { levelMods, maxLevel, pointsEarned, pointsSpent, upgradeCheck } from '..
 import { masteryReward } from '../progression/masterySystem.js';
 import { evolutionById, evolutionCheck, withEvolution, EVOLUTION_RULES } from '../progression/skillEvolution.js';
 import { SKILL_TREE, skillUnlockCheck } from '../data/skillTree.js';
+import { applySkillModifiers } from '../progression/skillModifiers.js';
 import { CLASS_TREE } from '../data/classTree.js';
 import { ActionRecorder } from '../combat/actionRecorder.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
@@ -137,13 +138,15 @@ export class Player extends Entity {
     const node = CLASS_TREE[this.cls.id];
     return !!(this.game.classProgress && node && SKILL_TREE.followsCharacterTiers.includes(node.tier));
   }
+  // the level that gives skill points / unlocks skills / gates skill levels (data/skillTree.js pointsFrom)
+  progressLevel() { return SKILL_TREE.pointsFrom === 'class' ? this.classLevel() : this.level; }
   classLevel() {
     const cp = this.game.classProgress, c = cp && cp.classes[this.cls.id];
     return c ? c.level : 1;
   }
   skillUnlockCheck(skill) {
     return skillUnlockCheck(skill, {
-      classLevel: this.classLevel(), skill: (id) => this.skillSys.get(id),
+      classLevel: this.progressLevel(), skill: (id) => this.skillSys.get(id),
       nameOf: (id) => (this.skillSys.get(id) || { name: id }).name,
     });
   }
@@ -277,20 +280,21 @@ export class Player extends Entity {
   skillMods(skill) {
     const m = withEvolution(levelMods(skill, this.skillLevel(skill.id)), evolutionById(skill, this.skillEvolution(skill.id)));
     const r = masteryReward(this.skillMastery(skill.id));
-    return { ...m, cooldown: m.cooldown * r.cooldown, cost: m.cost * r.cost, skillId: skill.id };
+    // + equipment / rune modifiers (items.js skillModifiers, capped in skillModifiers.js)
+    return applySkillModifiers({ ...m, cooldown: m.cooldown * r.cooldown, cost: m.cost * r.cost, skillId: skill.id }, this.mods && this.mods.skillModifiers, skill);
   }
   skillFlag(id, flag) { const s = this.skillSys.get(id); return !!(s && this.skillMods(s).flags[flag]); }
   skillValue(id, key, dflt) { const s = this.skillSys.get(id); const v = s && this.skillMods(s).values[key]; return v ?? dflt; }
   skillsById() { return Object.fromEntries(this.skillSys.list().map((s) => [s.id, s])); }
   skillPointsLeft() {
     const cp = this.game.classProgress;
-    return pointsEarned(this.classLevel()) - pointsSpent(cp && cp.classes[this.cls.id], this.skillsById());
+    return pointsEarned(this.progressLevel()) - pointsSpent(cp && cp.classes[this.cls.id], this.skillsById());
   }
   upgradeCheck(id) {
     const s = this.skillSys.get(id);
     if (!s) return { ok: false, reason: 'unknown' };
     if (!this.skillUnlocked(s)) return { ok: false, reason: 'locked' };
-    return upgradeCheck(s, this.skillLevel(id), this.classLevel(), this.skillPointsLeft());
+    return upgradeCheck(s, this.skillLevel(id), this.progressLevel(), this.skillPointsLeft());
   }
   // spend skill points: Lv n -> n + 1 (event 'skillLevelUp')
   upgradeSkill(id) {

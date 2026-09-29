@@ -615,5 +615,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Class LV / class EXP, tree strip in unlock order, category chips, "Unlocks with". Class 2 skills have no `unlock` yet (S7).
   **`SKILL_TREE.unlockAll = true` is set by tools/testkit.js on import** (combatTest / checklist import it): bots and regression
   use every skill at any level; to check the real locks, reload the page without loading the dev tools. skillTree.test.mjs.
+  OWNER DECISION (after S5): skill points + unlocks + skill-level gates use the CHARACTER level (`SKILL_TREE.pointsFrom =
+  'character'`, Player.progressLevel()) so a Class 2 arrives with all its points (no regrind); each class keeps its own pool.
+  Class level is still tracked. Set pointsFrom 'class' to go back to the S5 rule.
+  Done S6: CHARGES in `combat/cooldownSystem.js` (setMax(id, n): each missing charge has its own recharge timer; charges(),
+  maxCharges(), nextCharge()); SkillSystem maxCharges = skill `charges` + modifier charges, synced every update. SKILL
+  MODIFIERS `src/progression/skillModifiers.js`: item data `skillModifiers: [{ skillId | tag, stat: damage / area / cooldown /
+  cost / charges / resourceGain / duration, operation: MULTIPLY | ADD, value }]` -> Equipment.applyTo -> p.mods.skillModifiers ->
+  applied last in Player.skillMods (limits: cooldown ≥ ×0.4, cost ≥ ×0.3, +2 charges max). resourceGain = + class resource the
+  first time each cast hits (game.js). Items hunger_rune / shade_charm (Shade Step 2/2) / eclipse_relic (merchant shops).
+  HUD: "n/m" charges + next-charge bar; Skills tab: charges + "⚙" gear lines. skillModifiers.test.mjs.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.

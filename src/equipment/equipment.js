@@ -38,6 +38,8 @@ export class Equipment {
         else stats[k] = (stats[k] || 0) + v;
       }
       Object.assign(mods, def.mods || {});
+      // skill modifiers from gear (progression/skillModifiers.js) — a list, never overwritten by another item
+      if (def.skillModifiers) mods.skillModifiers = [...(mods.skillModifiers || []), ...def.skillModifiers];
     }
   }
   serialize() { return { ...this.slots }; }

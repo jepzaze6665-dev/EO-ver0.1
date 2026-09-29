@@ -314,6 +314,10 @@ export class HUD {
         sl.noSta = !staOk;
         if (cost) label = String(cost);
         sl.level = p.skillLevel ? p.skillLevel(s.id) : 1;
+        // CHARGES (S6): "n/m" + a thin bar for the next charge while some are left
+        sl.maxCh = p.skillSys.cooldowns.maxCharges(s.id);
+        sl.ch = p.skillSys.cooldowns.charges(s.id);
+        sl.nextCh = sl.maxCh > 1 && sl.ch < sl.maxCh ? 1 - p.skillSys.cooldowns.nextCharge(s.id) / (p.skillSys.cooldowns.total(s.id) || 1) : 0;
         sl.evolved = p.skillEvolution ? !!p.skillEvolution(s.id) : false;
         sl.glow = sl.special && ready && (s.requirements || []).length > 0; // e.g. SHADOW BREAK READY
         // RECAST open (SkillSystem recast: Flash Step's 2nd dash, Mirage Shift's return): usable again right now
@@ -351,6 +355,10 @@ export class HUD {
       if (label === 'AGAIN') this.text(ctx, label, ix + is - 1 * u, iy + is - 2 * u, 8 * u, '#9af8ff', { align: 'right' });
       else if (label && !sl.special) this.text(ctx, label, ix + is - 1 * u, iy + is - 2 * u, 9 * u, p.resources.canAfford(sl.s.costResource || p.primaryResource, +label) ? '#c9a0ff' : '#ff6a6a', { align: 'right' });
       if (sl.noSta && !(cdLeft > 0) && !sl.locked) this.text(ctx, 'STA', ix + 1 * u, iy + is - 2 * u, 8 * u, '#ff7060');
+      if (sl.maxCh > 1) {
+        this.text(ctx, `${sl.ch}/${sl.maxCh}`, ix + 1 * u, iy + 20 * u, 9 * u, sl.ch ? '#9af8ff' : '#ff8080');
+        if (sl.nextCh > 0) { ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(ix, iy + is - 3 * u, is, 3 * u); ctx.fillStyle = '#9af8ff'; ctx.fillRect(ix, iy + is - 3 * u, is * sl.nextCh, 3 * u); }
+      }
       // skill level (top-right) + evolution diamond; LOCKED = dark + lock + the class level it needs
       if (sl.s && sl.level > 1) this.text(ctx, `${sl.evolved ? '◆' : ''}${sl.level}`, ix + is - 1 * u, iy + 9 * u, 8 * u, sl.evolved ? '#ff9ad0' : '#e0c070', { align: 'right' });
       else if (sl.s && sl.evolved) this.text(ctx, '◆', ix + is - 1 * u, iy + 9 * u, 8 * u, '#ff9ad0', { align: 'right' });

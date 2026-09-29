@@ -67,11 +67,15 @@ export class SkillSystem {
   }
   // SKILL LEVELS (progression/skillLevels.js): the caster may scale a skill's numbers (caster.skillMods(skill))
   mods(skill) { return (this.caster.skillMods && this.caster.skillMods(skill)) || { cooldown: 1, cost: 1 }; }
+  // CHARGES (S6): skill data `charges: n` + modifier charges (gear). Kept in sync with the Cooldowns tracker.
+  maxCharges(skill) { return Math.max(1, (skill.charges || 1) + (this.mods(skill).charges || 0)); }
+  syncCharges() { for (const s of Object.values(this.skills)) this.cooldowns.setMax(s.id, this.maxCharges(s)); }
   costFor(skill) { return skill.cost ? Math.round(skill.cost * this.mods(skill).cost) : 0; }
 
   canUse(id) {
     const s = this.skills[id];
     if (!s) return { ok: false, reason: SKILL_FAIL.UNKNOWN };
+    this.cooldowns.setMax(id, this.maxCharges(s));
     // SKILL TREE (data/skillTree.js): not unlocked yet at this class level
     if (this.caster.skillUnlocked && !this.caster.skillUnlocked(s)) return { ok: false, reason: SKILL_FAIL.LOCKED, skill: s };
     if (this.caster.canAct && !this.caster.canAct(s)) return { ok: false, reason: SKILL_FAIL.BUSY, skill: s };
@@ -123,6 +127,7 @@ export class SkillSystem {
   closeRecast(id) { delete this.recasts[id]; }
 
   update(dt) {
+    this.syncCharges();
     this.cooldowns.update(dt);
     if (dt > 0) for (const id in this.recasts) if ((this.recasts[id] -= dt) <= 0) delete this.recasts[id];
   }

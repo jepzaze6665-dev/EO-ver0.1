@@ -25,7 +25,7 @@ test('every skill names a known category', () => {
 });
 test('unlock by class level, prerequisites must be unlocked too', () => {
   ok(skillUnlockCheck(byId('shadow_slash'), ctx(1)).ok, 'slash at 1');
-  eq(skillUnlockCheck(byId('twin_fang'), ctx(3)).missing.join(), 'Class LV 4');
+  eq(skillUnlockCheck(byId('twin_fang'), ctx(3)).missing.join(), 'LV 4');
   ok(skillUnlockCheck(byId('twin_fang'), ctx(4)).ok, 'fang at 4');
   const fake = { unlock: { classLevel: 1, requires: ['twin_fang'] } };
   eq(skillUnlockCheck(fake, ctx(2)).missing.join(), 'Twin Fang');
