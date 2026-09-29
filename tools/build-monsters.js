@@ -424,9 +424,21 @@ function centreOf(im, bb) {
 function buildMonster(id, def, probe) {
   const img = png.read(path.join(ROOT, SRC, def.file));
   const bg = removeBackground(img, def.pocket);
-  if (def.darkBg) { // dark checkerboard sheets: every dark NEUTRAL pixel is background (the art's darks are tinted)
-    const d = img.data;
-    for (let i = 0; i < d.length; i += 4) { const mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]); if (mx - mn <= def.darkBg.neutral && (d[i] + d[i + 1] + d[i + 2]) / 3 <= def.darkBg.lum) d[i + 3] = 0; }
+  if (def.darkBg) {
+    // dark checkerboard sheets: background = dark NEUTRAL pixels in [minLum, lum] that form a LARGE connected region.
+    // The art's own dark greys sit inside its black outline (below minLum), so they are separate small regions and stay.
+    const d = img.data, W = img.width, H = img.height, o = def.darkBg, minLum = o.minLum ?? 16;
+    const bgLike = (p) => { const i = p * 4, mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]), l = (d[i] + d[i + 1] + d[i + 2]) / 3; return d[i + 3] && mx - mn <= o.neutral && l >= minLum && l <= o.lum; };
+    const seen = new Uint8Array(W * H);
+    for (let p = 0; p < W * H; p++) {
+      if (seen[p] || !bgLike(p)) continue;
+      const comp = [p]; seen[p] = 1;
+      for (let k = 0; k < comp.length; k++) {
+        const q = comp[k], x = q % W;
+        for (const r of [x > 0 ? q - 1 : -1, x < W - 1 ? q + 1 : -1, q - W, q + W]) if (r >= 0 && r < W * H && !seen[r] && bgLike(r)) { seen[r] = 1; comp.push(r); }
+      }
+      if (comp.length >= (o.region || 3000)) for (const q of comp) d[q * 4 + 3] = 0;
+    }
   }
   if (def.clearLight) { // blurry sheets: light grey-white gaps between limbs (never real colour) become transparent
     const d = img.data;

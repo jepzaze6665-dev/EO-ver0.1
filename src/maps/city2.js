@@ -7,13 +7,14 @@ import { Z } from '../core/constants.js';
 export const CITY2 = {
   id: 'city2', name: 'ASTERIA CITY', short: 'Asteria', sub: 'City 2 · Safe Zone', grid: 'asteria',
   type: 'city', safe: true, route: 'A',
-  // either route's Major Boss opens it (Route B's is data only for now)
-  requires: [{ type: 'any', of: [{ type: 'boss_defeated', boss: 'boss_a3' }, { type: 'boss_defeated', boss: 'boss_b3' }], label: 'Defeat a Major Boss (Route A: the Rune Knight)' }],
+  // either route's Major Boss opens it
+  requires: [{ type: 'any', of: [{ type: 'boss_defeated', boss: 'boss_a3' }, { type: 'boss_defeated', boss: 'boss_b3' }], label: 'Defeat a Major Boss (Route A: the Rune Knight · Route B: the Crystal Warden)' }],
   region: { zones: [Z.ASTERIA] },
   spawn: [80, 150],
   exits: [
-    { id: 'south_road', rect: [77, 157, 80, 157], to: 'sanctum', entry: [84, 9], label: 'The Sanctum (Route A)' },
-    { id: 'frost_road', rect: [81, 157, 83, 157], to: 'summit', entry: [90, 14], label: 'The Summit Citadel (Route B)' },
+    // Route A arrives by the South Gate (from the Sanctum), Route B by the East Gate (from Frostpeak) — two separate roads
+    { id: 'south_road', rect: [77, 157, 83, 157], to: 'sanctum', entry: [84, 9], label: 'The Sanctum (Route A)' },
+    { id: 'east_road', rect: [158, 66, 158, 68], to: 'summit', entry: [90, 14], label: 'Frostpeak Summit (Route B)' },
   ],
   content: {
     npcs: [
@@ -30,7 +31,7 @@ export const CITY2 = {
       { id: 'a_storage', kind: 'storage', tx: 74, ty: 76, prompt: 'Open Storage' },
       {
         id: 'a_notice', kind: 'sign', tx: 74, ty: 128, prompt: 'Read Notice', title: 'Asteria City — South Gate',
-        text: 'ASTERIA CITY (City 2)\n• Crystal Plaza — waystone and storage by the fountain.\n• Grand Bazaar (west) · Forge Row (south-west) · Adventurer Guild (east).\n• The Keep (north) is closed to travelers.\n\n"The Warden in the Sanctum kept the dead city from the living one. If you walked past him, the city owes you." — City Watch',
+        text: 'ASTERIA CITY (City 2)\n• South Gate: the road to the Sanctum (Route A). East Gate: the road to Frostpeak (Route B).\n• Crystal Plaza — waystone and storage by the fountain.\n• Grand Bazaar (west) · Forge Row (south-west) · Adventurer Guild (east).\n• The Keep (north) is closed to travelers.\n\n"The Warden in the Sanctum kept the dead city from the living one. If you walked past him, the city owes you." — City Watch',
       },
     ],
   },

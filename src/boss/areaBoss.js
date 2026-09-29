@@ -221,6 +221,9 @@ export class AreaBoss extends Entity {
     const pa = this.look.phaseAura && this.look.phaseAura[this.phase];
     if (pa && pa.transition) pa.transition.forEach((k, i) => g.after(i * (pa.step || 0.4), () => !this.dead && g.vfx.sprite(k, this.x, this.y + 6, 0, { life: pa.stepLife || 0.7, scale: pa.scale || 1.4, glow: 0.45, ground: true, squash: 0.75, alpha: 0.85 })));
     g.ui.callout(ph.name, ph.sub || '', '#e0b0ff');
+    const nPh = this.def.phases.length, ps = (this.look.phaseStyle && this.look.phaseStyle[this.phase]) || {};
+    if (nPh > 1) g.vfx.text(this.x, this.y - this.height * this.scale - 30, `PHASE ${this.phase} / ${nPh}`, { color: ps.aura ? `rgb(${ps.aura})` : '#ffe0a0', size: 18, life: 2.2, vy: -12 });
+    this.flash = 0.3;
     if (ph.shockwave) {
       const tel = this.tele({ shape: 'ring', x: this.x, y: this.y, r0: 20, r: 170, total: 1.1 });
       yield 1.1;
@@ -560,15 +563,17 @@ AreaBoss.prototype.draw = function draw(ctx) {
   const x = Math.round(this.x), y = Math.round(this.y);
   const alpha = this.dead ? Math.max(0, 1 - Math.max(0, this.deathT - 1.2)) : 1;
   if (alpha <= 0) return;
-  const aura = this.look.aura || '255,120,120';
+  // look.phaseStyle[phase] = { aura: 'r,g,b', glow: px, scale } — every phase reads differently at a glance
+  const ps = (this.look.phaseStyle && this.look.phaseStyle[this.phase]) || {};
+  const aura = ps.aura || this.look.aura || '255,120,120';
   // shadow + aura
   const sh = 1 - this.air / 200;
   ctx.fillStyle = `rgba(0,0,0,${0.4 * alpha})`;
   ctx.beginPath(); ctx.ellipse(x, y, this.radius * 1.5 * sh, this.radius * 0.55 * sh, 0, 0, TAU); ctx.fill();
   if (!this.dead && this.state !== 'dormant') {
     ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = `rgba(${aura},${0.16 + 0.08 * Math.sin(t * 4)})`;
-    ctx.beginPath(); ctx.ellipse(x, y, this.radius * 2.1, this.radius * 0.8, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = `rgba(${aura},${(ps.glow ? 0.26 : 0.16) + 0.08 * Math.sin(t * 4)})`;
+    ctx.beginPath(); ctx.ellipse(x, y, this.radius * (ps.glow ? 2.6 : 2.1), this.radius * (ps.glow ? 1 : 0.8), 0, 0, TAU); ctx.fill();
     ctx.globalCompositeOperation = 'source-over';
   }
   ctx.save();
@@ -580,11 +585,14 @@ AreaBoss.prototype.draw = function draw(ctx) {
   const s = this.sprites;
   if (s && s.sheet) {
     const fr = this.sheetFrame(s);
-    const sc = this.scale, w = s.w * sc, h = s.h * sc, ax = s.ax * sc, ay = s.ay * sc;
+    const sc = this.scale * (ps.scale || 1), w = s.w * sc, h = s.h * sc, ax = s.ax * sc, ay = s.ay * sc;
     if (this.state === 'dormant') ctx.filter = 'brightness(0.75)';
+    else if (ps.glow && !this.dead) ctx.filter = `drop-shadow(0 0 ${ps.glow}px rgb(${aura}))`;
     ctx.drawImage(fr, -ax, -ay, w, h);
     ctx.filter = 'none';
     if (this.flash > 0 && !this.dead) { ctx.globalAlpha = Math.min(1, this.flash * 10); ctx.drawImage(flashOf(fr), -ax, -ay, w, h); }
+    // the transformation: the body pulses white while it changes form
+    if (this.state === 'transition' && !this.dead) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.35 + 0.35 * Math.sin(g.time * 18); ctx.drawImage(flashOf(fr), -ax, -ay, w, h); ctx.globalCompositeOperation = 'source-over'; }
     if (this.status.has('vulnerable') && !this.dead) {
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha = 0.25 + 0.2 * Math.sin(g.time * 14);

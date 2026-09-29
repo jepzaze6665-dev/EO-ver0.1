@@ -472,5 +472,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (2) the boss seemed to vanish on a phase change -> the phase burst was scale 2.4 on top of it: now scale 1.2 / alpha 0.55,
   and look.phaseAura effects play on the GROUND layer under the boss (AreaBoss + Guardian).
   Gotcha: never put a `//` comment in the middle of a one-line statement (it comments out the rest -> the whole game breaks).
+  B3 polish (owner): the Warden body had holes (darkBg erased the armour's dark greys) -> darkBg only clears LARGE connected
+  dark-neutral regions between [minLum, lum] (the black outline protects the art); only single-body frames are used. Phases
+  readable: AreaBoss look.phaseStyle[phase] = { aura, glow (drop-shadow px), scale } + a white pulse on the body during the
+  transformation + a PHASE n / N label (Warden: pale ice -> cyan -> violet -> magenta, larger). Echoes take data filter /
+  scale (no hue shift on the blue Warden). City 2 has TWO roads: South Gate = Route A (Sanctum), EAST GATE = Route B (the
+  summit north road arrives at [154,67]; exit east_road, bridge over the moat, towers).
   Next: owner decides (Route A/B both complete; City 2 content, balance with a human player, F3 debug overlay).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

@@ -38,8 +38,13 @@ export function buildAsteriaTerrain(b) {
   b.rect(K.gate[0], K.y1, K.gate[1], K.y1 + 1, C);
   b.rect(K.road[0], 135, K.road[1], 157, C);
   for (let y = 8; y <= 142; y++) for (let x = K.road[0]; x <= K.road[1]; x++) { const t = m.get(x, y); if (t === T.WATER || t === T.SHALLOW) m.set(x, y, T.BRIDGE); }
-  b.rect(0, 0, m.w - 1, 1, T.CLIFF); b.rect(0, m.h - 2, m.w - 1, m.h - 1, T.CLIFF);
-  b.rect(0, 0, 1, m.h - 1, T.CLIFF); b.rect(m.w - 2, 0, m.w - 1, m.h - 1, T.CLIFF);
+  // the EAST GATE (Route B, from Frostpeak): a gap in the wall on the cross avenue, a bridge over the moat, a road to the edge
+  b.rect(K.x1 - 1, 65, K.x1, 69, C);
+  b.rect(K.x1 + 1, 66, m.w - 1, 68, C);
+  for (let x = K.x1; x <= 157; x++) for (let y = 66; y <= 68; y++) { const t = m.get(x, y); if (t === T.WATER || t === T.SHALLOW) m.set(x, y, T.BRIDGE); }
+  b.rect(0, 0, m.w - 1, 1, T.CLIFF); b.rect(0, m.h - 2, m.w - 1, m.h - 2, T.CLIFF); b.rect(0, m.h - 1, m.w - 1, m.h - 1, T.CLIFF);
+  b.rect(0, 0, 1, m.h - 1, T.CLIFF);
+  b.rect(m.w - 2, 0, m.w - 1, 64, T.CLIFF); b.rect(m.w - 2, 70, m.w - 1, m.h - 1, T.CLIFF); // (east edge open at the road)
 
   // ---------------- streets: avenues, lanes, the canal across the upper city
   const streets = [
@@ -82,7 +87,10 @@ export function buildAsteriaTerrain(b) {
     if (Math.abs(x - 80) > 8) b.prop(x % 8 ? 'a_wall_a' : 'a_wall_b', x, K.y1 + 1, {});
     b.prop(x % 16 === 0 ? 'a_wall_gate' : 'a_wall_a', x, K.y0 + 1, {});
   }
-  for (let y = K.y0 + 8; y <= K.y1 - 6; y += 8) for (const x of [K.x0 + 1, K.x1 - 1]) b.prop(y % 16 ? 'a_tower_thin' : 'a_tower_b', x, y, { scale: 0.8 });
+  for (let y = K.y0 + 8; y <= K.y1 - 6; y += 8) for (const x of [K.x0 + 1, K.x1 - 1]) { if (x > 80 && Math.abs(y - 67) < 6) continue; b.prop(y % 16 ? 'a_tower_thin' : 'a_tower_b', x, y, { scale: 0.8 }); }
+  // the East Gate's towers + banners (Route B)
+  for (const y of [63, 72]) b.prop('a_tower_round', K.x1, y, { scale: 0.8 });
+  for (const y of [64, 71]) b.prop('a_banner_stand_a', K.x1 - 3, y, { solid: true, scale: 0.8 });
   b.prop('a_castle_gate', 80, K.y1 + 1, { light: { r: 100, color: '#ffc870', a: 0.6, oy: -60 } });
   for (const x of [75, 85]) b.prop('a_banner_stand_c', x, 130, { solid: true, scale: 0.8 });
 
@@ -163,7 +171,7 @@ export function buildAsteriaTerrain(b) {
   // the forest ring outside the moat (tries only there, so it fills up; the south road stays clear)
   for (let n = 0, guard = 0; n < 200 && guard < 6000; guard++) {
     const side = r.int(0, 3), x = side === 0 ? r.int(2, 7) : side === 1 ? r.int(153, m.w - 3) : r.int(2, m.w - 3), y = side < 2 ? r.int(2, m.h - 3) : side === 2 ? r.int(2, 7) : r.int(143, m.h - 3);
-    if (m.get(x, y) !== G || Math.abs(x - 80) < 6 || m.blocker[m.idx(x, y)]) continue;
+    if (m.get(x, y) !== G || Math.abs(x - 80) < 6 || (x > 140 && Math.abs(y - 67) < 6) || m.blocker[m.idx(x, y)]) continue;
     n++;
     b.prop(r.pick(['a_pine_a', 'a_pine_b', 'a_pine_c', 'a_pine_d', 'a_tree_tall_a', 'a_tree_tall_b', 'a_tree_pine_s']), x, y, { solid: true, scale: 0.75, flip: r.chance(0.5) });
   }

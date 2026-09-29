@@ -294,6 +294,8 @@ export const BOSSES = {
     stats: { hp: 24000, def: 16, speed: 104, radius: 22, height: 64, mass: 8, weakness: ['physical'], superArmor: true, poise: 1300 },
     look: {
       sprite: 'crystal_warden', scale: 1.15, aura: '150,200,255',
+      // each phase its own glow / size: pale ice -> bright cyan -> violet corruption -> magenta, larger (enraged)
+      phaseStyle: { 1: { aura: '150,200,255' }, 2: { aura: '90,220,255', glow: 5 }, 3: { aura: '170,100,255', glow: 7, scale: 1.05 }, 4: { aura: '230,80,255', glow: 10, scale: 1.14 } },
       anims: { idle: 'p1_idle', walk: 'p1_move', windup: 'p1_wind', attack: 'p1_hit', hurt: 'p1_hurt', roar: 'p1_special' },
       phaseAnims: { 2: { idle: 'p2_idle', walk: 'p2_move', windup: 'p2_wind', attack: 'p2_hit', hurt: 'p2_hurt', roar: 'p2_special' }, 3: { idle: 'p3_idle', walk: 'p3_move', windup: 'p3_wind', attack: 'p3_hit', hurt: 'p3_hurt', roar: 'p3_special' }, 4: { idle: 'p3_idle', walk: 'p3_move', windup: 'p3_wind', attack: 'p3_hit', hurt: 'p3_hurt', roar: 'p3_special' } },
       vfx: { charge: 'w_spark', slash: 'w_slash', impact: 'w_crater', bolt: 'w_bolt', eruption: 'w_spikes', nova: 'w_eruption', phase: 'w_burst', sigil: 'w_sigil', pillar: 'w_pillar', shatter: 'w_shatter', spark: 'w_sparkle', echo: 'w_crystal', burst: 'w_blast' },
@@ -330,7 +332,7 @@ export const BOSSES = {
     // SIGNATURE (boss/mechanics.js). Order = priority when several want the next turn.
     mechanics: [
       { type: 'pylons', phase: 4, at: 0.1, count: 3, hp: 380, channel: 14, dist: 150, power: 80, weak: 7, retry: 16, name: 'SHATTERED ECLIPSE' },
-      { type: 'echoes', phase: 3, count: 2, life: 14, every: 22, delay: 0.3, sprite: 'crystal_warden' },
+      { type: 'echoes', phase: 3, count: 2, life: 14, every: 22, delay: 0.3, sprite: 'crystal_warden', filter: 'brightness(1.7) saturate(1.5)', scale: 1.1 }, // pale crystal copies (no hue shift: the Warden is already blue)
       { type: 'rune_sequence', phase: 2, every: 12, count: 4, r: 56, power: 36, gap: 0.55, delay: 1.1 },
     ],
     rewards: { exp: 1500, gold: 500, loot: 'crystal_warden', items: { warden_crest: 1 }, lore: 'crystal_warden' },

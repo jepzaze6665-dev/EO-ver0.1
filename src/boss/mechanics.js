@@ -214,7 +214,7 @@ class Echoes {
       const a = Math.min(1, e.life) * (0.45 + 0.1 * Math.sin(this.b.animT * 4));
       ctx.save(); ctx.globalAlpha = a; ctx.translate(e.x, e.y);
       if (Math.cos(angleTo(e.x, e.y, this.b.game.player.x, this.b.game.player.y)) < 0) ctx.scale(-1, 1);
-      if (set) { const fr = set.idle[0], s = 1.1; ctx.filter = 'hue-rotate(160deg) brightness(1.4)'; ctx.drawImage(fr, -set.ax * s, -set.ay * s, set.w * s, set.h * s); ctx.filter = 'none'; }
+      if (set) { const fr = set.idle[0], s = this.d.scale || 1.1; ctx.filter = this.d.filter || 'hue-rotate(160deg) brightness(1.4)'; ctx.drawImage(fr, -set.ax * s, -set.ay * s, set.w * s, set.h * s); ctx.filter = 'none'; }
       else { ctx.fillStyle = 'rgba(140,190,255,0.6)'; ctx.beginPath(); ctx.ellipse(0, -20, 12, 20, 0, 0, TAU); ctx.fill(); }
       ctx.restore();
     }

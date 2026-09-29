@@ -15,6 +15,6 @@ export const SUMMIT = {
   exits: [
     { id: 'summit_gate', rect: [88, 49, 92, 49], to: 'b3', entry: [90, 57], label: 'Frostpeak' },
     // the north road must sit inside the summit zone (tiles within 22 of the arena centre)
-    { id: 'north_road', rect: [89, 8, 91, 8], to: 'city2', entry: [82, 154], label: 'Asteria City' },
+    { id: 'north_road', rect: [89, 8, 91, 8], to: 'city2', entry: [154, 67], label: 'Asteria City (East Gate)' },
   ],
 };
