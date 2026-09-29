@@ -38,14 +38,16 @@ PRESETS.ub = { out: 'assets/player', sheets: {
 // No separate idle / 2nd attack / parry sheet: idle = walk col 0, ATK1 holds all 3 combo cuts, DEF holds guard + riposte.
 const AGN = 'desgin/class cr/AG/AG NEW/';
 // nearestBody: the thrust / swing blades are drawn a pixel away from the hand (see componentFrames)
-PRESETS.ag = { out: 'assets/player/ag', nearestBody: true, sheets: {
+// bg: flat near-white sheets + silver armour -> only near-white is background, pockets in the armour are kept
+PRESETS.ag = { out: 'assets/player/ag', nearestBody: true, bg: { strict: 245, strictSat: 7, loose: 238, looseSat: 9, holes: 400 }, sheets: {
   walk: [AGN + 'walk1.png', 4],
-  // ATK1's attack poses are drawn mirrored vs its idle poses: row 2 cuts / thrusts to the RIGHT, row 3 to the left
-  atk1: [AGN + 'ATK1', 4, { facing: { right: 2, left: 3 } }],
+  // ATK1: row 2's cuts go RIGHT with the head turned right; row 3 cuts left but looks right (head "turns wrong") ->
+  // both sides use row 2, mirrored for the left
+  atk1: [AGN + 'ATK1', 4, { facing: { right: 2, left: 2, flipLeft: true } }],
   guard: [AGN + 'DEF', 4],
   dash: [AGN + 'DASH', 4],
   hit: [AGN + 'HIT', 4],
-  sk1: [AGN + 'SK1', 4],
+  sk1: [AGN + 'SK1', 4, { facing: { right: 3, left: 3, flipLeft: true } }], // row 2 looks left but bashes right
   sk2: [AGN + 'SK2', 4],
   sk3: [AGN + 'SK3', 4],
   sk4: [AGN + 'SK4', 4],
@@ -125,12 +127,16 @@ PRESETS.aw = { out: 'assets/player/aw', sheets: {
 } };
 const COLS = 6;
 
-function removeBackground(img) {
+// DEFAULT_BG: grey fake-checkerboard sheets. A preset whose art has light grey / silver parts (AG armour) passes a
+// tighter `bg` (only near-white counts) + `holes`: after the fill, background pockets smaller than that many source px
+// that only reach the real background through a 1-px gap are put back (armour highlights were read as background).
+const DEFAULT_BG = { strict: 212, strictSat: 20, loose: 175, looseSat: 26 };
+function removeBackground(img, bg = DEFAULT_BG) {
   const { width: w, height: h, data } = img;
   const isBg = (i, loose) => {
     const r = data[i], g = data[i + 1], b = data[i + 2];
     const mn = Math.min(r, g, b), mx = Math.max(r, g, b);
-    return loose ? mn > 175 && mx - mn < 26 : mn > 212 && mx - mn < 20;
+    return loose ? mn > bg.loose && mx - mn < bg.looseSat : mn > bg.strict && mx - mn < bg.strictSat;
   };
   // flood fill from all strict-bg pixels (checkerboard covers the whole sheet)
   const mark = new Uint8Array(w * h);
@@ -142,6 +148,7 @@ function removeBackground(img) {
     const nb = [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, y > 0 ? p - w : -1, y < h - 1 ? p + w : -1];
     for (const q of nb) if (q >= 0 && !mark[q] && isBg(q * 4, true)) { mark[q] = 1; stack.push(q); }
   }
+  if (bg.holes) fillPockets(mark, w, h, bg.holes);
   for (let p = 0; p < w * h; p++) {
     if (mark[p]) { data[p * 4 + 3] = 0; continue; }
     // soften light fringe pixels touching the background (un-mix from white)
@@ -157,6 +164,39 @@ function removeBackground(img) {
         data[i] = Math.round(r * 0.35); data[i + 1] = Math.round(g * 0.35); data[i + 2] = Math.round(b * 0.4);
       }
     }
+  }
+}
+
+// Background pockets inside the figure: erode the background mask by 1 px (cuts 1-2 px channels), label what is
+// left, and give back every marked pixel that is not within 1 px of a LARGE eroded region.
+function fillPockets(mark, w, h, minArea) {
+  const er = new Uint8Array(w * h);
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    const p = y * w + x;
+    if (mark[p] && mark[p - 1] && mark[p + 1] && mark[p - w] && mark[p + w] && mark[p - w - 1] && mark[p - w + 1] && mark[p + w - 1] && mark[p + w + 1]) er[p] = 1;
+  }
+  // border rows / columns: keep as background (the sheet edge is always background)
+  for (let x = 0; x < w; x++) { if (mark[x]) er[x] = 1; if (mark[(h - 1) * w + x]) er[(h - 1) * w + x] = 1; }
+  for (let y = 0; y < h; y++) { if (mark[y * w]) er[y * w] = 1; if (mark[y * w + w - 1]) er[y * w + w - 1] = 1; }
+  const big = new Uint8Array(w * h), seen = new Uint8Array(w * h), comp = [];
+  for (let p0 = 0; p0 < w * h; p0++) {
+    if (!er[p0] || seen[p0]) continue;
+    comp.length = 0; comp.push(p0); seen[p0] = 1;
+    for (let k = 0; k < comp.length; k++) {
+      const p = comp[k], x = p % w, y = (p / w) | 0;
+      for (const q of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, y > 0 ? p - w : -1, y < h - 1 ? p + w : -1]) if (q >= 0 && er[q] && !seen[q]) { seen[q] = 1; comp.push(q); }
+    }
+    if (comp.length >= minArea) for (const p of comp) big[p] = 1;
+  }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const p = y * w + x;
+    if (!mark[p] || big[p]) continue;
+    let near = false;
+    for (let dy = -1; dy <= 1 && !near; dy++) for (let dx = -1; dx <= 1 && !near; dx++) {
+      const nx = x + dx, ny = y + dy;
+      if (nx >= 0 && ny >= 0 && nx < w && ny < h && big[ny * w + nx]) near = true;
+    }
+    if (!near) mark[p] = 0;
   }
 }
 
@@ -519,7 +559,7 @@ function componentFrames(img, y0, y1, xs, n = COLS, opts = {}) {
 
 const [CW, CH] = STD.canvas, [PX, PY] = STD.pivot;
 function buildPreset(key) {
-const { out: outRel, sheets: SHEETS, facing: FACING, nearestBody } = PRESETS[key];
+const { out: outRel, sheets: SHEETS, facing: FACING, nearestBody, bg } = PRESETS[key];
 const OUT = path.join(ROOT, outRel);
 fs.mkdirSync(OUT, { recursive: true });
 console.log('== preset', key, '->', outRel);
@@ -527,7 +567,7 @@ const atlas = { preset: key, standard: STD, cols: COLS, sheets: {}, validation: 
 for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
   const n = opt.frames || COLS; // frames actually drawn per row in the source (output is always COLS wide)
   const img = png.read(path.join(ROOT, file));
-  removeBackground(img);
+  removeBackground(img, bg);
   const py = projection(img, true);
   const ys = blobSplits(py, rows, img.height) || splits(py, rows, img.height);
   const cells = [], neutral = [];
@@ -569,7 +609,7 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
   png.write(path.join(OUT, name + '.png'), sheet);
   const sides = [];
   const face = opt.facing || FACING; // per-sheet facing override > preset facing > detected
-  for (let base = 0; base < rows; base += 4) sides.push(face ? { right: base + face.right, left: base + face.left, flipLeft: false, flipRight: false } : sideRows(sheet, { fw: CW, fh: CH, ax: PX }, base));
+  for (let base = 0; base < rows; base += 4) sides.push(face ? { right: base + face.right, left: base + face.left, flipLeft: !!face.flipLeft, flipRight: !!face.flipRight } : sideRows(sheet, { fw: CW, fh: CH, ax: PX }, base));
   atlas.sheets[name] = { file: outRel + '/' + name + '.png', fw: CW, fh: CH, rows, cols: COLS, ax: PX, ay: PY, sides, sourceScale: +scale.toFixed(4) };
   // frames with (almost) no character body: animations must never show them (tools/tests/sprites.test.mjs)
   atlas.sheets[name].emptyFrames = [];

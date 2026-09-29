@@ -43,8 +43,8 @@
    "sides": [
     {
      "right": 2,
-     "left": 3,
-     "flipLeft": false,
+     "left": 2,
+     "flipLeft": true,
      "flipRight": false
     }
    ],
@@ -119,8 +119,8 @@
    "sides": [
     {
      "right": 3,
-     "left": 2,
-     "flipLeft": false,
+     "left": 3,
+     "flipLeft": true,
      "flipRight": false
     }
    ],
@@ -253,7 +253,7 @@
   "atk1": {
    "bodyHeight": 58,
    "feetMaxOffset": 1,
-   "centerOffset": 0,
+   "centerOffset": -1,
    "ok": true,
    "issues": []
   },
@@ -309,7 +309,7 @@
   "sk5": {
    "bodyHeight": 58,
    "feetMaxOffset": 0,
-   "centerOffset": -1,
+   "centerOffset": 0,
    "ok": true,
    "issues": []
   },
