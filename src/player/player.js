@@ -165,7 +165,11 @@ export class Player extends Entity {
   trailFx(n) {
     const g = this.game, th = this.cls.theme || {};
     if (th.trail === 'stardust') for (let i = 0; i < n; i++) g.vfx.particle(this.x + rand(-6, 6), this.y - rand(0, 30), { color: th.color, life: 0.4, size: 2, vy: -20, drag: 3, add: true });
-    else g.vfx.shadowSmoke(this.x, this.y, n);
+    else if (th.color) { // smoke in the class colour: a dark and a mid shade of theme.color
+      const v = parseInt(th.color.slice(1), 16), rgb = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+      const shade = (k) => '#' + rgb.map((c) => Math.round(c * k).toString(16).padStart(2, '0')).join('');
+      for (let i = 0; i < n; i++) g.vfx.shadowSmoke(this.x, this.y, 1, { color: i % 2 ? shade(0.25) : shade(0.6) });
+    } else g.vfx.shadowSmoke(this.x, this.y, n);
   }
   // ---------------- marks (stacks stored in game.marks — see combat/markSystem.js)
   markCount(id) { return this.game.marks ? this.game.marks.get(this, id) : 0; }
