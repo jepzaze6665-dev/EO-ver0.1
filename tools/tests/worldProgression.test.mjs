@@ -55,7 +55,11 @@ test('Route A (W2): A1 boss = the Guardian; A2 / A3 bosses planned; A3 is the ma
   ok(!a2.planned && a2.map === 'rift' && MAPS.find((m) => m.id === 'rift').parent === 'a2' && a2.phases.length === 2 && a2.level > a1.level, 'A2 boss live, in its own arena map (rift, part of A2)');
   ok(!a3.planned && a3.type === 'major' && a3.map === 'sanctum' && a3.phases.length === 3 && a3.level > a2.level, 'A3 major boss live, 3 phases, in its own arena');
   const minis = liveBosses().filter((b) => b.type === 'mini');
-  ok(minis.length === 2 && minis.every((b) => b.map === 'a1' && b.level < a1.level), 'minis in A1, weaker than its boss');
+  // owner 2026-09-29: optional mini-bosses on EVERY field map (A1 has two), each weaker than that map's main boss
+  const mainOf = { a1: 'boss_a1', a2: 'boss_a2', a3: 'boss_a3', b1: 'boss_b1', b2: 'boss_b2', b3: 'boss_b3' };
+  ok(minis.filter((b) => b.map === 'a1').length === 2, 'two minis in A1');
+  for (const m of Object.keys(mainOf)) ok(minis.some((b) => b.map === m), 'a mini-boss on ' + m);
+  ok(minis.every((b) => mainOf[b.map] && b.level < BOSSES[mainOf[b.map]].level && !b.unlocks.length), 'minis weaker than their map boss, gate nothing');
 });
 
 console.log('maps / routes / gates');

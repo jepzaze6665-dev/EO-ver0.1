@@ -16,6 +16,10 @@ import { TransitionSystem } from './transitionSystem.js';
 import { HazardSystem } from './hazardSystem.js';
 import { GateSystem } from './gateSystem.js';
 import { MAPS } from '../maps/mapRegistry.js';
+import { densify, ordinary } from './spawnDensity.js';
+import { liveBosses } from '../data/bosses.js';
+const ARENA_CLEAR = 4; // tiles around a boss arena kept free of ordinary field packs
+import { DIFFICULTY } from '../data/difficulty.js';
 
 const REVEAL_R = 10;
 // the World's fields that belong to the loaded grid (swapped by enterGrid)
@@ -94,6 +98,14 @@ export class World {
       for (const sp of c.spawns || []) L.spawnPoints.push({ def: { radius: 2, count: 1, ...sp, x: (sp.tx + 0.5) * TILE, y: (sp.ty + 0.5) * TILE }, alive: [], respawnT: 0, active: false });
     }
     this.mapManager.attach(id, map);
+    // boss arenas stay clear of ordinary field packs (a mini-boss fight must not turn into a swarm), then
+    // more monsters per map (data/difficulty.js spawnDensity): bigger packs + new packs, seeded per grid
+    const gridOf = (mapId) => (this.mapManager.get(mapId) || {}).grid || START_GRID; // maps without a grid = start grid
+    const arenas = liveBosses().filter((b) => b.arena && gridOf(b.map) === id)
+      .map((b) => ({ x: b.arena.center[0] * TILE, y: b.arena.center[1] * TILE, r: (b.arena.radius + ARENA_CLEAR) * TILE }));
+    const nearArena = (d) => arenas.some((a) => Math.hypot(d.x - a.x, d.y - a.y) < a.r);
+    L.spawnPoints = L.spawnPoints.filter((sp) => !ordinary(sp.def) || !nearArena(sp.def));
+    L.spawnPoints.push(...densify(L.spawnPoints, map, (x, y) => this.mapManager.idAt(x, y, id), DIFFICULTY.spawnDensity, def.seed || 1).filter((sp) => !nearArena(sp.def)));
     if (def.setup) def.setup(this, L);
     return L;
   }
@@ -556,7 +568,7 @@ export class World {
       if (!sp.active || sp.def.unique || sp.def.type === 'guardian') continue;
       if (sp.alive.length && sp.alive.every((m) => m.dead)) {
         sp.respawnT += dt;
-        if (sp.respawnT > 50 && dist(p.x, p.y, sp.def.x, sp.def.y) > 700) { sp.respawnT = 0; this.populate(sp); }
+        if (sp.respawnT > DIFFICULTY.respawnTime && dist(p.x, p.y, sp.def.x, sp.def.y) > 700) { sp.respawnT = 0; this.populate(sp); }
       }
     }
     this.revealT -= dt;

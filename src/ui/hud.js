@@ -14,6 +14,7 @@ import { MARKS } from '../data/marks.js';
 import { STATUSES } from '../data/statuses.js';
 import { REQUIREMENTS } from '../combat/skillSystem.js';
 import { ROUTES } from '../data/routes.js';
+import { MAP_MARKERS } from '../data/mapMarkers.js';
 
 const FONT = '"Trebuchet MS", "Segoe UI", sans-serif';
 const TITLE = 'Georgia, "Times New Roman", serif';
@@ -416,22 +417,23 @@ export class HUD {
     this.mini.getContext('2d').putImageData(this.miniData, 0, 0);
   }
 
+  // map markers (minimap + world map). What shows is data: data/mapMarkers.js (owner: players explore on their own)
   markers() {
-    const g = this.game, w = g.world, f = w.state.flags, out = [];
-    for (const n of w.npcs) if (w.onMap(n) && (!n.secret || w.map.secretsFound.has(n.secret))) out.push({ x: n.x, y: n.y, c: n.hasNews() ? '#ffd24a' : '#8adfff', r: 1.3 });
+    const g = this.game, w = g.world, f = w.state.flags, out = [], M = MAP_MARKERS;
+    const seen = (x, y) => w.map.revealed[w.map.idx(Math.floor(x / TILE), Math.floor(y / TILE))];
+    const bossShown = (x, y) => M.bosses === 'always' || (M.bosses === 'seen' && seen(x, y));
+    if (M.npcs) for (const n of w.npcs) if (w.onMap(n) && (!n.secret || w.map.secretsFound.has(n.secret))) out.push({ x: n.x, y: n.y, c: n.hasNews() ? '#ffd24a' : '#8adfff', r: 1.3 });
     for (const it of w.interactables) {
       if (!w.onMap(it)) continue;
-      if (it.kind === 'waystone' && w.state.waystones[it.id]) out.push({ x: it.x, y: it.y, c: '#5af0ff', r: 1.8, diamond: true });
-      if (it.kind === 'chest' && !w.state.chests[it.id] && w.map.revealed[w.map.idx(Math.floor(it.x / TILE), Math.floor(it.y / TILE))] && (!it.secret || w.map.secretsFound.has(it.secret))) out.push({ x: it.x, y: it.y, c: '#ffc050', r: 1.2 });
+      if (M.waystones && it.kind === 'waystone' && w.state.waystones[it.id]) out.push({ x: it.x, y: it.y, c: '#5af0ff', r: 1.8, diamond: true });
+      if (M.chests && it.kind === 'chest' && !w.state.chests[it.id] && seen(it.x, it.y) && (!it.secret || w.map.secretsFound.has(it.secret))) out.push({ x: it.x, y: it.y, c: '#ffc050', r: 1.2 });
     }
-    // landmarks appear once their area has been discovered
     // landmarks of the loaded grid (world/levels/*.js `landmarks`: [name, tx, ty]) once their area was discovered
-    for (const [name, lx, ly] of (LEVELS[w.gridId] && LEVELS[w.gridId].landmarks) || []) if (w.state.subs[name]) out.push({ x: lx * TILE, y: ly * TILE, c: '#f0e6c8', r: 1.1, diamond: true });
-    if (w.guardian && f.guardianDiscovered && !f.guardianDefeated && w.onMap(w.guardian)) out.push({ x: w.guardian.home.x, y: w.guardian.home.y, c: '#ff4060', r: 3, boss: true });
-    // area bosses waiting in their arena (boss/bossSystem.js)
-    if (g.bosses) for (const enc of g.bosses.idleOnMap()) if (enc.def.impl === 'area') { const a = g.bosses.arenaPx(enc); out.push({ x: a.x, y: a.y, c: '#ff4060', r: 3, boss: true }); }
-    const q = this.questTarget();
-    if (q) out.push({ x: q.x, y: q.y, c: '#ffe070', r: 2.4, quest: true });
+    if (M.landmarks) for (const [name, lx, ly] of (LEVELS[w.gridId] && LEVELS[w.gridId].landmarks) || []) if (w.state.subs[name]) out.push({ x: lx * TILE, y: ly * TILE, c: '#f0e6c8', r: 1.1, diamond: true });
+    if (w.guardian && f.guardianDiscovered && !f.guardianDefeated && w.onMap(w.guardian) && bossShown(w.guardian.home.x, w.guardian.home.y)) out.push({ x: w.guardian.home.x, y: w.guardian.home.y, c: '#ff4060', r: 3, boss: true });
+    // area / mini bosses waiting in their arena (boss/bossSystem.js) — only once their arena has been seen
+    if (g.bosses) for (const enc of g.bosses.idleOnMap()) if (enc.def.impl === 'area') { const a = g.bosses.arenaPx(enc); if (bossShown(a.x, a.y)) out.push({ x: a.x, y: a.y, c: '#ff4060', r: 3, boss: true }); }
+    if (M.questTarget) { const q = this.questTarget(); if (q) out.push({ x: q.x, y: q.y, c: '#ffe070', r: 2.4, quest: true }); }
     return out;
   }
 
@@ -466,7 +468,7 @@ export class HUD {
     for (const m of this.markers()) {
       let s = toM(m.x, m.y);
       const inside = s.x > x && s.x < x + size && s.y > y && s.y < y + size;
-      if (!inside && !m.quest && !m.boss) continue;
+      if (!inside && (!MAP_MARKERS.edgeArrows || (!m.quest && !m.boss))) continue; // edge pins off: explore
       if (!inside) { s = { x: clamp(s.x, x + 6 * u, x + size - 6 * u), y: clamp(s.y, y + 6 * u, y + size - 6 * u) }; }
       ctx.fillStyle = m.c;
       const r = m.r * 2.4 * u;

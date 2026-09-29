@@ -86,6 +86,122 @@ export const BOSSES = {
     unlocks: [],
   },
 
+  // ---------------- OPTIONAL MINI-BOSSES on every field map (owner 2026-09-29: "like A1, on every map"). Pure data on
+  // the generic AreaBoss: an existing monster's art scaled up + moves; they gate nothing, pay EXP + an elite loot roll.
+  // Not marked on the map until their arena has been seen (data/mapMarkers.js) — players find them by exploring.
+  mini_sunken_horn: {
+    id: 'mini_sunken_horn', name: 'THE SUNKEN HORN', title: 'Ram of the Drowned Temple', type: 'mini', impl: 'area',
+    route: 'A', map: 'a2', level: 20, nativeLevel: 12, recommendedLevel: 19,
+    teaches: 'Bait the charge into a wall · punish the stumble',
+    stats: { hp: 8000, def: 10, speed: 96, radius: 24, height: 56, mass: 7, weakness: ['shadow'], superArmor: true, poise: 900 },
+    look: { sprite: 'rock_rhino', scale: 1.6, aura: '200,170,120' },
+    arena: { name: 'Sunken Temple', center: [34.5, 93.5], radius: 6.4, trigger: 4.8, bossSpawn: [34.5, 91.5], entry: [34.5, 100.5] },
+    appear: [],
+    phases: [
+      { name: 'THE HORN', sub: 'Sidestep the charge — it stumbles after', hpBelow: 1, moves: ['gore', 'charge', 'stomp'] },
+      { name: 'RAMPAGE', sub: 'The temple shakes', hpBelow: 0.5, windup: 0.9, speed: 1.15, moves: ['gore', 'charge', 'stomp', 'rubble'] },
+    ],
+    moves: {
+      gore: { kind: 'strike', range: 80, windup: 0.7, recover: 0.6, cd: 1.6, weight: 4, power: 29, knock: 220, shape: { shape: 'cone', r: 92, half: 0.9 } },
+      charge: { kind: 'dash', guardBreak: true, range: 320, min: 100, windup: 1.0, recover: 1.3, cd: 5, weight: 3, power: 36, knock: 300, len: 300, width: 40, opening: 2.0 },
+      stomp: { kind: 'strike', range: 140, windup: 1.0, recover: 0.8, cd: 7, weight: 2, power: 26, knock: 220, shape: { shape: 'circle', r: 120 }, status: [{ id: 'slow', dur: 2 }], opening: 1.2 },
+      rubble: { kind: 'pattern', layout: 'ring', range: 400, windup: 1.1, recover: 0.7, cd: 9, weight: 2, power: 24, knock: 180, count: 9, r: 32, dist: 120 },
+    },
+    rewards: { exp: 700, loot: 'elite' },
+    unlocks: [],
+  },
+  mini_archive_warden: {
+    id: 'mini_archive_warden', name: 'THE ARCHIVE WARDEN', title: 'Crystal Keeper of the Lost Records', type: 'mini', impl: 'area',
+    route: 'A', map: 'a3', level: 32, nativeLevel: 15, recommendedLevel: 31,
+    teaches: 'Strike its crystal core from the front · clear the scarab swarm',
+    stats: { hp: 10000, def: 14, speed: 70, radius: 24, height: 62, mass: 8, weakness: ['physical'], superArmor: true, poise: 1000 },
+    look: { sprite: 'crystal_golem', scale: 1.5, aura: '120,200,255' },
+    arena: { name: 'Archive Ruins', center: [46.5, 78.5], radius: 6.4, trigger: 4.8, bossSpawn: [46.5, 76.5], entry: [46.5, 85.5] },
+    appear: [],
+    phases: [
+      { name: 'KEEPER', sub: 'Crystal lines erupt — read them early', hpBelow: 1, moves: ['slam', 'shards', 'volley'] },
+      { name: 'THE SWARM WAKES', sub: 'Scarabs guard their keeper', hpBelow: 0.55, windup: 0.9, moves: ['slam', 'shards', 'volley', 'swarm'] },
+    ],
+    moves: {
+      slam: { kind: 'strike', guardBreak: true, range: 90, windup: 0.9, recover: 0.8, cd: 2.2, weight: 4, power: 34, knock: 260, shape: { shape: 'circle', r: 96 }, opening: 1.2 },
+      shards: { kind: 'pattern', layout: 'cross', range: 420, windup: 1.0, recover: 0.6, cd: 6, weight: 3, power: 27, knock: 180, count: 5, r: 30, step: 56, delay: 0.12, dmg: 'magic', color: '120,200,255' },
+      volley: { kind: 'volley', range: 380, min: 90, windup: 0.8, recover: 0.6, cd: 5, weight: 2, power: 20, count: 6, spread: 0.9, speed: 280, dmg: 'magic', color: '#80c8ff' },
+      swarm: { kind: 'summon', range: 999, windup: 1.0, recover: 0.6, cd: 16, weight: 1.5, monster: 'void_scarab', count: 3, max: 3 },
+    },
+    rewards: { exp: 1200, loot: 'elite' },
+    unlocks: [],
+  },
+  mini_old_scarclaw: {
+    id: 'mini_old_scarclaw', name: 'OLD SCARCLAW', title: 'The Bear the Trappers Never Caught', type: 'mini', impl: 'area',
+    route: 'B', map: 'b1', level: 12, nativeLevel: 7, recommendedLevel: 11,
+    difficulty: { hp: 1.15, power: 1.15 }, // Route B
+    teaches: 'A late third swipe · break the frozen ground in time',
+    stats: { hp: 6000, def: 8, speed: 88, radius: 24, height: 60, mass: 7, weakness: ['physical'], superArmor: true, poise: 800 },
+    look: { sprite: 'frost_bear', scale: 1.5, aura: '160,210,255' },
+    arena: { name: "Trapper's Ruins", center: [35.5, 62.5], radius: 6.4, trigger: 4.8, bossSpawn: [35.5, 62.5], entry: [35.5, 69.5] },
+    appear: [],
+    phases: [
+      { name: 'SCARCLAW', sub: 'Count the swipes — the third comes late', hpBelow: 1, moves: ['mauls', 'rush', 'eruption'] },
+      { name: 'OLD FURY', sub: 'The ground freezes beneath it', hpBelow: 0.5, windup: 0.9, speed: 1.15, moves: ['mauls', 'rush', 'eruption', 'frost_ring'] },
+    ],
+    moves: {
+      mauls: { kind: 'combo', range: 80, recover: 0.7, cd: 2.4, weight: 4, power: 22, knock: 180, hits: [
+        { windup: 0.55, power: 22, shape: { shape: 'cone', r: 88, half: 0.9 } },
+        { windup: 0.4, power: 22, shape: { shape: 'cone', r: 88, half: 0.9 } },
+        { windup: 0.85, power: 29, shape: { shape: 'cone', r: 96, half: 1.0 }, track: 0.5 },
+      ] },
+      rush: { kind: 'dash', guardBreak: true, range: 300, min: 100, windup: 0.9, recover: 1.1, cd: 5, weight: 3, power: 29, knock: 280, len: 280, width: 38, opening: 1.8 },
+      eruption: { kind: 'strike', range: 150, windup: 1.1, recover: 0.8, cd: 7, weight: 2, power: 26, knock: 200, dmg: 'magic', shape: { shape: 'cone', r: 170, half: 0.5 }, status: [{ id: 'slow', dur: 2 }], opening: 1.4 },
+      frost_ring: { kind: 'pattern', layout: 'ring', range: 400, windup: 1.2, recover: 0.8, cd: 9, weight: 2, power: 22, knock: 180, count: 10, r: 32, dist: 115, dmg: 'magic', status: [{ id: 'root', dur: 0.8 }], color: '160,220,255' },
+    },
+    rewards: { exp: 450, loot: 'elite' },
+    unlocks: [],
+  },
+  mini_broodmother: {
+    id: 'mini_broodmother', name: 'THE MINE BROODMOTHER', title: 'Queen of the Old Mine', type: 'mini', impl: 'area',
+    route: 'B', map: 'b2', level: 25, nativeLevel: 12, recommendedLevel: 24,
+    difficulty: { hp: 1.2, power: 1.2 }, // Route B
+    teaches: 'Webs root you — dodge them, then burst the brood',
+    stats: { hp: 8000, def: 9, speed: 112, radius: 22, height: 48, mass: 6, weakness: ['shadow'], superArmor: true, poise: 850 },
+    look: { sprite: 'cave_spider', scale: 1.9, aura: '190,130,255' },
+    arena: { name: 'Old Mine', center: [32.5, 92.5], radius: 6.4, trigger: 4.8, bossSpawn: [32.5, 90.5], entry: [32.5, 99.5] },
+    appear: [],
+    phases: [
+      { name: 'BROODMOTHER', sub: 'Webs root — keep moving', hpBelow: 1, moves: ['fang', 'webs', 'pounce'] },
+      { name: 'THE BROOD', sub: 'Her young answer', hpBelow: 0.5, windup: 0.9, speed: 1.2, moves: ['fang', 'webs', 'pounce', 'brood'] },
+    ],
+    moves: {
+      fang: { kind: 'strike', range: 75, windup: 0.55, recover: 0.5, cd: 1.3, weight: 4, power: 26, knock: 160, shape: { shape: 'cone', r: 84, half: 0.8 }, status: [{ id: 'poison', dur: 3 }] },
+      webs: { kind: 'volley', range: 380, min: 80, windup: 0.8, recover: 0.6, cd: 5, weight: 3, power: 15, count: 5, spread: 0.8, speed: 260, dmg: 'magic', status: [{ id: 'root', dur: 1 }], color: '#e0e0ff' },
+      pounce: { kind: 'leap', guardBreak: true, range: 320, min: 110, windup: 1.0, recover: 0.7, cd: 5, weight: 3, power: 31, knock: 260, r: 80, track: 0.6, opening: 1.6 },
+      brood: { kind: 'summon', range: 999, windup: 1.0, recover: 0.6, cd: 15, weight: 1.5, monster: 'cave_spider', count: 2, max: 3 },
+    },
+    rewards: { exp: 900, loot: 'elite' },
+    unlocks: [],
+  },
+  mini_icebound_king: {
+    id: 'mini_icebound_king', name: 'THE ICEBOUND KING', title: 'Yeti of the Frozen Cave', type: 'mini', impl: 'area',
+    route: 'B', map: 'b3', level: 40, nativeLevel: 16, recommendedLevel: 39,
+    difficulty: { hp: 1.25, power: 1.2, windup: 0.95 }, // Route B
+    teaches: 'Guard-breaking pounds · ice rain — never stand still',
+    stats: { hp: 11000, def: 14, speed: 72, radius: 26, height: 66, mass: 9, weakness: ['physical'], superArmor: true, poise: 1100 },
+    look: { sprite: 'yeti', scale: 1.5, aura: '170,220,255' },
+    arena: { name: 'Icebound Cave', center: [18.5, 136.5], radius: 6.4, trigger: 4.8, bossSpawn: [18.5, 134.5], entry: [24.5, 136.5] },
+    appear: [],
+    phases: [
+      { name: 'THE KING', sub: 'The pound breaks guards — dodge it', hpBelow: 1, moves: ['swipe', 'pound', 'hurl'] },
+      { name: 'BLIZZARD', sub: 'Ice falls from the cave roof', hpBelow: 0.5, windup: 0.85, speed: 1.15, moves: ['swipe', 'pound', 'hurl', 'icefall'] },
+    ],
+    moves: {
+      swipe: { kind: 'strike', range: 85, windup: 0.65, recover: 0.6, cd: 1.5, weight: 4, power: 34, knock: 220, shape: { shape: 'cone', r: 96, half: 1.0 } },
+      pound: { kind: 'strike', guardBreak: true, range: 120, windup: 1.1, recover: 1.0, cd: 5, weight: 3, power: 44, knock: 300, shape: { shape: 'circle', r: 128 }, opening: 1.6 },
+      hurl: { kind: 'volley', range: 400, min: 100, windup: 0.9, recover: 0.6, cd: 5, weight: 2, power: 29, count: 3, spread: 0.5, speed: 300, color: '#c8f0ff' },
+      icefall: { kind: 'pattern', layout: 'cross', range: 420, windup: 1.0, recover: 0.6, cd: 8, weight: 2, power: 31, knock: 180, count: 5, r: 34, step: 60, delay: 0.14, dmg: 'magic', status: [{ id: 'slow', dur: 2 }], color: '170,220,255' },
+    },
+    rewards: { exp: 1500, loot: 'elite' },
+    unlocks: [],
+  },
+
   // ---------------- A1 BOSS: the Guardian of the Forest (fight code: boss/guardian.js; arena: maps/ruins.js; art: the
   // owner's A1 boss sheet). W2: it guards the north road out of A1 — its fall opens A2 (Ancient Valley).
   boss_a1: {

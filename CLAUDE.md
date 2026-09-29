@@ -689,5 +689,21 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   + owner "normal monsters tankier": DIFFICULTY.monsterHp by monster `role` (swarm 2.2 · skirmisher 2.0 · caster 1.9 · bruiser 1.4 ·
   tank 1.3 · default 1.7), field monsters only (Monster: not opts.summoned -> boss adds unchanged). Basic-attack hits to kill:
   Forest Wolf 3 -> 6, Rimefang Wolf ~4 -> 8.5, Crag Rhino 42 -> 59, Frost Yeti 94 -> 131 (skills / crits ≈ 2-3× faster).
+- EXPLORATION PASS (owner): expRate 0.5 + MORE MONSTERS: `src/world/spawnDensity.js` densify() at grid build (DIFFICULTY.spawnDensity:
+  density 1.5, 35% of packs +1, the rest = NEW packs 7-14 tiles from an existing one, same map + zone, 3×3 open ground, gap 6;
+  seeded = same packs every load; tutorial / unique / elite / boss spawns untouched; extra defs marked `extra`); respawnTime 35 s
+  (was 50). World.buildGrid also CLEARS ordinary packs within arena radius + 4 tiles of every boss arena (a mini-boss must not
+  become a swarm). Counts now: a1 59 · a2 42 · a3 45 · b1 31 · b2 34 · b3 37. MAP MARKERS `src/data/mapMarkers.js` (hud.markers):
+  no quest target diamond, no edge pins, bosses only once their arena tile is revealed (fog); NPCs / waystones / seen chests /
+  discovered landmarks stay. MINI-BOSSES on every field map (bosses.js, type 'mini', generic AreaBoss, existing art scaled, loot
+  'elite', gate nothing): A2 mini_sunken_horn (rhino, Sunken Temple, Lv 20) · A3 mini_archive_warden (crystal golem + scarab
+  summons, Archive Ruins, 32) · B1 mini_old_scarclaw (frost bear, late-3rd combo, Trapper's Ruins, 12) · B2 mini_broodmother
+  (cave spider, webs root + brood, Old Mine, 25) · B3 mini_icebound_king (yeti, guard-break pound + icefall, Icebound Cave, 40);
+  B minis carry Route B difficulty. First numbers were too strong -> HP ≈ half a map boss, powers ×0.85; bots (no god) win all
+  (Warden 65-70 s · Brood 100 s · King 75 s with 3 potions · Horn 95 s · Scarclaw 55 s). Pacing (one clear + minis): A 11 / 21 /
+  31 -> LV 31 · B 13 / 26 / 37 -> LV 38. Tests: spawnDensity.test (5), worldProgression mini rule (a mini on every field map,
+  weaker than its map boss). checklist fix: the hunt step keeps fighting (idle in a pack got the bot killed) + free() clears
+  'staggered'. Regression green: checklist 31/31 ×3 classes, routeA, playthrough, a1Loop, mapTour, grid, city, routeB / b2 / b3,
+  a2 / a3 monsters, combat 58, slot / enemy / tank / bossReset.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.

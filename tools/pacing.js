@@ -16,13 +16,13 @@ import { DIFFICULTY } from '../src/data/difficulty.js';
 export const ROUTES = {
   A: [
     { map: 'a1', boss: 'boss_a1', quests: ['beyond_lumina', 'first_steps', 'forest_hunts', 'whispers'], minis: ['mini_hollow_fang', 'mini_grukk'] },
-    { map: 'a2', boss: 'boss_a2', quests: ['route_a', 'burning_rift'] },
-    { map: 'a3', boss: 'boss_a3', quests: ['fallen_city'] },
+    { map: 'a2', boss: 'boss_a2', quests: ['route_a', 'burning_rift'], minis: ['mini_sunken_horn'] },
+    { map: 'a3', boss: 'boss_a3', quests: ['fallen_city'], minis: ['mini_archive_warden'] },
   ],
   B: [
-    { map: 'b1', boss: 'boss_b1', quests: ['beyond_lumina', 'first_steps', 'eastern_road'] },
-    { map: 'b2', boss: 'boss_b2', quests: ['crystal_depths'] },
-    { map: 'b3', boss: 'boss_b3', quests: ['frostpeak_climb'] },
+    { map: 'b1', boss: 'boss_b1', quests: ['beyond_lumina', 'first_steps', 'eastern_road'], minis: ['mini_old_scarclaw'] },
+    { map: 'b2', boss: 'boss_b2', quests: ['crystal_depths'], minis: ['mini_broodmother'] },
+    { map: 'b3', boss: 'boss_b3', quests: ['frostpeak_climb'], minis: ['mini_icebound_king'] },
   ],
 };
 
