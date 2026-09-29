@@ -369,11 +369,12 @@ export class Player extends Entity {
     if (this.hurtT > 0 || !this.status.canMove()) return false;
     if (this.dodging || this.game.time < this.dodgeReadyAt) return false; // one dash at a time + small recovery
     if (this.action && this.action.t < (this.action.cancelAt ?? 0)) return false;
-    if (!this.resources.canAfford(STAMINA.resource, STAMINA.dodge)) { this.game.events.emit('staminaEmpty', { entity: this, action: 'dodge' }); return false; }
+    const cost = this.dodgeCost();
+    if (!this.resources.canAfford(STAMINA.resource, cost)) { this.game.events.emit('staminaEmpty', { entity: this, action: 'dodge' }); return false; }
     const g = this.game, mv = g.input.moveVector();
     const ang = mv.x || mv.y ? Math.atan2(mv.y, mv.x) : this.aim;
     this.endAction(true);
-    this.resources.spend(STAMINA.resource, STAMINA.dodge, 'dodge');
+    this.resources.spend(STAMINA.resource, cost, 'dodge');
     this.beginDodge(ang);
     g.events.emit('playerDodged', { player: this });
     this.facing = ang;
@@ -381,6 +382,15 @@ export class Player extends Entity {
     this.trailFx(5);
     return true;
   }
+
+  // stamina per dodge: data/stamina.js, cut by the stat `dodgeCostCut` (e.g. a resource tier, max 60%)
+  // and the status modifier `dodgeCostMult` (e.g. an overdrive buff)
+  dodgeCost() {
+    const cut = clamp(this.stats.dodgeCostCut || 0, 0, 0.6);
+    return STAMINA.dodge * (1 - cut) * this.status.modifier('dodgeCostMult');
+  }
+  // basic-attack speed: stat `attackSpeed` (+0.2 = 20% faster) × status modifier `attackSpeedMult`
+  attackSpeed() { return Math.max(0.5, (1 + (this.stats.attackSpeed || 0)) * this.status.modifier('attackSpeedMult')); }
 
   // --- caster interface used by the generic SkillSystem ---
   // Caster-state rules only (the pipeline handles cooldown / cost / requirements).
@@ -505,12 +515,14 @@ export class Player extends Entity {
     this.moving = Math.hypot(this.vx, this.vy) > 20;
     // standing still (no move / action / dodge / guard): skirmishers punish it (data/enemyCombat.js)
     this.idleT = this.moving || this.action || this.dodging || this.guardState.active ? 0 : (this.idleT || 0) + dt;
+    // class behaviour that runs every frame (e.g. Momentum draining while standing still) — optional hook
+    if (this.cls.tick) this.cls.tick(this, g, dt);
 
     // ---- action timeline
     const a = this.action;
     if (a) {
       const prevT = a.t;
-      a.t += dt;
+      a.t += a.basic ? dt * this.attackSpeed() : dt;
       if (a.lunge && a.t > a.lunge.t0 && prevT < a.lunge.t1) {
         const span = a.lunge.t1 - a.lunge.t0;
         const f = (Math.min(a.t, a.lunge.t1) - Math.max(prevT, a.lunge.t0)) / span;

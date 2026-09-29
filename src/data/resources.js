@@ -50,6 +50,22 @@ export const RESOURCES = {
     ],
     colors: ['#9a5cff', '#2a0c55'],
   },
+  // Duskrunner: MOMENTUM — built by moving: dodges, dashes, hits, Perfect Dodges, combos. It drains while you stand
+  // still in a fight (class tick: duskrunner.momentum.idle*) and a heavy hit knocks a chunk off; fades out of combat.
+  // The tiers are the passive ENDLESS MOTION: faster attacks, faster feet, cheaper dodges, shorter cooldowns.
+  momentum: {
+    id: 'momentum', name: 'Momentum', label: 'MOMENTUM',
+    max: 100, start: 0, respawn: 0,
+    regen: { inCombat: 0, outOfCombat: 0 },
+    decay: { inCombat: 0, outOfCombat: 20, delay: 1.5 },
+    gainStat: 'momentumGain',
+    tiers: [
+      { at: 30, label: 'FLOW', stats: { attackSpeed: 0.1, speed: 8 } },
+      { at: 60, label: 'RUSH', stats: { attackSpeed: 0.2, speed: 16, physicalDmg: 0.1, dodgeCostCut: 0.25, cdr: 0.1 } },
+      { at: 100, label: 'MAX MOMENTUM', stats: { attackSpeed: 0.3, speed: 24, physicalDmg: 0.2, dodgeCostCut: 0.4, cdr: 0.2, crit: 0.1 } },
+    ],
+    colors: ['#5ab8ff', '#123a7a'],
+  },
   // Phase 6 (Astral Weaver) — defined now so the pool is proven to be class-agnostic.
   astral_charge: {
     id: 'astral_charge', name: 'Astral Charge', label: 'ASTRAL',

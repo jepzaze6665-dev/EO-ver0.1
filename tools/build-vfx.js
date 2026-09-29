@@ -1,6 +1,6 @@
 // Builds skill VFX strips (6 frames x direction rows, RGBA) into right-facing strips;
 // the game rotates each strip to any aim angle (src/vfx/vfx.js sprite()).
-//   ub: desgin/VFX/UB/sk1..sk7  (uniform 4-row grid, row 3 = right)
+//   ub: desgin/VFX/UB/UB/sk1..sk7  (uniform 4-row grid, row 3 = right)
 //   aw: desgin/VFX/AW/SK1..UT   (rows detected from alpha; row 3 = East/right, SK3 has an extra 5th row)
 // Usage: node tools/build-vfx.js
 const fs = require('fs');
@@ -12,7 +12,7 @@ const OUT = path.join(ROOT, 'assets', 'vfx');
 fs.mkdirSync(OUT, { recursive: true });
 const SCALE = 0.5, COLS = 6, ROW = 3, ROW_DEFAULT = ROW;
 const SETS = {
-  ub: { src: 'desgin/VFX/UB', detectRows: false, names: { sk1: 'slash', sk2: 'thrust', sk3: 'twin', sk4: 'wave', sk5: 'burst', sk6: 'shards', sk7: 'eclipse' } },
+  ub: { src: 'desgin/VFX/UB/UB', detectRows: false, names: { sk1: 'slash', sk2: 'thrust', sk3: 'twin', sk4: 'wave', sk5: 'burst', sk6: 'shards', sk7: 'eclipse' } },
   ag: {
     src: 'desgin/VFX/AG', detectRows: true, clean: true,
     names: { sk1: 'ag_bash', sk2: 'ag_crescent', sk3: 'ag_emblem', sk4: 'ag_beacon', sk5: 'ag_dome', sk6: 'ag_flash', sk7: 'ag_aegis' },
@@ -22,9 +22,20 @@ const SETS = {
     mirrorFrames: { sk2: [2, 3, 4, 5] },
   },
   rp: {
-    src: 'desgin/VFX/RP', detectRows: true, clean: true,
+    src: 'desgin/VFX/UB/RP', detectRows: true, clean: true,
     names: { SK1: 'rp_crescent', SK2: 'rp_lance', SK3: 'rp_flames', SK4: 'rp_portal', SK5: 'rp_spear', SK6: 'rp_vortex', sk7: 'rp_blacksun' },
     rows: { SK3: 0, SK4: 0, sk7: 0 }, // caster / target-centred effects: front view
+  },
+  // Duskrunner (blue wind / speed): row 3 = right-facing side view everywhere (ut has a 5th row, unused)
+  dr: {
+    src: 'desgin/VFX/UB/DR', detectRows: true, clean: true,
+    names: { sk1: 'dr_crescent', sk2: 'dr_streak', sk3: 'dr_cross', sk4: 'dr_orb', sk5: 'dr_blade', sk6: 'dr_star', ut: 'dr_moon' },
+    rows: { sk2: 1 }, // sk2 draws its side views on rows 0-1 (rows 2-3 are vertical)
+  },
+  // Blade of Echoes (crimson memory): sk4 row 3 is the vortex ring (its other rows are different effects)
+  be: {
+    src: 'desgin/VFX/UB/BE', detectRows: true, clean: true,
+    names: { sk1: 'be_slash', sk2: 'be_burst', sk3: 'be_crescent', sk4: 'be_vortex', sk5: 'be_wave', sk6: 'be_bloom', ut: 'be_recall' },
   },
   aw: {
     src: 'desgin/VFX/AW', detectRows: true, clean: true,

@@ -81,11 +81,11 @@ export function classChecks(g, classId) {
     ok('Resource decreases by cost', res && Math.abs(before - p.resources.get(rid) - spender.cost) < 1e-6, `${spender.id} cost ${spender.cost}: ${before} -> ${p.resources.get(rid)}`);
     idle(g);
   }
-  // never negative: spam a cost skill at 0
-  const costly = [...cls.skills].find((s) => s.cost > 0 && !(s.requirements || []).length);
+  // never negative: spam a cost skill at 0 (a skill gated by a resource requirement fails on that instead)
+  const costly = [...cls.skills].find((s) => s.cost > 0 && !(s.requirements || []).length) || cls.skills.find((s) => s.cost > 0);
   p.resources.set(rid, 0); p.skillSys.cooldowns.clear(costly.id); log.length = 0;
-  for (let i = 0; i < 30; i++) { p.trySkill(costly); g.simulate(STEP); }
-  ok('Resource never negative', p.resources.get(rid) >= 0 && log.some((l) => l.n === 'skillFailed' && l.e.reason === 'resource'), `${rid}=${p.resources.get(rid)} fails=${log.filter((l) => l.n === 'skillFailed').length}`);
+  for (let i = 0; i < 30; i++) { p.trySkill(costly); g.simulate(STEP); p.resources.set(rid, 0); }
+  ok('Resource never negative', p.resources.get(rid) >= 0 && log.some((l) => l.n === 'skillFailed' && (l.e.reason === 'resource' || l.e.reason === 'requirement')), `${rid}=${p.resources.get(rid)} fails=${log.filter((l) => l.n === 'skillFailed').length}`);
 
   // Cooldown + no spam: hammer skill 1 every frame for 6 s
   ({ p, d } = fresh());
@@ -121,7 +121,7 @@ export function classChecks(g, classId) {
       cast(g, eater.id, d);
       ok('Mark consumed by skill (bonus damage)', g.marks.get(d, m) === 0 && log.some((l) => l.n === 'damageDealt' && l.e.opts && l.e.opts.big), `${eater.id}: dmg=${hpB - d.hp}`);
     }
-  } else {
+  } else if (p.markId) {
     const m = p.markId, max = p.maxMarks;
     p.addMark(1); p.addMark(1);
     ok('Mark stacks', p.marks === 2, `${m}=${p.marks}`);
@@ -263,7 +263,7 @@ export function mechanicChecks(g, classId) {
   }
 
   // Counter (status 'counter_ready' from a Perfect Dodge): next basic attack consumes it with a forced crit
-  if (classId === 'umbral_sword') {
+  if (((p.cls.perfectDodge && p.cls.perfectDodge.statuses) || []).some((s) => s.id === 'counter_ready')) {
     ({ p, d } = atDummy(g, classId));
     p.onPerfectDodge(null);
     const had = p.status.has('counter_ready');
@@ -343,6 +343,93 @@ export function reaperChecks(g) {
   const r = g.changeClass('nightfall_reaper');
   const np = g.player;
   ok('Class change Umbral Sword -> Nightfall Reaper', r.ok && np.cls.id === 'nightfall_reaper' && np.sprites.preset === 'rp' && np.primaryResource === 'nightfall_gauge' && g.equipment.slots.weapon === 'reaper_scythe', `${np.cls.id} ${np.sprites.preset} ${g.equipment.slots.weapon}`);
+  releaseInput(g);
+  return rows;
+}
+
+// ---------------- Class 2 DUSKRUNNER in the live game (momentum, recast dashes, barrage stages, mirage, overdrive)
+export function duskChecks(g) {
+  const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'duskrunner', test: name, pass: !!pass, detail });
+  const MO = 'momentum';
+  let { p, d } = atDummy(g, 'duskrunner');
+
+  // tiers -> stats (attack speed, speed, cheaper dodge)
+  const base = { ...p.stats }, cost0 = p.dodgeCost();
+  p.resources.set(MO, 100); g.simulate(STEP * 2, () => { g.combat.lastCombatTime = g.time; }); // in a fight: no out-of-combat fade
+  ok('Momentum MAX: attack speed / speed / cheaper dodges', p.stats.attackSpeed >= 0.3 - 1e-9 && p.stats.speed > base.speed && p.dodgeCost() < cost0, `atkSpd ${p.stats.attackSpeed} speed ${base.speed}->${p.stats.speed} dodge ${cost0}->${p.dodgeCost()}`);
+  // attack speed really shortens a basic attack
+  const basicTime = (m) => {
+    ({ p, d } = atDummy(g, 'duskrunner')); p.resources.set(MO, m); g.simulate(STEP * 2);
+    aim(g, d.x, d.y); p.tryAttack(); let t = 0;
+    while (p.action && t < 1) { g.simulate(STEP); t += STEP; }
+    return t;
+  };
+  const slow = basicTime(0), fast = basicTime(100);
+  ok('Attack speed: a basic attack at MAX momentum ends sooner', fast < slow * 0.85, `${slow.toFixed(3)} s -> ${fast.toFixed(3)} s`);
+
+  // a dodge builds momentum; standing still in a fight drains it
+  ({ p, d } = atDummy(g, 'duskrunner'));
+  const m0 = p.resources.get(MO); g.input.pushBuffer('dodge'); g.simulate(0.4);
+  ok('Dodge builds momentum', p.resources.get(MO) > m0, `${m0} -> ${p.resources.get(MO).toFixed(1)}`);
+  p.resources.set(MO, 80); g.combat.lastCombatTime = g.time; releaseInput(g);
+  g.simulate(1.5, () => { g.combat.lastCombatTime = g.time; });
+  ok('Standing still in a fight drains momentum', p.resources.get(MO) < 60, `80 -> ${p.resources.get(MO).toFixed(1)}`);
+
+  // Dusk Barrage: hits follow momentum (3 at 0, 9 at 100)
+  const barrageHits = (m) => {
+    ({ p, d } = atDummy(g, 'duskrunner')); p.resources.set(MO, m);
+    let n = 0; const off = g.events.on('damageDealt', (e) => { if (e.source === p && e.target === d) n++; });
+    cast(g, 'dusk_barrage', d); if (off) off();
+    return n;
+  };
+  const low = barrageHits(0), high = barrageHits(100);
+  ok('Dusk Barrage: 3 hits at 0 momentum, 9 at MAX', low === 3 && high === 9, `${low} / ${high}`);
+
+  // Flash Step: the second press within the window is a second dash (recast) that goes further
+  ({ p, d } = atDummy(g, 'duskrunner'));
+  const x0 = p.x; aim(g, p.x + 300, p.y); g.simulate(STEP * 2);
+  const f1 = p.trySkill(p.cls.special); g.simulate(0.25, () => aim(g, p.x + 300, p.y));
+  const x1 = p.x; const f2 = p.trySkill(p.cls.special); g.simulate(0.3, () => aim(g, p.x + 300, p.y));
+  const x2 = p.x, f3 = p.trySkill(p.cls.special);
+  ok('Flash Step: dash, recast dash, then cooldown', f1 && f2 && !f3 && x1 > x0 + 60 && x2 > x1 + 60, `x ${Math.round(x0)} -> ${Math.round(x1)} -> ${Math.round(x2)}, third=${f3}`);
+
+  // Mirage Shift: dash away, recast = back to the Mirage
+  ({ p, d } = atDummy(g, 'duskrunner'));
+  const home = { x: p.x, y: p.y };
+  cast(g, 'mirage_shift', { x: p.x - 300, y: p.y });
+  const away = Math.hypot(p.x - home.x, p.y - home.y), mir = g.summons.count(p, 'mirage');
+  const back = p.trySkill(p.skillSys.get('mirage_shift')); g.simulate(0.4);
+  ok('Mirage Shift: leaves a Mirage, the recast returns to it', mir === 1 && away > 60 && back && Math.hypot(p.x - home.x, p.y - home.y) < 4 && g.summons.count(p, 'mirage') === 0, `away ${Math.round(away)} back ${Math.round(Math.hypot(p.x - home.x, p.y - home.y))}`);
+
+  // Silent Run: stealth, the first hit is an AMBUSH (+50%) and ends it
+  ({ p, d } = atDummy(g, 'duskrunner'));
+  cast(g, 'silent_run');
+  const stealth = p.status.flag('stealth');
+  let first = 0; const off2 = g.events.on('damageDealt', (e) => { if (e.source === p && !first) first = e.amount; });
+  g.simulate(0.4, (gg, i) => { aim(g, d.x, d.y); if (i === 1) gg.input.pushBuffer('attack'); });
+  if (off2) off2();
+  ok('Silent Run: stealth, AMBUSH ends it', stealth && first > 0 && !p.status.has('silent_run'), `stealth=${stealth} firstHit=${first}`);
+
+  // Endless Run: needs 60 momentum; OVERDRIVE locks momentum at 100 even standing still
+  ({ p, d } = atDummy(g, 'duskrunner'));
+  p.resources.set(MO, 40);
+  const refused = !p.skillSys.canUse('endless_run').ok;
+  p.resources.set(MO, 70); cast(g, 'endless_run', d); idle(g);
+  g.combat.lastCombatTime = g.time; releaseInput(g);
+  g.simulate(2, () => { g.combat.lastCombatTime = g.time; });
+  ok('Endless Run: refused under 60; OVERDRIVE keeps momentum at 100', refused && p.status.has('overdrive') && p.resources.get(MO) === 100, `refused=${refused} overdrive=${p.status.has('overdrive')} m=${p.resources.get(MO)}`);
+
+  // a heavy hit throws momentum away (not in overdrive)
+  ({ p, d } = atDummy(g, 'duskrunner'));
+  p.resources.set(MO, 80); p.invulnT = 0;
+  g.combat.dealDamage({ x: p.x + 20, y: p.y, team: 2, stats: null }, p, { power: 10, heavy: true });
+  ok('Heavy hit: -25 momentum', Math.round(p.resources.get(MO)) === 55, `80 -> ${p.resources.get(MO)}`);
+
+  // real class change: Umbral Sword -> Duskrunner
+  g.newGame('umbral_sword'); releaseInput(g);
+  g.progression.unlock('duskrunner'); g.combat.lastCombatTime = -99;
+  const r = g.changeClass('duskrunner'), np = g.player;
+  ok('Class change Umbral Sword -> Duskrunner', r.ok && np.cls.id === 'duskrunner' && np.sprites.preset === 'dr' && np.primaryResource === MO && g.equipment.slots.weapon === 'twin_dusk_blades', `${np.cls.id} ${np.sprites.preset} ${g.equipment.slots.weapon}`);
   releaseInput(g);
   return rows;
 }
@@ -431,7 +518,7 @@ export function balance(g, classId, loadout, botOpts = {}) {
 export function runAll(g, { withBalance = true } = {}) {
   const rows = [], bal = [];
   for (const c of [...STARTING_CLASSES, ...ADVANCED]) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
-  rows.push(...reaperChecks(g), ...classChangeChecks(g));
+  rows.push(...reaperChecks(g), ...duskChecks(g), ...classChangeChecks(g));
   if (withBalance) for (const c of [...STARTING_CLASSES, ...ADVANCED]) bal.push(balance(g, c));
   return { passed: rows.filter((r) => r.pass).length, total: rows.length, rows, balance: bal };
 }

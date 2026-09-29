@@ -80,6 +80,8 @@ export function bot(g, i, opts = {}) {
     // finisher specials gated by requirements (Shadow Break: 3 marks, Reaper's Step: a marked foe) fire when allowed
     const sp = p.cls.special;
     if (p.marks >= 3 || (sp && (sp.requirements || []).length && p.skillSys.canUse(sp.id).ok)) inp.pushBuffer('break');
+    // gap-closer specials with a recast (Duskrunner Flash Step): used now and then, toward the target
+    else if (sp && sp.recast && i % 60 === 0 && d > 40 && p.skillSys.canUse(sp.id).ok) inp.pushBuffer('break');
     if (tgt.status && tgt.status.has('vulnerable') && p.shadow >= 50) inp.pushBuffer('skill5');
   }
   if (p.hp < p.maxHp * 0.35) g.inventory.quickUse('hp_potion');

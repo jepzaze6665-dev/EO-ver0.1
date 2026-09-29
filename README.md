@@ -104,10 +104,10 @@ The combat core never references Umbral Sword directly: a class is a stat block 
 
 ## Assets & pipeline
 
-- `desgin/class cr/UB|AW|AG/` — class sheets (6 columns × 4 directions). `node tools/build-player.js [ub|aw|ag]` removes the checkerboard
+- `desgin/class cr/AW|AG NEW/` and `desgin/class cr/UB/UB|RP|DR|BE/` — class sheets (6 columns × 4 directions). `node tools/build-player.js [ub|aw|ag|rp|dr|be]` removes the checkerboard
   background, splits cells by detecting character blobs, aligns frames on the feet, auto-detects which side row faces
   left/right, normalises every class to the same body height / pivot, and writes `assets/player[/aw]/*.png` + `atlas.json`.
-- `desgin/VFX/UB|AW|AG/` — skill effect sheets. `node tools/build-vfx.js` writes strips to `assets/vfx/` (AW: `aw_*`, AG: `ag_*`; directional effects use the right-facing row, caster-centred ones the front row). **To replace art:** drop new sheets with the same layout and rerun.
+- `desgin/VFX/AW|AG/` and `desgin/VFX/UB/UB|RP|DR|BE/` — skill effect sheets. `node tools/build-vfx.js` writes strips to `assets/vfx/` (AW: `aw_*`, AG: `ag_*`; directional effects use the right-facing row, caster-centred ones the front row). **To replace art:** drop new sheets with the same layout and rerun.
 - `ของแมพ/*.png` — asset sets. `node tools/extract-props.js` cuts ~218 props (trees, rocks, crystals, ruins, village
   buildings…) into `assets/props/props.png` + `props.json`.
 - Monsters, NPCs, tiles, icons and the Guardian are procedural placeholders generated at startup with the same frame

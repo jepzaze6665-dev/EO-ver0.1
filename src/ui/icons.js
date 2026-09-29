@@ -80,6 +80,42 @@ export function icon(name, color = '#b070ff') {
       glow('#fff', 1.2, () => g.arc(16, 12, 7, 0, 7));
       for (let i = 0; i < 5; i++) glow('#9a5cff', 2, () => { g.moveTo(5 + i * 5.5, 30); g.lineTo(6 + i * 5.5, 23 - (i % 2) * 3); });
       break;
+    // ---- Duskrunner
+    case 'twin_blades':
+      for (const [x0, y0, x1, y1] of [[6, 27, 20, 7], [26, 27, 12, 7]]) { glow('#1a2a4a', 4, () => { g.moveTo(x0, y0); g.lineTo(x1, y1); }); glow(color, 2, () => { g.moveTo(x0, y0); g.lineTo(x1, y1); }); }
+      break;
+    case 'blue_fang':
+      for (let i = 0; i < 3; i++) glow(`rgba(90,184,255,${0.25 + i * 0.25})`, 2, () => { g.moveTo(3 + i * 3, 24 - i * 3); g.lineTo(16 + i * 3, 20 - i * 3); });
+      glow('#123a7a', 5, () => { g.moveTo(14, 26); g.lineTo(29, 8); });
+      glow('#d8f0ff', 2, () => { g.moveTo(14, 26); g.lineTo(29, 8); });
+      g.fillStyle = '#fff'; g.beginPath(); g.moveTo(29, 8); g.lineTo(30, 3); g.lineTo(25, 7); g.closePath(); g.fill();
+      break;
+    case 'flash_step':
+      g.fillStyle = 'rgba(90,184,255,0.3)'; g.fillRect(4, 13, 10, 12);
+      g.fillStyle = '#0a1a30'; g.beginPath(); g.arc(22, 10, 4, 0, 7); g.fill(); g.fillRect(18, 14, 8, 12);
+      glow('#5ab8ff', 2, () => { g.moveTo(4, 26); g.lineTo(13, 18); g.lineTo(9, 14); g.lineTo(17, 6); });
+      break;
+    case 'dusk_barrage':
+      for (let i = 0; i < 5; i++) { const q = -1.2 + i * 0.6; glow(i % 2 ? '#5ab8ff' : '#d8f0ff', 2, () => { g.moveTo(16 + Math.cos(q) * 4, 16 + Math.sin(q) * 4); g.lineTo(16 + Math.cos(q) * 14, 16 + Math.sin(q) * 14); }); }
+      glow('#ffffff', 2.5, () => { g.moveTo(8, 8); g.lineTo(24, 24); g.moveTo(24, 8); g.lineTo(8, 24); });
+      break;
+    case 'mirage_shift':
+      g.fillStyle = 'rgba(90,184,255,0.4)'; g.beginPath(); g.arc(9, 11, 4, 0, 7); g.fill(); g.fillRect(5, 15, 8, 12);
+      g.fillStyle = '#0a1a30'; g.beginPath(); g.arc(24, 11, 4, 0, 7); g.fill(); g.fillRect(20, 15, 8, 12);
+      glow('#d8f0ff', 1.5, () => { g.moveTo(22, 29); g.quadraticCurveTo(16, 31, 11, 29); });
+      g.fillStyle = '#d8f0ff'; g.beginPath(); g.moveTo(10, 29); g.lineTo(14, 26); g.lineTo(14, 31); g.closePath(); g.fill();
+      break;
+    case 'silent_run':
+      g.fillStyle = 'rgba(20,40,80,0.6)'; g.beginPath(); g.arc(16, 16, 13, 0, 7); g.fill();
+      for (let i = 0; i < 4; i++) glow(`rgba(154,216,255,${0.2 + i * 0.2})`, 1.5, () => { g.moveTo(4, 10 + i * 4); g.lineTo(14 + i * 2, 10 + i * 4); });
+      g.fillStyle = 'rgba(216,240,255,0.7)'; g.beginPath(); g.arc(22, 12, 4, 0, 7); g.fill(); g.fillRect(18, 16, 8, 10);
+      break;
+    case 'endless_run':
+      glow('#123a7a', 5, () => g.arc(16, 16, 11, 0, 7));
+      glow('#5ab8ff', 2.5, () => g.arc(16, 16, 11, -0.6, 4.2));
+      g.fillStyle = '#fff'; g.beginPath(); g.moveTo(26, 9); g.lineTo(30, 16); g.lineTo(23, 14); g.closePath(); g.fill();
+      glow('#d8f0ff', 2, () => { g.moveTo(10, 16); g.lineTo(22, 16); g.moveTo(17, 11); g.lineTo(22, 16); g.lineTo(17, 21); });
+      break;
     // ---- Umbral Sword (loadout skills)
     case 'veil_shadow':
       g.fillStyle = 'rgba(90,40,150,0.5)'; g.beginPath(); g.arc(16, 17, 12, 0, 7); g.fill();

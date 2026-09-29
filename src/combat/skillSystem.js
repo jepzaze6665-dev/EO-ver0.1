@@ -13,7 +13,11 @@ import { Cooldowns } from './cooldownSystem.js';
 //
 // Skill data (see skills/*.js):
 //   { id, name, description, type: 'active'|'ultimate'|'special', slot, cost, costResource?,
-//     cooldown, targeting: 'direction'|'self'|'point', requirements: [...], tags: [], cast() }
+//     cooldown, targeting: 'direction'|'self'|'point', requirements: [...], tags: [], cast(),
+//     recast?: { window, cast() } }
+//   RECAST: after a skill with `recast` is used, pressing it again within `window` seconds runs recast.cast()
+//   instead — no cooldown / cost / stamina check (the first cast paid them). One recast per use.
+//   (Duskrunner's Flash Step second dash, Mirage Shift's return.) recastLeft(id) tells the UI.
 // Caster interface (duck-typed): resources (ResourcePool), stats.cdr, primaryResource,
 //   canAct(skill) -> bool, and whatever fields REQUIREMENTS read.
 export const SKILL_FAIL = {
@@ -40,6 +44,7 @@ export class SkillSystem {
     this.caster = caster;
     this.skills = {};
     this.cooldowns = new Cooldowns();
+    this.recasts = {}; // skill id -> seconds left to recast
     this.onUsed = onUsed || null;
     this.onFailed = onFailed || null;
     for (const s of skills) this.register(s);
@@ -63,6 +68,7 @@ export class SkillSystem {
     if (this.caster.canAct && !this.caster.canAct(s)) return { ok: false, reason: SKILL_FAIL.BUSY, skill: s };
     // status effects (silence) — any caster with a StatusSet; basic attacks are not skills-that-cast
     if (this.caster.status && this.caster.status.canCast && !this.caster.status.canCast() && s.type !== 'basic') return { ok: false, reason: SKILL_FAIL.SILENCED, skill: s };
+    if (this.recastLeft(id) > 0) return { ok: true, skill: s, recast: true };
     if (!this.cooldowns.ready(id)) return { ok: false, reason: SKILL_FAIL.COOLDOWN, skill: s, remaining: this.cooldowns.remaining(id) };
     for (const r of s.requirements || []) {
       const check = REQUIREMENTS[r.type];
@@ -88,14 +94,27 @@ export class SkillSystem {
     }
     const s = check.skill;
     if (this.caster.beforeCast) this.caster.beforeCast(s);
+    if (check.recast) {
+      delete this.recasts[id];
+      const result = s.recast.cast(...castArgs);
+      if (this.onUsed) this.onUsed({ caster: this.caster, skillId: id, skill: s, recast: true });
+      return { ok: true, skill: s, result, recast: true };
+    }
     if (s.cost) this.caster.resources.spend(this.costResource(s), s.cost, 'skill:' + id);
     const sta = staminaCost(s);
     if (sta && this.caster.resources.has(STAMINA.resource)) this.caster.resources.spend(STAMINA.resource, sta, 'skill:' + id);
     this.cooldowns.start(id, this.cooldownFor(s));
     const result = s.cast(...castArgs);
+    if (s.recast && s.recast.window > 0) this.recasts[id] = s.recast.window;
     if (this.onUsed) this.onUsed({ caster: this.caster, skillId: id, skill: s });
     return { ok: true, skill: s, result };
   }
 
-  update(dt) { this.cooldowns.update(dt); }
+  recastLeft(id) { return this.recasts[id] || 0; }
+  closeRecast(id) { delete this.recasts[id]; }
+
+  update(dt) {
+    this.cooldowns.update(dt);
+    if (dt > 0) for (const id in this.recasts) if ((this.recasts[id] -= dt) <= 0) delete this.recasts[id];
+  }
 }

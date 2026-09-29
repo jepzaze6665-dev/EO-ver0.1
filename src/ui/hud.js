@@ -181,13 +181,16 @@ export class HUD {
     this.bar(ctx, bx + 26 * u, y + 23 * u, bw - 26 * u, 12 * u, p.hp / p.maxHp, '#ff5a6e', '#a01830', this.hpLag);
     this.text(ctx, `${Math.ceil(p.hp)} / ${p.maxHp}`, bx + bw - 4 * u, y + 33 * u, 10 * u, '#fff', { align: 'right' });
     // STAMINA (Combat 2.0) — flashes red when a dodge is not affordable
-    const sid = STAMINA.resource, sdef = RESOURCES[sid], low = !p.resources.canAfford(sid, STAMINA.dodge);
+    const sid = STAMINA.resource, sdef = RESOURCES[sid], low = !p.resources.canAfford(sid, p.dodgeCost ? p.dodgeCost() : STAMINA.dodge);
     const lowCol = low ? `rgba(255,120,110,${0.7 + 0.3 * Math.sin(g.time * 10)})` : sdef.colors[0];
     this.text(ctx, 'STA', bx, y + 45 * u, 9 * u, lowCol);
     this.bar(ctx, bx + 26 * u, y + 38 * u, bw - 26 * u, 7 * u, p.resources.ratio(sid), low ? '#ff7060' : sdef.colors[0], low ? '#6a1a14' : sdef.colors[1]);
     // primary resource bar — label/colours come from resource data (works for any class)
     const rid = p.primaryResource, rdef = RESOURCES[rid];
-    this.text(ctx, rdef.label, bx, y + 58 * u, 10 * u, rdef.colors[0]);
+    // long labels (MOMENTUM) shrink to fit the 48 px slot left of the bar
+    ctx.font = `700 ${Math.round(10 * u)}px ${FONT}`;
+    const lw = ctx.measureText(rdef.label).width, lsz = lw > 48 * u ? (10 * u * 48 * u) / lw : 10 * u;
+    this.text(ctx, rdef.label, bx, y + 58 * u, lsz, rdef.colors[0]);
     this.bar(ctx, bx + 52 * u, y + 49 * u, bw - 52 * u, 10 * u, p.resources.ratio(rid), rdef.colors[0], rdef.colors[1]);
     this.text(ctx, `${Math.floor(p.resources.get(rid))}`, bx + bw - 4 * u, y + 58 * u, 9 * u, '#fff', { align: 'right' });
     // resource tiers (data tiers): a tick at each threshold + the active tier's name
@@ -270,7 +273,7 @@ export class HUD {
     } else this.panel(ctx, x - 10 * u, y - 10 * u, total + 20 * u, size + 20 * u, 0.6);
     // dodge hint: bright when there is stamina for a dodge
     // (a tutorial hint: it fades out for good once the player has learned to dodge — data/combatUI.js)
-    if (this.dodgeHintA > 0) { ctx.globalAlpha = this.dodgeHintA; this.text(ctx, 'DODGE [SPACE]', W / 2, y - 18 * u, 9 * u, p.resources.canAfford(STAMINA.resource, STAMINA.dodge) ? '#9af8ff' : 'rgba(150,120,120,0.8)', { align: 'center' }); ctx.globalAlpha = 1; }
+    if (this.dodgeHintA > 0) { ctx.globalAlpha = this.dodgeHintA; this.text(ctx, 'DODGE [SPACE]', W / 2, y - 18 * u, 9 * u, p.resources.canAfford(STAMINA.resource, p.dodgeCost ? p.dodgeCost() : STAMINA.dodge) ? '#9af8ff' : 'rgba(150,120,120,0.8)', { align: 'center' }); ctx.globalAlpha = 1; }
     const hc = cls.hudCounter ? cls.hudCounter(p) : null;
     if (hc && hc.ready && hc.readyText) {
       const k = 0.65 + 0.35 * Math.sin(g.time * 8);
@@ -302,6 +305,8 @@ export class HUD {
         sl.noSta = !staOk;
         if (s.cost) label = String(s.cost);
         sl.glow = sl.special && ready && (s.requirements || []).length > 0; // e.g. SHADOW BREAK READY
+        // RECAST open (SkillSystem recast: Flash Step's 2nd dash, Mirage Shift's return): usable again right now
+        if (p.skillSys.recastLeft(s.id) > 0) { ready = true; cdPct = 0; sl.state = 'ready'; sl.glow = true; label = 'AGAIN'; }
         if (sl.glow && !kit) { ctx.strokeStyle = `rgba(230,200,255,${0.6 + 0.4 * Math.sin(g.time * 8)})`; ctx.lineWidth = 3 * u; ctx.strokeRect(sx - 1, sy - 1, size + 2, size + 2); }
       }
       if (!ready) { ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(ix, iy, is, is); }
@@ -332,7 +337,8 @@ export class HUD {
       // key binding (top-left of the icon) + cost (bottom-right) — red when the class resource / stamina is short
       ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(ix, iy, 13 * u, 13 * u);
       this.text(ctx, sl.key, ix + 6.5 * u, iy + 10.5 * u, 10 * u, sl.s && sl.s.ultimate ? '#ffc060' : '#ffe8a0', { align: 'center', stroke: false });
-      if (label && !sl.special) this.text(ctx, label, ix + is - 1 * u, iy + is - 2 * u, 9 * u, p.resources.canAfford(sl.s.costResource || p.primaryResource, +label) ? '#c9a0ff' : '#ff6a6a', { align: 'right' });
+      if (label === 'AGAIN') this.text(ctx, label, ix + is - 1 * u, iy + is - 2 * u, 8 * u, '#9af8ff', { align: 'right' });
+      else if (label && !sl.special) this.text(ctx, label, ix + is - 1 * u, iy + is - 2 * u, 9 * u, p.resources.canAfford(sl.s.costResource || p.primaryResource, +label) ? '#c9a0ff' : '#ff6a6a', { align: 'right' });
       if (sl.noSta && !(cdLeft > 0)) this.text(ctx, 'STA', ix + 1 * u, iy + is - 2 * u, 8 * u, '#ff7060');
       // hover tooltip
       if (hover && sl.s) this.tooltip(ctx, sx, sy - 8 * u, sl.s, u);

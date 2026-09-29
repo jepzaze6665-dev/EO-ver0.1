@@ -9,7 +9,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - `node server.js` → http://localhost:5173 (Claude preview config name: `eclipse-online`, `autoPort` on, see `.claude/launch.json`).
 - Unit tests: `node tools/tests/run.mjs` (must print `ALL TEST FILES PASSED`).
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
-  (combat / mechanics / Reaper / class-change checks, currently 101/101),
+  (combat / mechanics / Reaper / Duskrunner / class-change checks, currently 128/128; `C.duskChecks(__game)` alone),
   `const L = await import('/tools/checklist.js'); L.runChecklist(__game, classId)` (spec TEST 1-31),
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (W2 Route A, 26 steps: A1 on foot, 2 optional mini-bosses, Guardian, north road into A2 on
@@ -58,9 +58,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 
 ## Assets (never reference a path without a real file)
 - Monster art: `desgin/monster/<A|B>/<A1..A3|B1..B3>/` (1..4, BOSS, VFX BOSS, AURA Phase BOSS / Phase BOSS).
-- Raw art: `desgin/class cr/<UB|AW|AG NEW|RP>/`, `desgin/VFX/<UB|AW|AG|RP>/` (AI sheets: fake checkerboard
-  background, 6 columns × 4 direction rows).
-- `node tools/build-player.js [ub|aw|ag|rp]` → `assets/player[/<preset>]/*.png + atlas.json`. Every preset is
+- Raw art: `desgin/class cr/<AW|AG NEW>/` + the Umbral line in `desgin/class cr/UB/<UB|RP|DR|BE>/` (UB, Nightfall
+  Reaper, Duskrunner, Blade of Echoes); VFX `desgin/VFX/<AW|AG>/` + `desgin/VFX/UB/<UB|RP|DR|BE>/` (AI sheets: fake
+  checkerboard background, 6 columns × 4 direction rows; DR / BE atk2 have 5 poses per row).
+- `node tools/build-player.js [ub|aw|ag|rp|dr|be]` → `assets/player[/<preset>]/*.png + atlas.json`. Every preset is
   normalised to the same standard: canvas 160×160, pivot (80,140), neutral body ≈ 58-59 px. Frames are cut by
   blob ownership (effects never sliced); per-sheet `{ frames: 5 }` for 5-pose rows; `emptyFrames` recorded.
 - `node tools/build-vfx.js` → `assets/vfx/*.png + vfx.json` (right-facing strips, rotated at runtime;
@@ -105,7 +106,22 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - Balance (bot, dummy DPS over 3 dummies): Umbral ≈ 158-160, Astral ≈ 134, Aegis ≈ 92, Reaper ≈ 188-201 (its single-target
   DPS ≈ Umbral's; the extra is AoE on the 2nd dummy); all beat the Guardian solo.
   After Combat 2.0 (stamina, tiers, poise, slots, anti-tank): UB ≈ 159 · AW ≈ 134 · AG ≈ 95 · RP ≈ 190, all WIN the Guardian (80-125 s).
-- Later Class 2 work (paused for V2.1): Duskrunner / Blade of Echoes / AW / AG paths need the owner's class data.
+- **CLASS 2 (owner's Class 2 spec, 24 sections)**: sprites for Duskrunner (DR) + Blade of Echoes (BE) delivered 2026-09-29.
+  Done CL1 = DUSKRUNNER (second playable Class 2, `src/skills/duskrunner.js`, preset 'dr', VFX `dr_*`): resource MOMENTUM
+  (data/resources.js; tiers FLOW 30 / RUSH 60 / MAX 100 = passive Endless Motion: attackSpeed, speed, dodgeCostCut, cdr,
+  physicalDmg, crit); builds from dodges / dashes / hits / combos / moving in a fight, drains when standing still in a fight
+  (class `tick` hook) and -25 on a heavy hit. Skills: Blue Fang (dash-through, +60% at full momentum, MAX = afterimage
+  re-cut) · Dusk Barrage (hits 3/5/7/9 by momentum, data table) · Mirage Shift (summon 'mirage' + RECAST back to it,
+  position validated) · Silent Run (status silent_run: stealth + speed, AMBUSH) · Q Flash Step (dash + RECAST 2nd dash) ·
+  ult Endless Run (needs 60, spends 30; status overdrive 8 s: momentum locked 100, cooldowns ×1.6 speed, half-price
+  dodges). Passive Ghost Step = perfectDodge data (+20, counter_ready crit) + free next dodge. Gear twin_dusk_blades /
+  dusk_scarf. New GENERIC core: SkillSystem `recast: { window, cast }` (+ HUD "AGAIN"), Player `dodgeCost()` (stat
+  dodgeCostCut, status dodgeCostMult), `attackSpeed()` (stat attackSpeed × status attackSpeedMult, basic attacks),
+  class `tick(p, g, dt)` hook; HUD resource label shrinks to fit. Tests: tools/tests/duskrunner.test.mjs, C.duskChecks (11).
+  Balance: single-target (1 dummy) DR ≈ 141-158 vs RP 141 / UB 111; 3-dummy bot DR 162 (RP 190); Guardian WIN 85 s.
+  Next CL2 = BLADE OF ECHOES (preset 'be' + VFX `be_*` already built; be_crescent / be_recall rows face left -> fix
+  rows in build-vfx), then Class 2 skill tree / class level (spec §8-9), loadout slots (§15).
+- Later Class 2 work: AW / AG paths need the owner's class data.
   Unused RP art: `sk6` (anim `harvest`) is mapped but no skill plays it yet.
 - **Current: V2.1 "Class × World Integration"** (owner's 16-phase spec: Lumina → A1 → A2 → A3 → Boss Arena, EXP/loot/
   quest/target/save). Owner chose **B = real separate maps with transitions** (not the seamless zone world) and

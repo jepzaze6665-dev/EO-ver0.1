@@ -2,7 +2,7 @@
 // into clean alpha sprite strips + an atlas description consumed by src/player/playerSprites.js.
 // Every class preset is normalised to the SAME visual standard (body height, canvas, pivot).
 // Usage: node tools/build-player.js            (all classes)
-//        node tools/build-player.js aw         (one class: ub | aw | ag | rp)
+//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be)
 const fs = require('fs');
 const path = require('path');
 const png = require('./png.js');
@@ -18,21 +18,21 @@ const STD = {
 // class preset -> output folder + sheets (name -> [file, rows])
 const PRESETS = {};
 PRESETS.ub = { out: 'assets/player', sheets: {
-  walk: ['desgin/class cr/UB/UB WALK1.png', 4],
-  run: ['desgin/class cr/UB/UB WALK2', 4],
-  atk1: ['desgin/class cr/UB/UB ATK1', 4],
-  atk2: ['desgin/class cr/UB/UB ATK2', 4],
-  guard: ['desgin/class cr/UB/UB DF', 4],
-  hit: ['desgin/class cr/UB/UB HIT', 4],
-  pr: ['desgin/class cr/UB/UB PR', 4],
-  sk1: ['desgin/class cr/UB/UB SK1.png', 4],
-  sk2: ['desgin/class cr/UB/UB SK2.png', 4],
-  sk3: ['desgin/class cr/UB/UB SK3.PNG', 4],
-  sk4: ['desgin/class cr/UB/UB SK4.png', 4],
-  sk5: ['desgin/class cr/UB/UB SK5.png', 4],
-  sk6: ['desgin/class cr/UB/UB SK6.png', 4, { frames: 5 }], // the explosion frame is drawn double-wide: 5 frames per row
-  ult: ['desgin/class cr/UB/UB UT.png', 4],
-  vfx: ['desgin/class cr/UB/UB VFX', 8],
+  walk: ['desgin/class cr/UB/UB/UB WALK1.png', 4],
+  run: ['desgin/class cr/UB/UB/UB WALK2', 4],
+  atk1: ['desgin/class cr/UB/UB/UB ATK1', 4],
+  atk2: ['desgin/class cr/UB/UB/UB ATK2', 4],
+  guard: ['desgin/class cr/UB/UB/UB DF', 4],
+  hit: ['desgin/class cr/UB/UB/UB HIT', 4],
+  pr: ['desgin/class cr/UB/UB/UB PR', 4],
+  sk1: ['desgin/class cr/UB/UB/UB SK1.png', 4],
+  sk2: ['desgin/class cr/UB/UB/UB SK2.png', 4],
+  sk3: ['desgin/class cr/UB/UB/UB SK3.PNG', 4],
+  sk4: ['desgin/class cr/UB/UB/UB SK4.png', 4],
+  sk5: ['desgin/class cr/UB/UB/UB SK5.png', 4],
+  sk6: ['desgin/class cr/UB/UB/UB SK6.png', 4, { frames: 5 }], // the explosion frame is drawn double-wide: 5 frames per row
+  ult: ['desgin/class cr/UB/UB/UB UT.png', 4],
+  vfx: ['desgin/class cr/UB/UB/UB VFX', 8],
 } };
 const AG = 'desgin/class cr/AG/';
 // Aegis Guardian — the "AG NEW" set: black / gold mantle, shield visible in every sheet (one design).
@@ -56,7 +56,7 @@ PRESETS.ag = { out: 'assets/player/ag', sheets: {
 // Nightfall Reaper (Class 2 of Umbral Sword)
 // facing: the hood hides the face, so the skin-based side detection cannot tell left from right —
 // the RP sheets draw row 2 facing LEFT and row 3 facing RIGHT (both drawn, no mirroring needed).
-const RP = 'desgin/class cr/RP/';
+const RP = 'desgin/class cr/UB/RP/';
 PRESETS.rp = { out: 'assets/player/rp', facing: { right: 3, left: 2 }, sheets: {
   walk: [RP + 'WALK1.PNG', 4],
   idle: [RP + 'WALK2.PNG', 4],
@@ -72,6 +72,40 @@ PRESETS.rp = { out: 'assets/player/rp', facing: { right: 3, left: 2 }, sheets: {
   sk5: [RP + 'SK5', 4],
   sk6: [RP + 'SK6', 4],
   ult: [RP + 'UT', 4],
+} };
+// Duskrunner (Class 2 of Umbral Sword): twin blue dusk blades, blue scarf
+const DR = 'desgin/class cr/UB/DR/';
+PRESETS.dr = { out: 'assets/player/dr', sheets: {
+  walk: [DR + 'walk 1.png', 4],
+  idle: [DR + 'walk2', 4],
+  atk1: [DR + 'atk1', 4],
+  atk2: [DR + 'atk2', 4, { frames: 5 }], // 5 poses per row
+  dash: [DR + 'dash', 4],
+  hit: [DR + 'hit', 4],
+  sk1: [DR + 'sk1', 4],
+  sk2: [DR + 'sk2', 4],
+  sk3: [DR + 'sk3', 4],
+  sk4: [DR + 'sk4', 4],
+  sk5: [DR + 'sk5', 4],
+  sk6: [DR + 'sk6', 4],
+  ult: [DR + 'ut', 4],
+} };
+// Blade of Echoes (Class 2 of Umbral Sword): long crimson memory blade, white / red coat
+const BE = 'desgin/class cr/UB/BE/';
+PRESETS.be = { out: 'assets/player/be', sheets: {
+  walk: [BE + 'walk1.png', 4],
+  idle: [BE + 'walk2', 4],
+  atk1: [BE + 'atk1', 4],
+  atk2: [BE + 'atk2', 4, { frames: 5 }], // 5 poses per row
+  dash: [BE + 'dash', 4],
+  hit: [BE + 'hit', 4],
+  sk1: [BE + 'sk1', 4],
+  sk2: [BE + 'sk2', 4],
+  sk3: [BE + 'sk3', 4],
+  sk4: [BE + 'sk4', 4],
+  sk5: [BE + 'sk5', 4],
+  sk6: [BE + 'sk6', 4],
+  ult: [BE + 'ut', 4],
 } };
 const AW = 'desgin/class cr/AW/';
 PRESETS.aw = { out: 'assets/player/aw', sheets: {

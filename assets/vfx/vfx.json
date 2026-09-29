@@ -146,6 +146,104 @@
   "frames": 6,
   "set": "rp"
  },
+ "dr_crescent": {
+  "file": "assets/vfx/dr_crescent.png",
+  "fw": 132,
+  "fh": 158,
+  "frames": 6,
+  "set": "dr"
+ },
+ "dr_streak": {
+  "file": "assets/vfx/dr_streak.png",
+  "fw": 106,
+  "fh": 158,
+  "frames": 6,
+  "set": "dr"
+ },
+ "dr_cross": {
+  "file": "assets/vfx/dr_cross.png",
+  "fw": 86,
+  "fh": 128,
+  "frames": 6,
+  "set": "dr"
+ },
+ "dr_orb": {
+  "file": "assets/vfx/dr_orb.png",
+  "fw": 88,
+  "fh": 128,
+  "frames": 6,
+  "set": "dr"
+ },
+ "dr_blade": {
+  "file": "assets/vfx/dr_blade.png",
+  "fw": 106,
+  "fh": 158,
+  "frames": 6,
+  "set": "dr"
+ },
+ "dr_star": {
+  "file": "assets/vfx/dr_star.png",
+  "fw": 86,
+  "fh": 128,
+  "frames": 6,
+  "set": "dr"
+ },
+ "dr_moon": {
+  "file": "assets/vfx/dr_moon.png",
+  "fw": 90,
+  "fh": 128,
+  "frames": 6,
+  "set": "dr"
+ },
+ "be_slash": {
+  "file": "assets/vfx/be_slash.png",
+  "fw": 106,
+  "fh": 158,
+  "frames": 6,
+  "set": "be"
+ },
+ "be_burst": {
+  "file": "assets/vfx/be_burst.png",
+  "fw": 96,
+  "fh": 128,
+  "frames": 6,
+  "set": "be"
+ },
+ "be_crescent": {
+  "file": "assets/vfx/be_crescent.png",
+  "fw": 106,
+  "fh": 128,
+  "frames": 6,
+  "set": "be"
+ },
+ "be_vortex": {
+  "file": "assets/vfx/be_vortex.png",
+  "fw": 144,
+  "fh": 158,
+  "frames": 6,
+  "set": "be"
+ },
+ "be_wave": {
+  "file": "assets/vfx/be_wave.png",
+  "fw": 108,
+  "fh": 128,
+  "frames": 6,
+  "set": "be"
+ },
+ "be_bloom": {
+  "file": "assets/vfx/be_bloom.png",
+  "fw": 94,
+  "fh": 128,
+  "frames": 6,
+  "set": "be"
+ },
+ "be_recall": {
+  "file": "assets/vfx/be_recall.png",
+  "fw": 86,
+  "fh": 128,
+  "frames": 6,
+  "set": "be"
+ },
  "aw_needle": {
   "file": "assets/vfx/aw_needle.png",
   "fw": 86,

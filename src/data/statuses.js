@@ -40,6 +40,10 @@ export const STATUSES = {
   counter_ready: { id: 'counter_ready', category: 'buff', maxStacks: 1, stacking: 'refresh', display: { label: 'COUNTER READY', color: '#ffd070' } },
   // stealth + the next hit deals +60% (the hit itself ends it — see the class that grants it)
   veiled: { id: 'veiled', category: 'buff', maxStacks: 1, stacking: 'refresh', flags: ['stealth'], modifiers: { moveMult: 1.2, damageMult: 1.6 }, display: { label: 'VEILED', color: '#c8a0ff' } },
+  // Duskrunner: SILENT RUN (stealth + speed; the first hit out of it lands harder and ends it — class code)
+  silent_run: { id: 'silent_run', category: 'buff', maxStacks: 1, stacking: 'refresh', flags: ['stealth'], modifiers: { moveMult: 1.35, damageMult: 1.5 }, display: { label: 'SILENT RUN', color: '#9ad8ff' } },
+  // Duskrunner ultimate ENDLESS RUN: momentum never falls (class code), faster attacks / feet, half-price dodges
+  overdrive: { id: 'overdrive', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { moveMult: 1.15, attackSpeedMult: 1.3, dodgeCostMult: 0.5 }, display: { label: 'OVERDRIVE', color: '#5ab8ff' } },
   surge: { id: 'surge', category: 'buff', maxStacks: 1, stacking: 'longest', modifiers: { damageMult: 1.15 }, display: { label: 'SURGE', color: '#e0a0ff' } },
   // ---- defense
   shield: { id: 'shield', category: 'defense', maxStacks: 1, stacking: 'refresh', absorb: true, display: { label: 'SHIELD', color: '#fff0a0' } },

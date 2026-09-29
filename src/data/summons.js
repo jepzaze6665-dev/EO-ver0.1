@@ -17,6 +17,13 @@ export const SUMMONS = {
     act: { interval: 1.1 },
     visual: { alpha: 0.72, glow: 0.35 },
   },
+  // Duskrunner: a still afterimage left where Mirage Shift was cast; recasting the skill returns you to it.
+  // No follow / act: it only marks a place (the duration = the recast window).
+  mirage: {
+    id: 'mirage', name: 'Mirage',
+    duration: 3, maxPerOwner: 1, powerMult: 0.5,
+    visual: { alpha: 0.5, glow: 0.5 },
+  },
 };
 
 export const SUMMON_RULES = {

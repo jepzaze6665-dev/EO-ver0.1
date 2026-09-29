@@ -66,8 +66,8 @@ export const CLASS_TREE = {
     trial: 'trial_nightfall_reaper',
   },
   duskrunner: {
-    id: 'duskrunner', name: 'Duskrunner', tier: 2, parent: 'umbral_sword', playable: false, resource: 'Momentum',
-    role: 'Mobility Skirmisher', description: 'Never stops moving: every dodge and dash builds momentum.',
+    id: 'duskrunner', name: 'Duskrunner', tier: 2, parent: 'umbral_sword', playable: true, resource: 'Momentum',
+    role: 'Mobility DPS · Single-Target Assassin · Combo', description: 'Never stops moving: every dodge and dash builds momentum, momentum makes every skill hit harder.',
     requirements: [...CLASS2_BASE, { type: 'counter', counter: 'perfect_dodges', min: 15 }],
     trial: 'trial_duskrunner',
   },

@@ -23,6 +23,10 @@ export const ITEMS = {
     name: 'Reaper Scythe', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'scythe', color: '#9a5cff',
     stats: { atk: 2 }, desc: 'A shadow scythe that hungers for marked souls. Signature weapon of the Nightfall Reaper.',
   },
+  twin_dusk_blades: {
+    name: 'Twin Dusk Blades', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'twin_blades', color: '#5ab8ff',
+    stats: { atk: 1, crit: 0.03 }, desc: 'Two short blades that never stop moving. Signature weapon of the Duskrunner.',
+  },
   aegis_shield: {
     name: 'Aegis Shield & Blade', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'shield', color: '#ffd070',
     stats: { atk: 0 }, desc: 'A knight longsword and the gilded Aegis shield. Signature weapon of the Aegis Guardian.',
@@ -44,6 +48,10 @@ export const ITEMS = {
   reaper_shroud: {
     name: 'Reaper Shroud', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#5a2aa0',
     stats: { def: 1, hp: 10 }, desc: 'Tattered night given form. Worn by those who walk the Long Night.',
+  },
+  dusk_scarf: {
+    name: 'Duskrunner Scarf', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#2a5aaa',
+    stats: { def: 0, hp: 5 }, desc: 'A long blue scarf that trails behind like wind. Worn by those who never stop.',
   },
   aegis_plate: {
     name: 'Aegis Plate', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#c8d0e0',
