@@ -200,6 +200,12 @@ export class Game {
     this.classProgress.switchTo(classId);
     // skill mastery XP from real use (progression/masterySystem.js, rules data/skillMastery.js)
     this.mastery = new MasterySystem(this);
+    // skill evolution feedback (progression/skillEvolution.js)
+    this.events.on('skillEvolved', (e) => {
+      const s = e.player.skillSys.get(e.skillId), evo = s && (s.evolutions || []).find((x) => x.id === e.evolution);
+      this.ui.banner('SKILL EVOLVED', `${s ? s.name : e.skillId} → ${evo ? evo.name : e.evolution}`, '#ff9ad0');
+      this.vfx.burst(e.player.x, e.player.y - 20, '#ff9ad0', 30, 180);
+    });
     this.events.on('skillMasteryUp', (e) => {
       const s = e.player.skillSys.get(e.skillId);
       this.ui.notify('Skill Mastery', `${s ? s.name : e.skillId} — Mastery ${e.name}`, '#e0c070');

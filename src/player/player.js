@@ -13,6 +13,7 @@ import { STATUSES } from '../data/statuses.js';
 import { Loadout } from './loadout.js';
 import { levelMods, maxLevel, pointsEarned, pointsSpent, upgradeCheck } from '../progression/skillLevels.js';
 import { masteryReward } from '../progression/masterySystem.js';
+import { evolutionById, evolutionCheck, withEvolution, EVOLUTION_RULES } from '../progression/skillEvolution.js';
 import { ActionRecorder } from '../combat/actionRecorder.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
 import { LEVELS } from '../data/levels.js';
@@ -211,9 +212,45 @@ export class Player extends Entity {
     const cp = this.game.classProgress, s = cp && cp.peekSkill(this.cls.id, id);
     return s ? s.masteryLevel : 0;
   }
-  // skill level (data 'levels') × mastery reward (data/skillMastery.js) — the numbers the core applies to a cast
+  // chosen evolution id of one of this class's skills (null = original)
+  skillEvolution(id) {
+    const cp = this.game.classProgress, s = cp && cp.peekSkill(this.cls.id, id);
+    return (s && s.evolution) || null;
+  }
+  evolutionCheck(skillId, evoId) {
+    const s = this.skillSys.get(skillId), g = this.game;
+    if (!s) return { ok: false, reason: 'unknown', missing: [] };
+    return evolutionCheck(s, evoId, {
+      skillLevel: this.skillLevel(skillId), masteryLevel: this.skillMastery(skillId), charLevel: this.level,
+      current: this.skillEvolution(skillId),
+      hasFlag: (f) => !!(g.world && g.world.state.flags[f]), hasItem: (id) => !!(g.inventory && g.inventory.has(id)),
+    });
+  }
+  // choose ONE evolution branch (event 'skillEvolved'). Not in combat.
+  evolveSkill(skillId, evoId) {
+    const g = this.game;
+    if (g.combat && g.combat.inCombat) return { ok: false, reason: 'combat', missing: [] };
+    const r = this.evolutionCheck(skillId, evoId);
+    if (!r.ok) return r;
+    g.classProgress.skill(this.cls.id, skillId).evolution = evoId;
+    g.events.emit('skillEvolved', { player: this, skillId, evolution: evoId });
+    g.save.dirty = true;
+    return { ok: true };
+  }
+  // back to the original skill — only when the rules allow a respec (skillEvolution.js EVOLUTION_RULES.respec)
+  revertEvolution(skillId) {
+    const rule = EVOLUTION_RULES.respec, e = this.game.classProgress.peekSkill(this.cls.id, skillId);
+    if (!rule.allowed) return { ok: false, reason: 'no_respec' };
+    if (!e || !e.evolution) return { ok: false, reason: 'none' };
+    if (rule.gold && !this.removeGold(rule.gold)) return { ok: false, reason: 'gold' };
+    e.evolution = null;
+    this.game.save.dirty = true;
+    return { ok: true };
+  }
+  // skill level (data 'levels') + evolution (data 'evolutions') × mastery reward (data/skillMastery.js)
   skillMods(skill) {
-    const m = levelMods(skill, this.skillLevel(skill.id)), r = masteryReward(this.skillMastery(skill.id));
+    const m = withEvolution(levelMods(skill, this.skillLevel(skill.id)), evolutionById(skill, this.skillEvolution(skill.id)));
+    const r = masteryReward(this.skillMastery(skill.id));
     return { ...m, cooldown: m.cooldown * r.cooldown, cost: m.cost * r.cost, skillId: skill.id };
   }
   skillFlag(id, flag) { const s = this.skillSys.get(id); return !!(s && this.skillMods(s).flags[flag]); }

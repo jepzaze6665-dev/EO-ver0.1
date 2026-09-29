@@ -13,6 +13,7 @@ import { ROUTES } from '../data/routes.js';
 import { levelMods, maxLevel } from '../progression/skillLevels.js';
 import { masteryInfo, masteryReward } from '../progression/masterySystem.js';
 import { MASTERY } from '../data/skillMastery.js';
+import { evolutionsOf, evolutionById } from '../progression/skillEvolution.js';
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
 const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>Passives</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">passive</span><div class="small">${esc(x.desc)}</div></div></div>`).join('')}` : '');
@@ -244,9 +245,41 @@ export class Panels {
           <span style="display:inline-block;width:70px;height:5px;background:#2a2238;vertical-align:middle;border-radius:2px"><span style="display:block;width:${pct}%;height:100%;background:#b8a0ff;border-radius:2px"></span></span>
           <span class="muted">${mi.need ? `${mi.into}/${mi.need}` : 'MAX'}${mi.level ? ' · ' + esc(masteryReward(mi.level).text) : ''}</span></div>`;
       };
+      // SKILL EVOLUTION: chosen branch shown on the card, [Evolution] opens the panel below
+      const evoRow = (s) => {
+        if (!evolutionsOf(s).length) return '';
+        const cur = evolutionById(s, p.skillEvolution(s.id));
+        return `<div class="small sk-evo">${cur ? `<b style="color:#ff9ad0">◆ ${esc(cur.name)}</b>` : '<span class="muted">◇ Not evolved</span>'}
+          <button data-evo-open="${s.id}">Evolution ▸</button></div>`;
+      };
       const card = (s, extra = '') => `<div class="skill-card${lo.slots.includes(s.id) ? ' on' : ''}">
           <img src="${iconURL(s.icon)}"><div class="sk-body"><b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).join(', ')}</span>
-          <div class="small">${esc(s.desc || '')}</div>${lvRow(s)}${masteryRow(s)}${extra}</div></div>`;
+          <div class="small">${esc(s.desc || '')}</div>${lvRow(s)}${masteryRow(s)}${evoRow(s)}${extra}</div></div>`;
+      const evoSkill = this.evoSel && p.skillSys.get(this.evoSel);
+      if (evoSkill && evolutionsOf(evoSkill).length) {
+        const s = evoSkill, cur = p.skillEvolution(s.id), mi = masteryInfo(g.classProgress.peekSkill(p.cls.id, s.id));
+        const CH = [['behavior', 'Gameplay'], ['damage', 'Damage'], ['utility', 'Utility'], ['resource', 'Resource'], ['cooldown', 'Cooldown']];
+        const option = (e) => {
+          const r = p.evolutionCheck(s.id, e.id), chosen = cur === e.id;
+          const req = e.requirements || {};
+          return `<div class="evo-card${chosen ? ' on' : ''}" style="border:1px solid ${chosen ? '#ff9ad0' : '#3a2f50'};border-radius:6px;padding:8px;margin:6px 0;${cur && !chosen ? 'opacity:.55' : ''}">
+            <b style="color:#ff9ad0">${esc(e.name)}</b>${chosen ? ' <span class="small" style="color:#ff9ad0">CHOSEN</span>' : ''}
+            <div class="small" style="margin:4px 0">${esc(e.desc)}</div>
+            <div class="small">${CH.filter(([k]) => e.changes && e.changes[k]).map(([k, l]) => `<div><span class="muted">${l}:</span> ${esc(e.changes[k])}</div>`).join('')}</div>
+            <div class="small muted">Needs: Skill Lv ${req.skillLevel || 1} · Mastery ${MASTERY.names[req.masteryLevel || 0]}</div>
+            ${chosen || cur ? '' : r.ok ? `<button data-evolve="${s.id}:${e.id}">Choose ${esc(e.name)}</button>` : `<div class="small" style="color:#ff7070">Missing: ${r.missing.map(esc).join(', ')}</div>`}
+          </div>`;
+        };
+        body = `<div class="evo-panel">
+          <button data-evo-open="">◂ Back to loadout</button>
+          <h3>${esc(s.name)} — Evolution</h3>
+          <p class="small">Your skill: <b>Lv ${p.skillLevel(s.id)}</b> · <b>Mastery ${MASTERY.names[mi.level]}</b>.
+            Choose <b>ONE</b> branch — it changes how the skill plays. ${cur ? 'This skill has evolved.' : ''}</p>
+          <div class="evo-card" style="border:1px dashed #3a2f50;border-radius:6px;padding:8px;margin:6px 0">
+            <b>Original — ${esc(s.name)}</b><div class="small">${esc(s.desc || '')}</div></div>
+          ${evolutionsOf(s).map(option).join('')}
+        </div>`;
+      } else
       body = `<div class="skills-layout">
         <div><h3>${esc(p.cls.name)} — Skill Loadout</h3>
           <p class="small">Skill points: <b style="color:#e0c070">${p.skillPointsLeft()}</b> <span class="muted">(1 per character level)</span></p>
@@ -347,7 +380,7 @@ export class Panels {
         <div class="content">${body}</div>
       </div>`);
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],[data-slot],[data-upgrade],[data-trial],[data-abandon],[data-change],[data-node],.x');
+      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
       if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
@@ -356,6 +389,12 @@ export class Panels {
       else if (t.dataset.use) { g.inventory.use(t.dataset.use); this.inventory(); }
       else if (t.dataset.equip) { g.equipment.equip(t.dataset.equip); if (!g.inventory.has(this.selected)) this.selected = null; this.inventory(); }
       else if (t.dataset.unequip) { g.equipment.unequip(t.dataset.unequip); this.inventory(); }
+      else if (t.dataset.evoOpen !== undefined) { this.evoSel = t.dataset.evoOpen || null; this.inventory(); g.audio.sfx('ui'); }
+      else if (t.dataset.evolve) {
+        const [sid, eid] = t.dataset.evolve.split(':'), r = g.player.evolveSkill(sid, eid);
+        if (!r.ok) g.ui.toast(r.reason === 'combat' ? 'Cannot evolve skills in combat' : 'Requirements not met', 1.2);
+        g.audio.sfx(r.ok ? 'levelup' : 'deny'); this.inventory();
+      }
       else if (t.dataset.upgrade) { const r = g.player.upgradeSkill(t.dataset.upgrade); g.audio.sfx(r.ok ? 'levelup' : 'deny'); this.inventory(); }
       else if (t.dataset.slot) { g.player.setSkillSlot(+t.dataset.slot, t.dataset.skill); this.inventory(); }
       else if (t.dataset.trial) { const r = g.progression.startTrial(t.dataset.trial); if (!r.ok) g.ui.toast(r.reason === 'busy' ? 'Finish your current trial first' : 'Requirements not met', 1.2); this.inventory(); }

@@ -88,8 +88,33 @@ export const UmbralSword = {
         { power: 1.2, area: 1.15, cost: 0.75, text: 'Costs 25% less Shadow' },
         { power: 1.3, area: 1.15, cost: 0.75, flags: { shadowTrail: true }, text: 'SHADOW TRAIL: a second shadow cut follows 0.3 s later' },
       ],
+      // SKILL EVOLUTION (progression/skillEvolution.js): choose ONE — each changes how the slash plays
+      evolutions: [
+        {
+          id: 'shadow_fang', name: 'Shadow Fang',
+          desc: 'A narrow thrusting fang that bites ONE enemy. It feeds on your Shadow Marks: holding 2+ Marks makes the bite 30% stronger.',
+          changes: { damage: '+35% single-target, +30% more with 2+ Marks', utility: 'Hits only 1 enemy · narrow', resource: 'Same cost', cooldown: 'Same', behavior: 'Duel tool: finish a marked target' },
+          requirements: { skillLevel: 3, masteryLevel: 3 },
+          power: 1.35, flags: { fang: true },
+        },
+        {
+          id: 'shadow_wave', name: 'Shadow Wave',
+          desc: 'The cut becomes a wide wave of shadow that sweeps through a whole pack and pushes it back. Weaker per enemy; hitting 2+ enemies gives an extra Shadow Mark.',
+          changes: { damage: '-25% per enemy', utility: 'Much wider and longer · stronger push', resource: '+2 Shadow per extra enemy', cooldown: '+15%', behavior: 'Crowd tool: mark faster on packs' },
+          requirements: { skillLevel: 3, masteryLevel: 3 },
+          power: 0.75, area: 1.35, cooldown: 1.15, flags: { wave: true },
+        },
+        {
+          id: 'phantom_cut', name: 'Phantom Cut',
+          desc: 'Your cut is lighter, but it leaves a shadow clone behind that repeats the slash 0.6 s later on the same spot — strong on enemies that stay put.',
+          changes: { damage: '-20% first hit, then a delayed clone slash (140%)', utility: 'Delayed hit on the spot', resource: 'Same cost', cooldown: 'Same', behavior: 'Set traps: slash, dodge out, the clone lands' },
+          requirements: { skillLevel: 5, masteryLevel: 3 },
+          power: 0.8, flags: { phantom: true },
+        },
+      ],
       cast(p, g, a) {
-        let marked = false;
+        let marked = false, waveHits = 0;
+        const fang = p.skillFlag('shadow_slash', 'fang'), wave = p.skillFlag('shadow_slash', 'wave'), phantom = p.skillFlag('shadow_slash', 'phantom');
         return {
           name: 'shadow_slash', dur: 0.4, anim: 'shadowSlash', moveMul: 0.2, ang: a, cancelAt: 0.18,
           lunge: { dist: 48, t0: 0.04, t1: 0.14 },
@@ -97,17 +122,37 @@ export const UmbralSword = {
             swing(p, g, a, { r: 44, half: 1.2, life: 0.2, sfx: 'slash_heavy', noSprite: true });
             g.vfx.sprite('slash', p.x + Math.cos(a) * 34, p.y - 14 + Math.sin(a) * 34, a, { scale: 1.3, life: 0.3 });
             g.vfx.shadowSmoke(p.x, p.y, 6);
+            if (wave) g.vfx.sprite('wave', p.x + Math.cos(a) * 60, p.y - 14 + Math.sin(a) * 60, a, { scale: 1.6, life: 0.32 });
+            if (fang) g.vfx.sprite('thrust', p.x + Math.cos(a) * 44, p.y - 14 + Math.sin(a) * 44, a, { scale: 1.1, life: 0.22 });
             g.combat.spawnHitbox({
-              owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 76, half: 0.8, power: 2.1, type: 'shadow', knock: 180, stagger: 25, hitStop: 0.07, shake: 0.2,
-              onHit: () => { p.gainResource(3); if (!marked) { marked = true; p.addMark(1); } },
+              owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 76, half: fang ? 0.45 : wave ? 1.35 : 0.8, power: 2.1, type: 'shadow',
+              knock: wave ? 280 : 180, stagger: 25, hitStop: 0.07, shake: 0.2, maxTargets: fang ? 1 : 99,
+              // Shadow Fang: +30% while holding 2+ Marks (per-target power, core powerFor hook)
+              powerFor: fang ? (t, hb) => hb.power * (p.marks >= 2 ? 1.3 : 1) : undefined,
+              onHit: () => {
+                p.gainResource(3);
+                if (!marked) { marked = true; p.addMark(1); }
+                if (wave && ++waveHits >= 2) { p.gainResource(2); if (waveHits === 2) p.addMark(1); }
+              },
             });
+            // Phantom Cut: a shadow clone repeats the slash on this spot 0.6 s later
+            if (phantom) {
+              const x = p.x, y = p.y;
+              g.vfx.shadowSmoke(x, y, 8, { vy: -30 });
+              g.after(0.6, () => {
+                g.vfx.sprite('slash', x + Math.cos(a) * 34, y - 14 + Math.sin(a) * 34, a, { scale: 1.4, life: 0.3, glow: 0.4 });
+                g.vfx.shadowSmoke(x, y, 8);
+                g.audio.sfx('slash_heavy');
+                g.combat.spawnHitbox({ owner: p, x, y: y - 10, ang: a, shape: 'cone', r: 80, half: 0.9, power: 2.1 * 1.4, noSkillMods: true, skillId: 'shadow_slash', type: 'shadow', knock: 120, stagger: 20, hitStop: 0.06, shake: 0.18 });
+              });
+            }
             // Lv 5: the shadow trail repeats the cut (its power is set here -> noSkillMods)
             if (p.skillFlag('shadow_slash', 'shadowTrail')) {
               const x = p.x, y = p.y;
               g.after(0.3, () => {
                 g.vfx.sprite('slash', x + Math.cos(a) * 34, y - 14 + Math.sin(a) * 34, a, { scale: 1.2, life: 0.26, flipY: true });
                 g.vfx.shadowSmoke(x, y, 4);
-                g.combat.spawnHitbox({ owner: p, x, y: y - 10, ang: a, shape: 'cone', r: 80, half: 0.8, power: 1.0, noSkillMods: true, type: 'shadow', knock: 60, stagger: 12, hitStop: 0.04, shake: 0.1 });
+                g.combat.spawnHitbox({ owner: p, x, y: y - 10, ang: a, shape: 'cone', r: 80, half: 0.8, power: 1.0, noSkillMods: true, skillId: 'shadow_slash', type: 'shadow', knock: 60, stagger: 12, hitStop: 0.04, shake: 0.1 });
               });
             }
           }]],

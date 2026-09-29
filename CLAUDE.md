@@ -596,6 +596,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   dummies / breakables give no hit XP; rewards = small cooldown / cost cuts only, III = evolutions open) +
   `src/progression/masterySystem.js` (game.mastery listens to skillUsed / skillHit / perfectDodge / counterHit; active-class
   skills only; 'skillMasteryUp'). Hitboxes / projectiles spawned inside a cast carry `skillId` (applySkillMods) -> combat
-  emits 'skillHit'. Player.skillMods = level mods × mastery reward. Skills tab shows Mastery + XP bar. mastery.test.mjs.
+  emits 'skillHit'. Player.skillMods = level mods (+ evolution) × mastery reward. Skills tab shows Mastery + XP bar. mastery.test.mjs.
+  Done S4: SKILL EVOLUTION `src/progression/skillEvolution.js` (pure): skill data `evolutions: [{ id, name, desc, changes
+  { behavior, damage, utility, resource, cooldown }, requirements { skillLevel, masteryLevel, charLevel?, flag?, item? },
+  power / area / cooldown / cost ×, flags, values }]` (0-3, must carry a behaviour flag). ONE branch per skill, stored as
+  classProgress skill.evolution (original data untouched); `p.evolveSkill(id, evo)` (not in combat) -> 'skillEvolved' banner;
+  `revertEvolution` only if EVOLUTION_RULES.respec.allowed (off). Umbral Shadow Slash: Shadow Fang (1 target, +35%, +30% with
+  2+ Marks) · Shadow Wave (wide, -25%, 2+ hits = extra Mark, cd +15%) · Phantom Cut (Lv 5; -20%, clone re-slash 0.6 s later).
+  Skills tab: "◆ name" on the card + [Evolution ▸] panel (original + options, gameplay/damage/utility/resource/cooldown,
+  missing requirements, Choose). A hitbox fired later (g.after) must name `skillId` itself. evolution.test.mjs.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.
