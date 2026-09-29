@@ -44,6 +44,8 @@ export const STATUSES = {
   silent_run: { id: 'silent_run', category: 'buff', maxStacks: 1, stacking: 'refresh', flags: ['stealth'], modifiers: { moveMult: 1.35, damageMult: 1.5 }, display: { label: 'SILENT RUN', color: '#9ad8ff' } },
   // Duskrunner ultimate ENDLESS RUN: momentum never falls (class code), faster attacks / feet, half-price dodges
   overdrive: { id: 'overdrive', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { moveMult: 1.15, attackSpeedMult: 1.3, dodgeCostMult: 0.5 }, display: { label: 'OVERDRIVE', color: '#5ab8ff' } },
+  // Blade of Echoes: LAST STAND (HP under 40%): takes 40% less damage; the class reads it for counter / echo bonuses
+  last_stand: { id: 'last_stand', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.6 }, display: { label: 'LAST STAND', color: '#ff6a6a' } },
   surge: { id: 'surge', category: 'buff', maxStacks: 1, stacking: 'longest', modifiers: { damageMult: 1.15 }, display: { label: 'SURGE', color: '#e0a0ff' } },
   // ---- defense
   shield: { id: 'shield', category: 'defense', maxStacks: 1, stacking: 'refresh', absorb: true, display: { label: 'SHIELD', color: '#fff0a0' } },

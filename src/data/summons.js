@@ -24,6 +24,18 @@ export const SUMMONS = {
     duration: 3, maxPerOwner: 1, powerMult: 0.5,
     visual: { alpha: 0.5, glow: 0.5 },
   },
+  // Blade of Echoes: the spot Rewind Edge remembers (a still crimson afterimage; duration = the rewind window)
+  rewind_mark: {
+    id: 'rewind_mark', name: 'Rewind Point',
+    duration: 4, maxPerOwner: 1, powerMult: 0,
+    visual: { alpha: 0.35, glow: 0.55 },
+  },
+  // Blade of Echoes ultimate: a crimson copy that REPLAYS the recorded actions in order (class code drives it)
+  echo_self: {
+    id: 'echo_self', name: 'Echo of Recollection',
+    duration: 4, maxPerOwner: 1, powerMult: 0.8,
+    visual: { alpha: 0.7, glow: 0.5 },
+  },
 };
 
 export const SUMMON_RULES = {

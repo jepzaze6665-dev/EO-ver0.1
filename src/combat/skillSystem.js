@@ -34,6 +34,10 @@ export const REQUIREMENTS = {
   mark: (caster, r) => (caster.markCount ? caster.markCount(r.mark) : 0) >= r.min,
   // { type: 'markedFoe', mark: 'reaper_mark', range: 320, min?: 1 } — foes within range carrying that mark
   //   (caster.markedFoes(markId, range) -> list)
+  // { type: 'recorded', ids: [...], within: 6 } — the caster's ActionRecorder (caster.memory) remembers one of these
+  recorded: (caster, r) => !!(caster.memory && caster.game && caster.memory.last(caster.game.time, (e) => (!r.ids || r.ids.includes(e.id)) && caster.game.time - e.t <= (r.within ?? Infinity))),
+  // { type: 'hpBelow', max: 0.4, label: 'below 40% HP' } — caster.hp / caster.maxHp under the line
+  hpBelow: (caster, r) => caster.maxHp > 0 && caster.hp / caster.maxHp < r.max,
   markedFoe: (caster, r) => (caster.markedFoes ? caster.markedFoes(r.mark, r.range).length : 0) >= (r.min || 1),
 };
 

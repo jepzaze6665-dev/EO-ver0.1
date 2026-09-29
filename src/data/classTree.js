@@ -72,8 +72,8 @@ export const CLASS_TREE = {
     trial: 'trial_duskrunner',
   },
   blade_of_echoes: {
-    id: 'blade_of_echoes', name: 'Blade of Echoes', tier: 2, parent: 'umbral_sword', playable: false, resource: 'Echo',
-    role: 'Combo Duelist', description: 'Every strike leaves an echo that strikes again.',
+    id: 'blade_of_echoes', name: 'Blade of Echoes', tier: 2, parent: 'umbral_sword', playable: true, resource: 'Echo',
+    role: 'Duelist · Counter DPS · Boss Specialist', description: 'Reads the enemy, counters it and replays its own remembered blows.',
     requirements: [...CLASS2_BASE, { type: 'counter', counter: 'ultimates', min: 8 }],
     trial: 'trial_blade_of_echoes',
   },

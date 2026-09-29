@@ -27,6 +27,10 @@ export const ITEMS = {
     name: 'Twin Dusk Blades', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'twin_blades', color: '#5ab8ff',
     stats: { atk: 1, crit: 0.03 }, desc: 'Two short blades that never stop moving. Signature weapon of the Duskrunner.',
   },
+  memory_blade: {
+    name: 'Memory Blade', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'memory_blade', color: '#ff4a5a',
+    stats: { atk: 2 }, desc: 'A long crimson blade that remembers every blow. Signature weapon of the Blade of Echoes.',
+  },
   aegis_shield: {
     name: 'Aegis Shield & Blade', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'shield', color: '#ffd070',
     stats: { atk: 0 }, desc: 'A knight longsword and the gilded Aegis shield. Signature weapon of the Aegis Guardian.',
@@ -52,6 +56,10 @@ export const ITEMS = {
   dusk_scarf: {
     name: 'Duskrunner Scarf', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#2a5aaa',
     stats: { def: 0, hp: 5 }, desc: 'A long blue scarf that trails behind like wind. Worn by those who never stop.',
+  },
+  echo_coat: {
+    name: 'Coat of Echoes', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#d8d0d8',
+    stats: { def: 2, hp: 15 }, desc: 'A pale duelist coat lined in red. Every scar on it is remembered.',
   },
   aegis_plate: {
     name: 'Aegis Plate', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#c8d0e0',

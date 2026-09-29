@@ -188,6 +188,10 @@ export function mechanicChecks(g, classId) {
     let used = null;
     g.events.on('skillUsed', (e) => { if (e.caster === p && !used) used = e.skillId; });
     if ((s.requirements || []).some((r) => r.key === 'threadCount')) g.threads.create(p, 'astral_thread', { x: p.x - 40, y: p.y }, { x: p.x + 40, y: p.y });
+    for (const r of s.requirements || []) { // meet the other data requirements the way a player would have
+      if (r.type === 'recorded' && p.memory) p.memory.record({ kind: 'skill', id: r.ids[0] }, g.time);
+      if (r.type === 'hpBelow') p.hp = Math.floor(p.maxHp * (r.max - 0.1));
+    }
     g.simulate(0.6, (gg, i) => { aim(g, d.x, d.y); if (i === 1) gg.input.pushBuffer('skill4'); });
     casted.push(used === s.id ? s.id : `${s.id}≠${used}`);
   }
@@ -434,6 +438,91 @@ export function duskChecks(g) {
   return rows;
 }
 
+// ---------------- Class 2 BLADE OF ECHOES in the live game (counter stance, echo, record & replay, rewind, last stand)
+export function echoChecks(g) {
+  const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'blade_of_echoes', test: name, pass: !!pass, detail });
+  const EC = 'echo';
+  let { p, d } = atDummy(g, 'blade_of_echoes');
+  const inFight = () => { g.combat.lastCombatTime = g.time; };
+
+  p.resources.set(EC, 95); g.simulate(STEP * 2, inFight);
+  ok('Echo tiers: FULL MEMORY adds echoPower + crit', p.stats.echoPower >= 0.5 - 1e-9 && p.stats.crit > p.cls.base.crit, `echoPower ${p.stats.echoPower} crit ${p.stats.crit}`);
+
+  // a real monster next to us for the counter tests
+  const foeNear = () => {
+    g.newGame('blade_of_echoes'); releaseInput(g); p = g.player; goto(g, 38, 121);
+    const foe = g.world.monsters.filter((m) => !m.dead && g.world.onMap(m)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+    foe.x = p.x + 30; foe.y = p.y; p.hp = p.maxHp; p.invulnT = 0; p.resources.set(EC, 0);
+    for (const m of g.world.monsters) if (m !== foe && !m.dead) m.status.add('stun', 10); // only this one may attack
+    return foe;
+  };
+  const strike = (foe, extra = {}) => g.combat.enemyStrike(foe, { shape: 'circle', x: p.x, y: p.y, r: 30 }, 12, extra);
+
+  let foe = foeNear();
+  const hp0 = p.hp; let parries = 0; g.events.on('perfectGuard', () => parries++);
+  p.trySkill(p.cls.special); g.simulate(0.2);
+  strike(foe);
+  ok('Perfect Counter: the blow is parried (0 damage) and answered', p.hp === hp0 && parries === 1 && p.action && p.action.name === 'counter_strike', `hp ${hp0}->${p.hp} parries=${parries} action=${p.action && p.action.name}`);
+  const fhp = foe.hp; g.simulate(1.0); // the parry slows time (x0.25) for a moment
+  ok('Counter strike: damage, stun + counter window on the attacker, +20 Echo', foe.hp < fhp && foe.status.has('stun') && foe.status.has('counter_window') && p.resources.get(EC) >= 20, `foe ${Math.round(fhp)}->${Math.round(foe.hp)} stun=${foe.status.has('stun')} echo=${Math.round(p.resources.get(EC))}`);
+
+  foe = foeNear(); const hp1 = p.hp;
+  p.trySkill(p.cls.special); g.simulate(0.56); strike(foe);
+  ok('Mistimed counter (after the window): the hit lands', p.hp < hp1, `hp ${hp1}->${p.hp}`);
+  foe = foeNear(); const hp2 = p.hp;
+  p.trySkill(p.cls.special); g.simulate(0.2); strike(foe, { unblockable: true });
+  ok('Unblockable attacks go through the stance', p.hp < hp2, `hp ${hp2}->${p.hp}`);
+
+  // Echo Slash: the cut and its echo both land
+  ({ p, d } = atDummy(g, 'blade_of_echoes'));
+  let hits = 0; g.events.on('damageDealt', (e) => { if (e.source === p && e.target === d) hits++; });
+  cast(g, 'echo_slash', d);
+  ok('Echo Slash: cut + delayed echo', hits === 2, `hits=${hits}`);
+  // Crimson Memory replays it (and does not record its own replay)
+  p.resources.set(EC, 60); const n0 = p.memory.entries.length; hits = 0;
+  const recalled = cast(g, 'crimson_memory', d);
+  ok('Crimson Memory: replays the remembered Echo Slash, replay not recorded', recalled && hits === 2 && p.memory.entries.filter((e) => e.id === 'echo_slash').length === 1, `used=${recalled} hits=${hits} entries ${n0}->${p.memory.entries.length}`);
+
+  // Rewind Edge: back to the remembered spot, heals part of the HP lost
+  ({ p, d } = atDummy(g, 'blade_of_echoes'));
+  const home = { x: p.x, y: p.y };
+  cast(g, 'rewind_edge'); p.x += 150; p.hp = Math.round(p.maxHp * 0.5); p.resources.set(EC, 40); const hpR = p.hp;
+  const rw = p.trySkill(p.skillSys.get('rewind_edge')); g.simulate(0.5);
+  ok('Rewind Edge: returns to the mark and heals', rw && Math.hypot(p.x - home.x, p.y - home.y) < 4 && p.hp > hpR, `dist ${Math.round(Math.hypot(p.x - home.x, p.y - home.y))} hp ${hpR}->${p.hp}`);
+
+  // Blade of Recollection: record a few actions, the crimson copy replays them
+  ({ p, d } = atDummy(g, 'blade_of_echoes'));
+  g.simulate(1.6, (gg, i) => { aim(g, d.x, d.y); if (i % 25 === 0) gg.input.pushBuffer('attack'); });
+  const rec = p.memory.recent(g.time).length;
+  p.resources.set(EC, 60); hits = 0;
+  g.events.on('damageDealt', (e) => { if (e.source === p && e.target === d) hits++; }); // fresh bus after newGame
+  const ultOk = p.trySkill(p.skillSys.get('blade_of_recollection'));
+  g.simulate(0.8); const copy = g.summons.count(p, 'echo_self');
+  g.simulate(2.5, () => aim(g, d.x, d.y));
+  ok('Blade of Recollection: a crimson copy replays the recorded actions', ultOk && rec >= 3 && copy === 1 && hits >= rec, `recorded=${rec} copy=${copy} hits=${hits}`);
+
+  // Last Stand: only below 40% HP; less damage taken
+  ({ p, d } = atDummy(g, 'blade_of_echoes'));
+  const refused = !p.skillSys.canUse('last_stand').ok;
+  p.hp = Math.round(p.maxHp * 0.3); cast(g, 'last_stand');
+  ok('Last Stand: refused at full HP, active under 40% (damage taken x0.6)', refused && p.status.has('last_stand') && p.status.damageTakenMult() < 0.7, `refused=${refused} mult=${p.status.damageTakenMult()}`);
+
+  // live: the bot fights a pack with the stance and lands Perfect Counters
+  g.newGame('blade_of_echoes'); releaseInput(g); p = g.player; p.setLevel(6); p.hp = p.maxHp;
+  let live = 0; g.events.on('perfectGuard', (e) => { if (e.player === p) live++; });
+  for (const [x, y] of [[38, 121], [20, 112], [54, 80]]) { goto(g, x, y); g.simulate(12, (gg, i) => bot(gg, i, { god: true })); if (live) break; }
+  releaseInput(g);
+  ok('Live fight: Perfect Counters happen against real monsters', live > 0, `counters=${live}`);
+
+  // real class change: Umbral Sword -> Blade of Echoes
+  g.newGame('umbral_sword'); releaseInput(g);
+  g.progression.unlock('blade_of_echoes'); g.combat.lastCombatTime = -99;
+  const r = g.changeClass('blade_of_echoes'), np = g.player;
+  ok('Class change Umbral Sword -> Blade of Echoes', r.ok && np.cls.id === 'blade_of_echoes' && np.sprites.preset === 'be' && np.primaryResource === EC && np.memory && g.equipment.slots.weapon === 'memory_blade', `${np.cls.id} ${np.sprites.preset} ${g.equipment.slots.weapon}`);
+  releaseInput(g);
+  return rows;
+}
+
 // ---------------- Phase 13: class change, proven with a mock Class 2 registered from data only
 export function classChangeChecks(g) {
   const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'class_change', test: name, pass: !!pass, detail });
@@ -518,7 +607,7 @@ export function balance(g, classId, loadout, botOpts = {}) {
 export function runAll(g, { withBalance = true } = {}) {
   const rows = [], bal = [];
   for (const c of [...STARTING_CLASSES, ...ADVANCED]) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
-  rows.push(...reaperChecks(g), ...duskChecks(g), ...classChangeChecks(g));
+  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...classChangeChecks(g));
   if (withBalance) for (const c of [...STARTING_CLASSES, ...ADVANCED]) bal.push(balance(g, c));
   return { passed: rows.filter((r) => r.pass).length, total: rows.length, rows, balance: bal };
 }

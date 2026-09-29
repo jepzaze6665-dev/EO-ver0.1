@@ -66,6 +66,21 @@ export const RESOURCES = {
     ],
     colors: ['#5ab8ff', '#123a7a'],
   },
+  // Blade of Echoes: ECHO — the pain and the blows it remembers. Built by TAKING hits, perfect counters and echo
+  // skills; spent on Crimson Memory / Rewind heal / the ultimate. Tiers = passive PAIN REMEMBERS (echoPower is read by
+  // the class: counter + echo damage). Fades out of combat.
+  echo: {
+    id: 'echo', name: 'Echo', label: 'ECHO',
+    max: 100, start: 0, respawn: 0,
+    regen: { inCombat: 0, outOfCombat: 0 },
+    decay: { inCombat: 0, outOfCombat: 8, delay: 4 },
+    gainStat: 'echoGain',
+    tiers: [
+      { at: 50, label: 'RESONANCE', stats: { echoPower: 0.25 } },
+      { at: 90, label: 'FULL MEMORY', stats: { echoPower: 0.5, crit: 0.1 } },
+    ],
+    colors: ['#ff4a5a', '#5a0c16'],
+  },
   // Phase 6 (Astral Weaver) — defined now so the pool is proven to be class-agnostic.
   astral_charge: {
     id: 'astral_charge', name: 'Astral Charge', label: 'ASTRAL',

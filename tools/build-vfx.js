@@ -36,6 +36,8 @@ const SETS = {
   be: {
     src: 'desgin/VFX/UB/BE', detectRows: true, clean: true,
     names: { sk1: 'be_slash', sk2: 'be_burst', sk3: 'be_crescent', sk4: 'be_vortex', sk5: 'be_wave', sk6: 'be_bloom', ut: 'be_recall' },
+    rows: { sk3: 2, ut: 2 }, // their row 3 faces left; row 2 is the right-facing side view
+    mirrorFrames: { sk3: [0, 1, 2, 3, 4, 5] }, // the crescent is drawn opening forward in every row: flip it to lead with its arc
   },
   aw: {
     src: 'desgin/VFX/AW', detectRows: true, clean: true,

@@ -19,6 +19,10 @@ export function bot(g, i, opts = {}) {
     // guard classes with guardStyle 'hold' raise the shield as soon as a blow is winding up (tank play)
     const lead = p.cls.guard && opts.guardStyle === 'hold' ? 0.6 : (opts.dodgeLead ?? 0.1);
     if (rem < lead && rem > 0 && g.combat.testShape(t, p)) {
+      // counter-stance classes (special tagged 'counter', e.g. Crimson Counter) answer the blow instead of dodging
+      const sp = p.cls.special;
+      if (sp && (sp.tags || []).includes('counter') && !t.unblockable && p.skillSys.canUse(sp.id).ok && !(p.action && p.action.counter)) { inp.pushBuffer('break'); return; }
+      if (p.action && p.action.counter) return; // already in the stance: hold it
       // guard classes raise the guard toward the attacker at the last moment (-> Perfect Guard)
       if (p.cls.guard && t.owner && !t.owner.dead) {
         // guard toward the attacker (or the telegraph itself when its owner is a mechanic, e.g. boss runes)
@@ -700,6 +704,8 @@ export async function tierCheck(g) {
       // meet the skill's data requirements first (marks on self / a marked foe nearby)
       for (const r of s.requirements || []) {
         if (r.type === 'mark' && p.addMark) p.addMark(r.min);
+        if (r.type === 'recorded' && p.memory) p.memory.record({ kind: 'skill', id: r.ids[0] }, g.time);
+        if (r.type === 'hpBelow') p.hp = Math.floor(p.maxHp * (r.max - 0.1));
         if (r.type === 'markedFoe') { const foe = g.world.monsters.find((m) => !m.dead && g.world.onMap(m)); foe.x = p.x + 60; foe.y = p.y; g.marks.apply(foe, r.mark, { source: p, stacks: 3 }); }
       }
       const act = s.cast(p, g, 0); // the action timeline the skill really plays

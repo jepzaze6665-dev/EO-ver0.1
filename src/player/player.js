@@ -10,6 +10,7 @@ import { RESOURCES } from '../data/resources.js';
 import { SkillSystem } from '../combat/skillSystem.js';
 import { MARKS } from '../data/marks.js';
 import { Loadout } from './loadout.js';
+import { ActionRecorder } from '../combat/actionRecorder.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
 import { LEVELS } from '../data/levels.js';
 import { STAMINA } from '../data/stamina.js';
@@ -46,6 +47,8 @@ export class Player extends Entity {
     });
     // which skills sit on keys 1-4 (key 5 = ultimate) — chosen in the Skills tab, saved with the character
     this.loadout = new Loadout(classDef);
+    // what this character just did (Record & Replay) — only for classes with `memory` rules (combat/actionRecorder.js)
+    this.memory = classDef.memory ? new ActionRecorder(classDef.memory) : null;
     // class passives listen to core events (markTriggered, threadTouched, ...) — no class checks in the core
     this.unsubs = Object.entries(classDef.on || {}).map(([name, fn]) => game.events.on(name, (e) => fn(this, game, e)));
     this.mods = {};
@@ -242,6 +245,11 @@ export class Player extends Entity {
   }
   // called by combat.dealDamage for every incoming hit
   tryBlock(src, opts = {}) {
+    // COUNTER STANCE: a skill action may open a counter window (action.counter = { from, to }, seconds into the
+    // action). A hit inside it is parried like a Perfect Guard -> onBlock -> 'perfectGuard' + cls.onPerfectGuard.
+    // Any direction; unblockable attacks still go through (dodge those). Outside the window: a normal hit.
+    const a = this.action;
+    if (a && a.counter && !opts.unblockable && !this.dead && a.t >= a.counter.from && a.t <= a.counter.to) return { perfect: true, mult: 0, counter: true };
     if (!this.cls.guard || !this.guardState.active || this.dead || opts.unblockable) return null; // unblockable: dodge it
     const res = evaluateBlock(this.cls.guard, this.guardState, this.aim, src.x - this.x, src.y - this.y, this.game.time);
     // a guardBreak attack smashes a normal block (a parry still beats it): part of the hit goes through
@@ -253,7 +261,7 @@ export class Player extends Entity {
     if (res.perfect) {
       this.resources.gain(STAMINA.resource, STAMINA.parryRefund, { raw: true, reason: 'parry' });
       g.events.emit('perfectGuard', { player: this, source: src });
-      g.vfx.text(this.x, this.y - 72, 'PERFECT GUARD', { color: '#fff0b0', size: 13, life: 1.2 });
+      g.vfx.text(this.x, this.y - 72, this.cls.perfectGuardText || 'PERFECT GUARD', { color: '#fff0b0', size: 13, life: 1.2 });
       g.audio.sfx('perfect_guard');
       g.slowMo(0.25, 0.4);
       g.camera.punch(0.08);
@@ -268,7 +276,7 @@ export class Player extends Entity {
       if (res.guardBreak) this.guardBreak(src, 'heavy');
       else this.drainGuard(clamp(raw * STAMINA.blockPerDamage, STAMINA.blockMin, STAMINA.blockMax), src);
     }
-    if (this.cls.guard.fx) g.vfx.sprite(this.cls.guard.fx, fx, fy, 0, { scale: res.perfect ? 0.9 : 0.55, life: 0.25, glow: 0.5 });
+    if (this.cls.guard && this.cls.guard.fx) g.vfx.sprite(this.cls.guard.fx, fx, fy, 0, { scale: res.perfect ? 0.9 : 0.55, life: 0.25, glow: 0.5 });
   }
 
   // ---------------- defense

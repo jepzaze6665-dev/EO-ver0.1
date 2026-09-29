@@ -9,7 +9,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - `node server.js` → http://localhost:5173 (Claude preview config name: `eclipse-online`, `autoPort` on, see `.claude/launch.json`).
 - Unit tests: `node tools/tests/run.mjs` (must print `ALL TEST FILES PASSED`).
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
-  (combat / mechanics / Reaper / Duskrunner / class-change checks, currently 128/128; `C.duskChecks(__game)` alone),
+  (combat / mechanics / Reaper / Duskrunner / Echoes / class-change checks, currently 153/153; `C.duskChecks(__game)` /
+  `C.echoChecks(__game)` alone). runAll now takes > 45 s: from the preview tool run it in parts (classChecks +
+  mechanicChecks per 2 classes, then reaper/dusk/classChange, then echo) or the call times out and hangs the page,
   `const L = await import('/tools/checklist.js'); L.runChecklist(__game, classId)` (spec TEST 1-31),
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (W2 Route A, 26 steps: A1 on foot, 2 optional mini-bosses, Guardian, north road into A2 on
@@ -119,8 +121,23 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   dodgeCostCut, status dodgeCostMult), `attackSpeed()` (stat attackSpeed × status attackSpeedMult, basic attacks),
   class `tick(p, g, dt)` hook; HUD resource label shrinks to fit. Tests: tools/tests/duskrunner.test.mjs, C.duskChecks (11).
   Balance: single-target (1 dummy) DR ≈ 141-158 vs RP 141 / UB 111; 3-dummy bot DR 162 (RP 190); Guardian WIN 85 s.
-  Next CL2 = BLADE OF ECHOES (preset 'be' + VFX `be_*` already built; be_crescent / be_recall rows face left -> fix
-  rows in build-vfx), then Class 2 skill tree / class level (spec §8-9), loadout slots (§15).
+  Done CL2 = BLADE OF ECHOES (third playable Class 2, `src/skills/bladeOfEchoes.js`, preset 'be', VFX `be_*`; build-vfx
+  rows sk3/ut = 2, be_crescent mirrored): resource ECHO (tiers RESONANCE 50 / FULL MEMORY 90 = passive Pain Remembers:
+  stat echoPower read by class code, + crit); built by TAKING damage (2-15 per hit), perfect counters (+20), echo hits.
+  Q CRIMSON COUNTER = counter stance: action `counter: { from, to }` -> Player.tryBlock parries ANY-direction hits inside
+  the window (not unblockable) -> perfectGuard (text from class `perfectGuardText`) -> cls.onPerfectGuard starts the
+  counter strike (forced crit, stun non-bosses; Counter Window opens via CounterSystem). NOT the Aegis hold-guard (that stays
+  Aegis-only): it is one skill with a timing window. MEMORY RECORD & REPLAY = generic `src/combat/actionRecorder.js`
+  (Player makes `p.memory` from class `memory` rules: keep 6 s, max 8, kinds basic/skill/dodge/counter; `replay(fn)`
+  = nothing recorded inside -> no infinite replay). Skills: Echo Slash (cut + delayed echo cut) · Rewind Edge (summon
+  rewind_mark + RECAST back, heals 40% of HP lost for 15 Echo) · Crimson Memory (requirement type `recorded`; re-casts the
+  last remembered Echo Slash / Crimson Counter / combo finisher, its effects never re-recorded) · Last Stand (requirement
+  `hpBelow` 0.4; status last_stand x0.6 damage taken, counter +30%, Echo gain x1.5 via pool gainMult modifier) · ult Blade
+  of Recollection (50 Echo: summon echo_self replays the last 6 actions, re-targeting the nearest foe each step, finale
+  cross). Passive Persistent Memory: counter = -3 s Rewind Edge. Gear memory_blade / echo_coat. Bot: counter-stance classes
+  (special tag 'counter') press Q on telegraphs instead of dodging. Tests: tools/tests/echoes.test.mjs, C.echoChecks (12).
+  Balance: 3-dummy bot 124 DPS (lowest of the line, by design); Guardian WIN 90 s with 9 perfect counters, 79 dmg taken.
+  Next: Class 2 skill tree / skill points / class level (spec §8-9), combat loadout slots (§15), class-selection UI (§16).
 - Later Class 2 work: AW / AG paths need the owner's class data.
   Unused RP art: `sk6` (anim `harvest`) is mapped but no skill plays it yet.
 - **Current: V2.1 "Class × World Integration"** (owner's 16-phase spec: Lumina → A1 → A2 → A3 → Boss Arena, EXP/loot/

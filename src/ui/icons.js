@@ -116,6 +116,42 @@ export function icon(name, color = '#b070ff') {
       g.fillStyle = '#fff'; g.beginPath(); g.moveTo(26, 9); g.lineTo(30, 16); g.lineTo(23, 14); g.closePath(); g.fill();
       glow('#d8f0ff', 2, () => { g.moveTo(10, 16); g.lineTo(22, 16); g.moveTo(17, 11); g.lineTo(22, 16); g.lineTo(17, 21); });
       break;
+    // ---- Blade of Echoes
+    case 'memory_blade':
+      glow('#2a0a10', 4, () => { g.moveTo(6, 28); g.lineTo(26, 4); });
+      glow(color, 2, () => { g.moveTo(6, 28); g.lineTo(26, 4); });
+      glow('#d8d0d8', 2, () => { g.moveTo(6, 20); g.lineTo(14, 28); });
+      break;
+    case 'echo_slash':
+      glow('#5a0c16', 5, () => g.arc(12, 18, 11, -1.4, 1.0));
+      glow('#ff4a5a', 2.5, () => g.arc(12, 18, 11, -1.4, 1.0));
+      glow('rgba(255,120,130,0.5)', 2, () => g.arc(20, 14, 10, -1.4, 1.0));
+      break;
+    case 'crimson_counter':
+      glow('#5a0c16', 4, () => { g.moveTo(16, 29); g.lineTo(16, 3); });
+      glow('#ffd8dc', 2, () => { g.moveTo(16, 29); g.lineTo(16, 3); });
+      glow('#ff4a5a', 2, () => { g.moveTo(5, 9); g.lineTo(27, 25); g.moveTo(27, 9); g.lineTo(5, 25); });
+      break;
+    case 'rewind_edge':
+      glow('#5a0c16', 4, () => g.arc(16, 16, 11, 0.4, 5.6));
+      glow('#ff4a5a', 2, () => g.arc(16, 16, 11, 0.4, 5.6));
+      g.fillStyle = '#ffd8dc'; g.beginPath(); g.moveTo(26, 21); g.lineTo(29, 13); g.lineTo(21, 15); g.closePath(); g.fill();
+      glow('#ffd8dc', 1.5, () => { g.moveTo(16, 16); g.lineTo(16, 9); g.moveTo(16, 16); g.lineTo(21, 18); });
+      break;
+    case 'crimson_memory':
+      g.fillStyle = 'rgba(255,74,90,0.35)'; g.beginPath(); g.arc(11, 11, 4, 0, 7); g.fill(); g.fillRect(7, 15, 8, 12);
+      g.fillStyle = '#1a0a0e'; g.beginPath(); g.arc(21, 11, 4, 0, 7); g.fill(); g.fillRect(17, 15, 8, 12);
+      glow('#ff4a5a', 2, () => g.arc(16, 16, 14, -2.2, -0.9));
+      break;
+    case 'last_stand':
+      for (let i = 0; i < 5; i++) glow(i % 2 ? '#ff4a5a' : '#ffd8dc', 2, () => { g.moveTo(6 + i * 5, 29); g.lineTo(8 + i * 5, 14 - (i % 2) * 5); });
+      g.fillStyle = '#1a0a0e'; g.beginPath(); g.arc(16, 9, 4, 0, 7); g.fill();
+      break;
+    case 'recollection':
+      g.fillStyle = 'rgba(90,10,22,0.6)'; g.beginPath(); g.arc(16, 16, 14, 0, 7); g.fill();
+      for (let i = 0; i < 3; i++) { g.fillStyle = `rgba(255,74,90,${0.25 + i * 0.25})`; g.beginPath(); g.arc(8 + i * 7, 12, 3, 0, 7); g.fill(); g.fillRect(6 + i * 7, 15, 5, 9); }
+      glow('#ffffff', 2, () => { g.moveTo(6, 6); g.lineTo(26, 26); g.moveTo(26, 6); g.lineTo(6, 26); });
+      break;
     // ---- Umbral Sword (loadout skills)
     case 'veil_shadow':
       g.fillStyle = 'rgba(90,40,150,0.5)'; g.beginPath(); g.arc(16, 17, 12, 0, 7); g.fill();

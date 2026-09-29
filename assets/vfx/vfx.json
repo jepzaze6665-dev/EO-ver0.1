@@ -211,7 +211,7 @@
  },
  "be_crescent": {
   "file": "assets/vfx/be_crescent.png",
-  "fw": 106,
+  "fw": 108,
   "fh": 128,
   "frames": 6,
   "set": "be"
@@ -239,7 +239,7 @@
  },
  "be_recall": {
   "file": "assets/vfx/be_recall.png",
-  "fw": 86,
+  "fw": 88,
   "fh": 128,
   "frames": 6,
   "set": "be"
