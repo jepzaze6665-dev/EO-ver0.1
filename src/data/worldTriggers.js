@@ -37,8 +37,15 @@ export const WORLD_TRIGGERS = [
   },
   {
     id: 'b2_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_b2' },
-    actions: [{ type: 'banner', title: 'THE HEART FALLS SILENT', text: 'The crystals dim. Beyond the Abyssal Arch the road climbs to Frostpeak (B3) — coming in the next update.', color: '#d8b8ff' }],
+    actions: [{ type: 'banner', title: 'THE HEART FALLS SILENT', text: 'The crystals dim. Beyond the Abyssal Arch (south-east) the road climbs to Frostpeak (B3).', color: '#d8b8ff' }],
   },
+  {
+    id: 'b3_first_visit', on: 'mapEntered', match: { id: 'b3', first: true },
+    actions: [{ type: 'cutscene', title: 'FROSTPEAK', sub: 'Route B · B3', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:frostpeak_climb'],
+  },
+  { id: 'b3_lakes_found', on: 'areaDiscovered', match: { name: 'Frozen Lakes' }, actions: ['set_flag:b3Lakes'] },
+  { id: 'b3_stairs_found', on: 'areaDiscovered', match: { name: 'Glacier Stairs' }, actions: ['set_flag:b3Stairs'] },
+  { id: 'b3_summit_found', on: 'areaDiscovered', match: { name: 'Windcut Terrace' }, actions: ['set_flag:b3Summit'] },
   { id: 'b2_lake_found', on: 'areaDiscovered', match: { name: 'Underground Lake' }, actions: ['set_flag:b2Lake'] },
   { id: 'b2_ruins_found', on: 'areaDiscovered', match: { name: 'Sunken Ruins' }, actions: ['set_flag:b2Ruins'] },
   { id: 'b2_heart_found', on: 'areaDiscovered', match: { name: 'Northern Gallery' }, actions: ['set_flag:b2Heart'] },

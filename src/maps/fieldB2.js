@@ -21,7 +21,7 @@ export const FIELD_B2 = {
     interactables: [
       { id: 'b2_tunnel_notice', kind: 'sign', tx: 12, ty: 15, prompt: 'Read Marker', title: 'Frozen Tunnel', text: NOTICE },
       { id: 'ws_b2_hall', kind: 'waystone', tx: 36, ty: 36, name: 'Glittering Hall', prompt: 'Waystone' },
-      { id: 'b2_arch_sign', kind: 'sign', tx: 144, ty: 168, prompt: 'Read Inscription', title: 'The Abyssal Arch', text: 'The arch is sealed with frost from the other side.\nBeyond it the road climbs to Frostpeak (B3) — not yet.' },
+      { id: 'b2_arch_sign', kind: 'sign', tx: 144, ty: 168, prompt: 'Read Inscription', title: 'The Abyssal Arch', text: 'Beyond the arch the road climbs to Frostpeak (B3).\nThe frost that sealed it melted when the Heart fell silent.' },
     ],
     spawns: [
       { id: 'b2_hall_slimes', type: 'crystal_slime', count: 3, tx: 42, ty: 40, radius: 4 },
@@ -42,6 +42,7 @@ export const FIELD_B2 = {
   },
   exits: [
     { id: 'north_tunnel', rect: [2, 11, 2, 13], to: 'frost_arena', entry: [142, 163], label: 'The Frost Arena' },
+    { id: 'abyssal_arch', rect: [147, 170, 149, 170], to: 'b3', entry: [81.5, 201], label: 'Frostpeak (B3)' },
     {
       id: 'heart_gate', rect: [121, 26, 121, 32], to: 'crystal_heart', entry: [128, 29], label: 'Heart of the Caverns',
       confirm: {

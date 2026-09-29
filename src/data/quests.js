@@ -107,6 +107,18 @@ export const QUESTS = {
     rewards: { exp: 350, gold: 200, items: { hp_potion: 3 } },
     requirements: [],
   },
+  // Route B spine for B3 (starts on the first visit to Frostpeak)
+  frostpeak_climb: {
+    id: 'frostpeak_climb', name: 'THE FROZEN SUMMIT', giver: null, ordered: true, priority: 1,
+    description: 'Something on the summit of Frostpeak keeps the whole mountain frozen. Climb it.',
+    objectives: [
+      { id: 'lakes', text: 'Cross the Frozen Lakes', type: 'flag', flag: 'b3Lakes', marker: [66, 146], markerMap: 'b3' },
+      { id: 'stairs', text: 'Climb the Glacier Stairs', type: 'flag', flag: 'b3Stairs', marker: [82, 108], markerMap: 'b3' },
+      { id: 'summit', text: 'Reach the Summit Gate', type: 'flag', flag: 'b3Summit', marker: [86, 60], markerMap: 'b3' },
+    ],
+    rewards: { exp: 450, gold: 260, items: { hp_potion: 3 } },
+    requirements: [],
+  },
   // City 2 (W5): starts on the first visit to Asteria City (data/worldTriggers.js city2_first_visit)
   asteria: {
     id: 'asteria', name: 'THE LIVING CITY', giver: null, ordered: true, priority: 1,

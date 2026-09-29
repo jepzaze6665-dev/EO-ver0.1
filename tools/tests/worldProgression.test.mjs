@@ -188,7 +188,7 @@ test('route status: steps, current boss, completion', () => {
   wp.defeatBoss('boss_a1');
   st = wp.routeStatus('A');
   ok(st.steps[0].bossDefeated && st.steps[1].unlocked && !st.complete, 'A1 done, A2 open');
-  const sb = wp.routeStatus('B').steps; ok(!sb[0].planned && sb[0].id === 'b1' && !sb[1].planned && sb[2].planned, 'route B: B1 + B2 built, B3 planned');
+  const sb = wp.routeStatus('B').steps; ok(!sb[0].planned && sb[0].id === 'b1' && !sb[1].planned && !sb[2].planned, 'route B: B1 + B2 + B3 built');
   for (const b of ['boss_a2', 'boss_a3']) wp.defeatBoss(b);
   st = wp.routeStatus('A');
   ok(st.complete && st.city.unlocked, 'Rune Knight down: Route A complete, City 2 open');

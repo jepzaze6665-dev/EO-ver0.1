@@ -98,7 +98,7 @@ export function buildCrystalCavernsTerrain(b) {
   b.prop('k_rune_plate', P.plaza[0], P.plaza[1], { layer: 'ground' }); lit(P.plaza[0], P.plaza[1], '#7ab8ff', 100);
   for (const [n, x, y] of [['k_column_e', 140, 110], ['k_column_f', 156, 110], ['k_column_glow', 140, 122], ['k_column_glow', 156, 122]]) b.prop(n, x, y, { solid: true });
   // the Abyssal Arch (to B3 — sealed until Route B goes on)
-  b.prop('k_arch_gate', P.arch[0], P.arch[1] - 3, { solid: true, footprint: [[-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0]], light: { r: 100, color: '#b070ff', a: 0.6, oy: -40 } });
+  b.prop('k_arch_gate', P.arch[0], P.arch[1] - 3, { solid: true, footprint: [[-3, 0], [-2, 0], [2, 0], [3, 0]], light: { r: 100, color: '#b070ff', a: 0.6, oy: -40 } });
   // the Sealed Crystal Vault (Elite)
   b.prop('k_crystal_altar', P.vault[0], P.vault[1], { solid: true, footprint: [[-1, 0], [0, 0], [1, 0]] }); lit(P.vault[0], P.vault[1], '#7ab8ff', 140, 0.6);
   for (const [x, y] of [[80, 164], [96, 164], [80, 180], [96, 180]]) b.prop('k_pillar_glow', x, y, { solid: true });

@@ -52,7 +52,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   kept, so terrain changes survive). `changeMap` loads the target map's grid; MapManager lookups by position are per
   grid (`idAt(x, y, gridId?)`); quest tile markers are on START_GRID unless they name `map`. Secrets are world-wide
   (`world.secretsFound`); fog per grid (`revealed` + `revealedGrids` in the save); respawn = `world.checkpoint()`.
-  Grids: `whispering` (A1 + Lumina + Valehaven), `ancient_valley` (A2 + Magma Rift), `citadel` (A3 + Sanctum), `asteria` (City 2).
+  Grids: `whispering` (A1 + Lumina + Valehaven), `ancient_valley` (A2 + Magma Rift), `citadel` (A3 + Sanctum), `asteria` (City 2), `frostwind` (B1 + Frost Arena), `caverns` (B2 + Heart), `frostpeak` (B3).
 - Don't build yet (spec): multiplayer/network, accounts/DB, guild, trading, PvP, real secret classes / secret bosses, world events.
 - If a request would break the architecture: explain the problem, propose a better way, then implement.
 
@@ -445,5 +445,17 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   absorbed (+40% armour each); all smashed -> it tries again later. Quest crystal_depths gets the boss step; item
   amethyst_core, lore, trigger b2_boss_defeated (B3 next). `T.b2BossCheck(g, c, { god, level: 13 })` 8-10 steps;
   no god LV 13: RP 129 s · UB 158.5 s · AW 165 s · AG 207.5 s (a bit longer than A2 — the armour; human playtest).
-  Next: B3 FROSTPEAK (map + 4 monsters), then the B3 major boss from the Phase BOSS sheet (Crystal Warden, 4 phases).
+  B3a done: map `b3` FROSTPEAK on grid `frostpeak` (168×208, zones Z.FROSTPEAK + Z.PEAK_SUMMIT, music 'peak', skin
+  'frostpeak' — CLIFF = dark rocky ground so the mountain reads as not walkable; a snowy CLIFF made the whole map look like
+  snow), terrain `maps/frostpeak.js` from the reference: rock mountain with snow terraces joined by paths / stairs / bridges —
+  South Gate (entry) · Pinewood Slopes · Frozen Lakes (ice + open water, east lake + bridge) · Frost Fortress gate ·
+  Icebound Cave · Western Terrace · Crystal Plateau · Hermit's Shrine (Elite yeti) · Nomad Camp (waystone) · Glacier
+  Stairs · Windcut Terrace · Eastern Switchback · Lookout Tower · SUMMIT CITADEL (zone PEAK_SUMMIT = the B3 major boss arena,
+  not part of b3's region yet). Props `p_*` (B3 prop sheet: deep navy bg -> extract-props SHEET_BG NAVY_DEEP, boxes by
+  hand). Way in: B2's Abyssal Arch (exit abyssal_arch; B3 requires boss_b2), exit south_gate back. Monsters
+  (desgin/monster/B/B3): `glacier_wolf` (flank pack: fang / frost lunge + slow / rime burst heavy), `yeti` (bruiser:
+  swipe / ground pound guardBreak + missRecover / ice hurl), `frost_imp` (swarm, blinkWhenHit 3: crescent claw / frost
+  ring), `snow_eagle` (float caster: dive -> GROUNDED / feather fan / icefall at your position). Quest `frostpeak_climb`.
+  `T.b3Check(g)` 7/7; spriteMonsterCheck 20/20.
+  Next: B3b the B3 MAJOR boss (Crystal Warden) from the Phase BOSS sheet in the Summit Citadel -> Route B complete -> City 2.
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

@@ -9,7 +9,7 @@ import { LOOT_TABLES } from '../data/lootTables.js';
 //  1 kill  : Level + Pattern
 //  3 kills : Weakness + Drop
 //  5 kills : HP        (lore fragments can reveal fields early)
-const ORDER = ['rabbit', 'wolf', 'leafling', 'treant', 'elder_treant', 'thornling', 'guardian', 'armadillo', 'quill_lizard', 'rock_rhino', 'burrower', 'crystal_golem', 'void_scarab', 'bronze_hoplite', 'rune_wisp', 'snow_hare', 'rime_wolf', 'frost_harrier', 'frost_bear', 'crystal_slime', 'cave_spider', 'crystal_bat', 'moss_tortoise'];
+const ORDER = ['rabbit', 'wolf', 'leafling', 'treant', 'elder_treant', 'thornling', 'guardian', 'armadillo', 'quill_lizard', 'rock_rhino', 'burrower', 'crystal_golem', 'void_scarab', 'bronze_hoplite', 'rune_wisp', 'snow_hare', 'rime_wolf', 'frost_harrier', 'frost_bear', 'crystal_slime', 'cave_spider', 'crystal_bat', 'moss_tortoise', 'glacier_wolf', 'frost_imp', 'snow_eagle', 'yeti'];
 
 export class Knowledge {
   constructor(game) {

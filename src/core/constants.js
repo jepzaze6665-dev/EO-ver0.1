@@ -55,6 +55,8 @@ export const Z = {
   FROST_ARENA: 14, // B1 boss arena (the Frost Arena, SE of B1)
   CAVERNS: 15, // B2 Crystal Caverns grid (world/levels/caverns.js)
   CAVERN_HEART: 16, // B2 boss arena (the Heart of the Caverns)
+  FROSTPEAK: 17, // B3 Frostpeak grid (world/levels/frostpeak.js)
+  PEAK_SUMMIT: 18, // B3 major boss arena (the Summit Citadel)
 };
 
 export const ZONE_INFO = {
@@ -74,6 +76,8 @@ export const ZONE_INFO = {
   [Z.FROST_ARENA]: { name: 'THE FROST ARENA', sub: 'Route B · B1 Boss', music: 'gate' },
   [Z.CAVERNS]: { name: 'CRYSTAL CAVERNS', sub: 'Route B · beneath the Frostpeak foothills', music: 'caverns' },
   [Z.CAVERN_HEART]: { name: 'HEART OF THE CAVERNS', sub: 'Route B · B2 Boss', music: 'gate' },
+  [Z.FROSTPEAK]: { name: 'FROSTPEAK', sub: 'Route B · the mountain above the caverns', music: 'peak' },
+  [Z.PEAK_SUMMIT]: { name: 'THE SUMMIT CITADEL', sub: 'Route B · B3 Major Boss', music: 'gate' },
 };
 
 export const TEAM = { PLAYER: 1, ENEMY: 2, NEUTRAL: 3 };

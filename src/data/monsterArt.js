@@ -214,6 +214,51 @@ export const MONSTER_ART = {
     },
     fps: { idle: 4, move: 6 },
   },
+  // ---------------- B3 FROSTPEAK
+  // wolf rows = views (sheet mirrored: sides face right); columns 0-2 idle · 3 attack · 4 hit · 5 telegraph · 6 special · 7 death
+  glacier_wolf: {
+    sheet: 'glacier_wolf', replaces: ['glacier_wolf'], corrupt: '150,70,200',
+    anims: {
+      idle: ['side', [0, 1, 2]], move: [['side', [0, 1, 2]], ['side_b', [0, 1, 2]]], windup: ['side', [5]], attack: ['side', [3]], hurt: ['side', [4]], death: ['side', [7]],
+      front: ['down', [0, 1, 2]], back: ['up', [0, 1, 2]],
+    },
+    attacks: { burst: { windup: ['side', [5]], attack: ['side', [6]] } },
+    fps: { move: 9, idle: 4 },
+  },
+  yeti: {
+    sheet: 'yeti', replaces: ['yeti'],
+    anims: {
+      idle: ['idle', [0, 1, 2]], move: ['walk', [6, 7, 8, 9]], windup: ['attack', [0]], attack: ['attack', [5, 6, 7]], hurt: ['hit', [2, 3, 4]], death: 'death',
+      front: ['walk', [0, 1, 2]], back: ['walk', [3, 4, 5]],
+    },
+    attacks: {
+      swipe: { windup: ['attack', [0]], attack: ['attack', [1, 2]] },
+      pound: { windup: ['telegraph', [0, 1, 2, 3]], attack: ['special', [3]] },
+      hurl: { windup: ['special', [0, 1, 2]], attack: ['special', [6]] },
+    },
+    fps: { idle: 3, move: 6 },
+  },
+  // imp rows = directions; columns 0 idle · 1-2 walk · 3 attack · 4 hit · 5 telegraph · 6 special · 7 death
+  frost_imp: {
+    sheet: 'frost_imp', replaces: ['frost_imp'],
+    anims: {
+      idle: ['right', [0]], move: ['right', [1, 2]], windup: ['right', [5]], attack: ['right', [3]], hurt: ['right', [4]], death: ['right', [7]],
+      front: ['down', [0, 1, 2]], back: ['up', [0, 1, 2]],
+    },
+    attacks: { ring: { windup: ['right', [5]], attack: ['right', [6]] } },
+    fps: { move: 8 },
+  },
+  snow_eagle: {
+    sheet: 'snow_eagle', replaces: ['snow_eagle'],
+    anims: {
+      idle: 'front', move: 'side', windup: ['telegraph', [0, 1, 2]], attack: ['attack', [0, 1, 3]], hurt: 'hit', death: 'death', front: 'front', back: 'back',
+    },
+    attacks: {
+      feathers: { windup: ['telegraph', [1, 2]], attack: ['special', [0, 1]] },
+      icefall: { windup: ['telegraph', [3, 4, 5]], attack: ['special', [3, 4, 5]] },
+    },
+    fps: { idle: 8, move: 9 },
+  },
   // B2 BOSS: the Amethyst Colossus
   amethyst_colossus: {
     sheet: 'amethyst_colossus', replaces: ['amethyst_colossus'],

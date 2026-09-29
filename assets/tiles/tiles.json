@@ -98,5 +98,27 @@
    "SHALLOW": 10,
    "face:cliff": 11
   }
+ },
+ "frostpeak": {
+  "file": "assets/tiles/frostpeak.png",
+  "tile": 32,
+  "variants": 4,
+  "rows": {
+   "GRASS": 0,
+   "FLOWERS": 1,
+   "DIRT": 2,
+   "COBBLE": 3,
+   "RUIN": 4,
+   "ARENA": 5,
+   "ICE": 6,
+   "CORRUPT": 7,
+   "MOSS_STONE": 8,
+   "CLIFF": 9,
+   "WATER": 10,
+   "DEEP_WATER": 11,
+   "SHALLOW": 12,
+   "face:cliff": 13,
+   "face:wall": 14
+  }
  }
 }

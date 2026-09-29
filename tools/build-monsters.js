@@ -133,6 +133,25 @@ const SHEETS = {
     rows: [['idle', 5, { y: [192, 266] }], ['walk', 7, { y: [476, 549] }], ['attack', 7, { y: [745, 823] }], ['telegraph', 7, { y: [1040, 1118] }],
       ['special', 8, { y: [1345, 1427] }], ['hit', 8, { y: [1646, 1726] }], ['death', 6, { y: [1917, 1988] }]],
   },
+  // ---------------- B3 FROSTPEAK
+  // armoured ice wolf: rows = views; columns idle ×3 · attack · hit · telegraph · special · death. Row 3 = side (faces left)
+  glacier_wolf: {
+    file: 'B/B3/1', height: 38, flip: true,
+    rows: [['down', 8], ['up', 8], ['side', 8], ['side_b', 8], ['quarter', 8], ['quarter_b', 8], ['quarter_c', 8]],
+  },
+  yeti: {
+    file: 'B/B3/2', height: 50, region: [220, 0, 2048, 2048],
+    rows: [['idle', 3], ['walk', 10], ['attack', 8], ['hit', 5], ['telegraph', 7], ['special', 7], ['death', 6]],
+  },
+  // rows = directions (down, up, left, right); columns idle · walk ×2 · attack · hit · telegraph · special · death
+  frost_imp: {
+    file: 'B/B3/3', height: 32, region: [160, 300, 2048, 2048],
+    rows: [['down', 8], ['up', 8], ['left', 8], ['right', 8]],
+  },
+  snow_eagle: {
+    file: 'B/B3/4', height: 34, // rows: front · back · side (faces left) · attack · hit · telegraph · special · death
+    rows: [['front', 6], ['back', 6], ['side', 6, { flip: true }], ['attack', 6, { flip: true }], ['hit', 6, { flip: true }], ['telegraph', 6], ['special', 6, { flip: true }], ['death', 6, { flip: true }]],
+  },
   // B2 BOSS: the AMETHYST COLOSSUS (a giant crystal golem, faces right)
   amethyst_colossus: {
     file: 'B/B2/BOSS', height: 84,

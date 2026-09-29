@@ -38,7 +38,7 @@ test('skin tiles repeat without a seam (opposite edges match closely)', () => {
   }
 });
 test('every prop named by the A2 / A3 / City 2 terrains exists in props.json', () => {
-  for (const [file, pre] of [['src/maps/ancientValley.js', 'v_'], ['src/maps/runeCitadel.js', 'c_'], ['src/maps/asteriaCity.js', 'a_'], ['src/maps/frostwind.js', 'f_'], ['src/maps/crystalCaverns.js', 'k_']]) {
+  for (const [file, pre] of [['src/maps/ancientValley.js', 'v_'], ['src/maps/runeCitadel.js', 'c_'], ['src/maps/asteriaCity.js', 'a_'], ['src/maps/frostwind.js', 'f_'], ['src/maps/crystalCaverns.js', 'k_'], ['src/maps/frostpeak.js', 'p_']]) {
     const src = readFileSync(new URL(file, ROOT), 'utf8');
     const names = new Set(src.match(new RegExp(`'${pre}[a-z_]+'`, 'g')).map((s) => s.slice(1, -1)));
     for (const n of names) ok(props[n], `${file}: missing prop ${n}`);

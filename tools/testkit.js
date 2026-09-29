@@ -1201,7 +1201,8 @@ export function spriteMonsterCheck(g, classId = 'umbral_sword') {
   const labs = [['leafling', 'lumina', 'a1', [47, 150]], ['treant', 'a1', 'a1', [47, 150]], ['quill_lizard', 'a2', 'a2', [84.5, 190]],
     ['burrower', 'a2', 'a2', [84.5, 190]], ['void_scarab', 'a3', 'a3', [84, 190]], ['rune_wisp', 'a3', 'a3', [84, 190]],
     ['snow_hare', 'b1', 'b1', [20, 27]], ['rime_wolf', 'b1', 'b1', [20, 27]], ['frost_harrier', 'b1', 'b1', [20, 27]], ['frost_bear', 'b1', 'b1', [20, 27]],
-    ['crystal_slime', 'b2', 'b2', [39, 33]], ['cave_spider', 'b2', 'b2', [39, 33]], ['crystal_bat', 'b2', 'b2', [39, 33]], ['moss_tortoise', 'b2', 'b2', [39, 33]]];
+    ['crystal_slime', 'b2', 'b2', [39, 33]], ['cave_spider', 'b2', 'b2', [39, 33]], ['crystal_bat', 'b2', 'b2', [39, 33]], ['moss_tortoise', 'b2', 'b2', [39, 33]],
+    ['glacier_wolf', 'b3', 'b3', [80, 184]], ['yeti', 'b3', 'b3', [80, 184]], ['frost_imp', 'b3', 'b3', [80, 184]], ['snow_eagle', 'b3', 'b3', [80, 184]]];
   for (const [type, , map, spot] of labs) {
     w.changeMap(map, { entry: spot }); g.simulate(0.3);
     for (const m of w.monsters) if (!m.dead) { m.dead = true; m.deathT = 99; }
@@ -1224,7 +1225,7 @@ export function spriteMonsterCheck(g, classId = 'umbral_sword') {
 // a monster type draws sheet art when its sprite key is a sheet set (monsterArt `replaces`)
 let MonCtor = null; // the Monster class, taken from the first live monster seen (testkit imports nothing)
 const MONSTERS_OF = (g, t) => { if (g.world.monsters[0]) MonCtor = g.world.monsters[0].constructor; if (!MonCtor) return true; const m = new MonCtor(g, t, 0, 0, {}); return !!(m.def.boss || (m.sprites && m.sprites.sheet)); }; // bosses (boss: true) draw their own sheets
-const MONSTER_LEVEL = { leafling: 3, treant: 5, quill_lizard: 11, burrower: 12, void_scarab: 14, rune_wisp: 15, snow_hare: 2, rime_wolf: 4, frost_harrier: 5, frost_bear: 7, crystal_slime: 10, cave_spider: 11, crystal_bat: 12, moss_tortoise: 13 };
+const MONSTER_LEVEL = { leafling: 3, treant: 5, quill_lizard: 11, burrower: 12, void_scarab: 14, rune_wisp: 15, snow_hare: 2, rime_wolf: 4, frost_harrier: 5, frost_bear: 7, crystal_slime: 10, cave_spider: 11, crystal_bat: 12, moss_tortoise: 13, glacier_wolf: 14, yeti: 16, frost_imp: 15, snow_eagle: 15 };
 
 // B1: Route B's first map — Lumina's Eastern Road on foot, FROSTWIND PLAINS on its own grid, the Frost Arena sealed
 // until its boss exists, route B status, the waystone, save / load on the new grid.
@@ -1233,7 +1234,7 @@ export function routeBCheck(g, classId = 'umbral_sword') {
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress;
   const st = wp.routeStatus('B');
-  ok('Route B playable: B1 + B2 built (B2 locked until Hoarfang), B3 planned', st.route.playable && !st.steps[0].planned && st.steps[0].unlocked && !st.steps[1].planned && !st.steps[1].unlocked && st.steps[2].planned, JSON.stringify(st.steps.map((s) => [s.id, s.planned, s.unlocked])));
+  ok('Route B playable: B1 + B2 + B3 built (B2 / B3 locked behind their bosses)', st.route.playable && !st.steps[0].planned && st.steps[0].unlocked && !st.steps[1].planned && !st.steps[1].unlocked && !st.steps[2].planned && !st.steps[2].unlocked, JSON.stringify(st.steps.map((s) => [s.id, s.planned, s.unlocked])));
   goto(g, 60, 180);
   for (let k = 0; k < 30 && w.mapId !== 'b1'; k++) walk(g, 'KeyD', 0.3);
   g.simulate(2.5);
@@ -1401,5 +1402,37 @@ export function b2BossCheck(g, classId = 'umbral_sword', { god = true, level = 1
   ok('2 phases (RESONANCE at 50%) · HUD tags well-formed', phases.has(1) && phases.has(2) && !st.badTag, [...phases].join(','));
   ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_b2') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
   if (enc.state === 'defeated') ok('Rewards once (Amethyst Core + lore) · quest done · banner · no clusters left · camera free', g.inventory.count('amethyst_core') === 1 && w.state.lore.amethyst_colossus && q.isDone('crystal_depths') && trig.includes('b2_boss_defeated') && !arm.list.length && !g.camera.lock);
+  return R;
+}
+
+// B3a: FROSTPEAK — locked until the Amethyst Colossus falls, the Abyssal Arch on foot, the mountain on its own grid,
+// quest THE FROZEN SUMMIT (lakes -> stairs -> summit gate), the summit not walkable yet, waystone, save / load, back.
+export function b3Check(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
+  wp.defeatBoss('boss_b1');
+  ok('Before the Colossus: B3 locked', !wp.isMapUnlocked('b3') && /Colossus/.test(wp.lockReason('b3') || ''), wp.lockReason('b3'));
+  wp.defeatBoss('boss_b2');
+  w.changeMap('b2', { entry: [148, 180] }); g.simulate(0.3);
+  goto(g, 148, 176);
+  for (let k = 0; k < 12 && w.mapId !== 'b3'; k++) walk(g, 'KeyW', 0.3);
+  g.simulate(2.5);
+  ok('Colossus down: through the Abyssal Arch -> FROSTPEAK (grid frostpeak) · quest THE FROZEN SUMMIT', w.mapId === 'b3' && w.gridId === 'frostpeak' && q.isActive('frostpeak_climb'), `map=${w.mapId} grid=${w.gridId}`);
+  use(g, 'ws_b3_camp'); g.ui.panels.close(true);
+  ok('Nomad Camp waystone attuned', w.state.waystones.ws_b3_camp);
+  for (const [x, y] of [[66, 150], [82, 108], [84, 76]]) { goto(g, x, y); g.simulate(0.6); }
+  ok('Quest: lakes · stairs · summit gate', q.isDone('frostpeak_climb'), JSON.stringify(q.active.frostpeak_climb && q.active.frostpeak_climb.done));
+  goto(g, 90, 56);
+  for (let k = 0; k < 10; k++) walk(g, 'KeyW', 0.3);
+  ok('The Summit Citadel is not walkable from B3 yet', p.y > 49 * TILE && w.mapId === 'b3', `y=${(p.y / TILE).toFixed(1)}`);
+  goto(g, 131, 118); g.simulate(0.3);
+  const pos = [p.x, p.y];
+  g.saveGame(); w.changeMap('lumina'); g.simulate(0.3); const loaded = g.loadGame();
+  ok('Save / load in B3 (grid frostpeak)', loaded && g.world.mapId === 'b3' && g.world.gridId === 'frostpeak' && Math.hypot(g.player.x - pos[0], g.player.y - pos[1]) < 40, `map=${g.world.mapId}`);
+  const w2 = g.world;
+  goto(g, 81, 201);
+  for (let k = 0; k < 12 && w2.mapId !== 'b2'; k++) walk(g, 'KeyS', 0.3);
+  ok('Back down through the South Gate to the caverns', w2.mapId === 'b2', `map=${w2.mapId}`);
   return R;
 }

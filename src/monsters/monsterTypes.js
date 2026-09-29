@@ -121,6 +121,50 @@ export const MONSTERS = {
       { id: 'dash', range: 180, min: 60, windup: 0.65, recover: 0.8, cd: 4.5, power: 26, shape: { shape: 'line', len: 180, width: 18 }, kind: 'dash', dashTime: 0.25, knock: 180 },
     ],
   },
+  // ---------------- B3 FROSTPEAK (owner's sheets desgin/monster/B/B3). Lv 14-17 like A3.
+  glacier_wolf: {
+    name: 'Glacier Wolf', level: 14, hp: 1100, def: 12, speed: 132, radius: 13, height: 38, mass: 1.6, corruptible: true,
+    detect: 180, leash: 520, exp: 130, loot: 'glacier_wolf', weakness: ['shadow'], sprite: 'glacier_wolf', poise: 50, turn: 11,
+    role: 'skirmisher', flank: true, punishIdle: 1.0,
+    pattern: 'Ice Fang / Frost Lunge / Rime Burst', desc: 'Ice-armoured pack hunter. It circles behind you; frost rising off its plates means a burst of rime around it.',
+    attacks: [
+      { id: 'fang', range: 42, min: 0, windup: 0.4, recover: 0.45, cd: 1.2, power: 32, shape: { shape: 'cone', r: 48, half: 0.8 }, kind: 'strike', knock: 140 },
+      { id: 'lunge', range: 150, min: 60, windup: 0.55, recover: 0.6, cd: 3.4, power: 36, shape: { shape: 'line', len: 150, width: 16 }, kind: 'dash', dashTime: 0.22, punish: true, status: [{ id: 'slow', dur: 1.2 }] },
+      { id: 'burst', range: 64, min: 0, windup: 0.85, recover: 0.8, cd: 6, power: 34, shape: { shape: 'circle', r: 70 }, kind: 'strike', knock: 200, heavy: true, opening: true },
+    ],
+  },
+  yeti: {
+    name: 'Frost Yeti', level: 16, hp: 2600, def: 14, speed: 64, radius: 20, height: 50, mass: 4, superArmor: true,
+    detect: 160, leash: 440, exp: 220, loot: 'yeti', weakness: ['physical'], sprite: 'yeti', poise: 130, turn: 2.4,
+    role: 'bruiser',
+    pattern: 'Swipe / Ground Pound / Ice Hurl', desc: 'A wall of fur and frost. It hunches low before the Ground Pound — a pound that finds nothing leaves it stuck in the snow.',
+    attacks: [
+      { id: 'swipe', range: 56, min: 0, windup: 0.6, recover: 0.65, cd: 1.9, power: 40, shape: { shape: 'cone', r: 66, half: 0.9 }, kind: 'strike', knock: 240 },
+      { id: 'pound', range: 90, min: 0, windup: 1.05, recover: 1.1, cd: 5, power: 46, shape: { shape: 'circle', r: 96 }, kind: 'strike', knock: 280, heavy: true, opening: true, guardBreak: true, missRecover: 1.8 },
+      { id: 'hurl', range: 260, min: 90, windup: 0.9, recover: 0.8, cd: 5, power: 34, shape: { shape: 'cone', r: 240, half: 0.18 }, kind: 'volley', count: 1, spread: 0, speed: 260, projKind: 'orb', projColor: '#dff2ff', status: [{ id: 'slow', dur: 1.5 }] },
+    ],
+  },
+  frost_imp: {
+    name: 'Frost Imp', level: 15, hp: 760, def: 8, speed: 120, radius: 10, height: 32, mass: 0.8,
+    detect: 190, leash: 500, exp: 110, loot: 'frost_imp', weakness: ['physical'], sprite: 'frost_imp', poise: 30, turn: 12,
+    role: 'swarm', blinkWhenHit: 3,
+    pattern: 'Crescent Claw / Frost Ring', desc: 'Giggling ice devils in groups of three. They blink away after a few hits — keep your combo short.',
+    attacks: [
+      { id: 'claw', range: 44, min: 0, windup: 0.42, recover: 0.5, cd: 1.3, power: 30, shape: { shape: 'cone', r: 52, half: 1.0 }, kind: 'strike', knock: 150 },
+      { id: 'ring', range: 60, min: 0, windup: 0.8, recover: 0.8, cd: 5, power: 28, shape: { shape: 'ring', r0: 16, r: 70 }, kind: 'strike', knock: 170, status: [{ id: 'slow', dur: 1.2 }] },
+    ],
+  },
+  snow_eagle: {
+    name: 'Storm Eagle', level: 15, hp: 820, def: 7, speed: 128, radius: 12, height: 34, mass: 0.8, float: true,
+    detect: 220, leash: 540, exp: 120, loot: 'snow_eagle', weakness: ['shadow'], sprite: 'snow_eagle', poise: 30, turn: 12,
+    role: 'caster', keepAway: 120,
+    pattern: 'Talon Dive / Feather Storm / Icefall', desc: 'Rides the summit winds. It glows before it calls ice down on where you stand; feathers come in a fan.',
+    attacks: [
+      { id: 'dive', range: 190, min: 60, windup: 0.6, recover: 0.8, cd: 3.2, power: 32, shape: { shape: 'line', len: 190, width: 18 }, kind: 'dash', dashTime: 0.26, knock: 170, exposes: 1, exposeText: 'GROUNDED!' },
+      { id: 'feathers', range: 240, min: 60, windup: 0.75, recover: 0.7, cd: 4, power: 24, shape: { shape: 'cone', r: 220, half: 0.6 }, kind: 'volley', count: 5, spread: 0.9, speed: 260, projColor: '#dff2ff' },
+      { id: 'icefall', range: 170, min: 40, windup: 0.95, recover: 0.8, cd: 6, power: 36, shape: { shape: 'circle', r: 60, offset: 120 }, kind: 'strike', knock: 200, status: [{ id: 'slow', dur: 1.2 }] },
+    ],
+  },
   // ---------------- B2 CRYSTAL CAVERNS (owner's sheets desgin/monster/B/B2). Lv 10-13 like A2.
   crystal_slime: {
     name: 'Prism Slime', level: 10, hp: 520, def: 6, speed: 78, radius: 11, height: 24, mass: 1,

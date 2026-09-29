@@ -143,6 +143,7 @@ export class Audio {
       boss: { root: 110, notes: [0, 3, 5, 6, 7, 10, 12], pad: 'sawtooth', tempo: 0.28, bright: 0.8, boss: true },
       cave: { root: 123, notes: [0, 2, 3, 7, 8], pad: 'sine', tempo: 2.4, bright: 0.5 },
       ancient: { root: 165, notes: [0, 2, 3, 7, 9, 10, 12], pad: 'triangle', tempo: 2.1, bright: 0.75 },
+      peak: { root: 165, notes: [0, 2, 5, 7, 9, 12, 14], pad: 'triangle', tempo: 2.2, bright: 0.95 },
       caverns: { root: 139, notes: [0, 2, 3, 7, 8, 12], pad: 'sine', tempo: 2.8, bright: 0.6 },
       frost: { root: 185, notes: [0, 2, 3, 7, 9, 12, 14], pad: 'sine', tempo: 2.4, bright: 0.9 },
       asteria: { root: 208, notes: [0, 2, 4, 5, 7, 9, 12], pad: 'triangle', tempo: 1.5, bright: 1.1 },
