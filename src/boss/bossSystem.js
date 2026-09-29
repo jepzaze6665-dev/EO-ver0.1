@@ -3,6 +3,7 @@ import { BOSSES, liveBosses } from '../data/bosses.js';
 import { BOSS_STATE as S, nextBossState, isFighting } from './bossState.js';
 import { AreaBoss } from './areaBoss.js';
 import { dist, angleTo, TAU } from '../core/math.js';
+import { bossScale } from '../progression/levelScaling.js';
 
 // BOSS SYSTEM — runs every boss encounter from data/bosses.js through the state machine in boss/bossState.js:
 //   HIDDEN -> IDLE -> ENGAGED <-> PHASE_CHANGE -> DEFEATED   (+ RESET -> IDLE when the player dies / leaves)
@@ -188,7 +189,7 @@ export class BossSystem {
     const r = def.rewards || {};
     if (first) {
       // EXP + loot table go through the normal 'enemyDefeated' listeners (ExperienceSystem, LootSystem)
-      g.events.emit('enemyDefeated', { entity: e, type: def.monster || id, bossId: id, name: def.name, source: g.player, x: e.x, y: e.y, summoned: false, boss: true, exp: r.exp || 0, loot: r.loot || null });
+      g.events.emit('enemyDefeated', { entity: e, type: def.monster || id, bossId: id, name: def.name, source: g.player, x: e.x, y: e.y, summoned: false, boss: true, exp: Math.round((r.exp || 0) * bossScale(def).exp), loot: r.loot || null });
       g.events.emit('bossRewarded', { bossId: id, reward: { gold: r.gold || 0, items: r.items || {}, lore: r.lore || null } });
     }
     g.events.emit('bossDefeated', { bossId: id, type: def.monster || id, boss: def, first, major: def.type === 'major', entity: e });

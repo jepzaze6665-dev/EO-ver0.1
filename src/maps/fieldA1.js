@@ -34,7 +34,9 @@ const CORRUPTED = { notFlag: 'guardianDefeated' }; // hazards fade when the fore
 const MIRE = [{ id: 'poison', dur: 3 }, { id: 'slow', dur: 1.2 }];
 
 export const FIELD_A1 = {
-  id: 'a1', name: 'WHISPERING FOREST', short: 'A1', sub: 'Route A · A1 — Whispering Forest · Lv. 1 – 10',
+  id: 'a1', name: 'WHISPERING FOREST', short: 'A1', sub: 'Route A · A1 — Whispering Forest · Lv. 1 – 14',
+  // LEVEL REWORK L2 (progression/levelScaling.js): the monsters were tuned for the old band; they now live in the new one
+  levelBand: { from: [1, 10], to: [1, 14] },
   grid: 'whispering', type: 'field', route: 'A', nextMap: 'a2', bossId: 'boss_a1', // the boss waits in the Guardian Arena
   requires: [],
   hiddenAreas: ['hidden_cave', 'behind_waterfall', 'moonlit_shrine', 'sealed_archive'],

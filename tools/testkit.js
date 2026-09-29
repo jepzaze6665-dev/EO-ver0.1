@@ -262,7 +262,7 @@ export function bossArena(g, classId = 'umbral_sword') {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   toBoss(g, classId);
   const w = g.world, gd = w.guardian, p = g.player;
-  p.setLevel(10); p.hp = p.maxHp; goto(g, 135, 37); g.simulate(5.5, () => { p.hp = p.maxHp; });
+  p.setLevel(13); p.hp = p.maxHp; goto(g, 135, 37); g.simulate(5.5, () => { p.hp = p.maxHp; });
   ok('Fight starts in the arena map', w.mapId === 'arena' && w.bossActive && ['fight', 'weak'].includes(gd.state) && w.boss === gd, `${w.mapId} ${gd.state}`);
   const s = gd.hudState();
   ok('Boss UI snapshot (name / HP / phase)', s.name && s.maxHp === gd.maxHp && s.phaseLabel && Array.isArray(s.tags), s.name);
@@ -338,7 +338,7 @@ export function playthrough(g, classId) {
   goto(g, 136, 60); for (let y = 60; y >= 50; y--) { g.player.y = y * 32; g.simulate(0.1); }
   const trig = w.interactables.find((i) => i.id === 'trig_guardian');
   ok('Guardian discovered', w.state.flags.guardianDiscovered, `pos=${(g.player.x / 32).toFixed(1)},${(g.player.y / 32).toFixed(1)} fired=${trig.fired} dead=${g.player.dead} panel=${g.ui.panels.current && g.ui.panels.current.name} hitStop=${g.hitStop.toFixed(2)} guardian=${w.guardian && w.guardian.state}`);
-  g.player.setLevel(10); g.player.hp = g.player.maxHp;
+  g.player.setLevel(13); g.player.hp = g.player.maxHp;
   goto(g, 135, 37); g.simulate(3);
   const gd = w.guardian, phases = new Set();
   for (let s = 0; s < 80 && !gd.dead; s++) { g.simulate(5, (gg, i) => bot(gg, i, { god: true })); phases.add(gd.phase); }
@@ -751,7 +751,7 @@ export function uiCheck(g) {
   const hc = p.cls.hudCounter(p);
   ok('Mark counter 3/3 -> SHADOW BREAK READY', hc.value === 3 && hc.max === 3 && hc.ready && /SHADOW BREAK READY/.test(hc.readyText), hc.readyText);
   // boss bar data carries poise for the POISE meter
-  toBoss(g, 'umbral_sword'); g.player.setLevel(10);
+  toBoss(g, 'umbral_sword'); g.player.setLevel(13);
   goto(g, 135, 37); g.simulate(3, () => { g.player.hp = g.player.maxHp; });
   const bi = g.bosses.barInfo();
   ok('Boss bar shows name, HP and poise', bi && bi.name && bi.maxHp > 0 && bi.stagger >= 0 && bi.stagger <= 1, bi && `${bi.name} poise used ${bi.stagger}`);
@@ -907,7 +907,7 @@ export function a2MonsterCheck(g, classId = 'umbral_sword') {
   const w = g.world, p = g.player;
   g.worldProgress.defeatBoss('boss_a1'); w.setFlag('guardianDefeated'); w.applyState();
   w.changeMap('a2', { entry: [84.5, 190] }); g.simulate(0.3);
-  p.setLevel(10); p.hp = p.maxHp;
+  p.setLevel(20); p.hp = p.maxHp;
   ok('A2 spawns its monsters (armadillo + rhino) with sheet art', ['armadillo', 'rock_rhino'].every((t) => w.monsters.some((m) => m.type === t && m.sprites.sheet)), w.monsters.map((m) => m.type).join(','));
   // lab: one monster at a time next to the player at the quiet Valley Gate
   const lab = (type, seconds, opts = {}) => {
@@ -956,7 +956,7 @@ export function a2MonsterCheck(g, classId = 'umbral_sword') {
   ok('Kill: EXP + gold', p.gold > gold0 && p.exp + p.level * 1e6 > exp0, `gold +${p.gold - gold0}`);
   // real fight: the River Fords pack (2 armadillos + a rhino), LV 10, the bot dodges, no god mode
   releaseInput(g); for (const m of w.monsters) { m.aggro = false; }
-  p.setLevel(10); p.hp = p.maxHp; g.inventory.add('hp_potion', 3, true);
+  p.setLevel(20); p.hp = p.maxHp; g.inventory.add('hp_potion', 3, true);
   goto(g, 96, 140);
   const pack = w.monsters.filter((m) => !m.dead && Math.hypot(m.x - p.x, m.y - p.y) < 14 * TILE);
   for (const m of pack) { m.aggro = true; m.setState('chase'); } // the whole pack joins in
@@ -971,7 +971,7 @@ export function a2MonsterCheck(g, classId = 'umbral_sword') {
 
 // W3c: the A2 boss (Magma Beast) — quest, idle in the Magma Rift, engage on foot, every move used, 2 phases, sheet
 // art per pose, defeat + rewards once, world trigger, route status. opts.god false = a real fight (balance).
-export function a2BossCheck(g, classId = 'umbral_sword', { god = true, level = 13, seconds = 300 } = {}) {
+export function a2BossCheck(g, classId = 'umbral_sword', { god = true, level = 25, seconds = 300 } = {}) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
@@ -1029,7 +1029,7 @@ export function a3MonsterCheck(g, classId = 'umbral_sword') {
   for (const b of ['boss_a1', 'boss_a2']) g.worldProgress.defeatBoss(b);
   w.setFlag('guardianDefeated'); w.applyState();
   w.changeMap('a3', { entry: [84, 196] }); g.simulate(0.3);
-  p.setLevel(15); p.hp = p.maxHp;
+  p.setLevel(30); p.hp = p.maxHp;
   ok('A3 spawns golems + hoplites with sheet art', ['crystal_golem', 'bronze_hoplite'].every((t) => w.monsters.some((m) => m.type === t && m.sprites.sheet)));
   for (const m of w.monsters) { m.aggro = false; m.setState('return'); }
   const spot = () => { releaseInput(g); const s = w.map.findOpen(84 * TILE, 188 * TILE, 3); p.x = s.x; p.y = s.y; p.hp = p.maxHp; };
@@ -1080,7 +1080,7 @@ export function a3MonsterCheck(g, classId = 'umbral_sword') {
   arm.dead = rh.dead = true; arm.removed = rh.removed = true;
   // real fight: LV 15, a golem + 2 hoplites at the Winged Plaza, no god mode
   w.changeMap('a3', { entry: [84, 130] }); g.simulate(0.3); w = g.world;
-  p.setLevel(15); p.hp = p.maxHp; g.inventory.add('hp_potion', 3, true);
+  p.setLevel(30); p.hp = p.maxHp; g.inventory.add('hp_potion', 3, true);
   goto(g, 84, 124);
   const pack = w.monsters.filter((m) => !m.dead && Math.hypot(m.x - p.x, m.y - p.y) < 16 * TILE);
   for (const m of pack) { m.aggro = true; m.setState('chase'); }
@@ -1093,7 +1093,7 @@ export function a3MonsterCheck(g, classId = 'umbral_sword') {
 
 // W4b: the A3 Major Boss (Rune Knight) in the Sanctum — gate, arena like A1, stances (shield blocks / guard break),
 // rune sequence, echoes copying attacks, the final judgement (a dome is safe), 3 phases, rewards, Route A complete.
-export function a3BossCheck(g, classId = 'umbral_sword', { god = true, level = 17, seconds = 420 } = {}) {
+export function a3BossCheck(g, classId = 'umbral_sword', { god = true, level = 36, seconds = 420 } = {}) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;

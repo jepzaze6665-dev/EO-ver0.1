@@ -8,6 +8,7 @@ import { Monster } from '../monsters/monster.js';
 import { flashOf } from '../monsters/monsterSprites.js';
 import { frameAt } from '../monsters/sheetSprites.js';
 import { angleTo, dist, rand, TAU, wrapAngle, clamp, pick, lerp, easeOutCubic } from '../core/math.js';
+import { bossScale, shiftBand } from '../progression/levelScaling.js';
 
 // GUARDIAN OF THE FOREST — 3-phase boss = A1's boss (W2; data/bosses.js boss_a1; lifecycle: boss/bossSystem.js).
 // V2.2: a Final Attack at 12% HP in phase 3 — "Last Root of the Forest" (the whole arena erupts except near its heart).
@@ -23,8 +24,14 @@ export class Guardian extends Entity {
     this.type = 'guardian';
     this.def = MONSTERS.guardian;
     this.team = TEAM.ENEMY;
-    this.maxHp = this.hp = this.def.hp;
-    this.defense = this.def.def;
+    // LEVEL SCALING: tuned at MONSTERS.guardian.level, lives at BOSSES.boss_a1.level
+    const bd = BOSSES.boss_a1 || {};
+    this.level = bd.level || this.def.level;
+    this.levelShift = this.level - this.def.level;
+    const ls = this.levelScale = bossScale({ level: this.level, nativeLevel: this.def.level });
+    this.levelPowerMult = ls.power;
+    this.maxHp = this.hp = Math.round(this.def.hp * ls.hp);
+    this.defense = Math.round(this.def.def * ls.def);
     this.radius = 44;
     this.height = 140;
     this.drawScale = 1.6;
@@ -521,7 +528,7 @@ export class Guardian extends Entity {
     }
     yield 0.9;
     for (const s of spots) {
-      const m = new Monster(g, 'thornling', s.x, s.y, { summoned: true });
+      const m = new Monster(g, 'thornling', s.x, s.y, { summoned: true, levelBand: shiftBand(this.levelShift) });
       m.aggro = true; m.setState('chase');
       g.world.monsters.push(m);
       this.summons.push(m);

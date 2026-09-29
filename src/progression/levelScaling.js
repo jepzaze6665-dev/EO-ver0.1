@@ -37,6 +37,11 @@ export function remapLevel(nativeLevel, band) {
   return { level: Math.round(b0 + (t - a0) * slope), slope };
 }
 
+// BOSSES: data `level` = the new level, `nativeLevel` = the level its stats were tuned at (default: same)
+export function bossScale(def) { return scaleFor(def.nativeLevel ?? def.level, def.level); }
+// band that shifts summoned adds by the same number of levels as their boss
+export function shiftBand(shift) { return shift ? { from: [0, 200], to: [shift, 200 + shift] } : null; }
+
 // future party system: HP / poise multiplier for `members` players (1 = solo)
 export function partyScale(members = 1, r = LEVEL_SCALING) {
   const n = Math.max(0, (members | 0) - 1);

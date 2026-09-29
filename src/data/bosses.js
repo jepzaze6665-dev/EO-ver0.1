@@ -41,7 +41,7 @@ export const BOSSES = {
   // ---------------- A1 optional mini-bosses (W2: the old A1 / A2 area bosses; they no longer lock any road)
   mini_hollow_fang: {
     id: 'mini_hollow_fang', name: 'HOLLOW FANG', title: 'Alpha of the Whispering Forest', type: 'mini', impl: 'area',
-    route: 'A', map: 'a1', level: 5, recommendedLevel: 4,
+    route: 'A', map: 'a1', level: 7, nativeLevel: 5, recommendedLevel: 6,
     teaches: 'Basic combat · read the red ground · dodge the lunge',
     stats: { hp: 4500, def: 4, speed: 112, radius: 20, height: 44, mass: 5, weakness: ['shadow'], superArmor: true, poise: 650 },
     look: { sprite: 'wolf', scale: 2.2, aura: '255,176,112' },
@@ -61,7 +61,7 @@ export const BOSSES = {
 
   mini_grukk: {
     id: 'mini_grukk', name: 'THE THORNBOUND ELDER', title: 'Heart of the Thornwood Glade', type: 'mini', impl: 'area',
-    route: 'A', map: 'a1', level: 8, recommendedLevel: 7,
+    route: 'A', map: 'a1', level: 11, nativeLevel: 8, recommendedLevel: 10,
     teaches: 'AoE patterns · movement · adds · a second phase',
     stats: { hp: 9000, def: 7, speed: 92, radius: 20, height: 56, mass: 6, weakness: ['physical'], superArmor: true, poise: 850 },
     look: { sprite: 'treant', scale: 1.5, aura: '176,96,255' },
@@ -90,7 +90,7 @@ export const BOSSES = {
   // owner's A1 boss sheet). W2: it guards the north road out of A1 — its fall opens A2 (Ancient Valley).
   boss_a1: {
     id: 'boss_a1', name: 'GUARDIAN OF THE FOREST', title: 'Warden of the Whispering Heart', type: 'area', impl: 'guardian',
-    route: 'A', map: 'arena', monster: 'guardian', level: 10, recommendedLevel: 10,
+    route: 'A', map: 'arena', monster: 'guardian', level: 14, nativeLevel: 10, recommendedLevel: 13,
     teaches: 'Everything A1 taught · weak windows · arena hazards · the final attack',
     arena: { name: 'Guardian Arena', center: [132.5, 28], radius: 15.5, trigger: 13.6, bossSpawn: [132, 22], entry: [135, 42] },
     appear: [{ type: 'flag', flag: 'gateOpened', label: 'Open the Guardian Gate' }], // it sleeps behind the sealed gate
@@ -111,7 +111,7 @@ export const BOSSES = {
   // run, eruption, fireball, stagger, and a red enraged form for phase 2.
   boss_a2: {
     id: 'boss_a2', name: 'MAGMA BEAST', title: 'Lord of the Magma Rift', type: 'area', impl: 'area',
-    route: 'A', map: 'rift', level: 14, recommendedLevel: 13,
+    route: 'A', map: 'rift', level: 26, nativeLevel: 14, recommendedLevel: 25,
     teaches: 'Heat rhythm: survive the OVERHEAT blast, then burst its core · lava pools shrink the arena',
     stats: { hp: 16000, def: 12, speed: 96, radius: 26, height: 70, mass: 7, weakness: ['shadow'], superArmor: true, poise: 1000 },
     look: {
@@ -154,7 +154,7 @@ export const BOSSES = {
   // ECHOES of Asteria's soldiers (phase 3) and the FINAL JUDGEMENT (only the blue domes are safe).
   boss_a3: {
     id: 'boss_a3', name: 'RUNE KNIGHT', title: 'Last Warden of Asteria', type: 'major', impl: 'area',
-    route: 'A', map: 'sanctum', level: 18, recommendedLevel: 17,
+    route: 'A', map: 'sanctum', level: 38, nativeLevel: 18, recommendedLevel: 36,
     teaches: 'Read the stance · wait out the late blade · remember the rune order · find the dome',
     stats: { hp: 24000, def: 16, speed: 110, radius: 20, height: 60, mass: 8, weakness: ['shadow'], superArmor: true, poise: 1300 },
     look: {

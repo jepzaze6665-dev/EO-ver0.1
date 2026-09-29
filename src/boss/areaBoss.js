@@ -9,6 +9,7 @@ import { frameAt } from '../monsters/sheetSprites.js';
 import { MECHANICS } from './mechanics.js';
 import { angleTo, dist, rand, TAU, lerp, easeOutCubic } from '../core/math.js';
 import { Assets } from '../core/assets.js';
+import { bossScale, shiftBand } from '../progression/levelScaling.js';
 
 // AREA BOSS — one generic, data-driven boss entity (data: data/bosses.js). It never names a boss: stats, look,
 // phases and attack patterns ("moves") all come from its data entry. The fight lifecycle (engage, arena lock,
@@ -34,8 +35,11 @@ export class AreaBoss extends Entity {
     this.isBoss = true;
     this.bossType = def.type;
     this.team = TEAM.ENEMY;
-    this.maxHp = this.hp = st.hp;
-    this.defense = st.def || 0;
+    // LEVEL SCALING: stats were tuned at def.nativeLevel; the boss now lives at def.level
+    const ls = this.levelScale = bossScale(def);
+    this.levelPowerMult = ls.power;
+    this.maxHp = this.hp = Math.round(st.hp * ls.hp);
+    this.defense = Math.round((st.def || 0) * ls.def);
     this.radius = st.radius || 18;
     this.height = st.height || 44;
     this.mass = st.mass || 5;
@@ -546,7 +550,7 @@ const KINDS = {
     }
     yield this.wind(m.windup);
     for (const s of spots) {
-      const mon = new Monster(g, m.monster, s.x, s.y, { summoned: true, corrupted: !!m.corrupted });
+      const mon = new Monster(g, m.monster, s.x, s.y, { summoned: true, corrupted: !!m.corrupted, levelBand: shiftBand(this.def.level - (this.def.nativeLevel ?? this.def.level)) });
       mon.aggro = true; mon.setState('chase');
       g.world.monsters.push(mon);
       this.summons.push(mon);

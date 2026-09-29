@@ -149,6 +149,8 @@ export class Combat {
     const attacker = src && src.stats ? { stats: src.stats, damageMult: src.status ? src.status.damageMult() : 1 } : null;
     // flat attackers (monsters) still feel damage modifiers from statuses (taunted, surge...)
     if (!attacker && src && src.status && opts.power !== undefined) opts = { ...opts, power: opts.power * src.status.damageMult() };
+    // LEVEL SCALING (progression/levelScaling.js): a boss moved to a new level hits accordingly (every move / mechanic)
+    if (!attacker && src && src.levelPowerMult && opts.power !== undefined) opts = { ...opts, power: opts.power * src.levelPowerMult };
     // Counter Window (combat/counterSystem.js): hitboxes may carry counterMult = extra power against an open target
     if (opts.counterMult && target.status && target.status.has('counter_window') && opts.power !== undefined) opts = { ...opts, power: opts.power * opts.counterMult };
     const res = computeDamage(attacker, {

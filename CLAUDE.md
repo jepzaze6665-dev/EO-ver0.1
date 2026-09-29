@@ -646,5 +646,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   level; difficulty comes from map / route mods. partyScale(members) ready for the party system. Monster poise doubles for
   ELITES only (was "hp mod > 2"). No map has a band yet (L2 / L3). levelScaling.test.mjs; experience / progression tests
   updated to cap 50 / LV 30.
+  Done L2 (Route A): map levelBand a1 [1,10]->[1,14] · a2 [10,14]->[14,26] · a3 [14,18]->[26,38] (+ map "Lv." subtitles).
+  BOSSES: data `level` (new) + `nativeLevel` (stats tuned at): mini Hollow Fang 7 · Thornbound Elder 11 · Guardian 14 · Magma Beast
+  26 · Rune Knight 38 (recommended 6 / 10 / 13 / 25 / 36). AreaBoss / Guardian scale hp / def by bossScale(def) and set
+  `levelPowerMult` -> combat.dealDamage scales EVERY flat hit of a monster / boss (moves, mechanics, projectiles); summoned adds
+  get shiftBand(level - nativeLevel); boss EXP reward × bossScale.exp (bossSystem). Guardian reads BOSSES.boss_a1.level.
+  Tests moved to the new levels (testkit A-route setLevel, a2BossCheck default 25, a3BossCheck 36, combatTest balance
+  botOpts.level default 13). No-god bot results (same feel as before): Guardian UB 85 s · AW 130 s · AG 150 s; Magma Beast UB 95 ·
+  AW 103 · AG 143; Rune Knight UB 156 · AW 180.5 · AG 257.5 — all WIN. routeA 26/26, playthrough 17/17, checklist 31/31,
+  a2 / a3 monster checks 12/12 + 8/8. Not yet: quest / hidden EXP rewards are still old numbers (L4 pacing).
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.
