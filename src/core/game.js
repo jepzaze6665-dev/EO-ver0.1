@@ -25,6 +25,7 @@ import { SummonSystem } from '../combat/summonSystem.js';
 import { SUMMONS } from '../data/summons.js';
 import { Progression } from '../progression/progression.js';
 import { ClassProgress } from '../progression/classProgress.js';
+import { MasterySystem } from '../progression/masterySystem.js';
 import { ExperienceSystem } from '../progression/experienceSystem.js';
 import { CounterSystem } from '../combat/counterSystem.js';
 import { AttackSlots } from '../combat/attackSlots.js';
@@ -197,6 +198,14 @@ export class Game {
     // per-class skill progress (progression/classProgress.js): old classes are kept, their skills locked
     this.classProgress = new ClassProgress();
     this.classProgress.switchTo(classId);
+    // skill mastery XP from real use (progression/masterySystem.js, rules data/skillMastery.js)
+    this.mastery = new MasterySystem(this);
+    this.events.on('skillMasteryUp', (e) => {
+      const s = e.player.skillSys.get(e.skillId);
+      this.ui.notify('Skill Mastery', `${s ? s.name : e.skillId} — Mastery ${e.name}`, '#e0c070');
+      this.vfx.text(e.player.x, e.player.y - 90, `MASTERY ${e.name}`, { color: '#e0c070', size: 12, life: 1.4 });
+      this.save.dirty = true;
+    });
     this.combat.clear();
     this.ui.hud.reset();
     // generic marks on any entity (rules in data/marks.js); events go through the session bus

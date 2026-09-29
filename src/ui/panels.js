@@ -11,6 +11,8 @@ import { CLASS_COUNTERS, CLASS_TREE } from '../data/classTree.js';
 import { classChangeCheck } from '../progression/classChange.js';
 import { ROUTES } from '../data/routes.js';
 import { levelMods, maxLevel } from '../progression/skillLevels.js';
+import { masteryInfo, masteryReward } from '../progression/masterySystem.js';
+import { MASTERY } from '../data/skillMastery.js';
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
 const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>Passives</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">passive</span><div class="small">${esc(x.desc)}</div></div></div>`).join('')}` : '');
@@ -234,9 +236,17 @@ export class Panels {
         return `<div class="small sk-level"><b style="color:#e0c070">Lv ${lv}/${max}</b> ${esc(cur.text)}
           ${next ? `<br><span class="muted">Next: ${esc(next.text)}</span> ${r.ok ? `<button data-upgrade="${s.id}">+ Level (${r.cost} pt)</button>` : `<span class="muted">(${why})</span>`}` : ''}</div>`;
       };
+      // SKILL MASTERY (data/skillMastery.js): level name, XP bar, current reward
+      const masteryRow = (s) => {
+        const mi = masteryInfo(g.classProgress.peekSkill(p.cls.id, s.id));
+        const pct = mi.need ? Math.round((mi.into / mi.need) * 100) : 100;
+        return `<div class="small sk-mastery"><b style="color:#b8a0ff">Mastery ${MASTERY.names[mi.level]}</b>
+          <span style="display:inline-block;width:70px;height:5px;background:#2a2238;vertical-align:middle;border-radius:2px"><span style="display:block;width:${pct}%;height:100%;background:#b8a0ff;border-radius:2px"></span></span>
+          <span class="muted">${mi.need ? `${mi.into}/${mi.need}` : 'MAX'}${mi.level ? ' · ' + esc(masteryReward(mi.level).text) : ''}</span></div>`;
+      };
       const card = (s, extra = '') => `<div class="skill-card${lo.slots.includes(s.id) ? ' on' : ''}">
           <img src="${iconURL(s.icon)}"><div class="sk-body"><b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).join(', ')}</span>
-          <div class="small">${esc(s.desc || '')}</div>${lvRow(s)}${extra}</div></div>`;
+          <div class="small">${esc(s.desc || '')}</div>${lvRow(s)}${masteryRow(s)}${extra}</div></div>`;
       body = `<div class="skills-layout">
         <div><h3>${esc(p.cls.name)} — Skill Loadout</h3>
           <p class="small">Skill points: <b style="color:#e0c070">${p.skillPointsLeft()}</b> <span class="muted">(1 per character level)</span></p>

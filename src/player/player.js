@@ -12,6 +12,7 @@ import { MARKS } from '../data/marks.js';
 import { STATUSES } from '../data/statuses.js';
 import { Loadout } from './loadout.js';
 import { levelMods, maxLevel, pointsEarned, pointsSpent, upgradeCheck } from '../progression/skillLevels.js';
+import { masteryReward } from '../progression/masterySystem.js';
 import { ActionRecorder } from '../combat/actionRecorder.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
 import { LEVELS } from '../data/levels.js';
@@ -206,7 +207,15 @@ export class Player extends Entity {
     const cp = this.game.classProgress, s = cp && cp.peekSkill(this.cls.id, id);
     return s ? s.level : 1;
   }
-  skillMods(skill) { return levelMods(skill, this.skillLevel(skill.id)); }
+  skillMastery(id) {
+    const cp = this.game.classProgress, s = cp && cp.peekSkill(this.cls.id, id);
+    return s ? s.masteryLevel : 0;
+  }
+  // skill level (data 'levels') × mastery reward (data/skillMastery.js) — the numbers the core applies to a cast
+  skillMods(skill) {
+    const m = levelMods(skill, this.skillLevel(skill.id)), r = masteryReward(this.skillMastery(skill.id));
+    return { ...m, cooldown: m.cooldown * r.cooldown, cost: m.cost * r.cost, skillId: skill.id };
+  }
   skillFlag(id, flag) { const s = this.skillSys.get(id); return !!(s && this.skillMods(s).flags[flag]); }
   skillValue(id, key, dflt) { const s = this.skillSys.get(id); const v = s && this.skillMods(s).values[key]; return v ?? dflt; }
   skillsById() { return Object.fromEntries(this.skillSys.list().map((s) => [s.id, s])); }

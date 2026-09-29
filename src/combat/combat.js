@@ -16,6 +16,7 @@ export { DODGE };
 // def.noSkillMods opts out (e.g. a hitbox whose power the class already scaled itself).
 export function applySkillMods(o, sizeKeys) {
   const m = o.owner && o.owner.castMods;
+  if (m && m.skillId && !o.skillId) o.skillId = m.skillId; // which skill it belongs to -> 'skillHit' (mastery)
   if (!m || o.noSkillMods) return o;
   if (m.power !== 1 && Number.isFinite(o.power)) o.power *= m.power;
   if (m.area !== 1) for (const k of sizeKeys) if (Number.isFinite(o[k])) o[k] *= m.area;

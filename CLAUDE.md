@@ -591,5 +591,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   field); raising to Lv n needs char LV [1,3,6,10,15] and [0,1,1,2,2] points; `p.upgradeSkill(id)` -> 'skillLevelUp'.
   Umbral 6 actives have 5 levels (Lv 5 = shadow trail / every cut marks / 195 px + haste / 2-hit mark / 4 s veil + mark /
   return mark); ult + special = 1 level. Skills tab: points, Lv n/5, this + next level text, [+ Level]. skillLevels.test.mjs.
+  Done S3: SKILL MASTERY rules `src/data/skillMastery.js` (thresholds 0/60/180/400/750 = I-IV, capped; XP use 3, hit 1 ×4
+  per cast, kill 8, counter 6, first hit ≤ 2 s after a Perfect Dodge 10, combo = cast ≤ 1.5 s after ANOTHER skill hit 4;
+  dummies / breakables give no hit XP; rewards = small cooldown / cost cuts only, III = evolutions open) +
+  `src/progression/masterySystem.js` (game.mastery listens to skillUsed / skillHit / perfectDodge / counterHit; active-class
+  skills only; 'skillMasteryUp'). Hitboxes / projectiles spawned inside a cast carry `skillId` (applySkillMods) -> combat
+  emits 'skillHit'. Player.skillMods = level mods × mastery reward. Skills tab shows Mastery + XP bar. mastery.test.mjs.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.
