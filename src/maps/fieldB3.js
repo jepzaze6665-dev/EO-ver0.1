@@ -14,7 +14,7 @@ const NOTICE = [
 export const FIELD_B3 = {
   id: 'b3', name: 'FROSTPEAK', short: 'B3', sub: 'Route B · B3 — Frostpeak · Lv. 31 – 45',
   // LEVEL REWORK L3: old band -> new band; Route B monsters are tougher and pay more (data/levelScaling.js routeMod.B)
-  levelBand: { from: [14, 18], to: [31, 45] }, monsterMod: LEVEL_SCALING.routeMod.B, grid: 'frostpeak',
+  levelBand: { from: [14, 18], to: [31, 45], exp: 1.05 }, monsterMod: LEVEL_SCALING.routeMod.B, grid: 'frostpeak',
   type: 'field', route: 'B', nextMap: 'city2', bossId: 'boss_b3',
   requires: [{ type: 'boss_defeated', boss: 'boss_b2', label: 'Defeat the Amethyst Colossus (B2 Boss)' }],
   hiddenAreas: [],

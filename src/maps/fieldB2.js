@@ -14,7 +14,7 @@ const NOTICE = [
 export const FIELD_B2 = {
   id: 'b2', name: 'CRYSTAL CAVERNS', short: 'B2', sub: 'Route B · B2 — Crystal Caverns · Lv. 17 – 31',
   // LEVEL REWORK L3: old band -> new band; Route B monsters are tougher and pay more (data/levelScaling.js routeMod.B)
-  levelBand: { from: [10, 14], to: [17, 31] }, monsterMod: LEVEL_SCALING.routeMod.B, grid: 'caverns',
+  levelBand: { from: [10, 14], to: [17, 31], exp: 1.05 }, monsterMod: LEVEL_SCALING.routeMod.B, grid: 'caverns',
   type: 'field', route: 'B', nextMap: 'b3', bossId: 'boss_b2',
   requires: [{ type: 'boss_defeated', boss: 'boss_b1', label: 'Defeat Hoarfang (B1 Boss)' }],
   hiddenAreas: [],

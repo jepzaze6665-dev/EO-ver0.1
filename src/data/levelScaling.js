@@ -16,6 +16,18 @@ export const LEVEL_SCALING = {
   routeMod: {
     B: { hp: 1.2, power: 1.2, exp: 1.25, detect: 1.1 },
   },
+  // QUEST / SECRET EXP (progression/rewardScaling.js): [level the reward was written for, level it is earned at now, slope]
+  // slope = how many new levels one old level became on that map (A1 1.44 · A2 3 · A3 3 · B1 2 · B2 3.5 · B3 3.5)
+  questLevels: {
+    beyond_lumina: [3, 4, 1.44], first_steps: [2, 3, 1.44], forest_hunts: [8, 11, 1.44], depths: [8, 11, 1.44],
+    whispers: [10, 14, 1.44], valley: [10, 14, 1.44], route_a: [10, 14, 3],
+    burning_rift: [14, 26, 3], fallen_city: [18, 38, 3], asteria: [18, 38, 1],
+    eastern_road: [10, 17, 2], crystal_depths: [14, 31, 3.5], frostpeak_climb: [18, 45, 3.5],
+  },
+  hiddenLevels: {
+    hidden_cave: [6, 8, 1.44], behind_waterfall: [6, 8, 1.44], moonlit_shrine: [7, 10, 1.44], sealed_archive: [8, 11, 1.44],
+    valehaven: [10, 14, 1.44],
+  },
   // party scaling (future party system, spec: B3 boss must be party-ready): × per extra party member
   party: { hp: 0.75, poise: 0.5 },
 };

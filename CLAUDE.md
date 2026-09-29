@@ -664,5 +664,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   mechanics that own world objects (clusters / pylons stayed up when the boss died mid-growth). Tests: testkit b1 / b2 / b3
   BossCheck defaults 16 / 30 / 43; levelScaling.test (owner table + B difficulty). No-god bots: Hoarfang UB 101 · AG 123.5 s;
   Colossus UB 186.5 · AW 216 s; Crystal Warden UB 225.5 · AW 274 · AG 324 · RP 202 s — all WIN, B3 ≈ +30-55% longer than before.
+  Done L4 (pacing): quest / secret EXP follow the new levels — `src/progression/rewardScaling.js` (questExp / hiddenExp, used
+  by ExperienceSystem) with [nativeLevel, newLevel, slope] per quest / secret in LEVEL_SCALING.questLevels / hiddenLevels.
+  Map `levelBand.exp` = per-map EXP tune (a2 1.1 · a3 1.25 · b1 1.5 · b2 1.05 · b3 1.05); Rune Knight / Crystal Warden reward
+  2500 EXP. World.spawnOpts(d) = how a spawn point's monsters are made (shared with the tool). PACING TOOL `tools/pacing.js`
+  (`P.pacing(__game)`): one clear of every field spawn + quests + secrets + minis + boss rewards -> level at each boss:
+  Route A 13 / 25 / 36 -> ends LV 38 · Route B 16 / 30 / 43 -> ends LV 45 (= the owner's targets; respawn farming adds more).
+  Real playtime is NOT measured (bots only) — needs a human run. levelScaling.test: maps with a band keep their grid (a
+  mid-line // comment once swallowed A2's grid), quest / secret pairs name real entries. Tests moved: routeA minis at LV 6 / 10
+  (+400 s for the Aegis bot) and the Guardian at 13. Full regression green: unit tests, combatTest 77 + class suites (reaper 10,
+  dusk 11, echo 12, classChange 14, warden 24, bulwark 23, oath 18), checklist 31/31 (UB, AW), routeA 26/26 (all 3 starters),
+  playthrough 17/17, a1Loop, mapTour 9/9, gridCheck 20/20, cityCheck 11/11, routeB / b2 / b3 7/7, Combat 2.0 checks.
+  (spriteMonsterCheck fails when run right after partyCheck — leftover state; 20/20 on a fresh page.)
+  LEVEL REWORK L1-L4 COMPLETE.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.

@@ -194,7 +194,8 @@ export const BOSSES = {
         },
       },
     ],
-    rewards: { exp: 1500, gold: 500, loot: 'rune_knight', items: { asterian_crest: 1 }, lore: 'rune_knight' },
+    rewards: { exp: 2500, // pacing (L4): the end of Route A ≈ LV 38
+      gold: 500, loot: 'rune_knight', items: { asterian_crest: 1 }, lore: 'rune_knight' },
     unlocks: ['city2'],
   },
 
@@ -339,7 +340,8 @@ export const BOSSES = {
       { type: 'echoes', phase: 3, count: 2, life: 14, every: 22, delay: 0.3, sprite: 'crystal_warden', filter: 'brightness(1.7) saturate(1.5)', scale: 1.1 }, // pale crystal copies (no hue shift: the Warden is already blue)
       { type: 'rune_sequence', phase: 2, every: 12, count: 4, r: 56, power: 36, gap: 0.55, delay: 1.1 },
     ],
-    rewards: { exp: 1500, gold: 500, loot: 'crystal_warden', items: { warden_crest: 1 }, lore: 'crystal_warden' },
+    rewards: { exp: 2500, // pacing (L4): the end of Route B ≈ LV 45
+      gold: 500, loot: 'crystal_warden', items: { warden_crest: 1 }, lore: 'crystal_warden' },
     unlocks: ['city2'],
   },
 };

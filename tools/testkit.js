@@ -435,11 +435,11 @@ export function routeA(g, classId = 'umbral_sword') {
   walk(g, 'KeyS', 1.2);
   ok('Hollow Fang engaged (arena lock)', fang.state === 'engaged' && w.inBossFight() && g.bosses.barInfo(), fang.state);
   const before = { exp: p.exp, lv: p.level, gold: p.gold };
-  const r1 = bossFight(g, 'mini_hollow_fang', { level: 4 });
+  const r1 = bossFight(g, 'mini_hollow_fang', { level: 6 });
   ok('Hollow Fang defeated: trophy + EXP + gold, no map unlocked', r1.state === 'defeated' && g.inventory.count('hollow_fang_pelt') === 1 && p.gold > before.gold && !wp.isMapUnlocked('a2'), JSON.stringify(r1));
   const grukk = g.bosses.get('mini_grukk');
   goto(g, 36.5, 64.5); walk(g, 'KeyA', 1.4);
-  const r2 = bossFight(g, 'mini_grukk', { level: 7 });
+  const r2 = bossFight(g, 'mini_grukk', { level: 10, seconds: 400 }); // slow classes (Aegis bot) need > 240 s
   ok('Grukk: phase change + adds, defeated; hunts quest done; still no map unlocked', r2.state === 'defeated' && r2.phaseEvents.includes(2) && r2.summons > 0 && q.isDone('forest_hunts') && !wp.isMapUnlocked('a2'), JSON.stringify(r2));
   // the Ancient Forest Path is open ground inside A1 now
   goto(g, 87, 71); walk(g, 'KeyD', 3);
@@ -457,7 +457,7 @@ export function routeA(g, classId = 'umbral_sword') {
   walk(g, 'KeyW', 2);
   const gd = g.bosses.get('boss_a1');
   ok('A1 boss (Guardian) engaged, arena sealed', gd.state === 'engaged' || gd.state === 'phase_change', gd.state);
-  const r3 = bossFight(g, 'boss_a1', { level: 10, seconds: 420 });
+  const r3 = bossFight(g, 'boss_a1', { level: 13, seconds: 420 });
   g.simulate(4);
   ok('Guardian: 3 phases + final attack, defeated', r3.state === 'defeated' && r3.phases === '1,2,3' && r3.finals === 1 && wp.isBossDefeated('boss_a1'), JSON.stringify(r3));
   ok('A2 UNLOCKED: world trigger + north road gate open', wp.isMapUnlocked('a2') && w.gates.get('a2_road_gate').open && events.triggers.includes('a1_boss_defeated'));

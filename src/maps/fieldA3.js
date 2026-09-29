@@ -15,7 +15,7 @@ const PLAQUE = [
 export const FIELD_A3 = {
   id: 'a3', name: 'RUNE CITADEL', short: 'A3', sub: 'Route A · A3 — Rune Citadel · Lv. 26 – 38',
   // LEVEL REWORK L2 (progression/levelScaling.js): the monsters were tuned for the old band; they now live in the new one
-  levelBand: { from: [14, 18], to: [26, 38] }, grid: 'citadel',
+  levelBand: { from: [14, 18], to: [26, 38], exp: 1.25 }, grid: 'citadel',
   type: 'field', route: 'A', nextMap: 'city2', bossId: 'boss_a3',
   requires: [{ type: 'boss_defeated', boss: 'boss_a2', label: 'Defeat the Magma Beast (A2 Boss)' }],
   hiddenAreas: [],

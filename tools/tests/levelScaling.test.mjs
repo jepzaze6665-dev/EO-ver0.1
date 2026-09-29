@@ -1,6 +1,12 @@
 // Unit tests for level scaling (Level rework L1). Run:  node tools/tests/levelScaling.test.mjs
 import { scaleFor, remapLevel, partyScale, playerPower, playerHp, bossScale } from '../../src/progression/levelScaling.js';
 import { BOSSES } from '../../src/data/bosses.js';
+import { MAPS } from '../../src/maps/mapRegistry.js';
+import { LEVELS as LEVEL_GRIDS } from '../../src/world/levels/index.js';
+import { LEVEL_SCALING } from '../../src/data/levelScaling.js';
+import { QUESTS } from '../../src/data/quests.js';
+import { HIDDEN } from '../../src/data/hidden.js';
+import { questExp } from '../../src/progression/rewardScaling.js';
 import { LEVELS } from '../../src/data/levels.js';
 import { expToNext } from '../../src/progression/experience.js';
 import { CLASS_TREE } from '../../src/data/classTree.js';
@@ -44,6 +50,15 @@ test('remapLevel: old band -> new band (clamped) with its slope', () => {
 });
 test('party scaling (future party system): solo = 1', () => {
   eq(partyScale(1).hp, 1); eq(partyScale(4).hp, 1 + 3 * 0.75); eq(partyScale(0).hp, 1);
+});
+test('every map with a level band still names its grid (a // comment once swallowed A2\'s grid)', () => {
+  for (const m of MAPS) if (m.levelBand && m.id !== 'a1') ok(LEVEL_GRIDS[m.grid], `${m.id} grid=${m.grid}`);
+  for (const m of MAPS) if (m.levelBand) ok(m.levelBand.from.length === 2 && m.levelBand.to.length === 2, m.id + ' band');
+});
+test('pacing data: every quest / secret level pair names a real quest / secret', () => {
+  for (const id of Object.keys(LEVEL_SCALING.questLevels)) ok(QUESTS[id], 'quest ' + id);
+  for (const id of Object.keys(LEVEL_SCALING.hiddenLevels)) ok(HIDDEN[id], 'secret ' + id);
+  ok(questExp(QUESTS.fallen_city) > QUESTS.fallen_city.rewards.exp, 'late quests pay more than their old number');
 });
 test('owner level table: Route A bosses 14 / 26 / 38, Route B 17 / 31 / 45', () => {
   const lv = (id) => BOSSES[id].level;

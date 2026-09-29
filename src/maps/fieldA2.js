@@ -17,7 +17,7 @@ const PLAQUE = [
 export const FIELD_A2 = {
   id: 'a2', name: 'ANCIENT VALLEY', short: 'A2', sub: 'Route A · A2 — Ancient Valley · Lv. 14 – 26',
   // LEVEL REWORK L2 (progression/levelScaling.js): the monsters were tuned for the old band; they now live in the new one
-  levelBand: { from: [10, 14], to: [14, 26] }, grid: 'ancient_valley',
+  levelBand: { from: [10, 14], to: [14, 26], exp: 1.1 }, grid: 'ancient_valley', // band.exp = pacing tune (tools/pacing.js)
   type: 'field', route: 'A', nextMap: 'a3', bossId: 'boss_a2', // the Magma Beast waits in the Magma Rift (planned fight)
   requires: [{ type: 'boss_defeated', boss: 'boss_a1', label: 'Defeat the Guardian of the Forest (A1 Boss)' }],
   hiddenAreas: [],

@@ -233,15 +233,10 @@ export class World {
     }
     this.monsters = this.monsters.filter((m) => !m.removed);
   }
-  populate(sp) {
-    const d = sp.def, g = this.game;
-    sp.alive = [];
-    if (d.type === 'guardian') {
-      if (!this.guardian) this.guardian = new Guardian(g, d.x, d.y);
-      return;
-    }
-    // difficulty by part of the map (map data): corrupted beasts (corruptedMonsters: true | { minTy, maxTy }) until the
-    // Guardian falls — tutorial spawns never; hardened monsters in some zones (monsterMods: [{ zones, mod }])
+  // how a spawn point's monsters are made (also read by tools/pacing.js): the map it sits in decides
+  // corrupted beasts (corruptedMonsters: true | { minTy, maxTy }) until the Guardian falls — tutorial spawns never;
+  // hardened zones (monsterMods: [{ zones, mod }]) or the map's monsterMod (Route B); the map's levelBand
+  spawnOpts(d) {
     const home = this.mapManager && this.mapManager.get(this.mapManager.idAt(d.x, d.y));
     const cm = home && home.corruptedMonsters, ty = Math.floor(d.y / TILE);
     const inCorrupt = cm === true || (!!cm && (cm.minTy === undefined || ty >= cm.minTy) && (cm.maxTy === undefined || ty <= cm.maxTy));
@@ -249,10 +244,20 @@ export class World {
     const zone = this.map.zoneAt(d.x, d.y);
     const zm = home && (home.monsterMods || []).find((x) => x.zones.includes(zone));
     const areaMod = (zm && zm.mod) || (home && home.monsterMod);
+    return { corrupted, elite: !!d.elite, areaMod, levelBand: home && home.levelBand, mapId: home && home.id };
+  }
+  populate(sp) {
+    const d = sp.def, g = this.game;
+    sp.alive = [];
+    if (d.type === 'guardian') {
+      if (!this.guardian) this.guardian = new Guardian(g, d.x, d.y);
+      return;
+    }
+    const opts = this.spawnOpts(d);
     for (let i = 0; i < d.count; i++) {
       const a = rand(0, TAU), r = rand(0, d.radius * TILE);
       const pos = this.map.findOpen(d.x + Math.cos(a) * r, d.y + Math.sin(a) * r, 4);
-      const m = new Monster(g, d.type, pos.x, pos.y, { spawn: sp, corrupted, elite: !!d.elite, areaMod, levelBand: home && home.levelBand });
+      const m = new Monster(g, d.type, pos.x, pos.y, { spawn: sp, ...opts });
       sp.alive.push(m);
       this.monsters.push(m);
     }

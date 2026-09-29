@@ -32,7 +32,7 @@ export class Monster extends Entity {
     // stats scale so the fight feels the same against a player of that level, EXP keeps kills-per-level
     const band = opts.levelBand ? remapLevel(d.level, opts.levelBand) : null;
     const ls = band ? scaleFor(d.level, band.level, band.slope) : { hp: 1, def: 1, power: 1, exp: 1 };
-    cm.hp *= ls.hp; cm.power *= ls.power; cm.exp *= ls.exp;
+    cm.hp *= ls.hp; cm.power *= ls.power; cm.exp *= ls.exp * ((opts.levelBand && opts.levelBand.exp) || 1); // band.exp = pacing tune (tools/pacing.js)
     this.levelScale = ls;
     this.level = (band ? band.level : d.level) + (this.elite ? ELITE_MOD.level || 0 : 0) + ((opts.areaMod && opts.areaMod.level) || 0);
     this.team = TEAM.ENEMY;
