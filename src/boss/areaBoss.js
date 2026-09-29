@@ -213,10 +213,13 @@ export class AreaBoss extends Entity {
     g.audio.sfx('roar');
     g.camera.shake(0.7);
     g.vfx.flash(this.look.aura || '255,120,120', 0.35, 1.6);
-    this.fx('phase', this.x, this.y - this.height * 0.4, 0, { scale: 2.4, life: 1.1 });
-    // phase aura sequence (look.phaseAura[phase].transition: effect keys played one after another under the boss)
+    // the phase burst stays small and see-through: the boss must stay visible while it changes (a full-size bright burst
+    // on top hid it for seconds)
+    this.fx('phase', this.x, this.y - this.height * 0.4, 0, { scale: 1.2, life: 0.9, alpha: 0.55 });
+    // phase aura sequence (look.phaseAura[phase].transition: effect keys played one after another UNDER the boss —
+    // ground layer, so the body is always drawn on top)
     const pa = this.look.phaseAura && this.look.phaseAura[this.phase];
-    if (pa && pa.transition) pa.transition.forEach((k, i) => g.after(i * (pa.step || 0.4), () => !this.dead && g.vfx.sprite(k, this.x, this.y, 0, { follow: this, off: 0, life: pa.stepLife || 0.7, scale: pa.scale || 1.4, glow: 0.6 })));
+    if (pa && pa.transition) pa.transition.forEach((k, i) => g.after(i * (pa.step || 0.4), () => !this.dead && g.vfx.sprite(k, this.x, this.y + 6, 0, { life: pa.stepLife || 0.7, scale: pa.scale || 1.4, glow: 0.45, ground: true, squash: 0.75, alpha: 0.85 })));
     g.ui.callout(ph.name, ph.sub || '', '#e0b0ff');
     if (ph.shockwave) {
       const tel = this.tele({ shape: 'ring', x: this.x, y: this.y, r0: 20, r: 170, total: 1.1 });
@@ -254,7 +257,7 @@ export class AreaBoss extends Entity {
     const pa = this.look.phaseAura && this.look.phaseAura[this.phase];
     if (pa && pa.loop) {
       this.auraT = (this.auraT || 0) - dt;
-      if (this.auraT <= 0) { this.auraT = pa.loopLife || 1; g.vfx.sprite(pa.loop, this.x, this.y, 0, { follow: this, off: 0, life: this.auraT + 0.05, scale: pa.scale || 1.4, glow: 0.4 }); }
+      if (this.auraT <= 0) { this.auraT = pa.loopLife || 1; g.vfx.sprite(pa.loop, this.x, this.y + 6, 0, { life: this.auraT + 0.05, scale: pa.scale || 1.4, glow: 0.35, ground: true, squash: 0.75, alpha: 0.7 }); } // under the body
     }
     this.applyKnockback(dt, g.world.map);
     for (const k in this.cds) this.cds[k] -= dt;

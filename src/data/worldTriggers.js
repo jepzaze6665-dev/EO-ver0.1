@@ -43,6 +43,10 @@ export const WORLD_TRIGGERS = [
     id: 'b3_first_visit', on: 'mapEntered', match: { id: 'b3', first: true },
     actions: [{ type: 'cutscene', title: 'FROSTPEAK', sub: 'Route B · B3', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:frostpeak_climb'],
   },
+  {
+    id: 'b3_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_b3' },
+    actions: [{ type: 'banner', title: 'ROUTE B COMPLETE', text: 'The Warden shatters and the summit thaws. The north road leads down to City 2 — Asteria City.', color: '#ffe08a' }],
+  },
   { id: 'b3_lakes_found', on: 'areaDiscovered', match: { name: 'Frozen Lakes' }, actions: ['set_flag:b3Lakes'] },
   { id: 'b3_stairs_found', on: 'areaDiscovered', match: { name: 'Glacier Stairs' }, actions: ['set_flag:b3Stairs'] },
   { id: 'b3_summit_found', on: 'areaDiscovered', match: { name: 'Windcut Terrace' }, actions: ['set_flag:b3Summit'] },

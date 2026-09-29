@@ -114,7 +114,8 @@ export const QUESTS = {
     objectives: [
       { id: 'lakes', text: 'Cross the Frozen Lakes', type: 'flag', flag: 'b3Lakes', marker: [66, 146], markerMap: 'b3' },
       { id: 'stairs', text: 'Climb the Glacier Stairs', type: 'flag', flag: 'b3Stairs', marker: [82, 108], markerMap: 'b3' },
-      { id: 'summit', text: 'Reach the Summit Gate', type: 'flag', flag: 'b3Summit', marker: [86, 60], markerMap: 'b3' },
+      { id: 'summit', text: 'Reach the Summit Gate', type: 'flag', flag: 'b3Summit', marker: [90, 54], markerMap: 'b3' },
+      { id: 'boss', text: 'Defeat the Crystal Warden (B3 Major Boss)', type: 'boss', boss: 'boss_b3', marker: [90, 28], markerMap: 'summit' },
     ],
     rewards: { exp: 450, gold: 260, items: { hp_potion: 3 } },
     requirements: [],

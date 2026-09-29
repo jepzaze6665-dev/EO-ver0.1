@@ -21,7 +21,7 @@ export const FIELD_B3 = {
     interactables: [
       { id: 'b3_gate_notice', kind: 'sign', tx: 76, ty: 196, prompt: 'Read Banner', title: 'Frostpeak — South Gate', text: NOTICE },
       { id: 'ws_b3_camp', kind: 'waystone', tx: 128, ty: 118, name: 'Nomad Camp', prompt: 'Waystone' },
-      { id: 'b3_summit_sign', kind: 'sign', tx: 86, ty: 60, prompt: 'Read Inscription', title: 'The Summit Gate', text: 'The gate is frozen shut from the inside.\nBeyond it something vast is breathing — the Summit Citadel opens in the next update.' },
+      { id: 'b3_summit_sign', kind: 'sign', tx: 86, ty: 60, prompt: 'Read Inscription', title: 'The Summit Gate', text: 'Beyond the gate something vast is breathing.\nThe Crystal Warden has kept this summit since the eclipse was young.' },
     ],
     spawns: [
       { id: 'b3_slope_wolves', type: 'glacier_wolf', count: 3, tx: 74, ty: 176, radius: 5 },
@@ -41,5 +41,13 @@ export const FIELD_B3 = {
   },
   exits: [
     { id: 'south_gate', rect: [78, 205, 84, 205], to: 'b2', entry: [148, 180], label: 'Crystal Caverns' },
+    {
+      id: 'summit_gate', rect: [88, 52, 92, 52], to: 'summit', entry: [90, 44], label: 'The Summit Citadel',
+      confirm: {
+        title: 'The Summit Citadel',
+        text: 'The Crystal Warden waits on the summit — its armour changes as it fights.\nOnce it rises, the citadel seals until one of you falls.\n\nEnter the Summit Citadel?',
+        yes: 'Enter', no: 'Not yet',
+      },
+    },
   ],
 };

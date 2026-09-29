@@ -12,7 +12,8 @@ export const CITY2 = {
   region: { zones: [Z.ASTERIA] },
   spawn: [80, 150],
   exits: [
-    { id: 'south_road', rect: [77, 157, 83, 157], to: 'sanctum', entry: [84, 9], label: 'The Sanctum' },
+    { id: 'south_road', rect: [77, 157, 80, 157], to: 'sanctum', entry: [84, 9], label: 'The Sanctum (Route A)' },
+    { id: 'frost_road', rect: [81, 157, 83, 157], to: 'summit', entry: [90, 14], label: 'The Summit Citadel (Route B)' },
   ],
   content: {
     npcs: [

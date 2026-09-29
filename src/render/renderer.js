@@ -185,7 +185,7 @@ export class Renderer {
   onArea(map, p) {
     if (!map.activeArea) return true;
     if (p.area === undefined) p.area = map.areaAt(p.x, p.y - 2);
-    return !p.area || p.area === map.activeArea;
+    return !p.area || p.area === map.activeArea || !!(map.visibleAreas && map.visibleAreas.has(p.area));
   }
   // paint every visible tile that belongs to another map as darkness (maps are separate places)
   drawAreaMask(ctx, cam, map) {
@@ -197,7 +197,7 @@ export class Renderer {
       let run = -1;
       for (let tx = tx0; tx <= tx1 + 1; tx++) {
         const a = tx <= tx1 ? map.area[ty * map.w + tx] : 0;
-        const other = a && a !== map.activeArea;
+        const other = a && a !== map.activeArea && !(map.visibleAreas && map.visibleAreas.has(a)); // linked arenas stay visible
         if (other && run < 0) run = tx;
         if (!other && run >= 0) { ctx.fillRect(run * TILE, ty * TILE, (tx - run) * TILE, TILE); run = -1; }
       }

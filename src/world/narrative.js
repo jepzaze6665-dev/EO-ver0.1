@@ -50,6 +50,10 @@ export const LORE = {
     title: 'The Magma Beast of the Rift',
     text: 'When the mountain woke, it did not stop at the valley\'s edge. The beast crawled up out of the rift and the kings fled their summer court.\nNow the rift cools. Past it, carved into the far cliffs, a road leads toward a citadel of rune and bronze.',
   },
+  crystal_warden: {
+    title: 'The Crystal Warden',
+    text: 'When the eclipse first touched the north, one warden climbed the summit to hold it back — and froze there, holding.\nFor three hundred years its armour grew from the cold it kept. Broken at last, it lets the mountain breathe.',
+  },
   amethyst_colossus: {
     title: 'The Amethyst Colossus',
     text: 'The miners dug into the Heart looking for amethyst and found it looking back. Every crystal they broke, it grew again — on itself.\nWith it fallen, the caverns are only caverns. The arch to Frostpeak is still sealed with frost from the other side.',

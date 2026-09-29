@@ -86,6 +86,7 @@ export const ITEMS = {
   stone_scute: { name: 'Stone Scute', cat: 'Material', rarity: 'common', icon: 'ore', color: '#b09a78', desc: 'A plate of an Ancient Valley armadillo\'s shell.', sell: 16 },
   crag_horn: { name: 'Crag Horn', cat: 'Material', rarity: 'uncommon', icon: 'fang', color: '#d8c8a0', desc: 'The stone horn of a Crag Rhino.', sell: 30 },
   hare_pelt: { name: 'Hare Pelt', cat: 'Material', rarity: 'common', icon: 'cloak', color: '#e8dcc8', desc: 'Soft pelt of a Whisper Hare.', sell: 4 },
+  warden_crest: { name: 'Crest of the Crystal Warden', cat: 'Material', rarity: 'legendary', icon: 'rune', color: '#bfe6ff', desc: 'Trophy of the Crystal Warden, B3 Major Boss. The summit is quiet.', sell: 200 },
   amethyst_core: { name: 'Amethyst Core', cat: 'Material', rarity: 'epic', icon: 'shard', color: '#c89aff', desc: 'Trophy of the Amethyst Colossus, B2 boss. It still hums.', sell: 140 },
   frost_heart: { name: 'Heart of the Winter Alpha', cat: 'Material', rarity: 'epic', icon: 'shard', color: '#bfe6ff', desc: 'Trophy of Hoarfang, B1 boss. Cold enough to burn.', sell: 120 },
   frost_pelt: { name: 'Frost Pelt', cat: 'Material', rarity: 'uncommon', icon: 'cloak', color: '#cfe4ff', desc: 'Thick white fur from the Frostwind Plains. Never quite thaws.', sell: 16 },

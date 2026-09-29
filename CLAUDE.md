@@ -457,5 +457,20 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   swipe / ground pound guardBreak + missRecover / ice hurl), `frost_imp` (swarm, blinkWhenHit 3: crescent claw / frost
   ring), `snow_eagle` (float caster: dive -> GROUNDED / feather fan / icefall at your position). Quest `frostpeak_climb`.
   `T.b3Check(g)` 7/7; spriteMonsterCheck 20/20.
-  Next: B3b the B3 MAJOR boss (Crystal Warden) from the Phase BOSS sheet in the Summit Citadel -> Route B complete -> City 2.
+  B3b done: boss_b3 CRYSTAL WARDEN (major, Lv 18, 24000 HP) in map `summit` (maps/summit.js, zone PEAK_SUMMIT; b3 exit
+  summit_gate with confirm; north gate city2_frost_gate + exit north_road -> City 2; City 2 exit frost_road back). Art = the
+  owner's "Phase BOSS" sheet: build-monsters row opt `blobs: { min, reach }` cuts frames as connected shapes (poses overlap
+  in x; small pieces join the nearest frame, owner mask) + sheet `darkBg` (dark neutral checkerboard). Forms p1 / p2 / p3 +
+  death are used; phase 4 = p3 + violet aura (its aura and the transformation rows join all poses into one shape — the
+  owner can resend them with gaps). VFX `w_*` (B3 VFX sheet). 4 phases: DORMANT · AWAKENED 75% (rune_sequence = frost
+  sigils) · CORRUPTED 45% (echoes = crystal reflections) · ENRAGED 20%. New mechanic `pylons` = SHATTERED ECLIPSE: untouchable
+  charge, 3 pylons (380 HP) in 14 s -> EXPOSED 7 s, else an unblockable nova + retry; HP floor 10% until it succeeds once.
+  Rewards warden_crest + lore, trigger b3_boss_defeated = ROUTE B COMPLETE. `T.b3BossCheck(g, c, { god, level: 17 })` 12/12;
+  no god LV 17: UB 177.5 s · RP 174.5 s · AW 220.5 s · AG 206 s.
+  Bug fixes (owner): (1) a boss arena carved into a field map showed as a BLACK hole from outside -> MapManager.activate sets
+  `map.visibleAreas` (the map + its child arenas + its parent) and the renderer only darkens other maps; walking unchanged.
+  (2) the boss seemed to vanish on a phase change -> the phase burst was scale 2.4 on top of it: now scale 1.2 / alpha 0.55,
+  and look.phaseAura effects play on the GROUND layer under the boss (AreaBoss + Guardian).
+  Gotcha: never put a `//` comment in the middle of a one-line statement (it comments out the rest -> the whole game breaks).
+  Next: owner decides (Route A/B both complete; City 2 content, balance with a human player, F3 debug overlay).
 - Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).

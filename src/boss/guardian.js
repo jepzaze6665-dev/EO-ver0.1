@@ -163,7 +163,7 @@ export class Guardian extends Entity {
     yield 1.3;
     this.strike(t, 22, 420);
     g.vfx.ring(this.x, this.y, 20, 200, { life: 0.6, color: ph === 3 ? '200,90,255' : '120,240,255', width: 8, fill: true });
-    this.fx('phase', this.x, this.y - 50, 0, { scale: 2.6, life: 1.1 });
+    this.fx('phase', this.x, this.y - 50, 0, { scale: 1.3, life: 0.9, alpha: 0.55 }); // small + see-through: the Guardian stays visible
     yield 0.9;
     this.hurtable = true;
     this.state = 'fight';

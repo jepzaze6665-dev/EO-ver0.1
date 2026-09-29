@@ -45,7 +45,14 @@ export class MapManager {
     return d ? d.id : null;
   }
   idAt(x, y, gridId) { return this.idAtTile(Math.floor(x / TILE), Math.floor(y / TILE), gridId); }
-  activate(id) { this.cur.map.activeArea = this.byId[id].area; }
+  // the active map is walkable; its boss arenas (maps with `parent` = it) and, from inside an arena, its parent map stay
+  // VISIBLE (not masked dark) — they are the same place seen across a gate, not a different world
+  activate(id) {
+    const d = this.byId[id], m = this.cur.map;
+    m.activeArea = d.area;
+    m.visibleAreas = new Set([d.area]);
+    for (const o of this.list) if (o.grid === d.grid && (o.parent === id || o.id === d.parent)) m.visibleAreas.add(this.byId[o.id].area);
+  }
   // camera bounds (px) with a small margin of scenery around the map
   boundsPx(id, margin = 3) {
     const b = this.byId[id].box;

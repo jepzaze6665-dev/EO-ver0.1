@@ -152,6 +152,17 @@ const SHEETS = {
     file: 'B/B3/4', height: 34, // rows: front · back · side (faces left) · attack · hit · telegraph · special · death
     rows: [['front', 6], ['back', 6], ['side', 6, { flip: true }], ['attack', 6, { flip: true }], ['hit', 6, { flip: true }], ['telegraph', 6], ['special', 6, { flip: true }], ['death', 6, { flip: true }]],
   },
+  // B3 MAJOR BOSS: the CRYSTAL WARDEN — the owner's multi-phase sheet ("Phase BOSS"): 4 forms (dormant / awakened /
+  // corrupted / enraged) + the three transformations + death. Groups cut by band (the labels' counts are not the drawn ones).
+  crystal_warden: {
+    file: 'B/B3/Phase  BOSS/image-467ab296-8880-4d8b-9d4f-d616ceb660b9-0.PNG', height: 88, darkBg: { neutral: 10, lum: 50 }, flip: true, // swings to the left
+    // blob rows (poses overlap in x). Phase 4's purple aura and the transformation rows join their poses into one shape,
+    // so they are not cut: the game shows phase 4 as the corrupted form + a strong aura (data/bosses.js look.phaseAura).
+    rows: [
+      ['p1', 0, { y: [160, 292], x: [120, 1990], blobs: { min: 2500 } }], ['p2', 0, { y: [388, 532], x: [118, 1990], blobs: { min: 2500 } }],
+      ['p3', 0, { y: [628, 782], x: [118, 1990], blobs: { min: 2500 } }], ['death', 0, { y: [1780, 1935], x: [140, 1990], blobs: { min: 700 } }],
+    ],
+  },
   // B2 BOSS: the AMETHYST COLOSSUS (a giant crystal golem, faces right)
   amethyst_colossus: {
     file: 'B/B2/BOSS', height: 84,
@@ -295,11 +306,51 @@ function findFrames(img, def) {
   rows.forEach((r, ri) => {
     const [name, count, opts = {}] = def.rows[ri];
     const [x0, x1] = opts.x || [0, img.width];
+    if (opts.blobs) { out.push(blobFrames(img, name, r.a, r.b, x0, x1, opts.blobs)); return; }
     const colP = projection(img, x0, r.a, x1, r.b, 'x');
     const cols = fitSegments(runs(colP, 5), colP, count);
     out.push({ name, y0: r.a, y1: r.b, cols: cols.map((c) => [c.a + x0, c.b + x0]), found: runs(colP, 5).filter((s) => s.mass > 40).length });
   });
   return out;
+}
+
+// blob frames (row opt `blobs: { min }`): for sheets whose poses overlap in x (swords / effects reaching into the next
+// pose). Every connected shape of at least `min` pixels is a frame; smaller pieces join the frame whose centre is
+// nearest. Frames are ordered left to right; each keeps only its own pixels (owner mask).
+function blobFrames(img, name, y0, y1, x0, x1, o) {
+  const w = x1 - x0, h = y1 - y0, lab = new Int32Array(w * h).fill(-1), size = [], box = [];
+  const on = (x, y) => img.data[((y0 + y) * img.width + x0 + x) * 4 + 3] >= 24;
+  for (let p = 0; p < w * h; p++) {
+    if (lab[p] >= 0 || !on(p % w, (p / w) | 0)) continue;
+    const id = size.length, st = [p]; lab[p] = id;
+    const bb = { minx: 1e9, maxx: -1, miny: 1e9, maxy: -1 }; let n = 0;
+    while (st.length) {
+      const q = st.pop(), x = q % w, y = (q / w) | 0; n++;
+      if (x < bb.minx) bb.minx = x; if (x > bb.maxx) bb.maxx = x; if (y < bb.miny) bb.miny = y; if (y > bb.maxy) bb.maxy = y;
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+        const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= w || Y >= h) continue;
+        const r = Y * w + X; if (lab[r] < 0 && on(X, Y)) { lab[r] = id; st.push(r); }
+      }
+    }
+    size.push(n); box.push(bb);
+  }
+  const big = size.map((n, i) => i).filter((i) => size[i] >= (o.min || 1500)).sort((a, b) => box[a].minx - box[b].minx);
+  const owner = new Int32Array(size.length).fill(-1);
+  big.forEach((i, k) => { owner[i] = k; });
+  for (let i = 0; i < size.length; i++) {
+    if (owner[i] >= 0 || size[i] < 6) continue;
+    const cx = (box[i].minx + box[i].maxx) / 2;
+    let best = 0, bd = 1e9;
+    big.forEach((j, k) => { const d = Math.abs((box[j].minx + box[j].maxx) / 2 - cx); if (d < bd) { bd = d; best = k; } });
+    if (bd < (o.reach || 90)) owner[i] = best;
+  }
+  const cols = big.map((j, k) => {
+    let a = 1e9, b = -1;
+    for (let i = 0; i < size.length; i++) if (owner[i] === k) { a = Math.min(a, box[i].minx); b = Math.max(b, box[i].maxx); }
+    return [a + x0, b + x0 + 1];
+  });
+  const mask = (k, ax, ay) => { const l = lab[(ay - y0) * w + (ax - x0)]; return l >= 0 && owner[l] === k; };
+  return { name, y0, y1, cols, found: big.length, mask };
 }
 
 // ---------------------------------------------------------------- frame extraction
@@ -373,6 +424,10 @@ function centreOf(im, bb) {
 function buildMonster(id, def, probe) {
   const img = png.read(path.join(ROOT, SRC, def.file));
   const bg = removeBackground(img, def.pocket);
+  if (def.darkBg) { // dark checkerboard sheets: every dark NEUTRAL pixel is background (the art's darks are tinted)
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) { const mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]); if (mx - mn <= def.darkBg.neutral && (d[i] + d[i + 1] + d[i + 2]) / 3 <= def.darkBg.lum) d[i + 3] = 0; }
+  }
   if (def.clearLight) { // blurry sheets: light grey-white gaps between limbs (never real colour) become transparent
     const d = img.data;
     for (let i = 0; i < d.length; i += 4) if (d[i + 3] && (d[i] + d[i + 1] + d[i + 2]) / 3 >= def.clearLight && Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]) <= 40) d[i + 3] = 0;
@@ -392,6 +447,7 @@ function buildMonster(id, def, probe) {
     const opts = { flip: def.flip, ...(def.rows[ri][2] || {}) };
     r.cols.forEach(([a, b], ci) => {
       let im = crop(img, a, r.y0, b, r.y1);
+      if (r.mask) for (let y = 0; y < im.height; y++) for (let x = 0; x < im.width; x++) if (!r.mask(ci, a + x, r.y0 + y)) im.data[(y * im.width + x) * 4 + 3] = 0;
       if (opts.flip) im = mirror(im);
       if (opts.mirrorFrames && opts.mirrorFrames.includes(ci)) im = mirror(im);
       const bb = bbox(im);

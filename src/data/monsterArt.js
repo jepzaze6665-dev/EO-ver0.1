@@ -259,6 +259,17 @@ export const MONSTER_ART = {
     },
     fps: { idle: 8, move: 9 },
   },
+  // B3 MAJOR BOSS: the Crystal Warden (blob-cut frames per form: p1 dormant, p2 awakened, p3 corrupted)
+  crystal_warden: {
+    sheet: 'crystal_warden', replaces: ['crystal_warden'],
+    anims: {
+      idle: ['p1', [0, 1, 2]], move: ['p1', [3, 4]], windup: ['p1', [5]], attack: ['p1', [6, 7]], hurt: ['p1', [9, 10]], death: 'death',
+      p1_idle: ['p1', [0, 1, 2]], p1_move: ['p1', [3, 4]], p1_wind: ['p1', [5]], p1_hit: ['p1', [6, 7]], p1_hurt: ['p1', [9, 10, 11]], p1_special: ['p1', [8]],
+      p2_idle: ['p2', [0, 1, 2]], p2_move: ['p2', [3, 4]], p2_wind: ['p2', [5, 9]], p2_hit: ['p2', [6, 7, 8]], p2_hurt: ['p2', [11, 12, 13]], p2_special: ['p2', [9, 10]],
+      p3_idle: ['p3', [0, 1, 2]], p3_move: ['p3', [3, 4]], p3_wind: ['p3', [6]], p3_hit: ['p3', [5, 7]], p3_hurt: ['p3', [10, 11, 12]], p3_special: ['p3', [8, 9]],
+    },
+    fps: { idle: 4, move: 5 },
+  },
   // B2 BOSS: the Amethyst Colossus
   amethyst_colossus: {
     sheet: 'amethyst_colossus', replaces: ['amethyst_colossus'],

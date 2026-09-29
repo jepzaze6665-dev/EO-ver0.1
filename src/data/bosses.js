@@ -283,7 +283,59 @@ export const BOSSES = {
     rewards: { exp: 1000, gold: 380, loot: 'amethyst_colossus', items: { amethyst_core: 1 }, lore: 'amethyst_colossus' },
     unlocks: ['b3'],
   },
-  boss_b3: { id: 'boss_b3', name: 'B3 MAJOR BOSS', title: 'Route B · to be designed', type: 'major', impl: 'area', route: 'B', map: 'b3', planned: true, unlocks: ['city2'] },
+  // B3 MAJOR BOSS (B3b): the CRYSTAL WARDEN on the Summit Citadel (maps/summit.js). Art = the owner's multi-phase sheet
+  // ("Phase BOSS": dormant / awakened / corrupted forms; phase 4 = the corrupted form + the enraged aura); effects = the B3
+  // VFX sheet ('w_*'). Four phases, each adds one rule: FROST SCRIPT (sigils in order), REFLECTIONS (crystal copies of
+  // the Warden repeat its attacks), then the final SHATTERED ECLIPSE (break the pylons before the charge completes).
+  boss_b3: {
+    id: 'boss_b3', name: 'CRYSTAL WARDEN', title: 'Keeper of the Frozen Summit', type: 'major', impl: 'area',
+    route: 'B', map: 'summit', level: 18, recommendedLevel: 17,
+    teaches: 'Read four forms · remember the sigil order · watch the reflections · break the pylons in time',
+    stats: { hp: 24000, def: 16, speed: 104, radius: 22, height: 64, mass: 8, weakness: ['physical'], superArmor: true, poise: 1300 },
+    look: {
+      sprite: 'crystal_warden', scale: 1.15, aura: '150,200,255',
+      anims: { idle: 'p1_idle', walk: 'p1_move', windup: 'p1_wind', attack: 'p1_hit', hurt: 'p1_hurt', roar: 'p1_special' },
+      phaseAnims: { 2: { idle: 'p2_idle', walk: 'p2_move', windup: 'p2_wind', attack: 'p2_hit', hurt: 'p2_hurt', roar: 'p2_special' }, 3: { idle: 'p3_idle', walk: 'p3_move', windup: 'p3_wind', attack: 'p3_hit', hurt: 'p3_hurt', roar: 'p3_special' }, 4: { idle: 'p3_idle', walk: 'p3_move', windup: 'p3_wind', attack: 'p3_hit', hurt: 'p3_hurt', roar: 'p3_special' } },
+      vfx: { charge: 'w_spark', slash: 'w_slash', impact: 'w_crater', bolt: 'w_bolt', eruption: 'w_spikes', nova: 'w_eruption', phase: 'w_burst', sigil: 'w_sigil', pillar: 'w_pillar', shatter: 'w_shatter', spark: 'w_sparkle', echo: 'w_crystal', burst: 'w_blast' },
+      // phase changes: the Warden's shape shifts inside an ice burst; phase 4 keeps the violet corruption aura (B2's AURA
+      // sheet, 'ca_*') boiling under it
+      phaseAura: {
+        2: { transition: ['w_sigil', 'w_burst', 'w_shatter'], step: 0.35, stepLife: 0.6, scale: 1.3 },
+        3: { transition: ['ca_form', 'ca_ring', 'ca_vortex'], step: 0.35, stepLife: 0.6, scale: 1.3 },
+        4: { transition: ['ca_surge', 'ca_burst'], step: 0.4, stepLife: 0.7, loop: 'ca_vortex', loopLife: 0.9, scale: 1.4 },
+      },
+    },
+    arena: { name: 'The Summit Citadel', center: [90, 28], radius: 16.5, trigger: 13, bossSpawn: [90, 20], entry: [90, 44], cameraLock: true },
+    appear: [],
+    phases: [
+      { name: 'DORMANT', sub: 'The Warden stirs — blade and ice', hpBelow: 1, moves: ['blade', 'ice_spikes', 'lunge'] },
+      { name: 'AWAKENED', sub: 'Frost sigils burn in order — remember them', hpBelow: 0.75, windup: 0.95, speed: 1.05, shockwave: 26, moves: ['blade', 'cross_cut', 'ice_spikes', 'lunge', 'shard_orbs'] },
+      { name: 'CORRUPTED', sub: 'Its reflections answer from the crystal', hpBelow: 0.45, windup: 0.9, speed: 1.12, shockwave: 30, moves: ['blade', 'cross_cut', 'lunge', 'shard_orbs', 'shard_field', 'frost_nova'] },
+      { name: 'ENRAGED', sub: 'The eclipse gathers on the summit', hpBelow: 0.2, windup: 0.85, speed: 1.2, shockwave: 34, moves: ['cross_cut', 'lunge', 'shard_orbs', 'shard_field', 'frost_nova', 'eruption_ring'] },
+    ],
+    moves: {
+      blade: { kind: 'strike', range: 96, windup: 0.65, recover: 0.6, cd: 1.8, weight: 3, power: 42, knock: 220, shape: { shape: 'cone', r: 100, half: 0.85 } },
+      // two cuts — the second one late and wider
+      cross_cut: {
+        kind: 'combo', range: 104, cd: 4.5, weight: 2.5, power: 36, knock: 220, recover: 0.8, opening: 1.2, shape: { shape: 'cone', r: 96, half: 0.8 },
+        hits: [{ windup: 0.55 }, { windup: 1.0, track: true, power: 52, shape: { shape: 'cone', r: 118, half: 1.2 } }],
+      },
+      lunge: { kind: 'dash', guardBreak: true, range: 320, min: 120, windup: 0.85, recover: 0.9, cd: 5, weight: 2, power: 44, knock: 300, len: 280, width: 40, opening: 1.3 },
+      ice_spikes: { kind: 'pattern', layout: 'cross', range: 400, windup: 0.9, recover: 0.6, cd: 6, weight: 2, power: 30, knock: 200, count: 4, r: 32, step: 62, delay: 0.12, dmg: 'magic', color: '150,200,255' },
+      shard_orbs: { kind: 'volley', range: 380, min: 100, windup: 0.8, recover: 0.6, cd: 4, weight: 2.5, power: 30, count: 4, spread: 0.7, speed: 270, dmg: 'magic', status: [{ id: 'slow', dur: 1.2 }], color: '#bfe6ff' },
+      shard_field: { kind: 'pattern', layout: 'scatter', range: 999, windup: 1.0, recover: 0.8, cd: 7, weight: 2, power: 30, count: 10, r: 38, delay: 0.1, dmg: 'magic', color: '190,140,255' },
+      frost_nova: { kind: 'nova', range: 999, windup: 1.1, recover: 0.9, cd: 9, weight: 1.5, power: 28, rings: 3, width: 46, gap: 72, dmg: 'magic', status: [{ id: 'slow', dur: 1.4 }], color: '170,200,255' },
+      eruption_ring: { kind: 'pattern', layout: 'ring', range: 400, windup: 1.1, recover: 0.8, cd: 8, weight: 2, power: 32, knock: 220, count: 12, r: 34, dist: 120, dmg: 'magic', color: '200,140,255' },
+    },
+    // SIGNATURE (boss/mechanics.js). Order = priority when several want the next turn.
+    mechanics: [
+      { type: 'pylons', phase: 4, at: 0.1, count: 3, hp: 380, channel: 14, dist: 150, power: 80, weak: 7, retry: 16, name: 'SHATTERED ECLIPSE' },
+      { type: 'echoes', phase: 3, count: 2, life: 14, every: 22, delay: 0.3, sprite: 'crystal_warden' },
+      { type: 'rune_sequence', phase: 2, every: 12, count: 4, r: 56, power: 36, gap: 0.55, delay: 1.1 },
+    ],
+    rewards: { exp: 1500, gold: 500, loot: 'crystal_warden', items: { warden_crest: 1 }, lore: 'crystal_warden' },
+    unlocks: ['city2'],
+  },
 };
 
 // every boss that can actually spawn (planned entries are skipped)

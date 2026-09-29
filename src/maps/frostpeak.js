@@ -73,7 +73,9 @@ export function buildFrostpeakTerrain(b) {
   // ---------------- the Summit Citadel (B3 major boss arena, zone PEAK_SUMMIT: sealed until the next phase)
   b.disc(P.summit[0], P.summit[1], 20, T.ARENA, { noise: 0.4 });
   for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) if (Math.hypot(x - P.summit[0], y - P.summit[1]) <= 22 && y <= 50) m.zone[m.idx(x, y)] = Z.PEAK_SUMMIT;
-  b.prop('p_gate_grand', 90, 51, { solid: true, footprint: [[-4, 0], [-3, 0], [-2, 0], [2, 0], [3, 0], [4, 0]] });
+  b.rect(87, 44, 93, 52, C);  // the summit gate passage (b3 exit summit_gate / summit exit summit_gate)
+  b.rect(88, 2, 92, 9, C);    // the north road out of the citadel (to City 2)
+  b.prop('p_gate_grand', 90, 51, { solid: true, footprint: [[-4, 0], [-3, 0], [3, 0], [4, 0]] });
 
   // ---------------- sub-areas
   const subs = { gate: 8, slopes: 16, lakes: 20, fortress: 10, cave: 11, terrace: 12, plateau: 18, shrine: 12, camp: 16, stairs: 8, windcut: 12, switchback: 12, lookout: 10 };
@@ -101,7 +103,7 @@ export function buildFrostpeakTerrain(b) {
   b.prop('p_ice_altar', 66, 150, { solid: true }); lit(66, 150, '#9ad0ff', 90);
   // the summit: the citadel's walls on the rim (the floor itself stays clear for the fight)
   b.prop('p_citadel', P.summit[0], P.summit[1] - 12, { scale: 0.9 });
-  for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; if (Math.abs(Math.sin(a) - 1) < 0.15) continue; b.prop(i % 2 ? 'p_turret_a' : 'p_turret_b', P.summit[0] + Math.cos(a) * 19, P.summit[1] + Math.sin(a) * 17, { solid: true }); }
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; if (Math.abs(Math.sin(a)) > 0.85) continue; /* gaps north (road to City 2) + south (gate) */ b.prop(i % 2 ? 'p_turret_a' : 'p_turret_b', P.summit[0] + Math.cos(a) * 19, P.summit[1] + Math.sin(a) * 17, { solid: true }); }
   lit(P.summit[0], P.summit[1], '#9ad0ff', 220, 0.35);
   // bridges over the gaps, waterfalls down the terraces
   for (const [n, x, y] of [['p_bridge_rope', 106, 106], ['p_bridge_stone', 62, 106], ['p_bridge_wood', 120, 168]]) b.prop(n, x, y, { layer: 'ground' });

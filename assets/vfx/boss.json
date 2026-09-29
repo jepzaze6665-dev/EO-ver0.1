@@ -489,6 +489,97 @@
   "frames": 7,
   "set": "boss"
  },
+ "w_spark": {
+  "file": "assets/vfx/boss/w_spark.png",
+  "fw": 51,
+  "fh": 72,
+  "frames": 13,
+  "set": "boss"
+ },
+ "w_slash": {
+  "file": "assets/vfx/boss/w_slash.png",
+  "fw": 78,
+  "fh": 69,
+  "frames": 12,
+  "set": "boss"
+ },
+ "w_burst": {
+  "file": "assets/vfx/boss/w_burst.png",
+  "fw": 90,
+  "fh": 84,
+  "frames": 11,
+  "set": "boss"
+ },
+ "w_spikes": {
+  "file": "assets/vfx/boss/w_spikes.png",
+  "fw": 124,
+  "fh": 79,
+  "frames": 9,
+  "set": "boss"
+ },
+ "w_bolt": {
+  "file": "assets/vfx/boss/w_bolt.png",
+  "fw": 124,
+  "fh": 69,
+  "frames": 8,
+  "set": "boss"
+ },
+ "w_blast": {
+  "file": "assets/vfx/boss/w_blast.png",
+  "fw": 87,
+  "fh": 73,
+  "frames": 9,
+  "set": "boss"
+ },
+ "w_sigil": {
+  "file": "assets/vfx/boss/w_sigil.png",
+  "fw": 105,
+  "fh": 94,
+  "frames": 9,
+  "set": "boss"
+ },
+ "w_crater": {
+  "file": "assets/vfx/boss/w_crater.png",
+  "fw": 104,
+  "fh": 81,
+  "frames": 9,
+  "set": "boss"
+ },
+ "w_crystal": {
+  "file": "assets/vfx/boss/w_crystal.png",
+  "fw": 64,
+  "fh": 66,
+  "frames": 10,
+  "set": "boss"
+ },
+ "w_sparkle": {
+  "file": "assets/vfx/boss/w_sparkle.png",
+  "fw": 124,
+  "fh": 64,
+  "frames": 10,
+  "set": "boss"
+ },
+ "w_pillar": {
+  "file": "assets/vfx/boss/w_pillar.png",
+  "fw": 78,
+  "fh": 85,
+  "frames": 12,
+  "set": "boss"
+ },
+ "w_eruption": {
+  "file": "assets/vfx/boss/w_eruption.png",
+  "fw": 107,
+  "fh": 84,
+  "frames": 10,
+  "set": "boss"
+ },
+ "w_shatter": {
+  "file": "assets/vfx/boss/w_shatter.png",
+  "fw": 149,
+  "fh": 69,
+  "frames": 8,
+  "set": "boss"
+ },
  "ca_form": {
   "file": "assets/vfx/boss/ca_form.png",
   "fw": 105,

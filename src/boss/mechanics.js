@@ -448,5 +448,89 @@ class CrystalArmor {
   }
 }
 
-export const MECHANICS = { overheat: Overheat, lava_pools: LavaPools, stance: Stance, rune_sequence: RuneSequence, echoes: Echoes, judgement: Judgement, frostbite: Frostbite, glacier: Glacier, crystal_armor: CrystalArmor };
+// pylons (final attack, from phase d.phase once HP reaches `at`): SHATTERED ECLIPSE. The boss rises in the arena centre,
+// untouchable, and charges for `channel` s while `count` crystal PYLONS (breakables, `hp`) stand around the arena. All
+// broken in time -> the charge collapses: it is EXPOSED for `weak` s. Too slow -> a nova hits everyone (`power`,
+// unblockable, an invulnerable dodge still saves you) and it tries again after `retry` s. HP floor `at` until the first
+// success, so a fast burst cannot skip it.
+class Pylons {
+  constructor(boss, d) { this.b = boss; this.d = { phase: 4, at: 0.1, count: 3, hp: 700, channel: 12, dist: 170, power: 80, weak: 7, retry: 16, prop: 'p_crystal_big', name: 'SHATTERED ECLIPSE', ...d }; this.reset(); }
+  reset() {
+    if (this.list) this.clear();
+    this.list = []; this.pending = false; this.done = false; this.casting = false; this.success = 0; this.fails = 0; this.t = 0; this.chargeT = 0;
+  }
+  clear() {
+    const w = this.b.game.world;
+    for (const c of this.list) { c.dead = true; if (c.prop) c.prop.visible = false; const i = w.breakables.indexOf(c); if (i >= 0) w.breakables.splice(i, 1); }
+    this.list = [];
+  }
+  hpFloor() { return this.success ? 0 : this.d.at; }
+  update(dt) {
+    const b = this.b;
+    if (b.dead) { this.clear(); return; }
+    if (this.casting && b.co !== this.gen) { this.casting = false; this.clear(); b.hurtable = true; this.t = 2; } // interrupted: again soon
+    if (this.t > 0) this.t -= dt;
+    if (!this.success && !this.casting && this.t <= 0 && b.phase >= this.d.phase && b.hp <= Math.ceil(b.maxHp * this.d.at) + 1 && b.state === 'fight') this.pending = true;
+  }
+  wantsTurn() { return this.pending && !this.casting ? (this.gen = this.cast()) : null; }
+  *cast() {
+    const b = this.b, g = b.game, d = this.d, w = g.world;
+    this.pending = false; this.casting = true;
+    let t = 0;
+    yield (dt) => { t += dt; b.pose = 'walk'; return b.stepToward(b.center.x, b.center.y, 260, dt) < 14 || t > 1.4; };
+    b.hurtable = false;
+    b.curMove = { anim: { roar: d.anim || 'roar' } };
+    b.pose = 'roar';
+    g.ui.callout(d.name, 'Break the crystal pylons before the eclipse shatters!', '#d8b8ff');
+    g.audio.sfx('roar');
+    const a0 = Math.random() * Math.PI * 2;
+    for (let k = 0; k < d.count; k++) {
+      const a = a0 + (k / d.count) * Math.PI * 2, c = b.clampToArena(b.center.x + Math.cos(a) * d.dist, b.center.y + Math.sin(a) * d.dist, 40);
+      const prop = w.map.addProp({ name: d.prop, x: c.x, y: c.y + 10, scale: 0.8 });
+      const br = new Breakable(g, c.x, c.y, { kind: 'crystal', hp: d.hp, radius: 18, height: 50, prop, label: 'Eclipse Pylon' });
+      const onDeath0 = br.onDeath.bind(br); br.onDeath = () => { onDeath0(); prop.visible = false; g.events.emit('bossPylonBroken', { bossId: b.bossId }); };
+      w.breakables.push(br);
+      this.list.push(br);
+      b.fx('pillar', c.x, c.y + 8, 0, { scale: 1, life: 0.8 });
+    }
+    const tel = b.tele({ shape: 'circle', x: b.center.x, y: b.center.y, r: b.arenaR, total: d.channel, color: '200,140,255' }, { dmg: 'magic' });
+    this.chargeT = d.channel;
+    yield (dt) => {
+      this.chargeT -= dt;
+      if (Math.random() < dt * 8) b.fx('spark', b.x + (Math.random() - 0.5) * 60, b.y - 40 - Math.random() * 40, 0, { scale: 0.8, life: 0.4 });
+      return this.list.every((c) => c.dead) || this.chargeT <= 0;
+    };
+    const won = this.list.every((c) => c.dead);
+    this.clear();
+    b.hurtable = true;
+    this.casting = false;
+    b.curMove = null;
+    if (won) {
+      tel.resolved = true; tel.cancelled = true;
+      this.success++;
+      g.vfx.text(b.x, b.y - b.height - 20, 'ECLIPSE SHATTERED!', { color: '#d8b8ff', size: 14 });
+      b.fx('shatter', b.x, b.y - 30, 0, { scale: 1.4, life: 0.8 });
+      g.camera.shake(0.8);
+      g.events.emit('bossEclipse', { bossId: b.bossId, broken: true });
+      b.enterWeak(d.weak, 'EXPOSED');
+      return;
+    }
+    // too slow: the nova
+    for (const p of g.players()) if (!p.dead && !p.invulnerable()) g.combat.dealDamage(b, p, { power: d.power, type: 'magic', unblockable: true, knock: 260 });
+    g.vfx.flash('200,150,255', 0.6, 1.4);
+    g.camera.shake(1);
+    b.fx('nova', b.center.x, b.center.y, 0, { scale: b.arenaR / 45, life: 0.8, ground: true, squash: 0.6 });
+    this.fails++;
+    g.events.emit('bossEclipse', { bossId: b.bossId, broken: false });
+    this.t = d.retry;
+    yield 0.6;
+  }
+  tags() {
+    if (!this.casting) return [];
+    const left = this.list.filter((c) => !c.dead).length;
+    return [{ label: `PYLONS ${left} · ${Math.max(0, Math.ceil(this.chargeT))}s`, color: '#ff9ad8' }];
+  }
+}
+
+export const MECHANICS = { overheat: Overheat, lava_pools: LavaPools, stance: Stance, rune_sequence: RuneSequence, echoes: Echoes, judgement: Judgement, frostbite: Frostbite, glacier: Glacier, crystal_armor: CrystalArmor, pylons: Pylons };
 export const MECHANIC_TYPES = Object.keys(MECHANICS);

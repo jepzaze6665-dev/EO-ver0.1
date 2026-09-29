@@ -1422,10 +1422,14 @@ export function b3Check(g, classId = 'umbral_sword') {
   use(g, 'ws_b3_camp'); g.ui.panels.close(true);
   ok('Nomad Camp waystone attuned', w.state.waystones.ws_b3_camp);
   for (const [x, y] of [[66, 150], [82, 108], [84, 76]]) { goto(g, x, y); g.simulate(0.6); }
-  ok('Quest: lakes · stairs · summit gate', q.isDone('frostpeak_climb'), JSON.stringify(q.active.frostpeak_climb && q.active.frostpeak_climb.done));
+  const qd = q.active.frostpeak_climb && q.active.frostpeak_climb.done;
+  ok('Quest: lakes · stairs · summit gate (boss step next)', qd && qd.lakes && qd.stairs && qd.summit && !qd.boss, JSON.stringify(qd));
+  let asked = false; const ask0 = g.ui.panels.confirm.bind(g.ui.panels);
+  g.ui.panels.confirm = (t, b, y, n, onYes, onNo) => { asked = true; g.ui.panels.confirm = ask0; onNo(); };
   goto(g, 90, 56);
-  for (let k = 0; k < 10; k++) walk(g, 'KeyW', 0.3);
-  ok('The Summit Citadel is not walkable from B3 yet', p.y > 49 * TILE && w.mapId === 'b3', `y=${(p.y / TILE).toFixed(1)}`);
+  for (let k = 0; k < 8 && !asked; k++) walk(g, 'KeyW', 0.3);
+  g.ui.panels.confirm = ask0;
+  ok('The Summit Gate asks first · "Not yet" stays in B3', asked && w.mapId === 'b3', `asked=${asked} map=${w.mapId}`);
   goto(g, 131, 118); g.simulate(0.3);
   const pos = [p.x, p.y];
   g.saveGame(); w.changeMap('lumina'); g.simulate(0.3); const loaded = g.loadGame();
@@ -1434,5 +1438,66 @@ export function b3Check(g, classId = 'umbral_sword') {
   goto(g, 81, 201);
   for (let k = 0; k < 12 && w2.mapId !== 'b2'; k++) walk(g, 'KeyS', 0.3);
   ok('Back down through the South Gate to the caverns', w2.mapId === 'b2', `map=${w2.mapId}`);
+  return R;
+}
+
+// B3b: the CRYSTAL WARDEN (B3 major) on the Summit Citadel — confirm gate, arena, 4 phases (forms change), FROST SCRIPT
+// sigils, REFLECTIONS, SHATTERED ECLIPSE (break the pylons in time -> EXPOSED; god mode lets it fail once first), rewards,
+// ROUTE B COMPLETE, the north road to City 2.
+export function b3BossCheck(g, classId = 'umbral_sword', { god = true, level = 17, seconds = 480 } = {}) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
+  for (const b of ['boss_b1', 'boss_b2']) wp.defeatBoss(b);
+  const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
+  w.changeMap('b3', { entry: [81.5, 196] }); g.simulate(0.5);
+  for (const [x, y] of [[66, 150], [82, 108], [84, 76]]) { goto(g, x, y); g.simulate(0.5); }
+  w.transitions.autoConfirm = true;
+  goto(g, 90, 56);
+  for (let k = 0; k < 10 && w.mapId !== 'summit'; k++) walk(g, 'KeyW', 0.3);
+  g.simulate(0.6); // the Warden appears a moment after the map loads
+  const enc = g.bosses.get('boss_b3');
+  ok('Summit Citadel = its own boss-arena map · the Warden waits', w.mapId === 'summit' && w.mapDef.type === 'boss_arena' && enc.state === 'idle', `map=${w.mapId} ${enc.state}`);
+  p.setLevel(level); p.hp = p.maxHp; g.inventory.add('hp_potion', 5, true);
+  for (let k = 0; k < 12 && enc.state !== 'engaged'; k++) walk(g, 'KeyW', 0.35);
+  ok('Engaged: exits sealed, camera held', enc.state === 'engaged' && !!g.camera.lock && w.mapDef.exits.every((x) => !w.transitions.isOpen(x)), enc.state);
+  const e = enc.entity, moves = new Set(), phases = new Set(), anims = new Set(), fxUsed = new Set();
+  const st = { bursts: 0, eclipse: [], badTag: false, pylonsBroken: 0 };
+  const on = (n, f) => { g.events.on(n, f); return [n, f]; };
+  const subs = [on('runeBurst', () => st.bursts++), on('bossEclipse', (x) => st.eclipse.push(x.broken)), on('bossPylonBroken', () => st.pylonsBroken++)];
+  const spawn0 = g.vfx.sprite.bind(g.vfx); g.vfx.sprite = (n, ...a) => { if (/^(w|ca)_/.test(n)) fxUsed.add(n); return spawn0(n, ...a); };
+  const echoes = e.mech.find((m) => m.copies !== undefined), py = e.mech.find((m) => m.hpFloor && m.list && m.chargeT !== undefined);
+  let t = 0;
+  for (; t < seconds && enc.state !== 'defeated' && !p.dead; t += 0.5) {
+    g.simulate(0.5, (gg, i) => {
+      // pylons: god runs ignore the first eclipse (it must go off), then smash; balance runs smash straight away
+      const smash = py.casting && py.list.length && (!god || st.eclipse.length > 0);
+      bot(gg, i, { god, target: smash ? py.list.find((c) => !c.dead) : null, breakables: smash });
+      if (god && py.casting && !st.eclipse.length) { p.hp = p.maxHp; p.invulnT = 0; }
+      if (e.curMove && e.curMove.id) moves.add(e.curMove.id);
+      if (e.curMove) moves.add(Object.keys(e.def.moves).find((k) => e.def.moves[k] === e.curMove));
+      if (!e.dead && e.sprites && e.sprites.sheet) { const fr = e.sheetFrame(e.sprites); for (const [n, list] of Object.entries(e.sprites.anims)) if (list.includes(fr)) anims.add(n); }
+      for (const tg of e.hudState().tags) if (!tg || typeof tg.label !== 'string') st.badTag = true;
+    });
+    phases.add(e.phase);
+  }
+  releaseInput(g);
+  g.simulate(6);
+  g.vfx.sprite = spawn0;
+  for (const [n, f] of subs) g.events.off(n, f);
+  ok('Forms change with the phases (dormant / awakened / corrupted art)', ['p1_idle', 'p2_idle', 'p3_idle'].filter((a) => anims.has(a)).length >= 2 || ['p1_hit', 'p2_hit', 'p3_hit'].filter((a) => anims.has(a)).length >= 2, [...anims].join(','));
+  ok('AWAKENED: frost sigils burst in order', st.bursts >= 4, `bursts=${st.bursts}`);
+  ok('CORRUPTED: reflections copy its attacks', echoes.copies > 0, `copies=${echoes.copies}`);
+  ok(`SHATTERED ECLIPSE: pylons broken in time -> EXPOSED${god ? ' (after one failed charge)' : ''}`, st.eclipse.includes(true) && (!god || st.eclipse[0] === false), JSON.stringify(st.eclipse));
+  ok('B3 VFX (w_*) + phase auras (ca_*) play', [...fxUsed].filter((n) => n.startsWith('w_')).length >= 4 && [...fxUsed].some((n) => n.startsWith('ca_')), [...fxUsed].join(','));
+  if (god) ok('Every move used', Object.keys(e.def.moves).every((m) => moves.has(m)), [...moves].filter(Boolean).join(','));
+  ok('4 phases · HUD tags well-formed', [1, 2, 3, 4].every((ph) => phases.has(ph)) && !st.badTag, [...phases].join(','));
+  ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_b3') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
+  if (enc.state === 'defeated') {
+    ok('Rewards once (Warden crest + lore) · quest done · ROUTE B COMPLETE · City 2 open · no pylons left', g.inventory.count('warden_crest') === 1 && w.state.lore.crystal_warden && q.isDone('frostpeak_climb') && trig.includes('b3_boss_defeated') && wp.routeStatus('B').complete && wp.isMapUnlocked('city2') && !py.list.length);
+    goto(g, 90, 14);
+    for (let k = 0; k < 12 && w.mapId !== 'city2'; k++) walk(g, 'KeyW', 0.3);
+    ok('North road from the summit -> Asteria City', w.mapId === 'city2', `map=${w.mapId}`);
+  }
   return R;
 }

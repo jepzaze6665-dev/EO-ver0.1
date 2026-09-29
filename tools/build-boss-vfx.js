@@ -50,6 +50,11 @@ const SHEETS = [
     counts: { slash: 7, crater: 8, star: 9, pillar: 11, eruption: 9, shatter: 9 },
   },
   {
+    prefix: 'w', dir: 'desgin/monster/B/B3/VFX BOSS', bg: 'light', // B3 ice blue (the Crystal Warden)
+    names: ['spark', 'slash', 'burst', 'spikes', 'bolt', 'blast', 'sigil', 'crater', 'crystal', 'sparkle', 'pillar', 'eruption', 'shatter'],
+    counts: { spark: 13, slash: 12, burst: 11, spikes: 9, bolt: 8, blast: 10, sigil: 9, crater: 9, crystal: 10, sparkle: 10, pillar: 12, eruption: 10, shatter: 8 },
+  },
+  {
     prefix: 'ca', dir: 'desgin/monster/B/B2/AURA Phase BOSS', bg: 'light', // B2 phase aura: gather -> ring -> vortex -> surge -> burst
     names: ['form', 'ring', 'vortex', 'surge', 'burst'],
     counts: { ring: 8, vortex: 8, surge: 7, burst: 9 },
