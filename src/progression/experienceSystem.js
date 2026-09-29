@@ -1,5 +1,6 @@
 import { LEVELS } from '../data/levels.js';
 import { questExp, hiddenExp } from './rewardScaling.js';
+import { DIFFICULTY } from '../data/difficulty.js';
 
 // EXPERIENCE SYSTEM: turns game events into EXP. The rules (curve, cap, level-up) live in
 // data/levels.js + progression/experience.js; this file only decides *who* gets *how much* from which event.
@@ -9,7 +10,8 @@ import { questExp, hiddenExp } from './rewardScaling.js';
 export class ExperienceSystem {
   constructor(game, rules = LEVELS) {
     this.game = game;
-    const give = (n) => { if (n > 0) game.player.gainExp(n); };
+    // DIFFICULTY.expRate: the whole game's EXP pace (owner: levels came too easily)
+    const give = (n) => { if (n > 0) game.player.gainExp(Math.max(1, Math.round(n * DIFFICULTY.expRate))); };
     const ev = game.events;
     ev.on('enemyDefeated', (e) => { if (!e.summoned) give(e.exp); });
     // quest / secret EXP follows the new level bands (progression/rewardScaling.js, Level rework L4)

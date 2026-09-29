@@ -10,6 +10,7 @@ import { bossScale } from '../src/progression/levelScaling.js';
 import { questExp, hiddenExp } from '../src/progression/rewardScaling.js';
 import { Monster } from '../src/monsters/monster.js';
 import { START_GRID } from '../src/world/levels/index.js';
+import { DIFFICULTY } from '../src/data/difficulty.js';
 
 // which quests belong to which map (the start quests count for both routes)
 export const ROUTES = {
@@ -46,7 +47,7 @@ export function pacing(g, { routes = ['A', 'B'] } = {}) {
   const out = {};
   for (const r of routes) {
     let level = 1, xp = 0;
-    const add = (n) => { const s = addExp(level, xp, n); level = s.level; xp = s.exp; };
+    const add = (n) => { const s = addExp(level, xp, Math.round(n * DIFFICULTY.expRate)); level = s.level; xp = s.exp; };
     const rows = [];
     for (const step of ROUTES[r]) {
       const clear = mapClearExp(g, step.map);

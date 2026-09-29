@@ -11,6 +11,7 @@ import { THREADS } from '../data/threads.js';
 // as data; enemies resolve telegraphed strikes through enemyStrike(). All feedback
 // (hit flash, hit stop, numbers, sparks, shake, sound) is centralised here.
 import { DODGE } from '../data/dodge.js'; // dodge / perfect dodge rules (PERFECT_WINDOW moved there)
+import { DIFFICULTY } from '../data/difficulty.js';
 export { DODGE };
 
 // skill level modifiers of the action being run (Player.castMods, progression/skillLevels.js): power × and size ×.
@@ -151,6 +152,11 @@ export class Combat {
     if (!attacker && src && src.status && opts.power !== undefined) opts = { ...opts, power: opts.power * src.status.damageMult() };
     // LEVEL SCALING (progression/levelScaling.js): a boss moved to a new level hits accordingly (every move / mechanic)
     if (!attacker && src && src.levelPowerMult && opts.power !== undefined) opts = { ...opts, power: opts.power * src.levelPowerMult };
+    // DIFFICULTY (data/difficulty.js): enemy hits on players — guarding and dodging must matter
+    if (!attacker && target.team === TEAM.PLAYER && opts.power !== undefined && (!src || src.team !== TEAM.PLAYER)) {
+      const k = DIFFICULTY.enemyDamage, boss = src && (src.isBoss || src.type === 'guardian');
+      opts = { ...opts, power: opts.power * (opts.dot ? k.dot : boss ? k.boss : k.monster) };
+    }
     // Counter Window (combat/counterSystem.js): hitboxes may carry counterMult = extra power against an open target
     if (opts.counterMult && target.status && target.status.has('counter_window') && opts.power !== undefined) opts = { ...opts, power: opts.power * opts.counterMult };
     const res = computeDamage(attacker, {

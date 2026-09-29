@@ -1,5 +1,6 @@
 // Unit tests for the combat <-> world glue: target system, loot tables, enemyDefeated listeners.
 // Run:  node tools/tests/worldCombat.test.mjs
+import { DIFFICULTY } from '../../src/data/difficulty.js';
 import { TargetSystem } from '../../src/combat/targetSystem.js';
 import { rollLoot, LootSystem } from '../../src/loot/lootSystem.js';
 import { LOOT_TABLES } from '../../src/data/lootTables.js';
@@ -62,7 +63,7 @@ test('a defeat gives EXP + gold + drops once, and reports lootDropped', () => {
   const g = fakeGame(); let dropped = 0;
   g.events.on('lootDropped', () => dropped++);
   g.events.emit('enemyDefeated', { type: 'wolf', exp: 18, loot: 'wolf', x: 0, y: 0 });
-  eq(g.got.exp, 18); eq(g.got.gold, 2); eq(g.got.items.wolf_fang, 1); eq(dropped, 1);
+  eq(g.got.exp, Math.round(18 * DIFFICULTY.expRate)); eq(g.got.gold, 2); eq(g.got.items.wolf_fang, 1); eq(dropped, 1);
 });
 test('summoned adds give nothing (no infinite EXP / loot)', () => {
   const g = fakeGame();
@@ -76,7 +77,7 @@ test('EXP sources: quest reward + exploration events use data values', () => {
   g.events.emit('secretFound', { id: 1 }); g.events.emit('areaDiscovered', {}); g.events.emit('loreFound', {});
   g.events.emit('questCompleted', { id: 'q2', reward: {} });
   g.events.emit('hiddenFound', { id: 'x', reward: { exp: 60, gold: 7 } });
-  eq(g.got.exp, 80 + 10 + 25 + 60, 'secretFound itself gives nothing; the hidden entry pays'); eq(g.got.gold, 7);
+  eq(g.got.exp, [80, 10, 25, 60].reduce((s, n) => s + Math.round(n * DIFFICULTY.expRate), 0), 'secretFound itself gives nothing; the hidden entry pays'); eq(g.got.gold, 7);
 });
 
 console.log('monster foundation');

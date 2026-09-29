@@ -677,5 +677,12 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   playthrough 17/17, a1Loop, mapTour 9/9, gridCheck 20/20, cityCheck 11/11, routeB / b2 / b3 7/7, Combat 2.0 checks.
   (spriteMonsterCheck fails when run right after partyCheck — leftover state; 20/20 on a fresh page.)
   LEVEL REWORK L1-L4 COMPLETE.
+- DIFFICULTY PASS (owner playtest: "levels too easy, bosses deal no damage — guard / dodge must matter"): `src/data/difficulty.js`
+  enemyDamage (× every flat enemy hit on a player in combat.dealDamage: monster 1.7 · boss 1.9 · dot 1.2) + expRate 0.75 (every EXP
+  reward, ExperienceSystem; pacing tool too). Measured hits: mobs avg 15% max HP (was 8), Hoarfang avg 22% / max 54% (was 11 / 29),
+  Crystal Warden avg 32% (was 13). Endure (anti one-shot at >= 90% HP) unchanged. Guardian bot: dodging UB WIN 100 s / AG 150 s;
+  NO-DODGE (balance botOpts { noDodge: true }): UB DIES in 45 s, AG still wins by guarding (1094 damage blocked / taken).
+  Pacing (one clear, no farming): A 12 / 23 / 33 -> LV 34, B 14 / 27 / 39 -> LV 40 (fighting respawns reaches 38 / 45).
+  All dodging bots still win every boss; regression green (routeA, playthrough, checklist, tank, a2 / a3 monsters, combat).
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.
