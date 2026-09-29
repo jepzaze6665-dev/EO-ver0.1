@@ -29,26 +29,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1639,
-   "emptyFrames": []
-  },
-  "idle": {
-   "file": "assets/player/ag/idle.png",
-   "fw": 160,
-   "fh": 160,
-   "rows": 4,
-   "cols": 6,
-   "ax": 80,
-   "ay": 140,
-   "sides": [
-    {
-     "right": 3,
-     "left": 2,
-     "flipLeft": false,
-     "flipRight": false
-    }
-   ],
-   "sourceScale": 0.1639,
+   "sourceScale": 0.1579,
    "emptyFrames": []
   },
   "atk1": {
@@ -61,32 +42,13 @@
    "ay": 140,
    "sides": [
     {
-     "right": 3,
-     "left": 2,
+     "right": 2,
+     "left": 3,
      "flipLeft": false,
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1648,
-   "emptyFrames": []
-  },
-  "atk2": {
-   "file": "assets/player/ag/atk2.png",
-   "fw": 160,
-   "fh": 160,
-   "rows": 4,
-   "cols": 6,
-   "ax": 80,
-   "ay": 140,
-   "sides": [
-    {
-     "right": 3,
-     "left": 2,
-     "flipLeft": false,
-     "flipRight": false
-    }
-   ],
-   "sourceScale": 0.1835,
+   "sourceScale": 0.1714,
    "emptyFrames": []
   },
   "guard": {
@@ -105,11 +67,11 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1653,
+   "sourceScale": 0.1604,
    "emptyFrames": []
   },
-  "parry": {
-   "file": "assets/player/ag/parry.png",
+  "dash": {
+   "file": "assets/player/ag/dash.png",
    "fw": 160,
    "fh": 160,
    "rows": 4,
@@ -124,7 +86,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1639,
+   "sourceScale": 0.1923,
    "emptyFrames": []
   },
   "hit": {
@@ -143,7 +105,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1635,
+   "sourceScale": 0.1571,
    "emptyFrames": []
   },
   "sk1": {
@@ -156,13 +118,13 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
-     "left": 3,
+     "right": 3,
+     "left": 2,
      "flipLeft": false,
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1775,
+   "sourceScale": 0.1744,
    "emptyFrames": []
   },
   "sk2": {
@@ -176,12 +138,12 @@
    "sides": [
     {
      "right": 3,
-     "left": 3,
-     "flipLeft": true,
+     "left": 2,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1775,
+   "sourceScale": 0.1835,
    "emptyFrames": []
   },
   "sk3": {
@@ -200,7 +162,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1754,
+   "sourceScale": 0.1648,
    "emptyFrames": []
   },
   "sk4": {
@@ -219,7 +181,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2098,
+   "sourceScale": 0.1796,
    "emptyFrames": []
   },
   "sk5": {
@@ -238,7 +200,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.177,
+   "sourceScale": 0.1899,
    "emptyFrames": []
   },
   "sk6": {
@@ -257,7 +219,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1667,
+   "sourceScale": 0.1662,
    "emptyFrames": []
   },
   "ult": {
@@ -270,25 +232,18 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 2,
-     "flipLeft": true,
+     "flipLeft": false,
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2,
+   "sourceScale": 0.1954,
    "emptyFrames": []
   }
  },
  "validation": {
   "walk": {
-   "bodyHeight": 58,
-   "feetMaxOffset": 1,
-   "centerOffset": 0,
-   "ok": true,
-   "issues": []
-  },
-  "idle": {
    "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": 0,
@@ -302,13 +257,6 @@
    "ok": true,
    "issues": []
   },
-  "atk2": {
-   "bodyHeight": 58,
-   "feetMaxOffset": 1,
-   "centerOffset": 0,
-   "ok": true,
-   "issues": []
-  },
   "guard": {
    "bodyHeight": 58,
    "feetMaxOffset": 1,
@@ -316,7 +264,7 @@
    "ok": true,
    "issues": []
   },
-  "parry": {
+  "dash": {
    "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": 0,
@@ -324,7 +272,7 @@
    "issues": []
   },
   "hit": {
-   "bodyHeight": 58,
+   "bodyHeight": 59,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
@@ -333,7 +281,7 @@
   "sk1": {
    "bodyHeight": 58,
    "feetMaxOffset": 1,
-   "centerOffset": 0,
+   "centerOffset": 1,
    "ok": true,
    "issues": []
   },
@@ -347,7 +295,7 @@
   "sk3": {
    "bodyHeight": 58,
    "feetMaxOffset": 1,
-   "centerOffset": 0,
+   "centerOffset": -2,
    "ok": true,
    "issues": []
   },
@@ -360,13 +308,13 @@
   },
   "sk5": {
    "bodyHeight": 58,
-   "feetMaxOffset": 1,
-   "centerOffset": 0,
+   "feetMaxOffset": 0,
+   "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "sk6": {
-   "bodyHeight": 59,
+   "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,

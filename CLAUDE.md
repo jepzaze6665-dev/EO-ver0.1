@@ -60,8 +60,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 
 ## Assets (never reference a path without a real file)
 - Monster art: `desgin/monster/<A|B>/<A1..A3|B1..B3>/` (1..4, BOSS, VFX BOSS, AURA Phase BOSS / Phase BOSS).
-- Raw art: `desgin/class cr/<AW|AG NEW>/` + the Umbral line in `desgin/class cr/UB/<UB|RP|DR|BE>/` (UB, Nightfall
-  Reaper, Duskrunner, Blade of Echoes); VFX `desgin/VFX/<AW|AG>/` + `desgin/VFX/UB/<UB|RP|DR|BE>/` (AI sheets: fake
+- Raw art: `desgin/class cr/AW/` + the Umbral line in `desgin/class cr/UB/<UB|RP|DR|BE>/` (UB, Nightfall
+  Reaper, Duskrunner, Blade of Echoes) + the Aegis line in `desgin/class cr/AG/<AG NEW|WD|BS|OK>/` (AG = new set 2026-09-29:
+  walk1.png ATK1 DASH DEF HIT SK1-6 UT, no idle / atk2 / parry sheet; WD / BS / OK = Warden of Dawn / Bulwark Sentinel /
+  Oathbreaker, not built yet); VFX `desgin/VFX/AW/` + `desgin/VFX/UB/<UB|RP|DR|BE>/` + `desgin/VFX/AG/<AG|DW|BS|OK>/` (AI sheets: fake
   checkerboard background, 6 columns × 4 direction rows; DR / BE atk2 have 5 poses per row).
 - `node tools/build-player.js [ub|aw|ag|rp|dr|be]` → `assets/player[/<preset>]/*.png + atlas.json`. Every preset is
   normalised to the same standard: canvas 160×160, pivot (80,140), neutral body ≈ 58-59 px. Frames are cut by
@@ -517,4 +519,5 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   scale (no hue shift on the blue Warden). City 2 has TWO roads: South Gate = Route A (Sanctum), EAST GATE = Route B (the
   summit north road arrives at [154,67]; exit east_road, bridge over the moat, towers).
   Next: owner decides (Route A/B both complete; City 2 content, balance with a human player, F3 debug overlay).
-- Known art limits: AG walk sheet barely moves its legs (a code step-bob compensates; new walk art would fix it).
+- AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
+  attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.

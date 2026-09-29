@@ -9,23 +9,24 @@ import { TAU, rand } from '../core/math.js';
 
 const GOLD = '#ffd070', HOLY = '255,220,140', BLUE = '120,180,255';
 
-// every base move comes from the AG NEW sheets, so the shield is always there (one consistent design)
+// every move comes from the owner's new AG set (desgin/class cr/AG/AG NEW): the shield is in every sheet.
+//   no idle / 2nd attack / parry sheet: idle = walk col 0, the 3 combo cuts share ATK1, perfect guard = DEF riposte
 //   bob: code-driven step bounce in px — the AG walk art barely moves its legs, the bounce sells the step
 export const AG_ANIMS = {
-  idle: { sheet: 'idle', cols: [0, 1, 2, 3, 4, 5], fps: 4, loop: true }, // breathing
+  idle: { sheet: 'walk', cols: [0] },
   walk: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 8, loop: true, bob: 2 },
   run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 12, loop: true, bob: 3 },
   atk1: { sheet: 'atk1', cols: [1, 2] },          // overhead cut
-  atk2: { sheet: 'atk2', cols: [1, 2, 3] },       // thrust
-  atk3: { sheet: 'atk1', cols: [2, 3, 3, 4] },    // full sweeping arc
-  dodge: { sheet: 'walk', cols: [2, 3, 4] },
+  atk2: { sheet: 'atk1', cols: [3, 3] },          // thrust
+  atk3: { sheet: 'atk1', cols: [1, 2, 2, 2] },    // full sweeping arc
+  dodge: { sheet: 'dash', cols: [2, 3, 4] },      // real dash art (lean + speed lines)
   guard: { sheet: 'guard', cols: [3] },           // shield square to the front in all 4 directions
   shieldBash: { sheet: 'sk1', cols: [1, 2, 3, 4] },
   guardianSlash: { sheet: 'sk2', cols: [1, 2, 3, 4] },
   challenge: { sheet: 'sk4', cols: [1, 2, 3, 3, 4] },
   barrier: { sheet: 'sk5', cols: [1, 2, 3, 3, 4] },
   counter: { sheet: 'sk6', cols: [3, 3, 4, 4] },  // golden flash on the shield -> riposte
-  perfectGuard: { sheet: 'parry', cols: [2, 3, 4] },
+  perfectGuard: { sheet: 'guard', cols: [3, 3, 4] }, // shield up -> riposte thrust
   ascension: { sheet: 'ult', cols: [1, 2, 2, 3, 3, 4] },
   hurt: { sheet: 'hit', cols: [2, 3] },
   death: { sheet: 'hit', cols: [2, 3, 3] },

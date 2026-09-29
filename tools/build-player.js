@@ -34,24 +34,24 @@ PRESETS.ub = { out: 'assets/player', sheets: {
   ult: ['desgin/class cr/UB/UB/UB UT.png', 4],
   vfx: ['desgin/class cr/UB/UB/UB VFX', 8],
 } };
-const AG = 'desgin/class cr/AG/';
-// Aegis Guardian — the "AG NEW" set: black / gold mantle, shield visible in every sheet (one design).
-const AGN = 'desgin/class cr/AG NEW/';
-PRESETS.ag = { out: 'assets/player/ag', sheets: {
+// Aegis Guardian — the owner's new AG set (2026-09-29): silver armour, blue cape, blue / gold shield in every sheet.
+// No separate idle / 2nd attack / parry sheet: idle = walk col 0, ATK1 holds all 3 combo cuts, DEF holds guard + riposte.
+const AGN = 'desgin/class cr/AG/AG NEW/';
+// nearestBody: the thrust / swing blades are drawn a pixel away from the hand (see componentFrames)
+PRESETS.ag = { out: 'assets/player/ag', nearestBody: true, sheets: {
   walk: [AGN + 'walk1.png', 4],
-  idle: [AGN + 'image-ed9b37cb-d52f-423d-8a61-0495e5f3ce6d-0', 4],
-  atk1: [AGN + 'atk1', 4],
-  atk2: [AGN + 'atk2', 4],
-  guard: [AGN + 'new', 4],
-  parry: [AGN + 'pary', 4],
-  hit: [AGN + 'hit', 4],
-  sk1: [AGN + 'sk1', 4],
-  sk2: [AGN + 'sk2', 4],
-  sk3: [AGN + 'sk3', 4],
-  sk4: [AGN + 'sk4', 4],
-  sk5: [AGN + 'sk5', 4],
-  sk6: [AGN + 'sk6', 4],
-  ult: [AGN + 'ut', 4],
+  // ATK1's attack poses are drawn mirrored vs its idle poses: row 2 cuts / thrusts to the RIGHT, row 3 to the left
+  atk1: [AGN + 'ATK1', 4, { facing: { right: 2, left: 3 } }],
+  guard: [AGN + 'DEF', 4],
+  dash: [AGN + 'DASH', 4],
+  hit: [AGN + 'HIT', 4],
+  sk1: [AGN + 'SK1', 4],
+  sk2: [AGN + 'SK2', 4],
+  sk3: [AGN + 'SK3', 4],
+  sk4: [AGN + 'SK4', 4],
+  sk5: [AGN + 'SK5', 4],
+  sk6: [AGN + 'SK6', 4],
+  ult: [AGN + 'UT', 4],
 } };
 // Nightfall Reaper (Class 2 of Umbral Sword)
 // facing: the hood hides the face, so the skin-based side detection cannot tell left from right —
@@ -568,7 +568,8 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
   });
   png.write(path.join(OUT, name + '.png'), sheet);
   const sides = [];
-  for (let base = 0; base < rows; base += 4) sides.push(FACING ? { right: base + FACING.right, left: base + FACING.left, flipLeft: false, flipRight: false } : sideRows(sheet, { fw: CW, fh: CH, ax: PX }, base));
+  const face = opt.facing || FACING; // per-sheet facing override > preset facing > detected
+  for (let base = 0; base < rows; base += 4) sides.push(face ? { right: base + face.right, left: base + face.left, flipLeft: false, flipRight: false } : sideRows(sheet, { fw: CW, fh: CH, ax: PX }, base));
   atlas.sheets[name] = { file: outRel + '/' + name + '.png', fw: CW, fh: CH, rows, cols: COLS, ax: PX, ay: PY, sides, sourceScale: +scale.toFixed(4) };
   // frames with (almost) no character body: animations must never show them (tools/tests/sprites.test.mjs)
   atlas.sheets[name].emptyFrames = [];

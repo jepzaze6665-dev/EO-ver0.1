@@ -14,7 +14,7 @@ const SCALE = 0.5, COLS = 6, ROW = 3, ROW_DEFAULT = ROW;
 const SETS = {
   ub: { src: 'desgin/VFX/UB/UB', detectRows: false, names: { sk1: 'slash', sk2: 'thrust', sk3: 'twin', sk4: 'wave', sk5: 'burst', sk6: 'shards', sk7: 'eclipse' } },
   ag: {
-    src: 'desgin/VFX/AG', detectRows: true, clean: true,
+    src: 'desgin/VFX/AG/AG', detectRows: true, clean: true,
     names: { sk1: 'ag_bash', sk2: 'ag_crescent', sk3: 'ag_emblem', sk4: 'ag_beacon', sk5: 'ag_dome', sk6: 'ag_flash', sk7: 'ag_aegis' },
     rows: { sk3: 0, sk4: 0, sk5: 0, sk7: 0 }, // effects centred on the caster use the front view (row 0), not the side view
     // the crescent frames of SK2 are drawn opening forward (bulging back at the swinger): mirror them so the
