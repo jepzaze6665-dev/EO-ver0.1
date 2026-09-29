@@ -8,11 +8,11 @@ const eq = (a, b, msg = '') => { if (Math.abs(a - b) > 1e-9) throw new Error(`${
 const ok = (c, msg) => { if (!c) throw new Error(msg); };
 
 console.log('experience');
-test('new characters start at level 1, cap is 30', () => { eq(LEVELS.start.level, 1); eq(LEVELS.maxLevel, 30); });
+test('new characters start at level 1, cap is 50', () => { eq(LEVELS.start.level, 1); eq(LEVELS.maxLevel, 50); });
 test('EXP curve comes from data and grows every level', () => {
   eq(expToNext(1), 60); eq(expToNext(2), 95); eq(expToNext(3), 140);
   for (let l = 1; l < 29; l++) ok(expToNext(l + 1) > expToNext(l), `level ${l}`);
-  eq(expToNext(30), 0, 'no next level at the cap');
+  eq(expToNext(50), 0, 'no next level at the cap');
 });
 test('a per-level table overrides the formula', () => {
   const rules = { ...LEVELS, table: { 2: 500 } };
@@ -28,11 +28,11 @@ test('negative / invalid EXP is ignored (no negative EXP, no level loss)', () =>
   const t = addExp(4, 10, NaN); eq(t.level, 4); eq(t.exp, 10);
 });
 test('stops at the level cap (no infinite EXP)', () => {
-  const s = addExp(29, 0, 1e9); eq(s.level, 30); eq(s.exp, 0);
-  const t = addExp(30, 0, 500); eq(t.level, 30); eq(t.exp, 0); eq(t.levelsGained, 0);
+  const s = addExp(49, 0, 1e9); eq(s.level, 50); eq(s.exp, 0);
+  const t = addExp(50, 0, 500); eq(t.level, 50); eq(t.exp, 0); eq(t.levelsGained, 0);
 });
 test('normalize repairs bad saves', () => {
-  const a = normalize(99, 5); eq(a.level, 30); eq(a.exp, 0);
+  const a = normalize(99, 5); eq(a.level, 50); eq(a.exp, 0);
   const b = normalize(0, -20); eq(b.level, 1); eq(b.exp, 0);
   const c = normalize(2, 1000); ok(c.level > 2 && c.exp < expToNext(c.level), 'overflow EXP turns into levels');
 });

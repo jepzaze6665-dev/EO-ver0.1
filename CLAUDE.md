@@ -635,5 +635,16 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (skills/classes.js) only fills fields a skill lacks. CORE FIX: a hitbox with `powerFor` now gets the skill-level power too
   (applySkillMods wraps powerFor: result × power, it sees the base power). skillProgression.test.mjs.
   SKILL SYSTEM S1-S7 COMPLETE. (duskChecks / echoChecks "live fight" steps can flake once after other suites; rerun.)
+- **Current: LEVEL REWORK** (owner 2026-09-29): cap 50, Class 2 = LV 30 only (no story requirement), Route A / B stay
+  PARALLEL roads to City 2, A easier. Table: A1 1-14 (boss 14) · A2 14-26 (26) · A3 26-38 (38) | B1 1-17 (17) · B2 17-31 (31) ·
+  B3 31-45 (Crystal Warden 45: hardest fight of v1, party-ready). Phases: L1 rules + scaling · L2 Route A · L3 Route B + B3 boss ·
+  L4 quest EXP / unlock timings / full regression.
+  Done L1: LEVELS.maxLevel 50; classTree CLASS2_BASE = [level 30]. LEVEL SCALING `src/data/levelScaling.js` +
+  `src/progression/levelScaling.js` (pure): a map's `levelBand: { from: [oldMin, oldMax], to: [newMin, newMax] }` moves its
+  monsters (Monster opts.levelBand, passed by world spawns): level remapped, hp / def × playerPower ratio, attack power ×
+  playerHp ratio, EXP × expToNext ratio × band slope (same kills per level) -> the fight feels the same vs a player of that
+  level; difficulty comes from map / route mods. partyScale(members) ready for the party system. Monster poise doubles for
+  ELITES only (was "hp mod > 2"). No map has a band yet (L2 / L3). levelScaling.test.mjs; experience / progression tests
+  updated to cap 50 / LV 30.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.

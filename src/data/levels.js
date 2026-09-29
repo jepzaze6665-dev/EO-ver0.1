@@ -4,7 +4,7 @@
 //  start.level / start.gold : a new character
 //  maxLevel                 : level cap (EXP stops at the cap)
 //  exp                      : EXP needed to go from level L to L+1 = base + linear*(L-1) + quad*(L-1)^2
-//                             (L1 60 · L2 95 · L3 140 · L5 260 · L10 735 · L29 4820)
+//                             (L1 60 · L2 95 · L3 140 · L5 260 · L10 735 · L29 4820 · L45 11640)
 //  table                    : optional per-level override { [level]: exp } (wins over the formula)
 //  statGrowth               : multiplier on each class's `perLevel` stats (class data stays untouched)
 //                             class `base` stats = the character at level 1
@@ -14,7 +14,7 @@
 //                             quests / hidden content their reward.exp)
 export const LEVELS = {
   start: { level: 1, gold: 120 },
-  maxLevel: 30,
+  maxLevel: 50, // owner (Level rework L1): cap 50; version 1 content ends ≈ LV 38 (Route A) / 45 (Route B)
   exp: { base: 60, linear: 30, quad: 5 },
   table: {},
   statGrowth: 0.35,

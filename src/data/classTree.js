@@ -27,9 +27,9 @@ export const CLASS_COUNTERS = {
 };
 
 // shared by every Class 2 path: the story so far proves the character is ready
+// owner (Level rework L1): reaching LV 30 is enough — either route (A or B) gets there
 const CLASS2_BASE = [
-  { type: 'level', min: 10 },
-  { type: 'quest', id: 'whispers', label: 'Defeat the Forest Guardian' },
+  { type: 'level', min: 30 },
 ];
 
 export const CLASS_TREE = {

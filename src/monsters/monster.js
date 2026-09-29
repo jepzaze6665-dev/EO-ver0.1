@@ -9,6 +9,7 @@ import { MONSTERS, CORRUPT_MOD, ELITE_MOD, MONSTER_STATE as S } from './monsterT
 import { flashOf } from './monsterSprites.js';
 import { frameAt } from './sheetSprites.js';
 import { angleTo, wrapAngle, rand, TAU, dist, clamp, pick } from '../core/math.js';
+import { remapLevel, scaleFor } from '../progression/levelScaling.js';
 
 // Generic monster with a data-driven attack list and the state machine (names in MONSTER_STATE):
 // IDLE -> PATROL -> AGGRO -> CHASE -> ATTACK -> (HIT) -> DEAD, plus RETURN when leashed / lost / stuck.
@@ -27,10 +28,16 @@ export class Monster extends Entity {
     const cm = { hp: 1, detect: 1, power: 1, speed: 1, exp: 1, scale: 1 };
     for (const m of mods) for (const k in cm) cm[k] *= m[k] ?? 1;
     this.mod = cm;
-    this.level = d.level + (this.elite ? ELITE_MOD.level || 0 : 0) + ((opts.areaMod && opts.areaMod.level) || 0);
+    // LEVEL BAND (map data levelBand, progression/levelScaling.js): the map moves its monsters to a new level;
+    // stats scale so the fight feels the same against a player of that level, EXP keeps kills-per-level
+    const band = opts.levelBand ? remapLevel(d.level, opts.levelBand) : null;
+    const ls = band ? scaleFor(d.level, band.level, band.slope) : { hp: 1, def: 1, power: 1, exp: 1 };
+    cm.hp *= ls.hp; cm.power *= ls.power; cm.exp *= ls.exp;
+    this.levelScale = ls;
+    this.level = (band ? band.level : d.level) + (this.elite ? ELITE_MOD.level || 0 : 0) + ((opts.areaMod && opts.areaMod.level) || 0);
     this.team = TEAM.ENEMY;
     this.maxHp = this.hp = Math.round(d.hp * cm.hp);
-    this.defense = d.def;
+    this.defense = Math.round(d.def * ls.def);
     this.radius = d.radius;
     this.height = d.height;
     this.mass = d.mass || 1;
@@ -48,7 +55,7 @@ export class Monster extends Entity {
     this.facing = rand(0, TAU);
     this.cds = {};
     // POISE (combat/poiseSystem.js, rules data/poise.js): hits wear it down, at 0 the monster STAGGERS
-    this.poise = new Poise((d.poise ?? d.staggerMax) * (this.mod.hp > 2 ? 2 : 1), POISE.monster);
+    this.poise = new Poise((d.poise ?? d.staggerMax) * (this.elite ? 2 : 1), POISE.monster);
     this.animT = rand(0, 1);
     this.patrolTarget = null;
     this.alertT = 0;

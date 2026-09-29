@@ -252,7 +252,7 @@ export class World {
     for (let i = 0; i < d.count; i++) {
       const a = rand(0, TAU), r = rand(0, d.radius * TILE);
       const pos = this.map.findOpen(d.x + Math.cos(a) * r, d.y + Math.sin(a) * r, 4);
-      const m = new Monster(g, d.type, pos.x, pos.y, { spawn: sp, corrupted, elite: !!d.elite, areaMod });
+      const m = new Monster(g, d.type, pos.x, pos.y, { spawn: sp, corrupted, elite: !!d.elite, areaMod, levelBand: home && home.levelBand });
       sp.alive.push(m);
       this.monsters.push(m);
     }

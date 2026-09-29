@@ -11,7 +11,7 @@ const test = (name, fn) => { try { fn(); pass++; console.log('  ✓', name); } c
 const ok = (c, msg) => { if (!c) throw new Error(msg); };
 
 // minimal game the Progression reads (no DOM)
-function fakeGame(classId = 'astral_weaver', level = 10) {
+function fakeGame(classId = 'astral_weaver', level = 30) { // Class 2 needs LV 30 (Level rework L1)
   const g = {
     events: new EventBus(), save: { dirty: false },
     player: { id: 1, level, cls: { id: classId } },
@@ -88,7 +88,7 @@ test('trial flow: blocked -> start -> progress since start -> pass -> unlock (+e
   const g = fakeGame('umbral_sword', 13);
   const seen = []; ['trialStarted', 'trialPassed', 'classUnlocked'].forEach((n) => g.events.on(n, () => seen.push(n)));
   ok(g.progression.startTrial('duskrunner').reason === 'requirements', 'blocked without requirements');
-  g.quests.completed.whispers = true;
+  g.player.level = 30; // Class 2 base requirement = LV 30 (Level rework L1)
   for (let i = 0; i < 15; i++) g.events.emit('perfectDodge', {});
   ok(g.progression.paths().find((x) => x.node.id === 'duskrunner').ready, 'ready after 15 perfect dodges');
   ok(g.progression.startTrial('duskrunner').ok, 'start');
@@ -123,7 +123,7 @@ test('SECRET CLASS by data registration: invisible until revealed, then a normal
 test('lineage (tree view): root + children with states; hidden nodes left out until revealed', () => {
   const g = fakeGame('umbral_sword', 13);
   g.progression.startingClass = 'umbral_sword';
-  g.quests.completed.whispers = true;
+  g.player.level = 30; // Class 2 base requirement = LV 30 (Level rework L1)
   for (let i = 0; i < 15; i++) g.events.emit('perfectDodge', {});
   g.progression.unlock('nightfall_reaper');
   const st = Object.fromEntries(g.progression.lineage().map((t) => [t.node.id, t.state]));
