@@ -11,5 +11,5 @@ export const DIFFICULTY = {
   // hits, big bruisers already took long -> the small ones gain the most. Bosses and their summoned adds unchanged.
   monsterHp: { swarm: 2.2, skirmisher: 2.0, caster: 1.9, bruiser: 1.4, tank: 1.3, default: 1.7 },
   // × every EXP reward (monsters, bosses, quests, secrets, exploration) — ExperienceSystem + tools/pacing.js
-  expRate: 0.75,
+  expRate: 0.4, // owner: 0.75 -> 0.40 (leveling still too easy)
 };

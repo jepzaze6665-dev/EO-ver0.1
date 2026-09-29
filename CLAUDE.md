@@ -682,7 +682,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   reward, ExperienceSystem; pacing tool too). Measured hits: mobs avg 15% max HP (was 8), Hoarfang avg 22% / max 54% (was 11 / 29),
   Crystal Warden avg 32% (was 13). Endure (anti one-shot at >= 90% HP) unchanged. Guardian bot: dodging UB WIN 100 s / AG 150 s;
   NO-DODGE (balance botOpts { noDodge: true }): UB DIES in 45 s, AG still wins by guarding (1094 damage blocked / taken).
-  Pacing (one clear, no farming): A 12 / 23 / 33 -> LV 34, B 14 / 27 / 39 -> LV 40 (fighting respawns reaches 38 / 45).
+  Pacing (one clear, no farming) at expRate 0.75: A 12 / 23 / 33 -> LV 34, B 14 / 27 / 39 -> LV 40. OWNER then set expRate 0.40:
+  one clear = A 9 / 18 / 26 -> LV 27, B 11 / 22 / 31 -> LV 32 (≈ 2.5 clears of every map to reach 38 / 45 = grinding by design);
+  bots still win under-leveled (Guardian at LV 9: 100 s, 3 potions; Rune Knight at LV 26: 201 s).
   All dodging bots still win every boss; regression green (routeA, playthrough, checklist, tank, a2 / a3 monsters, combat).
   + owner "normal monsters tankier": DIFFICULTY.monsterHp by monster `role` (swarm 2.2 · skirmisher 2.0 · caster 1.9 · bruiser 1.4 ·
   tank 1.3 · default 1.7), field monsters only (Monster: not opts.summoned -> boss adds unchanged). Basic-attack hits to kill:
