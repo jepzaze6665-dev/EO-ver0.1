@@ -20,7 +20,7 @@ export const OK_ANIMS = {
   run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 13, loop: true, bob: 2 },
   atk1: { sheet: 'atk1', cols: [2, 3] },                                     // overhead cut
   atk2: { sheet: 'atk1', cols: [4, 4] },                                     // lunging thrust
-  atk3: { sheet: 'atk2', cols: [1, 2, 2], side: { cols: [1, 2, 3, 3] } },    // violet crescent (only drawn from the side)
+  atk3: { sheet: 'atk1', cols: [2, 3, 3, 4] },                                // heavy cut + the violet crescent VFX
   dodge: { sheet: 'dash', cols: [2, 3, 4] },
   guard: { sheet: 'guard', cols: [3] },                                      // blade raised across the body
   counter: { sheet: 'parry', cols: [2, 3, 3] },                              // perfect-guard riposte

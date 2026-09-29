@@ -154,7 +154,7 @@ PRESETS.ok = { out: 'assets/player/ok', nearestBody: true, edgeFade: 8, splitFea
   walk: [OK + 'WLAK1.PNG', 4],
   idle: [OK + 'WLAK2', 4],
   atk1: [OK + 'ATK1', 4],
-  atk2: [OK + 'ATK2', 4, { frames: 5 }], // 5 poses per row (the big crescent)
+  // ATK2 is not used: its crescent is drawn apart from the body and the back row holds two bodies (split figure)
   dash: [OK + 'DASH', 4],
   guard: [OK + 'DEF', 4],
   parry: [OK + 'PARRY', 4],

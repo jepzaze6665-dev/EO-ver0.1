@@ -58,6 +58,7 @@ const SETS = {
     names: { SK1: 'ok_brand', SK2: 'ok_defy', SK3: 'ok_flare', SK4: 'ok_spikes', SK5: 'ok_sigil', SK6: 'ok_crescent', SK7: 'ok_verdict' },
     rows: { SK1: 0, SK2: 0, SK4: 0, SK5: 0, SK7: 0 }, // SK3 / SK6 side view (row 3)
     checker: { SK2: true, SK7: true },
+    mirrorFrames: { SK6: [1, 2, 3, 4, 5] }, // the crescent was drawn bulging back at the swinger
   },
   // Bulwark Sentinel (gold fortress + blue steel light). SK3 has an opaque fake-checker background -> not used.
   // SK1 / SK4 carry direction labels in the first column (stripped); SK4 has 8 rows (2 sets), row 0 = front view.

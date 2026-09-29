@@ -70,34 +70,6 @@
    "sourceScale": 0.1802,
    "emptyFrames": []
   },
-  "atk2": {
-   "file": "assets/player/ok/atk2.png",
-   "fw": 160,
-   "fh": 160,
-   "rows": 4,
-   "cols": 6,
-   "ax": 80,
-   "ay": 140,
-   "sides": [
-    {
-     "right": 3,
-     "left": 2,
-     "flipLeft": false,
-     "flipRight": false
-    }
-   ],
-   "sourceScale": 0.1775,
-   "emptyFrames": [
-    [
-     0,
-     3
-    ],
-    [
-     1,
-     3
-    ]
-   ]
-  },
   "dash": {
    "file": "assets/player/ok/dash.png",
    "fw": 160,
@@ -332,13 +304,6 @@
    "bodyHeight": 58,
    "feetMaxOffset": 1,
    "centerOffset": -1,
-   "ok": true,
-   "issues": []
-  },
-  "atk2": {
-   "bodyHeight": 58,
-   "feetMaxOffset": 1,
-   "centerOffset": 0,
    "ok": true,
    "issues": []
   },
