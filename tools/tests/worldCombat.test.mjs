@@ -86,16 +86,16 @@ const { ELITE_MOD, CORRUPT_MOD, MONSTER_STATE } = await import('../../src/monste
 const mon = (type, opts) => new Monster({ monsterSprites: {} }, type, 100, 100, opts);
 test('spec fields come from data (name, hp, attack, defense, speed, ranges, exp, loot, state)', () => {
   const m = mon('wolf');
-  eq(m.name, 'Forest Wolf'); eq(m.hp, 70); eq(m.maxHp, 70); eq(m.attack, 18); eq(m.defense, 2);
+  eq(m.name, 'Forest Wolf'); const hpK = DIFFICULTY.monsterHp.skirmisher; eq(m.maxHp, Math.round(70 * hpK)); eq(m.hp, m.maxHp); eq(m.attack, 18); eq(m.defense, 2);
   eq(m.movementSpeed, 128); eq(m.aggroRange, 150); eq(m.attackRange, 125); eq(m.expReward, 18); eq(m.lootTable, 'wolf');
   eq(m.state, MONSTER_STATE.IDLE); ok(typeof m.id === 'number', 'id');
 });
 test('elite: tougher, more EXP, extra loot roll; stacks with corrupted', () => {
   const e = mon('treant', { elite: true });
-  eq(e.maxHp, Math.round(300 * ELITE_MOD.hp)); eq(e.expReward, 48 * ELITE_MOD.exp); ok(e.name.startsWith('Elite'), e.name);
+  eq(e.maxHp, Math.round(300 * ELITE_MOD.hp * DIFFICULTY.monsterHp.bruiser)); eq(e.expReward, 48 * ELITE_MOD.exp); ok(e.name.startsWith('Elite'), e.name);
   eq(JSON.stringify(e.lootTable), JSON.stringify(['treant', 'elite'])); ok(LOOT_TABLES.elite, 'elite table');
   const ce = mon('treant', { elite: true, corrupted: true });
-  eq(ce.maxHp, Math.round(300 * ELITE_MOD.hp * CORRUPT_MOD.hp)); eq(ce.mod.power, ELITE_MOD.power * CORRUPT_MOD.power);
+  eq(ce.maxHp, Math.round(300 * ELITE_MOD.hp * CORRUPT_MOD.hp * DIFFICULTY.monsterHp.bruiser)); eq(ce.mod.power, ELITE_MOD.power * CORRUPT_MOD.power);
 });
 test('display levels fit a LV 1 start (field monsters below the boss)', () => {
   for (const t of ['wolf', 'leafling', 'treant']) ok(MONSTERS[t].level < MONSTERS.guardian.level && MONSTERS[t].level <= 6, t);

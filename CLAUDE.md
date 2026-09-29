@@ -684,5 +684,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   NO-DODGE (balance botOpts { noDodge: true }): UB DIES in 45 s, AG still wins by guarding (1094 damage blocked / taken).
   Pacing (one clear, no farming): A 12 / 23 / 33 -> LV 34, B 14 / 27 / 39 -> LV 40 (fighting respawns reaches 38 / 45).
   All dodging bots still win every boss; regression green (routeA, playthrough, checklist, tank, a2 / a3 monsters, combat).
+  + owner "normal monsters tankier": DIFFICULTY.monsterHp by monster `role` (swarm 2.2 · skirmisher 2.0 · caster 1.9 · bruiser 1.4 ·
+  tank 1.3 · default 1.7), field monsters only (Monster: not opts.summoned -> boss adds unchanged). Basic-attack hits to kill:
+  Forest Wolf 3 -> 6, Rimefang Wolf ~4 -> 8.5, Crag Rhino 42 -> 59, Frost Yeti 94 -> 131 (skills / crits ≈ 2-3× faster).
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.

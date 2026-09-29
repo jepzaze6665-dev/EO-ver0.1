@@ -10,6 +10,7 @@ import { flashOf } from './monsterSprites.js';
 import { frameAt } from './sheetSprites.js';
 import { angleTo, wrapAngle, rand, TAU, dist, clamp, pick } from '../core/math.js';
 import { remapLevel, scaleFor } from '../progression/levelScaling.js';
+import { DIFFICULTY } from '../data/difficulty.js';
 
 // Generic monster with a data-driven attack list and the state machine (names in MONSTER_STATE):
 // IDLE -> PATROL -> AGGRO -> CHASE -> ATTACK -> (HIT) -> DEAD, plus RETURN when leashed / lost / stuck.
@@ -32,6 +33,8 @@ export class Monster extends Entity {
     // stats scale so the fight feels the same against a player of that level, EXP keeps kills-per-level
     const band = opts.levelBand ? remapLevel(d.level, opts.levelBand) : null;
     const ls = band ? scaleFor(d.level, band.level, band.slope) : { hp: 1, def: 1, power: 1, exp: 1 };
+    // DIFFICULTY.monsterHp (data/difficulty.js): tankier field monsters by role; boss adds (summoned) stay as tuned
+    if (!opts.summoned) cm.hp *= DIFFICULTY.monsterHp[d.role] ?? DIFFICULTY.monsterHp.default;
     cm.hp *= ls.hp; cm.power *= ls.power; cm.exp *= ls.exp * ((opts.levelBand && opts.levelBand.exp) || 1); // band.exp = pacing tune (tools/pacing.js)
     this.levelScale = ls;
     this.level = (band ? band.level : d.level) + (this.elite ? ELITE_MOD.level || 0 : 0) + ((opts.areaMod && opts.areaMod.level) || 0);
