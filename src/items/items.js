@@ -31,6 +31,10 @@ export const ITEMS = {
     name: 'Memory Blade', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'memory_blade', color: '#ff4a5a',
     stats: { atk: 2 }, desc: 'A long crimson blade that remembers every blow. Signature weapon of the Blade of Echoes.',
   },
+  dawn_aegis: {
+    name: 'Dawn Aegis & Holy Sword', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'dawn_shield', color: '#8ad0ff',
+    stats: { atk: 0, def: 1 }, desc: 'A white-silver shield holding a blue dawn, and a holy longsword. Signature weapon of the Warden of Dawn.',
+  },
   aegis_shield: {
     name: 'Aegis Shield & Blade', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'shield', color: '#ffd070',
     stats: { atk: 0 }, desc: 'A knight longsword and the gilded Aegis shield. Signature weapon of the Aegis Guardian.',
@@ -60,6 +64,10 @@ export const ITEMS = {
   echo_coat: {
     name: 'Coat of Echoes', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#d8d0d8',
     stats: { def: 2, hp: 15 }, desc: 'A pale duelist coat lined in red. Every scar on it is remembered.',
+  },
+  dawn_plate: {
+    name: 'Dawnward Plate', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#e8eef8',
+    stats: { def: 2, hp: 20 }, desc: 'Silver plate that catches the first light. Worn by those who guard others first.',
   },
   aegis_plate: {
     name: 'Aegis Plate', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#c8d0e0',

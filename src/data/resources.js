@@ -81,6 +81,18 @@ export const RESOURCES = {
     ],
     colors: ['#ff4a5a', '#5a0c16'],
   },
+  // Warden of Dawn: DAWNLIGHT — built by guarding (block / perfect guard), your barriers soaking blows, a chained ally
+  // being hit and casting support skills (gains per source are capped by the class); spent on Dawn Shield, Dawn Bastion,
+  // Grace of Dawn and the ultimate. Slowly fades in a fight when unused, faster outside it. Tier RADIANT = stronger barriers.
+  dawnlight: {
+    id: 'dawnlight', name: 'Dawnlight', label: 'DAWN',
+    max: 100, start: 0, respawn: 0,
+    regen: { inCombat: 0, outOfCombat: 0 },
+    decay: { inCombat: 1.5, outOfCombat: 8, delay: 6 },
+    gainStat: 'dawnGain',
+    tiers: [{ at: 60, label: 'RADIANT', stats: { barrierPower: 0.2 } }],
+    colors: ['#ffe08a', '#6a5a20'],
+  },
   // Phase 6 (Astral Weaver) — defined now so the pool is proven to be class-agnostic.
   astral_charge: {
     id: 'astral_charge', name: 'Astral Charge', label: 'ASTRAL',

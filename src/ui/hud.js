@@ -179,7 +179,14 @@ export class HUD {
     // HP
     this.text(ctx, 'HP', bx, y + 33 * u, 11 * u, '#ff9aa8');
     this.bar(ctx, bx + 26 * u, y + 23 * u, bw - 26 * u, 12 * u, p.hp / p.maxHp, '#ff5a6e', '#a01830', this.hpLag);
-    this.text(ctx, `${Math.ceil(p.hp)} / ${p.maxHp}`, bx + bw - 4 * u, y + 33 * u, 10 * u, '#fff', { align: 'right' });
+    // BARRIER indicator: absorb statuses (shield) drawn as a pale-gold layer after the HP fill (wraps back when HP is full)
+    const shieldAmt = p.status.list().reduce((n, st) => n + (STATUSES[st.id].absorb ? Math.max(0, st.amount || 0) : 0), 0);
+    if (shieldAmt > 0) {
+      const hx = bx + 26 * u, hw = bw - 26 * u, sw = hw * Math.min(1, shieldAmt / p.maxHp), from = Math.min(hx + hw * (p.hp / p.maxHp), hx + hw - sw);
+      ctx.fillStyle = `rgba(255,240,190,${0.55 + 0.15 * Math.sin(g.time * 5)})`; ctx.fillRect(from, y + 23 * u, sw, 12 * u);
+      ctx.strokeStyle = '#fff4d0'; ctx.lineWidth = 1.5 * u; ctx.strokeRect(from, y + 23 * u, sw, 12 * u);
+    }
+    this.text(ctx, shieldAmt > 0 ? `${Math.ceil(p.hp)} +${Math.round(shieldAmt)} / ${p.maxHp}` : `${Math.ceil(p.hp)} / ${p.maxHp}`, bx + bw - 4 * u, y + 33 * u, 10 * u, '#fff', { align: 'right' });
     // STAMINA (Combat 2.0) — flashes red when a dodge is not affordable
     const sid = STAMINA.resource, sdef = RESOURCES[sid], low = !p.resources.canAfford(sid, p.dodgeCost ? p.dodgeCost() : STAMINA.dodge);
     const lowCol = low ? `rgba(255,120,110,${0.7 + 0.3 * Math.sin(g.time * 10)})` : sdef.colors[0];
@@ -231,7 +238,7 @@ export class HUD {
     // any status with display data (data/statuses.js) — stacks shown as ×N
     for (const st of p.status.list()) {
       const disp = STATUSES[st.id].display;
-      if (disp) chips.push([st.stacks > 1 ? `${disp.label} ×${st.stacks}` : disp.label, disp.color]);
+      if (disp) chips.push([st.stacks > 1 ? `${disp.label} ×${st.stacks}` : STATUSES[st.id].absorb ? `${disp.label} ${Math.round(st.amount || 0)}` : disp.label, disp.color]);
     }
     if (p.guardState && p.guardState.active) chips.push(['GUARDING', '#ffe8a0']);
     if (g.world.state.flags.moonBlessing) chips.push(['MOON BLESSING', '#dfe8ff']);

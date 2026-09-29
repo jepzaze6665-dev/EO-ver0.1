@@ -167,7 +167,7 @@ export class Combat {
     this.lastCombatTime = g.time;
 
     // knockback & stagger
-    const kb = (opts.knock || 0) * (target.superArmor ? 0.15 : 1);
+    const kb = (opts.knock || 0) * (target.superArmor ? 0.15 : 1) * (target.status && target.status.flag('unshakable') ? 0 : 1);
     if (kb > 0) target.knockback(opts.knockAng ?? ang, kb);
     // DoT ticks skip hurt reactions (no stagger / i-frames); entities may still count them via onDot
     // blocked hits: no stagger, only the floors (onBlockedHit)

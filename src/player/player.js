@@ -322,14 +322,15 @@ export class Player extends Entity {
     g.camera.shake(0.28);
     g.vfx.flash('255,40,40', 0.18, 5);
     g.hitStop = Math.max(g.hitStop, 0.06);
-    if (!(this.action && this.action.superArmor)) {
+    const steady = (this.action && this.action.superArmor) || this.status.flag('unshakable'); // holy ground / march
+    if (!steady) {
       this.endAction(true);
       this.hurtT = 0.2;
     }
     // POISE: hits in a row break it -> STAGGERED + EXPOSED (a single hit never does — data/antiTank.js)
     const at = ANTI_TANK, hp = at.hitPoise;
     const pd = clamp((amount / Math.max(1, this.maxHp)) * hp.perHpShare, hp.min, hp.max) + (opts && (opts.guardBreak || opts.heavy) ? at.heavyBonus : 0);
-    if (this.poise.hit(pd, { canBreak: !(this.action && this.action.superArmor) })) this.onStaggered(src, ang);
+    if (this.poise.hit(pd, { canBreak: !steady })) this.onStaggered(src, ang);
   }
   onStaggered(src, ang) {
     const g = this.game, at = ANTI_TANK;

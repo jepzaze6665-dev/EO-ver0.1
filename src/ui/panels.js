@@ -275,7 +275,8 @@ export class Panels {
       const codex = `<div class="codex"><h3>${esc(src.name)} <span class="muted small">Tier ${selNode.tier} · ${esc(src.role || '')}</span></h3>
           ${selCls && selCls.identity ? `<p class="identity">“${esc(selCls.identity)}”</p>` : ''}
           <div class="small">${esc(src.description || '')}</div>
-          <div class="muted small">Resource: <b>${esc(res)}</b></div>
+          <div class="muted small">Resource: <b>${esc(res)}</b>${selCls && ITEMS[selCls.signatureWeapon] ? ` · Signature weapon: <b>${esc(ITEMS[selCls.signatureWeapon].name)}</b>` : ''}</div>
+          ${selCls && selCls.loop ? `<div class="muted small">Gameplay loop: <b>${selCls.loop.map(esc).join(' → ')}</b></div>` : ''}
           ${ratings}${sw}${skills}</div>`;
 
       // ---- right side: path card for a reachable class, otherwise your classes + records

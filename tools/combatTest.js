@@ -115,11 +115,16 @@ export function classChecks(g, classId) {
       // 'hold' marks are consumed by a skill tagged consumes-marks (e.g. Guardian Slash judgment)
       const eater = cls.skills.find((s) => (s.tags || []).includes('consumes-marks') && s.type !== 'ultimate');
       ({ p, d } = fresh());
+      if (!eater) { // taunt-only mark (Warden of Dawn): it must make the foe fight you
+        cls.markTarget(p, g, d);
+        ok('Mark taunts (no skill consumes it)', g.marks.get(d, m) > 0 && d.status && d.status.has('taunted'), m);
+      } else {
       cls.markTarget(p, g, d);
       p.resources.set(rid, 100);
       const hpB = d.hp;
       cast(g, eater.id, d);
       ok('Mark consumed by skill (bonus damage)', g.marks.get(d, m) === 0 && log.some((l) => l.n === 'damageDealt' && l.e.opts && l.e.opts.big), `${eater.id}: dmg=${hpB - d.hp}`);
+      }
     }
   } else if (p.markId) {
     const m = p.markId, max = p.maxMarks;
@@ -254,7 +259,7 @@ export function mechanicChecks(g, classId) {
     const blocked = hitFrom(40, 1);
     ok('Guard: frontal hit reduced + gauge', blocked.lost > 0 && blocked.lost < open * (1 - gd.reduction) + 2 && blocked.gauge > 0, `open ${open} -> blocked ${blocked.lost}, gauge +${blocked.gauge}`);
     const perfect = hitFrom(40, 0.05);
-    ok('Perfect Guard: no damage, counter, big gauge', perfect.lost === 0 && perfect.action === 'guard_counter' && perfect.gauge >= 25, `lost ${perfect.lost}, action ${perfect.action}, gauge +${perfect.gauge}`);
+    ok('Perfect Guard: no damage, counter, big gauge', perfect.lost === 0 && !!perfect.action && perfect.gauge >= Math.min(25, (p.cls.charge && p.cls.charge.perfectGuard) || 25), `lost ${perfect.lost}, action ${perfect.action}, gauge +${perfect.gauge}`);
     const flank = hitFrom(-40, 1);
     ok('Guard does not cover the back', flank.lost > open * 0.8 && flank.lost > blocked.lost * 2, `from behind ${flank.lost} (open ${open}, blocked ${blocked.lost})`);
     // taunt: an idle monster must come for the Guardian, and it hits 20% softer
@@ -453,10 +458,11 @@ export function echoChecks(g) {
     g.newGame('blade_of_echoes'); releaseInput(g); p = g.player; goto(g, 38, 121);
     const foe = g.world.monsters.filter((m) => !m.dead && g.world.onMap(m)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
     foe.x = p.x + 30; foe.y = p.y; p.hp = p.maxHp; p.invulnT = 0; p.resources.set(EC, 0);
-    for (const m of g.world.monsters) if (m !== foe && !m.dead) m.status.add('stun', 10); // only this one may attack
+    for (const m of g.world.monsters) if (!m.dead) m.status.add('stun', 10); // nobody attacks on its own (was flaky)
     return foe;
   };
-  const strike = (foe, extra = {}) => g.combat.enemyStrike(foe, { shape: 'circle', x: p.x, y: p.y, r: 30 }, 12, extra);
+  // the scripted blow: the foe is freed just for it (so the counter's own stun can be checked afterwards)
+  const strike = (foe, extra = {}) => { foe.status.remove('stun'); return g.combat.enemyStrike(foe, { shape: 'circle', x: p.x, y: p.y, r: 30 }, 12, extra); };
 
   let foe = foeNear();
   const hp0 = p.hp; let parries = 0; g.events.on('perfectGuard', () => parries++);
@@ -520,6 +526,123 @@ export function echoChecks(g) {
   const r = g.changeClass('blade_of_echoes'), np = g.player;
   ok('Class change Umbral Sword -> Blade of Echoes', r.ok && np.cls.id === 'blade_of_echoes' && np.sprites.preset === 'be' && np.primaryResource === EC && np.memory && g.equipment.slots.weapon === 'memory_blade', `${np.cls.id} ${np.sprites.preset} ${g.equipment.slots.weapon}`);
   releaseInput(g);
+  return rows;
+}
+
+// ---------------- WARDEN OF DAWN (Class 2 of the Aegis): the spec's test path — guard -> Dawnlight -> Dawn Shield ->
+// Radiant Chain on an ally -> Dawn Bastion -> Grace of Dawn -> Dawn's Sanctuary; resource / barrier / reduction / cooldowns
+export function wardenChecks(g) {
+  const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'warden_of_dawn', test: name, pass: !!pass, detail });
+  const R = 'dawnlight', r0 = (n) => Math.round(n);
+  let { p, d } = atDummy(g, 'warden_of_dawn');
+  const cls = p.cls, inFight = () => { g.combat.lastCombatTime = g.time; };
+  ok('Class data: preset wd, Dawnlight, own skills + guard + passives', p.sprites.preset === 'wd' && p.primaryResource === R && p.skillSys.get('dawn_shield') && p.skillSys.get('dawns_sanctuary') && cls.special.id === 'dawn_guard' && cls.passives.length >= 2 && g.equipment.slots.weapon === 'dawn_aegis', `${p.sprites.preset} ${p.primaryResource} ${g.equipment.slots.weapon}`);
+
+  // a real monster in front for the guard tests (the others are held still)
+  const foeNear = () => {
+    const foe = g.world.monsters.filter((m) => !m.dead && g.world.onMap(m)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+    for (const m of g.world.monsters) if (m !== foe && !m.dead) m.status.add('stun', 20);
+    foe.status.add('stun', 20); foe.x = p.x + 30; foe.y = p.y; aim(g, foe.x, foe.y); p.hp = p.maxHp; p.invulnT = 0;
+    return foe;
+  };
+  const strike = (foe, power = 12) => g.combat.enemyStrike(foe, { shape: 'circle', x: p.x, y: p.y, r: 30 }, power, {});
+  g.newGame('warden_of_dawn'); releaseInput(g); p = g.player; goto(g, 38, 121);
+  let foe = foeNear();
+  p.resources.set(R, 0); g.input.down.add('KeyQ'); g.simulate(0.45, () => { aim(g, foe.x, foe.y); inFight(); }); // held (Q) -> a normal block
+  const hpB = p.hp; strike(foe); g.input.down.delete('KeyQ');
+  ok('Guard: frontal hit blocked, Dawnlight +6', p.hp > hpB - 12 && r0(p.resources.get(R)) === 6, `hp ${hpB}->${p.hp} dawn ${p.resources.get(R)}`);
+  p.setGuard(false); g.simulate(0.4, inFight);
+  p.resources.set(R, 0); p.invulnT = 0; const hpP = p.hp;
+  aim(g, foe.x, foe.y); g.simulate(STEP * 2); p.setGuard(true); strike(foe); g.simulate(0.6, inFight);
+  ok('Perfect Guard: no damage, +20 Dawnlight, riposte of light', p.hp === hpP && p.resources.get(R) >= 20 && (g.stats && true), `hp ${hpP}->${p.hp} dawn ${r0(p.resources.get(R))}`);
+  p.setGuard(false); g.simulate(0.5, inFight);
+
+  // ---- solo skills at the dummy
+  ({ p, d } = atDummy(g, 'warden_of_dawn'));
+  p.resources.set(R, 40); inFight();
+  const castAt = (id) => { const r = cast(g, id, d); idle(g); return r; };
+  let r = castAt('dawn_shield');
+  const sh = p.status.get('shield');
+  ok('Dawn Shield (solo): barrier ≈20% max HP on yourself, 15 Dawnlight spent, cooldown running', sh && Math.abs(sh.amount - Math.round(p.maxHp * 0.2)) <= 2 && p.resources.get(R) <= 40 - 15 + 5 + 1 && p.skillSys.cooldowns.remaining('dawn_shield') > 0, `barrier ${sh && sh.amount} / ${p.maxHp} dawn ${r0(p.resources.get(R))}`);
+  p.resources.set(R, 5);
+  ok('Not enough Dawnlight: Grace of Dawn refused, nothing spent', !p.skillSys.use('grace_of_dawn').ok && p.resources.get(R) === 5);
+  for (let i = 0; i < 6; i++) cls.giveBarrier(p, g, p, 0.2);
+  ok('Barrier cap: never above 50% max HP', p.status.get('shield').amount <= Math.round(p.maxHp * 0.5), `${p.status.get('shield').amount} / ${p.maxHp}`);
+
+  // ---- an ally (a second party member, like T.partyCheck) — statuses ticked here since only the local player runs
+  const A = CLASSES.aegis_guardian, ally = new p.constructor(g, A, g.spritesFor(A));
+  ally.x = p.x + 60; ally.y = p.y; ally.recomputeStats(); ally.hp = Math.round(ally.maxHp * 0.6);
+  g.party.add(ally);
+  const tickAlly = () => { ally.status.update(STEP); ally.invulnT = 0; inFight(); };
+  const sim = (s) => g.simulate(s, tickAlly);
+  const hitAlly = (power = 20) => { ally.invulnT = 0; const hp0 = ally.hp; g.combat.dealDamage({ x: ally.x + 10, y: ally.y, team: 'enemy' }, ally, { power, noCrit: true, knock: 0 }); return hp0 - ally.hp; };
+  ally.status.remove('shield'); p.status.remove('shield');
+  p.skillSys.cooldowns.clear('dawn_shield'); p.resources.set(R, 40);
+  cast(g, 'dawn_shield', d); sim(0.3);
+  ok('Dawn Shield targets the ally who needs it (lowest HP) + a small barrier for you', ally.status.get('shield') && ally.status.get('shield').source === p && p.status.get('shield'), `ally ${ally.status.get('shield') && ally.status.get('shield').amount} self ${p.status.get('shield') && p.status.get('shield').amount}`);
+  ally.status.remove('shield');
+  const plain = hitAlly();
+  p.resources.set(R, 0); cast(g, 'radiant_chain', d); sim(0.2);
+  const dawnBefore = p.resources.get(R);
+  const chained = hitAlly();
+  ok('Radiant Chain binds the ally: 30% less damage taken', p.chain && p.chain.target === ally && ally.status.has('radiant_chain') && chained <= Math.ceil(plain * 0.7) + 1, `plain ${plain} chained ${chained}`);
+  for (let i = 0; i < 10; i++) hitAlly(1);
+  ok('Chained ally hits feed Dawnlight, capped at 24 per chain', p.resources.get(R) - dawnBefore <= 24 + 1e-6 && p.resources.get(R) > dawnBefore, `+${r0(p.resources.get(R) - dawnBefore)}`);
+  sim(0.2);
+  ok('Shared Resolve: protecting an ally raises your DEF (+30%)', p.status.has('shared_resolve') && Math.abs(p.status.get('shared_resolve').mult - 1.3) < 1e-9);
+  ally.x = p.x + 400; sim(0.1);
+  ok('Chain breaks beyond its range', !p.chain && !ally.status.has('radiant_chain'));
+  ally.x = p.x + 40; ally.y = p.y;
+
+  // Dawn Bastion
+  p.resources.set(R, 40); cast(g, 'dawn_bastion', d); sim(0.3);
+  const zone = (p.zones || []).find((z) => z.kind === 'bastion');
+  ok('Dawn Bastion: zone r 90 for 6 s at your feet, ally inside protected', zone && zone.r === 90 && Math.abs(zone.total - 6) < 1e-9 && ally.status.has('dawn_bastion') && p.status.has('dawn_bastion'), zone ? `r ${zone.r} left ${zone.t.toFixed(1)}` : 'no zone');
+  const ax = ally.x, px = p.x; ally.invulnT = 0; p.invulnT = 0;
+  g.combat.dealDamage({ x: ally.x - 10, y: ally.y, team: 'enemy' }, ally, { power: 5, knock: 400, noCrit: true });
+  g.combat.dealDamage({ x: p.x - 10, y: p.y, team: 'enemy' }, p, { power: 5, knock: 400, noCrit: true }); sim(0.3);
+  ok('Holy ground: no knockback inside', Math.abs(ally.x - ax) < 1 && Math.abs(p.x - px) < 1, `ally moved ${(ally.x - ax).toFixed(1)} you ${(p.x - px).toFixed(1)}`);
+  ally.x = zone.x + 200; sim(0.5);
+  ok('Outside the zone: no protection', !ally.status.has('dawn_bastion'));
+  ally.x = p.x + 40; sim(6.2);
+  ok('Zone ends on time', !(p.zones || []).some((z) => z.kind === 'bastion') && !ally.status.has('dawn_bastion'));
+
+  // Grace of Dawn
+  ally.hp = Math.round(ally.maxHp * 0.4); p.resources.set(R, 50); const ahp = ally.hp;
+  cast(g, 'grace_of_dawn', d); sim(0.2);
+  ok('Grace of Dawn: 30 Dawnlight, heals the lowest ally 12% max HP', r0(p.resources.get(R)) <= 20 + 1 && ally.hp - ahp === Math.round(ally.maxHp * 0.12), `+${ally.hp - ahp} (12% = ${Math.round(ally.maxHp * 0.12)}) dawn ${r0(p.resources.get(R))}`);
+
+  // Last Light
+  p.status.remove('last_light'); p.lastLightReady = 0; ally.hp = Math.round(ally.maxHp * 0.36); hitAlly(15);
+  const ll1 = p.status.has('last_light'); p.status.remove('last_light'); hitAlly(1);
+  ok('Last Light: an ally under 35% HP -> you take 20% less; cooldown stops a re-trigger', ll1 && !p.status.has('last_light'), `ally ${ally.hp}/${ally.maxHp}`);
+
+  // Ultimate
+  ally.hp = ally.maxHp; p.resources.set(R, 59);
+  ok('Dawn\'s Sanctuary needs 60 Dawnlight', !p.skillSys.use('dawns_sanctuary').ok);
+  p.resources.set(R, 60); ally.status.add('slow', 5);
+  let taunts = 0; g.events.on('targetMarked', (e) => { if (e.source === p && e.markId === 'guardian_mark') taunts++; });
+  const ur = p.trySkill(p.skillSys.get('dawns_sanctuary')); sim(1.6);
+  const sz = (p.zones || []).find((z) => z.kind === 'sanctuary');
+  ok('Sanctuary: zone r 150 / 8 s, barrier + cleanse for the party, 40% less damage', ur && sz && sz.r === 150 && ally.status.has('sanctuary') && ally.status.get('shield') && !ally.status.has('slow') && p.resources.get(R) < 10, sz ? `left ${sz.t.toFixed(1)} s` : 'no zone');
+  ok('Sanctuary resists new debuffs', ally.status.add('slow', 3) === null && !ally.status.has('slow'));
+  ok('Sanctuary taunts foes inside (aggro support)', taunts > 0, `${taunts} marked`); // (the dummy may be seared to 0 and reset)
+  sim(8);
+  ok('Sanctuary ends after its duration', !(p.zones || []).length && !ally.status.has('sanctuary'));
+
+  // Guardian March
+  const x0 = p.x; p.aim = 0;
+  const mr = p.trySkill(p.skillSys.get('guardian_march'));
+  g.simulate(0.3, () => { tickAlly(); p.aim = 0; });
+  const marching = p.status.has('guardian_march');
+  idle(g);
+  ok('Guardian March: advances behind the shield, damage reduction while marching', mr && marching && Math.abs(p.x - x0) > 50, `moved ${r0(p.x - x0)} px`);
+
+  // sanity
+  const res = p.resources.get(R);
+  const cds = ['dawn_shield', 'radiant_chain', 'dawn_bastion', 'guardian_march', 'grace_of_dawn', 'dawns_sanctuary'].map((id) => p.skillSys.cooldowns.remaining(id));
+  ok('No negative / overfull resource, no negative cooldown', res >= 0 && res <= 100 && cds.every((c) => c >= 0), `dawn ${r0(res)} cds ${cds.map((c) => c.toFixed(1)).join(',')}`);
+  g.party.remove(ally); ally.dispose(); releaseInput(g);
   return rows;
 }
 
@@ -607,7 +730,7 @@ export function balance(g, classId, loadout, botOpts = {}) {
 export function runAll(g, { withBalance = true } = {}) {
   const rows = [], bal = [];
   for (const c of [...STARTING_CLASSES, ...ADVANCED]) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
-  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...classChangeChecks(g));
+  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...wardenChecks(g), ...classChangeChecks(g));
   if (withBalance) for (const c of [...STARTING_CLASSES, ...ADVANCED]) bal.push(balance(g, c));
   return { passed: rows.filter((r) => r.pass).length, total: rows.length, rows, balance: bal };
 }

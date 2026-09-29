@@ -244,6 +244,55 @@
   "frames": 6,
   "set": "be"
  },
+ "dw_shield": {
+  "file": "assets/vfx/dw_shield.png",
+  "fw": 122,
+  "fh": 158,
+  "frames": 6,
+  "set": "dw"
+ },
+ "dw_burst": {
+  "file": "assets/vfx/dw_burst.png",
+  "fw": 106,
+  "fh": 158,
+  "frames": 6,
+  "set": "dw"
+ },
+ "dw_circle": {
+  "file": "assets/vfx/dw_circle.png",
+  "fw": 114,
+  "fh": 158,
+  "frames": 6,
+  "set": "dw"
+ },
+ "dw_crest": {
+  "file": "assets/vfx/dw_crest.png",
+  "fw": 136,
+  "fh": 158,
+  "frames": 6,
+  "set": "dw"
+ },
+ "dw_pillar": {
+  "file": "assets/vfx/dw_pillar.png",
+  "fw": 100,
+  "fh": 128,
+  "frames": 6,
+  "set": "dw"
+ },
+ "dw_knight": {
+  "file": "assets/vfx/dw_knight.png",
+  "fw": 116,
+  "fh": 158,
+  "frames": 6,
+  "set": "dw"
+ },
+ "dw_dome": {
+  "file": "assets/vfx/dw_dome.png",
+  "fw": 86,
+  "fh": 128,
+  "frames": 6,
+  "set": "dw"
+ },
  "aw_needle": {
   "file": "assets/vfx/aw_needle.png",
   "fw": 86,

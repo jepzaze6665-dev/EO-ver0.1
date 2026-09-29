@@ -254,6 +254,34 @@ export function icon(name, color = '#b070ff') {
     case 'fang':
       g.fillStyle = color; g.beginPath(); g.moveTo(10, 6); g.quadraticCurveTo(24, 10, 20, 28); g.quadraticCurveTo(14, 16, 10, 6); g.fill();
       break;
+    // ---- Warden of Dawn (white-silver shield, blue dawn, gold light)
+    case 'dawn_shield':
+      g.fillStyle = '#e8eef8'; g.beginPath(); g.moveTo(16, 3); g.lineTo(27, 8); g.lineTo(25, 20); g.lineTo(16, 29); g.lineTo(7, 20); g.lineTo(5, 8); g.closePath(); g.fill();
+      g.fillStyle = '#3a8ae0'; g.beginPath(); g.moveTo(16, 7); g.lineTo(23, 10); g.lineTo(22, 19); g.lineTo(16, 25); g.lineTo(10, 19); g.lineTo(9, 10); g.closePath(); g.fill();
+      glow('#ffe08a', 1.5, () => { g.moveTo(16, 9); g.lineTo(16, 23); g.moveTo(11, 14); g.lineTo(21, 14); });
+      break;
+    case 'radiant_chain':
+      for (let i = 0; i < 4; i++) glow(i % 2 ? '#fff4d0' : '#ffd88a', 2.5, () => g.ellipse(7 + i * 6, 25 - i * 6, 4, 2.4, -0.8, 0, 7));
+      break;
+    case 'dawn_bastion':
+      for (let i = 0; i < 3; i++) glow(['#6a5a20', '#ffd88a', '#fff4d0'][i], 2, () => g.ellipse(16, 23, 5 + i * 5, 2.5 + i * 2.2, 0, 0, 7));
+      glow('#8ad0ff', 2, () => { g.moveTo(16, 4); g.lineTo(16, 20); g.moveTo(11, 9); g.lineTo(21, 9); });
+      break;
+    case 'guardian_march':
+      g.fillStyle = '#e8eef8'; g.beginPath(); g.moveTo(14, 6); g.lineTo(22, 9); g.lineTo(21, 19); g.lineTo(14, 26); g.lineTo(8, 19); g.lineTo(7, 9); g.closePath(); g.fill();
+      g.fillStyle = '#3a8ae0'; g.fillRect(12, 11, 5, 8);
+      for (let i = 0; i < 3; i++) glow('#ffd88a', 2, () => { g.moveTo(24, 10 + i * 6); g.lineTo(30, 10 + i * 6); });
+      break;
+    case 'grace_of_dawn':
+      glow('#8ad0ff', 2, () => g.ellipse(16, 25, 11, 3.5, 0, 0, 7));
+      glow('#fff4d0', 3, () => { g.moveTo(16, 3); g.lineTo(16, 25); });
+      glow('#ffd88a', 2.5, () => { g.moveTo(9, 13); g.lineTo(23, 13); });
+      break;
+    case 'sanctuary':
+      g.fillStyle = 'rgba(255,230,160,0.35)'; g.beginPath(); g.arc(16, 25, 13, Math.PI, 0); g.closePath(); g.fill();
+      glow('#ffd88a', 2, () => g.arc(16, 25, 13, Math.PI, 0));
+      for (const x of [9, 16, 23]) glow('#fff4d0', 1.5, () => { g.moveTo(x, 25); g.lineTo(x, x === 16 ? 8 : 15); });
+      break;
     case 'ore':
       g.fillStyle = '#5a5a60'; g.beginPath(); g.moveTo(6, 22); g.lineTo(12, 8); g.lineTo(24, 10); g.lineTo(27, 24); g.closePath(); g.fill();
       g.fillStyle = color; g.fillRect(12, 14, 5, 4); g.fillRect(19, 17, 4, 3);

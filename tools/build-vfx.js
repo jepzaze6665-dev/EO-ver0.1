@@ -41,6 +41,13 @@ const SETS = {
     // flip them so the arc leads the swing
     mirrorFrames: { sk1: [0, 1, 2, 3, 4, 5], sk3: [0, 1, 2, 3, 4, 5], ut: [0, 1, 2, 3, 4, 5] },
   },
+  // Warden of Dawn (blue dawn shield + gold holy light). Caster / ally-centred effects use the front view (row 0);
+  // dw_crest (the Guardian March shove) is the side view
+  dw: {
+    src: 'desgin/VFX/AG/DW', detectRows: true, clean: true,
+    names: { SK1: 'dw_shield', SK2: 'dw_burst', SK3: 'dw_circle', SK4: 'dw_crest', SK5: 'dw_pillar', SK6: 'dw_knight', SK7: 'dw_dome' },
+    rows: { SK1: 0, SK2: 0, SK3: 0, SK5: 0, SK6: 0, SK7: 0 },
+  },
   aw: {
     src: 'desgin/VFX/AW', detectRows: true, clean: true,
     names: { SK1: 'aw_needle', SK2: 'aw_star', SK3: 'aw_comet', SK4: 'aw_sigil', SK5: 'aw_nova', SK6: 'aw_orb', UT: 'aw_starfall' },

@@ -1,4 +1,6 @@
 import { STATUSES, STATUS_RULES } from '../data/statuses.js';
+// categories a 'debuffImmune' flag resists (buffs / defense statuses still apply)
+const IMMUNE_TO = ['debuff', 'control', 'dot'];
 
 // STATUS SYSTEM — generic timed effects on any entity (player, monster, boss, dummy, future party member).
 // Rules come from data/statuses.js; this file never names a class or a skill.
@@ -30,6 +32,8 @@ export class StatusSet {
     const d = this.def(id);
     if (!(duration > 0) || !Number.isFinite(duration)) return this.map.get(id) || null;
     const { source = null, stacks = 1, refresh = false, ...rest } = data;
+    // debuffImmune (e.g. a sanctuary): harmful statuses are resisted while it lasts
+    if (IMMUNE_TO.includes(d.category) && this.flag('debuffImmune')) { this.emit('statusResisted', { id, source }); return null; }
     duration = Math.min(STATUS_RULES.maxDuration, duration);
     if (d.category === 'control') duration *= 1 - this.tenacity();
     const cur = this.map.get(id);
@@ -120,7 +124,8 @@ export class StatusSet {
   }
   tenacity() {
     const st = this.owner && this.owner.stats;
-    const v = st && Number.isFinite(st.tenacity) ? st.tenacity : 0;
+    let v = st && Number.isFinite(st.tenacity) ? st.tenacity : 0;
+    for (const s of this.map.values()) v += this.defs[s.id].tenacity || 0; // statuses may add tenacity (holy ground)
     return Math.min(STATUS_RULES.maxTenacity, Math.max(0, v));
   }
 }

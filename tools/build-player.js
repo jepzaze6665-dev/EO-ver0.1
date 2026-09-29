@@ -2,7 +2,7 @@
 // into clean alpha sprite strips + an atlas description consumed by src/player/playerSprites.js.
 // Every class preset is normalised to the SAME visual standard (body height, canvas, pivot).
 // Usage: node tools/build-player.js            (all classes)
-//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be)
+//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wd)
 const fs = require('fs');
 const path = require('path');
 const png = require('./png.js');
@@ -109,6 +109,25 @@ PRESETS.be = { out: 'assets/player/be', nearestBody: true, sheets: {
   sk5: [BE + 'sk5', 4],
   sk6: [BE + 'sk6', 4],
   ult: [BE + 'ut', 4],
+} };
+// Warden of Dawn (Class 2 of Aegis Guardian): silver plate, white / blue dawn shield, holy sword. Same flat white
+// sheets + silver armour as AG -> the same tight background rule.
+// facing: row 3 is the only side row drawn consistently (row 2 turns its head / cuts the other way, DASH / SK2 draw
+// both rows facing right) -> row 3 = right, mirrored for the left, so the head always faces the blow
+const WD = 'desgin/class cr/AG/WD/';
+PRESETS.wd = { out: 'assets/player/wd', nearestBody: true, bg: PRESETS.ag.bg, facing: { right: 3, left: 3, flipLeft: true }, sheets: {
+  walk: [WD + 'WALK 1', 4],
+  atk1: [WD + 'ATK1', 4],
+  atk2: [WD + 'ATK2', 4],
+  dash: [WD + 'DASH', 4],
+  hit: [WD + 'HIT', 4],
+  sk1: [WD + 'SK1', 4],
+  sk2: [WD + 'SK2', 4],
+  sk3: [WD + 'SK3', 4],
+  sk4: [WD + 'SK4', 4],
+  sk5: [WD + 'SK5', 4],
+  sk6: [WD + 'SK6', 4],
+  ult: [WD + 'UT', 4],
 } };
 const AW = 'desgin/class cr/AW/';
 PRESETS.aw = { out: 'assets/player/aw', sheets: {

@@ -145,6 +145,26 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   / be_crescent / be_recall (drawn hollow-side first). Anim data `hit: [cols]` = impact frames; every BE hit event lands on
   one (echoes.test "timing"), the crimson copy's hits wait for its impact frame too.
   Next: Class 2 skill tree / skill points / class level (spec §8-9), combat loadout slots (§15), class-selection UI (§16).
+- **AEGIS CLASS 2** (owner's 27-section spec: Warden of Dawn / Bulwark Sentinel / Oathbreaker, one at a time, Warden first).
+  Art: `desgin/class cr/AG/<AG NEW|WD|BS|OK>`, VFX `desgin/VFX/AG/<AG|DW|BS|OK>`. AG itself now uses the new AG set.
+  Done AG1 = WARDEN OF DAWN (`src/skills/wardenOfDawn.js`, preset 'wd' — mirrored row 3 for both sides, VFX set 'dw':
+  dw_shield / dw_burst (chain) / dw_circle (holy ground) / dw_crest / dw_pillar / dw_knight / dw_dome): resource DAWNLIGHT
+  (decay in fight after 6 s; tier RADIANT 60 = stat barrierPower), gains from block 6 / perfect guard 20 / support casts 5 /
+  your barriers soaking (10%, ≤6 a hit) / a chained ally being hit (≤24 per chain) — every source capped by a feeder.
+  Q Dawn Guard = the Aegis hold guard (riposte of light + small barrier on a perfect guard). Skills: Dawn Shield (barrier 20%
+  on the neediest party member in range, stacks to 50% max HP) · Radiant Chain (ally -30% damage, breaks > 340 px; alone it
+  binds you -15%) · Dawn Bastion (holy ground r 90 / 6 s: -25%, status flag `unshakable`, +0.3 tenacity, sears foes) ·
+  Guardian March (high tier: advance 100 px, -50%, pushes + taunts) · Grace of Dawn (30: heal 12%, ×0.6 on yourself,
+  overheal -> barrier) · ult Dawn's Sanctuary (60: r 150 / 8 s, barrier 20%, cleanse, -40%, `debuffImmune`, taunts, sears).
+  Passives Last Light (a member < 35% -> you -20%, cd 12 s) + Shared Resolve (DEF ×1.3 while an ally carries your protection,
+  ×1.12 self only). Zones + chain run in the class `tick` (p.zones, p.chain). Default loadout is solo-friendly (Radiant
+  Chain swapped in for a party). NEW generic core: status flags `unshakable` (combat: no knockback; Player: no interrupt /
+  no poise break) and `debuffImmune` (StatusSet.add refuses debuff / control / dot -> 'statusResisted'), status field
+  `tenacity`; HUD barrier indicator (pale-gold layer on the HP bar, "hp +shield", SHIELD n chip); codex shows signature
+  weapon + gameplay loop (class `loop`). Tests: tools/tests/warden.test.mjs (16), C.wardenChecks (24, uses a real second
+  Player as the ally; its statuses are ticked by the test). Bot balance: 3-dummy 72 DPS (AG 92), Guardian WIN 190 s with
+  45 damage taken (AG 135 s / 111) — support tank by design, needs a human playtest.
+  Next: AG2 Bulwark Sentinel (Bastion resource, Fortified state), then AG3 Oathbreaker (Broken Oath, counters).
 - Later Class 2 work: AW / AG paths need the owner's class data.
   Unused RP art: `sk6` (anim `harvest`) is mapped but no skill plays it yet.
 - **Current: V2.1 "Class × World Integration"** (owner's 16-phase spec: Lumina → A1 → A2 → A3 → Boss Arena, EXP/loot/

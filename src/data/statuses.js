@@ -9,7 +9,10 @@
 //  modifiers  : moveMult / damageMult (dealt) / damageTakenMult / defenseMult (× DEF against incoming hits) — multiplied per stack when perStack
 //               values in `data` passed to add() (e.g. { mult: 1.3 }) override `mult`
 //  flags      : cannotAct (no move/attack/skill), cannotMove, cannotCast (no skills),
-//               stealth (monsters lose track / hold their attacks), taunted (monster must chase its taunter)
+//               stealth (monsters lose track / hold their attacks), taunted (monster must chase its taunter),
+//               unshakable (no knockback, poise never breaks, hits never interrupt an action),
+//               debuffImmune (new debuff / control / dot statuses are resisted)
+//  tenacity   : added to the holder's tenacity while active (control durations shorter; capped by STATUS_RULES)
 //  dot        : { interval, damage, type } — damage per tick per stack (data.damage overrides)
 //  absorb     : shield — data.amount points of damage absorbed before HP
 //  vulnerable : target takes the weak-window bonus from combat/damageSystem.js
@@ -51,6 +54,13 @@ export const STATUSES = {
   shield: { id: 'shield', category: 'defense', maxStacks: 1, stacking: 'refresh', absorb: true, display: { label: 'SHIELD', color: '#fff0a0' } },
   // boss mechanic: Thornlings tether the Guardian while they live (boss/guardian.js) — kill / control the adds
   heartwood_ward: { id: 'heartwood_ward', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.5 }, display: { label: 'WARDED', color: '#7af0a0' } },
+  // ---- Warden of Dawn (skills/wardenOfDawn.js) — `mult` in add() data overrides the base value
+  radiant_chain: { id: 'radiant_chain', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.7 }, display: { label: 'RADIANT CHAIN', color: '#ffe08a' } },
+  dawn_bastion: { id: 'dawn_bastion', category: 'defense', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], tenacity: 0.3, modifiers: { damageTakenMult: 0.75 }, display: { label: 'BASTION', color: '#ffe8b0' } },
+  sanctuary: { id: 'sanctuary', category: 'defense', maxStacks: 1, stacking: 'refresh', flags: ['unshakable', 'debuffImmune'], modifiers: { damageTakenMult: 0.6 }, display: { label: 'SANCTUARY', color: '#fff4d0' } },
+  guardian_march: { id: 'guardian_march', category: 'defense', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { damageTakenMult: 0.5 }, display: { label: 'MARCH', color: '#8ad0ff' } },
+  last_light: { id: 'last_light', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.8 }, display: { label: 'LAST LIGHT', color: '#fff0b0' } },
+  shared_resolve: { id: 'shared_resolve', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { defenseMult: 1.3 }, display: { label: 'RESOLVE', color: '#bfe6ff' } },
   damage_reduction: { id: 'damage_reduction', category: 'defense', maxStacks: 1, stacking: 'longest', modifiers: { damageTakenMult: 0.8 }, display: { label: 'GUARD', color: '#c8d8ff' } },
 };
 

@@ -80,8 +80,8 @@ export const CLASS_TREE = {
 
   // ---------------- tier 2 — Aegis Guardian
   warden_of_dawn: {
-    id: 'warden_of_dawn', name: 'Warden of Dawn', tier: 2, parent: 'aegis_guardian', playable: false, resource: 'Dawnlight',
-    role: 'Holy Protector · Party Support', description: 'Shields the whole party in dawnlight.',
+    id: 'warden_of_dawn', name: 'Warden of Dawn', tier: 2, parent: 'aegis_guardian', playable: true, resource: 'Dawnlight',
+    role: 'Support Tank · Barrier Tank · Party Protector', description: 'Shields the whole party in dawnlight: barriers, a chain of light, holy ground and a sanctuary.',
     requirements: [...CLASS2_BASE, { type: 'counter', counter: 'barrier_absorbed', min: 400 }],
     trial: 'trial_warden_of_dawn',
   },
