@@ -77,6 +77,14 @@ const SETS = {
     names: { SK1: 'sm_bolt', SK2: 'sm_spark', SK3: 'sm_strike', SK4: 'sm_chain', SK5: 'sm_vortex', SK6: 'sm_burst', SK7: 'sm_tempest' },
     rows: { SK3: 4, SK5: 0, SK6: 0, SK7: 0 }, // SK3 row 4 = the bolt from the sky (front view)
   },
+  // Void Scribe (violet void + magenta script). Front views for glyphs placed on a spot; SK5 row 2 = the side-view chain
+  // (its row 3 turns into a rune circle)
+  vs: {
+    src: 'desgin/VFX/AW/VS', detectRows: true, clean: true,
+    names: { SK1: 'vs_glyph', SK2: 'vs_sigil', SK3: 'vs_phantom', SK4: 'vs_rewrite', SK5: 'vs_chain', SK6: 'vs_orb', SK7: 'vs_null' },
+    rows: { SK1: 0, SK2: 0, SK3: 0, SK4: 0, SK5: 2, SK6: 0, SK7: 0 },
+    mirrorFrames: { SK5: [0, 1, 2, 3, 4, 5] }, // the chain head was drawn on the left: flip it so it leads to the right
+  },
   aw: {
     src: 'desgin/VFX/AW/AW', detectRows: true, clean: true,
     names: { SK1: 'aw_needle', SK2: 'aw_star', SK3: 'aw_comet', SK4: 'aw_sigil', SK5: 'aw_nova', SK6: 'aw_orb', UT: 'aw_starfall' },

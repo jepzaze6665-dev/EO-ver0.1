@@ -336,7 +336,9 @@ export class Monster extends Entity {
   chooseAttack(dP) {
     // skirmishers punish a player standing still: their `punish` attack ignores its cooldown
     const punish = this.def.punishIdle && ((this.target || this.game.player).idleT || 0) >= this.def.punishIdle;
-    const opts = this.def.attacks.filter((a) => ((this.cds[a.id] || 0) <= 0 || (punish && a.punish)) && dP <= a.range && dP >= a.min && this.hasAlly(a.needsAlly));
+    // SILENCE (status flag cannotCast): only the first (basic) attack of the list is allowed
+    const pool = this.status.canCast() ? this.def.attacks : this.def.attacks.slice(0, 1);
+    const opts = pool.filter((a) => ((this.cds[a.id] || 0) <= 0 || (punish && a.punish)) && dP <= a.range && dP >= a.min && this.hasAlly(a.needsAlly));
     if (!opts.length) return null;
     const team = opts.filter((a) => a.needsAlly); // formation attacks win when the formation is there
     if (team.length && Math.random() < 0.6) return pick(team);

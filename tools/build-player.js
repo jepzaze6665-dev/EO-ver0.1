@@ -2,7 +2,7 @@
 // into clean alpha sprite strips + an atlas description consumed by src/player/playerSprites.js.
 // Every class preset is normalised to the SAME visual standard (body height, canvas, pivot).
 // Usage: node tools/build-player.js            (all classes)
-//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wd | bs | ok | sm)
+//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wd | bs | ok | sm | vs)
 const fs = require('fs');
 const path = require('path');
 const png = require('./png.js');
@@ -116,7 +116,7 @@ PRESETS.be = { out: 'assets/player/be', nearestBody: true, sheets: {
 // both rows facing right) -> row 3 = right, mirrored for the left, so the head always faces the blow
 const WD = 'desgin/class cr/AG/WD/';
 PRESETS.wd = { out: 'assets/player/wd', nearestBody: true, edgeFade: 8, splitFeather: 60, bg: PRESETS.ag.bg, facing: { right: 3, left: 3, flipLeft: true }, sheets: {
-  walk: [WD + 'WALK 1', 4],
+  walk: [WD + 'WALK 1.png', 4],
   atk1: [WD + 'ATK1', 4],
   atk2: [WD + 'ATK2', 4],
   dash: [WD + 'DASH', 4],
@@ -198,6 +198,23 @@ PRESETS.sm = { out: 'assets/player/sm', nearestBody: true, sheets: {
   sk5: [SM + 'sk5', 4],
   sk6: [SM + 'sk6', 4],
   ult: [SM + 'ut', 4],
+} };
+// Void Scribe (Class 2 of Astral Weaver): violet hood + robe, void tome, arcane quill
+const VS = 'desgin/class cr/AW/VS/';
+PRESETS.vs = { out: 'assets/player/vs', nearestBody: true, sheets: {
+  walk: [VS + 'WALK 1.PNG', 4],
+  idle: [VS + 'WALK 2', 4],
+  atk1: [VS + 'ATK 1', 4],
+  atk2: [VS + 'ATK2', 4],
+  dash: [VS + 'DASH', 4],
+  hit: [VS + 'HIT', 4],
+  sk1: [VS + 'SK1', 4],
+  sk2: [VS + 'SK2', 4],
+  sk3: [VS + 'SK3', 4],
+  sk4: [VS + 'SK4', 4],
+  sk5: [VS + 'SK5', 4],
+  sk6: [VS + 'SK6', 4],
+  ult: [VS + 'UT', 4],
 } };
 const COLS = 6;
 

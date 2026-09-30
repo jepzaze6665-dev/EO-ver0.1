@@ -189,6 +189,7 @@ export class Player extends Entity {
   gainResource(n, raw = false) { this.resources.gain(this.primaryResource, n, { raw }); } // class-neutral name
   // threads this player has woven (ThreadSystem) — read by skill requirements and the HUD
   get threadCount() { return this.game.threads ? this.game.threads.count(this) : 0; }
+  get scriptCount() { return this.scripts ? this.scripts.length : 0; } // ground scripts a class wrote (Void Scribe) — requirement 'value'
   // foes within range carrying a mark (any class's enemy mark) — read by 'markedFoe' skill requirements
   markedFoes(markId, range = Infinity) {
     const g = this.game;

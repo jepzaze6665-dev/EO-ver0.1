@@ -68,11 +68,13 @@ export class StatusSet {
 
   update(dt) {
     if (!(dt > 0)) return;
+    // modifier dotRate (e.g. a void seal): every damage-over-time on this target ticks faster (capped 0.25-4×)
+    const rate = Math.max(0.25, Math.min(4, this.modifier('dotRate')));
     for (const [id, s] of this.map) {
       const d = this.defs[id];
       if (d.dot) {
         const iv = Math.max(0.1, d.dot.interval); // guard: no zero-interval infinite ticks
-        s.tickT -= Math.min(dt, s.t);
+        s.tickT -= Math.min(dt, s.t) * rate;
         let n = 0;
         while (s.tickT <= 1e-9 && n < 10) { s.tickT += iv; n++; this.queueTick(s, d); }
       }

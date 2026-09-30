@@ -29,6 +29,9 @@ export const SKILL_ICONS = {
   // Stormcaller
   thunder_lash: 'sm_sk1', storm_step: 'sm_sk2', chain_tempest: 'sm_sk3', static_thread: 'sm_sk4', tempest_field: 'sm_sk5',
   storm_burst: 'sm_sk6', heavens_tempest: 'sm_sk7',
+  // Void Scribe
+  void_script: 'vs_sk1', sable_mark: 'vs_sk2', phantom_quill: 'vs_sk3', rewrite: 'vs_sk4', void_chain: 'vs_sk5',
+  void_seal: 'vs_sk6', final_script_null: 'vs_sk7',
   // Astral Weaver (aw_sk4 unused)
   star_needle: 'aw_sk1', astral_thread: 'aw_sk2', comet_step: 'aw_sk3', thread_burst: 'aw_sk5', astral_veil: 'aw_sk6',
   starfall_fate: 'aw_sk7',

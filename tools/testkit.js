@@ -88,7 +88,9 @@ export function bot(g, i, opts = {}) {
       }
       if (p.skillSys.canUse(p.loadout.bindings().find((x) => x.key === '5')?.skill.id || '').ok) inp.pushBuffer('skill5');
       const sp = p.cls.special, res = p.resources.get(p.primaryResource);
-      if (sp && (sp.requirements || []).length && res >= 80 && p.skillSys.canUse(sp.id).ok) inp.pushBuffer('break');
+      // a special gated by a resource requirement (Storm Burst: spend it all) waits for a full bar; a plain costed one
+      // (Void Seal) is used whenever it is ready
+      if (sp && ((sp.requirements || []).length ? res >= 80 : sp.cost > 0) && p.skillSys.canUse(sp.id).ok) inp.pushBuffer('break');
     } else if (d < 280 && i % (opts.apm || 5) === 0) {
       const res = p.resources.get(p.primaryResource);
       inp.pushBuffer('attack');

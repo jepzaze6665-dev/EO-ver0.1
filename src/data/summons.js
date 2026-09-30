@@ -36,6 +36,14 @@ export const SUMMONS = {
     duration: 4, maxPerOwner: 1, powerMult: 0.8,
     visual: { alpha: 0.7, glow: 0.5 },
   },
+  // Void Scribe: a void phantom written by Phantom Quill (class code moves it and makes it strike; visual.sprite = drawn
+  // from the vs_phantom VFX strip, not as a copy of the caster). Max 3 (the ultimate adds one on top of Phantom Quill's 2)
+  void_phantom: {
+    id: 'void_phantom', name: 'Void Phantom',
+    duration: 10, maxPerOwner: 3, powerMult: 1,
+    act: { interval: 1.1 },
+    visual: { alpha: 0.85, glow: 0.3, sprite: { key: 'vs_phantom', frame: 3, scale: 0.55, lift: 0.08 } },
+  },
 };
 
 export const SUMMON_RULES = {

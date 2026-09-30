@@ -1,4 +1,4 @@
-import { makeCanvas } from '../core/assets.js';
+import { makeCanvas, Assets } from '../core/assets.js';
 import { Z, TILE } from '../core/constants.js';
 import { TAU, clamp, lerp, dir4 } from '../core/math.js';
 import { vnoise } from '../core/rng.js';
@@ -260,8 +260,21 @@ export class Renderer {
   // Fades in on arrival and out over its last half second; alpha / glow come from data/summons.js.
   drawSummon(ctx, s, game) {
     const spr = s.owner.sprites, vis = game.summons.defs[s.type].visual || {};
-    if (!spr) return;
     const fade = Math.min(1, s.t / 0.25, (s.duration - s.t) / 0.5);
+    // summon data visual.sprite = { key, frame, scale, lift }: a floating frame of a VFX strip instead of the owner's body
+    if (vis.sprite && Assets.vfx[vis.sprite.key]) {
+      const v = vis.sprite, d = Assets.vfx[v.key], sc = v.scale || 1, bob = Math.sin(game.time * 3 + s.id) * 2;
+      const w = d.fw * sc, h = d.fh * sc, fr = s.anim ? Math.min(d.frames - 1, (v.frame ?? 3) + (Math.floor(s.animT * 12) % 2)) : (v.frame ?? 3);
+      ctx.fillStyle = `rgba(0,0,0,${0.25 * fade})`;
+      ctx.beginPath(); ctx.ellipse(s.x, s.y, 11, 4, 0, 0, TAU); ctx.fill();
+      ctx.globalAlpha = (vis.alpha ?? 0.85) * fade;
+      ctx.drawImage(d.img, fr * d.fw, 0, d.fw, d.fh, s.x - w / 2, s.y - h + (v.lift ?? 0.1) * h + bob, w, h);
+      ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (vis.glow ?? 0.3) * fade * (0.8 + 0.2 * Math.sin(game.time * 9));
+      ctx.drawImage(d.img, fr * d.fw, 0, d.fw, d.fh, s.x - w / 2, s.y - h + (v.lift ?? 0.1) * h + bob, w, h);
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      return;
+    }
+    if (!spr) return;
     const moving = !s.anim && s.busy <= 0 && Math.hypot(s.owner.vx || 0, s.owner.vy || 0) > 20;
     const anim = s.anim || (moving ? 'walk' : 'idle'), ad = spr.anims[anim];
     const t = s.anim ? s.animT / s.animDur : ad && ad.loop ? game.time : 0;

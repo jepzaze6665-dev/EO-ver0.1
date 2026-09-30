@@ -46,7 +46,7 @@ export const CLASS_TREE = {
     trial: 'trial_stormcaller',
   },
   void_scribe: {
-    id: 'void_scribe', name: 'Void Scribe', tier: 2, parent: 'astral_weaver', playable: false, resource: 'Void Ink',
+    id: 'void_scribe', name: 'Void Scribe', tier: 2, parent: 'astral_weaver', playable: true, resource: 'Void Ink',
     role: 'Control Mage · DoT · Debuff · Summoner', description: 'Writes slow death onto the enemy: scripts, debuffs and phantoms.',
     requirements: [...CLASS2_BASE, { type: 'counter', counter: 'thread_catches', min: 40 }],
     trial: 'trial_void_scribe',

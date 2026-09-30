@@ -133,6 +133,19 @@ export const RESOURCES = {
     ],
     colors: ['#7ac8ff', '#16306a'],
   },
+  // Void Scribe (Class 2 of Astral Weaver): VOID INK — written by the slow death it causes: damage-over-time ticks, debuffs
+  // applied, script pulses, shared void damage (all through a per-second budget) and foes dying under a void effect
+  // (passive Ink of the Abyss, capped). Spent on Phantom Quill, Rewrite, Void Seal [Q] and the ultimate. Tier ABYSSAL 70:
+  // stat voidDmg (damage type 'void'). Fades out of combat.
+  void_ink: {
+    id: 'void_ink', name: 'Void Ink', label: 'INK',
+    max: 100, start: 0, respawn: 0,
+    regen: { inCombat: 0, outOfCombat: 0 },
+    decay: { inCombat: 0, outOfCombat: 8, delay: 3 },
+    gainStat: 'inkGain',
+    tiers: [{ at: 70, label: 'ABYSSAL', stats: { voidDmg: 0.15 } }],
+    colors: ['#b060ff', '#2a0c4a'],
+  },
   // Phase 6 (Astral Weaver) — defined now so the pool is proven to be class-agnostic.
   astral_charge: {
     id: 'astral_charge', name: 'Astral Charge', label: 'ASTRAL',

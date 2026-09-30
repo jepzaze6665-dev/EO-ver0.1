@@ -23,6 +23,10 @@ export const ITEMS = {
     name: 'Storm Staff & Focus', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'staff', color: '#7ac8ff',
     stats: { atk: 1, lightningDmg: 0.05 }, desc: 'A black staff crowned with a caged storm crystal, and a focus that hums with thunder. Signature weapon of the Stormcaller.',
   },
+  void_tome: {
+    name: 'Void Tome & Arcane Quill', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'staff', color: '#b060ff',
+    stats: { atk: 1, voidDmg: 0.05 }, desc: 'A black grimoire whose blank pages drink the light, and a quill that writes laws into nothing. Signature weapon of the Void Scribe.',
+  },
   reaper_scythe: {
     name: 'Reaper Scythe', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'scythe', color: '#9a5cff',
     stats: { atk: 2 }, desc: 'A shadow scythe that hungers for marked souls. Signature weapon of the Nightfall Reaper.',
@@ -92,6 +96,10 @@ export const ITEMS = {
   stormweave_robe: {
     name: 'Stormweave Robe', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#1a2a5a',
     stats: { def: 0, hp: 5 }, desc: 'A long navy robe that crackles when it moves. Worn by those who never stand still.',
+  },
+  scribe_robe: {
+    name: "Scribe's Hooded Robe", cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#3a1a5a',
+    stats: { def: 1, hp: 10 }, desc: 'A violet-lined black robe covered in script that rewrites itself.',
   },
   aegis_plate: {
     name: 'Aegis Plate', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#c8d0e0',

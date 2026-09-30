@@ -468,6 +468,55 @@
   "frames": 6,
   "set": "sm"
  },
+ "vs_glyph": {
+  "file": "assets/vfx/vs_glyph.png",
+  "fw": 88,
+  "fh": 128,
+  "frames": 6,
+  "set": "vs"
+ },
+ "vs_sigil": {
+  "file": "assets/vfx/vs_sigil.png",
+  "fw": 90,
+  "fh": 128,
+  "frames": 6,
+  "set": "vs"
+ },
+ "vs_phantom": {
+  "file": "assets/vfx/vs_phantom.png",
+  "fw": 106,
+  "fh": 158,
+  "frames": 6,
+  "set": "vs"
+ },
+ "vs_rewrite": {
+  "file": "assets/vfx/vs_rewrite.png",
+  "fw": 118,
+  "fh": 158,
+  "frames": 6,
+  "set": "vs"
+ },
+ "vs_chain": {
+  "file": "assets/vfx/vs_chain.png",
+  "fw": 118,
+  "fh": 128,
+  "frames": 6,
+  "set": "vs"
+ },
+ "vs_orb": {
+  "file": "assets/vfx/vs_orb.png",
+  "fw": 180,
+  "fh": 158,
+  "frames": 6,
+  "set": "vs"
+ },
+ "vs_null": {
+  "file": "assets/vfx/vs_null.png",
+  "fw": 130,
+  "fh": 128,
+  "frames": 6,
+  "set": "vs"
+ },
  "aw_needle": {
   "file": "assets/vfx/aw_needle.png",
   "fw": 86,

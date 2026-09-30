@@ -128,6 +128,25 @@ export const SKILL_PROGRESSION = {
   heavens_tempest: { category: 'BURST' },
   storm_burst: { category: 'BURST' },
 
+  // ======================= VOID SCRIBE (Class 2 of Astral Weaver)
+  void_script: { category: 'UTILITY', levels: support(TRAIT_TEXT.haste, T('haste')) },
+  sable_mark: {
+    category: 'OFFENSE', levels: damage(TRAIT_TEXT.refund, T('refund')),
+    evolutions: [
+      evo('twin_sable', 'Twin Sable', 'Two lighter quills (2 charges): mark two foes and keep your Void Chain full.',
+        { behavior: 'Mark more foes for Void Chain', damage: '-15%', utility: '2 charges · haste', resource: 'Same', cooldown: 'Same' },
+        { charges: 1, power: 0.85, flags: { haste: true } }),
+      evo('deep_sable', 'Deep Sable', 'A heavy quill that bites deep: +30% damage and it heals you a little for the damage it deals.',
+        { behavior: 'Sustain in long fights', damage: '+30%', utility: 'Lifesteal', resource: 'Same', cooldown: '+15%' },
+        { power: 1.3, cooldown: 1.15, flags: { lifesteal: true }, values: { lifesteal: 0.08 } }),
+    ],
+  },
+  phantom_quill: { category: 'UTILITY', levels: support(TRAIT_TEXT.haste, T('haste')) },
+  rewrite: { category: 'UTILITY', levels: support('SWIFT HAND: +1 charge', { charges: 1 }) },
+  void_chain: { category: 'OFFENSE', levels: damage(TRAIT_TEXT.refund, T('refund')) },
+  final_script_null: { category: 'BURST' },
+  void_seal: { category: 'UTILITY' },
+
   // ======================= BLADE OF ECHOES (Class 2)
   echo_slash: {
     category: 'OFFENSE', levels: damage(TRAIT_TEXT.echo, T('echo')),

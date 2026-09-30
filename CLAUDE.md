@@ -9,7 +9,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - `node server.js` → http://localhost:5173 (Claude preview config name: `eclipse-online`, `autoPort` on, see `.claude/launch.json`).
 - Unit tests: `node tools/tests/run.mjs` (must print `ALL TEST FILES PASSED`).
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
-  (combat / mechanics / Reaper / Duskrunner / Echoes / Warden / Bulwark / Oath / Storm / class-change checks; `C.duskChecks(__game)` /
+  (combat / mechanics / Reaper / Duskrunner / Echoes / Warden / Bulwark / Oath / Storm / Void / class-change checks; `C.duskChecks(__game)` /
   `C.echoChecks(__game)` alone). runAll now takes > 45 s: from the preview tool run it in parts (classChecks +
   mechanicChecks per 2 classes, then reaper/dusk/classChange, then echo) or the call times out and hangs the page,
   `const L = await import('/tools/checklist.js'); L.runChecklist(__game, classId)` (spec TEST 1-31),
@@ -65,13 +65,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   walk1.png ATK1 DASH DEF HIT SK1-6 UT, no idle / atk2 / parry sheet; WD / BS / OK = Warden of Dawn / Bulwark Sentinel /
   Oathbreaker); VFX `desgin/VFX/AW/<AW|SM|VS|LO>/` + `desgin/VFX/UB/<UB|RP|DR|BE>/` + `desgin/VFX/AG/<AG|DW|BS|OK>/` (AI sheets: fake
   checkerboard background, 6 columns × 4 direction rows; DR / BE atk2 have 5 poses per row).
-- `node tools/build-player.js [ub|aw|ag|rp|dr|be|wd|bs|ok|sm]` → `assets/player[/<preset>]/*.png + atlas.json`. Every preset is
+- `node tools/build-player.js [ub|aw|ag|rp|dr|be|wd|bs|ok|sm|vs]` → `assets/player[/<preset>]/*.png + atlas.json`. Every preset is
   normalised to the same standard: canvas 160×160, pivot (80,140), neutral body ≈ 58-59 px. Frames are cut by
   blob ownership (effects never sliced); per-sheet `{ frames: 5 }` for 5-pose rows; `emptyFrames` recorded.
 - `node tools/build-vfx.js` → `assets/vfx/*.png + vfx.json` (right-facing strips, rotated at runtime;
   per-file `rows` (front view for caster-centred effects) and `mirrorFrames`; files with or without .png). AG Class 2
-  basic-attack strips `dw_atk` / `bs_atk` / `ok_atk`; ult aura strips `bs_aura` / `ok_aura` (DW's 'AURA UT DW' is a copy of
-  its ATK sheet -> unused).
+  basic-attack strips `dw_atk` / `bs_atk` / `ok_atk` (the code-drawn finisher slashes were removed, owner); ult aura strips
+  `ok_aura` (Forbidden Oath) and `bs_aura` (built but unused: owner kept the original drawn Citadel aura); DW's 'AURA UT DW'
+  is a copy of its ATK sheet -> unused.
 - SKILL ICONS: `desgin/ICON SKILL/<UB|AG|AW>/<class>/SK1..SK7|UT` (1024-1254² art) -> `node tools/build-icons.js` ->
   `assets/icons/<class>_<skn>.png` (64 px) + icons.json, loaded as `Assets.icons`; which skill uses which = `src/data/skillIcons.js`
   (ui/icons.js `skillIcon(skill)` / `skillIconURL(skill)`: art, else the drawn placeholder). tools/tests/skillIcons.test.mjs.
@@ -228,7 +229,24 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   telegraph is about to land, keeps a dodge's stamina, escapes with an invulnerable dash skill. Tests: stormcaller.test.mjs (9),
   C.stormChecks (20). Balance (bot): 3-dummy ≈ 205-215 DPS, single dummy ≈ 143 (RP 140, AW 123); Guardian at LV 13: 4/5 WIN
   95-150 s (AW 3/3) — the most fragile of the line by design.
-  Next: AW2 Void Scribe (preset 'vs'), then AW3 Lumen Oracle (preset 'lo').
+  Done AW2 = VOID SCRIBE (`src/skills/voidScribe.js`, preset 'vs', VFX set 'vs': vs_glyph / vs_sigil / vs_phantom / vs_rewrite /
+  vs_chain (mirrored) / vs_orb / vs_null): resource VOID INK (tier ABYSSAL 70 = voidDmg; damage type 'void'), written by DoT ticks,
+  debuffs, script pulses, shared damage through a per-second budget (6/s) + passive INK OF THE ABYSS (void death +8, ≤ 16 per 3 s).
+  SCRIPTS = ground glyphs (max 3, 8 s, r 55, pulse 0.5 s) whose effect is DATA in `src/data/scripts.js` (ruin: void + Void Rot ·
+  bind: slow · hush: silence, not bosses; `next` = the REWRITE cycle; a new effect = a new entry). Statuses void_rot (3 stacks),
+  sable_mark (DoT, DEF -15%), void_seal (dotRate 2, +10% taken, deals -25%), nulled, phantom_ward. Skills: Void Script · Sable
+  Mark · Phantom Quill (25: summon 'void_phantom', keeps 2; strikes foes in scripts first; a strike on a foe in a script
+  INSCRIBES it = instant ×1.5 pulse) · Rewrite (15, needs a script = requirement value scriptCount) · Void Chain (links
+  Sable-Marked foes, 25% of damage shared once: opts.voidShare) · Q VOID SEAL (30) · ult FINAL SCRIPT: NULL (60: zone 6 s, nulled +
+  slow, scripts pulse ×2, phantoms strike twice, +1 phantom, NULL explosion 2.5 + 0.5 per harmful effect, max 5.5). Passives
+  ENDLESS SCRIPT (+12% direct void per extra harmful effect, max +36%), INK OF THE ABYSS, PHANTOM WARD (a phantom exists: -25%
+  damage taken, each hit costs it 1 s — added so the no-dash summoner survives). NEW GENERIC CORE: status modifier `dotRate`
+  (StatusSet.update, capped 0.25-4×) · monsters respect SILENCE (flag cannotCast -> only their first attack) · projectiles honour
+  `powerFor` like hitboxes · summon data `visual.sprite = { key, frame, scale, lift }` (drawn from a VFX strip) · Player getter
+  scriptCount. tools/tests/classKeys.test.mjs = no class-object key written twice (a method named like a data field silently
+  erased it: bit Stormcaller `shock` and Void Scribe `ink`). Tests voidScribe.test.mjs (7), C.voidChecks (16). Balance (bot):
+  ≈ 125-140 DPS (dummies), Guardian (god) 113 DPS vs AW 121; no god LV 13: 3/5 WIN in 140-265 s — slow, setup class; human playtest.
+  Next: AW3 Lumen Oracle (preset 'lo').
 - Later Class 2 work: AG line done; AW line in progress (above).
   Unused RP art: `sk6` (anim `harvest`) is mapped but no skill plays it yet.
 - **Current: V2.1 "Class × World Integration"** (owner's 16-phase spec: Lumina → A1 → A2 → A3 → Boss Arena, EXP/loot/

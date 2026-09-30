@@ -81,7 +81,7 @@ export class Projectiles {
         if (t.dead || p.hit.has(t)) continue;
         if ((t.x - p.x) ** 2 + (t.y - 10 - p.y) ** 2 < (p.r + t.radius) ** 2) {
           p.hit.add(t);
-          const info = g.combat.dealDamage(p.owner, t, p);
+          const info = g.combat.dealDamage(p.owner, t, p.powerFor ? { ...p, power: p.powerFor(t, p) } : p); // powerFor: per-target power, as for hitboxes
           if (p.onHit) p.onHit(t, info, p);
           if (!p.pierce) { p.active = false; break; }
         }

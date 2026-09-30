@@ -193,6 +193,7 @@ export function mechanicChecks(g, classId) {
     let used = null;
     g.events.on('skillUsed', (e) => { if (e.caster === p && !used) used = e.skillId; });
     if ((s.requirements || []).some((r) => r.key === 'threadCount')) g.threads.create(p, 'astral_thread', { x: p.x - 40, y: p.y }, { x: p.x + 40, y: p.y });
+    if ((s.requirements || []).some((r) => r.key === 'scriptCount') && p.cls.writeScript) p.cls.writeScript(p, g, d.x, d.y); // Void Scribe: a script on the ground
     for (const r of s.requirements || []) { // meet the other data requirements the way a player would have
       if (r.type === 'recorded' && p.memory) p.memory.record({ kind: 'skill', id: r.ids[0] }, g.time);
       if (r.type === 'hpBelow') p.hp = Math.floor(p.maxHp * (r.max - 0.1));
@@ -787,12 +788,14 @@ export function oathChecks(g) {
   ok('Counter power grows with the oath spent, capped (max 3.3×, every bonus together ≤ 5×)', maxPw > lowPw && Math.abs(maxPw - cls.counter.maxPower) < 1e-9 && capPw <= cls.counter.hardCap + 1e-9 && capPw > maxPw, `${lowPw.toFixed(2)} .. ${maxPw.toFixed(2)} .. ${capPw.toFixed(2)}`);
   p.resources.set(R, 90);
   let dealt = 0; g.events.on('damageDealt', (e) => { if (e.source === p && e.opts && e.opts.skillId === 'sinful_counter') dealt += e.amount; });
+  const rnd = Math.random; Math.random = () => 0.999; // no crits: the two counters below are compared
   cast(g, 'sinful_counter', d); idle(g);
   ok('Sinful Counter spends at most 60 and hits', r0(p.resources.get(R)) === 30 && dealt > 0, `oath 90 -> ${r0(p.resources.get(R))}, dmg ${dealt}`);
   const plainDealt = dealt; dealt = 0;
   ({ p, d } = atDummy(g, 'oathbreaker'));
   g.events.on('damageDealt', (e) => { if (e.source === p && e.opts && e.opts.skillId === 'sinful_counter') dealt += e.amount; });
   p.resources.set(R, 90); p.retaliateUntil = g.time + 5; cast(g, 'sinful_counter', d); idle(g);
+  Math.random = rnd;
   ok('Inside RETALIATION the counter hits harder, and the window is used up', dealt > plainDealt && !(g.time < p.retaliateUntil), `${plainDealt} -> ${dealt}`);
 
   // Oath Brand + Ruin Chain
@@ -954,6 +957,115 @@ export function stormChecks(g) {
   return rows;
 }
 
+// ---------------- Class 2 VOID SCRIBE in the live game (scripts, rewrite, sable, phantoms, void chain, seal, null)
+export function voidChecks(g) {
+  const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'void_scribe', test: name, pass: !!pass, detail });
+  const R = 'void_ink', r0 = (n) => Math.round(n);
+  let { p, d } = atDummy(g, 'void_scribe');
+  let D = g.world.dummies; const cls = p.cls, inFight = () => { g.combat.lastCombatTime = g.time; };
+  const fresh = (dist) => { ({ p, d } = atDummy(g, 'void_scribe', dist)); D = g.world.dummies; };
+  const count = (ev, fn) => { let n = 0; const off = g.events.on(ev, (e) => { if (fn(e)) n++; }); return () => { if (off) off(); return n; }; };
+  const hitsOn = (t, fn) => { let n = 0; const off = g.events.on('damageDealt', (e) => { if (e.source === p && e.target === t) n++; }); fn(); if (off) off(); return n; };
+  ok('Class data: preset vs, Void Ink, own skills + Void Seal + passives', p.sprites.preset === 'vs' && p.primaryResource === R && p.skillSys.get('void_script') && p.skillSys.get('final_script_null') && cls.special.id === 'void_seal' && cls.passives.length >= 2 && g.equipment.slots.weapon === 'void_tome', `${p.sprites.preset} ${p.primaryResource} ${g.equipment.slots.weapon}`);
+
+  // Void Script: a RUIN glyph under the dummy pulses void damage + Void Rot and writes ink
+  const ink0 = p.resources.get(R);
+  const n1 = hitsOn(d, () => { cast(g, 'void_script', d); g.simulate(1.5, inFight); });
+  ok('Void Script: pulses void damage and VOID ROT on a foe inside', (p.scripts || []).length === 1 && p.scripts[0].effect === 'ruin' && n1 >= 3 && d.status.has('void_rot'), `scripts ${(p.scripts || []).length} hits ${n1} rot ${d.status.stacks('void_rot')}`);
+  ok('Damage over time writes Void Ink (budgeted)', p.resources.get(R) > ink0 && p.resources.get(R) - ink0 <= cls.ink.perSec * 3.3 + 0.01, `+${(p.resources.get(R) - ink0).toFixed(1)}`);
+  for (let i = 0; i < 3; i++) { p.skillSys.cooldowns.clear('void_script'); cast(g, 'void_script', { x: d.x + 40 * i, y: d.y + 60 }); }
+  ok('At most 3 scripts (the oldest is replaced)', p.scripts.length === 3, `${p.scripts.length}`);
+  g.simulate(8.5);
+  ok('Scripts fade after 8 s', p.scripts.length === 0, `${p.scripts.length}`);
+
+  // Rewrite: needs a script; RUIN -> BIND (slow) -> HUSH (silence); costs 15 ink
+  fresh();
+  p.resources.set(R, 50);
+  const noRewrite = !p.skillSys.canUse('rewrite').ok;
+  cast(g, 'void_script', d); p.resources.set(R, 50);
+  cast(g, 'rewrite'); const toBind = p.scripts[0].effect, slowed = d.status.has('slow'), paid = 50 - p.resources.get(R);
+  p.skillSys.cooldowns.clear('rewrite'); cast(g, 'rewrite'); const toHush = p.scripts[0].effect;
+  let silenced = false; for (let i = 0; i < 40 && !silenced; i++) { g.simulate(STEP * 2); silenced = d.status.has('silence'); }
+  ok('Rewrite: refused without a script; RUIN → BIND (slow) → HUSH (silence); costs Ink', noRewrite && toBind === 'bind' && slowed && toHush === 'hush' && silenced && paid >= 15 - cls.ink.perSec, `refused=${noRewrite} ${toBind}/${toHush} slow=${slowed} silence=${silenced} paid ${r0(paid)}`);
+
+  // Sable Mark: DoT + defence down
+  fresh();
+  const def0 = d.status.modifier('defenseMult');
+  cast(g, 'sable_mark', d);
+  const hpA = d.hp; g.simulate(2.2, inFight); const rotted = hpA - d.hp;
+  ok('Sable Mark: marks, rots and lowers defence', d.status.has('sable_mark') && rotted > 0 && d.status.modifier('defenseMult') < def0, `dot ${rotted} def×${d.status.modifier('defenseMult')}`);
+
+  // Void Seal: DoTs tick twice as fast; silence (not bosses)
+  const ticks = (seal) => {
+    fresh(); p.resources.set(R, 100);
+    if (seal) { cast(g, 'void_seal', d); }
+    d.status.add('void_rot', 6, { source: p, damage: 5 });
+    const stop = count('damageDealt', (e) => e.target === d && e.opts && e.opts.statusId === 'void_rot');
+    g.simulate(3, inFight);
+    return stop();
+  };
+  const plain = ticks(false), sealed = ticks(true);
+  ok('Void Seal: sealed foes take their DoT ticks twice as fast (+ silence)', sealed >= plain * 1.7 && d.status.has('void_seal'), `${plain} -> ${sealed} ticks in 3 s`);
+
+  // Phantom Quill: a phantom strikes; a strike on a foe inside a script INSCRIBES it; Phantom Quill keeps 2
+  fresh(); p.resources.set(R, 100);
+  cast(g, 'void_script', d);
+  const stopIns = count('scriptInscribed', (e) => e.owner === p);
+  const ph = hitsOn(d, () => { cast(g, 'phantom_quill', { x: d.x + 60, y: d.y + 40 }); g.simulate(2.5, inFight); });
+  const inscribed = stopIns();
+  ok('Phantom Quill: a void phantom strikes and INSCRIBES the script under the foe', g.summons.count(p, 'void_phantom') === 1 && ph >= 2 && inscribed >= 1, `phantoms ${g.summons.count(p, 'void_phantom')} inscribed ${inscribed}`);
+  for (let i = 0; i < 2; i++) { p.skillSys.cooldowns.clear('phantom_quill'); p.resources.set(R, 100); cast(g, 'phantom_quill', { x: d.x - 60, y: d.y + 40 }); }
+  ok('Phantom Quill keeps at most 2 phantoms', g.summons.count(p, 'void_phantom') === 2, `${g.summons.count(p, 'void_phantom')}`);
+
+  // Void Chain: two Sable-Marked foes share damage (shared damage never shares again)
+  fresh();
+  for (const t of [D[0], D[1]]) t.status.add('sable_mark', 8, { source: p });
+  cast(g, 'void_chain');
+  const linked = p.voidLinks ? p.voidLinks.targets.length : 0;
+  const stopShare = count('damageDealt', (e) => e.source === p && e.opts && e.opts.voidShare);
+  const hp0 = D[0].hp;
+  g.combat.dealDamage(p, D[1], { power: 5, type: 'void' });
+  const shares = stopShare();
+  ok('Void Chain: links Sable-Marked foes; a hit on one is shared once to the other', linked === 2 && shares === 1 && D[0].hp < hp0, `linked ${linked} shares ${shares}`);
+
+  // silence on a real monster: only its first (basic) attack stays allowed
+  const m = g.world.monsters.find((x) => x.def && x.def.attacks && x.def.attacks.length > 1);
+  if (m) {
+    // a range every attack can use; stateT past the slow-turn check
+    const dP = Math.min(...m.def.attacks.map((a) => a.range)) - 1;
+    const pickSet = () => { const s = new Set(); for (let i = 0; i < 60; i++) { m.cds = {}; m.stateT = 5; const a = m.chooseAttack(dP); if (a) s.add(a.id); } return s; };
+    const free = pickSet();
+    m.status.add('silence', 5); const hushed = pickSet(); m.status.remove('silence');
+    ok('Silence (generic): a silenced monster only uses its basic attack', free.size > 1 && hushed.size === 1 && hushed.has(m.def.attacks[0].id), `${m.type}: free ${[...free].join(',')} / silenced ${[...hushed].join(',')}`);
+  }
+
+  // Final Script: Null — nulled foes, a 3rd phantom, the explosion at the end
+  fresh(); p.resources.set(R, 100);
+  cast(g, 'phantom_quill', { x: d.x + 50, y: d.y + 40 }); p.skillSys.cooldowns.clear('phantom_quill'); p.resources.set(R, 100); cast(g, 'phantom_quill', { x: d.x - 50, y: d.y + 40 });
+  p.resources.set(R, 80);
+  const stopBig = count('damageDealt', (e) => e.source === p && e.opts && e.opts.big && e.opts.skillId === 'final_script_null');
+  cast(g, 'final_script_null', d); idle(g); g.simulate(1, inFight);
+  const nulled = d.status.has('nulled'), phantoms = g.summons.count(p, 'void_phantom');
+  g.simulate(6, inFight);
+  const boom = stopBig();
+  ok('Final Script: Null — NULLED foes, a 3rd phantom, NULL explosion', nulled && phantoms === 3 && boom >= 1 && !p.nullZone, `nulled=${nulled} phantoms ${phantoms} explosion hits ${boom}`);
+
+  // Ink of the Abyss: dying under a void effect writes ink, capped per window
+  fresh(); p.resources.set(R, 0); inFight();
+  for (const t of D) { t.status.add('void_rot', 5, { source: p, damage: 3 }); t.hp = 1; g.combat.dealDamage(p, t, { power: 5, type: 'void' }); }
+  ok('Ink of the Abyss: +8 per void death, capped 16 per 3 s', D.every((t) => t.dead) && r0(p.resources.get(R)) === cls.ink.deathCap, `ink ${p.resources.get(R).toFixed(1)}`);
+
+  // class change Astral Weaver -> Void Scribe
+  g.newGame('astral_weaver'); releaseInput(g);
+  g.progression.unlock('void_scribe'); g.combat.lastCombatTime = -99;
+  const r = g.changeClass('void_scribe'), np = g.player;
+  ok('Class change Astral Weaver -> Void Scribe', r.ok && np.cls.id === 'void_scribe' && np.sprites.preset === 'vs' && np.primaryResource === R && g.equipment.slots.weapon === 'void_tome', `${np.cls.id} ${np.sprites.preset} ${g.equipment.slots.weapon}`);
+  const res = np.resources.get(R), cds = ['void_script', 'sable_mark', 'phantom_quill', 'rewrite', 'void_chain', 'final_script_null'].map((id) => np.skillSys.cooldowns.remaining(id));
+  ok('No negative / overfull resource, no negative cooldown', res >= 0 && res <= 100 && cds.every((c) => c >= 0));
+  releaseInput(g);
+  return rows;
+}
+
 // ---------------- Phase 13: class change, proven with a mock Class 2 registered from data only
 export function classChangeChecks(g) {
   const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'class_change', test: name, pass: !!pass, detail });
@@ -972,8 +1084,8 @@ export function classChangeChecks(g) {
     g.combat.lastCombatTime = g.time;
     ok('Refused in combat', g.changeClass('mock_class2').reason === 'combat');
     g.combat.lastCombatTime = -99;
-    g.progression.unlock('void_scribe');
-    ok('Unlocked but not playable yet (real Class 2) refused', g.changeClass('void_scribe').reason === 'not_playable');
+    g.progression.unlock('lumen_oracle');
+    ok('Unlocked but not playable yet (real Class 2) refused', g.changeClass('lumen_oracle').reason === 'not_playable');
     const before = { x: p.x, y: p.y, level: p.level, exp: p.exp, gold: p.gold, ratio: p.hp / p.maxHp };
     const r = g.changeClass('mock_class2');
     const np = g.player;
@@ -1038,7 +1150,7 @@ export function balance(g, classId, loadout, botOpts = {}) {
 export function runAll(g, { withBalance = true } = {}) {
   const rows = [], bal = [];
   for (const c of [...STARTING_CLASSES, ...ADVANCED]) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
-  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...wardenChecks(g), ...bulwarkChecks(g), ...oathChecks(g), ...stormChecks(g), ...classChangeChecks(g));
+  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...wardenChecks(g), ...bulwarkChecks(g), ...oathChecks(g), ...stormChecks(g), ...voidChecks(g), ...classChangeChecks(g));
   if (withBalance) for (const c of [...STARTING_CLASSES, ...ADVANCED]) bal.push(balance(g, c));
   return { passed: rows.filter((r) => r.pass).length, total: rows.length, rows, balance: bal };
 }
