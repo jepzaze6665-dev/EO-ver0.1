@@ -18,21 +18,23 @@ const WIRE = 'lightning_thread';
 
 // animation table for the 'sm' preset (tools/build-player.js sm → assets/player/sm)
 // (sk1 col 3-4 and ult col 3 are effect-only frames in the art: not used)
+// hit: the RELEASE column (staff thrust / spark leaves) — every event of an action fires while it shows
+// (tools/tests/castTiming.test.mjs). Thunder Lash's release pose is an effect-only frame, so it has no hit list.
 export const SM_ANIMS = {
   idle: { sheet: 'idle', cols: [0, 1, 2, 3, 4, 5], fps: 4, loop: true },
   walk: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 10, loop: true },
   run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 14, loop: true },
-  atk1: { sheet: 'atk1', cols: [1, 2, 3, 4] },
-  atk2: { sheet: 'atk2', cols: [1, 2, 3, 4] },
-  atk3: { sheet: 'sk4', cols: [1, 2, 3, 4] },
+  atk1: { sheet: 'atk1', cols: [1, 2, 3, 4], hit: [3] },
+  atk2: { sheet: 'atk2', cols: [1, 2, 3, 4], hit: [3] },
+  atk3: { sheet: 'sk4', cols: [1, 2, 3, 4], hit: [3] },
   dodge: { sheet: 'dash', cols: [1, 2, 3, 4] },
   thunderLash: { sheet: 'sk1', cols: [1, 2, 5] },
-  stormStep: { sheet: 'sk2', cols: [1, 2, 3, 4] },
-  chainTempest: { sheet: 'sk3', cols: [1, 2, 3, 4] },
-  staticThread: { sheet: 'sk4', cols: [1, 2, 3, 4] },
-  tempestField: { sheet: 'sk5', cols: [1, 2, 3, 4] },
-  stormBurst: { sheet: 'sk6', cols: [1, 2, 3, 4] },
-  heavensTempest: { sheet: 'ult', cols: [1, 2, 4, 4, 5] },
+  stormStep: { sheet: 'sk2', cols: [1, 2, 3, 4], hit: [3, 4] }, // the discharge is at the landing
+  chainTempest: { sheet: 'sk3', cols: [1, 2, 3, 4], hit: [3] },
+  staticThread: { sheet: 'sk4', cols: [1, 2, 3, 4], hit: [3] },
+  tempestField: { sheet: 'sk5', cols: [1, 2, 3, 4], hit: [3] },
+  stormBurst: { sheet: 'sk6', cols: [1, 2, 3, 4], hit: [3] },
+  heavensTempest: { sheet: 'ult', cols: [1, 2, 4, 4, 5], hit: [4] },
   hurt: { sheet: 'hit', cols: [1, 2] },
   death: { sheet: 'hit', cols: [1, 2, 3, 4] },
 };
@@ -214,9 +216,9 @@ export const Stormcaller = {
   basic(p, g, a, step) {
     const cls = p.cls;
     const defs = [
-      { dur: 0.3, at: 0.1, anim: 'atk1', power: 0.85, speed: 520, sprite: 'sm_bolt', scale: 0.5 },
-      { dur: 0.3, at: 0.1, anim: 'atk2', power: 0.9, speed: 520, sprite: 'sm_bolt', scale: 0.5 },
-      { dur: 0.42, at: 0.16, anim: 'atk3', power: 1.25, speed: 600, sprite: 'sm_spark', scale: 0.6, chain: true },
+      { dur: 0.3, at: 0.16, anim: 'atk1', power: 0.85, speed: 520, sprite: 'sm_bolt', scale: 0.5 },
+      { dur: 0.3, at: 0.16, anim: 'atk2', power: 0.9, speed: 520, sprite: 'sm_bolt', scale: 0.5 },
+      { dur: 0.42, at: 0.22, anim: 'atk3', power: 1.25, speed: 600, sprite: 'sm_spark', scale: 0.6, chain: true },
     ];
     const d = defs[step];
     return {
@@ -309,7 +311,7 @@ export const Stormcaller = {
         return {
           name: 'chain_tempest', dur: 0.5, anim: 'chainTempest', moveMul: 0.2, ang: a, cancelAt: 0.3,
           start: () => g.vfx.ring(pt.x, pt.y, 60, 20, { life: 0.3, color: CR, width: 2 }),
-          events: [[0.24, () => {
+          events: [[0.26, () => {
             g.audio.sfx('constellation');
             g.vfx.sprite('sm_strike', pt.x, pt.y - 40, 0, { scale: 1.3, life: 0.36, glow: 0.6 });
             g.vfx.bolt(pt.x + rand(-10, 10), pt.y - 220, pt.x, pt.y - 6, { color: CR, width: 3, life: 0.22, jag: 14 });
@@ -336,8 +338,8 @@ export const Stormcaller = {
       cast(p, g, a) {
         const cls = p.cls;
         return {
-          name: 'static_thread', dur: 0.38, anim: 'staticThread', moveMul: 0.25, ang: a, cancelAt: 0.2,
-          events: [[0.15, () => {
+          name: 'static_thread', dur: 0.38, anim: 'staticThread', moveMul: 0.25, ang: a, cancelAt: 0.22,
+          events: [[0.2, () => {
             // the Weaver's own threads become live wires (same anchors)
             for (const th of g.threads.ofOwner(p).filter((t) => t.type === 'astral_thread')) {
               const [q, r] = g.threads.ends(th);
@@ -367,7 +369,7 @@ export const Stormcaller = {
         const cls = p.cls, pt = aimPoint(p, g, 220);
         return {
           name: 'tempest_field', dur: 0.5, anim: 'tempestField', moveMul: 0.2, ang: a, cancelAt: 0.3,
-          events: [[0.2, () => { g.audio.sfx('shrine'); cls.addField(p, g, pt.x, pt.y); g.vfx.text(pt.x, pt.y - 60, 'TEMPEST FIELD', { color: PALE, size: 10 }); }]],
+          events: [[0.26, () => { g.audio.sfx('shrine'); cls.addField(p, g, pt.x, pt.y); g.vfx.text(pt.x, pt.y - 60, 'TEMPEST FIELD', { color: PALE, size: 10 }); }]],
         };
       },
     },
@@ -434,7 +436,7 @@ export const Stormcaller = {
       const cls = p.cls;
       return {
         name: 'storm_burst', dur: 0.5, anim: 'stormBurst', moveMul: 0.1, ang: a, cancelAt: 0.3, superArmor: true,
-        events: [[0.18, () => {
+        events: [[0.26, () => {
           const B = cls.burst, spent = p.resources.get(S), k = Math.max(0, Math.min(1, spent / 100));
           p.resources.set(S, 0, 'skill:storm_burst');
           const r = B.r0 + (B.r1 - B.r0) * k, power = B.p0 + B.p1 * k;

@@ -18,21 +18,23 @@ const RT = 'radiant_thread';
 
 // animation table for the 'lo' preset (tools/build-player.js lo → assets/player/lo); no idle sheet (walk col 0)
 // (dash col 3 and ult col 4 are empty in the art: not used)
+// hit: the RELEASE column (staff thrust / light released) — every event of an action fires while it shows
+// (tools/tests/castTiming.test.mjs)
 export const LO_ANIMS = {
   idle: { sheet: 'walk', cols: [0] },
   walk: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 9, loop: true, bob: 1 },
   run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 13, loop: true, bob: 1 },
-  atk1: { sheet: 'atk1', cols: [1, 2, 3, 4] },
-  atk2: { sheet: 'atk2', cols: [1, 2, 3, 4] },
-  atk3: { sheet: 'sk1', cols: [1, 2, 3, 4] },
+  atk1: { sheet: 'atk1', cols: [1, 2, 3, 4], hit: [3] },
+  atk2: { sheet: 'atk2', cols: [1, 2, 3, 4], hit: [3] },
+  atk3: { sheet: 'sk1', cols: [1, 2, 3, 4], hit: [3] },
   dodge: { sheet: 'dash', cols: [1, 2] },
-  lumenBolt: { sheet: 'sk1', cols: [1, 2, 3, 4] },
-  grace: { sheet: 'sk2', cols: [1, 2, 3, 4] },
-  radiantThread: { sheet: 'sk3', cols: [1, 2, 3, 4] },
-  purify: { sheet: 'sk4', cols: [1, 2, 3, 4] },
-  barrier: { sheet: 'sk5', cols: [1, 2, 3, 4] },
-  lumenBurst: { sheet: 'sk6', cols: [1, 2, 3, 4] },
-  judgment: { sheet: 'ult', cols: [1, 2, 3, 3, 5] },
+  lumenBolt: { sheet: 'sk1', cols: [1, 2, 3, 4], hit: [3] },
+  grace: { sheet: 'sk2', cols: [1, 2, 3, 4], hit: [3] },
+  radiantThread: { sheet: 'sk3', cols: [1, 2, 3, 4], hit: [3] },
+  purify: { sheet: 'sk4', cols: [1, 2, 3, 4], hit: [3] },
+  barrier: { sheet: 'sk5', cols: [1, 2, 3, 4], hit: [3] },
+  lumenBurst: { sheet: 'sk6', cols: [1, 2, 3, 4], hit: [3] },
+  judgment: { sheet: 'ult', cols: [1, 2, 3, 3, 5], hit: [3] },
   hurt: { sheet: 'hit', cols: [1, 2] },
   death: { sheet: 'hit', cols: [1, 2, 3, 4] },
 };
@@ -173,9 +175,9 @@ export const LumenOracle = {
   basic(p, g, a, step) {
     const cls = p.cls;
     const defs = [
-      { dur: 0.32, at: 0.12, anim: 'atk1', power: 0.85, speed: 480, scale: 0.4, frames: [0, 1] },
-      { dur: 0.32, at: 0.12, anim: 'atk2', power: 0.9, speed: 480, scale: 0.4, frames: [0, 1] },
-      { dur: 0.44, at: 0.18, anim: 'atk3', power: 1.25, speed: 560, scale: 0.6, frames: [2, 3], mark: true },
+      { dur: 0.32, at: 0.17, anim: 'atk1', power: 0.85, speed: 480, scale: 0.4, frames: [0, 1] },
+      { dur: 0.32, at: 0.17, anim: 'atk2', power: 0.9, speed: 480, scale: 0.4, frames: [0, 1] },
+      { dur: 0.44, at: 0.23, anim: 'atk3', power: 1.25, speed: 560, scale: 0.6, frames: [2, 3], mark: true },
     ];
     const d = defs[step];
     return {
@@ -202,8 +204,8 @@ export const LumenOracle = {
       cast(p, g, a) {
         const cls = p.cls;
         return {
-          name: 'lumen_bolt', dur: 0.34, anim: 'lumenBolt', moveMul: 0.35, ang: a, cancelAt: 0.16,
-          events: [[0.13, () => {
+          name: 'lumen_bolt', dur: 0.34, anim: 'lumenBolt', moveMul: 0.35, ang: a, cancelAt: 0.2,
+          events: [[0.18, () => {
             const m = g.mouseWorld(), ally = allyAt(g, p, m.x, m.y, 50);
             if (ally && dist(ally, p) <= 360) { // HEAL BOLT
               g.audio.sfx('shrine');
@@ -239,7 +241,7 @@ export const LumenOracle = {
         const cls = p.cls, G = cls.grace;
         return {
           name: 'oracles_grace', dur: 0.46, anim: 'grace', moveMul: 0.2, ang: a, cancelAt: 0.3,
-          events: [[0.2, () => {
+          events: [[0.24, () => {
             const t = neediest(g, p, G.range);
             g.audio.sfx('shrine');
             p.graces = (p.graces || []).filter((z) => z.t > 0).slice(-1); // at most 2 sigils
@@ -259,8 +261,8 @@ export const LumenOracle = {
       desc: 'The Weaver\'s thread, made of healing light (up to 2, 6 s): from you to the ally nearest the cursor, or to the ground. Party members on it heal 1% max HP every 0.5 s, a heal on one end flows 40% to the other, and foes crossing it are burned and LIGHT-MARKED.',
       cast(p, g, a) {
         return {
-          name: 'radiant_thread', dur: 0.38, anim: 'radiantThread', moveMul: 0.25, ang: a, cancelAt: 0.2,
-          events: [[0.15, () => {
+          name: 'radiant_thread', dur: 0.38, anim: 'radiantThread', moveMul: 0.25, ang: a, cancelAt: 0.22,
+          events: [[0.2, () => {
             const pt = aimPoint(p, g, 300), ally = allyAt(g, p, pt.x, pt.y, 70);
             const th = g.threads.create(p, RT, { entity: p }, ally ? { entity: ally } : pt);
             if (!th) return;
@@ -279,7 +281,7 @@ export const LumenOracle = {
         const cls = p.cls, P = cls.purify;
         return {
           name: 'purifying_light', dur: 0.4, anim: 'purify', moveMul: 0.2, ang: a, cancelAt: 0.25,
-          events: [[0.16, () => {
+          events: [[0.21, () => {
             g.audio.sfx('shrine');
             g.vfx.sprite('lo_purify', p.x, p.y - 30, 0, { scale: 1.4, life: 0.45, glow: 0.6 });
             g.vfx.ring(p.x, p.y, 10, P.r, { life: 0.35, color: CR, width: 3 });
@@ -307,7 +309,7 @@ export const LumenOracle = {
         const cls = p.cls, B = cls.barrier;
         return {
           name: 'divine_barrier', dur: 0.46, anim: 'barrier', moveMul: 0.2, ang: a, cancelAt: 0.3,
-          events: [[0.2, () => {
+          events: [[0.24, () => {
             g.audio.sfx('shrine');
             g.vfx.ring(p.x, p.y, 10, B.r, { life: 0.4, color: CR, width: 2 });
             for (const m of party(g, p)) {
@@ -372,7 +374,7 @@ export const LumenOracle = {
       const cls = p.cls, B = cls.burst;
       return {
         name: 'lumen_burst', dur: 0.46, anim: 'lumenBurst', moveMul: 0.1, ang: a, cancelAt: 0.3, superArmor: true,
-        events: [[0.2, () => {
+        events: [[0.24, () => {
           g.audio.sfx('constellation');
           g.vfx.flash(CR, 0.2, 4);
           g.vfx.sprite('lo_spike', p.x, p.y - 48, 0, { scale: 1.4, life: 0.45, glow: 0.7 });

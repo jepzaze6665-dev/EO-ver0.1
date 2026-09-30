@@ -247,8 +247,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   erased it: bit Stormcaller `shock` and Void Scribe `ink`). Tests voidScribe.test.mjs (7), C.voidChecks (16). Balance (bot):
   ≈ 125-140 DPS (dummies), Guardian (god) 113 DPS vs AW 121; no god LV 13: 3/5 WIN in 140-265 s — slow, setup class; human playtest.
   VS polish (owner): build-vfx `recenter` on the VS strips (frames drifted in their cells: the orb sat ~40 px left, so cast /
-  decal / blast did not line up); basics fire a round vs_null orb; summon sprite visuals draw ONE steady frame (lean + glow
-  while acting, no flicker). LESSON for new VFX: measure each strip's content box (bbox) and anchor standing effects by their
+  decal / blast did not line up); summon sprite visuals draw ONE steady frame (lean + glow while acting, no flicker).
+  CAST TIMING (owner: the bolt left before the throw pose): SM / VS / LO anims name their RELEASE column `hit: [col]` and every
+  basic / skill event fires while it shows (frame at t = cols[floor(t / dur × n)]); tools/tests/castTiming.test.mjs checks every
+  class that has `hit` data. VS basics keep the chain strip (owner). LESSON for new VFX: measure each strip's content box (bbox) and anchor standing effects by their
   base (center y = ground - (y1 - 0.5) × h), rings / orbs by their centre.
   Done AW3 = LUMEN ORACLE (`src/skills/lumenOracle.js`, preset 'lo' (no idle sheet), VFX set 'lo': lo_bolt / lo_grace (SK2 row 4) /
   lo_thread / lo_purify / lo_barrier / lo_spike / lo_lance (SK6(2)) / lo_judgment (SK7 row 4), recentred): resource LUMEN (tier

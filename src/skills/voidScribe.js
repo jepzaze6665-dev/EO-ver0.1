@@ -17,21 +17,23 @@ const INK = 'void_ink';
 
 // animation table for the 'vs' preset (tools/build-player.js vs → assets/player/vs)
 // (dash col 3-4 and sk2 col 4 are empty in the art: not used)
+// hit: the RELEASE column (book swing / quill throw / glyph written) — every event of an action fires while it shows
+// (tools/tests/castTiming.test.mjs)
 export const VS_ANIMS = {
   idle: { sheet: 'idle', cols: [0, 1, 2, 3, 4, 5], fps: 4, loop: true },
   walk: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 9, loop: true },
   run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 13, loop: true },
-  atk1: { sheet: 'atk1', cols: [1, 2, 3, 4] },
-  atk2: { sheet: 'atk2', cols: [1, 2, 3, 4] },
-  atk3: { sheet: 'sk2', cols: [1, 2, 3] },
+  atk1: { sheet: 'atk1', cols: [1, 2, 3, 4], hit: [3] },
+  atk2: { sheet: 'atk2', cols: [1, 2, 3, 4], hit: [3] },
+  atk3: { sheet: 'sk2', cols: [1, 2, 3], hit: [3] },
   dodge: { sheet: 'dash', cols: [1, 2] },
-  voidScript: { sheet: 'sk1', cols: [1, 2, 3, 4] },
-  sableMark: { sheet: 'sk2', cols: [1, 2, 3, 5] },
-  phantomQuill: { sheet: 'sk3', cols: [1, 2, 3, 4] },
-  rewrite: { sheet: 'sk4', cols: [1, 2, 3, 4] },
-  voidChain: { sheet: 'sk5', cols: [1, 2, 3, 4] },
-  voidSeal: { sheet: 'sk6', cols: [1, 2, 3, 4] },
-  finalScript: { sheet: 'ult', cols: [1, 2, 3, 4] },
+  voidScript: { sheet: 'sk1', cols: [1, 2, 3, 4], hit: [3] },
+  sableMark: { sheet: 'sk2', cols: [1, 2, 3, 5], hit: [3] },
+  phantomQuill: { sheet: 'sk3', cols: [1, 2, 3, 4], hit: [3] },
+  rewrite: { sheet: 'sk4', cols: [1, 2, 3, 4], hit: [3] },
+  voidChain: { sheet: 'sk5', cols: [1, 2, 3, 4], hit: [3] },
+  voidSeal: { sheet: 'sk6', cols: [1, 2, 3, 4], hit: [3] },
+  finalScript: { sheet: 'ult', cols: [1, 2, 3, 4], hit: [3] },
   hurt: { sheet: 'hit', cols: [1, 2] },
   death: { sheet: 'hit', cols: [1, 2, 3, 4] },
 };
@@ -178,9 +180,9 @@ export const VoidScribe = {
   basic(p, g, a, step) {
     const cls = p.cls;
     const defs = [
-      { dur: 0.32, at: 0.12, anim: 'atk1', power: 0.8, speed: 460, scale: 0.4, frames: [0, 1] },
-      { dur: 0.32, at: 0.12, anim: 'atk2', power: 0.85, speed: 460, scale: 0.4, frames: [0, 1] },
-      { dur: 0.44, at: 0.18, anim: 'atk3', power: 1.15, speed: 520, scale: 0.55, frames: [1, 2], rot: true }, // a round void orb (the chain strip looked odd as a bolt)
+      { dur: 0.32, at: 0.17, anim: 'atk1', power: 0.8, speed: 460, scale: 0.45 },
+      { dur: 0.32, at: 0.17, anim: 'atk2', power: 0.85, speed: 460, scale: 0.45 },
+      { dur: 0.44, at: 0.3, anim: 'atk3', power: 1.15, speed: 520, scale: 0.6, rot: true },
     ];
     const d = defs[step];
     return {
@@ -190,7 +192,7 @@ export const VoidScribe = {
         const ox = p.x + Math.cos(a) * 16, oy = p.y - 18 + Math.sin(a) * 16;
         g.combat.projectiles.fire({
           x: ox, y: oy, vx: Math.cos(a) * d.speed, vy: Math.sin(a) * d.speed, r: step === 2 ? 9 : 6, life: 0.6,
-          team: TEAM.PLAYER, owner: p, kind: 'sprite', sprite: 'vs_null', frames: d.frames, fps: 12, scale: d.scale,
+          team: TEAM.PLAYER, owner: p, kind: 'sprite', sprite: 'vs_chain', frames: [2, 3], fps: 14, scale: d.scale,
           power: d.power, type: 'void', knock: step === 2 ? 110 : 40, stagger: 6 + step * 6, hitStop: 0.03, shake: 0.05, color: C, trail: true,
           powerFor: (t) => d.power * cls.endlessMult(p, t),
           onHit: (t) => { if (d.rot) cls.rot(p, g, t); },
@@ -207,8 +209,8 @@ export const VoidScribe = {
       cast(p, g, a) {
         const cls = p.cls, pt = aimPoint(p, g, 240);
         return {
-          name: 'void_script', dur: 0.38, anim: 'voidScript', moveMul: 0.3, ang: a, cancelAt: 0.2,
-          events: [[0.16, () => { g.audio.sfx('thread'); cls.writeScript(p, g, pt.x, pt.y); }]],
+          name: 'void_script', dur: 0.38, anim: 'voidScript', moveMul: 0.3, ang: a, cancelAt: 0.22,
+          events: [[0.2, () => { g.audio.sfx('thread'); cls.writeScript(p, g, pt.x, pt.y); }]],
         };
       },
     },
@@ -219,8 +221,8 @@ export const VoidScribe = {
       cast(p, g, a) {
         const cls = p.cls;
         return {
-          name: 'sable_mark', dur: 0.36, anim: 'sableMark', moveMul: 0.3, ang: a, cancelAt: 0.18,
-          events: [[0.14, () => {
+          name: 'sable_mark', dur: 0.36, anim: 'sableMark', moveMul: 0.3, ang: a, cancelAt: 0.21,
+          events: [[0.19, () => {
             g.audio.sfx('star');
             const ox = p.x + Math.cos(a) * 18, oy = p.y - 18 + Math.sin(a) * 18;
             g.combat.projectiles.fire({
@@ -248,7 +250,7 @@ export const VoidScribe = {
         const cls = p.cls, pt = aimPoint(p, g, 200);
         return {
           name: 'phantom_quill', dur: 0.5, anim: 'phantomQuill', moveMul: 0.2, ang: a, cancelAt: 0.3,
-          events: [[0.22, () => {
+          events: [[0.26, () => {
             // Phantom Quill keeps 2; only the ultimate may add a 3rd
             const mine = g.summons.forOwner(p, 'void_phantom');
             if (mine.length >= cls.phantom.cap) g.summons.expire(mine[0], 'replaced');
@@ -269,8 +271,8 @@ export const VoidScribe = {
       cast(p, g, a) {
         const cls = p.cls;
         return {
-          name: 'rewrite', dur: 0.36, anim: 'rewrite', moveMul: 0.3, ang: a, cancelAt: 0.2,
-          events: [[0.14, () => {
+          name: 'rewrite', dur: 0.36, anim: 'rewrite', moveMul: 0.3, ang: a, cancelAt: 0.21,
+          events: [[0.19, () => {
             g.audio.sfx('thread_burst');
             for (const s of p.scripts || []) {
               const from = s.effect;
@@ -292,7 +294,7 @@ export const VoidScribe = {
         const cls = p.cls, ch = cls.chain;
         return {
           name: 'void_chain', dur: 0.46, anim: 'voidChain', moveMul: 0.2, ang: a, cancelAt: 0.3,
-          events: [[0.2, () => {
+          events: [[0.24, () => {
             const list = foes(g).filter((t) => t.status && t.status.has('sable_mark') && dist(t, p) <= ch.range).sort((m, n) => dist(m, p) - dist(n, p)).slice(0, ch.max);
             if (!list.length) { g.vfx.text(p.x, p.y - 70, 'NO SABLE MARK', { color: '#9a8ab0', size: 9 }); return; }
             g.audio.sfx('thread');
@@ -344,7 +346,7 @@ export const VoidScribe = {
       const cls = p.cls, S = cls.seal, pt = aimPoint(p, g, 260);
       return {
         name: 'void_seal', dur: 0.45, anim: 'voidSeal', moveMul: 0.2, ang: a, cancelAt: 0.3,
-        events: [[0.2, () => {
+        events: [[0.24, () => {
           g.audio.sfx('constellation');
           g.vfx.sprite('vs_orb', pt.x, pt.y - 12, 0, { scale: 1.1, life: 0.45, glow: 0.6 });
           g.vfx.ring(pt.x, pt.y, 10, S.r, { life: 0.35, color: PINK, width: 3 });
