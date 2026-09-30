@@ -24,11 +24,12 @@ export const LO_ANIMS = {
   idle: { sheet: 'walk', cols: [0] },
   walk: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 9, loop: true, bob: 1 },
   run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 13, loop: true, bob: 1 },
-  // basic combo = only frames WITHOUT painted light (owner: the painted orb / swirl covered the character); col 2 is the
-  // staff thrust without its painted orb — the game's own light bolt leaves from the staff tip there
-  atk1: { sheet: 'atk1', cols: [1, 2, 2, 5], hit: [2] },
-  atk2: { sheet: 'atk2', cols: [1, 2, 2, 5], hit: [2] },
-  atk3: { sheet: 'atk1', cols: [1, 2, 2, 2, 5], hit: [2] }, // finisher: the clean thrust held longer (SK1 is all painted light)
+  // basic combo (owner: painted light covered the character): body frames as painted, without the covered columns
+  // (ATK2 col 4 swirl, SK1); that light is extracted at build time (build-player liftFx keepBody) and drawn in front of the
+  // staff at the release (attackFx). The staff-tip orb of col 3 already sits in front.
+  atk1: { sheet: 'atk1', cols: [1, 2, 3, 4], hit: [3] },
+  atk2: { sheet: 'atk2', cols: [1, 2, 3, 5], hit: [3] },
+  atk3: { sheet: 'atk1', cols: [1, 2, 3, 3, 4], hit: [3] }, // finisher: the staff thrust held longer + the SK1 light (lo_atk3fx)
   dodge: { sheet: 'dash', cols: [1, 2] },
   lumenBolt: { sheet: 'sk1', cols: [1, 2, 3, 4], hit: [3] },
   grace: { sheet: 'sk2', cols: [1, 2, 3, 4], hit: [3] },
@@ -90,6 +91,8 @@ export const LumenOracle = {
   base: { hp: 220, atk: 20, def: 5, crit: 0.06, critDmg: 0, magicDmg: 0, lightDmg: 0, cdr: 0, speed: 148, lumenGain: 1, armorBreak: 1, healPower: 0 },
   perLevel: { hp: 11, atk: 1.5, def: 0.45 },
   defaultLoadout: ['lumen_bolt', 'oracles_grace', 'radiant_thread', 'divine_barrier'],
+  // basic combo steps 1-3: the painted attack light, lifted off the sprites at build time and drawn in front of the staff
+  attackFx: [null, 'lo_atk2fx', 'lo_atk3fx'], // step 1: the painted staff-tip orb is already in front
   // LUMEN rules (data, not code). Healing counts only what was REALLY restored (no farming on full-HP targets); everything
   // goes through a per-second budget.
   lumen: { perSec: 8, healShare: 40, barrierShare: 25, purify: 4, lightHit: 2, hitCap: 6, absorbShare: 20 },
@@ -186,6 +189,11 @@ export const LumenOracle = {
       name: 'basic' + step, basic: true, step, dur: d.dur, anim: d.anim, moveMul: 0.55, ang: a, cancelAt: 0.05, comboAt: d.at + 0.06,
       events: [[d.at, () => {
         g.audio.sfx(step === 2 ? 'cast' : 'swing_fast');
+        // the light painted in the attack art, drawn IN FRONT of the hand and turned to the aim (tools/build-player.js liftFx)
+        const fxk = cls.attackFx && cls.attackFx[step];
+        const off = 10 + 16 * Math.abs(Math.sin(a)); // the body is taller than wide: vertical aims need more room
+        // aiming up she faces away from the camera: the light in front of her is BEHIND her body (layer under the characters)
+        if (fxk) g.vfx.sprite(fxk, p.x + Math.cos(a) * off, p.y - 40 + Math.sin(a) * off, a, { scale: (cls.attackFxScale && cls.attackFxScale[step]) || 1, life: 0.22, glow: 0.35, flipY: Math.cos(a) < 0, ground: Math.sin(a) < -0.5 });
         const ox = p.x + Math.cos(a) * 16, oy = p.y - 18 + Math.sin(a) * 16;
         g.combat.projectiles.fire({
           x: ox, y: oy, vx: Math.cos(a) * d.speed, vy: Math.sin(a) * d.speed, r: step === 2 ? 9 : 6, life: 0.55,

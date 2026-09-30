@@ -36,6 +36,8 @@ export async function loadAll(onProgress) {
   const vfxMeta = await loadJSON('assets/vfx/vfx.json');
   // boss effects (tools/build-boss-vfx.js), same strip format; optional
   Object.assign(vfxMeta, await loadJSON('assets/vfx/boss.json').catch(() => ({})));
+  // class attack light lifted off the sprites by tools/build-player.js liftFx (drawn in front of the hand); optional
+  Object.assign(vfxMeta, await loadJSON('assets/vfx/playerfx.json').catch(() => ({})));
   const uiMeta = await loadJSON('assets/ui/ui.json');
   // monster sheets (tools/build-monsters.js); optional: without it every monster keeps its canvas placeholder
   Assets.data.monsters = await loadJSON('assets/monsters/monsters.json').catch(() => ({}));

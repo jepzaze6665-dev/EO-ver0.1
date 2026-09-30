@@ -204,10 +204,11 @@ const VS = 'desgin/class cr/AW/VS/';
 PRESETS.vs = { out: 'assets/player/vs', nearestBody: true, sheets: {
   walk: [VS + 'WALK 1.PNG', 4],
   idle: [VS + 'WALK 2', 4],
-  // basic attacks: the purple arcs painted into these frames covered the character (owner) -> stripped; the game's own
-  // chain VFX shows the attack (the combo finisher reuses the clean atk2)
-  atk1: [VS + 'ATK 1', 4, { stripGlow: {}, bodyOnly: {} }],
-  atk2: [VS + 'ATK2', 4, { stripGlow: {}, bodyOnly: {} }],
+  // basic attacks: the purple arcs painted into these frames covered the character (owner) -> liftFx takes them off the
+  // body and saves them as VFX strips the class draws in front of the hand (the finisher reuses atk2: SK2's release frame
+  // paints a dark chain across the body, which is not light and cannot be lifted)
+  atk1: [VS + 'ATK 1', 4, { liftFx: { rule: 'sat', fringe: 4, strip: { name: 'vs_atk1fx', cols: [3, 4] } } }],
+  atk2: [VS + 'ATK2', 4, { liftFx: { rule: 'sat', fringe: 4, strip: { name: 'vs_atk2fx', cols: [3, 4] } } }],
   dash: [VS + 'DASH', 4],
   hit: [VS + 'HIT', 4],
   sk1: [VS + 'SK1', 4],
@@ -222,11 +223,14 @@ PRESETS.vs = { out: 'assets/player/vs', nearestBody: true, sheets: {
 const LO = 'desgin/class cr/AW/LO/';
 PRESETS.lo = { out: 'assets/player/lo', nearestBody: true, sheets: {
   walk: [LO + 'WALK1', 4],
+  // basic attacks: LO's painted light is as pale as her face / robe, so lifting it off damaged the body -> the body frames
+  // stay as painted (the combo skips the covered columns) and keepBody only EXTRACTS the light as VFX strips drawn in
+  // front of the staff: lo_atk2fx = the ATK2 col-4 swirl, lo_atk3fx = the SK1 release light (finisher)
   atk1: [LO + 'ATK1', 4],
-  atk2: [LO + 'ATK2', 4],
+  atk2: [LO + 'ATK2', 4, { liftFx: { rule: 'yellow', fringe: 3, keepBody: true, strip: { name: 'lo_atk2fx', cols: [4] } } }],
   dash: [LO + 'DASH', 4],
   hit: [LO + 'HIT', 4],
-  sk1: [LO + 'SK1', 4],
+  sk1: [LO + 'SK1', 4, { liftFx: { rule: 'yellow', fringe: 3, keepBody: true, strip: { name: 'lo_atk3fx', cols: [3, 4] } } }],
   sk2: [LO + 'SK2', 4],
   sk3: [LO + 'SK3', 4],
   sk4: [LO + 'SK4', 4],
@@ -701,28 +705,6 @@ function componentFrames(img, y0, y1, xs, n = COLS, opts = {}) {
 }
 
 const [CW, CH] = STD.canvas, [PX, PY] = STD.pivot;
-// stripGlow { max, sat, fringe }: erase the effect glow PAINTED into a sheet (bright + saturated pixels) and its soft
-// edge — for basic-attack sheets whose painted arcs cover the character (the game draws its own VFX for the attack).
-// Only for art whose body has (almost) no bright saturated pixels (measure first: walk frames ≈ 10 px vs arcs 100-600).
-function stripGlow(img, { max = 170, sat = 70, fringe = 2 } = {}) {
-  const { width: w, height: h, data: d } = img;
-  const glow = (i) => { const mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]); return [mx, mx - mn]; };
-  let kill = new Uint8Array(w * h);
-  for (let p = 0; p < w * h; p++) { const i = p * 4; if (d[i + 3] < 40) continue; const [mx, s] = glow(i); if (mx > max && s > sat) kill[p] = 1; }
-  // the arc's soft edge: translucent or lighter tinted pixels touching what was erased
-  for (let k = 0; k < fringe; k++) {
-    const next = kill.slice();
-    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
-      const p = y * w + x, i = p * 4;
-      if (kill[p] || d[i + 3] === 0) continue;
-      if (!(kill[p - 1] || kill[p + 1] || kill[p - w] || kill[p + w])) continue;
-      const [mx, s] = glow(i);
-      if (d[i + 3] < 200 || (mx > 110 && s > 45)) next[p] = 1;
-    }
-    kill = next;
-  }
-  for (let p = 0; p < w * h; p++) if (kill[p]) d[p * 4 + 3] = 0;
-}
 // bodyOnly: in every CW × CH cell keep only the largest connected shape (the character) and pieces touching it within
 // `reach` px — the dark outline specks an erased arc leaves behind are dropped
 function bodyOnly(img, { reach = 1, minKeep = 0 } = {}) {
@@ -747,6 +729,107 @@ function bodyOnly(img, { reach = 1, minKeep = 0 } = {}) {
     const drop = (id) => id >= 0 && id !== big && !(minKeep > 0 && sizes[id] >= minKeep);
     for (let p = 0; p < CW * CH; p++) if (drop(lab[p])) d[((y0 + ((p / CW) | 0)) * W + x0 + (p % CW)) * 4 + 3] = 0;
   }
+}
+// liftFx { rule: 'sat' | 'yellow', fringe, strip: { name, cols } }: the light PAINTED into attack frames covered the
+// character (owner). Per cell: lift the effect pixels off (rule 'sat' = bright saturated glow, 'yellow' = pale gold light,
+// plus their soft edge / white core / tinted rim), fill the holes it leaves inside the body from the body colours beside
+// them, drop the specks left behind (bodyOnly). The lifted light of the RIGHT-facing row (`strip.cols`) is saved as a VFX
+// strip `assets/vfx/<strip.name>.png` (+ assets/vfx/playerfx.json) that the class draws IN FRONT of the hand, turned to
+// the aim, like a sword-slash effect — the same painted art, never on the body. Light painted on the back side is mirrored
+// to the front first.
+function fxMask(img, x0, y0, rule, fringe) {
+  const W = img.width, d = img.data, m = new Uint8Array(CW * CH);
+  const px = (x, y) => ((y0 + y) * W + x0 + x) * 4;
+  const seed = (i) => {
+    const r = d[i], g = d[i + 1], b = d[i + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    return rule === 'yellow' ? mx > 205 && Math.abs(r - g) < 22 && g - b > 35 : mx > 170 && mx - mn > 70;
+  };
+  for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) { const i = px(x, y); if (d[i + 3] > 40 && seed(i)) m[y * CW + x] = 1; }
+  for (let k = 0; k < fringe; k++) {
+    const next = m.slice();
+    for (let y = 1; y < CH - 1; y++) for (let x = 1; x < CW - 1; x++) {
+      const p = y * CW + x, i = px(x, y);
+      if (m[p] || d[i + 3] === 0 || !(m[p - 1] || m[p + 1] || m[p - CW] || m[p + CW])) continue;
+      const mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]);
+      // translucent edge · the white-hot core · the effect's tinted rim (violet: blue over green; gold: yellow)
+      const rim = rule === 'yellow' ? mx > 150 && d[i + 2] < d[i + 1] - 15 : mx > 70 && d[i + 2] > d[i + 1] + 35 && mx - mn > 40;
+      if (d[i + 3] < 200 || mn > 200 || rim) next[p] = 1;
+    }
+    m.set(next);
+  }
+  return m;
+}
+const FX_TOP = 40, FX_H = 120; // strip frames = cell rows [40, 160): the frame centre (y 100) is hand height (pivot y 140)
+function liftFx(target, rows, sides, { rule = 'sat', fringe = 2, minFx = 25, strip = null, keepBody = false } = {}) {
+  // keepBody: only extract the light strip; the sheet's body frames stay exactly as painted
+  const sheet = keepBody ? { width: target.width, height: target.height, data: Buffer.from(target.data) } : target;
+  const W = sheet.width, d = sheet.data, layers = new Map();
+  for (let r = 0; r < rows; r++) for (let c = 0; c < COLS; c++) {
+    const x0 = c * CW, y0 = r * CH, px = (x, y) => ((y0 + y) * W + x0 + x) * 4;
+    const m = fxMask(sheet, x0, y0, rule, fringe);
+    let n = 0; for (const v of m) n += v;
+    if (n < minFx) continue;
+    const fx = new Uint8ClampedArray(CW * CH * 4);
+    for (let p = 0; p < CW * CH; p++) if (m[p]) { const i = px(p % CW, (p / CW) | 0); for (let k = 0; k < 4; k++) fx[p * 4 + k] = d[i + k]; d[i + 3] = 0; }
+    const solid = (x, y) => d[px(x, y) + 3] > 150;
+    // holes inside the body: a lifted pixel with body on both sides of its row (within 14 px) takes the nearest colour
+    for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) {
+      if (!m[y * CW + x]) continue;
+      let L = -1, R = -1;
+      for (let k = 1; k <= 14 && (L < 0 || R < 0); k++) { if (L < 0 && x - k >= 0 && solid(x - k, y) && !m[y * CW + x - k]) L = x - k; if (R < 0 && x + k < CW && solid(x + k, y) && !m[y * CW + x + k]) R = x + k; }
+      if (L < 0 || R < 0) continue;
+      const src = px(x - L <= R - x ? L : R, y), dst = px(x, y);
+      for (let k = 0; k < 4; k++) d[dst + k] = d[src + k];
+    }
+    // light painted on the back side of the body -> mirrored to the front (around the body's centre)
+    let bx = 0, bn = 0, fxx = 0;
+    for (let p = 0; p < CW * CH; p++) { if (solid(p % CW, (p / CW) | 0)) { bx += p % CW; bn++; } if (fx[p * 4 + 3]) fxx += p % CW; }
+    bx = bn ? bx / bn : CW / 2; fxx /= n;
+    const sd = sides[(r - (r % 4)) / 4] || {}, right = r === sd.right;
+    if (right && fxx < bx) {
+      const flipped = new Uint8ClampedArray(fx.length);
+      for (let p = 0; p < CW * CH; p++) {
+        if (!fx[p * 4 + 3]) continue;
+        const x = Math.round(2 * bx - (p % CW));
+        if (x >= 0 && x < CW) for (let k = 0; k < 4; k++) flipped[(((p / CW) | 0) * CW + x) * 4 + k] = fx[p * 4 + k];
+      }
+      fx.set(flipped);
+    }
+    layers.set(r * COLS + c, fx);
+  }
+  bodyOnly(sheet, { reach: 1 }); // specks the lift left behind
+  if (!strip) return;
+  const rightRow = (sides[0] || {}).right ?? 3, cols = strip.cols, out = png.create(CW * cols.length, FX_H);
+  cols.forEach((c, k) => {
+    const fx = layers.get(rightRow * COLS + c);
+    if (!fx) return;
+    for (let y = 0; y < FX_H; y++) for (let x = 0; x < CW; x++) {
+      const s = ((FX_TOP + y) * CW + x) * 4, o = (y * out.width + k * CW + x) * 4;
+      for (let q = 0; q < 4; q++) out.data[o + q] = fx[s + q];
+    }
+  });
+  // drop specks (< 10 px pieces: an eye highlight, a stray pixel) from each strip frame
+  for (let k = 0; k < cols.length; k++) {
+    const lab = new Int32Array(CW * FX_H).fill(-1), on = (x, y) => out.data[(y * out.width + k * CW + x) * 4 + 3] > 20;
+    for (let p = 0; p < CW * FX_H; p++) {
+      if (lab[p] >= 0 || !on(p % CW, (p / CW) | 0)) continue;
+      const st = [p], mine = [p]; lab[p] = p;
+      while (st.length) {
+        const q = st.pop(), qx = q % CW, qy = (q / CW) | 0;
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+          const nx = qx + dx, ny = qy + dy, rr = ny * CW + nx;
+          if (nx >= 0 && ny >= 0 && nx < CW && ny < FX_H && lab[rr] < 0 && on(nx, ny)) { lab[rr] = p; st.push(rr); mine.push(rr); }
+        }
+      }
+      if (mine.length < 10) for (const q of mine) out.data[(((q / CW) | 0) * out.width + k * CW + (q % CW)) * 4 + 3] = 0;
+    }
+  }
+  const dir = path.join(ROOT, 'assets', 'vfx');
+  png.write(path.join(dir, strip.name + '.png'), out);
+  const metaFile = path.join(dir, 'playerfx.json'), meta = fs.existsSync(metaFile) ? JSON.parse(fs.readFileSync(metaFile, 'utf8')) : {};
+  meta[strip.name] = { file: 'assets/vfx/' + strip.name + '.png', fw: CW, fh: FX_H, frames: cols.length, set: 'playerfx' };
+  fs.writeFileSync(metaFile, JSON.stringify(meta, null, 1));
+  console.log('   fx strip', strip.name, 'cols', cols.join(','), 'from row', rightRow);
 }
 function buildPreset(key) {
 const { out: outRel, sheets: SHEETS, facing: FACING, nearestBody, bg, edgeFade, splitFeather, cutFeather } = PRESETS[key];
@@ -808,12 +891,12 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
     const a = ((base + 2) * CH + y) * sheet.width * 4 + c * CW * 4, b = ((base + 3) * CH + y) * sheet.width * 4 + c * CW * 4;
     const tmp = Buffer.from(sheet.data.subarray(a, a + CW * 4)); sheet.data.copy(sheet.data, a, b, b + CW * 4); tmp.copy(sheet.data, b);
   }
-  if (opt.stripGlow) stripGlow(sheet, opt.stripGlow);
   if (opt.bodyOnly) bodyOnly(sheet, opt.bodyOnly);
-  png.write(path.join(OUT, name + '.png'), sheet);
   const sides = [];
   const face = opt.facing || FACING; // per-sheet facing override > preset facing > detected
   for (let base = 0; base < rows; base += 4) sides.push(face ? { right: base + face.right, left: base + face.left, flipLeft: !!face.flipLeft, flipRight: !!face.flipRight } : sideRows(sheet, { fw: CW, fh: CH, ax: PX }, base));
+  if (opt.liftFx) liftFx(sheet, rows, sides, opt.liftFx); // after the side rows are known (the strip is the right-facing row)
+  png.write(path.join(OUT, name + '.png'), sheet);
   atlas.sheets[name] = { file: outRel + '/' + name + '.png', fw: CW, fh: CH, rows, cols: COLS, ax: PX, ay: PY, sides, sourceScale: +scale.toFixed(4) };
   // frames with (almost) no character body: animations must never show them (tools/tests/sprites.test.mjs)
   atlas.sheets[name].emptyFrames = [];

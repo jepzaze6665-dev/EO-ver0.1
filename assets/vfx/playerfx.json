@@ -1,0 +1,30 @@
+{
+ "vs_atk1fx": {
+  "file": "assets/vfx/vs_atk1fx.png",
+  "fw": 160,
+  "fh": 120,
+  "frames": 2,
+  "set": "playerfx"
+ },
+ "vs_atk2fx": {
+  "file": "assets/vfx/vs_atk2fx.png",
+  "fw": 160,
+  "fh": 120,
+  "frames": 2,
+  "set": "playerfx"
+ },
+ "lo_atk2fx": {
+  "file": "assets/vfx/lo_atk2fx.png",
+  "fw": 160,
+  "fh": 120,
+  "frames": 1,
+  "set": "playerfx"
+ },
+ "lo_atk3fx": {
+  "file": "assets/vfx/lo_atk3fx.png",
+  "fw": 160,
+  "fh": 120,
+  "frames": 2,
+  "set": "playerfx"
+ }
+}

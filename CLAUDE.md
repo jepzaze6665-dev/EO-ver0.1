@@ -251,10 +251,17 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   CAST TIMING (owner: the bolt left before the throw pose): SM / VS / LO anims name their RELEASE column `hit: [col]` and every
   basic / skill event fires while it shows (frame at t = cols[floor(t / dur × n)]); tools/tests/castTiming.test.mjs checks every
   class that has `hit` data. VS basics keep the chain strip (owner).
-  PAINTED EFFECTS in basic-attack sprites covered the character (owner): build-player sheet options `stripGlow { max, sat,
-  fringe }` (erase bright saturated painted glow — only where the body has ~none: measure first) + `bodyOnly { reach, minKeep }`
-  (keep the largest shape per cell) on VS atk1 / atk2; VS finisher = the clean atk2 held longer. LO's glow is pale like its face
-  / robe, so its combo uses only clean columns (col 2 = the staff thrust without the painted orb; finisher = atk1 thrust held). LESSON for new VFX: measure each strip's content box (bbox) and anchor standing effects by their
+  PAINTED LIGHT in basic-attack sprites covered the character (owner wants the light kept, but IN FRONT of the hand like a
+  sword-slash effect): build-player sheet option `liftFx { rule: 'sat' | 'yellow', fringe, keepBody, strip: { name, cols } }` finds the
+  painted light per frame ('sat' = bright saturated glow + white core + violet rim, 'yellow' = pale gold), lifts it off the body
+  (holes filled from the body colours beside them, specks dropped by `bodyOnly`), mirrors light painted behind the body to the
+  front, and saves the RIGHT-facing row's light as a VFX strip `assets/vfx/<name>.png` + `assets/vfx/playerfx.json` (loaded with
+  vfx.json). `keepBody` = extract the strip only, body frames untouched. Classes name the strips per combo step (`attackFx`,
+  `attackFxScale`); the basic event draws it at hand height turned to the aim, further out for vertical aims, on the layer BEHIND
+  the body when aiming up (back view). VS: atk1 / atk2 lifted (strips vs_atk1fx / vs_atk2fx), finisher = atk2 held longer + a
+  1.35× crescent (SK2's release paints a dark chain across the body: not light, cannot be lifted). LO: its light is as pale as
+  its face / robe (lifting damaged the body) -> body frames as painted, combo skips the covered columns (atk2 col 4), strips via
+  keepBody: lo_atk2fx (ATK2 col-4 swirl), lo_atk3fx (SK1 light, finisher = atk1 thrust held longer). LESSON for new VFX: measure each strip's content box (bbox) and anchor standing effects by their
   base (center y = ground - (y1 - 0.5) × h), rings / orbs by their centre.
   Done AW3 = LUMEN ORACLE (`src/skills/lumenOracle.js`, preset 'lo' (no idle sheet), VFX set 'lo': lo_bolt / lo_grace (SK2 row 4) /
   lo_thread / lo_purify / lo_barrier / lo_spike / lo_lance (SK6(2)) / lo_judgment (SK7 row 4), recentred): resource LUMEN (tier
