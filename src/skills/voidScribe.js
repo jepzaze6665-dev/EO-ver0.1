@@ -143,7 +143,7 @@ export const VoidScribe = {
   drawScript(p, g, s, fresh) {
     const def = SCRIPTS[s.effect];
     if (s.fx) s.fx.life = 0;
-    if (fresh) g.vfx.sprite('vs_glyph', s.x, s.y - 24, 0, { scale: 0.8, life: 0.4, glow: 0.5 });
+    if (fresh) g.vfx.sprite('vs_glyph', s.x, s.y - 36, 0, { scale: 0.8, life: 0.4, glow: 0.5 });
     s.fx = g.vfx.sprite('vs_rewrite', s.x, s.y, 0, { scale: s.r / 48, life: s.t, frame: 3, glow: 0.3, alpha: 0.55, ground: true, squash: 0.55 });
     g.vfx.ring(s.x, s.y, 6, s.r, { life: 0.35, color: def.color, width: 2 });
     g.vfx.text(s.x, s.y - 44, def.label, { color: `rgb(${def.color})`, size: 9 });
@@ -178,9 +178,9 @@ export const VoidScribe = {
   basic(p, g, a, step) {
     const cls = p.cls;
     const defs = [
-      { dur: 0.32, at: 0.12, anim: 'atk1', power: 0.8, speed: 460, scale: 0.45 },
-      { dur: 0.32, at: 0.12, anim: 'atk2', power: 0.85, speed: 460, scale: 0.45 },
-      { dur: 0.44, at: 0.18, anim: 'atk3', power: 1.15, speed: 520, scale: 0.6, rot: true },
+      { dur: 0.32, at: 0.12, anim: 'atk1', power: 0.8, speed: 460, scale: 0.4, frames: [0, 1] },
+      { dur: 0.32, at: 0.12, anim: 'atk2', power: 0.85, speed: 460, scale: 0.4, frames: [0, 1] },
+      { dur: 0.44, at: 0.18, anim: 'atk3', power: 1.15, speed: 520, scale: 0.55, frames: [1, 2], rot: true }, // a round void orb (the chain strip looked odd as a bolt)
     ];
     const d = defs[step];
     return {
@@ -190,7 +190,7 @@ export const VoidScribe = {
         const ox = p.x + Math.cos(a) * 16, oy = p.y - 18 + Math.sin(a) * 16;
         g.combat.projectiles.fire({
           x: ox, y: oy, vx: Math.cos(a) * d.speed, vy: Math.sin(a) * d.speed, r: step === 2 ? 9 : 6, life: 0.6,
-          team: TEAM.PLAYER, owner: p, kind: 'sprite', sprite: 'vs_chain', frames: [2, 3], fps: 14, scale: d.scale,
+          team: TEAM.PLAYER, owner: p, kind: 'sprite', sprite: 'vs_null', frames: d.frames, fps: 12, scale: d.scale,
           power: d.power, type: 'void', knock: step === 2 ? 110 : 40, stagger: 6 + step * 6, hitStop: 0.03, shake: 0.05, color: C, trail: true,
           powerFor: (t) => d.power * cls.endlessMult(p, t),
           onHit: (t) => { if (d.rot) cls.rot(p, g, t); },
@@ -255,7 +255,7 @@ export const VoidScribe = {
             const s = g.summons.create(p, 'void_phantom', pt.x, pt.y);
             if (!s) return;
             g.audio.sfx('shrine');
-            g.vfx.sprite('vs_phantom', pt.x, pt.y - 34, 0, { scale: 0.8, life: 0.5, glow: 0.5 });
+            g.vfx.sprite('vs_phantom', pt.x, pt.y - 35, 0, { scale: 0.55, life: 0.5, glow: 0.5 }); // same size / spot as the drawn summon
             g.vfx.text(pt.x, pt.y - 76, 'VOID PHANTOM', { color: PALE, size: 9 });
           }]],
         };
@@ -323,11 +323,11 @@ export const VoidScribe = {
           },
           events: [[0.4, () => {
             p.nullZone = { x: pt.x, y: pt.y, r: N.r, t: N.dur, pulse: 0 };
-            g.vfx.sprite('vs_null', pt.x, pt.y - 30, 0, { scale: 2.4, life: 0.6, glow: 0.6 });
+            g.vfx.sprite('vs_null', pt.x, pt.y - 12, 0, { scale: 2.4, life: 0.6, glow: 0.6 });
             p.nullZone.fx = g.vfx.sprite('vs_orb', pt.x, pt.y, 0, { scale: N.r / 70, life: N.dur, frame: 3, glow: 0.3, alpha: 0.5, ground: true, squash: 0.55 });
             g.vfx.text(pt.x, pt.y - 110, 'FINAL SCRIPT: NULL', { color: PALE, size: 14, life: 1.2 });
             const s = g.summons.create(p, 'void_phantom', pt.x + rand(-30, 30), pt.y + rand(-20, 20)); // PHANTOM INCREASE
-            if (s) g.vfx.sprite('vs_phantom', s.x, s.y - 34, 0, { scale: 0.8, life: 0.5, glow: 0.5 });
+            if (s) g.vfx.sprite('vs_phantom', s.x, s.y - 35, 0, { scale: 0.55, life: 0.5, glow: 0.5 });
             g.events.emit('zoneCreated', { owner: p, kind: 'null', x: pt.x, y: pt.y, radius: N.r, duration: N.dur });
           }]],
         };
@@ -346,7 +346,7 @@ export const VoidScribe = {
         name: 'void_seal', dur: 0.45, anim: 'voidSeal', moveMul: 0.2, ang: a, cancelAt: 0.3,
         events: [[0.2, () => {
           g.audio.sfx('constellation');
-          g.vfx.sprite('vs_orb', pt.x, pt.y - 20, 0, { scale: 1.1, life: 0.45, glow: 0.6 });
+          g.vfx.sprite('vs_orb', pt.x, pt.y - 12, 0, { scale: 1.1, life: 0.45, glow: 0.6 });
           g.vfx.ring(pt.x, pt.y, 10, S.r, { life: 0.35, color: PINK, width: 3 });
           let n = 0;
           for (const t of foes(g)) {
@@ -418,7 +418,7 @@ export const VoidScribe = {
     const cls = p.cls, N = cls.nullRule;
     g.camera.punch(0.25); g.camera.shake(0.5);
     g.vfx.flash('120,40,200', 0.4, 2.5);
-    g.vfx.sprite('vs_null', z.x, z.y - 30, 0, { scale: 3, life: 0.5, glow: 0.7 });
+    g.vfx.sprite('vs_null', z.x, z.y - 12, 0, { scale: 3, life: 0.5, glow: 0.7 });
     g.vfx.ring(z.x, z.y, 20, z.r, { life: 0.45, width: 5, color: CR, fill: true });
     g.vfx.text(z.x, z.y - 110, 'NULL', { color: '#ffffff', size: 16, life: 1.2 });
     g.audio.sfx('ult_slash');

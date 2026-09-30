@@ -263,14 +263,18 @@ export class Renderer {
     const fade = Math.min(1, s.t / 0.25, (s.duration - s.t) / 0.5);
     // summon data visual.sprite = { key, frame, scale, lift }: a floating frame of a VFX strip instead of the owner's body
     if (vis.sprite && Assets.vfx[vis.sprite.key]) {
+      // one steady frame (no flicker); while it acts it leans toward its facing and glows up smoothly
       const v = vis.sprite, d = Assets.vfx[v.key], sc = v.scale || 1, bob = Math.sin(game.time * 3 + s.id) * 2;
-      const w = d.fw * sc, h = d.fh * sc, fr = s.anim ? Math.min(d.frames - 1, (v.frame ?? 3) + (Math.floor(s.animT * 12) % 2)) : (v.frame ?? 3);
+      const w = d.fw * sc, h = d.fh * sc, fr = v.frame ?? 3;
+      const act = s.anim ? Math.sin(Math.min(1, s.animT / (s.animDur || 0.3)) * Math.PI) : 0; // 0 -> 1 -> 0 over the action
+      const dx = Math.cos(s.facing || 0) * 8 * act, dy = Math.sin(s.facing || 0) * 4 * act;
+      const x = s.x - w / 2 + dx, y = s.y - h + (v.lift ?? 0.1) * h + bob + dy;
       ctx.fillStyle = `rgba(0,0,0,${0.25 * fade})`;
       ctx.beginPath(); ctx.ellipse(s.x, s.y, 11, 4, 0, 0, TAU); ctx.fill();
       ctx.globalAlpha = (vis.alpha ?? 0.85) * fade;
-      ctx.drawImage(d.img, fr * d.fw, 0, d.fw, d.fh, s.x - w / 2, s.y - h + (v.lift ?? 0.1) * h + bob, w, h);
-      ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (vis.glow ?? 0.3) * fade * (0.8 + 0.2 * Math.sin(game.time * 9));
-      ctx.drawImage(d.img, fr * d.fw, 0, d.fw, d.fh, s.x - w / 2, s.y - h + (v.lift ?? 0.1) * h + bob, w, h);
+      ctx.drawImage(d.img, fr * d.fw, 0, d.fw, d.fh, x, y, w, h);
+      ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, (vis.glow ?? 0.3) * fade * (0.9 + 0.1 * Math.sin(game.time * 2.5 + s.id) + act * 1.2));
+      ctx.drawImage(d.img, fr * d.fw, 0, d.fw, d.fh, x, y, w, h);
       ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
       return;
     }

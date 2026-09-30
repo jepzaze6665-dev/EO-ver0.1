@@ -84,6 +84,9 @@ const SETS = {
     names: { SK1: 'vs_glyph', SK2: 'vs_sigil', SK3: 'vs_phantom', SK4: 'vs_rewrite', SK5: 'vs_chain', SK6: 'vs_orb', SK7: 'vs_null' },
     rows: { SK1: 0, SK2: 0, SK3: 0, SK4: 0, SK5: 2, SK6: 0, SK7: 0 },
     mirrorFrames: { SK5: [0, 1, 2, 3, 4, 5] }, // the chain head was drawn on the left: flip it so it leads to the right
+    // the frames drift inside their cells (the orb sat at 27% of the width): centre each frame on its content so the
+    // cast, the ground decal and the blast land on the same spot
+    recenter: { SK1: true, SK2: true, SK3: true, SK4: true, SK6: true, SK7: true },
   },
   aw: {
     src: 'desgin/VFX/AW/AW', detectRows: true, clean: true,

@@ -470,7 +470,7 @@
  },
  "vs_glyph": {
   "file": "assets/vfx/vs_glyph.png",
-  "fw": 88,
+  "fw": 86,
   "fh": 128,
   "frames": 6,
   "set": "vs"
@@ -491,7 +491,7 @@
  },
  "vs_rewrite": {
   "file": "assets/vfx/vs_rewrite.png",
-  "fw": 118,
+  "fw": 106,
   "fh": 158,
   "frames": 6,
   "set": "vs"
@@ -505,14 +505,14 @@
  },
  "vs_orb": {
   "file": "assets/vfx/vs_orb.png",
-  "fw": 180,
+  "fw": 106,
   "fh": 158,
   "frames": 6,
   "set": "vs"
  },
  "vs_null": {
   "file": "assets/vfx/vs_null.png",
-  "fw": 130,
+  "fw": 104,
   "fh": 128,
   "frames": 6,
   "set": "vs"
