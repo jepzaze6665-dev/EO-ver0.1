@@ -1,7 +1,7 @@
 // Builds skill VFX strips (6 frames x direction rows, RGBA) into right-facing strips;
 // the game rotates each strip to any aim angle (src/vfx/vfx.js sprite()).
 //   ub: desgin/VFX/UB/UB/sk1..sk7  (uniform 4-row grid, row 3 = right)
-//   aw: desgin/VFX/AW/SK1..UT   (rows detected from alpha; row 3 = East/right, SK3 has an extra 5th row)
+//   aw: desgin/VFX/AW/AW/SK1..UT   (rows detected from alpha; row 3 = East/right, SK3 has an extra 5th row)
 // Usage: node tools/build-vfx.js
 const fs = require('fs');
 const path = require('path');
@@ -45,7 +45,8 @@ const SETS = {
   // dw_crest (the Guardian March shove) is the side view
   dw: {
     src: 'desgin/VFX/AG/DW', detectRows: true, clean: true,
-    names: { SK1: 'dw_shield', SK2: 'dw_burst', SK3: 'dw_circle', SK4: 'dw_crest', SK5: 'dw_pillar', SK6: 'dw_knight', SK7: 'dw_dome' },
+    names: { SK1: 'dw_shield', SK2: 'dw_burst', SK3: 'dw_circle', SK4: 'dw_crest', SK5: 'dw_pillar', SK6: 'dw_knight', SK7: 'dw_dome', 'VFX ATK DW.png': 'dw_atk' },
+    // 'AURA UT DW' is a byte-for-byte copy of 'VFX ATK DW.png' (not an aura sheet) -> not used yet
     rows: { SK1: 0, SK2: 0, SK3: 0, SK5: 0, SK6: 0, SK7: 0 },
     // the glow of these sheets joins neighbouring frames / rows into one blob: fade it out over 40 source px at the
     // cut (column AND row) instead of a straight edge
@@ -55,8 +56,8 @@ const SETS = {
   // Oathbreaker (purple corruption / crimson oath). SK2 + SK7 have an opaque fake checker background (removeChecker).
   ok: {
     src: 'desgin/VFX/AG/OK', detectRows: true, clean: false, feather: 40,
-    names: { SK1: 'ok_brand', SK2: 'ok_defy', SK3: 'ok_flare', SK4: 'ok_spikes', SK5: 'ok_sigil', SK6: 'ok_crescent', SK7: 'ok_verdict' },
-    rows: { SK1: 0, SK2: 0, SK4: 0, SK5: 0, SK7: 0 }, // SK3 / SK6 side view (row 3)
+    names: { SK1: 'ok_brand', SK2: 'ok_defy', SK3: 'ok_flare', SK4: 'ok_spikes', SK5: 'ok_sigil', SK6: 'ok_crescent', SK7: 'ok_verdict', 'VFX ATK OK': 'ok_atk', 'AURA TU OK': 'ok_aura' },
+    rows: { SK1: 0, SK2: 0, SK4: 0, SK5: 0, SK7: 0, 'AURA TU OK': 0 }, // SK3 / SK6 side view (row 3)
     checker: { SK2: true, SK7: true },
     mirrorFrames: { SK6: [1, 2, 3, 4, 5] }, // the crescent was drawn bulging back at the swinger
   },
@@ -64,13 +65,13 @@ const SETS = {
   // SK1 / SK4 carry direction labels in the first column (stripped); SK4 has 8 rows (2 sets), row 0 = front view.
   bs: {
     src: 'desgin/VFX/AG/BS', detectRows: true, clean: false, feather: 40, // clean off: its speckled glow lost pixels (holes)
-    names: { SK1: 'bs_aegis', SK2: 'bs_charge', SK4: 'bs_wall', SK5: 'bs_crest', SK6: 'bs_pillar', SK7: 'bs_citadel' },
-    rows: { SK1: 0, SK2: 3, SK4: 0, SK5: 0, SK6: 0, SK7: 0 },
+    names: { SK1: 'bs_aegis', SK2: 'bs_charge', SK4: 'bs_wall', SK5: 'bs_crest', SK6: 'bs_pillar', SK7: 'bs_citadel', 'VFX ATK BS': 'bs_atk', 'AURA UT BS': 'bs_aura' },
+    rows: { SK1: 0, SK2: 3, SK4: 0, SK5: 0, SK6: 0, SK7: 0, 'AURA UT BS': 0 }, // basic-attack strips: row 3 (right); ult aura: front view
     stripLabel: { SK1: 118, SK4: 80 },
     dropLow: { SK1: 0.86 }, recenter: { SK1: true, SK4: true },
   },
   aw: {
-    src: 'desgin/VFX/AW', detectRows: true, clean: true,
+    src: 'desgin/VFX/AW/AW', detectRows: true, clean: true,
     names: { SK1: 'aw_needle', SK2: 'aw_star', SK3: 'aw_comet', SK4: 'aw_sigil', SK5: 'aw_nova', SK6: 'aw_orb', UT: 'aw_starfall' },
     stripLabel: { UT: 64 }, // UT has "S/N/W/E" labels drawn in the first column
   },
@@ -242,7 +243,9 @@ function extractRow(img, file, set) {
 const meta = {};
 for (const [setName, set] of Object.entries(SETS)) {
   for (const [file, name] of Object.entries(set.names)) {
-    const img = png.read(path.join(ROOT, set.src, file));
+    // the owner's files may or may not carry a .png / .PNG extension
+    const base = path.join(ROOT, set.src, file), src = [base, base + '.png', base + '.PNG'].find((p) => fs.existsSync(p)) || base;
+    const img = png.read(src);
     if (set.checker && set.checker[file]) removeChecker(img);
     if (set.detectRows) {
       const { out, fw, fh } = extractRow(img, file, set);

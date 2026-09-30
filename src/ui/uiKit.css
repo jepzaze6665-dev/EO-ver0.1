@@ -69,3 +69,6 @@ button:not(.primary):not(.tabs button) {
 
 /* ---------- dialogue box sits a little higher so the frame clears the skill bar ---------- */
 .dialogue { border-width: 26px; }
+
+/* skill icon ART (assets/icons, 64 px) is downscaled: smooth it; the drawn 32 px placeholders stay pixelated */
+img[src^="assets/icons/"] { image-rendering: auto; border-radius: 4px; }

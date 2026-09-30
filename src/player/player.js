@@ -10,6 +10,7 @@ import { RESOURCES } from '../data/resources.js';
 import { SkillSystem } from '../combat/skillSystem.js';
 import { MARKS } from '../data/marks.js';
 import { STATUSES } from '../data/statuses.js';
+import { Assets } from '../core/assets.js';
 import { Loadout } from './loadout.js';
 import { levelMods, maxLevel, pointsEarned, pointsSpent, upgradeCheck } from '../progression/skillLevels.js';
 import { masteryReward } from '../progression/masterySystem.js';
@@ -725,8 +726,27 @@ export class Player extends Entity {
 
   // STATUS AURA (data/statuses.js 'aura'): while a mode is active it stays visible — ground ring + glow under the feet,
   // light columns, a tinted pulse on the body, rising motes. { color: 'r,g,b', ring, columns, body, motes, scale }
-  drawAura(ctx, a, layer, f, y) {
+  // aura art (status data aura.sprite = { key, loop: [first, last], fps, alpha, over, scale, lift }): a VFX strip
+  // (tools/build-vfx.js) anchored at the feet — its first frames play once as the status starts, then [loop] repeats
+  // while it lasts; the last frame is the fade-out, played in the final 0.3 s. Drawn behind the body ('under') and
+  // again, faint and additive, over it ('over') so the body stands inside the aura
+  drawAuraSprite(ctx, sp, st, layer) {
+    const d = Assets.vfx[sp.key];
+    if (!d || !d.img) return;
+    const fps = sp.fps || 8, [l0, l1] = sp.loop || [0, d.frames - 1], age = (st.total || 0) - st.t;
+    let fr;
+    if (st.t < 0.3) fr = d.frames - 1;
+    else if (age * fps < l0) fr = Math.floor(age * fps);
+    else fr = l0 + (Math.floor(age * fps - l0) % (l1 - l0 + 1));
+    const sc = sp.scale || 1, w = d.fw * sc, h = d.fh * sc;
+    ctx.save();
+    if (layer === 'over') { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = sp.over ?? 0.25; } else ctx.globalAlpha = sp.alpha ?? 0.85;
+    ctx.drawImage(d.img, fr * d.fw, 0, d.fw, d.fh, this.x - w / 2, this.y - h + (sp.lift ?? 0.2) * h, w, h);
+    ctx.restore();
+  }
+  drawAura(ctx, a, layer, f, y, st) {
     const g = this.game, t = g.time, s = a.scale || 1, c = a.color, pulse = 0.5 + 0.5 * Math.sin(t * 4);
+    if (a.sprite && st) this.drawAuraSprite(ctx, a.sprite, st, layer);
     if (layer === 'under') {
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
@@ -760,8 +780,8 @@ export class Player extends Entity {
     const sk = this.stealthK || 0; // stealth: body fades to ~35%, shadow almost gone
     ctx.fillStyle = `rgba(0,0,0,${0.35 * (1 - sk * 0.7)})`;
     ctx.beginPath(); ctx.ellipse(this.x, this.y, 12, 4.5, 0, 0, TAU); ctx.fill();
-    const auras = this.status.list().map((s) => STATUSES[s.id].aura).filter(Boolean); // status data 'aura' (a mode is on)
-    for (const a of auras) this.drawAura(ctx, a, 'under');
+    const auras = this.status.list().filter((s) => STATUSES[s.id].aura); // status data 'aura' (a mode is on)
+    for (const st of auras) this.drawAura(ctx, STATUSES[st.id].aura, 'under', null, 0, st);
     if (this.markId && this.marks >= this.maxMarks) {
       ctx.fillStyle = MARKS[this.markId].display.color;
       ctx.globalAlpha = 0.3 + 0.15 * Math.sin(g.time * 8);
@@ -794,7 +814,7 @@ export class Player extends Entity {
       const ff = this.currentFrame('flash');
       this.sprites.draw(ctx, ff, this.x, y, Math.min(1, this.flash * 8) * 0.8);
     }
-    for (const a of auras) this.drawAura(ctx, a, 'over', f, y);
+    for (const st of auras) this.drawAura(ctx, STATUSES[st.id].aura, 'over', f, y, st);
     if (this.status.has('surge')) {
       ctx.globalCompositeOperation = 'lighter';
       this.sprites.draw(ctx, this.currentFrame('ghost'), this.x, y, 0.18 + 0.08 * Math.sin(g.time * 10));

@@ -167,7 +167,7 @@ PRESETS.ok = { out: 'assets/player/ok', nearestBody: true, edgeFade: 8, splitFea
   sk6: [OK + 'SK6', 4, { frames: 5 }],
   ult: [OK + 'UT', 4],
 } };
-const AW = 'desgin/class cr/AW/';
+const AW = 'desgin/class cr/AW/AW/';
 PRESETS.aw = { out: 'assets/player/aw', sheets: {
   walk: [AW + 'AW2', 4],
   atk1: [AW + 'AW1.PNG', 4],

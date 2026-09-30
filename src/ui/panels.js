@@ -1,7 +1,7 @@
 import { PARTY } from '../data/party.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { ITEMS, RARITY_COLOR, CATEGORIES, RECIPES, SHOPS } from '../items/items.js';
-import { iconURL } from './icons.js';
+import { iconURL, skillIconURL } from './icons.js';
 import { dialogueFor, LORE } from '../world/narrative.js';
 import { QUESTS } from '../quests/quests.js';
 import { TILE, T } from '../core/constants.js';
@@ -265,7 +265,7 @@ export class Panels {
       };
       const lockRow = (s) => { const r = p.skillUnlockCheck(s); return r.ok ? '' : `<div class="small" style="color:#ffb070">🔒 Unlocks with: ${r.missing.map(esc).join(', ')}</div>`; };
       const card = (s, extra = '') => `<div class="skill-card${lo.slots.includes(s.id) ? ' on' : ''}"${p.skillUnlocked(s) ? '' : ' style="opacity:.6"'}>
-          <img src="${iconURL(s.icon)}"><div class="sk-body">${catTag(s)}<b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).join(', ')}</span>
+          <img src="${skillIconURL(s)}"><div class="sk-body">${catTag(s)}<b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).join(', ')}</span>
           <div class="small">${esc(s.desc || '')}</div>${lockRow(s)}${gearRow(s)}${lvRow(s)}${masteryRow(s)}${evoRow(s)}${extra}</div></div>`;
       const evoSkill = this.evoSel && p.skillSys.get(this.evoSel);
       if (evoSkill && evolutionsOf(evoSkill).length) {
@@ -340,7 +340,7 @@ export class Panels {
       const src = selCls || selNode;
       const ratings = selCls ? `<div class="ratings">${Object.entries({ Difficulty: selCls.difficulty, ...Object.fromEntries(Object.entries(selCls.ratings || {}).map(([k, v]) => [k[0].toUpperCase() + k.slice(1), v])) }).filter(([, v]) => v).map(([k, v]) => `<div><span>${k}</span><i class="pips">${'<b></b>'.repeat(v)}${'<u></u>'.repeat(5 - v)}</i></div>`).join('')}</div>` : '';
       const sw = selCls && selCls.strengths ? `<div class="sw"><div><h4>Strengths</h4>${selCls.strengths.map((x) => `<div class="small">+ ${esc(x)}</div>`).join('')}</div><div><h4>Weaknesses</h4>${(selCls.weaknesses || []).map((x) => `<div class="small">− ${esc(x)}</div>`).join('')}</div></div>` : '';
-      const skillRow = (s, key) => `<div class="cx-skill"><img src="${iconURL(s.icon)}"><div><b>${esc(s.name)}</b> <span class="muted small">${key ? '[' + key + '] · ' : ''}${s.type}${s.cooldown ? ' · CD ' + s.cooldown + 's' : ''}${s.cost ? ' · ' + s.cost + ' ' + RESOURCES[s.costResource || selCls.resource].label : ''}</span><div class="small">${esc(s.desc || '')}</div></div></div>`;
+      const skillRow = (s, key) => `<div class="cx-skill"><img src="${skillIconURL(s)}"><div><b>${esc(s.name)}</b> <span class="muted small">${key ? '[' + key + '] · ' : ''}${s.type}${s.cooldown ? ' · CD ' + s.cooldown + 's' : ''}${s.cost ? ' · ' + s.cost + ' ' + RESOURCES[s.costResource || selCls.resource].label : ''}</span><div class="small">${esc(s.desc || '')}</div></div></div>`;
       const skills = selCls ? `<h4>Skills</h4>${selCls.skills.map((s) => skillRow(s, s.ultimate ? '5' : '')).join('')}${selCls.special ? skillRow(selCls.special, 'Q') : ''}${passiveRows(selCls)}` : `<p class="muted small">Skills are revealed when this class arrives (Class 2 content).</p>`;
       const res = selCls ? RESOURCES[selCls.resource].name : selNode.resource || '—';
       const codex = `<div class="codex"><h3>${esc(src.name)} <span class="muted small">Tier ${selNode.tier} · ${esc(src.role || '')}</span></h3>

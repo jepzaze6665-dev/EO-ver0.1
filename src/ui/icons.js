@@ -1,4 +1,5 @@
-import { makeCanvas } from '../core/assets.js';
+import { makeCanvas, Assets } from '../core/assets.js';
+import { SKILL_ICONS } from '../data/skillIcons.js';
 
 // Procedural 32x32 icons for skills and items (placeholder art, same size as a real icon atlas).
 const cache = new Map();
@@ -357,4 +358,18 @@ export function icon(name, color = '#b070ff') {
 
 export function iconURL(name, color) {
   return icon(name, color).toDataURL();
+}
+
+// a SKILL's icon: the owner's art when data/skillIcons.js names one that was built, else the drawn placeholder
+function skillArt(skill) {
+  const a = skill && Assets.icons[SKILL_ICONS[skill.id]];
+  return a && a.img ? a : null;
+}
+export function skillIcon(skill) {
+  const a = skillArt(skill);
+  return a ? a.img : icon(skill.icon);
+}
+export function skillIconURL(skill) {
+  const a = skillArt(skill);
+  return a ? a.file : iconURL(skill.icon);
 }

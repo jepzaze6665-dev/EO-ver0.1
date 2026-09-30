@@ -1,0 +1,254 @@
+{
+ "ag_sk1": {
+  "file": "assets/icons/ag_sk1.png"
+ },
+ "ag_sk2": {
+  "file": "assets/icons/ag_sk2.png"
+ },
+ "ag_sk3": {
+  "file": "assets/icons/ag_sk3.png"
+ },
+ "ag_sk4": {
+  "file": "assets/icons/ag_sk4.png"
+ },
+ "ag_sk5": {
+  "file": "assets/icons/ag_sk5.png"
+ },
+ "ag_sk6": {
+  "file": "assets/icons/ag_sk6.png"
+ },
+ "ag_sk7": {
+  "file": "assets/icons/ag_sk7.png"
+ },
+ "bs_sk1": {
+  "file": "assets/icons/bs_sk1.png"
+ },
+ "bs_sk2": {
+  "file": "assets/icons/bs_sk2.png"
+ },
+ "bs_sk3": {
+  "file": "assets/icons/bs_sk3.png"
+ },
+ "bs_sk4": {
+  "file": "assets/icons/bs_sk4.png"
+ },
+ "bs_sk5": {
+  "file": "assets/icons/bs_sk5.png"
+ },
+ "bs_sk6": {
+  "file": "assets/icons/bs_sk6.png"
+ },
+ "bs_sk7": {
+  "file": "assets/icons/bs_sk7.png"
+ },
+ "dw_sk1": {
+  "file": "assets/icons/dw_sk1.png"
+ },
+ "dw_sk2": {
+  "file": "assets/icons/dw_sk2.png"
+ },
+ "dw_sk3": {
+  "file": "assets/icons/dw_sk3.png"
+ },
+ "dw_sk4": {
+  "file": "assets/icons/dw_sk4.png"
+ },
+ "dw_sk5": {
+  "file": "assets/icons/dw_sk5.png"
+ },
+ "dw_sk6": {
+  "file": "assets/icons/dw_sk6.png"
+ },
+ "dw_sk7": {
+  "file": "assets/icons/dw_sk7.png"
+ },
+ "ok_sk1": {
+  "file": "assets/icons/ok_sk1.png"
+ },
+ "ok_sk2": {
+  "file": "assets/icons/ok_sk2.png"
+ },
+ "ok_sk3": {
+  "file": "assets/icons/ok_sk3.png"
+ },
+ "ok_sk4": {
+  "file": "assets/icons/ok_sk4.png"
+ },
+ "ok_sk5": {
+  "file": "assets/icons/ok_sk5.png"
+ },
+ "ok_sk6": {
+  "file": "assets/icons/ok_sk6.png"
+ },
+ "ok_sk7": {
+  "file": "assets/icons/ok_sk7.png"
+ },
+ "aw_sk1": {
+  "file": "assets/icons/aw_sk1.png"
+ },
+ "aw_sk2": {
+  "file": "assets/icons/aw_sk2.png"
+ },
+ "aw_sk3": {
+  "file": "assets/icons/aw_sk3.png"
+ },
+ "aw_sk4": {
+  "file": "assets/icons/aw_sk4.png"
+ },
+ "aw_sk5": {
+  "file": "assets/icons/aw_sk5.png"
+ },
+ "aw_sk6": {
+  "file": "assets/icons/aw_sk6.png"
+ },
+ "aw_sk7": {
+  "file": "assets/icons/aw_sk7.png"
+ },
+ "lo_sk1": {
+  "file": "assets/icons/lo_sk1.png"
+ },
+ "lo_sk2": {
+  "file": "assets/icons/lo_sk2.png"
+ },
+ "lo_sk3": {
+  "file": "assets/icons/lo_sk3.png"
+ },
+ "lo_sk4": {
+  "file": "assets/icons/lo_sk4.png"
+ },
+ "lo_sk5": {
+  "file": "assets/icons/lo_sk5.png"
+ },
+ "lo_sk6": {
+  "file": "assets/icons/lo_sk6.png"
+ },
+ "lo_sk7": {
+  "file": "assets/icons/lo_sk7.png"
+ },
+ "sm_sk1": {
+  "file": "assets/icons/sm_sk1.png"
+ },
+ "sm_sk2": {
+  "file": "assets/icons/sm_sk2.png"
+ },
+ "sm_sk3": {
+  "file": "assets/icons/sm_sk3.png"
+ },
+ "sm_sk4": {
+  "file": "assets/icons/sm_sk4.png"
+ },
+ "sm_sk5": {
+  "file": "assets/icons/sm_sk5.png"
+ },
+ "sm_sk6": {
+  "file": "assets/icons/sm_sk6.png"
+ },
+ "sm_sk7": {
+  "file": "assets/icons/sm_sk7.png"
+ },
+ "vs_sk1": {
+  "file": "assets/icons/vs_sk1.png"
+ },
+ "vs_sk2": {
+  "file": "assets/icons/vs_sk2.png"
+ },
+ "vs_sk3": {
+  "file": "assets/icons/vs_sk3.png"
+ },
+ "vs_sk4": {
+  "file": "assets/icons/vs_sk4.png"
+ },
+ "vs_sk5": {
+  "file": "assets/icons/vs_sk5.png"
+ },
+ "vs_sk6": {
+  "file": "assets/icons/vs_sk6.png"
+ },
+ "vs_sk7": {
+  "file": "assets/icons/vs_sk7.png"
+ },
+ "be_sk1": {
+  "file": "assets/icons/be_sk1.png"
+ },
+ "be_sk2": {
+  "file": "assets/icons/be_sk2.png"
+ },
+ "be_sk3": {
+  "file": "assets/icons/be_sk3.png"
+ },
+ "be_sk4": {
+  "file": "assets/icons/be_sk4.png"
+ },
+ "be_sk5": {
+  "file": "assets/icons/be_sk5.png"
+ },
+ "be_sk6": {
+  "file": "assets/icons/be_sk6.png"
+ },
+ "be_sk7": {
+  "file": "assets/icons/be_sk7.png"
+ },
+ "dr_sk1": {
+  "file": "assets/icons/dr_sk1.png"
+ },
+ "dr_sk2": {
+  "file": "assets/icons/dr_sk2.png"
+ },
+ "dr_sk3": {
+  "file": "assets/icons/dr_sk3.png"
+ },
+ "dr_sk4": {
+  "file": "assets/icons/dr_sk4.png"
+ },
+ "dr_sk5": {
+  "file": "assets/icons/dr_sk5.png"
+ },
+ "dr_sk6": {
+  "file": "assets/icons/dr_sk6.png"
+ },
+ "dr_sk7": {
+  "file": "assets/icons/dr_sk7.png"
+ },
+ "rp_sk1": {
+  "file": "assets/icons/rp_sk1.png"
+ },
+ "rp_sk2": {
+  "file": "assets/icons/rp_sk2.png"
+ },
+ "rp_sk3": {
+  "file": "assets/icons/rp_sk3.png"
+ },
+ "rp_sk4": {
+  "file": "assets/icons/rp_sk4.png"
+ },
+ "rp_sk5": {
+  "file": "assets/icons/rp_sk5.png"
+ },
+ "rp_sk6": {
+  "file": "assets/icons/rp_sk6.png"
+ },
+ "rp_sk7": {
+  "file": "assets/icons/rp_sk7.png"
+ },
+ "ub_sk1": {
+  "file": "assets/icons/ub_sk1.png"
+ },
+ "ub_sk2": {
+  "file": "assets/icons/ub_sk2.png"
+ },
+ "ub_sk3": {
+  "file": "assets/icons/ub_sk3.png"
+ },
+ "ub_sk4": {
+  "file": "assets/icons/ub_sk4.png"
+ },
+ "ub_sk5": {
+  "file": "assets/icons/ub_sk5.png"
+ },
+ "ub_sk6": {
+  "file": "assets/icons/ub_sk6.png"
+ },
+ "ub_ut": {
+  "file": "assets/icons/ub_ut.png"
+ }
+}

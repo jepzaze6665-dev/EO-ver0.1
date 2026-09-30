@@ -171,7 +171,8 @@ export const Oathbreaker = {
       lunge: { dist: d.lunge, t0: 0, t1: 0.1 },
       events: [[d.at, () => {
         g.audio.sfx(step === 2 ? 'slash_heavy' : 'swing');
-        if (step === 2) g.vfx.sprite('ok_crescent', p.x + Math.cos(a) * 30, p.y - 14 + Math.sin(a) * 30, a, { scale: 0.6, life: 0.25, glow: 0.5 });
+        // basic-attack art (owner's VFX ATK sheet): thrust -> crescent -> fade, bigger on the finisher
+        g.vfx.sprite('ok_atk', p.x + Math.cos(a) * 26, p.y - 12 + Math.sin(a) * 26, a, { scale: step === 2 ? 0.85 : 0.6, life: step === 2 ? 0.28 : 0.22, glow: 0.45 });
         g.combat.spawnHitbox({
           owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: d.r, half: d.half, power: d.power, type: 'physical',
           knock: d.knock ?? 110, stagger: 12 + step * 9, hitStop: step === 2 ? 0.08 : 0.05, shake: step === 2 ? 0.2 : 0.1,

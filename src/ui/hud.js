@@ -3,7 +3,7 @@ import { START_GRID, LEVELS } from '../world/levels/index.js';
 import { COMBAT_UI } from '../data/combatUI.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
-import { icon } from './icons.js';
+import { icon, skillIcon } from './icons.js';
 import { TILE, T, Z } from '../core/constants.js';
 import { clamp, TAU, easeOutCubic } from '../core/math.js';
 import { Assets, makeCanvas } from '../core/assets.js';
@@ -302,7 +302,7 @@ export class HUD {
       } else {
         const s = sl.s;
         ctx.imageSmoothingEnabled = true;
-        ctx.drawImage(icon(s.icon), ix, iy, is, is);
+        ctx.drawImage(skillIcon(s), ix, iy, is, is);
         // same readiness rules as the SkillSystem: cooldown, cost and data requirements
         const reqOk = (s.requirements || []).every((r) => REQUIREMENTS[r.type] && REQUIREMENTS[r.type](p, r));
         cdLeft = p.skillSys.cooldowns.remaining(s.id);
