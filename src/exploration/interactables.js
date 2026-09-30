@@ -153,6 +153,24 @@ export function interact(w, it) {
       }
       g.ui.showLore('The Sealed Depths', 'A colossal door of violet crystal, veined with the same corruption that poisoned the Guardian. Runes crawl across its surface, rearranging themselves as you watch.\n\nIt will not open. Not yet.', () => g.ui.showEnding());
       break;
+    // SIGIL (generic, data: { group, name }): light it once (world flag `sigil_<id>`); lighting the last one of its group
+    // emits 'sigilLit' { complete: true } — world triggers decide what opens (e.g. the Gilded Vault in A2)
+    case 'sigil': {
+      const group = w.interactables.filter((o) => o.kind === 'sigil' && o.group === it.group);
+      const litCount = () => group.filter((o) => f['sigil_' + o.id]).length;
+      if (f['sigil_' + it.id]) {
+        g.ui.showLore('Sun Sigil — ' + (it.name || ''), `The sigil burns with a steady golden light.\n\n${litCount()} / ${group.length} lit.`);
+        break;
+      }
+      w.setFlag('sigil_' + it.id);
+      const lit = litCount(), complete = lit >= group.length;
+      g.audio.sfx('shrine');
+      g.vfx.ring(it.x, it.y, 4, 90, { color: '255,210,110', life: 0.8, width: 5 });
+      g.vfx.burst(it.x, it.y - 30, '#ffd870', 40, 170);
+      g.ui.notify('SUN SIGIL LIT', `${it.name || 'Sigil'} · ${lit} / ${group.length}`, '#ffd870');
+      g.events.emit('sigilLit', { id: it.id, group: it.group, lit, total: group.length, complete });
+      break;
+    }
     case 'crackInfo':
       g.ui.showLore('Cracked Stone', 'Violet light seeps through the cracks and the stone hums faintly. It looks brittle — as if a strong strike would bring it down.');
       break;
@@ -182,6 +200,22 @@ export function drawInteractable(ctx, w, it, time) {
       }
       break;
     case 'waystone': drawWaystone(ctx, x, y, !!w.state.waystones[it.id], time); break;
+    case 'sigil': {
+      // a sun glyph floating over its obelisk: faint ember while dark, a bright rayed sun once lit
+      const on = !!f['sigil_' + it.id], b = Math.sin(time * 2.4) * 2, cy = y - 58 + b;
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = on ? `rgba(255,210,110,${0.45 + 0.15 * Math.sin(time * 3)})` : `rgba(255,170,60,${0.1 + 0.08 * Math.sin(time * 2)})`;
+      ctx.beginPath(); ctx.arc(x, cy, on ? 16 : 9, 0, TAU); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = on ? '#fff0b0' : '#6a4a20';
+      ctx.beginPath(); ctx.arc(x, cy, 4, 0, TAU); ctx.fill();
+      if (on) {
+        ctx.strokeStyle = '#ffd870'; ctx.lineWidth = 1.5;
+        for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU + time * 0.6; ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * 6, cy + Math.sin(a) * 6); ctx.lineTo(x + Math.cos(a) * 10, cy + Math.sin(a) * 10); ctx.stroke(); }
+        ctx.lineWidth = 1;
+      }
+      break;
+    }
     case 'lever': {
       ctx.fillStyle = '#4a4a52'; ctx.fillRect(x - 5, y - 14, 10, 14);
       ctx.strokeStyle = '#8a6a3a'; ctx.lineWidth = 2;

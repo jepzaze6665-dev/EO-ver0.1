@@ -20,6 +20,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` / `T.uiCheck(__game)` / `await T.partyCheck(__game)` / `T.tankCheck(__game)` (Combat 2.0),
   `T.gridCheck(__game)` (W1 multi-grid: lock/unlock, load/unload + cleanup, save/load + fog on another grid, no leaks, respawn),
   `T.cityCheck(__game)` (City 2: unlock, north road, services, quest, save/load), `T.a3BossCheck(__game, classId)`,
+  `T.secretA2Check(__game, classId, { god, level })` (A2 secret boss: Sun Sigils -> golden seal -> Gilded Vault -> Aurum, 11 steps),
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -55,7 +56,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   grid (`idAt(x, y, gridId?)`); quest tile markers are on START_GRID unless they name `map`. Secrets are world-wide
   (`world.secretsFound`); fog per grid (`revealed` + `revealedGrids` in the save); respawn = `world.checkpoint()`.
   Grids: `whispering` (A1 + Lumina + Valehaven), `ancient_valley` (A2 + Magma Rift), `citadel` (A3 + Sanctum), `asteria` (City 2), `frostwind` (B1 + Frost Arena), `caverns` (B2 + Heart), `frostpeak` (B3).
-- Don't build yet (spec): multiplayer/network, accounts/DB, guild, trading, PvP, real secret classes / secret bosses, world events.
+- Don't build yet (spec): multiplayer/network, accounts/DB, guild, trading, PvP, real secret classes, world events.
+  (Secret bosses: the owner asked for the first one, A2 Aurum, 2026-09-30 — more only when asked.)
 - If a request would break the architecture: explain the problem, propose a better way, then implement.
 
 ## Assets (never reference a path without a real file)
@@ -717,5 +719,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Check white sprites on a dark / magenta backdrop — holes are invisible on white.
   Yeti fix: sheet region x0 220 clipped the first pose of several rows (they start at x 181) -> region x0 160 (row labels end
   ≤ 150) + telegraph row `x: [210, 2048]` (its long "TELEGRAPH" label reached past 200; the pose starts at 217).
+- SECRET BOSS A2 (owner 2026-09-30, "secret boss entrance + secret boss near the Golden Arch", screenshot = A2 Golden Arch):
+  THE GILDED VAULT = own boss_arena map `maps/gildedVault.js` (zone Z.GILDED_VAULT, `secret`, parent a2, carved in
+  maps/ancientValley.js south of the Golden Arch: paved stair -> round vault [146,154]). Entrance: fieldA2 gate
+  `golden_seal` (requires event golden_vault_open) + confirm exit `vault_gate`; the sign "Golden Seal" gives the riddle.
+  Opened by 3 SUN SIGILS (Sunken Temple / Mirror Lake / Gilded Shrine, SUN_SIGILS) = NEW generic interactable kind `sigil`
+  ({ group, name }: world flag `sigil_<id>`, event 'sigilLit' { lit, total, complete }) -> world trigger golden_vault_open.
+  WorldProgression.markEvent now re-checks map unlocks (an `event` requirement can open a map). Boss `secret_a2` AURUM, the
+  Sunforged: BOSS_TYPE 'secret' (HUD "SECRET BOSS", gates nothing, appear = the event), Lv 28, difficulty hp 1.2 / power
+  1.15 / windup 0.92, art = Magma Beast sheet gilded via NEW `look.filter` / `phaseStyle[n].filter` (AreaBoss draw).
+  3 phases SUNFORGED · GOLDEN FURY 60% · ECLIPSE 30%; mechanics reuse overheat / rune_sequence / judgement, now with data
+  texts + colours (name, hint, label, weakText, color, domeColor, flash). Rewards: sunforged_crown (legendary accessory),
+  sun_core, loot 'aurum', lore 'aurum', hidden 'gilded_vault' (secret found). mapTour marks `event` requirements open.
+  No god LV 26 (bots): UB 129.5 s · AW 133.5 s · AG 190 s · RP 117 s, all win (Magma Beast ≈ 95-145 s). Needs a human playtest.
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.

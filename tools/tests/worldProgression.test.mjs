@@ -28,8 +28,8 @@ console.log('boss data');
 test('every live boss: its map exists, arena, phases, moves, rewards are valid', () => {
   for (const b of liveBosses()) {
     ok(mapIds.has(b.map), `${b.id}: map ${b.map}`);
-    ok(['area', 'major', 'mini'].includes(b.type), `${b.id}: type`);
-    if (b.type === 'mini') ok(!(b.unlocks || []).length, `${b.id}: a mini-boss gates nothing`);
+    ok(['area', 'major', 'mini', 'secret'].includes(b.type), `${b.id}: type`);
+    if (b.type === 'mini' || b.type === 'secret') ok(!(b.unlocks || []).length, `${b.id}: a mini / secret boss gates nothing`);
     ok(b.arena && b.arena.center && b.arena.radius > 0 && b.arena.trigger < b.arena.radius, `${b.id}: arena`);
     ok(b.phases.length >= 1 && b.phases[0].hpBelow === 1, `${b.id}: first phase starts at 100%`);
     for (let i = 1; i < b.phases.length; i++) ok(b.phases[i].hpBelow < b.phases[i - 1].hpBelow, `${b.id}: phases in HP order`);
@@ -60,6 +60,19 @@ test('Route A (W2): A1 boss = the Guardian; A2 / A3 bosses planned; A3 is the ma
   ok(minis.filter((b) => b.map === 'a1').length === 2, 'two minis in A1');
   for (const m of Object.keys(mainOf)) ok(minis.some((b) => b.map === m), 'a mini-boss on ' + m);
   ok(minis.every((b) => mainOf[b.map] && b.level < BOSSES[mainOf[b.map]].level && !b.unlocks.length), 'minis weaker than their map boss, gate nothing');
+});
+
+test('A2 secret boss: hidden until the Sun Sigils open the Gilded Vault, which is a secret arena of A2', () => {
+  const b = BOSSES.secret_a2, vault = MAPS.find((m) => m.id === b.map), a2 = MAPS.find((m) => m.id === 'a2');
+  ok(b.type === 'secret' && !b.planned && vault && vault.secret && vault.parent === 'a2' && vault.type === 'boss_arena', 'secret boss in a secret arena of A2');
+  const open = { type: 'event', id: 'golden_vault_open' }, has = (reqs) => (reqs || []).some((r) => r.type === open.type && r.id === open.id);
+  ok(has(b.appear) && has(vault.requires) && has((a2.gates || []).find((g) => g.id === 'golden_seal').requires), 'boss, map and seal gate all wait for golden_vault_open');
+  const trig = WORLD_TRIGGERS.find((t) => t.id === open.id);
+  ok(trig && trig.on === 'sigilLit' && trig.match.complete === true, 'the last Sun Sigil fires the trigger');
+  const sigils = a2.content.interactables.filter((i) => i.kind === 'sigil' && i.group === trig.match.group);
+  eq(sigils.length, 3, 'three Sun Sigils in A2');
+  ok(b.level > BOSSES.boss_a2.level && b.phases.length === 3, 'harder than the Magma Beast, 3 phases');
+  ok(a2.exits.some((e) => e.to === vault.id && e.confirm) && vault.exits.some((e) => e.to === 'a2'), 'stair into the vault (asks first) and back');
 });
 
 console.log('maps / routes / gates');

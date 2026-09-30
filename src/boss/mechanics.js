@@ -14,7 +14,7 @@ import { Breakable } from '../exploration/breakable.js';
 // lava_pools : impacts of the named moves leave burning pools on the ground for `life` s (phase 2: `life2`);
 //              standing in one burns. The arena shrinks while they last — keep moving.
 class Overheat {
-  constructor(boss, d) { this.b = boss; this.d = { max: 100, weak: 5, blast: { r: 170, power: 44, windup: 1.6 }, ...d }; this.reset(); }
+  constructor(boss, d) { this.b = boss; this.d = { max: 100, weak: 5, blast: { r: 170, power: 44, windup: 1.6 }, name: 'OVERHEATING', hint: 'Get clear of the blast — then strike its exposed core!', label: 'HEAT', weakText: 'OVERHEATED', ...d }; this.reset(); }
   reset() { this.heat = 0; this.pending = false; }
   onMoveDone(id) {
     const add = (this.d.gain || {})[id] || 0;
@@ -27,7 +27,7 @@ class Overheat {
     const b = this.b, g = b.game, fx = b.look.vfx || {}, bl = this.d.blast;
     this.pending = false;
     b.pose = 'roar';
-    g.ui.callout('OVERHEATING', 'Get clear of the blast — then strike its exposed core!', '#ff9a50');
+    g.ui.callout(this.d.name, this.d.hint, '#ff9a50');
     g.audio.sfx('roar');
     if (fx.charge) g.vfx.sprite(fx.charge, b.x, b.y - b.height * 0.5, 0, { scale: 2.2, life: b.wind(bl.windup), follow: b });
     const tel = b.tele({ shape: 'circle', x: b.x, y: b.y, r: bl.r, total: b.wind(bl.windup), color: '255,110,30' }, { dmg: 'magic' });
@@ -40,12 +40,12 @@ class Overheat {
     g.audio.sfx('slam_big');
     this.heat = 0;
     yield 0.3;
-    b.enterWeak(this.d.weak, 'OVERHEATED');
+    b.enterWeak(this.d.weak, this.d.weakText);
     g.events.emit('bossOverheated', { bossId: b.bossId });
   }
   tags() {
     const p = Math.round((this.heat / this.d.max) * 100);
-    return [{ label: p >= 80 ? `OVERHEATING ${p}%` : `HEAT ${p}%`, color: p >= 80 ? '#ff6a30' : '#ffb070' }];
+    return [{ label: p >= 80 ? `${this.d.name} ${p}%` : `${this.d.label} ${p}%`, color: p >= 80 ? '#ff6a30' : '#ffb070' }];
   }
 }
 
@@ -136,7 +136,7 @@ class Stance {
 // rune_sequence (from phase d.phase): runes are drawn on the floor one by one, numbered — then they detonate in the
 // SAME order. Remember the order; stand where the next one has already gone off.
 class RuneSequence {
-  constructor(boss, d) { this.b = boss; this.d = { phase: 2, every: 11, count: 4, r: 56, power: 36, gap: 0.55, delay: 1.1, ...d }; this.reset(); }
+  constructor(boss, d) { this.b = boss; this.d = { phase: 2, every: 11, count: 4, r: 56, power: 36, gap: 0.55, delay: 1.1, name: 'RUNE SCRIPT', hint: 'Remember the order — they burst the same way', color: '140,190,255', ...d }; this.reset(); }
   // the runes belong to this mechanic, not to the boss: staggering the knight mid-cast does not erase them
   reset() { this.t = 5; this.casts = 0; if (this.b.game) this.b.game.combat.telegraphs.cancelOwner(this); }
   update(dt) {
@@ -150,14 +150,14 @@ class RuneSequence {
     b.facePlayer();
     b.curMove = { anim: { roar: d.anim || 'roar' } };
     b.pose = 'roar';
-    g.ui.callout('RUNE SCRIPT', 'Remember the order — they burst the same way', '#9ad8ff');
+    g.ui.callout(d.name, d.hint, `rgb(${d.color})`);
     const burstAt = d.count * 0.35 + d.delay; // each rune's own timer, set the moment it is written
     for (let i = 0; i < d.count; i++) {
       const a = Math.random() * TAU, r = i === 0 ? 0 : 90 + Math.random() * 90;
       const c = b.clampToArena(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, 30);
       b.fx('sigil', c.x, c.y, 0, { ground: true, squash: 0.6, scale: d.r / 40, life: d.delay + d.count * 0.35 + d.gap * d.count + 0.4, frame: 3 });
       g.vfx.text(c.x, c.y - 10, NUM[i], { color: '#dff0ff', size: 16, life: 1.4, vy: 0 });
-      const tel = b.tele({ shape: 'circle', x: c.x, y: c.y, r: d.r, total: burstAt - i * 0.35 + i * d.gap + 0.45, color: '140,190,255', owner: this }, { dmg: 'magic' });
+      const tel = b.tele({ shape: 'circle', x: c.x, y: c.y, r: d.r, total: burstAt - i * 0.35 + i * d.gap + 0.45, color: d.color, owner: this }, { dmg: 'magic' });
       tel.onResolve = () => { if (b.dead) return; b.hit(tel, { power: d.power, dmg: 'magic', knock: 200 }); b.fx('eruption', c.x, c.y, 0, { scale: d.r / 36, life: 0.5 }); g.events.emit('runeBurst', { bossId: b.bossId }); };
       g.audio.sfx('cast');
       yield 0.35;
@@ -224,7 +224,7 @@ class Echoes {
 // judgement (final attack, once): at `at` of its HP the boss cannot drop lower until it has used this. It returns to
 // the centre and brands the whole arena; only the `domes` (blue light) are safe. Then it kneels, exhausted.
 class Judgement {
-  constructor(boss, d) { this.b = boss; this.d = { at: 0.15, domes: 3, domeR: 46, windup: 3.2, power: 80, weak: 6, name: 'FINAL JUDGEMENT', ...d }; this.reset(); }
+  constructor(boss, d) { this.b = boss; this.d = { at: 0.15, domes: 3, domeR: 46, windup: 3.2, power: 80, weak: 6, name: 'FINAL JUDGEMENT', hint: 'Only the blue domes are safe', color: '120,170,255', domeColor: '150,210,255', flash: '170,210,255', weakText: 'EXHAUSTED', ...d }; this.reset(); }
   reset() { this.done = false; this.resolved = false; this.pending = false; this.safe = 0; this.hurt = 0; }
   update() {
     const b = this.b;
@@ -243,7 +243,7 @@ class Judgement {
     yield (dt) => { t += dt; b.pose = 'walk'; return b.stepToward(b.center.x, b.center.y, 260, dt) < 14 || t > 1.4; };
     b.curMove = { anim: { roar: d.anim || 'roar' } };
     b.pose = 'roar';
-    g.ui.callout(d.name, 'Only the blue domes are safe', '#9ad8ff');
+    g.ui.callout(d.name, d.hint, `rgb(${d.domeColor})`);
     g.audio.sfx('roar');
     const domes = [];
     for (let k = 0; k < 40 && domes.length < d.domes; k++) {
@@ -253,9 +253,9 @@ class Judgement {
     this.domes = domes;
     for (const c of domes) {
       b.fx('dome', c.x, c.y + 6, 0, { scale: d.domeR / 30, life: d.windup + 0.4 });
-      g.vfx.ring(c.x, c.y, 4, d.domeR, { color: '150,210,255', life: d.windup, width: 3 });
+      g.vfx.ring(c.x, c.y, 4, d.domeR, { color: d.domeColor, life: d.windup, width: 3 });
     }
-    b.tele({ shape: 'circle', x: b.center.x, y: b.center.y, r: b.arenaR - 6, total: d.windup, color: '120,170,255' }, { dmg: 'magic' });
+    b.tele({ shape: 'circle', x: b.center.x, y: b.center.y, r: b.arenaR - 6, total: d.windup, color: d.color }, { dmg: 'magic' });
     yield d.windup;
     for (const p of g.players()) {
       if (p.dead) continue;
@@ -263,7 +263,7 @@ class Judgement {
       g.combat.dealDamage(b, p, { power: d.power, type: 'magic', unblockable: true, knock: 260 });
       this.hurt++;
     }
-    g.vfx.flash('170,210,255', 0.55, 1.8);
+    g.vfx.flash(d.flash, 0.55, 1.8);
     g.camera.shake(1);
     b.fx('nova', b.center.x, b.center.y, 0, { scale: b.arenaR / 40, life: 0.7, ground: true, squash: 0.6 });
     g.audio.sfx('slam_big');
@@ -271,7 +271,7 @@ class Judgement {
     g.events.emit('bossJudgement', { bossId: b.bossId, safe: this.safe, hurt: this.hurt });
     yield 0.4;
     b.curMove = null;
-    b.enterWeak(d.weak, 'EXHAUSTED');
+    b.enterWeak(d.weak, d.weakText);
   }
 }
 

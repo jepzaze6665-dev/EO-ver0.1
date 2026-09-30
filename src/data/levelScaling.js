@@ -27,6 +27,7 @@ export const LEVEL_SCALING = {
   hiddenLevels: {
     hidden_cave: [6, 8, 1.44], behind_waterfall: [6, 8, 1.44], moonlit_shrine: [7, 10, 1.44], sealed_archive: [8, 11, 1.44],
     valehaven: [10, 14, 1.44],
+    gilded_vault: [14, 22, 1.44],
   },
   // party scaling (future party system, spec: B3 boss must be party-ready): × per extra party member
   party: { hp: 0.75, poise: 0.5 },

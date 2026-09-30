@@ -4,6 +4,7 @@
 //  id, name, title          : text (boss bar, banners)
 //  type                     : 'area' (guards a field map, opens the next one) | 'major' (end of a route, unlocks a city)
 //                             'mini' (optional mini-boss: rewards once, gates nothing)
+//                             'secret' (hidden boss: behind a secret entrance, `appear` needs its secret; gates nothing)
 //  impl                     : which code runs the fight — 'area' = generic data-driven boss (boss/areaBoss.js)
 //                             'guardian' = the V2 Guardian of the Forest (boss/guardian.js, its own 3-phase fight)
 //  route, map               : where it lives (map id from maps/mapRegistry.js)
@@ -34,7 +35,7 @@
 //  look.vfx                 : { charge, slash, impact, bolt, eruption, nova, phase, pool } VFX strips the fight uses
 //  arena.cameraLock         : hold the camera on the arena while engaged (like the Guardian's arena)
 //  mechanics                : [{ type, ... }] the boss's signature rules (boss/mechanics.js: overheat, lava_pools, ...)
-export const BOSS_TYPE = { AREA: 'area', MAJOR: 'major', MINI: 'mini' };
+export const BOSS_TYPE = { AREA: 'area', MAJOR: 'major', MINI: 'mini', SECRET: 'secret' };
 
 export const BOSSES = {
   // ---------------- ROUTE A
@@ -264,6 +265,63 @@ export const BOSSES = {
     },
     rewards: { exp: 800, gold: 300, loot: 'magma_beast', items: { magma_heart: 1 }, lore: 'magma_beast' },
     unlocks: ['a3'],
+  },
+  // ---------------- A2 SECRET BOSS (owner 2026-09-30): AURUM, the Sunforged — the valley kings' captive sun, sealed in the
+  // Gilded Vault under the Golden Arch (maps/gildedVault.js). Found by lighting the three Sun Sigils of the valley (Sunken
+  // Temple, Mirror Lake, Gilded Shrine: fieldA2 `sigil` interactables -> world trigger golden_vault_open). Harder than the
+  // Magma Beast on purpose (optional, Lv 28, shorter wind-ups). Art = the Magma Beast sheet gilded (look.filter).
+  // 3 phases: SUNFORGED (SOLAR CORE heat -> blast -> exposed) · GOLDEN FURY (+ sun sigils burst in order, late-bite combo)
+  // · ECLIPSE (darkened, SUNFALL at 12%: only the domes are safe). Gates nothing.
+  secret_a2: {
+    id: 'secret_a2', name: 'AURUM', title: 'the Sunforged · Secret of the Golden Arch', type: 'secret', impl: 'area',
+    route: 'A', map: 'gilded_vault', level: 28, nativeLevel: 14, recommendedLevel: 26,
+    difficulty: { hp: 1.2, power: 1.15, windup: 0.92 },
+    teaches: 'Everything A2 taught, faster: heat rhythm · remember the sigils · find the dome',
+    stats: { hp: 16000, def: 13, speed: 104, radius: 26, height: 70, mass: 7, weakness: ['shadow'], superArmor: true, poise: 1100 },
+    look: {
+      sprite: 'magma_beast', scale: 1.15, aura: '255,210,110',
+      filter: 'sepia(0.95) saturate(2.6) hue-rotate(-4deg) brightness(1.15) contrast(1.05)', // the Magma Beast's art, gilded
+      anims: { hurt: 'stagger', roar: 'enrage' },
+      phaseAnims: { 3: { idle: 'enrage', walk: 'run' } },
+      phaseStyle: {
+        2: { aura: '255,200,90', glow: 6 },
+        3: { aura: '255,140,40', glow: 10, scale: 1.08, filter: 'sepia(1) saturate(3) hue-rotate(-8deg) brightness(0.72) contrast(1.25)' }, // ECLIPSE: a darkened sun
+      },
+      vfx: { charge: 'm_orb', slash: 'm_slash', impact: 'm_crater', bolt: 'm_bolt', eruption: 'm_eruption', nova: 'm_shockwave', phase: 'm_vortex', pool: 'm_sigil', sigil: 'm_sigil', dome: 'r_dome', spark: 'm_spark' },
+    },
+    arena: { name: 'The Gilded Vault', center: [146, 154], radius: 10.5, trigger: 8, bossSpawn: [146, 151.5], entry: [146, 143], cameraLock: true },
+    appear: [{ type: 'event', id: 'golden_vault_open', label: 'Light the three Sun Sigils' }],
+    mechanics: [
+      { type: 'judgement', at: 0.12, domes: 3, domeR: 42, windup: 3.0, power: 85, weak: 6, anim: 'eruption', name: 'SUNFALL', hint: 'The sun falls — only the domes are safe', color: '255,170,60', domeColor: '255,225,140', flash: '255,230,160', weakText: 'BURNED OUT' },
+      { type: 'rune_sequence', phase: 2, every: 12, count: 4, r: 54, power: 34, gap: 0.5, delay: 1.0, anim: 'eruption', name: 'SUN SIGILS', hint: 'I · II · III · IV — they burst in the order they were written', color: '255,200,90' },
+      { type: 'overheat', max: 100, weak: 5, phase2Mult: 1.3, name: 'SOLAR FLARE', label: 'SUN', weakText: 'DIMMED', hint: 'Get clear of the flare — then strike while it dims!', gain: { solar_volley: 14, sunspear_fan: 16, sun_flare: 18, solar_rain: 22, corona: 20, gilded_charge: 8, sun_bite: 5 }, blast: { r: 180, power: 48, windup: 1.6 } },
+    ],
+    phases: [
+      { name: 'SUNFORGED', sub: 'Bite · Charge · Solar volleys · Flares', hpBelow: 1, moves: ['sun_bite', 'gilded_charge', 'solar_volley', 'sun_flare'] },
+      {
+        name: 'GOLDEN FURY', sub: 'Remember the sigils — the third bite comes late', hpBelow: 0.6, windup: 0.9, speed: 1.15, shockwave: 26,
+        moves: ['sun_bite', 'triple_bite', 'gilded_charge', 'sunspear_fan', 'corona'],
+      },
+      {
+        name: 'ECLIPSE', sub: 'The sun darkens — and falls', hpBelow: 0.3, windup: 0.85, speed: 1.25, shockwave: 30,
+        moves: ['triple_bite', 'gilded_charge', 'sunspear_fan', 'solar_rain', 'corona'],
+      },
+    ],
+    moves: {
+      sun_bite: { kind: 'strike', range: 90, windup: 0.66, recover: 0.55, cd: 1.5, weight: 4, power: 36, knock: 200, shape: { shape: 'cone', r: 98, half: 0.85 } },
+      triple_bite: {
+        kind: 'combo', range: 100, cd: 5, weight: 2.5, power: 32, knock: 200, recover: 0.8, opening: 1.2, shape: { shape: 'cone', r: 92, half: 0.85 },
+        hits: [{ windup: 0.5 }, { windup: 0.38, track: true }, { windup: 1.0, track: true, power: 48, shape: { shape: 'cone', r: 112, half: 1.1 } }],
+      },
+      gilded_charge: { kind: 'dash', guardBreak: true, range: 300, min: 110, windup: 0.9, recover: 0.9, cd: 4.5, weight: 2.5, power: 42, knock: 300, len: 260, width: 44, opening: 1.5, anim: { attack: 'run' } },
+      solar_volley: { kind: 'volley', range: 360, min: 100, windup: 0.75, recover: 0.6, cd: 4, weight: 2.5, power: 27, count: 3, spread: 0.5, speed: 280, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '#ffd060', anim: { windup: 'fire_wind', attack: 'fire_shot' } },
+      sunspear_fan: { kind: 'volley', range: 360, min: 90, windup: 0.8, recover: 0.6, cd: 4, weight: 2.5, power: 27, count: 6, spread: 1.0, speed: 300, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '#ffe080', anim: { windup: 'fire_wind', attack: 'fire_shot' } },
+      sun_flare: { kind: 'pattern', layout: 'scatter', range: 999, windup: 1.0, recover: 0.8, cd: 7, weight: 2, power: 31, count: 6, r: 42, delay: 0.14, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '255,200,80', opening: 1.2, anim: { roar: 'eruption' } },
+      solar_rain: { kind: 'pattern', layout: 'scatter', range: 999, windup: 0.95, recover: 0.8, cd: 7, weight: 2, power: 31, count: 11, r: 40, delay: 0.09, dmg: 'magic', status: [{ id: 'burn', dur: 2.5 }], color: '255,170,50', anim: { roar: 'eruption' } },
+      corona: { kind: 'nova', range: 999, windup: 1.05, recover: 0.9, cd: 9, weight: 1.5, power: 29, rings: 3, width: 46, gap: 70, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '255,210,100', anim: { roar: 'enrage' } },
+    },
+    rewards: { exp: 900, gold: 400, loot: 'aurum', items: { sunforged_crown: 1, sun_core: 1 }, lore: 'aurum' },
+    unlocks: [],
   },
   // A3 MAJOR BOSS (W4b): the Rune Knight in the Sanctum behind the Golden Gate (maps/sanctum.js). Art = the owner's A3
   // boss sheet; effects = the A3 VFX sheet ('r_*'). A duel: SWORD / SHIELD stances, the RUNE SCRIPT (phase 2),

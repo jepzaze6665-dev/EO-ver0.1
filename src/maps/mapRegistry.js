@@ -4,6 +4,7 @@ import { MAJOR_BOSS_ARENA } from './majorBossArena.js';
 import { VALEHAVEN } from './valehaven.js';
 import { FIELD_A2 } from './fieldA2.js';
 import { MAGMA_RIFT } from './magmaRift.js';
+import { GILDED_VAULT } from './gildedVault.js';
 import { FIELD_A3 } from './fieldA3.js';
 import { SANCTUM } from './sanctum.js';
 import { CITY2 } from './city2.js';
@@ -27,5 +28,5 @@ import { SUMMIT } from './summit.js';
 //   hiddenAreas: data/hidden.js ids that live here (route panel "secrets found"; content = data/hidden.js)
 //   corruptedMonsters (true | { minTy, maxTy }) / monsterMods [{ zones, mod }]: how hard spawns are, by part of the map
 //   exits / spawn / region / content: see maps/luminaVillage.js
-export const MAPS = [LUMINA_VILLAGE, FIELD_A1, MAJOR_BOSS_ARENA, VALEHAVEN, FIELD_A2, MAGMA_RIFT, FIELD_A3, SANCTUM, CITY2, FIELD_B1, FROST_ARENA_MAP, FIELD_B2, CRYSTAL_HEART, FIELD_B3, SUMMIT];
+export const MAPS = [LUMINA_VILLAGE, FIELD_A1, MAJOR_BOSS_ARENA, VALEHAVEN, FIELD_A2, MAGMA_RIFT, GILDED_VAULT, FIELD_A3, SANCTUM, CITY2, FIELD_B1, FROST_ARENA_MAP, FIELD_B2, CRYSTAL_HEART, FIELD_B3, SUMMIT];
 export const START_MAP = 'lumina';

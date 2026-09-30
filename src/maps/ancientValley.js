@@ -9,12 +9,19 @@ import { T, Z, TILE, SOLID_TILES } from '../core/constants.js';
 //   main route : Valley Gate (south) -> Pine Terraces -> River Fords -> Statue Commons -> High Meadow -> Magma Rift
 //   side routes: Sunken Temple (west) · Golden Arch -> Gilded Shrine (east, loops back north) · Mirror Lake (south-west)
 //   hidden slot: Quiet Hollow (south-east, a narrow cleft off the Valley Gate) — content later (data/hidden.js)
+//   SECRET     : the Gilded Vault — a paved stair south of the Golden Arch, sealed until the three Sun Sigils are lit,
+//                down to a round vault of old gold (secret boss arena, maps/gildedVault.js, zone GILDED_VAULT)
 const G = T.GRASS, V = T.VALLEY, D = T.DIRT;
 
 export const VALLEY_PLACES = {
   gate: [84, 192], pines: [60, 158], fords: [98, 132], commons: [84, 104], temple: [34, 98], arch: [140, 118],
   shrine: [138, 62], lake: [32, 166], upper: [80, 62], rift: [84, 22], hollow: [148, 176],
+  vault: [146, 154], // SECRET: the Gilded Vault (below the Golden Arch)
 };
+// the Sun Sigils that open the Gilded Vault (fieldA2 content `sigil` interactables stand on these tiles)
+export const SUN_SIGILS = { temple: [22, 100], lake: [20, 158], shrine: [148, 66] };
+// row where the vault zone begins (the stair above it stays Ancient Valley ground)
+export const VAULT_TOP = 140;
 
 export function buildAncientValleyTerrain(b) {
   const m = b.m, P = VALLEY_PLACES, r = b.r;
@@ -75,6 +82,16 @@ export function buildAncientValleyTerrain(b) {
   // the quiet cleft to the hidden hollow (narrow on purpose)
   b.line([[94, 194], [120, 186], [142, 178]], 2, D, { noise: 0.3, seed: 41 });
 
+  // ---------------- SECRET: THE GILDED VAULT (the A2 secret boss arena, its own map: maps/gildedVault.js). A paved stair
+  // runs south from the Golden Arch — the golden seal (fieldA2 gate `golden_seal`) bars it until the three Sun Sigils
+  // are lit — down to a round vault of old gold carved into the cliff: ring of cobble, ruin floor, a sun dais in the middle
+  const [vx, vy] = P.vault;
+  b.line([[P.arch[0] + 3, P.arch[1] + 7], [vx, 132], [vx, vy - 9]], 4, T.COBBLE, { noise: 0.15, seed: 61 });
+  b.disc(vx, vy, 12.5, T.COBBLE, { noise: 0.4, seed: 62 });
+  b.disc(vx, vy, 10.5, T.RUIN, { noise: 0.4, seed: 63 });
+  b.disc(vx, vy, 3, T.MOSS_STONE, { noise: 0.2, seed: 64 });
+  for (let ty = VAULT_TOP; ty <= vy + 16; ty++) for (let tx = vx - 16; tx <= vx + 16; tx++) if (m.inBounds(tx, ty)) m.zone[m.idx(tx, ty)] = Z.GILDED_VAULT;
+
   // ---------------- MAGMA RIFT = the A2 boss arena (its own map: maps/magmaRift.js, zone RIFT above row 41). A round
   // fighting ground as large as the Guardian's, ringed by a lava moat, one road in from the south (like A1's arena)
   const [rx, ry] = P.rift;
@@ -107,7 +124,8 @@ export function buildAncientValleyTerrain(b) {
 
   // ---------------- vegetation: pines on the terraces and the high ground at their rims, bushes, flowers
   const PINES = ['v_pine_a', 'v_pine_b', 'v_pine_c', 'v_pine_d', 'v_pine_e', 'v_pine_f', 'v_pine_g', 'v_pine_h', 'v_pine_i'];
-  const keep = [...Object.values(P).map(([x, y]) => [x, y, 6]), ...roads.flat().map(([x, y]) => [x, y, 3])];
+  const keep = [...Object.values(P).map(([x, y]) => [x, y, 6]), ...roads.flat().map(([x, y]) => [x, y, 3]),
+    [P.vault[0], P.vault[1], 14], [P.vault[0], 136, 4], [P.vault[0] - 1, 128, 4], ...Object.values(SUN_SIGILS).map(([x, y]) => [x, y, 3])];
   b.scatter(4, 40, m.w - 5, m.h - 5, PINES, 170, { on: [G, V], solid: true, minGap: 3, keepClear: keep });
   b.scatter(4, 40, m.w - 5, m.h - 5, ['v_bush_a', 'v_bush_b', 'v_bush_c', 'v_bush_d', 'v_bush_e', 'v_bush_f', 'v_bush_g'], 160, { on: [G, V, T.FLOWERS], minGap: 2 });
   b.scatter(4, 40, m.w - 5, m.h - 5, ['v_flower_a', 'v_flower_b', 'v_flower_c', 'v_grass_c', 'v_grass_tall', 'v_grass_b', 'v_mushroom', 'v_mushroom_red'], 260, { on: [G, V, T.FLOWERS] });
@@ -116,6 +134,7 @@ export function buildAncientValleyTerrain(b) {
   const open = (x, y) => m.inBounds(x, y) && !SOLID_TILES.has(m.get(x, y));
   for (let ty = 2; ty < m.h - 2; ty++) for (let tx = 2; tx < m.w - 2; tx++) {
     if (m.get(tx, ty) !== T.CLIFF) continue;
+    if (Math.abs(tx - P.vault[0]) <= 3 && ty >= 126 && ty < VAULT_TOP) continue; // keep the golden stair readable
     let near = false;
     for (let dy = -3; dy <= 3 && !near; dy++) for (let dx = -3; dx <= 3; dx++) if (open(tx + dx, ty + dy)) { near = true; break; }
     if (!near || !r.chance(0.16)) continue;
@@ -130,6 +149,18 @@ export function buildAncientValleyTerrain(b) {
   }
   for (let i = 0; i < 18; i++) { const a = (i / 18) * Math.PI * 2; b.light(rx + Math.cos(a) * 18, ry + Math.sin(a) * 18, 80, '#ff6a20', { a: 0.5, flicker: true }); }
   b.light(rx, ry, 170, '#ff7a30', { a: 0.3, flicker: true });
+
+  // the Gilded Vault: gold pillars around the rim, braziers, the sun dais; an obelisk marks each Sun Sigil
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+    if (Math.abs(a + Math.PI / 2) < 0.4 || Math.abs(a - Math.PI / 2) < 0.4) continue; // stair mouth (N) · the kings' altar (S)
+    b.prop(i % 2 ? 'v_gold_pillar' : 'v_torch_pillar', vx + Math.cos(a) * 11.5, vy + Math.sin(a) * 11.5, { solid: true });
+    if (!(i % 2)) b.light(vx + Math.cos(a) * 11.5, vy + Math.sin(a) * 11.5 - 1, 70, '#ffc050', { a: 0.55, flicker: true });
+  }
+  b.prop('v_gold_shrine', vx, vy + 12, { solid: true, footprint: [[-1, 0], [0, 0], [1, 0]], light: { r: 90, color: '#ffcf6a', a: 0.6, oy: -30 } });
+  b.light(vx, vy, 180, '#ffd070', { a: 0.35, flicker: true });
+  for (const [x, y] of [[vx - 2, 136], [vx + 2, 136]]) { b.prop('v_brazier', x, y, { solid: true }); b.light(x, y, 50, '#ffb050', { a: 0.45, flicker: true }); }
+  for (const [x, y] of Object.values(SUN_SIGILS)) { b.prop('v_obelisk', x, y - 1, { solid: true }); b.light(x, y - 1, 45, '#ffd070', { a: 0.3 }); }
 
   b.regions.playerSpawn = { x: 84.5 * TILE, y: 192 * TILE };
   b.regions.bossRift = { x: rx * TILE, y: ry * TILE };

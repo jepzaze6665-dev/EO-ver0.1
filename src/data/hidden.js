@@ -31,4 +31,9 @@ export const HIDDEN = {
     id: 'valehaven', name: 'Valehaven, the Hidden City', type: 'secret_city', map: 'valehaven',
     trigger: { event: 'mapEntered', match: { id: 'valehaven' } }, reward: { exp: 150, gold: 100 }, once: true,
   },
+  // A2 SECRET BOSS ARENA (2026-09-30): the Gilded Vault under the Golden Arch, opened by the three Sun Sigils
+  gilded_vault: {
+    id: 'gilded_vault', name: 'The Gilded Vault', type: 'secret_boss', map: 'gilded_vault',
+    trigger: { event: 'mapEntered', match: { id: 'gilded_vault' } }, reward: { exp: 150, gold: 150 }, once: true,
+  },
 };

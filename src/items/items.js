@@ -121,6 +121,11 @@ export const ITEMS = {
     name: "Hunter's Charm", cat: 'Armor', slot: 'accessory', rarity: 'rare', icon: 'charm', color: '#80d080',
     stats: { crit: 0.08, shadowGain: 0.25 }, desc: 'A charm of braided fang and silver.', modText: 'Shadow gain +25%.', price: 260,
   },
+  // A2 SECRET BOSS reward (Aurum, the Gilded Vault)
+  sunforged_crown: {
+    name: 'Sunforged Crown', cat: 'Armor', slot: 'accessory', rarity: 'legendary', icon: 'sigil', color: '#ffd870',
+    stats: { hp: 50, def: 2, crit: 0.06 }, desc: 'The circlet of the valley kings, still warm from the sun they forged. Taken from Aurum in the Gilded Vault.',
+  },
   guardian_heart: {
     name: 'Heart of the Guardian', cat: 'Armor', slot: 'accessory', rarity: 'legendary', icon: 'heart', color: '#5af0ff',
     stats: { hp: 60, def: 3 }, mods: { perfectHeal: true },
@@ -143,6 +148,7 @@ export const ITEMS = {
   asterian_crest: { name: 'Asterian Crest', cat: 'Material', rarity: 'rare', icon: 'sigil', color: '#9ad8ff', desc: 'The crest of the last Warden of Asteria. It still hums with runes.', sell: 200 },
   rune_crystal: { name: 'Rune Crystal', cat: 'Material', rarity: 'uncommon', icon: 'shard', color: '#8ab8ff', desc: 'A chest crystal of a Citadel golem, still humming.', sell: 36 },
   bronze_plate: { name: 'Bronze Plate', cat: 'Material', rarity: 'uncommon', icon: 'shield', color: '#d0a060', desc: 'A dented plate from a Bronze Hoplite\'s armour.', sell: 34 },
+  sun_core: { name: 'Sunforged Core', cat: 'Material', rarity: 'legendary', icon: 'heart', color: '#ffd870', desc: 'A heart of living gold. Trophy of Aurum, the secret beast of the Gilded Vault.', sell: 250 },
   magma_heart: { name: 'Magma Heart', cat: 'Material', rarity: 'rare', icon: 'heart', color: '#ff7a30', desc: 'Still warm. Trophy of the Magma Beast of the Ancient Valley.', sell: 120 },
   ember_core: { name: 'Ember Core', cat: 'Material', rarity: 'uncommon', icon: 'shard', color: '#ff9a40', desc: 'A cooling ember from the Magma Rift.', sell: 40 },
   stone_scute: { name: 'Stone Scute', cat: 'Material', rarity: 'common', icon: 'ore', color: '#b09a78', desc: 'A plate of an Ancient Valley armadillo\'s shell.', sell: 16 },

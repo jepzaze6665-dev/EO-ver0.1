@@ -50,6 +50,10 @@ export const LORE = {
     title: 'The Magma Beast of the Rift',
     text: 'When the mountain woke, it did not stop at the valley\'s edge. The beast crawled up out of the rift and the kings fled their summer court.\nNow the rift cools. Past it, carved into the far cliffs, a road leads toward a citadel of rune and bronze.',
   },
+  aurum: {
+    title: 'Aurum, the Sunforged',
+    text: 'The valley kings did not flee the mountain empty-handed. They caught a piece of its fire, beat it into gold and bound it under the Golden Arch — a second sun to keep the valley warm.\nIt kept them warm until it learned to hunger. Three sigils held it asleep. Now its light is only gold again.',
+  },
   crystal_warden: {
     title: 'The Crystal Warden',
     text: 'When the eclipse first touched the north, one warden climbed the summit to hold it back — and froze there, holding.\nFor three hundred years its armour grew from the cold it kept. Broken at last, it lets the mountain breathe.',

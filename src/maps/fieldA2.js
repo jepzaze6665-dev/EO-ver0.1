@@ -1,4 +1,5 @@
 import { Z } from '../core/constants.js';
+import { SUN_SIGILS } from './ancientValley.js';
 
 // A2 — ANCIENT VALLEY (own grid: world/levels/ancientValley.js, terrain maps/ancientValley.js). Built from the
 // owner's A2 art: terraced cliffs, a river from a northern waterfall to Mirror Lake, bridges, the ruins of an old
@@ -14,19 +15,38 @@ const PLAQUE = [
   'Beyond the high meadow the ground still burns. Travellers do not go there.',
 ].join('\n');
 
+// SECRET (the Gilded Vault): the golden seal south of the Golden Arch names the riddle; the three Sun Sigils are
+// generic `sigil` interactables (exploration/interactables.js) — lighting the last one of the group fires the world
+// trigger `golden_vault_open` (data/worldTriggers.js), which opens the seal gate + the vault map.
+const SEAL_TEXT = [
+  'A wall of beaten gold fills the stair. Its face is a sun with three dead rays.',
+  '"Three suns the kings kept for the valley:',
+  '  one where the drowned temple prays,',
+  '  one where the mirror lake lies still,',
+  '  one where the gilded shrine still shines.',
+  ' Wake all three, and the fourth will answer."',
+  '',
+  'Something vast sleeps below. The gold is warm to the touch.',
+].join('\n');
+const sigil = (id, [tx, ty], where) => ({ id, kind: 'sigil', group: 'sun_sigils', tx, ty, radius: 40, prompt: 'Touch the Sun Sigil', name: where });
+
 export const FIELD_A2 = {
   id: 'a2', name: 'ANCIENT VALLEY', short: 'A2', sub: 'Route A · A2 — Ancient Valley · Lv. 14 – 26',
   // LEVEL REWORK L2 (progression/levelScaling.js): the monsters were tuned for the old band; they now live in the new one
   levelBand: { from: [10, 14], to: [14, 26], exp: 1.1 }, grid: 'ancient_valley', // band.exp = pacing tune (tools/pacing.js)
   type: 'field', route: 'A', nextMap: 'a3', bossId: 'boss_a2', // the Magma Beast waits in the Magma Rift (planned fight)
   requires: [{ type: 'boss_defeated', boss: 'boss_a1', label: 'Defeat the Guardian of the Forest (A1 Boss)' }],
-  hiddenAreas: [],
+  hiddenAreas: ['gilded_vault'],
   region: { zones: [Z.ANCIENT] },
   spawn: [84.5, 192],
   content: {
     interactables: [
       { id: 'a2_gate_plaque', kind: 'sign', tx: 88, ty: 191, prompt: 'Read Plaque', title: 'Valley Gate', text: PLAQUE },
       { id: 'ws_a2_gate', kind: 'waystone', tx: 79, ty: 194, name: 'Valley Gate', prompt: 'Waystone' },
+      { id: 'a2_golden_seal', kind: 'sign', tx: 146, ty: 133, prompt: 'Examine the Golden Seal', title: 'The Golden Seal', text: SEAL_TEXT },
+      sigil('sun_sigil_temple', SUN_SIGILS.temple, 'Sunken Temple'),
+      sigil('sun_sigil_lake', SUN_SIGILS.lake, 'Mirror Lake'),
+      sigil('sun_sigil_shrine', SUN_SIGILS.shrine, 'Gilded Shrine'),
     ],
     // packs per terrace: the Valley Gate stays quiet; armadillos on the open terraces, rhinos guard the ruins
     spawns: [
@@ -51,6 +71,10 @@ export const FIELD_A2 = {
       { id: 'a2_shrine_warden', type: 'rock_rhino', elite: true, unique: true, count: 1, tx: 138, ty: 66, radius: 0 },
     ],
   },
+  // the golden seal bars the stair to the Gilded Vault until the three Sun Sigils are lit
+  gates: [
+    { id: 'golden_seal', rect: [142, 134, 150, 134], requires: [{ type: 'event', id: 'golden_vault_open', label: 'A golden seal. Three Sun Sigils of the valley are dark…' }], color: '255,200,90', label: 'The Golden Seal' },
+  ],
   exits: [
     { id: 'south_road', rect: [80, 202, 88, 203], to: 'arena', entry: [136, 14.5], label: 'Guardian Arena' },
     {
@@ -59,6 +83,14 @@ export const FIELD_A2 = {
         title: 'The Magma Rift',
         text: 'The ground beyond glows red. Something vast breathes in the heat.\nOnce it wakes, the rift seals behind you until one of you falls.\n\nEnter the Magma Rift?',
         yes: 'Enter', no: 'Not yet',
+      },
+    },
+    {
+      id: 'vault_gate', rect: [143, 138, 149, 138], to: 'gilded_vault', entry: [146.5, 143], label: 'The Gilded Vault',
+      confirm: {
+        title: 'The Gilded Vault',
+        text: 'Warm golden light pours up the stair. Below, something breathes like a forge.\nOnce it wakes, the vault seals behind you until one of you falls.\n\nDescend into the Gilded Vault?',
+        yes: 'Descend', no: 'Not yet',
       },
     },
   ],

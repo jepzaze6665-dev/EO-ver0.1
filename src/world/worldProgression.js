@@ -73,7 +73,7 @@ export class WorldProgression {
 
   // ---------------- events (world triggers)
   hasEvent(id) { return !!this.triggeredEvents[id]; }
-  markEvent(id) { this.triggeredEvents[id] = (this.triggeredEvents[id] || 0) + 1; this.dirty(); }
+  markEvent(id) { this.triggeredEvents[id] = (this.triggeredEvents[id] || 0) + 1; this.dirty(); this.refreshUnlocks(); } // an 'event' requirement may open a map
 
   // ---------------- requirement context (progression/requirements.js) — class progression reuses the same fields
   context() {

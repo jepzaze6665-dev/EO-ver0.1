@@ -173,7 +173,7 @@ export class BossSystem {
     this.restoreMusic();
     this.lockCamera(enc, false);
     g.after(1.1, () => {
-      g.ui.callout(enc.def.type === 'major' ? 'MAJOR BOSS DEFEATED' : enc.def.type === 'mini' ? 'MINI BOSS DEFEATED' : 'AREA BOSS DEFEATED', enc.def.name, '#ffe8b0');
+      g.ui.callout(enc.def.type === 'major' ? 'MAJOR BOSS DEFEATED' : enc.def.type === 'mini' ? 'MINI BOSS DEFEATED' : enc.def.type === 'secret' ? 'SECRET BOSS DEFEATED' : 'AREA BOSS DEFEATED', enc.def.name, '#ffe8b0');
       g.audio.sfx('victory');
       this.complete(enc.id, e);
     }, true);

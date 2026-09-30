@@ -176,6 +176,8 @@ export function mapTour(g, classId = 'umbral_sword') {
   ok('New Game starts on Lumina', w.mapId === 'lumina');
   for (const f of ['ruinsGate', 'logBridge', 'bramble', 'gateOpened', 'guardianDefeated']) w.setFlag(f);
   for (const b of g.bosses.list) g.worldProgress.defeatBoss(b.id); // V2.2 boss gates: every road open for the tour
+  // secret roads (maps / gates waiting on a world event, e.g. the Gilded Vault's golden seal) open too
+  for (const d of mm.list) for (const r of [...(d.requires || []), ...(d.gates || []).flatMap((gt) => gt.requires || [])]) if (r.type === 'event' && !g.worldProgress.hasEvent(r.id)) g.worldProgress.markEvent(r.id);
   w.applyState();
   const events = [];
   g.events.on('mapEntered', (e) => events.push(e.id));
@@ -1093,6 +1095,60 @@ export function a3MonsterCheck(g, classId = 'umbral_sword') {
 
 // W4b: the A3 Major Boss (Rune Knight) in the Sanctum — gate, arena like A1, stances (shield blocks / guard break),
 // rune sequence, echoes copying attacks, the final judgement (a dome is safe), 3 phases, rewards, Route A complete.
+// A2 SECRET BOSS (2026-09-30): the three Sun Sigils open the golden seal south of the Golden Arch -> the Gilded Vault
+// (secret boss arena) -> AURUM, 3 phases (SOLAR FLARE heat, SUN SIGILS order, SUNFALL domes) -> rewards once -> way back.
+export function secretA2Check(g, classId = 'umbral_sword', { god = true, level = 27, seconds = 420 } = {}) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, wp = g.worldProgress;
+  wp.defeatBoss('boss_a1'); w.setFlag('guardianDefeated'); w.applyState();
+  const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
+  w.changeMap('a2', { entry: [146.5, 128] }); g.simulate(0.5);
+  const enc = g.bosses.get('secret_a2'), seal = w.gates.get('golden_seal');
+  w.transitions.autoConfirm = true;
+  goto(g, 146.5, 131);
+  walk(g, 'KeyS', 2);
+  ok('Sealed: the golden seal blocks the stair, the vault is locked, the boss stays hidden', w.mapId === 'a2' && !seal.open && p.y < 134 * TILE && !wp.isMapUnlocked('gilded_vault') && enc.state === 'hidden', `map=${w.mapId} seal=${seal.open} y=${(p.y / TILE).toFixed(1)} boss=${enc.state}`);
+  const sigils = w.interactables.filter((i) => i.kind === 'sigil' && i.group === 'sun_sigils');
+  const lit = [];
+  g.events.on('sigilLit', (e) => lit.push(e.lit));
+  for (const it of sigils) { use(g, it.id); if (g.ui.panelOpen) g.ui.panels.close(true); }
+  use(g, sigils[0].id); if (g.ui.panelOpen) g.ui.panels.close(true); // a lit sigil only tells you so
+  ok('Three Sun Sigils, each lit once (1/3 -> 3/3), on open ground', sigils.length === 3 && lit.join() === '1,2,3', `sigils=${sigils.length} lit=${lit.join()}`);
+  g.simulate(0.6);
+  ok('The last sigil breaks the seal: trigger, vault map unlocked, seal gate open', trig.includes('golden_vault_open') && seal.open && wp.isMapUnlocked('gilded_vault'), `trig=${trig.includes('golden_vault_open')} seal=${seal.open} unlocked=${wp.isMapUnlocked('gilded_vault')}`);
+  goto(g, 146.5, 131);
+  for (let k = 0; k < 10 && w.mapId !== 'gilded_vault'; k++) walk(g, 'KeyS', 0.4);
+  g.simulate(0.5);
+  ok('Down the stair into the Gilded Vault (boss arena, secret found once), the boss waits', w.mapId === 'gilded_vault' && w.mapDef.type === 'boss_arena' && w.state.hidden.gilded_vault && enc.state === 'idle', `map=${w.mapId} hidden=${!!w.state.hidden.gilded_vault} boss=${enc.state}`);
+  p.setLevel(level); p.hp = p.maxHp; g.inventory.add('hp_potion', 5, true);
+  for (let k = 0; k < 10 && enc.state !== 'engaged'; k++) walk(g, 'KeyS', 0.4);
+  ok('Engaged: exits sealed, camera held', enc.state === 'engaged' && w.inBossFight() && !!g.camera.lock && w.mapDef.exits.every((x) => !w.transitions.isOpen(x)), `${enc.state} lock=${!!g.camera.lock}`);
+  if (enc.state !== 'engaged') return R;
+  const e = enc.entity, phases = new Set(), moves = new Set();
+  let flares = 0, runes = 0, sunfall = null;
+  const onHeat = () => flares++, onRune = () => runes++, onJ = (x) => { if (x.bossId === 'secret_a2') sunfall = x; };
+  g.events.on('bossOverheated', onHeat); g.events.on('runeBurst', onRune); g.events.on('bossJudgement', onJ);
+  let t = 0;
+  for (; t < seconds && enc.state !== 'defeated' && !p.dead; t += 0.5) {
+    g.simulate(0.5, (gg, i) => { bot(gg, i, { god }); if (e.curMove) moves.add(Object.keys(e.def.moves).find((k) => e.def.moves[k] === e.curMove)); });
+    phases.add(e.phase);
+  }
+  releaseInput(g);
+  g.simulate(6);
+  g.events.off('bossOverheated', onHeat); g.events.off('runeBurst', onRune); g.events.off('bossJudgement', onJ);
+  ok('3 phases: SUNFORGED · GOLDEN FURY 60% · ECLIPSE 30%', [1, 2, 3].every((n) => phases.has(n)), [...phases].join(','));
+  ok('Signatures: SOLAR FLARE (heat blast) · SUN SIGILS burst · SUNFALL resolved once', flares > 0 && runes > 0 && !!sunfall, `flares=${flares} runes=${runes} sunfall=${sunfall ? `safe ${sunfall.safe} hurt ${sunfall.hurt}` : 'no'}`);
+  if (god) ok(`Every move used (${Object.keys(e.def.moves).length})`, Object.keys(e.def.moves).every((m) => moves.has(m)), [...moves].join(','));
+  ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('secret_a2') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
+  if (enc.state !== 'defeated') return R;
+  ok('Rewards once: Sunforged Crown + core + lore + banner trigger; gates nothing', g.inventory.count('sunforged_crown') === 1 && g.inventory.count('sun_core') === 1 && w.state.lore.aurum && trig.includes('secret_a2_defeated') && !wp.isMapUnlocked('a3'));
+  goto(g, 146.5, 142);
+  for (let k = 0; k < 10 && w.mapId !== 'a2'; k++) walk(g, 'KeyW', 0.4);
+  ok('Back up the stair to the Golden Arch', w.mapId === 'a2' && !g.camera.lock, `map=${w.mapId}`);
+  return R;
+}
+
 export function a3BossCheck(g, classId = 'umbral_sword', { god = true, level = 36, seconds = 420 } = {}) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);

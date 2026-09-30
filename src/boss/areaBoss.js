@@ -595,8 +595,11 @@ AreaBoss.prototype.draw = function draw(ctx) {
   if (s && s.sheet) {
     const fr = this.sheetFrame(s);
     const sc = this.scale * (ps.scale || 1), w = s.w * sc, h = s.h * sc, ax = s.ax * sc, ay = s.ay * sc;
-    if (this.state === 'dormant') ctx.filter = 'brightness(0.75)';
-    else if (ps.glow && !this.dead) ctx.filter = `drop-shadow(0 0 ${ps.glow}px rgb(${aura}))`;
+    // look.filter / phaseStyle.filter: a canvas filter over the art (e.g. an existing sheet recoloured for a new boss)
+    const tint = ps.filter || this.look.filter ? (ps.filter || this.look.filter) + ' ' : '';
+    if (this.state === 'dormant') ctx.filter = tint + 'brightness(0.75)';
+    else if (ps.glow && !this.dead) ctx.filter = tint + `drop-shadow(0 0 ${ps.glow}px rgb(${aura}))`;
+    else if (tint) ctx.filter = tint;
     ctx.drawImage(fr, -ax, -ay, w, h);
     ctx.filter = 'none';
     if (this.flash > 0 && !this.dead) { ctx.globalAlpha = Math.min(1, this.flash * 10); ctx.drawImage(flashOf(fr), -ax, -ay, w, h); }

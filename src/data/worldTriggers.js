@@ -106,6 +106,28 @@ export const WORLD_TRIGGERS = [
     actions: [{ type: 'banner', title: 'A3 UNLOCKED', text: 'The rift cools — the east causeway leads to the Rune Citadel', color: '#ffd98a' }],
   },
 
+  // ---- A2 SECRET: the Gilded Vault (Sun Sigils -> golden seal -> secret boss AURUM). The id is the `event`
+  // requirement of the seal gate (fieldA2 golden_seal) and of the vault map (maps/gildedVault.js)
+  {
+    id: 'golden_vault_open', on: 'sigilLit', match: { group: 'sun_sigils', complete: true },
+    actions: [
+      { type: 'banner', title: 'THE GOLDEN SEAL BREAKS', text: 'Three suns answer — and a fourth stirs beneath the Golden Arch', color: '#ffd870' },
+      { type: 'notify', title: 'SECRET', text: 'The stair south of the Golden Arch is open', color: '#ffd870' },
+    ],
+  },
+  {
+    id: 'secret_a2_found', on: 'mapEntered', match: { id: 'gilded_vault', first: true },
+    actions: [{ type: 'cutscene', title: 'THE GILDED VAULT', sub: 'Secret Boss', focus: 'player', zoom: 1.3, time: 2.2 }],
+  },
+  {
+    id: 'secret_a2_phase3', on: 'bossPhaseChanged', match: { bossId: 'secret_a2', phase: 3 },
+    actions: [{ type: 'notify', title: 'ECLIPSE', text: 'When the sun falls, only the golden domes are safe.', color: '#ffd870' }],
+  },
+  {
+    id: 'secret_a2_defeated', on: 'bossDefeated', match: { bossId: 'secret_a2' },
+    actions: [{ type: 'banner', title: 'SECRET BOSS DEFEATED', text: 'The sun of the valley kings sets at last', color: '#ffe08a' }],
+  },
+
   // ---- A3 Rune Citadel
   {
     id: 'a3_first_visit', on: 'mapEntered', match: { id: 'a3', first: true },
