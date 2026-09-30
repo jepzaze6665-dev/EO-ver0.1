@@ -204,8 +204,10 @@ const VS = 'desgin/class cr/AW/VS/';
 PRESETS.vs = { out: 'assets/player/vs', nearestBody: true, sheets: {
   walk: [VS + 'WALK 1.PNG', 4],
   idle: [VS + 'WALK 2', 4],
-  atk1: [VS + 'ATK 1', 4],
-  atk2: [VS + 'ATK2', 4],
+  // basic attacks: the purple arcs painted into these frames covered the character (owner) -> stripped; the game's own
+  // chain VFX shows the attack (the combo finisher reuses the clean atk2)
+  atk1: [VS + 'ATK 1', 4, { stripGlow: {}, bodyOnly: {} }],
+  atk2: [VS + 'ATK2', 4, { stripGlow: {}, bodyOnly: {} }],
   dash: [VS + 'DASH', 4],
   hit: [VS + 'HIT', 4],
   sk1: [VS + 'SK1', 4],
@@ -699,6 +701,53 @@ function componentFrames(img, y0, y1, xs, n = COLS, opts = {}) {
 }
 
 const [CW, CH] = STD.canvas, [PX, PY] = STD.pivot;
+// stripGlow { max, sat, fringe }: erase the effect glow PAINTED into a sheet (bright + saturated pixels) and its soft
+// edge — for basic-attack sheets whose painted arcs cover the character (the game draws its own VFX for the attack).
+// Only for art whose body has (almost) no bright saturated pixels (measure first: walk frames ≈ 10 px vs arcs 100-600).
+function stripGlow(img, { max = 170, sat = 70, fringe = 2 } = {}) {
+  const { width: w, height: h, data: d } = img;
+  const glow = (i) => { const mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]); return [mx, mx - mn]; };
+  let kill = new Uint8Array(w * h);
+  for (let p = 0; p < w * h; p++) { const i = p * 4; if (d[i + 3] < 40) continue; const [mx, s] = glow(i); if (mx > max && s > sat) kill[p] = 1; }
+  // the arc's soft edge: translucent or lighter tinted pixels touching what was erased
+  for (let k = 0; k < fringe; k++) {
+    const next = kill.slice();
+    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+      const p = y * w + x, i = p * 4;
+      if (kill[p] || d[i + 3] === 0) continue;
+      if (!(kill[p - 1] || kill[p + 1] || kill[p - w] || kill[p + w])) continue;
+      const [mx, s] = glow(i);
+      if (d[i + 3] < 200 || (mx > 110 && s > 45)) next[p] = 1;
+    }
+    kill = next;
+  }
+  for (let p = 0; p < w * h; p++) if (kill[p]) d[p * 4 + 3] = 0;
+}
+// bodyOnly: in every CW × CH cell keep only the largest connected shape (the character) and pieces touching it within
+// `reach` px — the dark outline specks an erased arc leaves behind are dropped
+function bodyOnly(img, { reach = 1, minKeep = 0 } = {}) {
+  const { width: W, data: d } = img, cols = img.width / CW, rows = img.height / CH;
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const x0 = c * CW, y0 = r * CH, lab = new Int32Array(CW * CH).fill(-1), sizes = [];
+    const on = (x, y) => d[((y0 + y) * W + x0 + x) * 4 + 3] > 40;
+    for (let p = 0; p < CW * CH; p++) {
+      if (lab[p] >= 0 || !on(p % CW, (p / CW) | 0)) continue;
+      const id = sizes.length, st = [p]; lab[p] = id; let n = 0;
+      while (st.length) {
+        const q = st.pop(), qx = q % CW, qy = (q / CW) | 0; n++;
+        for (let dy = -reach; dy <= reach; dy++) for (let dx = -reach; dx <= reach; dx++) {
+          const nx = qx + dx, ny = qy + dy, rr = ny * CW + nx;
+          if (nx >= 0 && ny >= 0 && nx < CW && ny < CH && lab[rr] < 0 && on(nx, ny)) { lab[rr] = id; st.push(rr); }
+        }
+      }
+      sizes.push(n);
+    }
+    if (!sizes.length) continue;
+    const big = sizes.indexOf(Math.max(...sizes));
+    const drop = (id) => id >= 0 && id !== big && !(minKeep > 0 && sizes[id] >= minKeep);
+    for (let p = 0; p < CW * CH; p++) if (drop(lab[p])) d[((y0 + ((p / CW) | 0)) * W + x0 + (p % CW)) * 4 + 3] = 0;
+  }
+}
 function buildPreset(key) {
 const { out: outRel, sheets: SHEETS, facing: FACING, nearestBody, bg, edgeFade, splitFeather, cutFeather } = PRESETS[key];
 FEATHER = cutFeather || 4;
@@ -759,6 +808,8 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
     const a = ((base + 2) * CH + y) * sheet.width * 4 + c * CW * 4, b = ((base + 3) * CH + y) * sheet.width * 4 + c * CW * 4;
     const tmp = Buffer.from(sheet.data.subarray(a, a + CW * 4)); sheet.data.copy(sheet.data, a, b, b + CW * 4); tmp.copy(sheet.data, b);
   }
+  if (opt.stripGlow) stripGlow(sheet, opt.stripGlow);
+  if (opt.bodyOnly) bodyOnly(sheet, opt.bodyOnly);
   png.write(path.join(OUT, name + '.png'), sheet);
   const sides = [];
   const face = opt.facing || FACING; // per-sheet facing override > preset facing > detected

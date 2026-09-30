@@ -250,7 +250,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   decal / blast did not line up); summon sprite visuals draw ONE steady frame (lean + glow while acting, no flicker).
   CAST TIMING (owner: the bolt left before the throw pose): SM / VS / LO anims name their RELEASE column `hit: [col]` and every
   basic / skill event fires while it shows (frame at t = cols[floor(t / dur × n)]); tools/tests/castTiming.test.mjs checks every
-  class that has `hit` data. VS basics keep the chain strip (owner). LESSON for new VFX: measure each strip's content box (bbox) and anchor standing effects by their
+  class that has `hit` data. VS basics keep the chain strip (owner).
+  PAINTED EFFECTS in basic-attack sprites covered the character (owner): build-player sheet options `stripGlow { max, sat,
+  fringe }` (erase bright saturated painted glow — only where the body has ~none: measure first) + `bodyOnly { reach, minKeep }`
+  (keep the largest shape per cell) on VS atk1 / atk2; VS finisher = the clean atk2 held longer. LO's glow is pale like its face
+  / robe, so its combo uses only clean columns (col 2 = the staff thrust without the painted orb; finisher = atk1 thrust held). LESSON for new VFX: measure each strip's content box (bbox) and anchor standing effects by their
   base (center y = ground - (y1 - 0.5) × h), rings / orbs by their centre.
   Done AW3 = LUMEN ORACLE (`src/skills/lumenOracle.js`, preset 'lo' (no idle sheet), VFX set 'lo': lo_bolt / lo_grace (SK2 row 4) /
   lo_thread / lo_purify / lo_barrier / lo_spike / lo_lance (SK6(2)) / lo_judgment (SK7 row 4), recentred): resource LUMEN (tier

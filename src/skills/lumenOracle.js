@@ -24,9 +24,11 @@ export const LO_ANIMS = {
   idle: { sheet: 'walk', cols: [0] },
   walk: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 9, loop: true, bob: 1 },
   run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 13, loop: true, bob: 1 },
-  atk1: { sheet: 'atk1', cols: [1, 2, 3, 4], hit: [3] },
-  atk2: { sheet: 'atk2', cols: [1, 2, 3, 4], hit: [3] },
-  atk3: { sheet: 'sk1', cols: [1, 2, 3, 4], hit: [3] },
+  // basic combo = only frames WITHOUT painted light (owner: the painted orb / swirl covered the character); col 2 is the
+  // staff thrust without its painted orb — the game's own light bolt leaves from the staff tip there
+  atk1: { sheet: 'atk1', cols: [1, 2, 2, 5], hit: [2] },
+  atk2: { sheet: 'atk2', cols: [1, 2, 2, 5], hit: [2] },
+  atk3: { sheet: 'atk1', cols: [1, 2, 2, 2, 5], hit: [2] }, // finisher: the clean thrust held longer (SK1 is all painted light)
   dodge: { sheet: 'dash', cols: [1, 2] },
   lumenBolt: { sheet: 'sk1', cols: [1, 2, 3, 4], hit: [3] },
   grace: { sheet: 'sk2', cols: [1, 2, 3, 4], hit: [3] },

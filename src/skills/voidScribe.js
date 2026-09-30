@@ -25,7 +25,7 @@ export const VS_ANIMS = {
   run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 13, loop: true },
   atk1: { sheet: 'atk1', cols: [1, 2, 3, 4], hit: [3] },
   atk2: { sheet: 'atk2', cols: [1, 2, 3, 4], hit: [3] },
-  atk3: { sheet: 'sk2', cols: [1, 2, 3], hit: [3] },
+  atk3: { sheet: 'atk2', cols: [1, 2, 3, 3, 4], hit: [3] }, // finisher: the clean ATK2 thrust held longer (SK2's release pose holds a painted orb)
   dodge: { sheet: 'dash', cols: [1, 2] },
   voidScript: { sheet: 'sk1', cols: [1, 2, 3, 4], hit: [3] },
   sableMark: { sheet: 'sk2', cols: [1, 2, 3, 5], hit: [3] },
