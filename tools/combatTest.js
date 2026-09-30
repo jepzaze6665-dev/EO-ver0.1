@@ -140,8 +140,8 @@ export function classChecks(g, classId) {
     ok('Mark decays out of combat', p.marks < 2, `marks ${p.marks}`);
   }
 
-  // Threads: create / expire / trigger (classes that weave threads)
-  if (cls.skills.some((s) => (s.tags || []).includes('thread'))) {
+  // Threads: create / expire / trigger (the Weaver's own Astral Thread + Thread Burst; Stormcaller wires: stormChecks)
+  if (cls.skills.some((s) => s.id === 'astral_thread') && cls.skills.some((s) => s.id === 'thread_burst')) {
     ({ p, d } = fresh());
     const threadSkill = cls.skills.find((s) => s.id === 'astral_thread');
     cast(g, threadSkill.id, { x: d.x + 90, y: d.y + 30 }); // ground point next to the dummy
@@ -834,6 +834,126 @@ export function oathChecks(g) {
   return rows;
 }
 
+// ---------------- Class 2 STORMCALLER in the live game (shock, chain lightning, storm velocity, live wires, bursts)
+// The three training dummies stand ~100 px apart: a chain from the middle one can reach both others.
+export function stormChecks(g) {
+  const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'stormcaller', test: name, pass: !!pass, detail });
+  const R = 'storm_charge', W = 'lightning_thread', r0 = (n) => Math.round(n);
+  let { p, d } = atDummy(g, 'stormcaller');
+  let D = g.world.dummies; const cls = p.cls, inFight = () => { g.combat.lastCombatTime = g.time; };
+  const fresh = (dist) => { ({ p, d } = atDummy(g, 'stormcaller', dist)); D = g.world.dummies; }; // a new game = new dummies
+  const wires = () => g.threads.count(p, W);
+  const hitsOn = (fn) => { const got = new Map(); const off = g.events.on('damageDealt', (e) => { if (e.source === p) got.set(e.target, (got.get(e.target) || 0) + 1); }); fn(); if (off) off(); return got; };
+  ok('Class data: preset sm, Storm Charge, own skills + Storm Burst + passives', p.sprites.preset === 'sm' && p.primaryResource === R && p.skillSys.get('thunder_lash') && p.skillSys.get('heavens_tempest') && cls.special.id === 'storm_burst' && cls.passives.length >= 2 && g.equipment.slots.weapon === 'storm_staff', `${p.sprites.preset} ${p.primaryResource} ${g.equipment.slots.weapon}`);
+
+  // Thunder Lash: shock the first foe, chain to the other two, Thunder Resonance at the 3rd
+  let reso = 0; const offR = g.events.on('passiveTriggered', (e) => { if (e.id === 'thunder_resonance') reso++; });
+  const c0 = p.resources.get(R);
+  const lash = hitsOn(() => cast(g, 'thunder_lash', d));
+  if (offR) offR();
+  ok('Thunder Lash: hits, SHOCKS and chains to all 3 dummies', D.every((x) => lash.get(x) >= 1 && x.status.has('shock')), D.map((x) => `${lash.get(x) || 0}/${x.status.stacks('shock')}`).join(' '));
+  ok('Thunder Resonance: a chain reaching a 3rd foe', reso === 1, `triggered ${reso}×`);
+  const gain = p.resources.get(R) - c0;
+  ok('Lash builds Storm Charge, capped per cast', gain > 0 && gain <= cls.charge.castCap + cls.chain.resonanceCharge + 0.01, `+${gain.toFixed(1)}`);
+
+  // chain target: a shocked foe beats an equally close unshocked one
+  fresh();
+  D[0].status.add('shock', 3, { source: p });
+  const pickA = cls.chainTarget(p, g, D[1], new Set([D[1].id]));
+  D[0].status.remove('shock'); D[2].status.add('shock', 3, { source: p });
+  const pickB = cls.chainTarget(p, g, D[1], new Set([D[1].id]));
+  ok('Chain picks the shocked foe first', pickA === D[0] && pickB === D[2], `${pickA && pickA.x} / ${pickB && pickB.x}`);
+
+  // resource limits
+  p.resources.set(R, 100); p.gainResource(50); const top = p.resources.get(R);
+  p.resources.drain(R, 999, 'test'); const bottom = p.resources.get(R);
+  ok('Storm Charge stays within 0-100', top === 100 && bottom === 0, `${top} / ${bottom}`);
+
+  // STORM VELOCITY: moving in a fight builds charge, at most 5 a second
+  ({ p, d } = atDummy(g, 'stormcaller'));
+  p.x -= 150; g.simulate(0.1); p.resources.set(R, 0); inFight(); // walk right, below the dummies (a wall is to the left)
+  g.input.down.add('KeyD'); g.simulate(2, inFight); g.input.down.delete('KeyD'); releaseInput(g);
+  const walked = p.resources.get(R);
+  ok('Storm Velocity: walking 2 s in a fight builds charge (≤ 5/s + a 1 s buffer)', walked > 3 && walked <= cls.velocity.perSec * 3 + 0.01, `+${walked.toFixed(1)}`);
+  // standing still: STILL AIR and the charge leaks
+  p.resources.set(R, 50); g.simulate(2.5, inFight);
+  ok('Standing still: STILL AIR (-15% damage), charge leaks', p.status.has('still_air') && p.resources.get(R) < 50, `still=${p.status.has('still_air')} charge ${r0(p.resources.get(R))}`);
+
+  // Static Thread: a live wire; aimed at a foe = STATIC BIND; max 3
+  fresh();
+  let rooted = false; const offRoot = g.events.on('statusApplied', (e) => { if (e.id === 'root' && e.target === d) rooted = true; });
+  cast(g, 'static_thread', d); if (offRoot) offRoot();
+  ok('Static Thread on a foe: live wire + STATIC BIND (root, 2 Shock)', wires() === 1 && rooted && d.status.stacks('shock') >= 2, `wires ${wires()} root=${rooted} shock ${d.status.stacks('shock')}`);
+  for (let i = 0; i < 4; i++) { p.skillSys.cooldowns.clear('static_thread'); cast(g, 'static_thread', { x: p.x + 60 + i * 30, y: p.y - 80 }); }
+  ok('Live wires are capped at 3', wires() === 3, `${wires()}`);
+  // a wire touching a foe shocks it (dummy 0 has no shock yet)
+  fresh();
+  g.threads.create(p, W, { x: D[0].x - 60, y: D[0].y }, { x: D[0].x + 60, y: D[0].y });
+  g.simulate(1);
+  ok('A live wire shocks what it touches', D[0].status.has('shock'), `stacks ${D[0].status.stacks('shock')}`);
+
+  // Storm Step: blink + discharge; blinking ACROSS a wire leaves a LIGHTNING TRAIL
+  ({ p, d } = atDummy(g, 'stormcaller'));
+  p.x = d.x - 200; p.y = d.y + 110; g.simulate(0.1);
+  g.threads.create(p, W, { x: p.x + 70, y: p.y - 60 }, { x: p.x + 70, y: p.y + 60 });
+  const sx = p.x; aim(g, p.x + 300, p.y);
+  cast(g, 'storm_step', { x: p.x + 300, y: p.y });
+  ok('Storm Step: blinks, crossing a wire leaves a Lightning Trail', p.x - sx > 100 && wires() === 2, `moved ${r0(p.x - sx)} wires ${wires()}`);
+  fresh(200); // the blink (150 px) lands right next to the dummy
+  const step = hitsOn(() => cast(g, 'storm_step', d));
+  ok('Storm Step: the landing discharge hits + shocks', step.size >= 1 && [...step.keys()].some((t) => t.status && t.status.has('shock')), `${step.size} hit`);
+
+  // Chain Tempest: bolt on the middle dummy, chains to the others, detonates a wire under it
+  fresh();
+  g.threads.create(p, W, { x: d.x - 40, y: d.y + 20 }, { x: d.x + 40, y: d.y + 20 });
+  const ct = hitsOn(() => cast(g, 'chain_tempest', d));
+  ok('Chain Tempest: every dummy hit, the wire under it detonates', D.every((x) => ct.get(x) >= 1) && wires() === 0, `${D.map((x) => ct.get(x) || 0).join('/')} wires ${wires()}`);
+
+  // Tempest Field: needs 30; pulses damage + slow + shock; TAILWIND inside
+  ({ p, d } = atDummy(g, 'stormcaller'));
+  p.resources.set(R, 10);
+  const noField = !p.skillSys.canUse('tempest_field').ok;
+  p.resources.set(R, 40);
+  const tf = hitsOn(() => { cast(g, 'tempest_field', { x: p.x, y: p.y - 40 }); g.simulate(2, inFight); });
+  ok('Tempest Field: refused under 30; ticks, slows, shocks; TAILWIND inside', noField && (tf.get(d) || 0) >= 3 && d.status.has('slow') && d.status.has('shock') && p.status.has('tailwind'), `refused=${noField} ticks ${tf.get(d) || 0} slow=${d.status.has('slow')} tail=${p.status.has('tailwind')}`);
+  g.simulate(5, inFight);
+  ok('Tempest Field ends after 6 s', !(p.zones || []).some((z) => z.kind === 'tempest'));
+
+  // Storm Burst (Q): needs 30, spends ALL, bigger with more charge, detonates wires
+  ({ p, d } = atDummy(g, 'stormcaller'));
+  p.resources.set(R, 20);
+  const noBurst = !p.skillSys.canUse('storm_burst').ok;
+  const burstOf = (charge) => {
+    ({ p, d } = atDummy(g, 'stormcaller', 100)); p.resources.set(R, charge);
+    let hb = null; const orig = g.combat.spawnHitbox.bind(g.combat);
+    g.combat.spawnHitbox = (def) => { const h = orig(def); if (!hb && def.shape === 'circle' && def.type === 'lightning' && def.r >= 80) hb = h; return h; };
+    g.threads.create(p, W, { x: p.x - 50, y: p.y + 40 }, { x: p.x + 50, y: p.y + 40 });
+    aim(g, p.x, p.y - 50); g.simulate(STEP * 2); p.trySkill(cls.special); g.simulate(0.6);
+    g.combat.spawnHitbox = orig;
+    return { hb, left: p.resources.get(R), w: wires() };
+  };
+  const small = burstOf(30), big = burstOf(100);
+  ok('Storm Burst: refused under 30; spends it all, radius / power grow with it, wires detonate', noBurst && small.hb && big.hb && big.hb.r > small.hb.r && big.hb.power > small.hb.power && big.left === 0 && big.w === 0, `r ${small.hb && r0(small.hb.r)}->${big.hb && r0(big.hb.r)} power ${small.hb && small.hb.power.toFixed(1)}->${big.hb && big.hb.power.toFixed(1)} left ${big.left}`);
+
+  // Heaven's Tempest: strikes over 4 s, then the FINAL THUNDER BURST
+  fresh();
+  p.resources.set(R, 70);
+  let bigHit = false; const offB = g.events.on('damageDealt', (e) => { if (e.source === p && e.opts && e.opts.big && e.opts.skillId === 'heavens_tempest') bigHit = true; });
+  const ult = hitsOn(() => { cast(g, 'heavens_tempest', d); g.simulate(4.5, inFight); });
+  if (offB) offB();
+  ok('Heaven\'s Tempest: many strikes on the dummies, then the Final Thunder Burst', D.reduce((n, x) => n + (ult.get(x) || 0), 0) >= 9 && bigHit && p.resources.get(R) <= 70 - 40, `hits ${D.map((x) => ult.get(x) || 0).join('/')} final=${bigHit} charge ${r0(p.resources.get(R))}`);
+
+  // real class change: Astral Weaver -> Stormcaller (an Astral Thread becomes a live wire when she casts Static Thread)
+  g.newGame('astral_weaver'); releaseInput(g);
+  g.progression.unlock('stormcaller'); g.combat.lastCombatTime = -99;
+  const r = g.changeClass('stormcaller'), np = g.player;
+  ok('Class change Astral Weaver -> Stormcaller', r.ok && np.cls.id === 'stormcaller' && np.sprites.preset === 'sm' && np.primaryResource === R && g.equipment.slots.weapon === 'storm_staff', `${np.cls.id} ${np.sprites.preset} ${g.equipment.slots.weapon}`);
+  const res = np.resources.get(R), cds = ['thunder_lash', 'storm_step', 'chain_tempest', 'static_thread', 'tempest_field', 'heavens_tempest'].map((id) => np.skillSys.cooldowns.remaining(id));
+  ok('No negative / overfull resource, no negative cooldown, ≤ 3 wires', res >= 0 && res <= 100 && cds.every((c) => c >= 0) && g.threads.count(np, W) <= 3);
+  releaseInput(g);
+  return rows;
+}
+
 // ---------------- Phase 13: class change, proven with a mock Class 2 registered from data only
 export function classChangeChecks(g) {
   const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'class_change', test: name, pass: !!pass, detail });
@@ -852,8 +972,8 @@ export function classChangeChecks(g) {
     g.combat.lastCombatTime = g.time;
     ok('Refused in combat', g.changeClass('mock_class2').reason === 'combat');
     g.combat.lastCombatTime = -99;
-    g.progression.unlock('stormcaller');
-    ok('Unlocked but not playable yet (real Class 2) refused', g.changeClass('stormcaller').reason === 'not_playable');
+    g.progression.unlock('void_scribe');
+    ok('Unlocked but not playable yet (real Class 2) refused', g.changeClass('void_scribe').reason === 'not_playable');
     const before = { x: p.x, y: p.y, level: p.level, exp: p.exp, gold: p.gold, ratio: p.hp / p.maxHp };
     const r = g.changeClass('mock_class2');
     const np = g.player;
@@ -918,7 +1038,7 @@ export function balance(g, classId, loadout, botOpts = {}) {
 export function runAll(g, { withBalance = true } = {}) {
   const rows = [], bal = [];
   for (const c of [...STARTING_CLASSES, ...ADVANCED]) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
-  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...wardenChecks(g), ...bulwarkChecks(g), ...oathChecks(g), ...classChangeChecks(g));
+  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...wardenChecks(g), ...bulwarkChecks(g), ...oathChecks(g), ...stormChecks(g), ...classChangeChecks(g));
   if (withBalance) for (const c of [...STARTING_CLASSES, ...ADVANCED]) bal.push(balance(g, c));
   return { passed: rows.filter((r) => r.pass).length, total: rows.length, rows, balance: bal };
 }

@@ -4,6 +4,7 @@ const TILE = 32;
 // SKILL TREE (data/skillTree.js): regression tests / bots use every skill at any level. combatTest.js and
 // checklist.js import this file, so loading any of the dev tools switches the unlock gate off for the session.
 import { SKILL_TREE } from '../src/data/skillTree.js';
+import { CLASS_TREE } from '../src/data/classTree.js';
 SKILL_TREE.unlockAll = true;
 
 export function bot(g, i, opts = {}) {
@@ -62,7 +63,33 @@ export function bot(g, i, opts = {}) {
   if (p.cls.ratings && p.cls.ratings.range >= 4) {
     if (d > 220) press(Math.atan2(tgt.y - p.y, tgt.x - p.x));
     else if (d < 100) press(Math.atan2(p.y - tgt.y, p.x - tgt.x));
-    if (d < 280 && i % (opts.apm || 5) === 0) {
+    const tier2 = CLASS_TREE[p.cls.id] && CLASS_TREE[p.cls.id].tier >= 2;
+    if (tier2 && d < 280 && i % (opts.apm || 5) === 0) {
+      // ranged Class 2 (Stormcaller ...): any ready non-dash skill in turn, the ultimate, a resource-gated special when full.
+      // Like a player, it does not start a cast while a telegraph on it is about to land (a cast cannot be dodged out of at once)
+      inp.pushBuffer('attack');
+      const danger = g.combat.telegraphs.list.some((t) => !t.resolved && t.total - t.time < 0.8 && g.combat.testShape(t, p));
+      if (danger) {
+        // escape with an invulnerable dash skill (Storm Step) away from the attacker, when one is ready
+        const esc = p.loadout.bindings().find((x) => x.key !== '5' && ['dash', 'invulnerable'].every((t) => (x.skill.tags || []).includes(t)) && p.skillSys.canUse(x.skill.id).ok);
+        if (esc && !p.action) {
+          const away = Math.atan2(p.y - tgt.y, p.x - tgt.x) + (i % 2 ? 0.9 : -0.9);
+          inp.mouse.x = ((p.x + Math.cos(away) * 200 - cam.left) * cam.zoom * r.scale) / r.dpr;
+          inp.mouse.y = ((p.y + Math.sin(away) * 200 - 12 - cam.top) * cam.zoom * r.scale) / r.dpr;
+          inp.pushBuffer('skill' + esc.key);
+        }
+        if (p.hp < p.maxHp * 0.35) g.inventory.quickUse('hp_potion'); if (opts.god) p.hp = Math.max(p.hp, p.maxHp * 0.5); return;
+      }
+      // and keeps stamina for a dodge (+ some) instead of spending it all on casts
+      const staminaOk = p.resources.get('stamina') >= p.dodgeCost() + 20;
+      if (i % 20 === 0 && staminaOk) {
+        const b = p.loadout.bindings().find((x) => x.key !== '5' && !(x.skill.tags || []).some((t) => t === 'dash' || t === 'mobility') && p.skillSys.canUse(x.skill.id).ok);
+        if (b) inp.pushBuffer('skill' + b.key);
+      }
+      if (p.skillSys.canUse(p.loadout.bindings().find((x) => x.key === '5')?.skill.id || '').ok) inp.pushBuffer('skill5');
+      const sp = p.cls.special, res = p.resources.get(p.primaryResource);
+      if (sp && (sp.requirements || []).length && res >= 80 && p.skillSys.canUse(sp.id).ok) inp.pushBuffer('break');
+    } else if (d < 280 && i % (opts.apm || 5) === 0) {
       const res = p.resources.get(p.primaryResource);
       inp.pushBuffer('attack');
       if (i % 50 === 0) inp.pushBuffer('skill1');

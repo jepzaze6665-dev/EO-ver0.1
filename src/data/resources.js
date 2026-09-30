@@ -117,6 +117,22 @@ export const RESOURCES = {
     tiers: [{ at: 70, label: 'UNBOUND', stats: { physicalDmg: 0.1, crit: 0.05 } }],
     colors: ['#b060ff', '#3a0c5a'],
   },
+  // Stormcaller (Class 2 of Astral Weaver): STORM CHARGE — built by moving in a fight (passive Storm Velocity, capped
+  // per second), lightning hits, chain hops, lightning threads and shocked targets; spent by Tempest Field, Storm Burst
+  // (Q, all of it) and the ultimate. Tiers: stats lightningDmg (damageSystem type bonus), stormRange / stormChain (read by
+  // the class: chain reach / extra jumps), speed. Fades out of combat.
+  storm_charge: {
+    id: 'storm_charge', name: 'Storm Charge', label: 'STORM',
+    max: 100, start: 0, respawn: 0,
+    regen: { inCombat: 0, outOfCombat: 0 },
+    decay: { inCombat: 0, outOfCombat: 12, delay: 2 },
+    gainStat: 'stormGain',
+    tiers: [
+      { at: 40, label: 'CHARGED', stats: { lightningDmg: 0.1, stormRange: 0.15, speed: 8 } },
+      { at: 80, label: 'SUPERCHARGED', stats: { lightningDmg: 0.2, stormRange: 0.3, stormChain: 1, speed: 14 } },
+    ],
+    colors: ['#7ac8ff', '#16306a'],
+  },
   // Phase 6 (Astral Weaver) — defined now so the pool is proven to be class-agnostic.
   astral_charge: {
     id: 'astral_charge', name: 'Astral Charge', label: 'ASTRAL',

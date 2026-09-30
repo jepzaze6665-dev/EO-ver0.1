@@ -70,6 +70,13 @@ const SETS = {
     stripLabel: { SK1: 118, SK4: 80 },
     dropLow: { SK1: 0.86 }, recenter: { SK1: true, SK4: true },
   },
+  // Stormcaller (blue lightning). SK3 holds 8 rows (two sets of 4). Side views (row 3) for travelling effects, front
+  // views (row 0) for effects centred on a spot
+  sm: {
+    src: 'desgin/VFX/AW/SM', detectRows: true, clean: true,
+    names: { SK1: 'sm_bolt', SK2: 'sm_spark', SK3: 'sm_strike', SK4: 'sm_chain', SK5: 'sm_vortex', SK6: 'sm_burst', SK7: 'sm_tempest' },
+    rows: { SK3: 4, SK5: 0, SK6: 0, SK7: 0 }, // SK3 row 4 = the bolt from the sky (front view)
+  },
   aw: {
     src: 'desgin/VFX/AW/AW', detectRows: true, clean: true,
     names: { SK1: 'aw_needle', SK2: 'aw_star', SK3: 'aw_comet', SK4: 'aw_sigil', SK5: 'aw_nova', SK6: 'aw_orb', UT: 'aw_starfall' },

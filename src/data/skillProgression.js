@@ -109,6 +109,25 @@ export const SKILL_PROGRESSION = {
   endless_run: { category: 'BURST' },
   flash_step: { category: 'MOBILITY' },
 
+  // ======================= STORMCALLER (Class 2 of Astral Weaver)
+  thunder_lash: {
+    category: 'OFFENSE', levels: damage(TRAIT_TEXT.echo, T('echo')),
+    evolutions: [
+      evo('forked_lash', 'Forked Lash', 'The lash splits: -15% damage, but it chains to 2 MORE foes, stores 2 charges and each cast speeds you up.',
+        { behavior: 'Clear packs on the move', damage: '-15%', utility: '+2 chain jumps · 2 charges · haste', resource: 'More charge from hops', cooldown: 'Same' },
+        { charges: 1, power: 0.85, flags: { haste: true }, values: { extraJumps: 2 } }),
+      evo('thunderhead', 'Thunderhead', 'One heavy bolt: +35% damage and poise damage ×1.6, but it chains only once; a kill with it takes 2 s off its cooldown.',
+        { behavior: 'Break elites and bosses', damage: '+35%', utility: 'Poise damage ×1.6 · 1 chain jump · kill = -2 s', resource: 'Same', cooldown: '+15%' },
+        { power: 1.35, cooldown: 1.15, flags: { reset: true }, values: { poiseMult: 1.6, extraJumps: -1, cdOnKill: 2 } }),
+    ],
+  },
+  storm_step: { category: 'MOBILITY', levels: support('STORM STRIDE: +1 charge', { charges: 1 }) },
+  chain_tempest: { category: 'OFFENSE', levels: damage(TRAIT_TEXT.refund, T('refund')) },
+  static_thread: { category: 'UTILITY', levels: support(TRAIT_TEXT.haste, T('haste')) },
+  tempest_field: { category: 'UTILITY', levels: support(TRAIT_TEXT.haste, T('haste')) },
+  heavens_tempest: { category: 'BURST' },
+  storm_burst: { category: 'BURST' },
+
   // ======================= BLADE OF ECHOES (Class 2)
   echo_slash: {
     category: 'OFFENSE', levels: damage(TRAIT_TEXT.echo, T('echo')),

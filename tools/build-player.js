@@ -2,7 +2,7 @@
 // into clean alpha sprite strips + an atlas description consumed by src/player/playerSprites.js.
 // Every class preset is normalised to the SAME visual standard (body height, canvas, pivot).
 // Usage: node tools/build-player.js            (all classes)
-//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wd | bs | ok)
+//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wd | bs | ok | sm)
 const fs = require('fs');
 const path = require('path');
 const png = require('./png.js');
@@ -181,6 +181,23 @@ PRESETS.aw = { out: 'assets/player/aw', sheets: {
   sk5: [AW + 'sk5', 4],
   sk6: [AW + 'sk6', 4],
   ult: [AW + 'ut', 4],
+} };
+// Stormcaller (Class 2 of Astral Weaver): long dark hair, black / navy robe, crystal storm staff, blue lightning
+const SM = 'desgin/class cr/AW/SM/';
+PRESETS.sm = { out: 'assets/player/sm', nearestBody: true, sheets: {
+  walk: [SM + 'walk 1', 4],
+  idle: [SM + 'walk2', 4],
+  atk1: [SM + 'atk1', 4],
+  atk2: [SM + 'atk2', 4],
+  dash: [SM + 'dash', 4],
+  hit: [SM + 'hit', 4],
+  sk1: [SM + 'sk1', 4],
+  sk2: [SM + 'sk2', 4],
+  sk3: [SM + 'sk3', 4],
+  sk4: [SM + 'sk4', 4],
+  sk5: [SM + 'sk5', 4],
+  sk6: [SM + 'sk6', 4],
+  ult: [SM + 'ut', 4],
 } };
 const COLS = 6;
 

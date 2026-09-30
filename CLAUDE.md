@@ -9,7 +9,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - `node server.js` → http://localhost:5173 (Claude preview config name: `eclipse-online`, `autoPort` on, see `.claude/launch.json`).
 - Unit tests: `node tools/tests/run.mjs` (must print `ALL TEST FILES PASSED`).
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
-  (combat / mechanics / Reaper / Duskrunner / Echoes / class-change checks, currently 153/153; `C.duskChecks(__game)` /
+  (combat / mechanics / Reaper / Duskrunner / Echoes / Warden / Bulwark / Oath / Storm / class-change checks; `C.duskChecks(__game)` /
   `C.echoChecks(__game)` alone). runAll now takes > 45 s: from the preview tool run it in parts (classChecks +
   mechanicChecks per 2 classes, then reaper/dusk/classChange, then echo) or the call times out and hangs the page,
   `const L = await import('/tools/checklist.js'); L.runChecklist(__game, classId)` (spec TEST 1-31),
@@ -60,16 +60,23 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 
 ## Assets (never reference a path without a real file)
 - Monster art: `desgin/monster/<A|B>/<A1..A3|B1..B3>/` (1..4, BOSS, VFX BOSS, AURA Phase BOSS / Phase BOSS).
-- Raw art: `desgin/class cr/AW/` + the Umbral line in `desgin/class cr/UB/<UB|RP|DR|BE>/` (UB, Nightfall
+- Raw art: the Astral line in `desgin/class cr/AW/<AW|SM|VS|LO>/` (AW, Stormcaller, Void Scribe, Lumen Oracle) + the Umbral line in `desgin/class cr/UB/<UB|RP|DR|BE>/` (UB, Nightfall
   Reaper, Duskrunner, Blade of Echoes) + the Aegis line in `desgin/class cr/AG/<AG NEW|WD|BS|OK>/` (AG = new set 2026-09-29:
   walk1.png ATK1 DASH DEF HIT SK1-6 UT, no idle / atk2 / parry sheet; WD / BS / OK = Warden of Dawn / Bulwark Sentinel /
-  Oathbreaker, not built yet); VFX `desgin/VFX/AW/` + `desgin/VFX/UB/<UB|RP|DR|BE>/` + `desgin/VFX/AG/<AG|DW|BS|OK>/` (AI sheets: fake
+  Oathbreaker); VFX `desgin/VFX/AW/<AW|SM|VS|LO>/` + `desgin/VFX/UB/<UB|RP|DR|BE>/` + `desgin/VFX/AG/<AG|DW|BS|OK>/` (AI sheets: fake
   checkerboard background, 6 columns × 4 direction rows; DR / BE atk2 have 5 poses per row).
-- `node tools/build-player.js [ub|aw|ag|rp|dr|be]` → `assets/player[/<preset>]/*.png + atlas.json`. Every preset is
+- `node tools/build-player.js [ub|aw|ag|rp|dr|be|wd|bs|ok|sm]` → `assets/player[/<preset>]/*.png + atlas.json`. Every preset is
   normalised to the same standard: canvas 160×160, pivot (80,140), neutral body ≈ 58-59 px. Frames are cut by
   blob ownership (effects never sliced); per-sheet `{ frames: 5 }` for 5-pose rows; `emptyFrames` recorded.
 - `node tools/build-vfx.js` → `assets/vfx/*.png + vfx.json` (right-facing strips, rotated at runtime;
-  per-file `rows` (front view for caster-centred effects) and `mirrorFrames`).
+  per-file `rows` (front view for caster-centred effects) and `mirrorFrames`; files with or without .png). AG Class 2
+  basic-attack strips `dw_atk` / `bs_atk` / `ok_atk`; ult aura strips `bs_aura` / `ok_aura` (DW's 'AURA UT DW' is a copy of
+  its ATK sheet -> unused).
+- SKILL ICONS: `desgin/ICON SKILL/<UB|AG|AW>/<class>/SK1..SK7|UT` (1024-1254² art) -> `node tools/build-icons.js` ->
+  `assets/icons/<class>_<skn>.png` (64 px) + icons.json, loaded as `Assets.icons`; which skill uses which = `src/data/skillIcons.js`
+  (ui/icons.js `skillIcon(skill)` / `skillIconURL(skill)`: art, else the drawn placeholder). tools/tests/skillIcons.test.mjs.
+- STATUS AURA ART: status data `aura.sprite = { key, loop: [a, b], fps, scale, lift, alpha, over }` = a VFX strip at the feet
+  (intro frames once, loop while it lasts, last frame = fade-out); drawn by Player.drawAuraSprite.
 - `tools/tests/sprites.test.mjs` fails if any class animation uses an empty frame.
 - Monsters: raw sheets `desgin/monster/<A1|A2|A3>/<1|2|boss>` (no extension, 2048² AI sheets, checkerboard / flat bg,
   different frame count per row) → `node tools/build-monsters.js [id]` (`--probe` = print rows / frames + previews in
@@ -201,7 +208,28 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   damage taken (the risk).
   AEGIS CLASS 2 COMPLETE (Warden / Bulwark / Oathbreaker). Next: owner decides (skill tree / class level / loadout slots,
   human balance pass).
-- Later Class 2 work: AW / AG paths need the owner's class data.
+- **ASTRAL CLASS 2** (owner's 20-section spec: Stormcaller / Void Scribe / Lumen Oracle, one at a time; art
+  `desgin/class cr/AW/<SM|VS|LO>`, VFX `desgin/VFX/AW/<SM|VS|LO>`, icons `desgin/ICON SKILL/AW/<SM|VS|LO>`). The class
+  registry / tree / trials / class change / codex already existed (spec phases 1-3): each class = one data file.
+  Done AW1 = STORMCALLER (`src/skills/stormcaller.js`, preset 'sm', VFX set 'sm': sm_bolt / sm_spark / sm_strike (SK3 row 4
+  = sky bolt) / sm_chain / sm_vortex / sm_burst / sm_tempest): resource STORM CHARGE (tiers CHARGED 40 / SUPERCHARGED 80:
+  lightningDmg, stormRange, stormChain +1, speed); damage type 'lightning' (stat lightningDmg). Status SHOCK (3 stacks, +3%
+  damage taken each, tick = 8% ATK), STILL AIR, TAILWIND, STATIC GUARD. Thread type `lightning_thread` (data/threads.js,
+  visual.style 'lightning' = jagged, renderer.drawLightningThread). CHAIN LIGHTNING = class chainFrom / chainTarget (pure pick:
+  nearest unhit foe in 200 px × (1 + stormRange), shocked foes first; hops dealDamage straight onto the foe, falloff 0.8).
+  Skills: Thunder Lash (shock + chain 2) · Storm Step (invulnerable blink + discharge + STATIC GUARD 1.5 s; blinking ACROSS a
+  wire = LIGHTNING TRAIL) · Chain Tempest (sky bolt r 70, chains from 2 hits, detonates a wire under it) · Static Thread
+  (live wire to the cursor, max 3; on a foe = STATIC BIND; the Weaver's astral threads convert) · Tempest Field (30: zone 6 s,
+  ticks / slow / shock, TAILWIND inside) · Q STORM BURST (needs 30, spends ALL: nova r 80-150, power 1.2-4.2, detonates every
+  wire) · ult HEAVEN'S TEMPEST (60: 9 strikes (shocked first) + chain, wires burst at 2 s, FINAL THUNDER BURST). Passives STORM
+  VELOCITY (class tick: charge per px walked in a fight, ≤ 5/s + 1 s buffer, stuck = nothing; still 1.5 s = STILL AIR + leak)
+  + THUNDER RESONANCE (3rd chain target: hops ×1.2, +4 charge once). Generic: `vfx.bolt(ax, ay, bx, by, o)` (jagged arc).
+  Evolutions of Thunder Lash use `values.extraJumps`. Bot: ranged Class 2 (tier ≥ 2) = generic rotation, no cast while a
+  telegraph is about to land, keeps a dodge's stamina, escapes with an invulnerable dash skill. Tests: stormcaller.test.mjs (9),
+  C.stormChecks (20). Balance (bot): 3-dummy ≈ 205-215 DPS, single dummy ≈ 143 (RP 140, AW 123); Guardian at LV 13: 4/5 WIN
+  95-150 s (AW 3/3) — the most fragile of the line by design.
+  Next: AW2 Void Scribe (preset 'vs'), then AW3 Lumen Oracle (preset 'lo').
+- Later Class 2 work: AG line done; AW line in progress (above).
   Unused RP art: `sk6` (anim `harvest`) is mapped but no skill plays it yet.
 - **Current: V2.1 "Class × World Integration"** (owner's 16-phase spec: Lumina → A1 → A2 → A3 → Boss Arena, EXP/loot/
   quest/target/save). Owner chose **B = real separate maps with transitions** (not the seamless zone world) and

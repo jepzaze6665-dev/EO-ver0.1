@@ -40,7 +40,7 @@ export const CLASS_TREE = {
 
   // ---------------- tier 2 — Astral Weaver
   stormcaller: {
-    id: 'stormcaller', name: 'Stormcaller', tier: 2, parent: 'astral_weaver', playable: false, resource: 'Storm Charge',
+    id: 'stormcaller', name: 'Stormcaller', tier: 2, parent: 'astral_weaver', playable: true, resource: 'Storm Charge',
     role: 'Ranged DPS · AoE · Mobility', description: 'A mage who turns movement into lightning: move, shock, chain, unleash the Tempest.',
     requirements: [...CLASS2_BASE, { type: 'counter', counter: 'constellation_breaks', min: 15 }],
     trial: 'trial_stormcaller',

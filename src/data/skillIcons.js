@@ -26,6 +26,9 @@ export const SKILL_ICONS = {
   // Oathbreaker
   oath_brand: 'ok_sk1', defiant_guard: 'ok_sk2', sinful_counter: 'ok_sk3', ruin_chain: 'ok_sk4', oath_of_ruin: 'ok_sk5',
   oathbreaker_verdict: 'ok_sk7',
+  // Stormcaller
+  thunder_lash: 'sm_sk1', storm_step: 'sm_sk2', chain_tempest: 'sm_sk3', static_thread: 'sm_sk4', tempest_field: 'sm_sk5',
+  storm_burst: 'sm_sk6', heavens_tempest: 'sm_sk7',
   // Astral Weaver (aw_sk4 unused)
   star_needle: 'aw_sk1', astral_thread: 'aw_sk2', comet_step: 'aw_sk3', thread_burst: 'aw_sk5', astral_veil: 'aw_sk6',
   starfall_fate: 'aw_sk7',

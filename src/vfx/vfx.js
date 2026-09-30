@@ -15,6 +15,7 @@ export class VFX {
     this.ghosts = new Pool(() => ({}), 40);
     this.lights = new Pool(() => ({}), 48);
     this.beams = new Pool(() => ({}), 12);
+    this.bolts = new Pool(() => ({ pts: [] }), 40);
     this.sprites = new Pool(() => ({}), 40);
     this.screenFlash = { a: 0, color: '255,255,255', decay: 4 };
     this.eclipse = null; // ultimate black-sun effect
@@ -78,6 +79,23 @@ export class VFX {
     Object.assign(b, { x, y, ang, len, width, life: o.life ?? 0.35, max: o.life ?? 0.35, color: o.color ?? '180,90,255' });
     return b;
   }
+  // jagged lightning arc from A to B (chain lightning, strikes): a zig-zag polyline, re-jittered while it lives.
+  // o: { life, color ('r,g,b'), width, segs, jag (px sideways) }
+  bolt(ax, ay, bx, by, o = {}) {
+    const b = this.bolts.spawn();
+    Object.assign(b, { ax, ay, bx, by, life: o.life ?? 0.18, max: o.life ?? 0.18, color: o.color ?? '120,190,255', width: o.width ?? 2,
+      segs: Math.max(2, Math.min(16, o.segs ?? Math.round(Math.hypot(bx - ax, by - ay) / 14))), jag: o.jag ?? 9, reroll: 0 });
+    this.jitterBolt(b);
+    return b;
+  }
+  jitterBolt(b) {
+    const dx = b.bx - b.ax, dy = b.by - b.ay, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+    b.pts.length = 0;
+    for (let i = 0; i <= b.segs; i++) {
+      const k = i / b.segs, off = i === 0 || i === b.segs ? 0 : rand(-b.jag, b.jag);
+      b.pts.push(b.ax + dx * k + nx * off, b.ay + dy * k + ny * off);
+    }
+  }
   // Hand-drawn skill effect strip, rotated to the aim angle. follow: entity to stick to.
   // ground: drawn under the characters (a decal such as a shadow pool), squashed by `squash` for perspective.
   // frame: hold that frame of the strip for the whole life (fades in / out) instead of playing it once.
@@ -121,6 +139,7 @@ export class VFX {
     });
     const tick = (pool) => pool.forEach((o) => { o.life -= dt; if (o.life <= 0) o.active = false; });
     tick(this.slashes); tick(this.rings); tick(this.sprites); tick(this.ghosts); tick(this.lights); tick(this.beams);
+    this.bolts.forEach((b) => { b.life -= dt; if (b.life <= 0) { b.active = false; return; } if ((b.reroll -= dt) <= 0) { b.reroll = 0.05; this.jitterBolt(b); } });
     this.numbers.forEach((n) => { n.life -= dt; n.y += n.vy * dt; n.vy *= Math.exp(-3 * dt); if (n.life <= 0) n.active = false; });
     this.texts.forEach((t) => { t.life -= dt; t.y += t.vy * dt; t.vy *= Math.exp(-2 * dt); if (t.life <= 0) t.active = false; });
     this.screenFlash.a = Math.max(0, this.screenFlash.a - dt * this.screenFlash.decay);
@@ -225,6 +244,16 @@ export class VFX {
         ctx.strokeStyle = `rgb(${col})`;
         ctx.lineWidth = Math.max(0.5, w * mul);
         ctx.beginPath(); ctx.moveTo(b.x - c * 10, b.y - s * 10); ctx.lineTo(b.x + c * b.len, b.y + s * b.len); ctx.stroke();
+      }
+    });
+    // lightning bolts (glow, colour, white core)
+    this.bolts.forEach((b) => {
+      const fade = Math.min(1, (b.life / b.max) * 1.6);
+      for (const [mul, col, a] of [[3, b.color, 0.3], [1.4, b.color, 0.85], [0.5, '245,250,255', 1]]) {
+        ctx.globalAlpha = a * fade; ctx.strokeStyle = `rgb(${col})`; ctx.lineWidth = Math.max(0.5, b.width * mul);
+        ctx.beginPath(); ctx.moveTo(b.pts[0], b.pts[1]);
+        for (let i = 2; i < b.pts.length; i += 2) ctx.lineTo(b.pts[i], b.pts[i + 1]);
+        ctx.stroke();
       }
     });
     ctx.globalAlpha = 1; ctx.lineWidth = 1;

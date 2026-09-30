@@ -419,6 +419,55 @@
   "frames": 6,
   "set": "bs"
  },
+ "sm_bolt": {
+  "file": "assets/vfx/sm_bolt.png",
+  "fw": 116,
+  "fh": 158,
+  "frames": 6,
+  "set": "sm"
+ },
+ "sm_spark": {
+  "file": "assets/vfx/sm_spark.png",
+  "fw": 100,
+  "fh": 128,
+  "frames": 6,
+  "set": "sm"
+ },
+ "sm_strike": {
+  "file": "assets/vfx/sm_strike.png",
+  "fw": 144,
+  "fh": 128,
+  "frames": 6,
+  "set": "sm"
+ },
+ "sm_chain": {
+  "file": "assets/vfx/sm_chain.png",
+  "fw": 114,
+  "fh": 158,
+  "frames": 6,
+  "set": "sm"
+ },
+ "sm_vortex": {
+  "file": "assets/vfx/sm_vortex.png",
+  "fw": 140,
+  "fh": 158,
+  "frames": 6,
+  "set": "sm"
+ },
+ "sm_burst": {
+  "file": "assets/vfx/sm_burst.png",
+  "fw": 112,
+  "fh": 128,
+  "frames": 6,
+  "set": "sm"
+ },
+ "sm_tempest": {
+  "file": "assets/vfx/sm_tempest.png",
+  "fw": 94,
+  "fh": 128,
+  "frames": 6,
+  "set": "sm"
+ },
  "aw_needle": {
   "file": "assets/vfx/aw_needle.png",
   "fw": 86,

@@ -19,6 +19,15 @@ export const THREADS = {
     burst: { power: 2.3, type: 'magic', width: 30, mark: 'star_mark' },
     visual: { color: '#8ad8ff', glow: '120,200,255', core: '#f4fbff' },
   },
+  // Stormcaller: a live wire. Touch = small lightning damage + SHOCK; burst (Storm Burst / Chain Tempest / the
+  // ultimate) = a lightning line. visual.style 'lightning' = drawn jagged (render/renderer.js)
+  lightning_thread: {
+    id: 'lightning_thread', name: 'Lightning Thread',
+    maxPerOwner: 3, duration: 6, maxLength: 240, width: 14,
+    touch: { interval: 0.6, power: 0.45, type: 'lightning', status: 'shock', statusTime: 4 },
+    burst: { power: 2.6, type: 'lightning', width: 34 },
+    visual: { color: '#7ac8ff', glow: '90,160,255', core: '#f0f8ff', style: 'lightning' },
+  },
 };
 
 export const THREAD_RULES = {

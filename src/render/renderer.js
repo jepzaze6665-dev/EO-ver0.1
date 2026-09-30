@@ -287,6 +287,7 @@ export class Renderer {
       const ay = a.y - 8, by = b.y - (a === b ? 8 : b.entity ? 14 : 8);
       const wob = Math.sin(t * 9 + th.id) * 1.5;
       const mx = (a.x + b.x) / 2 + wob, my = (ay + by) / 2 + wob;
+      if (v.style === 'lightning') { this.drawLightningThread(ctx, th, a.x, ay, b.x, by, v, fade, t); continue; }
       ctx.strokeStyle = `rgba(${v.glow},${0.28 * fade})`; ctx.lineWidth = 5;
       ctx.beginPath(); ctx.moveTo(a.x, ay); ctx.quadraticCurveTo(mx, my, b.x, by); ctx.stroke();
       ctx.strokeStyle = v.core; ctx.globalAlpha = 0.85 * fade; ctx.lineWidth = 1;
@@ -304,6 +305,26 @@ export class Renderer {
       ctx.globalAlpha = 1;
     }
     ctx.restore();
+  }
+
+  // a live wire (thread visual.style 'lightning'): a zig-zag re-drawn ~12 times a second, bright ends
+  drawLightningThread(ctx, th, ax, ay, bx, by, v, fade, t) {
+    const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, n = Math.max(3, Math.round(L / 16));
+    const seed = Math.floor(t * 12) * 131 + th.id * 17;
+    const pts = [];
+    for (let i = 0; i <= n; i++) {
+      const k = i / n, h = Math.sin((seed + i * 73.1) * 12.9898) * 43758.5453, off = i === 0 || i === n ? 0 : ((h - Math.floor(h)) - 0.5) * 12;
+      pts.push(ax + dx * k + nx * off, ay + dy * k + ny * off);
+    }
+    for (const [w, col, a] of [[5, `rgba(${v.glow},1)`, 0.3], [2, v.color, 0.9], [1, v.core, 1]]) {
+      ctx.globalAlpha = a * fade; ctx.strokeStyle = col; ctx.lineWidth = w;
+      ctx.beginPath(); ctx.moveTo(pts[0], pts[1]);
+      for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 0.9 * fade; ctx.fillStyle = v.core;
+    for (const [x, y] of [[ax, ay], [bx, by]]) { ctx.beginPath(); ctx.arc(x, y, 2.5 + Math.sin(t * 20 + x) * 0.8, 0, TAU); ctx.fill(); }
+    ctx.globalAlpha = 1; ctx.lineWidth = 1;
   }
 
   drawSpike(ctx, s) {

@@ -19,6 +19,10 @@ export const ITEMS = {
     name: 'Celestial Loom', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'staff', color: '#8ad8ff',
     stats: { atk: 0 }, desc: 'A gilded staff that spins starlight into thread. Signature weapon of the Astral Weaver.',
   },
+  storm_staff: {
+    name: 'Storm Staff & Focus', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'staff', color: '#7ac8ff',
+    stats: { atk: 1, lightningDmg: 0.05 }, desc: 'A black staff crowned with a caged storm crystal, and a focus that hums with thunder. Signature weapon of the Stormcaller.',
+  },
   reaper_scythe: {
     name: 'Reaper Scythe', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'scythe', color: '#9a5cff',
     stats: { atk: 2 }, desc: 'A shadow scythe that hungers for marked souls. Signature weapon of the Nightfall Reaper.',
@@ -84,6 +88,10 @@ export const ITEMS = {
   oathbreaker_plate: {
     name: 'Oathbreaker Plate', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#4a2a6a',
     stats: { def: 1, hp: 15 }, desc: 'Black spiked plate with a torn violet mantle. Every scar is a vow unmade.',
+  },
+  stormweave_robe: {
+    name: 'Stormweave Robe', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#1a2a5a',
+    stats: { def: 0, hp: 5 }, desc: 'A long navy robe that crackles when it moves. Worn by those who never stand still.',
   },
   aegis_plate: {
     name: 'Aegis Plate', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#c8d0e0',
