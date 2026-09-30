@@ -223,7 +223,6 @@ export const WardenOfDawn = {
       lunge: { dist: d.lunge, t0: 0, t1: 0.1 },
       events: [[d.at, () => {
         g.audio.sfx(step === 2 ? 'slash_heavy' : 'swing');
-        if (step === 2) g.vfx.slash(p.x, p.y - 12, a, 58, 1.2, { color: SKY, core: '255,250,235', life: 0.2 });
         // basic-attack art (owner's VFX ATK sheet): thrust -> crescent -> fade, bigger on the finisher
         g.vfx.sprite('dw_atk', p.x + Math.cos(a) * 26, p.y - 12 + Math.sin(a) * 26, a, { scale: step === 2 ? 0.7 : 0.5, life: step === 2 ? 0.28 : 0.22, glow: 0.45 });
         g.combat.spawnHitbox({

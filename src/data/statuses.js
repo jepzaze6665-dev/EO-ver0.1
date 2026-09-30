@@ -56,6 +56,13 @@ export const STATUSES = {
   shock: { id: 'shock', category: 'debuff', maxStacks: 3, stacking: 'stack', perStack: true, modifiers: { damageTakenMult: 1.03 }, dot: { interval: 1, damage: 3, type: 'lightning' }, display: { label: 'SHOCK', color: '#7ac8ff' } },
   still_air: { id: 'still_air', category: 'debuff', maxStacks: 1, stacking: 'refresh', modifiers: { damageMult: 0.85 }, display: { label: 'STILL AIR', color: '#8a9ab0' } },
   static_guard: { id: 'static_guard', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.7 }, display: { label: 'STATIC GUARD', color: '#b0e0ff' } },
+  // Void Scribe: VOID ROT (void DoT, 3 stacks), SABLE MARK (DoT + DEF -15%), VOID SEAL (DoTs tick twice as fast = modifier
+  // dotRate, +10% damage taken, deals 25% less), NULLED (inside Final Script: Null: DoTs ×1.5, +15% damage taken). Tick size set by the caster.
+  void_rot: { id: 'void_rot', category: 'dot', maxStacks: 3, stacking: 'stack', dot: { interval: 1, damage: 3, type: 'void' }, display: { label: 'VOID ROT', color: '#c060ff' } },
+  sable_mark: { id: 'sable_mark', category: 'debuff', maxStacks: 1, stacking: 'refresh', dot: { interval: 1, damage: 4, type: 'void' }, modifiers: { defenseMult: 0.85 }, display: { label: 'SABLE', color: '#8a3aff' } },
+  void_seal: { id: 'void_seal', category: 'debuff', maxStacks: 1, stacking: 'refresh', modifiers: { dotRate: 2, damageTakenMult: 1.1, damageMult: 0.75 }, display: { label: 'SEALED', color: '#ff60d0' } },
+  phantom_ward: { id: 'phantom_ward', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.75 }, display: { label: 'PHANTOM WARD', color: '#d0a0ff' } },
+  nulled: { id: 'nulled', category: 'debuff', maxStacks: 1, stacking: 'refresh', modifiers: { dotRate: 1.5, damageTakenMult: 1.15 }, display: { label: 'NULL', color: '#e0a0ff' } },
   tailwind: { id: 'tailwind', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { moveMult: 1.2 }, display: { label: 'TAILWIND', color: '#9ad8ff' } },
   surge: { id: 'surge', category: 'buff', maxStacks: 1, stacking: 'longest', modifiers: { damageMult: 1.15 }, display: { label: 'SURGE', color: '#e0a0ff' } },
   // ---- defense
@@ -73,7 +80,7 @@ export const STATUSES = {
   iron_bastion: { id: 'iron_bastion', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.6, moveMult: 0.55 }, display: { label: 'IRON BASTION', color: '#e8c86a' } },
   fortified: { id: 'fortified', category: 'buff', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { defenseMult: 1.4, guardBlockMult: 0.5 }, aura: { color: '255,200,90', ring: 0.9, body: 0.06 }, display: { label: 'FORTIFIED', color: '#ffd24a' } },
   shieldwall: { id: 'shieldwall', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.6 }, display: { label: 'SHIELDWALL', color: '#9ac8ff' } },
-  citadel: { id: 'citadel', category: 'defense', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { damageTakenMult: 0.5, moveMult: 0.35, dodgeCostMult: 2, guardBlockMult: 0.5 }, aura: { color: '140,200,255', ring: 1.6, body: 0.1, motes: 1, sprite: { key: 'bs_aura', loop: [3, 4], fps: 7, scale: 0.85, lift: 0.15 } }, display: { label: 'CITADEL', color: '#ffe8a0' } },
+  citadel: { id: 'citadel', category: 'defense', maxStacks: 1, stacking: 'refresh', flags: ['unshakable'], modifiers: { damageTakenMult: 0.5, moveMult: 0.35, dodgeCostMult: 2, guardBlockMult: 0.5 }, aura: { color: '140,200,255', ring: 1.6, columns: 6, body: 0.1, motes: 1 }, display: { label: 'CITADEL', color: '#ffe8a0' } },
   citadel_ward: { id: 'citadel_ward', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.8 }, display: { label: 'WARDED', color: '#bfe0ff' } },
   iron_will: { id: 'iron_will', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { defenseMult: 1.5 }, display: { label: 'IRON WILL', color: '#e0b060' } },
   // ---- Oathbreaker (skills/oathbreaker.js)
