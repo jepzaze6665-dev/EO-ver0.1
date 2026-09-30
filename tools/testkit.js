@@ -61,9 +61,11 @@ export function bot(g, i, opts = {}) {
   const d = Math.hypot(tgt.x - p.x, tgt.y - p.y);
   // ranged classes (class data: ratings.range >= 4) kite at mid range and play their own loop
   if (p.cls.ratings && p.cls.ratings.range >= 4) {
-    if (d > 220) press(Math.atan2(tgt.y - p.y, tgt.x - p.x));
-    else if (d < 100) press(Math.atan2(p.y - tgt.y, p.x - tgt.x));
     const tier2 = CLASS_TREE[p.cls.id] && CLASS_TREE[p.cls.id].tier >= 2;
+    // ranged Class 2: nothing has hit anyone for 6 s (an obstacle between us) -> circle the target to find a clear line
+    if (tier2 && d > 100 && d < 280 && g.time - g.combat.lastCombatTime > 6) press(Math.atan2(tgt.y - p.y, tgt.x - p.x) + (Math.floor(g.time / 2) % 2 ? 1.57 : -1.57));
+    else if (d > 220) press(Math.atan2(tgt.y - p.y, tgt.x - p.x));
+    else if (d < 100) press(Math.atan2(p.y - tgt.y, p.x - tgt.x));
     if (tier2 && d < 280 && i % (opts.apm || 5) === 0) {
       // ranged Class 2 (Stormcaller ...): any ready non-dash skill in turn, the ultimate, a resource-gated special when full.
       // Like a player, it does not start a cast while a telegraph on it is about to land (a cast cannot be dodged out of at once)
@@ -82,15 +84,17 @@ export function bot(g, i, opts = {}) {
       }
       // and keeps stamina for a dodge (+ some) instead of spending it all on casts
       const staminaOk = p.resources.get('stamina') >= p.dodgeCost() + 20;
+      // like a healer player: support skills (tag 'support') only when someone in the party is below 75% HP
+      const hurt = (g.players ? g.players() : [p]).some((m) => m.hp < m.maxHp * 0.75), useful = (s) => hurt || !(s.tags || []).includes('support');
       if (i % 20 === 0 && staminaOk) {
-        const b = p.loadout.bindings().find((x) => x.key !== '5' && !(x.skill.tags || []).some((t) => t === 'dash' || t === 'mobility') && p.skillSys.canUse(x.skill.id).ok);
+        const b = p.loadout.bindings().find((x) => x.key !== '5' && useful(x.skill) && !(x.skill.tags || []).some((t) => t === 'dash' || t === 'mobility') && p.skillSys.canUse(x.skill.id).ok);
         if (b) inp.pushBuffer('skill' + b.key);
       }
       if (p.skillSys.canUse(p.loadout.bindings().find((x) => x.key === '5')?.skill.id || '').ok) inp.pushBuffer('skill5');
       const sp = p.cls.special, res = p.resources.get(p.primaryResource);
       // a special gated by a resource requirement (Storm Burst: spend it all) waits for a full bar; a plain costed one
       // (Void Seal) is used whenever it is ready
-      if (sp && ((sp.requirements || []).length ? res >= 80 : sp.cost > 0) && p.skillSys.canUse(sp.id).ok) inp.pushBuffer('break');
+      if (sp && useful(sp) && ((sp.requirements || []).length ? res >= 80 : sp.cost > 0) && p.skillSys.canUse(sp.id).ok) inp.pushBuffer('break');
     } else if (d < 280 && i % (opts.apm || 5) === 0) {
       const res = p.resources.get(p.primaryResource);
       inp.pushBuffer('attack');

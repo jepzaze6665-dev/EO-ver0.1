@@ -2,7 +2,7 @@
 // into clean alpha sprite strips + an atlas description consumed by src/player/playerSprites.js.
 // Every class preset is normalised to the SAME visual standard (body height, canvas, pivot).
 // Usage: node tools/build-player.js            (all classes)
-//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wd | bs | ok | sm | vs)
+//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wd | bs | ok | sm | vs | lo)
 const fs = require('fs');
 const path = require('path');
 const png = require('./png.js');
@@ -215,6 +215,22 @@ PRESETS.vs = { out: 'assets/player/vs', nearestBody: true, sheets: {
   sk5: [VS + 'SK5', 4],
   sk6: [VS + 'SK6', 4],
   ult: [VS + 'UT', 4],
+} };
+// Lumen Oracle (Class 2 of Astral Weaver): white / gold oracle, lumen staff, celestial codex. No idle sheet (walk col 0).
+const LO = 'desgin/class cr/AW/LO/';
+PRESETS.lo = { out: 'assets/player/lo', nearestBody: true, sheets: {
+  walk: [LO + 'WALK1', 4],
+  atk1: [LO + 'ATK1', 4],
+  atk2: [LO + 'ATK2', 4],
+  dash: [LO + 'DASH', 4],
+  hit: [LO + 'HIT', 4],
+  sk1: [LO + 'SK1', 4],
+  sk2: [LO + 'SK2', 4],
+  sk3: [LO + 'SK3', 4],
+  sk4: [LO + 'SK4', 4],
+  sk5: [LO + 'SK5', 4],
+  sk6: [LO + 'SK6', 4],
+  ult: [LO + 'UT', 4],
 } };
 const COLS = 6;
 

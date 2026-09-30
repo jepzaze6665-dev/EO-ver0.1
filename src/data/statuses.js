@@ -63,6 +63,9 @@ export const STATUSES = {
   void_seal: { id: 'void_seal', category: 'debuff', maxStacks: 1, stacking: 'refresh', modifiers: { dotRate: 2, damageTakenMult: 1.1, damageMult: 0.75 }, display: { label: 'SEALED', color: '#ff60d0' } },
   phantom_ward: { id: 'phantom_ward', category: 'defense', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.75 }, display: { label: 'PHANTOM WARD', color: '#d0a0ff' } },
   nulled: { id: 'nulled', category: 'debuff', maxStacks: 1, stacking: 'refresh', modifiers: { dotRate: 1.5, damageTakenMult: 1.15 }, display: { label: 'NULL', color: '#e0a0ff' } },
+  // Lumen Oracle: LIGHT MARK (foe: your light damage +20% — class code), GUIDING LIGHT (healed ally: +10% damage, +10% speed)
+  light_mark: { id: 'light_mark', category: 'debuff', maxStacks: 1, stacking: 'refresh', display: { label: 'LIGHT MARK', color: '#ffe08a' } },
+  guiding_light: { id: 'guiding_light', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { damageMult: 1.1, moveMult: 1.1 }, display: { label: 'GUIDING LIGHT', color: '#fff0b0' } },
   tailwind: { id: 'tailwind', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { moveMult: 1.2 }, display: { label: 'TAILWIND', color: '#9ad8ff' } },
   surge: { id: 'surge', category: 'buff', maxStacks: 1, stacking: 'longest', modifiers: { damageMult: 1.15 }, display: { label: 'SURGE', color: '#e0a0ff' } },
   // ---- defense

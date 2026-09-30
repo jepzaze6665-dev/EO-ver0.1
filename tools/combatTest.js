@@ -1066,12 +1066,116 @@ export function voidChecks(g) {
   return rows;
 }
 
+// ---------------- Class 2 LUMEN ORACLE in the live game (heals, barriers, purify, radiant thread, burst, judgment) —
+// with a real second Player as the ally (its statuses are ticked here: only the local player runs its own update)
+export function lumenChecks(g) {
+  const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'lumen_oracle', test: name, pass: !!pass, detail });
+  const R = 'lumen', r0 = (n) => Math.round(n);
+  let { p, d } = atDummy(g, 'lumen_oracle');
+  const cls = p.cls;
+  ok('Class data: preset lo, Lumen, own skills + Lumen Burst + passives', p.sprites.preset === 'lo' && p.primaryResource === R && p.skillSys.get('lumen_bolt') && p.skillSys.get('astral_judgment') && cls.special.id === 'lumen_burst' && cls.passives.length >= 2 && g.equipment.slots.weapon === 'lumen_staff', `${p.sprites.preset} ${p.primaryResource} ${g.equipment.slots.weapon}`);
+
+  // Lumen Bolt at a foe: Light Mark; Judgment of Light = +20% light damage on a marked foe
+  const rnd = Math.random; Math.random = () => 0.999; // no crits in the comparisons
+  let dmg = 0; const off = g.events.on('damageDealt', (e) => { if (e.source === p && e.target === d && e.opts && e.opts.skillId === 'lumen_bolt') dmg = e.amount; });
+  cast(g, 'lumen_bolt', d); const plain = dmg, marked = d.status.has('light_mark');
+  p.skillSys.cooldowns.clear('lumen_bolt'); cast(g, 'lumen_bolt', d); const onMark = dmg;
+  if (off) off(); Math.random = rnd;
+  ok('Lumen Bolt: Light Mark, then +20% light damage on the marked foe', marked && onMark > plain * 1.12, `${plain} -> ${onMark}`);
+
+  // an ally
+  const A = CLASSES.aegis_guardian, ally = new p.constructor(g, A, g.spritesFor(A));
+  ally.x = p.x + 120; ally.y = p.y; ally.recomputeStats(); ally.hp = Math.round(ally.maxHp * 0.5);
+  g.party.add(ally);
+  const inFight = () => { g.combat.lastCombatTime = g.time; };
+  const tickAlly = () => { ally.status.update(STEP); ally.invulnT = 0; inFight(); };
+  const sim = (s) => g.simulate(s, tickAlly);
+  try {
+    // Lumen Bolt aimed at the ally heals it (8%), Guiding Light; on a full-HP ally nothing and no Lumen
+    p.resources.set(R, 0); p.skillSys.cooldowns.clear('lumen_bolt');
+    let hp0 = ally.hp; cast(g, 'lumen_bolt', ally);
+    const healed = ally.hp - hp0, lum = p.resources.get(R);
+    ok('Lumen Bolt on an ally heals 8% + GUIDING LIGHT, and writes Lumen', healed >= Math.round(ally.maxHp * 0.08) - 1 && ally.status.has('guiding_light') && lum > 0, `+${healed} HP, lumen ${lum.toFixed(1)}`);
+    ally.hp = ally.maxHp; p.resources.set(R, 0); p.skillSys.cooldowns.clear('lumen_bolt'); sim(1);
+    cast(g, 'lumen_bolt', ally);
+    ok('Healing a full-HP ally writes no Lumen (only real healing counts)', p.resources.get(R) === 0, `lumen ${p.resources.get(R)}`);
+
+    // Oracle's Grace: under whoever needs it most (the ally at 40%), heals over time
+    ally.hp = Math.round(ally.maxHp * 0.4); p.hp = p.maxHp;
+    hp0 = ally.hp; cast(g, 'oracles_grace'); sim(6);
+    const graced = ally.hp - hp0;
+    ok('Oracle\'s Grace: a sigil under the neediest member heals ≈ 18% over 6 s', graced >= ally.maxHp * 0.14 && graced <= ally.maxHp * 0.22 + 2, `+${graced} (${(graced / ally.maxHp * 100).toFixed(0)}%)`);
+
+    // Radiant Thread: you -> the ally; a heal on you flows 40% to the ally; foes crossing it are Light-Marked
+    ally.hp = Math.round(ally.maxHp * 0.5); p.hp = Math.round(p.maxHp * 0.5); d.status.remove('light_mark');
+    cast(g, 'radiant_thread', ally);
+    const th = g.threads.ofOwner(p).find((t) => t.type === 'radiant_thread');
+    const linked = !!(th && th.b.entity === ally);
+    hp0 = ally.hp; cls.healTarget(p, g, p, 0.1, 'test'); const flowed = ally.hp - hp0;
+    const selfHeal = Math.round(p.maxHp * 0.1 * cls.healPower(p) * cls.heal.selfMult);
+    ok('Radiant Thread links the ally; a heal on you flows 40% to it', linked && flowed > 0 && flowed <= Math.ceil(selfHeal * 0.4) + 1, `linked=${linked} flowed ${flowed} of ${selfHeal}`);
+    const hpT = ally.hp; sim(1.1);
+    ok('Radiant Thread: members on the line heal over time', ally.hp > hpT, `${hpT} -> ${ally.hp}`);
+    g.threads.clearAll();
+    g.threads.create(p, 'radiant_thread', { x: d.x - 60, y: d.y }, { x: d.x + 60, y: d.y }); sim(1);
+    ok('A foe crossing the radiant thread is Light-Marked', d.status.has('light_mark'));
+
+    // Purifying Light: removes the listed debuffs from the party, heals per effect, leaves the rest
+    ally.x = p.x + 60; ally.y = p.y; ally.hp = Math.round(ally.maxHp * 0.5);
+    for (const id of ['poison', 'burn', 'slow']) ally.status.add(id, 10, { source: d });
+    ally.status.add('taunted', 10, { source: d }); // not on the purify list
+    hp0 = ally.hp; cast(g, 'purifying_light');
+    ok('Purifying Light: removes the configured debuffs (not others) and heals per effect', !ally.status.has('poison') && !ally.status.has('burn') && !ally.status.has('slow') && ally.status.has('taunted') && ally.hp > hp0, `left: ${ally.status.list().map((s) => s.id).join(',')} +${ally.hp - hp0}`);
+
+    // Divine Barrier: on both, capped at 45%
+    ally.status.remove('shield'); p.status.remove('shield'); p.resources.set(R, 100);
+    cast(g, 'divine_barrier');
+    const both = !!(ally.status.get('shield') && p.status.get('shield'));
+    for (let i = 0; i < 3; i++) { p.skillSys.cooldowns.clear('divine_barrier'); p.resources.set(R, 100); cast(g, 'divine_barrier'); }
+    ok('Divine Barrier: barrier on the whole party, capped at 45% max HP', both && ally.status.get('shield').amount <= Math.round(ally.maxHp * 0.45) + 1, `ally ${ally.status.get('shield').amount} / ${ally.maxHp}`);
+
+    // Lumen Burst: needs 40; heals everyone near 18%
+    p.resources.set(R, 20);
+    const noBurst = !p.skillSys.canUse('lumen_burst').ok;
+    p.resources.set(R, 60); ally.hp = Math.round(ally.maxHp * 0.3);
+    hp0 = ally.hp; aim(g, p.x, p.y - 40); p.trySkill(cls.special); sim(0.6);
+    ok('Lumen Burst: refused under 40; heals the party ≈ 18%', noBurst && ally.hp - hp0 >= ally.maxHp * 0.16, `refused=${noBurst} +${ally.hp - hp0}`);
+
+    // Astral Judgment: allies healed + barrier + purified; foes hit, marked, slowed; then the lances
+    ally.status.remove('shield'); ally.hp = Math.round(ally.maxHp * 0.3); ally.status.add('poison', 10, { source: d });
+    ally.x = d.x + 40; ally.y = d.y + 40; p.resources.set(R, 100); d.status.remove('light_mark');
+    let lances = 0; const off2 = g.events.on('damageDealt', (e) => { if (e.source === p && e.target === d && !e.opts.big && e.opts.skillId === 'astral_judgment') lances++; });
+    hp0 = ally.hp; const dHp = d.hp;
+    cast(g, 'astral_judgment', d); idle(g); sim(1.6);
+    if (off2) off2();
+    ok('Astral Judgment: ally healed + barrier + purified; foe hit, Light-Marked, slowed, then a lance', ally.hp - hp0 >= ally.maxHp * 0.25 && ally.status.get('shield') && !ally.status.has('poison') && d.hp < dHp && d.status.has('light_mark') && lances >= 1, `+${ally.hp - hp0} shield ${ally.status.get('shield') && ally.status.get('shield').amount} lances ${lances}`);
+
+    // Lumen budget
+    p.resources.set(R, 0); p.lumenBudget = cls.lumen.perSec;
+    for (let i = 0; i < 20; i++) { ally.hp = 1; cls.healTarget(p, g, ally, 0.5, 'test'); }
+    ok('Lumen per second is budgeted (no farming)', p.resources.get(R) <= cls.lumen.perSec + 0.01, `${p.resources.get(R).toFixed(1)}`);
+  } finally {
+    g.party.remove(ally); ally.dispose(); releaseInput(g);
+  }
+
+  // class change Astral Weaver -> Lumen Oracle
+  g.newGame('astral_weaver'); releaseInput(g);
+  g.progression.unlock('lumen_oracle'); g.combat.lastCombatTime = -99;
+  const r = g.changeClass('lumen_oracle'), np = g.player;
+  ok('Class change Astral Weaver -> Lumen Oracle', r.ok && np.cls.id === 'lumen_oracle' && np.sprites.preset === 'lo' && np.primaryResource === R && g.equipment.slots.weapon === 'lumen_staff', `${np.cls.id} ${np.sprites.preset} ${g.equipment.slots.weapon}`);
+  const res = np.resources.get(R), cds = ['lumen_bolt', 'oracles_grace', 'radiant_thread', 'purifying_light', 'divine_barrier', 'astral_judgment'].map((id) => np.skillSys.cooldowns.remaining(id));
+  ok('No negative / overfull resource, no negative cooldown', res >= 0 && res <= 100 && cds.every((c) => c >= 0));
+  releaseInput(g);
+  return rows;
+}
+
 // ---------------- Phase 13: class change, proven with a mock Class 2 registered from data only
 export function classChangeChecks(g) {
   const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'class_change', test: name, pass: !!pass, detail });
   const base = CLASSES.umbral_sword;
   CLASSES.mock_class2 = { ...base, id: 'mock_class2', stableId: 'class_mock_class2', name: 'Mock Class 2' };
   CLASS_TREE.mock_class2 = { id: 'mock_class2', name: 'Mock Class 2', tier: 2, parent: 'astral_weaver', playable: true, requirements: [], trial: null };
+  CLASS_TREE.mock_unbuilt = { id: 'mock_unbuilt', name: 'Mock Unbuilt', tier: 2, parent: 'astral_weaver', playable: false, requirements: [], trial: null }; // a node whose class data does not exist yet
   try {
     let { p, d } = atDummy(g, 'astral_weaver');
     p.level = 14; p.exp = 33; p.gold = 777; p.recomputeStats(); p.hp = Math.round(p.maxHp / 2);
@@ -1084,8 +1188,8 @@ export function classChangeChecks(g) {
     g.combat.lastCombatTime = g.time;
     ok('Refused in combat', g.changeClass('mock_class2').reason === 'combat');
     g.combat.lastCombatTime = -99;
-    g.progression.unlock('lumen_oracle');
-    ok('Unlocked but not playable yet (real Class 2) refused', g.changeClass('lumen_oracle').reason === 'not_playable');
+    g.progression.unlock('mock_unbuilt');
+    ok('Unlocked but not playable yet (real Class 2) refused', g.changeClass('mock_unbuilt').reason === 'not_playable');
     const before = { x: p.x, y: p.y, level: p.level, exp: p.exp, gold: p.gold, ratio: p.hp / p.maxHp };
     const r = g.changeClass('mock_class2');
     const np = g.player;
@@ -1114,7 +1218,7 @@ export function classChangeChecks(g) {
     g.player.setGuard(true);
     ok('Aegis after a change: guard works', g.player.guardState.active && g.player.tryBlock({ x: g.player.x + Math.cos(g.player.aim) * 30, y: g.player.y + Math.sin(g.player.aim) * 30 }) !== null);
   } finally {
-    delete CLASSES.mock_class2; delete CLASS_TREE.mock_class2;
+    delete CLASSES.mock_class2; delete CLASS_TREE.mock_class2; delete CLASS_TREE.mock_unbuilt;
     g.newGame('astral_weaver');
   }
   return rows;
@@ -1150,7 +1254,7 @@ export function balance(g, classId, loadout, botOpts = {}) {
 export function runAll(g, { withBalance = true } = {}) {
   const rows = [], bal = [];
   for (const c of [...STARTING_CLASSES, ...ADVANCED]) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
-  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...wardenChecks(g), ...bulwarkChecks(g), ...oathChecks(g), ...stormChecks(g), ...voidChecks(g), ...classChangeChecks(g));
+  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...wardenChecks(g), ...bulwarkChecks(g), ...oathChecks(g), ...stormChecks(g), ...voidChecks(g), ...lumenChecks(g), ...classChangeChecks(g));
   if (withBalance) for (const c of [...STARTING_CLASSES, ...ADVANCED]) bal.push(balance(g, c));
   return { passed: rows.filter((r) => r.pass).length, total: rows.length, rows, balance: bal };
 }

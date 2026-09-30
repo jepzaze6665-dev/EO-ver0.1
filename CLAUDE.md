@@ -9,7 +9,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - `node server.js` → http://localhost:5173 (Claude preview config name: `eclipse-online`, `autoPort` on, see `.claude/launch.json`).
 - Unit tests: `node tools/tests/run.mjs` (must print `ALL TEST FILES PASSED`).
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
-  (combat / mechanics / Reaper / Duskrunner / Echoes / Warden / Bulwark / Oath / Storm / Void / class-change checks; `C.duskChecks(__game)` /
+  (combat / mechanics / Reaper / Duskrunner / Echoes / Warden / Bulwark / Oath / Storm / Void / Lumen / class-change checks; `C.duskChecks(__game)` /
   `C.echoChecks(__game)` alone). runAll now takes > 45 s: from the preview tool run it in parts (classChecks +
   mechanicChecks per 2 classes, then reaper/dusk/classChange, then echo) or the call times out and hangs the page,
   `const L = await import('/tools/checklist.js'); L.runChecklist(__game, classId)` (spec TEST 1-31),
@@ -65,7 +65,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   walk1.png ATK1 DASH DEF HIT SK1-6 UT, no idle / atk2 / parry sheet; WD / BS / OK = Warden of Dawn / Bulwark Sentinel /
   Oathbreaker); VFX `desgin/VFX/AW/<AW|SM|VS|LO>/` + `desgin/VFX/UB/<UB|RP|DR|BE>/` + `desgin/VFX/AG/<AG|DW|BS|OK>/` (AI sheets: fake
   checkerboard background, 6 columns × 4 direction rows; DR / BE atk2 have 5 poses per row).
-- `node tools/build-player.js [ub|aw|ag|rp|dr|be|wd|bs|ok|sm|vs]` → `assets/player[/<preset>]/*.png + atlas.json`. Every preset is
+- `node tools/build-player.js [ub|aw|ag|rp|dr|be|wd|bs|ok|sm|vs|lo]` → `assets/player[/<preset>]/*.png + atlas.json`. Every preset is
   normalised to the same standard: canvas 160×160, pivot (80,140), neutral body ≈ 58-59 px. Frames are cut by
   blob ownership (effects never sliced); per-sheet `{ frames: 5 }` for 5-pose rows; `emptyFrames` recorded.
 - `node tools/build-vfx.js` → `assets/vfx/*.png + vfx.json` (right-facing strips, rotated at runtime;
@@ -246,8 +246,29 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   scriptCount. tools/tests/classKeys.test.mjs = no class-object key written twice (a method named like a data field silently
   erased it: bit Stormcaller `shock` and Void Scribe `ink`). Tests voidScribe.test.mjs (7), C.voidChecks (16). Balance (bot):
   ≈ 125-140 DPS (dummies), Guardian (god) 113 DPS vs AW 121; no god LV 13: 3/5 WIN in 140-265 s — slow, setup class; human playtest.
-  Next: AW3 Lumen Oracle (preset 'lo').
-- Later Class 2 work: AG line done; AW line in progress (above).
+  VS polish (owner): build-vfx `recenter` on the VS strips (frames drifted in their cells: the orb sat ~40 px left, so cast /
+  decal / blast did not line up); basics fire a round vs_null orb; summon sprite visuals draw ONE steady frame (lean + glow
+  while acting, no flicker). LESSON for new VFX: measure each strip's content box (bbox) and anchor standing effects by their
+  base (center y = ground - (y1 - 0.5) × h), rings / orbs by their centre.
+  Done AW3 = LUMEN ORACLE (`src/skills/lumenOracle.js`, preset 'lo' (no idle sheet), VFX set 'lo': lo_bolt / lo_grace (SK2 row 4) /
+  lo_thread / lo_purify / lo_barrier / lo_spike / lo_lance (SK6(2)) / lo_judgment (SK7 row 4), recentred): resource LUMEN (tier
+  RADIANCE 70 = healPower + lightDmg; damage type 'light'), written ONLY by effective healing (full-HP target = 0), barriers
+  added, purified effects, own barriers soaking hits, light hits — per-second budget 8. Heals = share of the TARGET's max HP ×
+  (1 + healPower), on yourself ×0.85; every heal gives GUIDING LIGHT. Skills: Lumen Bolt (foe: light + LIGHT MARK; aimed at an
+  ally = heal 8%; at your feet = self-heal) · Oracle's Grace (sigil under the neediest member: ≈18% over 6 s, sears foes) ·
+  Radiant Thread (thread type radiant_thread you -> ally / ground: members on it heal, foes crossing it are marked; the Oracle's
+  heal on one end flows 40% to the other, ≤ 8% max HP / s, a flow never flows) · Purifying Light (removes class-data lists:
+  purify.statuses + categories) · Divine Barrier (25: 22% on every member in 200 px, cap 45%) · Q LUMEN BURST (40: heal 18% +
+  nova) · ult ASTRAL JUDGMENT (70: ring r 190 — allies heal 30% + barrier 20% + purify, foes damage + mark + slow, then lances on
+  the marked). Passives Guiding Light, Judgment of Light (+25% light damage on marked foes). Party = game.players() (solo = you).
+  Tests lumenOracle.test.mjs (7), C.lumenChecks (15, real second Player ally). classKeys.test caught `mark` twice (-> lightMark);
+  lumenOracle.test caught the ultimate missing `ultimate: true`. Class change test uses a mock unbuilt node (every AW Class 2 is
+  playable). Bot (ranged Class 2): support-tagged skills only when someone is below 75% HP; strafes after a 6 s stall (it once
+  kited into a spot where nothing could hit anything). Balance (bot, LV 13 Guardian, no god; big run-to-run variance since the
+  difficulty pass): Stormcaller 3/5 · Void Scribe 6/10 · Lumen Oracle 7/9 (heals through ~500-2000 damage) · Astral Weaver 4/8.
+  Boss DPS (god): LO ≈ 100-106 · VS ≈ 109 · AW ≈ 121.
+  ASTRAL CLASS 2 COMPLETE (Stormcaller / Void Scribe / Lumen Oracle) — every Class 2 of the three starting classes exists.
+- Class 2: all three lines done (Umbral, Aegis, Astral). Next: owner decides (human balance pass, skill tree / class level UI...).
   Unused RP art: `sk6` (anim `harvest`) is mapped but no skill plays it yet.
 - **Current: V2.1 "Class × World Integration"** (owner's 16-phase spec: Lumina → A1 → A2 → A3 → Boss Arena, EXP/loot/
   quest/target/save). Owner chose **B = real separate maps with transitions** (not the seamless zone world) and

@@ -517,6 +517,62 @@
   "frames": 6,
   "set": "vs"
  },
+ "lo_bolt": {
+  "file": "assets/vfx/lo_bolt.png",
+  "fw": 100,
+  "fh": 128,
+  "frames": 6,
+  "set": "lo"
+ },
+ "lo_grace": {
+  "file": "assets/vfx/lo_grace.png",
+  "fw": 88,
+  "fh": 128,
+  "frames": 6,
+  "set": "lo"
+ },
+ "lo_thread": {
+  "file": "assets/vfx/lo_thread.png",
+  "fw": 128,
+  "fh": 158,
+  "frames": 6,
+  "set": "lo"
+ },
+ "lo_purify": {
+  "file": "assets/vfx/lo_purify.png",
+  "fw": 118,
+  "fh": 158,
+  "frames": 6,
+  "set": "lo"
+ },
+ "lo_barrier": {
+  "file": "assets/vfx/lo_barrier.png",
+  "fw": 106,
+  "fh": 158,
+  "frames": 6,
+  "set": "lo"
+ },
+ "lo_spike": {
+  "file": "assets/vfx/lo_spike.png",
+  "fw": 106,
+  "fh": 158,
+  "frames": 6,
+  "set": "lo"
+ },
+ "lo_lance": {
+  "file": "assets/vfx/lo_lance.png",
+  "fw": 106,
+  "fh": 158,
+  "frames": 6,
+  "set": "lo"
+ },
+ "lo_judgment": {
+  "file": "assets/vfx/lo_judgment.png",
+  "fw": 92,
+  "fh": 140,
+  "frames": 6,
+  "set": "lo"
+ },
  "aw_needle": {
   "file": "assets/vfx/aw_needle.png",
   "fw": 86,

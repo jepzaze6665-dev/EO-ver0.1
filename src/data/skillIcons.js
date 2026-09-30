@@ -32,6 +32,9 @@ export const SKILL_ICONS = {
   // Void Scribe
   void_script: 'vs_sk1', sable_mark: 'vs_sk2', phantom_quill: 'vs_sk3', rewrite: 'vs_sk4', void_chain: 'vs_sk5',
   void_seal: 'vs_sk6', final_script_null: 'vs_sk7',
+  // Lumen Oracle
+  lumen_bolt: 'lo_sk1', oracles_grace: 'lo_sk2', radiant_thread: 'lo_sk3', purifying_light: 'lo_sk4', divine_barrier: 'lo_sk5',
+  lumen_burst: 'lo_sk6', astral_judgment: 'lo_sk7',
   // Astral Weaver (aw_sk4 unused)
   star_needle: 'aw_sk1', astral_thread: 'aw_sk2', comet_step: 'aw_sk3', thread_burst: 'aw_sk5', astral_veil: 'aw_sk6',
   starfall_fate: 'aw_sk7',

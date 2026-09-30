@@ -28,6 +28,14 @@ export const THREADS = {
     burst: { power: 2.6, type: 'lightning', width: 34 },
     visual: { color: '#7ac8ff', glow: '90,160,255', core: '#f0f8ff', style: 'lightning' },
   },
+  // Lumen Oracle: a healing thread (Radiant Thread). Foes crossing it are burned by light and Light-Marked; party members on
+  // it are healed and heals on one end flow to the other (class code — the thread only detects foes)
+  radiant_thread: {
+    id: 'radiant_thread', name: 'Radiant Thread',
+    maxPerOwner: 2, duration: 6, maxLength: 300, width: 16,
+    touch: { interval: 0.6, power: 0.55, type: 'light', status: 'light_mark', statusTime: 5 },
+    visual: { color: '#ffe08a', glow: '255,220,130', core: '#fffaf0' },
+  },
 };
 
 export const THREAD_RULES = {

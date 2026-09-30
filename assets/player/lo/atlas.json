@@ -1,0 +1,361 @@
+{
+ "preset": "lo",
+ "standard": {
+  "bodyHeight": 60,
+  "canvas": [
+   160,
+   160
+  ],
+  "pivot": [
+   80,
+   140
+  ]
+ },
+ "cols": 6,
+ "sheets": {
+  "walk": {
+   "file": "assets/player/lo/walk.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 2,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.1786,
+   "emptyFrames": []
+  },
+  "atk1": {
+   "file": "assets/player/lo/atk1.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 2,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.1911,
+   "emptyFrames": []
+  },
+  "atk2": {
+   "file": "assets/player/lo/atk2.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 2,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.1875,
+   "emptyFrames": []
+  },
+  "dash": {
+   "file": "assets/player/lo/dash.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 3,
+     "flipLeft": true,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.1813,
+   "emptyFrames": [
+    [
+     0,
+     4
+    ],
+    [
+     1,
+     3
+    ],
+    [
+     2,
+     3
+    ],
+    [
+     3,
+     3
+    ]
+   ]
+  },
+  "hit": {
+   "file": "assets/player/lo/hit.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 2,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.1807,
+   "emptyFrames": []
+  },
+  "sk1": {
+   "file": "assets/player/lo/sk1.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 2,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.1818,
+   "emptyFrames": []
+  },
+  "sk2": {
+   "file": "assets/player/lo/sk2.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 2,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.2182,
+   "emptyFrames": []
+  },
+  "sk3": {
+   "file": "assets/player/lo/sk3.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 2,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.184,
+   "emptyFrames": []
+  },
+  "sk4": {
+   "file": "assets/player/lo/sk4.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 2,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.1881,
+   "emptyFrames": []
+  },
+  "sk5": {
+   "file": "assets/player/lo/sk5.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 2,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.1899,
+   "emptyFrames": []
+  },
+  "sk6": {
+   "file": "assets/player/lo/sk6.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 3,
+     "left": 2,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.2076,
+   "emptyFrames": []
+  },
+  "ult": {
+   "file": "assets/player/lo/ult.png",
+   "fw": 160,
+   "fh": 160,
+   "rows": 4,
+   "cols": 6,
+   "ax": 80,
+   "ay": 140,
+   "sides": [
+    {
+     "right": 2,
+     "left": 3,
+     "flipLeft": false,
+     "flipRight": false
+    }
+   ],
+   "sourceScale": 0.2256,
+   "emptyFrames": [
+    [
+     0,
+     4
+    ],
+    [
+     2,
+     4
+    ],
+    [
+     3,
+     4
+    ]
+   ]
+  }
+ },
+ "validation": {
+  "walk": {
+   "bodyHeight": 58,
+   "feetMaxOffset": 1,
+   "centerOffset": -1,
+   "ok": true,
+   "issues": []
+  },
+  "atk1": {
+   "bodyHeight": 58,
+   "feetMaxOffset": 1,
+   "centerOffset": 0,
+   "ok": true,
+   "issues": []
+  },
+  "atk2": {
+   "bodyHeight": 58,
+   "feetMaxOffset": 1,
+   "centerOffset": 0,
+   "ok": true,
+   "issues": []
+  },
+  "dash": {
+   "bodyHeight": 58,
+   "feetMaxOffset": 1,
+   "centerOffset": 0,
+   "ok": true,
+   "issues": []
+  },
+  "hit": {
+   "bodyHeight": 59,
+   "feetMaxOffset": 1,
+   "centerOffset": -1,
+   "ok": true,
+   "issues": []
+  },
+  "sk1": {
+   "bodyHeight": 58,
+   "feetMaxOffset": 1,
+   "centerOffset": 0,
+   "ok": true,
+   "issues": []
+  },
+  "sk2": {
+   "bodyHeight": 58,
+   "feetMaxOffset": 1,
+   "centerOffset": -1,
+   "ok": true,
+   "issues": []
+  },
+  "sk3": {
+   "bodyHeight": 58,
+   "feetMaxOffset": 1,
+   "centerOffset": -1,
+   "ok": true,
+   "issues": []
+  },
+  "sk4": {
+   "bodyHeight": 58,
+   "feetMaxOffset": 1,
+   "centerOffset": 0,
+   "ok": true,
+   "issues": []
+  },
+  "sk5": {
+   "bodyHeight": 58,
+   "feetMaxOffset": 1,
+   "centerOffset": 0,
+   "ok": true,
+   "issues": []
+  },
+  "sk6": {
+   "bodyHeight": 58,
+   "feetMaxOffset": 1,
+   "centerOffset": 0,
+   "ok": true,
+   "issues": []
+  },
+  "ult": {
+   "bodyHeight": 58,
+   "feetMaxOffset": 1,
+   "centerOffset": -1,
+   "ok": true,
+   "issues": []
+  }
+ }
+}

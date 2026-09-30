@@ -88,6 +88,14 @@ const SETS = {
     // cast, the ground decal and the blast land on the same spot
     recenter: { SK1: true, SK2: true, SK3: true, SK4: true, SK6: true, SK7: true },
   },
+  // Lumen Oracle (gold light + pale blue). SK2 row 4 = the full grace sigil, SK6(2) row 0 = the lance from the sky,
+  // SK7 row 4 = the great judgment halo; side view (row 3) for the bolt / thread
+  lo: {
+    src: 'desgin/VFX/AW/LO', detectRows: true, clean: true,
+    names: { SK1: 'lo_bolt', SK2: 'lo_grace', SK3: 'lo_thread', SK4: 'lo_purify', SK5: 'lo_barrier', SK6: 'lo_spike', 'SK6(2)': 'lo_lance', SK7: 'lo_judgment' },
+    rows: { SK2: 4, SK4: 0, SK5: 0, SK6: 0, 'SK6(2)': 0, SK7: 4 },
+    recenter: { SK2: true, SK4: true, SK5: true, SK6: true, 'SK6(2)': true, SK7: true },
+  },
   aw: {
     src: 'desgin/VFX/AW/AW', detectRows: true, clean: true,
     names: { SK1: 'aw_needle', SK2: 'aw_star', SK3: 'aw_comet', SK4: 'aw_sigil', SK5: 'aw_nova', SK6: 'aw_orb', UT: 'aw_starfall' },

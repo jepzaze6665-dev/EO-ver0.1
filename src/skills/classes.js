@@ -9,6 +9,7 @@ import { BulwarkSentinel } from './bulwarkSentinel.js';
 import { Oathbreaker } from './oathbreaker.js';
 import { Stormcaller } from './stormcaller.js';
 import { VoidScribe } from './voidScribe.js';
+import { LumenOracle } from './lumenOracle.js';
 import { applySkillProgression } from '../data/skillProgression.js';
 
 // CLASS REGISTRY — adding a class (Class 2, Awakening, Secret Class) = add its data file here.
@@ -26,6 +27,7 @@ export const CLASSES = {
   oathbreaker: Oathbreaker,
   stormcaller: Stormcaller,
   void_scribe: VoidScribe,
+  lumen_oracle: LumenOracle,
 };
 // Skill System S7: skill levels / tree unlocks / categories / evolutions from data (data/skillProgression.js)
 applySkillProgression(CLASSES);

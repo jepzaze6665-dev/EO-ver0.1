@@ -52,7 +52,7 @@ export const CLASS_TREE = {
     trial: 'trial_void_scribe',
   },
   lumen_oracle: {
-    id: 'lumen_oracle', name: 'Lumen Oracle', tier: 2, parent: 'astral_weaver', playable: false, resource: 'Lumen',
+    id: 'lumen_oracle', name: 'Lumen Oracle', tier: 2, parent: 'astral_weaver', playable: true, resource: 'Lumen',
     role: 'Support Mage · Healer · Barrier · Purifier', description: 'Turns the battlefield into holy ground: heals, barriers, purification, judgment.',
     requirements: [...CLASS2_BASE, { type: 'counter', counter: 'shield_absorbed', min: 300 }],
     trial: 'trial_lumen_oracle',

@@ -146,6 +146,19 @@ export const RESOURCES = {
     tiers: [{ at: 70, label: 'ABYSSAL', stats: { voidDmg: 0.15 } }],
     colors: ['#b060ff', '#2a0c4a'],
   },
+  // Lumen Oracle (Class 2 of Astral Weaver): LUMEN — the light it gives away: EFFECTIVE healing (a full-HP target gives
+  // nothing), barriers created, debuffs purified, barriers soaking hits, light hits (all through a per-second budget).
+  // Spent on Divine Barrier, Lumen Burst [Q] and Astral Judgment. Tier RADIANCE 70: stats healPower (read by the class)
+  // + lightDmg (damage type 'light'). Fades out of combat.
+  lumen: {
+    id: 'lumen', name: 'Lumen', label: 'LUMEN',
+    max: 100, start: 0, respawn: 0,
+    regen: { inCombat: 0, outOfCombat: 0 },
+    decay: { inCombat: 0, outOfCombat: 8, delay: 3 },
+    gainStat: 'lumenGain',
+    tiers: [{ at: 70, label: 'RADIANCE', stats: { healPower: 0.15, lightDmg: 0.1 } }],
+    colors: ['#ffe08a', '#6a4a10'],
+  },
   // Phase 6 (Astral Weaver) — defined now so the pool is proven to be class-agnostic.
   astral_charge: {
     id: 'astral_charge', name: 'Astral Charge', label: 'ASTRAL',

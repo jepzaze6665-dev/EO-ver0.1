@@ -27,6 +27,10 @@ export const ITEMS = {
     name: 'Void Tome & Arcane Quill', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'staff', color: '#b060ff',
     stats: { atk: 1, voidDmg: 0.05 }, desc: 'A black grimoire whose blank pages drink the light, and a quill that writes laws into nothing. Signature weapon of the Void Scribe.',
   },
+  lumen_staff: {
+    name: 'Lumen Staff & Celestial Codex', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'staff', color: '#ffe08a',
+    stats: { atk: 0, lightDmg: 0.05 }, desc: 'A gilded staff crowned with a captive dawn, and a codex of the stars that heals whoever it is read to. Signature weapon of the Lumen Oracle.',
+  },
   reaper_scythe: {
     name: 'Reaper Scythe', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'scythe', color: '#9a5cff',
     stats: { atk: 2 }, desc: 'A shadow scythe that hungers for marked souls. Signature weapon of the Nightfall Reaper.',
@@ -100,6 +104,10 @@ export const ITEMS = {
   scribe_robe: {
     name: "Scribe's Hooded Robe", cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#3a1a5a',
     stats: { def: 1, hp: 10 }, desc: 'A violet-lined black robe covered in script that rewrites itself.',
+  },
+  oracle_vestment: {
+    name: 'Oracle Vestment', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#e8d8a0',
+    stats: { def: 1, hp: 15 }, desc: 'A dark vestment embroidered with golden constellations that glow when someone is healed.',
   },
   aegis_plate: {
     name: 'Aegis Plate', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#c8d0e0',

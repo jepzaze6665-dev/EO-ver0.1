@@ -147,6 +147,25 @@ export const SKILL_PROGRESSION = {
   final_script_null: { category: 'BURST' },
   void_seal: { category: 'UTILITY' },
 
+  // ======================= LUMEN ORACLE (Class 2 of Astral Weaver)
+  lumen_bolt: {
+    category: 'OFFENSE', levels: damage(TRAIT_TEXT.echo, T('echo')),
+    evolutions: [
+      evo('twin_light', 'Twin Light', 'Two lighter bolts (2 charges) — heal two allies in a row or mark two foes, and move faster after each.',
+        { behavior: 'Spread heals / marks quickly', damage: '-15%', utility: '2 charges · haste', resource: 'Same', cooldown: 'Same' },
+        { charges: 1, power: 0.85, flags: { haste: true } }),
+      evo('searing_light', 'Searing Light', 'A heavier bolt: +30% damage and it gives back some of the damage as your own health.',
+        { behavior: 'Solo sustain', damage: '+30%', utility: 'Lifesteal', resource: 'Same', cooldown: '+15%' },
+        { power: 1.3, cooldown: 1.15, flags: { lifesteal: true }, values: { lifesteal: 0.08 } }),
+    ],
+  },
+  oracles_grace: { category: 'UTILITY', levels: support(TRAIT_TEXT.haste, T('haste')) },
+  radiant_thread: { category: 'UTILITY', levels: support('TWIN THREAD: +1 charge', { charges: 1 }) },
+  purifying_light: { category: 'UTILITY', levels: support(TRAIT_TEXT.haste, T('haste')) },
+  divine_barrier: { category: 'UTILITY', levels: support(TRAIT_TEXT.haste, T('haste')) },
+  astral_judgment: { category: 'BURST' },
+  lumen_burst: { category: 'UTILITY' },
+
   // ======================= BLADE OF ECHOES (Class 2)
   echo_slash: {
     category: 'OFFENSE', levels: damage(TRAIT_TEXT.echo, T('echo')),
