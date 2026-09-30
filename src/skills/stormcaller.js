@@ -206,7 +206,7 @@ export const Stormcaller = {
     p.zones.push({ kind: 'tempest', x, y, r: f.r, t: f.dur, total: f.dur, pulse: 0, shockT: 0 });
     const sc = f.r / 60;
     g.vfx.sprite('sm_vortex', x, y - 10, 0, { scale: sc, life: 0.5, glow: 0.5 });
-    g.after(0.35, () => g.vfx.sprite('sm_vortex', x, y - 10, 0, { scale: sc, life: f.dur - 0.3, frame: 3, glow: 0.35, alpha: 0.55 }));
+    g.after(0.35, () => g.vfx.sprite('sm_vortex', x, y, 0, { scale: sc, life: f.dur - 0.3, frame: 3, glow: 0.3, alpha: 0.4, ground: true, squash: 0.6 }));
     g.events.emit('zoneCreated', { owner: p, kind: 'tempest', x, y, radius: f.r, duration: f.dur });
   },
 
