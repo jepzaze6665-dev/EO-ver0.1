@@ -185,6 +185,7 @@ export const ITEMS = {
   // boss trophies (data/bosses.js rewards.items) — lore materials for later crafting
   hollow_fang_pelt: { name: 'Hollow Fang Pelt', cat: 'Material', rarity: 'rare', icon: 'fang', color: '#ffb070', desc: 'Trophy of Hollow Fang, the alpha that denned by the River Crossing.', sell: 60 },
   warchief_totem: { name: 'Thornbound Totem', cat: 'Material', rarity: 'epic', icon: 'rune', color: '#b060ff', desc: 'Trophy of the Thornbound Elder. Its thorns still twitch toward the ruins.', sell: 120 },
+  heart_of_varkharon: { name: 'Heart of Varkharon', cat: 'Material', rarity: 'legendary', icon: 'heart', color: '#ff5a20', maxStack: 1, desc: 'It still beats, slow and furious. The fire of a sealed king — something may be born from it one day.' },
   cinder_shard: { name: 'Cinder Shard', cat: 'Quest Item', rarity: 'quest', maxStack: 3, icon: 'rune', color: '#ff7a30', desc: 'A splinter of black stone, warm as a coal. The Ashen Pilgrim said there are three.' },
   varkharon_seal: { name: "Varkharon's Seal", cat: 'Quest Item', rarity: 'quest', icon: 'sigil', color: '#ff5a20', desc: 'Three cinder shards fused into a dragon-headed seal. A door in the Ancient Valley is waiting for it.' },
   seal_fragment: { name: 'Ancient Seal Fragment', cat: 'Quest Item', rarity: 'quest', icon: 'rune', color: '#5af0ff', desc: 'Resonates with the sealed Guardian Gate.' },

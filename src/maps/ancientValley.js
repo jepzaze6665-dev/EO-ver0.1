@@ -170,7 +170,7 @@ export function buildAncientValleyTerrain(b) {
     b.light(Math.round(x), Math.round(y) - 1, 70, '#ff6a20', { a: 0.55, flicker: true });
   }
   b.regions.cinderAnchors = [];
-  for (const [ax, ay] of [[cx, cy - 10], [cx - 10, cy - 1], [cx + 10, cy - 1]]) {
+  for (const [ax, ay] of [[cx, cy - 7], [cx - 7, cy + 1], [cx + 7, cy + 1]]) { // inside the last lava ring (r 8.5): reachable in every phase
     b.prop('dr_chain_lantern', ax, ay, { solid: true });
     b.regions.cinderAnchors.push({ x: (ax + 0.5) * TILE, y: (ay + 1) * TILE });
   }

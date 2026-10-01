@@ -1564,6 +1564,94 @@ export function b3Check(g, classId = 'umbral_sword') {
 // B3b: the CRYSTAL WARDEN (B3 major) on the Summit Citadel — confirm gate, arena, 4 phases (forms change), FROST SCRIPT
 // sigils, REFLECTIONS, SHATTERED ECLIPSE (break the pylons in time -> EXPOSED; god mode lets it fail once first), rewards,
 // ROUTE B COMPLETE, the north road to City 2.
+// A2 SECRET BOSS VARKHARON (D4): the dragon door -> the Cinder Throne, rising lava (and its reset), sky chains (the bot
+// runs to the lit posts and holds [E]), ember debt + IGNITE, LAST BREATH at 10%, rewards + dragon_slain.
+//   const T = await import('/tools/testkit.js'); T.varkharonCheck(__game, 'umbral_sword', { god: true, level: 32 })
+export function varkharonCheck(g, classId = 'umbral_sword', { god = true, level = 32, seconds = 600 } = {}) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player, wp = g.worldProgress;
+  wp.defeatBoss('boss_a1');
+  w.setFlag('cinderSealBroken');
+  w.transitions.autoConfirm = true;
+  w.changeMap('a2', { entry: [148, 174] }); g.simulate(0.3);
+  goto(g, 148, 172.6);
+  for (let k = 0; k < 8 && w.mapId !== 'cinder'; k++) walk(g, 'KeyW', 0.3);
+  g.simulate(0.6);
+  const enc = g.bosses.get('boss_varkharon'), e = enc.entity || g.bosses.entityOf(enc);
+  ok('Dragon door -> the Cinder Throne · Varkharon waits', w.mapId === 'cinder' && enc.state === 'idle', `map=${w.mapId} ${enc.state}`);
+  p.setLevel(level); p.hp = p.maxHp; g.inventory.add('hp_potion', 6, true);
+  const m = w.map, cx = 148, cy = 151, floorAt = (r) => m.get(Math.round(cx + r), cy);
+  const lava = e.mech.find((x) => x.d.rings), sky = e.mech.find((x) => x.d.posts), ember = e.mech.find((x) => x.d.per);
+  const before = [floorAt(12), floorAt(-12)];
+  // 1) the lava rises on the first phase change, and sinks again when the fight resets
+  for (let k = 0; k < 12 && enc.state !== 'engaged'; k++) walk(g, 'KeyW', 0.35);
+  ok('Engaged: exits sealed, camera held', enc.state === 'engaged' && !!g.camera.lock && w.mapDef.exits.every((x) => !w.transitions.isOpen(x)), enc.state);
+  g.simulate(2, () => { p.hp = p.maxHp; }); // past the intro roar
+  e.hp = Math.floor(e.maxHp * 0.74); e.checkPhase();
+  for (let t = 0; t < 12 && !lava.rises; t += 0.5) g.simulate(0.5, () => { p.hp = p.maxHp; });
+  const risen = floorAt(12) === 24 && e.arenaR < e.def.arena.radius * TILE;
+  w.changeMap('a2', { entry: [148, 176] }); g.simulate(5);
+  ok('RISING LAVA: the outer floor turns to lava · and comes back when the fight resets', risen && enc.state !== 'engaged' && floorAt(12) === before[0] && e.arenaR === e.def.arena.radius * TILE, `risen=${risen} state=${enc.state} tile=${floorAt(12)}`);
+  // 2) the real fight
+  w.changeMap('cinder', { entry: [148, 165] }); g.simulate(0.6);
+  p.hp = p.maxHp;
+  for (let k = 0; k < 12 && enc.state !== 'engaged'; k++) walk(g, 'KeyW', 0.35);
+  const phases = new Set(), anims = new Set(), moves = new Set(), fx = new Set();
+  const st = { chained: 0, crashes: [], ignites: 0, maxEmber: 0, badTag: false, rises: [] };
+  const subs = [['bossChained', () => st.chained++], ['bossCrashed', (x) => st.crashes.push(x.final)], ['bossIgnite', () => st.ignites++], ['bossLavaRose', (x) => st.rises.push(x.r)]].map(([n, f]) => { g.events.on(n, f); return [n, f]; });
+  const spawn0 = g.vfx.sprite.bind(g.vfx); g.vfx.sprite = (n, ...a) => { if (/^(d|ca)_/.test(n)) fx.add(n); return spawn0(n, ...a); };
+  const hurt = {}; // damage taken by source (balance)
+  subs.push(['damageTaken', (x) => { if (x.target !== p || !(x.amount > 0)) return; const k = x.source === e ? (sky.flying ? 'flight' : (e.curMove && Object.keys(e.def.moves).find((id) => e.def.moves[id] === e.curMove)) || 'mechanic') : 'other'; hurt[k] = (hurt[k] || 0) + Math.round(x.amount); }]);
+  g.events.on('damageTaken', subs[subs.length - 1][1]);
+  let t = 0, finalFailSeen = false;
+  for (; t < seconds && enc.state !== 'defeated' && !p.dead; t += 0.5) {
+    g.simulate(0.5, (gg, i) => {
+      if (sky.flying) {
+        // fly phase: run to the first lit post that is not chained yet and hold [E] there
+        const inp = gg.input; ['KeyA', 'KeyD', 'KeyW', 'KeyS'].forEach((k) => inp.down.delete(k));
+        const k = sky.lit.find((x) => !sky.chained.includes(x)), s = k !== undefined && sky.post(k);
+        // god runs let the first LAST BREATH go off (it must be seen), then chain
+        const wait = god && sky.flights && e.phase >= 4 && !sky.finalFails && !finalFailSeen;
+        p.chainHold = false;
+        // dodge what is about to land (a person would), then go on to the post
+        const hot = gg.combat.telegraphs.list.find((tl) => !tl.resolved && tl.total - tl.time < 0.12 && tl.total - tl.time > 0 && gg.combat.testShape(tl, p));
+        if (hot) { const a = Math.atan2(p.y - hot.y, p.x - hot.x); if (Math.cos(a) > 0.3) inp.down.add('KeyD'); if (Math.cos(a) < -0.3) inp.down.add('KeyA'); if (Math.sin(a) > 0.3) inp.down.add('KeyS'); if (Math.sin(a) < -0.3) inp.down.add('KeyW'); inp.pushBuffer('dodge'); }
+        else if (s && !wait) {
+          const dd = Math.hypot(s.x - p.x, s.y - p.y), a = Math.atan2(s.y - p.y, s.x - p.x);
+          if (dd > 18) { if (Math.cos(a) > 0.3) inp.down.add('KeyD'); if (Math.cos(a) < -0.3) inp.down.add('KeyA'); if (Math.sin(a) > 0.3) inp.down.add('KeyS'); if (Math.sin(a) < -0.3) inp.down.add('KeyW'); }
+          else p.chainHold = true;
+        }
+        if (god) { p.hp = Math.max(p.hp, p.maxHp * 0.5); }
+      } else { p.chainHold = false; bot(gg, i, { god }); }
+      if (sky.finalFails) finalFailSeen = true;
+      if (e.curMove) moves.add(Object.keys(e.def.moves).find((x) => e.def.moves[x] === e.curMove));
+      st.maxEmber = Math.max(st.maxEmber, ember.get(p));
+      if (!e.dead && e.sprites && e.sprites.sheet) { const fr = e.sheetFrame(e.sprites); for (const [n, list] of Object.entries(e.sprites.anims)) if (list.includes(fr)) anims.add(n); }
+      for (const tg of e.hudState().tags) if (!tg || typeof tg.label !== 'string') st.badTag = true;
+    });
+    phases.add(e.phase);
+  }
+  p.chainHold = false;
+  releaseInput(g);
+  g.simulate(6);
+  g.vfx.sprite = spawn0;
+  for (const [n, f] of subs) g.events.off(n, f);
+  ok('Forms change with the phases (p1..p4 art)', ['p2_', 'p3_', 'p4_'].filter((pre) => [...anims].some((a) => a.startsWith(pre))).length >= 2, [...anims].join(','));
+  ok('RISING LAVA on the phase changes, down to the last ring (a fast burst may skip one)', st.rises.length >= 2 && st.rises.includes(8.4), st.rises.join(','));
+  ok('SKY CHAINS: it flew, was chained and crashed (weak window)', sky.flights >= 2 && st.chained >= 2 && st.crashes.includes(false), `flights=${sky.flights} chained=${st.chained} crashes=${st.crashes}`);
+  // a good player owes nothing when IGNITE is due (it waits); either it went off, or every ember was burned off first
+  ok('EMBER DEBT: fire stacked embers · IGNITE went off or the debt was burned off', st.maxEmber >= 1 && (st.ignites >= 1 || ember.burnedOff >= st.maxEmber), `max=${st.maxEmber} ignites=${st.ignites} burnedOff=${ember.burnedOff}`);
+  ok(`LAST BREATH at 10%: ${god ? 'seen once, then ' : ''}chained down for the kill`, st.crashes.includes(true) && (!god || sky.finalFails >= 1), `fails=${sky.finalFails} crashes=${st.crashes}`);
+  ok('Dragon VFX (d_*) play', [...fx].filter((n) => n.startsWith('d_')).length >= 5, [...fx].join(','));
+  // its flights eat turns: a random pick may miss one or two moves in a single fight
+  if (god) ok('Almost every move used (all but 2 at most)', Object.keys(e.def.moves).filter((x) => !moves.has(x)).length <= 2, [...moves].filter(Boolean).join(','));
+  ok('4 phases · HUD tags well-formed', [1, 2, 3, 4].every((ph) => phases.has(ph)) && !st.badTag, [...phases].join(','));
+  ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_varkharon') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp} bossHp=${Math.round(e.hp)}/${e.maxHp} hurt=${JSON.stringify(hurt)}`);
+  if (enc.state === 'defeated') ok('Rewards: Heart of Varkharon + lore · flag dragon_slain · the throne floor is back', g.inventory.count('heart_of_varkharon') === 1 && w.state.lore.varkharon && w.state.flags.dragon_slain && floorAt(12) === before[0]);
+  return R;
+}
+
 export function b3BossCheck(g, classId = 'umbral_sword', { god = true, level = 43, seconds = 480 } = {}) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);

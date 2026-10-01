@@ -21,6 +21,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `T.gridCheck(__game)` (W1 multi-grid: lock/unlock, load/unload + cleanup, save/load + fog on another grid, no leaks, respawn),
   `T.cityCheck(__game)` (City 2: unlock, north road, services, quest, save/load), `T.a3BossCheck(__game, classId)`,
   `await T.pilgrimCheck(__game)` (A2 secret boss chain: Ashen Pilgrim, 3 trials, forge, dragon door),
+  `T.varkharonCheck(__game, classId, { god, level })` (A2 secret boss fight: lava rings + reset, sky chains, embers, last breath),
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -827,6 +828,23 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `timedRune`: answers only while its runes burn (period / open), cold = burns you) -> each pays a cinder_shard (maxStack 3).
   Forge = the hollow gargoyle (generic `forge` { needs, gives, flag sealForged }) -> varkharon_seal -> sealDoor. Pilgrim
   dialogue (narrative.js) per map + after 3 cinders tells where the hollow is. `await T.pilgrimCheck(g)` 16/16.
+  Done D4: boss_varkharon (data/bosses.js, type 'secret' — new BOSS_TYPE, HUD label SECRET BOSS, callout; Lv 34, native 14,
+  difficulty hp/power 1.1, map cinder bossId). 4 phases SEALED EMBER / AWAKENED FLAME / ABYSSAL CORRUPTION / CINDER KING'S WRATH
+  (75 / 50 / 25%). Art: monsterArt 'varkharon' with phase-prefixed anims — GENERIC: AreaBoss.sheetFrame plays 'p<phase>_<name>'
+  when the sheet has it (p2_roar = t12 transformation, p3_roar = t23). Moves claw · tail_sweep (ring) · bite_combo (late 3rd) ·
+  breath (long fire cone, own anim) · fireball · pounce · flame_cross · ember_rain · cinder_nova. NEW MECHANICS (boss/mechanics.js):
+  `sky_chains` (phases 2-3 every 24 s: flies (air 150, not hurtable), dives / fire strafes; 2 lit chain posts, a player HOLDS [E]
+  (input KeyE or p.chainHold) 1.2 s within 46 px, a hit breaks the hold; 2 chains = CRASH + 7 s CHAINED DOWN; too slow = INFERNO;
+  last flight's posts stay dark; FINAL at 10% (HP floor): LAST BREATH, all posts lit, fail = unblockable blast + retry 12 s) ·
+  `rising_lava` (rings {2: 11, 3: 9.6, 4: 8.4}: telegraphed ring, floor tiles ARENA/CORRUPT really become LAVA, boss arenaR shrinks,
+  players pushed in + burned; tiles restored on reset / death; an interrupted rise re-queues) · `ember_debt` (fire = magic hits
+  from the boss add EMBER (x2 from phase 3, max 5); IGNITE every 18 s explodes them (10 power each, unblockable); perfect dodge of
+  the boss / hits while it is weak burn one off; nobody owing = IGNITE waits). Mechanics listen to the bus via listen/unlisten.
+  Chain posts moved inside the last ring ([148,145] [142,152] [154,152]). Rewards heart_of_varkharon (legendary) + lore + loot
+  'varkharon'; trigger varkharon_defeated sets flag dragon_slain (future secret class). `T.varkharonCheck(g, classId, { god,
+  level: 32 })` 13 steps (bot runs to lit posts + holds E, dodges in flight). God 13/13 · no god LV 32: AG 249 s · RP 165 s ·
+  AW 181 s · UB 185 s (UB also lost one run at 68 s) — a hard optional fight; human playtest needed.
+  A2 SECRET BOSS COMPLETE (D1-D4). Next: owner decides (secret class from Heart of Varkharon = data only until asked).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

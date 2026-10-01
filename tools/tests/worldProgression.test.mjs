@@ -28,8 +28,8 @@ console.log('boss data');
 test('every live boss: its map exists, arena, phases, moves, rewards are valid', () => {
   for (const b of liveBosses()) {
     ok(mapIds.has(b.map), `${b.id}: map ${b.map}`);
-    ok(['area', 'major', 'mini'].includes(b.type), `${b.id}: type`);
-    if (b.type === 'mini') ok(!(b.unlocks || []).length, `${b.id}: a mini-boss gates nothing`);
+    ok(['area', 'major', 'mini', 'secret'].includes(b.type), `${b.id}: type`);
+    if (b.type === 'mini' || b.type === 'secret') ok(!(b.unlocks || []).length, `${b.id}: a mini-boss gates nothing`);
     ok(b.arena && b.arena.center && b.arena.radius > 0 && b.arena.trigger < b.arena.radius, `${b.id}: arena`);
     ok(b.phases.length >= 1 && b.phases[0].hpBelow === 1, `${b.id}: first phase starts at 100%`);
     for (let i = 1; i < b.phases.length; i++) ok(b.phases[i].hpBelow < b.phases[i - 1].hpBelow, `${b.id}: phases in HP order`);

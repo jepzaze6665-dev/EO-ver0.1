@@ -643,7 +643,8 @@ AreaBoss.prototype.draw = function draw(ctx) {
   }
 };
 // sheet art (data/monsterArt.js): which animation a pose plays. Order: the current move's `anim` { pose: anim },
-// then the phase's look.phaseAnims[phase] { pose: anim }, then look.anims { pose: anim }, then the pose name itself.
+// then the phase's look.phaseAnims[phase] { pose: anim }, then look.anims { pose: anim }, then the pose name itself;
+// if the sheet also has 'p<phase>_<name>' that variant plays.
 // idle / walk loop; the other poses play once from the moment the pose began (the last frame holds).
 const DEFAULT_POSE_ANIM = { idle: 'idle', walk: 'move', windup: 'windup', attack: 'attack', hurt: 'hurt', roar: 'windup' };
 AreaBoss.prototype.sheetFrame = function sheetFrame(set) {
@@ -654,7 +655,8 @@ AreaBoss.prototype.sheetFrame = function sheetFrame(set) {
   let mechAnim = null;
   for (const x of this.mech) { const n = x.poseAnim && x.poseAnim(this.pose); if (n && A[n]) { mechAnim = n; break; } }
   const name = pick(this.curMove && this.curMove.anim) || mechAnim || pick(look.phaseAnims && look.phaseAnims[this.phase]) || pick(look.anims) || DEFAULT_POSE_ANIM[this.pose];
-  const frames = A[name] || set.idle;
+  // a phase-prefixed variant ('p2_' + name) wins when the sheet has one (one set of names, a different form per phase)
+  const frames = A['p' + this.phase + '_' + name] || A[name] || set.idle;
   const loop = this.pose === 'idle' || this.pose === 'walk';
   const fps = (set.fps && set.fps[name]) || (loop ? (this.pose === 'walk' ? 9 : 6) : this.pose === 'attack' ? 12 : 8);
   return frameAt(frames, loop ? this.animT : this.animT - (this.poseT0 || 0), fps, loop);

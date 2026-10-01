@@ -5,10 +5,10 @@ import { Z } from '../core/constants.js';
 // until the player brings Varkharon's Seal (three Cinder Shards from the Ashen Pilgrim) — the door is an interactable
 // (`sealDoor`, exploration/interactables.js) that sets the flag the A2 exit asks for. Hidden from the world map until
 // visited (`secret`). Terrain: maps/ancientValley.js (zone CINDER, round dragon-stone floor in a lava moat). The fight
-// itself (boss data, mechanics) arrives in D4; `regions.cinderAnchors` = the three chain posts its fight will use.
+// itself = data/bosses.js boss_varkharon (sky_chains / rising_lava / ember_debt in boss/mechanics.js).
 export const CINDER_THRONE = {
   id: 'cinder', name: 'THE CINDER THRONE', short: 'Secret', sub: 'A2 · Secret · where the Cinder King was sealed', grid: 'ancient_valley',
-  type: 'boss_arena', route: 'A', parent: 'a2', secret: true,
+  type: 'boss_arena', route: 'A', parent: 'a2', secret: true, bossId: 'boss_varkharon',
   requires: [],
   region: { zones: [Z.CINDER] },
   spawn: [148, 165],

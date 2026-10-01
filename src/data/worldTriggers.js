@@ -122,6 +122,12 @@ export const WORLD_TRIGGERS = [
     actions: [{ type: 'banner', title: 'ROUTE A COMPLETE', text: 'The last Warden of Asteria rests. The north road out of the Sanctum leads to City 2 — Asteria City.', color: '#ffe08a' }],
   },
 
+  // ---- A2 secret boss: Varkharon (the future secret class reads the flag dragon_slain)
+  {
+    id: 'varkharon_defeated', on: 'bossDefeated', match: { bossId: 'boss_varkharon' },
+    actions: ['set_flag:dragon_slain', { type: 'banner', title: 'THE CINDER KING FALLS', text: 'His heart is still warm in your hands. Something is waiting to be born from it.', color: '#ff8a40' }],
+  },
+
   // ---- City 2 Asteria (W5): the unlock itself = boss_a3 `unlocks` + City 2's map `requires`
   {
     id: 'city2_first_visit', on: 'mapEntered', match: { id: 'city2', first: true },

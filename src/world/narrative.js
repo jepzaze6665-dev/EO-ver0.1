@@ -48,6 +48,10 @@ export const LORE = {
     title: 'The Last Warden of Asteria',
     text: 'When Asteria fell, one knight stayed at the Sanctum and wrote his oath into the floor. The runes kept him standing long after the city emptied.\nNow the runes go quiet. Past the Sanctum, the old road runs on toward a living city.',
   },
+  varkharon: {
+    title: 'Varkharon, the Sealed Cinder King',
+    text: 'The valley kings did not kill him: they could not. They chained him under their summer court and broke his crown into three cinders.\nNow the chains are broken too. What is left on the throne is ash, and a heart that will not stop beating.',
+  },
   magma_beast: {
     title: 'The Magma Beast of the Rift',
     text: 'When the mountain woke, it did not stop at the valley\'s edge. The beast crawled up out of the rift and the kings fled their summer court.\nNow the rift cools. Past it, carved into the far cliffs, a road leads toward a citadel of rune and bronze.',

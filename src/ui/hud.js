@@ -28,6 +28,10 @@ const MINI_COLORS = {
 };
 
 
+// boss-type label over the boss bar / idle boss (data/bosses.js `type`)
+const bossKind = (t) => ({ major: 'MAJOR BOSS', mini: 'MINI BOSS', secret: 'SECRET BOSS' })[t] || 'AREA BOSS';
+const bossKindColor = (t) => ({ major: '#ffd070', secret: '#ff9a50' })[t] || '#ffb0a0';
+
 export class HUD {
   constructor(game) {
     this.game = game;
@@ -574,7 +578,7 @@ export class HUD {
     const w = Math.min(W * (major ? 0.5 : 0.4), (major ? 760 : 600) * u), x = W / 2 - w / 2, y = 26 * u;
     const last = bi.phase === bi.phaseCount && bi.phaseCount > 1;
     const hi = last ? '#e8a0ff' : major ? '#ffe6a8' : '#ffe0d0';
-    this.text(ctx, major ? 'MAJOR BOSS' : 'AREA BOSS', W / 2, y - 14 * u, 9 * u, major ? '#ffd070' : '#ffb0a0', { align: 'center' });
+    this.text(ctx, bossKind(bi.type), W / 2, y - 14 * u, 9 * u, bossKindColor(bi.type), { align: 'center' });
     this.text(ctx, bi.name, W / 2, y + (major ? 2 : 0) * u, (major ? 21 : 17) * u, hi, { align: 'center', font: TITLE });
     const by = y + (major ? 12 : 9) * u, bh = (major ? 18 : 14) * u;
     if (major) { ctx.strokeStyle = 'rgba(255,208,112,0.9)'; ctx.lineWidth = 2 * u; ctx.strokeRect(x - 3 * u, by - 3 * u, w + 6 * u, bh + 6 * u); }
@@ -665,8 +669,7 @@ export class HUD {
       const e = enc.entity;
       if (Math.hypot(e.x - p.x, e.y - p.y) > 520) continue;
       const s = this.toScreen(e.x, e.y - (e.sprites ? e.sprites.ay * e.scale : e.height) - 10);
-      const major = enc.def.type === 'major';
-      this.text(ctx, major ? 'MAJOR BOSS' : 'AREA BOSS', s.x, s.y - 26 * u, 9 * u, major ? '#ffd070' : '#ffb0a0', { align: 'center' });
+      this.text(ctx, bossKind(enc.def.type), s.x, s.y - 26 * u, 9 * u, bossKindColor(enc.def.type), { align: 'center' });
       this.text(ctx, `${enc.def.name}  Lv.${enc.def.level}`, s.x, s.y - 12 * u, 12 * u, '#ffe0d0', { align: 'center', font: TITLE });
       const lv = enc.def.recommendedLevel;
       if (lv) this.text(ctx, `Recommended LV ${lv} · step into the ${enc.def.arena.name || 'arena'} to fight`, s.x, s.y + 2 * u, 9 * u, p.level >= lv ? '#bfe8ff' : '#ff9a8a', { align: 'center' });
