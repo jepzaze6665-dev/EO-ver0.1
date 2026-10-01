@@ -991,3 +991,6 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   ≤ 150) + telegraph row `x: [210, 2048]` (its long "TELEGRAPH" label reached past 200; the pose starts at 217).
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.
+- ITEM CATALOGUE (owner: for making item graphics): `node tools/itemCatalog/build.mjs` -> docs/items/item_catalog.html +
+  docs/items/ECLIPSE_ONLINE_Items.pdf (headless Edge / Chrome print-to-PDF; no Python on this machine). Reads the live item data;
+  Thai art briefs per item in tools/itemCatalog/briefs.mjs (items without one get an automatic brief). Rebuild after item changes.
