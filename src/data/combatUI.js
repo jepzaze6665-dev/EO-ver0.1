@@ -10,4 +10,7 @@
 export const COMBAT_UI = {
   dodgeHint: { learnAfter: 5 },
   questFade: { alpha: 0.22, speed: 3, foes: 2 },
+  // HUD layout (owner chose B, docs/ui/ECLIPSE_ONLINE_HUD_Layout.pdf): 'focus' = class resource bar (+ tiers) and class
+  // counter above the skill bar; 'classic' = both in the top-left frame. The player can switch in the ESC menu (localStorage).
+  hudLayout: { default: 'focus', options: ['focus', 'classic'], storageKey: 'eclipse_hud_layout' },
 };

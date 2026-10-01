@@ -220,46 +220,32 @@ export class HUD {
     const lowCol = low ? `rgba(255,120,110,${0.7 + 0.3 * Math.sin(g.time * 10)})` : sdef.colors[0];
     this.text(ctx, 'STA', bx, y + 45 * u, 9 * u, lowCol);
     this.bar(ctx, bx + 26 * u, y + 38 * u, bw - 26 * u, 7 * u, p.resources.ratio(sid), low ? '#ff7060' : sdef.colors[0], low ? '#6a1a14' : sdef.colors[1]);
-    // primary resource bar — label/colours come from resource data (works for any class)
+    // HUD LAYOUT (data/combatUI.js hudLayout): 'focus' (owner's choice B) = class resource + class counter sit above the
+    // skill bar (drawn by drawSkillBar); 'classic' = both here, under HP / STA as before
+    const focus = this.layout() === 'focus';
     const rid = p.primaryResource, rdef = RESOURCES[rid];
-    // long labels (MOMENTUM) shrink to fit the 48 px slot left of the bar
-    ctx.font = `700 ${Math.round(10 * u)}px ${FONT}`;
-    const lw = ctx.measureText(rdef.label).width, lsz = lw > 48 * u ? (10 * u * 48 * u) / lw : 10 * u;
-    this.text(ctx, rdef.label, bx, y + 58 * u, lsz, rdef.colors[0]);
-    this.bar(ctx, bx + 52 * u, y + 49 * u, bw - 52 * u, 10 * u, p.resources.ratio(rid), rdef.colors[0], rdef.colors[1]);
-    this.text(ctx, `${Math.floor(p.resources.get(rid))}`, bx + bw - 4 * u, y + 58 * u, 9 * u, '#fff', { align: 'right' });
-    // resource tiers (data tiers): a tick at each threshold + the active tier's name
-    if (rdef.tiers) {
-      const x0 = bx + 52 * u, w0 = bw - 52 * u, max = p.resources.max(rid);
-      ctx.fillStyle = 'rgba(255,255,255,0.75)';
-      for (const tr of rdef.tiers) ctx.fillRect(Math.round(x0 + w0 * (tr.at / max)), y + 47 * u, Math.max(1, 1.5 * u), 14 * u);
-      const td = p.resources.tierDef(rid);
-      if (td) this.text(ctx, td.label, x0 + 4 * u, y + 58 * u, 8 * u, `rgba(255,240,255,${0.75 + 0.25 * Math.sin(g.time * 6)})`);
+    if (!focus) {
+      // long labels (MOMENTUM) shrink to fit the 48 px slot left of the bar
+      ctx.font = `700 ${Math.round(10 * u)}px ${FONT}`;
+      const lw = ctx.measureText(rdef.label).width, lsz = lw > 48 * u ? (10 * u * 48 * u) / lw : 10 * u;
+      this.text(ctx, rdef.label, bx, y + 58 * u, lsz, rdef.colors[0]);
+      this.resourceBar(ctx, bx + 52 * u, y + 49 * u, bw - 52 * u, 10 * u, u);
     }
     // EXP (thin) + numbers, gold
-    this.bar(ctx, bx, y + 63 * u, bw, 4 * u, p.isMaxLevel ? 1 : p.exp / p.expToNext(), '#ffe08a', '#b08a20');
-    this.text(ctx, p.isMaxLevel ? 'EXP MAX' : `EXP ${p.exp} / ${p.expToNext()}`, bx, y + 78 * u, 9 * u, '#e8d08a');
-    this.text(ctx, p.gold.toLocaleString(), bx + bw, y + 78 * u, 11 * u, '#f0c860', { align: 'right', font: TITLE, weight: 500 });
+    const ey = focus ? -12 * u : 0;
+    this.bar(ctx, bx, y + 63 * u + ey, bw, 4 * u, p.isMaxLevel ? 1 : p.exp / p.expToNext(), '#ffe08a', '#b08a20');
+    this.text(ctx, p.isMaxLevel ? 'EXP MAX' : `EXP ${p.exp} / ${p.expToNext()}`, bx, y + 78 * u + ey, 9 * u, '#e8d08a');
+    this.text(ctx, p.gold.toLocaleString(), bx + bw, y + 78 * u + ey, 11 * u, '#f0c860', { align: 'right', font: TITLE, weight: 500 });
     ctx.font = `500 ${Math.round(11 * u)}px ${TITLE}`;
-    this.uiIcon(ctx, 'cur_gold', bx + bw - ctx.measureText(p.gold.toLocaleString()).width - 15 * u, y + 68 * u, 12 * u);
+    this.uiIcon(ctx, 'cur_gold', bx + bw - ctx.measureText(p.gold.toLocaleString()).width - 15 * u, y + 68 * u + ey, 12 * u);
     // class counter (Shadow Marks / Astral Threads / ...) — the class says what to show
-    const my = y + ps + 22 * u;
-    const hc = p.cls.hudCounter ? p.cls.hudCounter(p) : null;
+    const my = focus ? y + ps - 22 * u : y + ps + 22 * u;
+    const hc = !focus && p.cls.hudCounter ? p.cls.hudCounter(p) : null;
     if (hc) {
-      const full = hc.value >= hc.max;
       this.panel(ctx, x, my - 16 * u, 180 * u, 40 * u, 0.75);
       this.text(ctx, hc.label, x + 8 * u, my - 2 * u, 10 * u, hc.full);
-      for (let i = 0; i < hc.max; i++) {
-        const on = i < hc.value;
-        const cx = x + 20 * u + i * 26 * u, cy = my + 12 * u, r = 8 * u * (on && p.markPulse > 0 && i === hc.value - 1 ? 1 + p.markPulse * 0.5 : 1);
-        ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r * 0.8, cy); ctx.lineTo(cx, cy + r); ctx.lineTo(cx - r * 0.8, cy); ctx.closePath();
-        if (on) {
-          ctx.fillStyle = full ? hc.full : hc.color; ctx.fill();
-          ctx.shadowColor = hc.color; ctx.shadowBlur = 10 * u; ctx.fill(); ctx.shadowBlur = 0;
-        } else { ctx.fillStyle = 'rgba(20,10,34,0.6)'; ctx.fill(); }
-        ctx.strokeStyle = on ? 'rgba(20,10,40,0.9)' : 'rgba(170,160,210,0.8)'; ctx.lineWidth = 1.5 * u; ctx.stroke();
-      }
-      this.text(ctx, `${hc.value} / ${hc.max}`, x + 172 * u, my + 17 * u, 13 * u, full ? hc.full : '#b8b0d8', { align: 'right' });
+      this.counterRow(ctx, x + 20 * u, my + 12 * u, u, hc);
+      this.text(ctx, `${hc.value} / ${hc.max}`, x + 172 * u, my + 17 * u, 13 * u, hc.value >= hc.max ? hc.full : '#b8b0d8', { align: 'right' });
       if (hc.ready && hc.readyText) this.text(ctx, hc.readyText, x, my + 42 * u, 11 * u, `rgba(240,220,255,${0.6 + 0.4 * Math.sin(g.time * 6)})`);
     }
     // status chips
@@ -309,11 +295,13 @@ export class HUD {
       ctx.fillStyle = gr; ctx.fillRect(bx0, y - 8 * u, bw0, size + 30 * u);
       ctx.fillStyle = 'rgba(236,228,210,0.18)'; ctx.fillRect(bx0 + bw0 * 0.15, y - 8 * u, bw0 * 0.7, 1);
     }
+    // FOCUS layout: class resource + counter above the slots; the hints stack above that block
+    const focusTop = this.layout() === 'focus' ? this.drawFocusBlock(ctx, W, y, total, u) : y;
     // dodge hint: bright when there is stamina for a dodge
     // (a tutorial hint: it fades out for good once the player has learned to dodge — data/combatUI.js)
-    if (this.dodgeHintA > 0) { ctx.globalAlpha = this.dodgeHintA; this.text(ctx, 'DODGE [SPACE]', W / 2, y - 18 * u, 9 * u, p.resources.canAfford(STAMINA.resource, p.dodgeCost ? p.dodgeCost() : STAMINA.dodge) ? '#9af8ff' : 'rgba(150,120,120,0.8)', { align: 'center' }); ctx.globalAlpha = 1; }
+    if (this.dodgeHintA > 0) { ctx.globalAlpha = this.dodgeHintA; this.text(ctx, 'DODGE [SPACE]', W / 2, focusTop - 18 * u, 9 * u, p.resources.canAfford(STAMINA.resource, p.dodgeCost ? p.dodgeCost() : STAMINA.dodge) ? '#9af8ff' : 'rgba(150,120,120,0.8)', { align: 'center' }); ctx.globalAlpha = 1; }
     const hc = cls.hudCounter ? cls.hudCounter(p) : null;
-    if (hc && hc.ready && hc.readyText) {
+    if (hc && hc.ready && hc.readyText && this.layout() !== 'focus') { // focus layout shows READY beside the counter
       const k = 0.65 + 0.35 * Math.sin(g.time * 8);
       this.text(ctx, `◆ ◆ ◆  ${hc.readyText.replace(' — ', '  —  ')}`, W / 2, y - 42 * u, 15 * u * (0.95 + k * 0.08), `rgba(240,220,255,${k})`, { align: 'center', font: TITLE });
     }
@@ -397,6 +385,70 @@ export class HUD {
       if (hover && sl.s) this.tooltip(ctx, sx, sy - 8 * u, sl.s, u);
       x += size + gap;
     });
+  }
+
+  // HUD layout: the player's choice (ESC menu, kept in localStorage) else the data default
+  layout() {
+    if (this._layout === undefined) {
+      let v = null;
+      try { v = localStorage.getItem(COMBAT_UI.hudLayout.storageKey); } catch (e) { v = null; }
+      this._layout = COMBAT_UI.hudLayout.options.includes(v) ? v : COMBAT_UI.hudLayout.default;
+    }
+    return this._layout;
+  }
+  setLayout(v) {
+    if (!COMBAT_UI.hudLayout.options.includes(v)) return;
+    this._layout = v;
+    try { localStorage.setItem(COMBAT_UI.hudLayout.storageKey, v); } catch (e) { /* private mode: this session only */ }
+  }
+
+  // the class resource bar: colours / tiers from resource data (any class) — tick per tier + the active tier's name
+  resourceBar(ctx, x, y, w, h, u) {
+    const g = this.game, p = g.player, rid = p.primaryResource, rdef = RESOURCES[rid];
+    this.bar(ctx, x, y, w, h, p.resources.ratio(rid), rdef.colors[0], rdef.colors[1]);
+    this.text(ctx, `${Math.floor(p.resources.get(rid))}`, x + w - 4 * u, y + h - 1 * u, 9 * u, '#fff', { align: 'right' });
+    if (rdef.tiers) {
+      const max = p.resources.max(rid);
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      for (const tr of rdef.tiers) ctx.fillRect(Math.round(x + w * (tr.at / max)), y - 2 * u, Math.max(1, 1.5 * u), h + 4 * u);
+      const td = p.resources.tierDef(rid);
+      if (td) this.text(ctx, td.label, x + 4 * u, y + h - 1 * u, 8 * u, `rgba(255,240,255,${0.75 + 0.25 * Math.sin(g.time * 6)})`);
+    }
+  }
+
+  // class counter diamonds (hudCounter: value / max / colours), first one centred at (x, cy)
+  counterRow(ctx, x, cy, u, hc, step = 26) {
+    const p = this.game.player, full = hc.value >= hc.max;
+    for (let i = 0; i < hc.max; i++) {
+      const on = i < hc.value;
+      const cx = x + i * step * u, r = 8 * u * (on && p.markPulse > 0 && i === hc.value - 1 ? 1 + p.markPulse * 0.5 : 1);
+      ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r * 0.8, cy); ctx.lineTo(cx, cy + r); ctx.lineTo(cx - r * 0.8, cy); ctx.closePath();
+      if (on) {
+        ctx.fillStyle = full ? hc.full : hc.color; ctx.fill();
+        ctx.shadowColor = hc.color; ctx.shadowBlur = 10 * u; ctx.fill(); ctx.shadowBlur = 0;
+      } else { ctx.fillStyle = 'rgba(20,10,34,0.6)'; ctx.fill(); }
+      ctx.strokeStyle = on ? 'rgba(20,10,40,0.9)' : 'rgba(170,160,210,0.8)'; ctx.lineWidth = 1.5 * u; ctx.stroke();
+    }
+  }
+
+  // FOCUS layout (B): class counter + class resource bar centred above the skill bar
+  drawFocusBlock(ctx, W, y, total, u) {
+    const g = this.game, p = g.player, rdef = RESOURCES[p.primaryResource];
+    const w = Math.min(total * 0.72, 380 * u), x = W / 2 - w / 2, by = y - 20 * u;
+    ctx.font = `600 ${Math.round(9 * u)}px ${TITLE}`;
+    this.text(ctx, rdef.label, x - 8 * u, by + 8 * u, 9 * u, rdef.colors[0], { align: 'right', font: TITLE, weight: 600 });
+    this.resourceBar(ctx, x, by, w, 9 * u, u);
+    const hc = p.cls.hudCounter ? p.cls.hudCounter(p) : null;
+    if (!hc) return by;
+    const step = 22, rowW = (hc.max - 1) * step * u, cy = by - 16 * u, full = hc.value >= hc.max;
+    const ready = hc.ready && hc.readyText;
+    const rx = ready ? W / 2 - rowW - 20 * u : W / 2 - rowW / 2;
+    this.counterRow(ctx, rx, cy, u, hc, step);
+    if (ready) {
+      const k = 0.65 + 0.35 * Math.sin(g.time * 8);
+      this.text(ctx, hc.readyText.split(' — ')[0], W / 2, cy + 5 * u, 14 * u, `rgba(240,220,255,${k})`, { font: TITLE, weight: 600 });
+    } else this.text(ctx, `${hc.value}/${hc.max}`, rx + rowW + 14 * u, cy + 4 * u, 10 * u, full ? hc.full : '#b8b0d8', { font: TITLE });
+    return cy - 12 * u;
   }
 
   // UI v2 SKILL FRAME: thin rounded border + corner ticks. kind: skill / special (violet) / ultimate (gold, diamond

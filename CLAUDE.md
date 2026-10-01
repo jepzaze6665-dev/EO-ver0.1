@@ -1015,6 +1015,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   diamond + plain shadowed lines; minimap edge cream.
   Done U-E: ESC menu = left side panel (np-head + .esc-list buttons with menu_* icons, World Map entry), confirm pop-up =
   .panel.confirm with kbd key caps (E / Esc), world map header icon + key hint, death / title colours. UI v2 U-A..U-E COMPLETE.
+  HUD LAYOUT B (owner chose it from docs/ui/ECLIPSE_ONLINE_HUD_Layout.pdf): data/combatUI.js hudLayout { default focus, options
+  focus / classic, storageKey } — focus = class resource bar (tier ticks + tier name) + class counter diamonds + READY text centred
+  above the skill bar (hud.drawFocusBlock), the top-left frame keeps HP / STA / EXP / gold; classic = the old top-left placement.
+  Shared hud.resourceBar / counterRow; hud.layout() / setLayout() (localStorage, per player); ESC menu button HUD: Focus / Classic.
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

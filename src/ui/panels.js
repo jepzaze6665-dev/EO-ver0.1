@@ -578,6 +578,7 @@ export class Panels {
         <div class="esc-list">
           ${[['resume', 'Resume', 'menu_class', ''], ['save', 'Save', 'menu_save', ''], ['load', 'Load', 'menu_save', g.save.exists() ? '' : 'disabled'],
             ['map', 'World Map', 'menu_map', ''], ['controls', 'Controls', 'menu_codex', ''], ['mute', (g.audio.muted ? 'Unmute' : 'Mute') + ' Audio', 'menu_settings', ''],
+            ['layout', 'HUD: ' + (g.ui.hud.layout() === 'focus' ? 'Focus (skill bar)' : 'Classic (top-left)'), 'menu_skills', ''],
             ['reset', 'Reset Progress', 'menu_quests', ''], ['title', 'Title Screen', 'menu_equipment', '']]
             .map(([a, l, ic, dis]) => `<button data-a="${a}" ${dis}><img src="${UI_ICON(ic)}" alt="">${l}</button>`).join('')}
         </div>
@@ -599,6 +600,7 @@ export class Panels {
       }
       if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.menu(), true);
       if (a === 'mute') { g.audio.setMuted(!g.audio.muted); this.menu(); }
+      if (a === 'layout') { g.ui.hud.setLayout(g.ui.hud.layout() === 'focus' ? 'classic' : 'focus'); this.menu(); }
       if (a === 'title') { this.close(); g.toTitle(); }
     });
   }

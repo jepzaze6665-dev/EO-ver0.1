@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><title>ECLIPSE ONLINE — HUD Layout</title>
+<style>
+@font-face { font-family: Kanit; src: url(../../assets/fonts/Kanit-Medium.ttf); font-weight: 500; }
+@font-face { font-family: Kanit; src: url(../../assets/fonts/Kanit-SemiBold.ttf); font-weight: 600; }
+@font-face { font-family: Noto; src: url(../../assets/fonts/NotoSansThai.ttf); }
+@page { size: A4 landscape; margin: 9mm; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Segoe UI", Noto, sans-serif; color: #222; }
+.page { page-break-after: always; padding: 2mm; }
+h1 { font: 600 24px Kanit, sans-serif; margin: 0 0 4px; } h2 { font: 600 18px Kanit, sans-serif; margin: 0 0 4px; }
+p, li { font-size: 12px; line-height: 1.5; margin: 3px 0; } .note { color: #555; }
+.pro { color: #1a7a3a; } .con { color: #b03030; }
+/* ---------- the mocked game screen ---------- */
+.scr { position: relative; width: 980px; height: 551px; margin: 6px auto; overflow: hidden; border-radius: 4px; color: #ece4d2;
+  font-family: "Segoe UI", Noto, sans-serif; background:
+  radial-gradient(ellipse at 50% 55%, rgba(0,0,0,0) 30%, rgba(0,0,0,.45) 100%),
+  repeating-linear-gradient(0deg, rgba(0,0,0,.07) 0 32px, transparent 32px 64px), repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 32px, transparent 32px 64px),
+  linear-gradient(180deg, #34452a, #263420); }
+.road { position: absolute; left: 445px; top: 0; width: 90px; height: 100%; background: rgba(110,80,50,.55); }
+.sprite { position: absolute; width: 160px; height: 160px; background: url(../../assets/player/walk.png) 0 0 no-repeat; image-rendering: pixelated; }
+.boss { position: absolute; left: 520px; top: 120px; width: 150px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(140,40,180,.55), rgba(60,10,90,.0) 70%); }
+.tele { position: absolute; border: 2px solid rgba(255,70,70,.8); background: rgba(255,50,50,.18); border-radius: 50%; }
+.k { font: 600 9px Kanit, sans-serif; }
+/* player frame (top-left) */
+.pf { position: absolute; left: 0; top: 4px; padding: 10px 14px; display: flex; gap: 10px; align-items: center; background: linear-gradient(90deg, rgba(6,6,10,.72), rgba(6,6,10,.45) 75%, transparent); width: 360px; }
+.dia { width: 62px; height: 62px; background: url(../../assets/ui/icons/level_diamond.png) center/contain no-repeat; display: flex; align-items: center; justify-content: center; font: 600 20px Kanit, sans-serif; color: #fff; }
+.bars { flex: 1; } .nm { font: 600 14px Kanit, sans-serif; margin-bottom: 3px; } .nm::before { content: ""; display: inline-block; width: 3px; height: 11px; background: #a070ff; margin-right: 6px; }
+.bar { position: relative; height: 9px; background: rgba(6,6,10,.75); border: 1px solid rgba(236,228,210,.22); margin: 3px 0; }
+.bar i { position: absolute; inset: 0 auto 0 0; } .bar.thin { height: 5px; }
+.hp i { background: linear-gradient(#ff5a6e, #a01830); } .st i { background: linear-gradient(#e8d070, #a08020); } .rs i { background: linear-gradient(#b080ff, #5a2ab0); } .ex i { background: linear-gradient(#ffe08a, #b08a20); }
+.bar b { position: absolute; right: 3px; top: -2px; font: 500 8px Kanit; color: #fff; text-shadow: 0 0 2px #000; }
+.lbl { display: flex; gap: 6px; align-items: center; font-size: 8px; color: #cfc7b4; } .lbl .bar { flex: 1; }
+.tick { position: absolute; top: -3px; bottom: -3px; width: 2px; background: rgba(255,255,255,.85); }
+.tier { position: absolute; left: 4px; top: -2px; font: 600 7px Kanit; color: #fff; letter-spacing: 1px; }
+/* minimap + quests */
+.mm { position: absolute; right: 14px; top: 14px; width: 130px; height: 130px; background: #1f2d1a; border: 1.5px solid rgba(236,228,210,.45); }
+.qt { position: absolute; right: 14px; top: 166px; width: 200px; font-size: 10px; }
+.qt .h { background: rgba(6,6,10,.82); border-left: 2px solid #e8d7a5; padding: 3px 8px; font: 600 10px Kanit; color: #e8d7a5; }
+.qt .l { padding: 2px 8px; text-shadow: 0 1px 2px #000; }
+/* class counter (shadow marks) */
+.marks { display: flex; gap: 7px; align-items: center; }
+.mk { width: 13px; height: 13px; transform: rotate(45deg); border: 1.5px solid rgba(200,190,230,.85); background: rgba(20,10,34,.6); }
+.mk.on { background: #b070ff; border-color: #1a0a30; box-shadow: 0 0 8px #b070ff; }
+.mkbox { position: absolute; background: rgba(6,6,10,.7); border-top: 1px solid rgba(236,228,210,.3); padding: 6px 10px; font-size: 9px; }
+.ready { font: 600 13px Kanit, sans-serif; letter-spacing: 2px; color: #ecdcff; text-shadow: 0 0 10px #a060ff; }
+/* skill bar */
+.sb { position: absolute; left: 50%; transform: translateX(-50%); bottom: 18px; display: flex; gap: 6px; padding: 8px 40px 14px; background: linear-gradient(90deg, transparent, rgba(6,6,10,.6) 15%, rgba(6,6,10,.6) 85%, transparent); }
+.sl { position: relative; width: 46px; height: 46px; border: 1.25px solid rgba(236,228,210,.42); border-radius: 7px; background: rgba(8,8,12,.88); padding: 3px; }
+.sl img { width: 100%; height: 100%; border-radius: 5px; display: block; }
+.sl.ult { border: 2px solid #e7a13a; } .sl.ult::before { content: ""; position: absolute; left: 50%; top: -5px; width: 8px; height: 8px; margin-left: -4px; transform: rotate(45deg); background: #e7a13a; }
+.sl.sp { border-color: rgba(176,128,240,.8); } .sl.glow { box-shadow: 0 0 10px rgba(176,128,240,.9); }
+.sl .kc { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); background: #06060a; border: 1px solid rgba(236,228,210,.45); border-radius: 3px; padding: 0 4px; font: 600 8px Kanit; }
+.gap { width: 10px; }
+.lab { position: absolute; background: #f2d34b; color: #000; font: 600 10px Kanit, sans-serif; padding: 1px 7px; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.arrow { position: absolute; border-top: 2px dashed #f2d34b; }
+table { border-collapse: collapse; width: 100%; font-size: 12px; } th, td { border: 1px solid #bbb; padding: 5px 7px; text-align: left; vertical-align: top; } th { background: #eee; }
+</style></head><body>
+
+<script>
+// builds one mocked screen. opts: { counter: 'topleft' | 'center', resource: 'topleft' | 'center', hp: 'topleft' | 'center', cls: 'ub' | 'dr' }
+const ICON = (n) => `../../assets/icons/${n}.png`;
+function skillBar(cls) {
+  const s = cls === 'dr' ? ['dr_sk1', 'dr_sk2', 'dr_sk3', 'dr_sk4'] : ['ub_sk1', 'ub_sk2', 'ub_sk3', 'ub_sk4'];
+  const ult = cls === 'dr' ? 'dr_sk7' : 'ub_ut', sp = cls === 'dr' ? 'dr_sk5' : 'ub_sk5';
+  return s.map((n, i) => `<div class="sl"><img src="${ICON(n)}" onerror="this.style.opacity=.2"><span class="kc">${i + 1}</span></div>`).join('')
+    + `<div class="sl ult"><img src="${ICON(ult)}" onerror="this.style.opacity=.2"><span class="kc">5</span></div><div class="gap"></div>`
+    + `<div class="sl sp glow"><img src="${ICON(sp)}" onerror="this.style.opacity=.2"><span class="kc">Q</span></div>`
+    + `<div class="sl"><span style="display:block;width:100%;height:100%;border-radius:5px;background:radial-gradient(circle at 50% 60%,#e05060 35%,transparent 40%)"></span><span class="kc">R</span></div>`
+    + `<div class="sl"><span style="display:block;width:100%;height:100%;border-radius:5px;background:radial-gradient(circle at 50% 60%,#a060ff 35%,transparent 40%)"></span><span class="kc">F</span></div>`;
+}
+const marks = (n = 3, max = 3) => `<div class="marks">${Array.from({ length: max }, (_, i) => `<div class="mk ${i < n ? 'on' : ''}"></div>`).join('')}</div>`;
+const resBar = (cls, w = '100%', thin = false) => cls === 'dr'
+  ? `<div class="bar ${thin ? 'thin' : ''}" style="width:${w}"><i style="width:72%;background:linear-gradient(#5af0ff,#1a7090)"></i><span class="tick" style="left:30%"></span><span class="tick" style="left:60%"></span><span class="tier">RUSH</span><b>72</b></div>`
+  : `<div class="bar ${thin ? 'thin' : ''} rs" style="width:${w}"><i style="width:45%"></i><b>45</b></div>`;
+function screen(o) {
+  const cls = o.cls || 'ub', resName = cls === 'dr' ? 'MOMENTUM' : 'SHADOW', name = cls === 'dr' ? 'Duskrunner' : 'Umbral Sword';
+  const top = `<div class="pf"><div class="dia">24</div><div class="bars"><div class="nm">${name}</div>
+    ${o.hp === 'center' ? '' : `<div class="lbl">HP<div class="bar hp"><i style="width:68%"></i><b>1,238 / 1,820</b></div></div><div class="lbl">STA<div class="bar thin st"><i style="width:85%"></i></div></div>`}
+    ${o.resource === 'center' ? '' : `<div class="lbl">${resName}${resBar(cls)}</div>`}
+    <div class="lbl">EXP<div class="bar thin ex"><i style="width:40%"></i></div><span style="color:#f0c860;font:500 9px Kanit">◉ 12,408</span></div></div></div>`;
+  const cTop = o.counter === 'topleft' && cls === 'ub' ? `<div class="mkbox" style="left:14px;top:96px;width:150px">SHADOW MARK<div style="display:flex;justify-content:space-between;margin-top:4px">${marks()}<b>3 / 3</b></div><div class="ready" style="font-size:9px;margin-top:4px">SHADOW BREAK READY</div></div>` : '';
+  // centre block above the skill bar
+  let mid = '';
+  if (o.counter === 'center' || o.resource === 'center' || o.hp === 'center') {
+    const items = [];
+    if (o.counter === 'center' && cls === 'ub') items.push(`<div style="display:flex;justify-content:center;gap:10px;align-items:center">${marks()}<span class="ready">SHADOW BREAK READY</span></div>`);
+    if (o.hp === 'center') items.push(`<div style="display:flex;gap:6px;align-items:center;justify-content:center"><div class="bar hp" style="width:200px;height:11px"><i style="width:68%"></i><b>1,238</b></div><div class="bar st" style="width:120px;height:7px"><i style="width:85%"></i></div></div>`);
+    if (o.resource === 'center') items.push(`<div style="display:flex;justify-content:center;align-items:center;gap:6px;font-size:8px;color:#cfc7b4">${resName}${resBar(cls, '320px', true)}</div>`);
+    mid = `<div style="position:absolute;left:50%;transform:translateX(-50%);bottom:${o.hp === 'center' ? 86 : 84}px;display:flex;flex-direction:column;gap:5px;align-items:center;width:460px">${items.join('')}</div>`;
+  }
+  return `<div class="scr"><div class="road"></div><div class="boss"></div>
+    <div class="tele" style="left:330px;top:300px;width:330px;height:150px"></div>
+    <div class="sprite" style="left:410px;top:250px${cls === 'dr' ? ';background-image:url(../../assets/player/dr/walk.png)' : ''}"></div>
+    ${top}${cTop}<div class="mm"></div>
+    <div class="qt"><div class="h">◆ The Burning Rift</div><div class="l">• Defeat the Magma Beast</div></div>
+    ${mid}<div class="sb">${skillBar(cls)}</div>${o.extra || ''}</div>`;
+}
+const page = (title, body) => document.write(`<div class="page">${title}${body}</div>`);
+</script>
+
+<script>
+page(`<h1>HUD Layout — ย้ายตัวนับคลาสมาใกล้แถบสกิล</h1>
+<p class="note">ม็อกอัปทำด้วยโค้ด ใช้ไอคอน / ตัวละคร / กรอบเลเวลจริงของเกม ขนาดเท่าจอ 1280×720 ที่ย่อลง · วงสีแดง = สัญญาณการโจมตีของบอส (telegraph) ตรงที่ผู้เล่นต้องมองตอนสู้ · ป้ายสีเหลือง = จุดที่สายตาต้องไป</p>
+<h2>ปัจจุบัน (ก่อนย้าย)</h2>`,
+screen({ counter: 'topleft', cls: 'ub', extra: `<div class="lab" style="left:170px;top:110px">← ต้องเหลือบมองมุมจอ</div><div class="lab" style="left:430px;top:226px">จุดที่สายตาอยู่ตอนสู้</div>` })
++ `<p><span class="con">ปัญหา:</span> ตัวนับ ◇◇◇ และแถบ resource อยู่มุมซ้ายบน ห่างจากตัวละครและแถบสกิลที่สุด → ตอนรอ 3/3 เพื่อกด Q ต้องละสายตาจาก telegraph</p>`);
+
+page(`<h2>A — ย้ายเฉพาะตัวนับคลาส ◇◇◇ ไปเหนือแถบสกิล</h2>`,
+screen({ counter: 'center', cls: 'ub', extra: `<div class="lab" style="left:700px;top:430px">ตัวนับ + READY อยู่เหนือสกิล</div>` })
++ `<p><span class="pro">ข้อดี:</span> เปลี่ยนน้อยที่สุด ตัวนับที่ "กดตอนเต็ม" (Shadow Mark, Reaper Mark, Astral Threads) อยู่ในสายตา และข้อความ READY อยู่ติดปุ่ม Q</p>
+<p><span class="con">ข้อเสีย:</span> คลาสที่เล่นตาม tier ของแถบ resource (Duskrunner MOMENTUM, Blade of Echoes, Stormcaller…) ยังต้องมองมุมซ้ายบน</p>`);
+
+page(`<h2>B — ตัวนับ + แถบ resource (มีขีด tier) ไว้เหนือแถบสกิล &nbsp;<span style="color:#1a7a3a">★ แนะนำ</span></h2>`,
+screen({ counter: 'center', resource: 'center', cls: 'ub' }) + `<p class="note" style="text-align:center">Umbral Sword — Shadow Mark 3/3 + แถบ SHADOW</p>`);
+page(`<h2>B — ตัวอย่างคลาสที่ไม่มีตัวนับ (Duskrunner: MOMENTUM มีขีด tier 30 / 60 / 100)</h2>`,
+screen({ counter: 'center', resource: 'center', cls: 'dr', extra: `<div class="lab" style="left:735px;top:440px">เห็นว่าถึง RUSH แล้ว กด ult ได้</div>` })
++ `<p><span class="pro">ข้อดี:</span> ทุกอย่างที่ใช้ตัดสินใจกดสกิลอยู่ในสายตา: ตัวนับ, resource และ tier ส่วนมุมซ้ายบนเหลือ HP / STA / EXP / เงิน ที่ไม่ต้องดูทุกวินาที · ทำได้ทั้ง 12 คลาสโดยไม่ต้องแก้ไฟล์คลาส (ใช้ hudCounter + resource data ที่มีอยู่แล้ว)</p>
+<p><span class="con">ข้อเสีย:</span> HP ยังอยู่มุมจอ (แต่ HP มีสัญญาณอื่นช่วยอยู่แล้ว เช่น ตัวเลขดาเมจ ขอบจอแดง)</p>`);
+
+page(`<h2>C — รวมทั้งหมดไว้กลางล่าง (HP + STA + resource + ตัวนับ)</h2>`,
+screen({ counter: 'center', resource: 'center', hp: 'center', cls: 'ub', extra: `<div class="lab" style="left:705px;top:395px">แน่น — ทับพื้นที่ telegraph</div>` })
++ `<p><span class="pro">ข้อดี:</span> โฟกัสดีที่สุด ไม่ต้องละสายตาเลย (แบบ Lost Ark / MMO บางเกม)</p>
+<p><span class="con">ข้อเสีย:</span> กลางล่างแน่นมาก บังวงโจมตีของบอสที่มักมาจากด้านล่างตัวละคร · มุมซ้ายบนว่างจนดูแปลก ต้องย้ายเลเวล / EXP ไปด้วย</p>`);
+
+page(`<h2>สรุปเปรียบเทียบ</h2>`, `<table>
+<tr><th></th><th>A</th><th>B ★</th><th>C</th></tr>
+<tr><td>ตัวนับคลาส ◇◇◇</td><td>เหนือสกิล</td><td>เหนือสกิล</td><td>เหนือสกิล</td></tr>
+<tr><td>แถบ resource + tier</td><td>มุมซ้ายบน</td><td>เหนือสกิล</td><td>เหนือสกิล</td></tr>
+<tr><td>HP / STA</td><td>มุมซ้ายบน</td><td>มุมซ้ายบน</td><td>เหนือสกิล</td></tr>
+<tr><td>เหมาะกับคลาส</td><td>UB / RP / AW (ตัวนับ)</td><td>ทุกคลาส (ตัวนับ + tier)</td><td>ทุกคลาส</td></tr>
+<tr><td>บังสนามรบ</td><td>น้อย</td><td>น้อย-ปานกลาง</td><td>มาก</td></tr>
+<tr><td>งานที่ต้องแก้</td><td>hud.js เล็กน้อย</td><td>hud.js ปานกลาง</td><td>hud.js มาก</td></tr>
+</table>
+<p style="margin-top:10px"><b>คำแนะนำ:</b> B — ข้อมูลที่ใช้ตัดสินใจ "ตอนนี้กดอะไรได้" อยู่ติดแถบสกิล ส่วนข้อมูลที่ดูนาน ๆ ครั้งอยู่มุมจอ · ทุกแบบจะเพิ่มตัวเลือกใน Settings ให้สลับกลับแบบเดิมได้ถ้าต้องการ</p>`);
+</script>
+</body></html>
