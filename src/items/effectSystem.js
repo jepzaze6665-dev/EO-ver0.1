@@ -106,7 +106,7 @@ export class ItemEffectSystem {
     const idx = this.index();
     for (const [trigger, def] of Object.entries(TRIGGER_EVENTS)) {
       if (!idx[trigger] || !(def.event === evName || (Array.isArray(def.event) && def.event.includes(evName)))) continue;
-      if (def.who(e) !== p || (def.skip && def.skip(e, p))) continue;
+      if (def.who(e, p) !== p || (def.skip && def.skip(e, p))) continue;
       const ctx = def.ctx(e);
       for (const entry of idx[trigger]) this.tryFire(entry, p, ctx);
     }

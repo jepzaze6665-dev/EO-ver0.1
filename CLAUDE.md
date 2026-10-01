@@ -946,6 +946,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   playthrough 17/17. (b1BossCheck can lose the bot once: god mode only keeps 50% HP and Hoarfang hits up to 54%;
   a2BossCheck "every move used" depends on the boss's random move picks — both old, rerun.)
   ITEM + COMBAT LOADOUT SYSTEM COMPLETE (G1-G6). Next: owner decides (more items for other classes, shops, human playtest).
+  ITEM BUILD PASS (owner's 39-section item prompt, checked against G1-G6: only the missing parts). Plan I1 modifiers /
+  triggers / level req · I2 set bonus (data) · I3 Umbral + Astral + universal items (with tradeoffs) · I4 boss signature items
+  A3 / B2 / B3 / Varkharon + console item debug API + integration test.
+  Done I1: MODIFIER_TYPES + critChance (crit) / critDamage (critDmg) / physicalDamage / shadowDamage / attackSpeed / healingPower
+  (healPower) / statusResistance (tenacity) — all stats combat already reads; ASTRAL damage = magicDamage (Astral hits are
+  'magic') — and `resourceMax` (rules `unit: 'flat'`, points; Player.syncGearResources -> pool 'maxAdd', never stamina).
+  Triggers onCrit · onFullResource (only the gain that crosses the max) · onStatusApplied (on someone else) · onBossPhase
+  (bossPhaseChanged; trigger `who(e, p)` now gets the wearer). Conditions targetHasStatus { status } · statusIs { status }.
+  Item field `levelRequirement` (default 0; Equipment.check -> EQUIP_FAIL.level; meetsLevel in itemDefs). Rarity `mythic`
+  (UNIQUE_RARITIES legendary + mythic need an effect). Tooltip: "Requires LV n", flat values (modValue), swap preview
+  PASSIVE CHANGES (swapPreview gained / lost effect texts). Loadout FINAL STATS: crit, crit dmg, attack speed, physical /
+  shadow dmg, healing, status res, resource max. Tests tools/tests/itemI1.test.mjs (12, test-only items).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

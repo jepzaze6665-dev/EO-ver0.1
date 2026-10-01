@@ -5,10 +5,18 @@
 import { ITEMS, RARITY_COLOR } from '../items/items.js';
 import { GEAR_SLOTS, MODIFIER_TYPES } from '../data/items/rules.js';
 import { iconURL } from './icons.js';
-import { esc, modifierText, swapPreview } from './itemTooltip.js';
+import { esc, modifierText, modValue, swapPreview } from './itemTooltip.js';
+import { meetsLevel } from '../items/itemDefs.js';
 
 const pct = (v) => `${Math.round(v * 100)}%`;
 const signed = (v) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}%`;
+
+// the class resource's maximum, with or without the item bonus (resourceMax)
+const resMax = (p, withItems) => {
+  const r = p.resources, id = p.primaryResource;
+  if (!r || !r.has(id)) return 0;
+  return withItems ? r.max(id) : r.defs[id].max;
+};
 
 // stat rows: [label, value now, value without items] — the list the spec asks for (§27)
 export function finalStatRows(p) {
@@ -20,6 +28,14 @@ export function finalStatRows(p) {
     ['Attack', num('atk'), b('atk')],
     ['Movement Speed', num('speed'), b('speed')],
     ['Cooldown Reduction', pct(st.cdr || 0), pct(base.cdr || 0)],
+    ['Critical Chance', pct(st.crit || 0), pct(base.crit || 0)],
+    ['Critical Damage', signed(st.critDmg || 0), signed(base.critDmg || 0)],
+    ['Attack Speed', signed(st.attackSpeed || 0), signed(base.attackSpeed || 0)],
+    ['Physical Damage', signed(st.physicalDmg || 0), signed(base.physicalDmg || 0)],
+    ['Shadow Damage', signed(st.shadowDmg || 0), signed(base.shadowDmg || 0)],
+    ['Healing Power', signed(st.healPower || 0), signed(base.healPower || 0)],
+    ['Status Resistance', pct(st.tenacity || 0), pct(base.tenacity || 0)],
+    ['Resource Max', resMax(p, true), resMax(p, false)],
     ['Resource Generation', signed(gm('resourceGeneration')), signed(0)],
     ['Resource Cost', signed(gm('resourceCost')), signed(0)],
     ['Guard Generation', signed(gm('guardGeneration')), signed(0)],
@@ -56,9 +72,10 @@ export function loadoutHTML(g, { pickSlot = null } = {}) {
     const owned = [...new Set(inv.gear.map((x) => x.itemId))].filter((id) => ITEMS[id].type === slot.type);
     picker = `<div class="lo-picker"><h4>${esc(slot.label)} — your items</h4>${owned.length ? owned.map((id) => {
       const d = ITEMS[id], sw = swapPreview(eq, id);
-      const hint = sw && sw.changes.length ? sw.changes.slice(0, 3).map((c) => `${(MODIFIER_TYPES[c.type] || {}).label} ${signed(c.after - c.before)}`).join(' · ') : '';
+      const hint = sw && sw.changes.length ? sw.changes.slice(0, 3).map((c) => `${(MODIFIER_TYPES[c.type] || {}).label} ${modValue(c.type, c.after - c.before)}`).join(' · ') : '';
+      const lvl = meetsLevel(d, p.level) ? '' : `<div class="small" style="color:#ff7a6a">Requires LV ${d.levelRequirement}</div>`;
       return `<div class="lo-pick" data-equip-to="${id}:${pickSlot}" data-tip="${id}">
-        <img src="${iconURL(d.icon, d.color)}"><div><div style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</div><div class="small muted">${esc(hint)}</div></div></div>`;
+        <img src="${iconURL(d.icon, d.color)}"><div><div style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</div><div class="small muted">${esc(hint)}</div>${lvl}</div></div>`;
     }).join('') : '<div class="muted small">Nothing for this slot yet.</div>'}</div>`;
   }
   const rows = finalStatRows(p).map(([label, now, base]) => `<div><span>${label}</span><b>${now}${String(now) !== String(base) ? ` <span class="lo-base">(${base})</span>` : ''}</b></div>`).join('');

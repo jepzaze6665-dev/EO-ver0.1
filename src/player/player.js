@@ -101,7 +101,7 @@ export class Player extends Entity {
   // (data/resources.js, e.g. guardGeneration) -> gain; resourceCost -> cost. Stamina is never touched.
   syncGearResources() {
     if (!this.resources) return;
-    const gen = this.gearMod('resourceGeneration'), cost = this.gearMod('resourceCost');
+    const gen = this.gearMod('resourceGeneration'), cost = this.gearMod('resourceCost'), maxAdd = Math.round(this.gearMod('resourceMax'));
     for (const id of Object.keys(this.resources.defs)) {
       if (id === STAMINA.resource) continue;
       const d = this.resources.defs[id];
@@ -109,6 +109,8 @@ export class Player extends Entity {
       const set = (key, kind, v) => { const mid = 'gear_' + key + '_' + id; if (Math.abs(v - 1) < 1e-9) this.resources.removeModifier(mid); else this.resources.addModifier({ id: mid, resource: id, kind, value: v }); };
       set('gain', 'gainMult', Math.max(0, gain));
       set('cost', 'costMult', Math.max(0, 1 + cost));
+      const mid = 'gear_max_' + id; // + points on the maximum (resourceMax)
+      if (!maxAdd) this.resources.removeModifier(mid); else this.resources.addModifier({ id: mid, resource: id, kind: 'maxAdd', value: maxAdd });
     }
   }
   recomputeStats() {

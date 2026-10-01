@@ -1,7 +1,8 @@
 // ITEM TRIGGERS — which game event each item trigger listens to (data). items/effectSystem.js subscribes once per
 // event name and asks the entry:
 //   event   : game event name (game.events), or a list of names
-//   who(e)  : the player the event is about (the one whose gear may react); null = not a player event
+//   who(e, p): the player the event is about (the one whose gear may react); null = not a player event
+//             (p = the wearer, for world events that concern everyone present, e.g. a boss phase)
 //   ctx(e)  : what the effect / condition may use { target, source, amount, blocked, skillId, perfect, resource }
 //   skip?(e, p): true = not this trigger (filters such as "only basic hits", "only mobility skills")
 // A new trigger = a new entry here (+ its name in rules.js TRIGGERS). Nothing in combat names an item.
@@ -57,6 +58,26 @@ export const TRIGGER_EVENTS = {
     event: 'damageTaken', who: (e) => e.target, skip: (e) => !(e.amount > 0),
     ctx: (e) => ({ source: e.source, amount: e.amount, crossing: true }),
   },
+  // I1 ---------------------------------------------------------------------------------------------------------
+  // a critical hit by the wearer (same filters as onHit)
+  onCrit: {
+    event: 'damageDealt', who: (e) => e.source,
+    skip: (e) => !e.crit || !notDot(e) || fromItem(e) || e.target === e.source,
+    ctx: (e) => ({ target: e.target, amount: e.amount, crit: true, skillId: e.skillId }),
+  },
+  // the class resource reaching its maximum (once per fill: only the gain that crosses the top counts)
+  onFullResource: {
+    event: 'resourceChanged', who: (e) => e.entity,
+    skip: (e, p) => e.resource === 'stamina' || e.reason === 'item' || !(e.value > e.before) || !p.resources || e.value < p.resources.max(e.resource) || e.before >= p.resources.max(e.resource),
+    ctx: (e) => ({ resource: e.resource, amount: e.value - e.before }),
+  },
+  // a status the wearer put on someone else (bleed, shock, a mark-like debuff ...); statusIs / targetHasStatus filter it
+  onStatusApplied: {
+    event: 'statusApplied', who: (e) => e.source, skip: (e) => e.target === e.source,
+    ctx: (e) => ({ target: e.target, statusId: e.id }),
+  },
+  // a boss the wearer is fighting enters a new phase (local game: the boss of the map you are on)
+  onBossPhase: { event: 'bossPhaseChanged', who: (e, p) => p, ctx: (e) => ({ bossId: e.bossId, phase: e.phase }) },
 };
 export const LOW_HP_DEFAULT = 0.3;
 

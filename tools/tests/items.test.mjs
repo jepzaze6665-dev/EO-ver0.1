@@ -54,10 +54,10 @@ test('legendary = unique effect; Oath Mirror comes from boss_a1 and reflects on 
   eq(m.rarity, 'legendary'); eq(m.dropSource, 'boss_a1'); eq(m.effects[0].trigger, 'onPerfectGuard'); eq(m.effects[0].effect.type, 'reflectDamage');
 });
 test('the data check catches bad items', () => {
-  const bad = { id: 'x', name: 'X', type: 'relic', rarity: 'mythic', description: 'd', tags: [], allowedClasses: ['nobody'],
+  const bad = { id: 'x', name: 'X', type: 'relic', rarity: 'divine', description: 'd', levelRequirement: -2, tags: [], allowedClasses: ['nobody'],
     modifiers: [{ type: 'defense', value: 50 }, { type: 'luck', value: 1 }], effects: [{ trigger: 'onSneeze', effect: { type: 'heal' } }] };
   const p = itemProblems(bad, Object.keys(CLASSES)).join(' ');
-  for (const w of ['rarity', 'nobody', 'outside', 'luck', 'onSneeze', 'cooldown or duration', 'text']) ok(p.includes(w), `missing "${w}" in ${p}`);
+  for (const w of ['rarity', 'levelRequirement', 'nobody', 'outside', 'luck', 'onSneeze', 'cooldown or duration', 'text']) ok(p.includes(w), `missing "${w}" in ${p}`);
 });
 test('class restriction is data only', () => {
   const d = { allowedClasses: ['aegis_guardian'] };

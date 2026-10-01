@@ -1,7 +1,7 @@
 // ITEM DEFINITIONS (pure) — fills the standard item fields and checks item data. No game, no DOM.
 // Every item ends up with: id, name, type, rarity, description, tags, allowedClasses, modifiers, effects
 // (+ the older display fields cat / desc / icon / color / slot that the UI and equipment still read).
-import { GEAR_TYPES, RARITIES, ANY_CLASS, MODIFIER_TYPES, TRIGGERS, CONDITIONS, EFFECT_TYPES, PERSISTENCE } from '../data/items/rules.js';
+import { GEAR_TYPES, RARITIES, UNIQUE_RARITIES, ANY_CLASS, MODIFIER_TYPES, TRIGGERS, CONDITIONS, EFFECT_TYPES, PERSISTENCE } from '../data/items/rules.js';
 
 // older gear (written before the item system) -> its type, from its slot. Accessories name their own type.
 const TYPE_FROM_SLOT = { weapon: 'weapon_core', armor: 'armor_core' };
@@ -24,6 +24,7 @@ export function normalizeItem(id, def) {
   if (!def.modifiers) def.modifiers = [];
   if (!def.effects) def.effects = [];
   if (def.dropSource == null) def.dropSource = null;
+  if (def.levelRequirement == null) def.levelRequirement = 0; // character level needed to equip (0 = none)
   if (!def.persistence) def.persistence = isGear(def) || def.type === 'quest_item' ? PERSISTENCE.PERMANENT : PERSISTENCE.NORMAL;
   return def;
 }
@@ -33,6 +34,8 @@ export const lostOnDeath = (def) => !!def && def.persistence === PERSISTENCE.DUN
 
 // may this class equip it? (the core never names a class: it only compares ids from the data)
 export const canClassUse = (def, classId) => !!def && (def.allowedClasses.includes(ANY_CLASS) || def.allowedClasses.includes(classId));
+// is the character level high enough?
+export const meetsLevel = (def, level) => !!def && (level || 0) >= (def.levelRequirement || 0);
 
 // data check -> list of problems ([] = fine). classIds: known class ids (optional; skipped when not given).
 export function itemProblems(def, classIds = null) {
@@ -45,6 +48,7 @@ export function itemProblems(def, classIds = null) {
   if (!Array.isArray(def.tags)) bad('tags must be a list');
   if (!Array.isArray(def.allowedClasses) || !def.allowedClasses.length) bad('allowedClasses empty');
   else if (classIds) for (const c of def.allowedClasses) if (c !== ANY_CLASS && !classIds.includes(c)) bad(`unknown class "${c}"`);
+  if (def.levelRequirement != null && (!Number.isInteger(def.levelRequirement) || def.levelRequirement < 0)) bad(`levelRequirement ${def.levelRequirement}`);
   for (const m of def.modifiers) {
     const rule = MODIFIER_TYPES[m.type];
     if (!rule) { bad(`modifier "${m.type}"`); continue; }
@@ -59,7 +63,7 @@ export function itemProblems(def, classIds = null) {
     if (!e.text) bad('effect without text (tooltip)');
   }
   // older gear keeps its unique effect in `mods` / `skillModifiers` until it is converted
-  if (def.rarity === 'legendary' && !def.effects.length && !def.mods && !def.skillModifiers) bad('legendary needs a unique effect');
+  if (UNIQUE_RARITIES.includes(def.rarity) && !def.effects.length && !def.mods && !def.skillModifiers) bad(`${def.rarity} needs a unique effect`);
   if (def.type === 'charm' && def.effects.length) bad('charms carry modifiers only');
   return out;
 }

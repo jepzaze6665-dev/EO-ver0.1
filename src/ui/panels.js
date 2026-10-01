@@ -412,7 +412,7 @@ export class Panels {
     if (!id || !ITEMS[id] || !g.inventory.has(id)) return '<div class="muted">Select an item.</div>';
     const d = ITEMS[id];
     return `<img src="${iconURL(d.icon, d.color)}" class="big-icon">
-      <div class="tt">${itemTooltipHTML(d, { classId: g.player.cls.id, swap: swapPreview(g.equipment, id) })}</div>
+      <div class="tt">${itemTooltipHTML(d, { classId: g.player.cls.id, level: g.player.level, swap: swapPreview(g.equipment, id) })}</div>
       ${d.use ? `<button data-use="${id}">Use</button>` : ''}${isGear(d) ? `<button data-equip="${id}">Equip</button>` : ''}`;
   }
   // ITEM TOOLTIP: any element with data-tip="<item id>" shows ui/itemTooltip.js next to the mouse
@@ -426,7 +426,7 @@ export class Panels {
       if (!t || !ITEMS[t.dataset.tip]) { tip.style.display = 'none'; return; }
       if (tip.dataset.id !== t.dataset.tip) {
         const id = t.dataset.tip, worn = !!t.dataset.tipEq;
-        tip.innerHTML = itemTooltipHTML(ITEMS[id], { classId: g.player.cls.id, equipped: worn, swap: worn ? null : swapPreview(g.equipment, id) });
+        tip.innerHTML = itemTooltipHTML(ITEMS[id], { classId: g.player.cls.id, level: g.player.level, equipped: worn, swap: worn ? null : swapPreview(g.equipment, id) });
         tip.dataset.id = id;
       }
       tip.style.display = 'block';

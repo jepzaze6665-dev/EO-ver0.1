@@ -1,5 +1,5 @@
 import { ITEMS } from '../items/items.js';
-import { isGear, canClassUse } from '../items/itemDefs.js';
+import { isGear, canClassUse, meetsLevel } from '../items/itemDefs.js';
 import { ModifierSet } from '../items/modifierSystem.js';
 import { GEAR_SLOTS, LOADOUT_RULES, EQUIP_FAIL } from '../data/items/rules.js';
 
@@ -56,6 +56,7 @@ export class Equipment {
     if (!this.game.inventory.findItem(id)) return { ok: false, reason: 'notOwned' };
     const p = this.game.player;
     if (p && p.cls && !canClassUse(def, p.cls.id)) return { ok: false, reason: 'class' };
+    if (p && !meetsLevel(def, p.level)) return { ok: false, reason: 'level' };
     if (!LOADOUT_RULES.duplicates && GEAR_SLOTS.some((s) => s.id !== to && this.slots[s.id] === id)) return { ok: false, reason: 'duplicate' };
     return { ok: true, slot: to };
   }

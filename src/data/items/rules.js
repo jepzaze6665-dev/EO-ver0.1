@@ -22,8 +22,9 @@ export const TYPE_LABEL = { weapon_core: 'Weapon Core', armor_core: 'Armor Core'
 //  dungeon   : DUNGEON LOOT, may be dropped on death by the future dungeon system (no item uses it yet)
 export const PERSISTENCE = { PERMANENT: 'permanent', NORMAL: 'normal', DUNGEON: 'dungeon' };
 
-// rarity = how rare, NOT "bigger numbers": a legendary carries a unique effect (validated: legendary gear needs effects)
-export const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+// rarity = how rare, NOT "bigger numbers": a legendary / mythic carries a unique effect (validated: they need effects)
+export const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
+export const UNIQUE_RARITIES = ['legendary', 'mythic'];
 
 // allowedClasses: ['all'] or class ids (src/skills/classes.js). The core never names a class.
 export const ANY_CLASS = 'all';
@@ -35,6 +36,9 @@ export const ANY_CLASS = 'all';
 //  stacking  : 'additive' (total = sum) | 'multiplicative' (total = (1 + a)(1 + b)... - 1: many small items add up slower)
 //  min / max : cap on the TOTAL of all items (no infinite defense / negative cooldowns / 100% damage reduction)
 //  label     : name shown in the UI
+//  unit      : 'pct' (default: the value is a share, shown +15%) | 'flat' (points, shown +20 — resourceMax)
+// Damage per type = stat '<type>Dmg' read by combat/damageSystem.js (physicalDmg, shadowDmg, magicDmg ...): Astral skills
+// are 'magic' hits, so ASTRAL damage = magicDamage (also covers shadow / light / void ... — see MAGIC_DAMAGE_TYPES).
 export const MODIFIER_TYPES = {
   maxHP:              { stat: 'hp',           apply: 'mult', stacking: 'additive',       min: -0.5, max: 1,   label: 'Max HP' },
   defense:            { stat: 'def',          apply: 'mult', stacking: 'additive',       min: -0.6, max: 1,   label: 'Defense' },
@@ -50,6 +54,16 @@ export const MODIFIER_TYPES = {
   aggro:              { stat: null,                          stacking: 'additive',       min: -0.9, max: 2,   label: 'Aggro' },
   tauntPower:         { stat: null,                          stacking: 'additive',       min: -0.5, max: 1,   label: 'Taunt Power' },
   damageReduction:    { stat: null,                          stacking: 'additive',       min: -0.5, max: 0.4, label: 'Damage Reduction' },
+  // offense / utility (I1) — all stats the combat code already reads
+  critChance:         { stat: 'crit',         apply: 'add',  stacking: 'additive',       min: -0.2, max: 0.3, label: 'Critical Chance' },
+  critDamage:         { stat: 'critDmg',      apply: 'add',  stacking: 'additive',       min: -0.5, max: 0.8, label: 'Critical Damage' },
+  physicalDamage:     { stat: 'physicalDmg',  apply: 'add',  stacking: 'additive',       min: -0.5, max: 0.6, label: 'Physical Damage' },
+  shadowDamage:       { stat: 'shadowDmg',    apply: 'add',  stacking: 'additive',       min: -0.5, max: 0.6, label: 'Shadow Damage' },
+  attackSpeed:        { stat: 'attackSpeed',  apply: 'add',  stacking: 'additive',       min: -0.3, max: 0.4, label: 'Attack Speed' },
+  healingPower:       { stat: 'healPower',    apply: 'add',  stacking: 'additive',       min: -0.5, max: 0.6, label: 'Healing Power' },
+  statusResistance:   { stat: 'tenacity',     apply: 'add',  stacking: 'additive',       min: -0.3, max: 0.4, label: 'Status Resistance' },
+  // + points on the class resource's maximum (Player.syncGearResources -> ResourcePool 'maxAdd'; stamina never)
+  resourceMax:        { stat: null,           unit: 'flat',  stacking: 'additive',       min: -30,  max: 40,  label: 'Resource Max' },
 };
 
 // damage types that count as MAGIC for the magicDamage modifier (physical never does)
@@ -76,17 +90,20 @@ export const LOADOUT_RULES = {
 export const EQUIP_FAIL = {
   unknown: 'Unknown item', notGear: 'This item cannot be equipped', notOwned: 'You do not have this item',
   wrongSlot: 'It does not fit that slot', class: 'Your class cannot use this item', duplicate: 'Already equipped in another slot',
-  fixed: 'This slot cannot be empty', bagFull: 'Your bag is full',
+  fixed: 'This slot cannot be empty', bagFull: 'Your bag is full', level: 'Your level is too low for this item',
 };
 
 // TRIGGERS — when an item effect may fire (G3 maps each one to a game event). onLowHP fires once per dip below the line.
 export const TRIGGERS = [
   'onAttack', 'onHit', 'onDamageTaken', 'onBlock', 'onPerfectGuard', 'onSkillCast', 'onSkillHit', 'onKill',
   'onDodge', 'onDash', 'onTaunt', 'onBarrierCreated', 'onResourceGain', 'onResourceSpend', 'onLowHP',
+  // I1
+  'onCrit', 'onFullResource', 'onStatusApplied', 'onBossPhase',
 ];
 
 // CONDITIONS — extra checks on an effect: { type, value } (G3: items/conditionSystem.js, one function per type)
-export const CONDITIONS = ['hpBelow', 'hpAbove', 'resourceAbove', 'resourceBelow', 'targetHasMark', 'perfectGuard', 'inCombat'];
+export const CONDITIONS = ['hpBelow', 'hpAbove', 'resourceAbove', 'resourceBelow', 'targetHasMark', 'perfectGuard', 'inCombat',
+  'targetHasStatus', 'statusIs'];
 
 // EFFECTS — what an effect does (G3: items/effectSystem.js, one handler per type). Every effect needs a cooldown or
 // a duration so nothing can chain forever; `maxPerSecond` in G3 is the last safety net.

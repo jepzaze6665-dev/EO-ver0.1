@@ -21,6 +21,10 @@ export const CONDITION_CHECKS = {
   },
   perfectGuard: (c, p, ctx) => !!ctx.perfect,
   inCombat: (c, p, ctx, env) => !!env.inCombat === (c.value !== false),
+  // the trigger's target carries a status (c.status = status id) — synergy: "more damage to bleeding foes"
+  targetHasStatus: (c, p, ctx) => !!(ctx.target && ctx.target.status && ctx.target.status.has && ctx.target.status.has(c.status)),
+  // onStatusApplied: only this status id (c.status, or a list)
+  statusIs: (c, p, ctx) => [].concat(c.status).includes(ctx.statusId),
 };
 
 // no condition = always true; an unknown condition type = false (bad data never fires)

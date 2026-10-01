@@ -1,22 +1,25 @@
 // ITEM TOOLTIP (UI only) — builds the HTML that explains one item. Reads item data, never changes the game.
-//   itemTooltipHTML(def, { classId, swap })  -> name, rarity, type, description, modifiers, unique effects, tags, source
+//   itemTooltipHTML(def, { classId, level, swap })  -> name, rarity, type, level need, description, modifiers, unique effects, tags, source
 //   swapPreview(equipment, itemId)            -> what equipping it would change (pure: a copy of the modifier set)
 import { ITEMS, RARITY_COLOR } from '../items/items.js';
-import { TYPE_LABEL, MODIFIER_TYPES, GEAR_SLOTS, ANY_CLASS } from '../data/items/rules.js';
+import { TYPE_LABEL, MODIFIER_TYPES, GEAR_SLOTS, ANY_CLASS, UNIQUE_RARITIES } from '../data/items/rules.js';
 import { ModifierSet } from '../items/modifierSystem.js';
-import { canClassUse, isGear } from '../items/itemDefs.js';
+import { canClassUse, isGear, meetsLevel } from '../items/itemDefs.js';
 import { CLASSES } from '../skills/classes.js';
 import { itemSources } from '../loot/lootSystem.js';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pct = (v) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}%`;
+// a modifier value as text: shares as +15%, flat ones (rules unit 'flat') as +20
+export const modValue = (type, v) => ((MODIFIER_TYPES[type] || {}).unit === 'flat' ? `${v > 0 ? '+' : ''}${Math.round(v)}` : pct(v));
 // "+15% Defense"; resourceCost below zero is GOOD (cheaper skills)
-export const modifierText = (m) => `${pct(m.value)} ${(MODIFIER_TYPES[m.type] || {}).label || m.type}`;
+export const modifierText = (m) => `${modValue(m.type, m.value)} ${(MODIFIER_TYPES[m.type] || {}).label || m.type}`;
 const goodSign = (type, v) => (type === 'resourceCost' ? v < 0 : v > 0);
 const TRIGGER_TEXT = {
   onAttack: 'On basic attack', onHit: 'On hit', onDamageTaken: 'When hit', onBlock: 'On block', onPerfectGuard: 'On Perfect Guard',
   onSkillCast: 'On skill cast', onSkillHit: 'On skill hit', onKill: 'On kill', onDodge: 'On dodge', onDash: 'On dash skill',
   onTaunt: 'On taunt', onBarrierCreated: 'On barrier', onResourceGain: 'On resource gain', onResourceSpend: 'On resource spend', onLowHP: 'At low HP',
+  onCrit: 'On critical hit', onFullResource: 'At full resource', onStatusApplied: 'On applying a status', onBossPhase: 'On boss phase',
 };
 const TABLE_TEXT = { elite: 'Elites / mini-bosses', hollow_fang: 'Hollow Fang', grukk: 'Thornbound Elder', hoarfang: 'Hoarfang', guardian: 'Guardian', magma_beast: 'Magma Beast' };
 const sourceText = (id) => (id ? id.replace(/^boss_/, 'Boss ').replace(/^mini_/, 'Mini-boss ').replace(/_/g, ' ').toUpperCase() : '');
@@ -31,15 +34,18 @@ export function swapPreview(eq, itemId) {
   const before = set(eq.slots), after = set({ ...eq.slots, [slot]: itemId });
   const types = new Set([...Object.keys(before), ...Object.keys(after)]);
   const changes = [...types].map((type) => ({ type, before: before[type] || 0, after: after[type] || 0 })).filter((c) => Math.abs(c.after - c.before) > 1e-9);
-  return { slot, replaces: eq.slots[slot], changes };
+  // PASSIVE CHANGES: effect texts gained / lost by the swap (the replaced item's effects go away)
+  const fx = (id) => (ITEMS[id] ? ITEMS[id].effects.map((e) => e.text) : []);
+  return { slot, replaces: eq.slots[slot], changes, gained: fx(itemId), lost: fx(eq.slots[slot]) };
 }
 
-export function itemTooltipHTML(def, { classId = null, swap = null, equipped = false } = {}) {
+export function itemTooltipHTML(def, { classId = null, level = null, swap = null, equipped = false } = {}) {
   if (!def) return '';
   const color = RARITY_COLOR[def.rarity] || '#ccc';
   const rows = [];
   rows.push(`<div class="tt-name" style="color:${color}">${esc(def.name.toUpperCase())}</div>`);
   rows.push(`<div class="tt-sub"><span style="color:${color}">${esc((def.rarity || '').toUpperCase())}</span> · ${esc((TYPE_LABEL[def.type] || def.cat || '').toUpperCase())}${equipped ? ' · <b>EQUIPPED</b>' : ''}</div>`);
+  if (def.levelRequirement > 0) rows.push(`<div class="tt-class ${level == null || meetsLevel(def, level) ? '' : 'bad'}">Requires LV ${def.levelRequirement}</div>`);
   if (def.description) rows.push(`<div class="tt-desc">${esc(def.description)}</div>`);
   // older gear: flat stats + its unique behaviour text
   const flat = Object.entries(def.stats || {}).filter(([, v]) => v);
@@ -47,7 +53,7 @@ export function itemTooltipHTML(def, { classId = null, swap = null, equipped = f
   if (def.modifiers.length) rows.push(`<div class="tt-block">${def.modifiers.map((m) => `<div class="tt-mod ${goodSign(m.type, m.value) ? 'good' : 'bad'}">${esc(modifierText(m))}</div>`).join('')}</div>`);
   const unique = [...(def.modText ? [def.modText] : []), ...def.effects.map((e) => e.text)];
   if (unique.length) {
-    rows.push(`<div class="tt-head">${def.rarity === 'legendary' ? 'UNIQUE EFFECT' : 'EFFECT'}</div>`);
+    rows.push(`<div class="tt-head">${UNIQUE_RARITIES.includes(def.rarity) ? 'UNIQUE EFFECT' : 'EFFECT'}</div>`);
     for (const e of def.effects) rows.push(`<div class="tt-effect"><span class="tt-trig">${esc(TRIGGER_TEXT[e.trigger] || e.trigger)}</span> ${esc(e.text)}</div>`);
     if (def.modText) rows.push(`<div class="tt-effect">${esc(def.modText)}</div>`);
   }
@@ -67,8 +73,10 @@ export function itemTooltipHTML(def, { classId = null, swap = null, equipped = f
     if (swap.replaces) rows.push(`<div class="tt-src">Replaces ${esc(ITEMS[swap.replaces].name)}</div>`);
     rows.push(swap.changes.length ? swap.changes.map((c) => {
       const d = c.after - c.before;
-      return `<div class="tt-mod ${goodSign(c.type, d) ? 'good' : 'bad'}">${esc((MODIFIER_TYPES[c.type] || {}).label || c.type)} ${pct(c.before)} → ${pct(c.after)}</div>`;
+      return `<div class="tt-mod ${goodSign(c.type, d) ? 'good' : 'bad'}">${esc((MODIFIER_TYPES[c.type] || {}).label || c.type)} ${modValue(c.type, c.before)} → ${modValue(c.type, c.after)}</div>`;
     }).join('') : '<div class="tt-src">No modifier changes</div>');
+    for (const t of swap.lost || []) rows.push(`<div class="tt-mod bad">− ${esc(t)}</div>`);
+    for (const t of swap.gained || []) rows.push(`<div class="tt-mod good">+ ${esc(t)}</div>`);
   }
   return rows.join('');
 }
