@@ -824,7 +824,7 @@ export class Player extends Entity {
     if (!gd || !gd.fx) return;
     const d = Assets.vfx[gd.fx];
     if (!d || !d.img) return;
-    const h = { intro: [0, 3], loop: [1, 2], out: [4, 5], fps: 14, scale: 0.42, dist: 20, lift: 26, alpha: 0.9, ...(gd.hold || {}) };
+    const h = { intro: [0, 3], loop: [1, 2], out: [4, 5], fps: 14, scale: 0.68, dist: 24, lift: 30, alpha: 0.9, ...(gd.hold || {}) };
     const aim = this.aim ?? this.facing, behind = dir4(aim) === 1;
     if ((layer === 'under') !== behind) return;
     let fr, a = h.alpha;
