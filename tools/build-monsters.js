@@ -168,8 +168,10 @@ const SHEETS = {
   // 9 rows: idle · walk · claw · breath · fire spit · specials · hurt · enrage · death. Built at height 128 and drawn at
   // look.scale 1 -> never upscaled in game.
   varkharon: {
-    file: 'A/A2/SC/dragon/SP/image-cec8b512-31ea-418a-8409-49e8c2896ac7-0.png', height: 128, pocket: 20, defringe: { passes: 3, minLum: 130, neutral: 18, pure: 6, minSize: 3 },
-    rows: [['idle', 8], ['walk', 8], ['claw', 8], ['breath', 8, { blobs: { min: 3000, reach: 120, edgeDrop: true } }], ['spit', 8], ['special', 6], ['hurt', 8], ['enrage', 7], ['death', 8]],
+    file: 'A/A2/SC/dragon/SP/image-cec8b512-31ea-418a-8409-49e8c2896ac7-0.png', height: 128, flip: true, pocket: 20, // drawn facing LEFT: mirrored so the game's 'faces right' rule holds (it moonwalked)
+    defringe: { passes: 3, minLum: 130, neutral: 26, pure: 6, minSize: 3, out: { alpha: 150, minLum: 150, neutral: 40 } },
+    // the fire rows are drawn facing RIGHT: not mirrored
+    rows: [['idle', 8], ['walk', 8], ['claw', 8], ['breath', 8, { flip: false, blobs: { min: 3000, reach: 120, edgeDrop: true } }], ['spit', 8, { flip: false }], ['special', 6, { flip: false }], ['hurt', 8], ['enrage', 7], ['death', 8]],
   },
   // B2 BOSS: the AMETHYST COLOSSUS (a giant crystal golem, faces right)
   amethyst_colossus: {
@@ -558,6 +560,20 @@ function buildMonster(id, def, probe) {
   for (const f of frames) {
     const sub = crop(f.im, f.bb.minx, f.bb.miny, f.bb.maxx + 1, f.bb.maxy + 1);
     const sc = scaleImage(sub, s);
+    // defringe.out: one more peel on the SCALED frame — downscaling blends the last light outline pixels into
+    // half-transparent pale greys (a white rim on dark ground)
+    if (def.defringe && def.defringe.out) {
+      const d = sc.data, w = sc.width, h = sc.height, o = def.defringe.out, drop = [];
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        if (!d[i + 3]) continue;
+        const edge = x === 0 || y === 0 || x === w - 1 || y === h - 1 || !d[i - 1] || !d[i + 7] || !d[i - w * 4 + 3] || !d[i + w * 4 + 3];
+        if (!edge) continue;
+        const l = (d[i] + d[i + 1] + d[i + 2]) / 3, n = Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]);
+        if (d[i + 3] < (o.alpha ?? 150) || (l >= (o.minLum ?? 150) && n <= (o.neutral ?? 40))) drop.push(i);
+      }
+      for (const i of drop) d[i + 3] = 0;
+    }
     const ri = rows.findIndex((r) => r.name === f.row);
     const dx = f.i * fw + Math.round(ax - (f.cx - f.bb.minx) * s);
     const dy = ri * fh + Math.round(ay - (f.feet - f.bb.miny) * s);
