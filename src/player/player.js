@@ -815,6 +815,37 @@ export class Player extends Entity {
       ctx.globalCompositeOperation = 'source-over';
     }
   }
+  // GUARD HOLD VFX (every class with guard data): the class's shield strip (guard.fx, 6 frames: 0 = shield, 1-3 = raise /
+  // glow, 4-5 = fade) floats in front of the player toward the aim while the guard is up — intro frames once, then the
+  // glow frames loop, the fade frames play after release. Data guard.hold = { intro, loop, out, fps, scale, dist, lift,
+  // alpha } overrides the defaults. Drawn behind the body when aiming up (back view), in front otherwise.
+  drawGuardFx(ctx, layer) {
+    const gd = this.cls.guard, st = this.guardState, t = this.game.time;
+    if (!gd || !gd.fx) return;
+    const d = Assets.vfx[gd.fx];
+    if (!d || !d.img) return;
+    const h = { intro: [0, 3], loop: [1, 2], out: [4, 5], fps: 14, scale: 0.42, dist: 20, lift: 26, alpha: 0.9, ...(gd.hold || {}) };
+    const aim = this.aim ?? this.facing, behind = dir4(aim) === 1;
+    if ((layer === 'under') !== behind) return;
+    let fr, a = h.alpha;
+    if (st.active) {
+      const n = Math.floor((t - st.since) * h.fps), introLen = h.intro[1] - h.intro[0] + 1;
+      fr = n < introLen ? h.intro[0] + n : h.loop[0] + (Math.floor((n - introLen) / 3) % (h.loop[1] - h.loop[0] + 1)); // loop slower
+      a *= 0.85 + 0.15 * Math.sin(t * 6);
+    } else {
+      const k = (t - st.releasedAt) * h.fps, outLen = h.out[1] - h.out[0] + 1;
+      if (k < 0 || k >= outLen) return;
+      fr = h.out[0] + Math.floor(k);
+    }
+    const sc = h.scale, w = d.fw * sc, hh = d.fh * sc;
+    const cx = this.x + Math.cos(aim) * h.dist, cy = this.y - h.lift + Math.sin(aim) * h.dist * 0.5;
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.drawImage(d.img, fr * d.fw, 0, d.fw, d.fh, cx - w / 2, cy - hh / 2, w, hh);
+    ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = a * 0.25; // soft glow pass
+    ctx.drawImage(d.img, fr * d.fw, 0, d.fw, d.fh, cx - w / 2, cy - hh / 2, w, hh);
+    ctx.restore();
+  }
   draw(ctx) {
     const g = this.game;
     // shadow
@@ -844,7 +875,9 @@ export class Player extends Entity {
     if (ad && ad.bob) y -= Math.round(Math.abs(Math.sin(this.animT * Math.PI * (ad.fps || 8) / 3)) * ad.bob);
     const flicker = this.invulnT > 0 && !this.dodging && Math.floor(g.time * 20) % 2 === 0;
     const bodyA = (flicker ? 0.45 : 1) * (1 - sk * (0.65 + 0.08 * Math.sin(g.time * 5)));
+    this.drawGuardFx(ctx, 'under');
     this.sprites.draw(ctx, f, this.x, y, bodyA);
+    this.drawGuardFx(ctx, 'over');
     if (sk > 0.05) {
       // shadow-tinted shimmer over the faded body (class ghost colour)
       ctx.globalCompositeOperation = 'lighter';

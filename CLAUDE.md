@@ -1019,6 +1019,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   focus / classic, storageKey } — focus = class resource bar (tier ticks + tier name) + class counter diamonds + READY text centred
   above the skill bar (hud.drawFocusBlock), the top-left frame keeps HP / STA / EXP / gold; classic = the old top-left placement.
   Shared hud.resourceBar / counterRow; hud.layout() / setLayout() (localStorage, per player); ESC menu button HUD: Focus / Classic.
+- GUARD HOLD VFX (owner): Player.drawGuardFx — every class with guard data shows its guard.fx strip (AG ag_emblem, Warden
+  dw_shield, Bulwark bs_aegis, Oathbreaker ok_brand) in front of the body toward the aim WHILE the guard is held (intro frames
+  0-3, glow loop 1-2, fade 4-5 after release; behind the body when aiming up). Data guard.hold { intro, loop, out, fps, scale,
+  dist, lift, alpha } overrides. The block / perfect-guard hit flash (Player.tryBlock) is unchanged.
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it
