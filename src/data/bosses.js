@@ -273,7 +273,7 @@ export const BOSSES = {
   // (the throne shrinks every phase, for real) · EMBER DEBT (fire hits stack embers that IGNITE) · LAST BREATH at 10%.
   boss_varkharon: {
     id: 'boss_varkharon', name: 'VARKHARON', title: 'the Sealed Cinder King', type: 'secret', impl: 'area',
-    route: 'A', map: 'cinder', level: 34, nativeLevel: 14, recommendedLevel: 32,
+    route: 'A', map: 'cinder', level: 52, nativeLevel: 14, recommendedLevel: 50, // owner: an end-game fight (cap 50)
     difficulty: { hp: 1.1, power: 1.1 },
     teaches: 'Chain the dragon out of the sky · keep to the shrinking throne · pay your ember debt before it ignites',
     stats: { hp: 22000, def: 13, speed: 100, radius: 30, height: 80, mass: 9, weakness: ['shadow'], superArmor: true, poise: 1200 },

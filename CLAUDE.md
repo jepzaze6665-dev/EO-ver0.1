@@ -853,6 +853,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   RULE for boss art: build the atlas at the size it is drawn (scale ~1); never upscale small frames.
   v2 facing: stand / walk / claw / hurt / enrage / death rows face LEFT (flip), breath / spit / special face RIGHT (row flip:false).
   defringe.out { alpha, minLum, neutral } = extra edge peel on the SCALED frames (downscale makes pale half-alpha rims).
+  LEVEL (owner): Lv 52, recommended 50 = an end-game fight. No god LV 50: UB 162.5 s · RP 161 s · AW 181.5 s · AG 246.5 s, all WIN.
   A2 SECRET BOSS COMPLETE (D1-D4). Next: owner decides (secret class from Heart of Varkharon = data only until asked).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`

@@ -1566,8 +1566,8 @@ export function b3Check(g, classId = 'umbral_sword') {
 // ROUTE B COMPLETE, the north road to City 2.
 // A2 SECRET BOSS VARKHARON (D4): the dragon door -> the Cinder Throne, rising lava (and its reset), sky chains (the bot
 // runs to the lit posts and holds [E]), ember debt + IGNITE, LAST BREATH at 10%, rewards + dragon_slain.
-//   const T = await import('/tools/testkit.js'); T.varkharonCheck(__game, 'umbral_sword', { god: true, level: 32 })
-export function varkharonCheck(g, classId = 'umbral_sword', { god = true, level = 32, seconds = 600 } = {}) {
+//   const T = await import('/tools/testkit.js'); T.varkharonCheck(__game, 'umbral_sword', { god: true, level: 50 })
+export function varkharonCheck(g, classId = 'umbral_sword', { god = true, level = 50, seconds = 600 } = {}) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress;
