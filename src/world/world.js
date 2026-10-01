@@ -261,6 +261,13 @@ export class World {
     const areaMod = (zm && zm.mod) || (home && home.monsterMod);
     return { corrupted, elite: !!d.elite, areaMod, levelBand: home && home.levelBand, mapId: home && home.id };
   }
+  // the Guardian's spawn only fires before its first defeat (cond 'before'): a REMATCH after a reload builds it here
+  ensureGuardian() {
+    if (this.guardian) return this.guardian;
+    const sp = this.spawnPoints.find((s) => s.def.type === 'guardian');
+    if (sp) this.guardian = new Guardian(this.game, sp.def.x, sp.def.y);
+    return this.guardian || null;
+  }
   populate(sp) {
     const d = sp.def, g = this.game;
     sp.alive = [];
@@ -531,13 +538,14 @@ export class World {
   }
 
   onGuardianDefeated() {
-    const g = this.game;
+    const g = this.game, firstKill = !this.state.flags.guardianDefeated;
     this.state.killed.guardian = true;
     this.setFlag('guardianDefeated');
     this.endBoss();
     this.setArenaPhase(0);
     this.monsters = this.monsters.filter((m) => !m.summoned);
     this.applyState();
+    if (!firstKill) return; // a rematch: the arena was restored the first time
     // arena restored: flowers + light
     const c = this.regions.arenaCenter;
     for (let i = 0; i < 26; i++) {

@@ -7,6 +7,7 @@ import { ModifierSet } from '../items/modifierSystem.js';
 import { canClassUse, isGear, meetsLevel } from '../items/itemDefs.js';
 import { CLASSES } from '../skills/classes.js';
 import { itemSources } from '../loot/lootSystem.js';
+import { DROP_RATES } from '../data/dropRates.js';
 import { SETS } from '../data/items/sets.js';
 import { setPieces, activeSetBonuses } from '../items/setSystem.js';
 
@@ -87,7 +88,7 @@ export function itemTooltipHTML(def, { classId = null, level = null, swap = null
     const ok = classId && canClassUse(def, classId);
     rows.push(`<div class="tt-class ${ok ? '' : 'bad'}">Only: ${esc(def.allowedClasses.map(classLabel).join(', '))}</div>`);
   }
-  if (def.dropSource) rows.push(`<div class="tt-src">Source: ${esc(sourceText(def.dropSource))}</div>`);
+  if (def.dropSource) rows.push(`<div class="tt-src">Source: ${esc(sourceText(def.dropSource))}${def.signature ? ` — first kill 100% · rematch ${Math.round(DROP_RATES.repeat.signature * 100)}%` : ''}</div>`);
   else if (isGear(def)) { // other gear: every loot table that can give it, with its chance per roll
     const src = itemSources(def.id);
     if (src.length) rows.push(`<div class="tt-src">Drops: ${src.map((x) => `${esc(TABLE_TEXT[x.table] || x.table.replace(/_/g, ' '))} ${Math.round(x.chance * 1000) / 10}%`).join(' · ')}</div>`);

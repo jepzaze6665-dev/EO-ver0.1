@@ -454,11 +454,11 @@ export class Game {
       w.onGuardianDefeated();
       // progression + first-kill rewards + 'bossDefeated' -> world triggers (A2 unlock) — boss/bossSystem.js
       const enc = this.bosses.list.find((e) => e.entity === boss);
-      this.bosses.complete(enc ? enc.id : 'boss_a1', boss);
+      const first = this.bosses.complete(enc ? enc.id : 'boss_a1', boss);
       this.vfx.flash('200,255,220', 0.6, 0.8);
       const d = boss.def.defeat || {};
-      if (d.banner) this.ui.banner(d.banner[0], d.banner[1], '#a8f0c8', 5);
-      if (d.startQuest) this.quests.accept(d.startQuest); // no-op if a world trigger already started it
+      if (first && d.banner) this.ui.banner(d.banner[0], d.banner[1], '#a8f0c8', 5);
+      if (first && d.startQuest) this.quests.accept(d.startQuest); // no-op if a world trigger already started it
       this.save.dirty = true;
     }, true);
   }

@@ -4,7 +4,8 @@
 //
 //   HIDDEN ──(appear requirements met)──> IDLE ──(player steps into the arena)──> ENGAGED
 //   ENGAGED <──> PHASE_CHANGE (boss crossed an HP threshold; it roars, then fights on)
-//   ENGAGED / PHASE_CHANGE ──(HP 0)──> DEFEATED (final, saved)   ──(player died / left)──> RESET ──> IDLE
+//   ENGAGED / PHASE_CHANGE ──(HP 0)──> DEFEATED (saved)   ──(player died / left)──> RESET ──> IDLE
+//   DEFEATED ──(BossSystem.respawn: the player came back to its map, data/dropRates.js bossRematch)──> IDLE (rematch)
 export const BOSS_STATE = {
   HIDDEN: 'hidden', IDLE: 'idle', ENGAGED: 'engaged', PHASE_CHANGE: 'phase_change', DEFEATED: 'defeated', RESET: 'reset',
 };
