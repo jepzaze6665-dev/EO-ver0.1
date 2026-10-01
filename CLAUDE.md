@@ -920,6 +920,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   damage 7-9k vs 5-6.7k) — the bot parries almost every hit, so guard-side items show little: human playtest.
   testkit releaseInput now also lets go of the mouse buttons (a held guard leaked into the next test -> Aegis bot "died").
   checklist step 11 refills stamina / dodge in free() + shows the skill-fail reason (old flake).
+  Done G5 (UI): `src/ui/itemTooltip.js` itemTooltipHTML(def, { classId, swap, equipped }) = name / rarity / type / description /
+  modifiers (green good, red bad; a minus resourceCost is good) / UNIQUE EFFECT lines with their trigger / tags / class-only /
+  source + swapPreview(eq, itemId) = "IF EQUIPPED" (slot, replaced item, every modifier before -> after; pure, a copy of the
+  set). Panels: any element with `data-tip="<item id>"` shows the floating tooltip (wireTooltip; data-tip-eq = worn); the
+  item detail pane uses the same text. `src/ui/loadoutUI.js` = the character window tab "Loadout" (tab id still
+  'equipment'): COMBAT LOADOUT 7 slots, click a slot (data-pick) = picker of owned items for it with the modifier change
+  (data-equip-to "id:slot"), FINAL STATS (finalStatRows: HP / Defense / Attack / Speed / CDR / Resource Gen / Resource Cost /
+  Guard Gen / Barrier / Counter / Magic / Damage Reduction / Aggro / Taunt; "(base)" = Player.baseStats, the stats before
+  item modifiers), BUILD tags (buildTags), ITEM EFFECTS (READY / cooldown / ACTIVE). F3: gear box (debugOverlay
+  gearDebugInfo / drawGear: class, loadout, final stats, active modifiers per source incl. "(buff)", effects + cooldowns;
+  console: __game.debugInfo().gear), left of the sprite-validation box. CSS in index.html (.item-tip, .tt-*, .lo-*).
+  tools/tests/itemUI.test.mjs (8).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

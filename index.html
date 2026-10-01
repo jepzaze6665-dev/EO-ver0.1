@@ -144,6 +144,30 @@
   .eq-slot button { margin-left: auto; padding: 4px 8px; font-size: 12px; }
   .stats div { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dotted rgba(160,110,230,.15); font-size: 14px; }
   .stats .mod { display: block; border: 0; }
+  /* item tooltip (ui/itemTooltip.js) — floating box + the same text in the item detail pane */
+  .item-tip { position: fixed; z-index: 50; max-width: 300px; pointer-events: none; background: rgba(12,8,22,.96); border: 1px solid #6a4aa0; padding: 10px 12px; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
+  .tt-name { font-weight: bold; letter-spacing: 1px; font-size: 15px; }
+  .tt-sub { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin: 2px 0 6px; }
+  .tt-desc { font-size: 13px; margin-bottom: 6px; }
+  .tt-block { margin: 4px 0; }
+  .tt-mod { font-size: 13px; } .tt-mod.good { color: #8fe0a0; } .tt-mod.bad { color: #ff8a8a; }
+  .tt-head { font-size: 11px; letter-spacing: 2px; color: #e0c070; margin-top: 8px; }
+  .tt-effect { font-size: 13px; color: #d8b0ff; margin: 2px 0; } .tt-trig { color: #ffd070; }
+  .tt-tags { margin-top: 6px; } .tt-tags span, .lo-tags span { display: inline-block; font-size: 10px; letter-spacing: 1px; border: 1px solid #5a4a80; padding: 1px 5px; margin: 2px 3px 0 0; color: #c8b8f0; }
+  .tt-class { font-size: 12px; color: var(--muted); margin-top: 4px; } .tt-class.bad { color: #ff8a8a; }
+  .tt-src { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  /* combat loadout (ui/loadoutUI.js) */
+  .lo-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  .lo-slot { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); padding: 7px 10px; margin-bottom: 6px; background: rgba(0,0,0,.25); cursor: pointer; }
+  .lo-slot:hover, .lo-slot.on { border-color: #b080ff; background: rgba(120,70,200,.15); }
+  .lo-slot .lbl { width: 92px; color: var(--muted); font-size: 11px; letter-spacing: 2px; } .lo-slot img { width: 30px; height: 30px; }
+  .lo-slot .lo-name { flex: 1; } .lo-slot button { padding: 2px 7px; font-size: 12px; }
+  .lo-picker { border: 1px solid #6a4aa0; padding: 8px; margin: 4px 0 10px; background: rgba(40,20,70,.35); }
+  .lo-picker h4 { margin: 0 0 6px; }
+  .lo-pick { display: flex; align-items: center; gap: 10px; padding: 5px; cursor: pointer; } .lo-pick:hover { background: rgba(160,110,230,.18); } .lo-pick img { width: 28px; height: 28px; }
+  .stats .lo-base { color: var(--muted); font-weight: normal; font-size: 12px; }
+  .stats h4 { margin: 12px 0 4px; letter-spacing: 2px; font-size: 12px; color: #e0c070; }
+  .stats .lo-fx { display: block; font-size: 12px; } .lo-fx b { float: right; } .lo-fx b.ready { color: #8fe0a0; } .lo-fx b.cd { color: #ffb070; } .lo-fx b.run { color: #ffd070; }
   .know { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
   .know-card { border: 1px solid var(--line); padding: 12px 16px; background: rgba(0,0,0,.28); }
   .know-card h3 { margin-top: 0; color: #f0e4ff; } .know-card p { color: var(--muted); font-size: 13px; }

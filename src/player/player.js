@@ -121,10 +121,11 @@ export class Player extends Entity {
     if (this.game.world && this.game.world.state.flags.moonBlessing) { s.crit += 0.05; s.shadowGain += 0.1; }
     // ITEM MODIFIERS (gear loadout): a new stats object from the base above (base never edited); temporary buffs =
     // statuses, applied where they are read
+    this.baseStats = s; // before item modifiers (the Loadout window shows base -> final)
     if (eq && eq.finalStats) s = eq.finalStats(s);
     this.syncGearResources();
     // resource tiers (data/resources.js "tiers"): e.g. a high Nightfall Gauge adds shadow damage / crit
-    if (this.resources) for (const [k, v] of Object.entries(this.resources.tierStats())) s[k] = (s[k] || 0) + v;
+    if (this.resources) for (const [k, v] of Object.entries(this.resources.tierStats())) { s[k] = (s[k] || 0) + v; if (this.baseStats !== s) this.baseStats[k] = (this.baseStats[k] || 0) + v; }
     this.resTier = this.resources ? this.resources.tier(this.primaryResource) : -1;
     this.stats = s;
     this.mods = mods;

@@ -17,11 +17,10 @@ import { evolutionsOf, evolutionById } from '../progression/skillEvolution.js';
 import { SKILL_TREE } from '../data/skillTree.js';
 import { describe as describeMod } from '../progression/skillModifiers.js';
 import { expToNext } from '../progression/experience.js';
-import { GEAR_SLOTS, TYPE_LABEL, MODIFIER_TYPES } from '../data/items/rules.js';
 import { isGear } from '../items/itemDefs.js';
+import { itemTooltipHTML, swapPreview } from './itemTooltip.js';
+import { loadoutHTML } from './loadoutUI.js';
 
-// item modifier line: "+15% Defense" / "-8% Movement Speed"
-const modLine = (m) => `${m.value > 0 ? '+' : ''}${Math.round(m.value * 100)}% ${(MODIFIER_TYPES[m.type] || {}).label || m.type}`;
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
 const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>Passives</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">passive</span><div class="small">${esc(x.desc)}</div></div></div>`).join('')}` : '');
@@ -195,7 +194,7 @@ export class Panels {
   inventory(tab) {
     if (tab) this.invTab = tab;
     const g = this.game, p = g.player, inv = g.inventory, eq = g.equipment;
-    const tabs = [['inventory', 'Inventory'], ['equipment', 'Equipment'], ['skills', 'Skills'], ['class', 'Class'], ['knowledge', 'Monster Knowledge'], ['lore', 'Lore & Quests']];
+    const tabs = [['inventory', 'Inventory'], ['equipment', 'Loadout'], ['skills', 'Skills'], ['class', 'Class'], ['knowledge', 'Monster Knowledge'], ['lore', 'Lore & Quests']];
     let body = '';
     if (this.invTab === 'inventory') {
       const items = inv.list(this.invCat);
@@ -203,7 +202,7 @@ export class Panels {
         <div class="cats">${CATEGORIES.map((c) => `<button data-cat="${c}" class="${c === this.invCat ? 'on' : ''}">${c}</button>`).join('')}</div>
         <div class="inv-layout">
           <div class="grid">${items.map(({ id, n, def }) => `
-            <div class="slot ${this.selected === id ? 'sel' : ''}" data-item="${id}" style="border-color:${RARITY_COLOR[def.rarity]}">
+            <div class="slot ${this.selected === id ? 'sel' : ''}" data-item="${id}" data-tip="${id}" style="border-color:${RARITY_COLOR[def.rarity]}">
               <img src="${iconURL(def.icon, def.color)}"><span class="n">${n > 1 ? n : ''}</span>
             </div>`).join('') || '<div class="empty">Nothing here yet.</div>'}
           </div>
@@ -211,31 +210,7 @@ export class Panels {
         </div>
         <div class="gold">Gold: <b>${p.gold}</b></div>`;
     } else if (this.invTab === 'equipment') {
-      const slot = (s, label) => {
-        const id = eq.slots[s], def = id && ITEMS[id];
-        const fixed = GEAR_SLOTS.find((x) => x.id === s).fixed;
-        const text = def ? [def.modText, ...def.modifiers.map(modLine)].filter(Boolean).join(' · ') : '';
-        return `<div class="eq-slot"><div class="lbl">${label}</div>${def ? `<img src="${iconURL(def.icon, def.color)}"><div><div style="color:${RARITY_COLOR[def.rarity]}">${esc(def.name)}</div><div class="mod">${esc(text)}</div></div>${!fixed ? `<button data-unequip="${s}">Unequip</button>` : ''}` : '<div class="muted">— empty —</div>'}</div>`;
-      };
-      const st = p.stats;
-      const pct = (v) => Math.round(v * 100) + '%';
-      const totals = eq.itemModifiers().totals();
-      body = `
-        <div class="eq-layout">
-          <div>${GEAR_SLOTS.map((x) => slot(x.id, x.label.toUpperCase())).join('')}
-            <p class="muted small">Equip items from the Inventory tab. Items change stats <i>and</i> how you fight — never how you look.</p></div>
-          <div class="stats">
-            <h3>${esc(p.cls.name)} — LV.${p.level}</h3>
-            <div>Max HP <b>${p.maxHp}</b></div><div>Attack <b>${Math.round(st.atk)}</b></div><div>Defense <b>${Math.round(st.def)}</b></div>
-            <div>Critical <b>${pct(st.crit)}</b></div>${st.shadowDmg != null ? `<div>Shadow Damage <b>+${pct(st.shadowDmg)}</b></div>` : ''}<div>Cooldown Reduction <b>${pct(st.cdr || 0)}</b></div>
-            ${st.shadowGain != null ? `<div>Shadow Gain <b>${pct(st.shadowGain)}</b></div>` : ''}<div>Armor Break <b>×${(st.armorBreak || 1).toFixed(1)}</b></div>
-            <div>Movement Speed <b>${Math.round(st.speed)}</b></div><div>Barrier Strength <b>+${pct(st.barrierPower || 0)}</b></div>
-            ${Object.keys(totals).length ? `<h3>Item Modifiers</h3>${Object.entries(totals).map(([type, value]) => `<div class="mod">${esc(modLine({ type, value }))}</div>`).join('')}` : ''}
-            <div>EXP <b>${p.isMaxLevel ? 'MAX' : `${p.exp} / ${p.expToNext()}`}</b></div>
-            <h3>Skill Modifiers</h3>
-            ${Object.keys(p.mods).length ? Object.values(eq.slots).filter(Boolean).map((id) => ITEMS[id].modText ? `<div class="mod">◆ ${esc(ITEMS[id].modText)}</div>` : '').join('') : '<div class="muted">None — find or forge equipment to change your build.</div>'}
-          </div>
-        </div>`;
+      body = loadoutHTML(g, { pickSlot: this.pickSlot || null }); // ui/loadoutUI.js
     } else if (this.invTab === 'skills') {
       // generic loadout editor: every class skill, keys 1-4 are chosen here (5 = ultimate, Q = special)
       const tierTag = (s) => { const t = SKILL_TIERS[s.tier]; return t ? `<span style="color:${t.color}">${t.label}</span> · ` : ''; };
@@ -405,8 +380,9 @@ export class Panels {
         <div class="tabs">${tabs.map(([k, l]) => `<button data-tab="${k}" class="${k === this.invTab ? 'on' : ''}">${l}</button>`).join('')}<button class="x">✕</button></div>
         <div class="content">${body}</div>
       </div>`);
+    this.wireTooltip(el);
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-unequip],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
+      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
       if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
@@ -415,6 +391,8 @@ export class Panels {
       else if (t.dataset.use) { g.inventory.use(t.dataset.use); this.inventory(); }
       else if (t.dataset.equip) { if (!g.equipment.equip(t.dataset.equip)) g.ui.toast(g.equipment.lastErrorText(), 1.2); if (!g.inventory.has(this.selected)) this.selected = null; this.inventory(); }
       else if (t.dataset.unequip) { if (!g.equipment.unequip(t.dataset.unequip)) g.ui.toast(g.equipment.lastErrorText(), 1.2); this.inventory(); }
+      else if (t.dataset.equipTo) { const [id, slot] = t.dataset.equipTo.split(':'); if (!g.equipment.equip(id, slot)) g.ui.toast(g.equipment.lastErrorText(), 1.2); else this.pickSlot = null; this.inventory(); }
+      else if (t.dataset.pick) { this.pickSlot = this.pickSlot === t.dataset.pick ? null : t.dataset.pick; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.evoOpen !== undefined) { this.evoSel = t.dataset.evoOpen || null; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.evolve) {
         const [sid, eid] = t.dataset.evolve.split(':'), r = g.player.evolveSkill(sid, eid);
@@ -430,14 +408,33 @@ export class Panels {
     });
   }
   itemDetail(id) {
-    if (!id || !ITEMS[id] || !this.game.inventory.has(id)) return '<div class="muted">Select an item.</div>';
+    const g = this.game;
+    if (!id || !ITEMS[id] || !g.inventory.has(id)) return '<div class="muted">Select an item.</div>';
     const d = ITEMS[id];
-    const stats = Object.entries(d.stats || {}).filter(([, v]) => v).map(([k, v]) => `<div>${statLabel(k)} <b>${statVal(k, v)}</b></div>`).join('');
     return `<img src="${iconURL(d.icon, d.color)}" class="big-icon">
-      <h3 style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</h3>
-      <div class="muted small">${TYPE_LABEL[d.type] || d.cat} · ${d.rarity}</div>
-      <p>${esc(d.desc)}</p>${stats}${d.modifiers.map((m) => `<div class="mod">${esc(modLine(m))}</div>`).join('')}${d.modText ? `<div class="mod">◆ ${esc(d.modText)}</div>` : ''}${d.effects.map((e) => `<div class="mod">◆ ${esc(e.text)}</div>`).join('')}
+      <div class="tt">${itemTooltipHTML(d, { classId: g.player.cls.id, swap: swapPreview(g.equipment, id) })}</div>
       ${d.use ? `<button data-use="${id}">Use</button>` : ''}${isGear(d) ? `<button data-equip="${id}">Equip</button>` : ''}`;
+  }
+  // ITEM TOOLTIP: any element with data-tip="<item id>" shows ui/itemTooltip.js next to the mouse
+  // (data-tip-eq = the worn one: no "if equipped" preview)
+  wireTooltip(el) {
+    const g = this.game, tip = document.createElement('div');
+    tip.className = 'item-tip'; tip.style.display = 'none';
+    el.appendChild(tip);
+    el.addEventListener('mousemove', (e) => {
+      const t = e.target.closest('[data-tip]');
+      if (!t || !ITEMS[t.dataset.tip]) { tip.style.display = 'none'; return; }
+      if (tip.dataset.id !== t.dataset.tip) {
+        const id = t.dataset.tip, worn = !!t.dataset.tipEq;
+        tip.innerHTML = itemTooltipHTML(ITEMS[id], { classId: g.player.cls.id, equipped: worn, swap: worn ? null : swapPreview(g.equipment, id) });
+        tip.dataset.id = id;
+      }
+      tip.style.display = 'block';
+      const w = tip.offsetWidth, h = tip.offsetHeight;
+      tip.style.left = Math.min(window.innerWidth - w - 8, e.clientX + 16) + 'px';
+      tip.style.top = Math.min(window.innerHeight - h - 8, e.clientY + 12) + 'px';
+    });
+    el.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
   }
 
   // ---------------- shop / smith / storage / teleport

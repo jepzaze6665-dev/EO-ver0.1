@@ -1,5 +1,8 @@
 import { TILE } from '../core/constants.js';
 import { RESOURCES } from '../data/resources.js';
+import { ITEMS } from '../items/items.js';
+import { GEAR_SLOTS, MODIFIER_TYPES } from '../data/items/rules.js';
+import { finalStatRows } from './loadoutUI.js';
 
 // DEBUG OVERLAY (F3) — read-only view of the game state for testing (spec §40). Two parts:
 //   debugInfo(game) : plain data (also handy from the console: __game.debugInfo())
@@ -32,7 +35,40 @@ export function debugInfo(g) {
     route: g.worldProgress ? g.worldProgress.currentRoute || '-' : '-',
     bosses: g.bosses ? g.bosses.list.map((e) => `${e.id}:${e.state}`).join(' ') : '-',
     unlocked: g.worldProgress ? Object.keys(g.worldProgress.unlockedMaps).join(',') : '-',
+    gear: gearDebugInfo(g),
   };
+}
+
+// GEAR (item system debug panel, spec §49): class, loadout, final stats, active modifiers (per source, incl. timed
+// buffs) and the worn item effects with their cooldowns. Also from the console: __game.debugInfo().gear
+export function gearDebugInfo(g) {
+  const p = g.player, eq = g.equipment;
+  if (!eq || !eq.itemModifiers) return null;
+  // a modifier source is a slot id (worn item) or '<itemId>#<n>' (that item's timed buff)
+  const name = (src) => { const worn = ITEMS[eq.slots[src]], buff = ITEMS[String(src).split('#')[0]]; return worn ? worn.name : buff ? buff.name + ' (buff)' : String(src); };
+  return {
+    classId: p.cls.id, className: p.cls.name,
+    loadout: GEAR_SLOTS.map((s) => [s.label, eq.slots[s.id] ? ITEMS[eq.slots[s.id]].name : '-']),
+    stats: finalStatRows(p).map(([l, v]) => [l, v]),
+    modifiers: eq.itemModifiers().active().map((m) => `${name(m.source)}: ${m.value > 0 ? '+' : ''}${Math.round(m.value * 100)}% ${(MODIFIER_TYPES[m.type] || {}).label || m.type}`),
+    effects: g.itemEffects ? g.itemEffects.active().map((x) => `${ITEMS[x.itemId].name} [${x.trigger}] ${x.running ? 'ACTIVE' : x.cooldownLeft > 0 ? 'cd ' + x.cooldownLeft.toFixed(1) + 's' : 'ready'}`) : [],
+    lastFired: g.itemEffects ? g.itemEffects.log.slice(-3).map((l) => `${l.itemId} ${l.effect}`) : [],
+  };
+}
+
+function drawGear(g, c) {
+  const d = gearDebugInfo(g);
+  if (!d) return;
+  const lines = [['CURRENT CLASS', '#e0c070'], [d.className.toUpperCase(), '#fff'], ['LOADOUT', '#e0c070'],
+    ...d.loadout.map(([l, n]) => [`${l.padEnd(12)} ${n}`, '#fff']), ['FINAL STATS', '#e0c070'],
+    ...d.stats.map(([l, v]) => [`${l.padEnd(20)} ${v}`, '#cfe']), ['ACTIVE MODIFIERS', '#e0c070'],
+    ...(d.modifiers.length ? d.modifiers : ['-']).map((m) => [m, '#d8b0ff']), ['ITEM EFFECTS', '#e0c070'],
+    ...(d.effects.length ? d.effects : ['-']).map((m) => [m, '#ffd8a0'])];
+  const lh = 15, w = 330, x = c.canvas.width - 310 - w - 16, y = 200; // left of the sprite validation box (bottom right)
+  c.fillStyle = 'rgba(0,0,0,0.7)';
+  c.fillRect(x - 8, y - 14, w + 8, lines.length * lh + 10);
+  c.font = '12px monospace';
+  lines.forEach(([t, col], i) => { c.fillStyle = col; c.fillText(String(t).slice(0, 46), x, y + i * lh); });
 }
 
 export function drawDebug(g, c) {
@@ -58,5 +94,6 @@ export function drawDebug(g, c) {
   rep.forEach((r, i) => { c.fillStyle = r.ok ? '#9f9' : '#fc6'; c.fillText(`${r.name.padEnd(6)} ${r.ok ? '✓' : '⚠ ' + r.issues.join(', ')}  h${r.bodyHeight} feet±${r.feet}`, W - 290, H - 4 - (rep.length - 1 - i) * 18); });
   c.fillStyle = '#9f9';
   lines.forEach((l, i) => c.fillText(l, 10, H - 6 - (lines.length - 1 - i) * 18));
+  drawGear(g, c);
   c.restore();
 }
