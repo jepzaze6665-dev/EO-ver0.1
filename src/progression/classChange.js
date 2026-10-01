@@ -34,7 +34,8 @@ export function changeClass(game, toId, opts = {}) {
   for (const slot of ['weapon', 'armor']) {
     const oldSig = from.startingGear && from.startingGear[slot], newSig = to.startingGear && to.startingGear[slot];
     if (!newSig || eq.slots[slot] !== oldSig) continue;
-    if (oldSig && !game.inventory.has(oldSig)) game.inventory.add(oldSig, 1, true);
+    const worn = eq.instanceFor(slot); // the old signature item goes to the bag as the same instance
+    if (oldSig && !game.inventory.has(oldSig)) game.inventory.addItem(worn);
     eq.slots[slot] = newSig;
   }
 

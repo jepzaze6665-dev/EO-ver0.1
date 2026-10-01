@@ -1,0 +1,165 @@
+// Item System G1: item data, item instances, gear in the inventory, equipment instances, save v5.
+// Run:  node tools/tests/items.test.mjs
+import { ITEMS } from '../../src/items/items.js';
+import { GEAR_ITEMS, GEAR_SOURCES } from '../../src/data/items/index.js';
+import { GEAR_TYPES } from '../../src/data/items/rules.js';
+import { itemProblems, isGear, canClassUse } from '../../src/items/itemDefs.js';
+import { InstanceIds, createInstance, sanitizeInstance, formatInstanceId } from '../../src/items/itemInstance.js';
+import { Inventory } from '../../src/inventory/inventory.js';
+import { Equipment } from '../../src/equipment/equipment.js';
+import { EventBus } from '../../src/core/events.js';
+import { CLASSES } from '../../src/skills/classes.js';
+import { parseSave } from '../../src/save/saveData.js';
+
+let pass = 0, fail = 0;
+const test = (name, fn) => { try { fn(); pass++; console.log('  ✓', name); } catch (e) { fail++; console.log('  ✗', name, '\n     ', e.message); } };
+const eq = (a, b, msg = '') => { if (a !== b) throw new Error(`${msg} expected ${b}, got ${a}`); };
+const ok = (c, msg) => { if (!c) throw new Error(msg); };
+const game = () => {
+  const g = { events: new EventBus(), audio: { sfx() {} }, player: { recomputed: 0, recomputeStats() { this.recomputed++; } } };
+  g.inventory = new Inventory(g); g.equipment = new Equipment(g);
+  return g;
+};
+const allIds = (g) => [...g.inventory.gear, ...g.inventory.storageGear, ...Object.values(g.equipment.inst)].map((x) => x.instanceId);
+
+console.log('item data');
+test('every item passes the data check (types, rarity, modifiers, triggers, effects, classes)', () => {
+  const problems = Object.values(ITEMS).flatMap((d) => itemProblems(d, Object.keys(CLASSES)));
+  ok(!problems.length, problems.join(' | '));
+});
+test('every item has the standard fields', () => {
+  for (const [id, d] of Object.entries(ITEMS)) {
+    eq(d.id, id); ok(d.name && d.type && typeof d.description === 'string', id);
+    ok(Array.isArray(d.tags) && Array.isArray(d.allowedClasses) && Array.isArray(d.modifiers) && Array.isArray(d.effects), id);
+  }
+});
+test('first item set: 3 weapon cores, 3 armor cores, 3 relics, 3+ charms, 4 runes', () => {
+  const n = (t) => Object.values(GEAR_ITEMS).filter((d) => d.type === t).length;
+  eq(n('weapon_core'), 3); eq(n('armor_core'), 3); eq(n('relic'), 3); ok(n('charm') >= 3, 'charms'); eq(n('rune'), 4);
+  for (const id of ['core_ironheart', 'core_counter', 'core_vanguard', 'armor_fortress', 'armor_guardian', 'armor_risk',
+    'relic_oath_mirror', 'relic_last_bastion', 'relic_dawn_core', 'charm_heavy', 'charm_swift', 'charm_guardian',
+    'rune_guarding_soul', 'rune_iron_will', 'rune_retribution', 'rune_provocation']) ok(ITEMS[id] && isGear(ITEMS[id]), id);
+  ok(Object.keys(GEAR_SOURCES).length === 5, 'five data files');
+});
+test('older gear got a type; stack items are not gear', () => {
+  eq(ITEMS.umbral_sword.type, 'weapon_core'); eq(ITEMS.aegis_plate.type, 'armor_core'); eq(ITEMS.eclipse_sigil.type, 'relic');
+  eq(ITEMS.shade_charm.type, 'charm'); eq(ITEMS.hunger_rune.type, 'rune');
+  for (const id of ['hp_potion', 'wolf_fang', 'cinder_shard']) ok(!isGear(ITEMS[id]), id);
+  for (const d of Object.values(ITEMS)) if (d.slot) ok(GEAR_TYPES.includes(d.type), d.id);
+});
+test('legendary = unique effect; Oath Mirror comes from boss_a1 and reflects on Perfect Guard', () => {
+  const m = ITEMS.relic_oath_mirror;
+  eq(m.rarity, 'legendary'); eq(m.dropSource, 'boss_a1'); eq(m.effects[0].trigger, 'onPerfectGuard'); eq(m.effects[0].effect.type, 'reflectDamage');
+});
+test('the data check catches bad items', () => {
+  const bad = { id: 'x', name: 'X', type: 'relic', rarity: 'mythic', description: 'd', tags: [], allowedClasses: ['nobody'],
+    modifiers: [{ type: 'defense', value: 50 }, { type: 'luck', value: 1 }], effects: [{ trigger: 'onSneeze', effect: { type: 'heal' } }] };
+  const p = itemProblems(bad, Object.keys(CLASSES)).join(' ');
+  for (const w of ['rarity', 'nobody', 'outside', 'luck', 'onSneeze', 'cooldown or duration', 'text']) ok(p.includes(w), `missing "${w}" in ${p}`);
+});
+test('class restriction is data only', () => {
+  const d = { allowedClasses: ['aegis_guardian'] };
+  ok(canClassUse(d, 'aegis_guardian') && !canClassUse(d, 'umbral_sword'), 'only aegis'); ok(canClassUse(ITEMS.core_ironheart, 'stormcaller'), 'all');
+});
+
+console.log('item instance');
+test('instances get unique ids item_000001, item_000002, ...; non-gear = no instance', () => {
+  const ids = new InstanceIds();
+  const a = createInstance('relic_oath_mirror', ids), b = createInstance('relic_oath_mirror', ids);
+  eq(a.instanceId, 'item_000001'); eq(b.instanceId, 'item_000002'); eq(a.itemId, 'relic_oath_mirror');
+  eq(createInstance('hp_potion', ids), null); eq(createInstance('ghost', ids), null);
+});
+test('sanitize: unknown items dropped, repeated / broken ids replaced, the counter skips loaded ids', () => {
+  const ids = new InstanceIds(), used = new Set();
+  ids.seen(formatInstanceId(40));
+  eq(sanitizeInstance({ itemId: 'ghost', instanceId: 'item_000001' }, ids, used), null);
+  eq(sanitizeInstance({ itemId: 'charm_swift', instanceId: 'item_000040' }, ids, used).instanceId, 'item_000040');
+  eq(sanitizeInstance({ itemId: 'charm_swift', instanceId: 'item_000040' }, ids, used).instanceId, 'item_000041');
+  eq(sanitizeInstance({ itemId: 'charm_swift', instanceId: 'hack' }, ids, used).instanceId, 'item_000042');
+});
+
+console.log('inventory gear');
+test('add gear = instances, counts stay in items; remove takes instances out', () => {
+  const g = game(), inv = g.inventory;
+  eq(inv.add('rune_iron_will', 2), 2); eq(inv.count('rune_iron_will'), 2); eq(inv.instancesOf('rune_iron_will').length, 2);
+  ok(inv.has('rune_iron_will', 2), 'has'); ok(inv.remove('rune_iron_will', 1), 'remove'); eq(inv.gear.length, 1); eq(inv.count('rune_iron_will'), 1);
+  inv.add('hp_potion', 3); eq(inv.gear.length, 1, 'potions are no instances');
+});
+test('addItem / removeItem / getItem / hasItem / findItem', () => {
+  const g = game(), inv = g.inventory;
+  inv.add('relic_dawn_core');
+  const x = inv.findItem('relic_dawn_core');
+  ok(inv.hasItem(x.instanceId) && inv.getItem(x.instanceId) === x, 'find / get');
+  const out = inv.removeItem(x.instanceId);
+  eq(out, x); eq(inv.count('relic_dawn_core'), 0); eq(inv.removeItem(x.instanceId), null);
+  ok(inv.addItem(out), 'put back'); ok(!inv.addItem(out), 'same instance twice'); eq(inv.count('relic_dawn_core'), 1);
+  ok(!inv.addItem({ instanceId: 'item_9', itemId: 'hp_potion' }), 'not gear');
+});
+test('max stack holds for instances too', () => {
+  const g = game(), inv = g.inventory;
+  inv.add('charm_heavy', 50);
+  eq(inv.count('charm_heavy'), 9); eq(inv.instancesOf('charm_heavy').length, 9); ok(!inv.addItem(inv.newInstance('charm_heavy')), 'full');
+});
+test('storage keeps the same instances', () => {
+  const g = game(), inv = g.inventory;
+  inv.add('core_counter'); const id = inv.findItem('core_counter').instanceId;
+  inv.deposit('core_counter', 1); eq(inv.count('core_counter'), 0); eq(inv.storage.core_counter, 1); eq(inv.storageGear[0].instanceId, id);
+  inv.withdraw('core_counter', 1); eq(inv.findItem('core_counter').instanceId, id); eq(inv.storageGear.length, 0);
+});
+test('save / load round trip keeps instance ids and the id counter', () => {
+  const g = game(), inv = g.inventory;
+  inv.add('rune_retribution'); inv.add('armor_risk'); inv.add('wolf_fang', 4); inv.deposit('armor_risk', 1);
+  const d = JSON.parse(JSON.stringify(inv.serialize()));
+  eq(d.gear.filter((x) => x.itemId === 'rune_retribution').length, 1, 'instance saved');
+  const g2 = game(); g2.inventory.load(d);
+  eq(g2.inventory.findItem('rune_retribution').instanceId, inv.findItem('rune_retribution').instanceId);
+  eq(g2.inventory.count('wolf_fang'), 4); eq(g2.inventory.storage.armor_risk, 1); eq(g2.inventory.storageGear[0].itemId, 'armor_risk');
+  ok(g2.inventory.newInstance('charm_swift').instanceId > formatInstanceId(2), 'counter continues');
+});
+test('older saves (gear as counts) become instances; junk is cleaned', () => {
+  const g = game(), inv = g.inventory;
+  inv.load({ items: { duskfang_blade: 2, hp_potion: 3, ghost: 1 }, storage: { umbral_band: 1 } }); // pre-v5
+  eq(inv.count('duskfang_blade'), 2); eq(inv.instancesOf('duskfang_blade').length, 2); eq(inv.count('hp_potion'), 3);
+  eq(inv.storage.umbral_band, 1); eq(inv.storageGear.length, 1);
+  const ids = allIds(g); eq(new Set(ids).size, ids.length, 'unique ids');
+  // v5: the instances decide; a gear count with no instance behind it is dropped (no free items from an edited save)
+  const g2 = game();
+  g2.inventory.load({ items: { duskfang_blade: 5, charm_focus: 1 }, gear: [{ itemId: 'ghost', instanceId: 'item_000001' },
+    { itemId: 'charm_focus', instanceId: 'item_000005' }, { itemId: 'charm_focus', instanceId: 'item_000005' }] });
+  eq(g2.inventory.count('duskfang_blade'), 0); eq(g2.inventory.count('charm_focus'), 2);
+  const ids2 = allIds(g2); eq(new Set(ids2).size, ids2.length, 'unique ids (v5)');
+});
+
+console.log('equipment instances');
+test('equip moves the instance from the bag to the slot; the old item goes back as its own instance', () => {
+  const g = game(), inv = g.inventory, eqp = g.equipment;
+  const worn = eqp.instanceFor('weapon');
+  inv.add('duskfang_blade'); const id = inv.findItem('duskfang_blade').instanceId;
+  ok(eqp.equip('duskfang_blade'), 'equip');
+  eq(eqp.slots.weapon, 'duskfang_blade'); eq(eqp.inst.weapon.instanceId, id); eq(inv.count('duskfang_blade'), 0);
+  eq(inv.findItem('umbral_sword').instanceId, worn.instanceId); ok(g.player.recomputed > 0, 'stats recomputed');
+});
+test('unequip puts the instance back; runes / new cores are not equippable before G2', () => {
+  const g = game(), inv = g.inventory, eqp = g.equipment;
+  inv.add('umbral_band'); eqp.equip('umbral_band'); const id = eqp.inst.accessory.instanceId;
+  ok(eqp.unequip('accessory'), 'unequip'); eq(eqp.slots.accessory, null); eq(inv.findItem('umbral_band').instanceId, id);
+  inv.add('rune_iron_will'); ok(!eqp.equip('rune_iron_will'), 'rune'); inv.add('core_ironheart'); ok(!eqp.equip('core_ironheart'), 'core');
+  ok(!eqp.equip('shade_charm'), 'not owned');
+});
+test('equipment save / load keeps ids; bad slots repaired', () => {
+  const g = game(); g.inventory.add('umbral_band'); g.equipment.equip('umbral_band');
+  const inv = JSON.parse(JSON.stringify(g.inventory.serialize())), e = JSON.parse(JSON.stringify(g.equipment.serialize()));
+  const g2 = game(); g2.inventory.load(inv); g2.equipment.load(e);
+  eq(g2.equipment.slots.accessory, 'umbral_band'); eq(g2.equipment.instanceFor('accessory').instanceId, g.equipment.inst.accessory.instanceId);
+  const g3 = game(); g3.equipment.load({ weapon: 'ghost', armor: 'hp_potion', accessory: 'umbral_sword' });
+  eq(g3.equipment.slots.weapon, 'umbral_sword'); eq(g3.equipment.slots.armor, null); eq(g3.equipment.slots.accessory, null);
+  const g4 = game(); g4.equipment.load({ weapon: 'umbral_sword', armor: 'umbral_cloak' }); // pre-v5: no inst
+  ok(g4.equipment.instanceFor('armor').instanceId.startsWith('item_'), 'made on demand');
+});
+test('save v4 migrates to v5', () => {
+  const r = parseSave(JSON.stringify({ v: 4, player: { classId: 'aegis_guardian', x: 1, y: 2 }, inventory: { items: { aegis_plate: 1 } } }));
+  ok(r.ok, r.error); eq(r.data.v, 5);
+});
+
+console.log(`\n${pass} passed, ${fail} failed`);
+process.exit(fail ? 1 : 0);

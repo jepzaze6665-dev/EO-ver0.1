@@ -855,6 +855,24 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   defringe.out { alpha, minLum, neutral } = extra edge peel on the SCALED frames (downscale makes pale half-alpha rims).
   LEVEL (owner): Lv 52, recommended 50 = an end-game fight. No god LV 50: UB 162.5 s · RP 161 s · AW 181.5 s · AG 246.5 s, all WIN.
   A2 SECRET BOSS COMPLETE (D1-D4). Next: owner decides (secret class from Heart of Varkharon = data only until asked).
+- **Current: ITEM + COMBAT LOADOUT SYSTEM** (owner's 50-section spec, adapted to this repo: EXTEND items.js / inventory /
+  equipment / lootSystem, never a second copy; "loadout" = the SKILL loadout (player/loadout.js), the item one = GEAR loadout;
+  items never change sprites). Owner decisions: signature weapons become each class's starting Weapon Core; older
+  accessories are split into Relic / Charm / Rune. Phases: G1 data + instances · G2 gear loadout 7 slots (weapon core, armor
+  core, relic, charm, rune ×3) + modifier layer (stackingRule + caps, base stats untouched) · G3 effect / condition / trigger
+  system (game.events, cooldowns, no loops) · G4 Aegis integration (barrierPower in Holy Barrier, guard gain, counter, aggro) ·
+  G5 tooltip + loadout UI + F3 · G6 loot (boss signature items, dropSource) + gearCheck.
+  Done G1: rules = `src/data/items/rules.js` (ITEM_TYPE weapon_core / armor_core / relic / charm / rune, RARITIES,
+  MODIFIER_TYPES { stat, unit, stacking, min, max }, TRIGGERS, CONDITIONS, EFFECT_TYPES); first set (16) in
+  `src/data/items/{weaponCores,armorCores,relics,charms,runes}.js` (registry index.js, merged into ITEMS; not obtainable and no
+  `slot` until G2 — they do nothing yet). `src/items/itemDefs.js` (pure): normalizeItem fills id / type (older gear: from its
+  slot; accessories name theirs) / description / tags / allowedClasses ['all'] / modifiers / effects / dropSource;
+  itemProblems = the data check (legendary needs a unique effect, effects need cooldown or duration + text, charms modifiers
+  only); canClassUse. `src/items/itemInstance.js`: { instanceId 'item_000001', itemId }, InstanceIds counter (saved).
+  Inventory: gear = instances in `gear` / `storageGear`, `items` / `storage` still = counts of every id (old API unchanged)
+  + addItem / removeItem / getItem / hasItem / findItem / instancesOf. Equipment keeps `slots` (ids) + `inst` per slot (made on
+  demand by instanceFor when code sets slots directly); equip / unequip / class change move the SAME instance. SAVE v5
+  (pre-v5 gear counts -> instances in Inventory.load; a v5 save trusts its instances). tools/tests/items.test.mjs (19).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

@@ -1,5 +1,11 @@
-// Item database (15 items). Equipment stats/mods are applied by /equipment.
+// Item database. Equipment stats/mods are applied by /equipment.
 // icon: small procedural glyph drawn by the UI (see ui/icons.js)
+// GEAR items from data/items/*.js (cores, relics, charms, runes) are merged in below; every item is then normalised
+// (items/itemDefs.js: id, type, description, tags, allowedClasses, modifiers, effects). Older gear keeps `stats` /
+// `mods` / `skillModifiers` until it is converted to item modifiers + effects.
+import { GEAR_ITEMS } from '../data/items/index.js';
+import { normalizeItem } from './itemDefs.js';
+
 export const ITEMS = {
   // ---- weapons
   umbral_sword: {
@@ -115,13 +121,13 @@ export const ITEMS = {
   },
   // ---- accessories
   eclipse_sigil: {
-    name: 'Eclipse Sigil', cat: 'Armor', slot: 'accessory', rarity: 'legendary', icon: 'sigil', color: '#ff80ff',
+    type: 'relic', name: 'Eclipse Sigil', cat: 'Armor', slot: 'accessory', rarity: 'legendary', icon: 'sigil', color: '#ff80ff',
     stats: { shadowDmg: 0.1 }, mods: { sigil: true, perfectWindow: 0.06 },
     desc: 'A black medallion found in the Hidden Cave.', modText: 'Shadow Break +40% and releases a second wave. Perfect Dodge window +60ms.',
   },
   // SKILL MODIFIER gear (Skill System S6, progression/skillModifiers.js): changes skills through data
   hunger_rune: {
-    name: 'Rune of Hunger', cat: 'Armor', slot: 'accessory', rarity: 'rare', icon: 'sigil', color: '#c080ff',
+    type: 'rune', name: 'Rune of Hunger', cat: 'Armor', slot: 'accessory', rarity: 'rare', icon: 'sigil', color: '#c080ff',
     stats: {}, skillModifiers: [
       { skillId: 'shadow_slash', stat: 'damage', operation: 'MULTIPLY', value: 1.1 },
       { skillId: 'shadow_slash', stat: 'resourceGain', operation: 'ADD', value: 5 },
@@ -129,12 +135,12 @@ export const ITEMS = {
     desc: 'A rune that drinks from every cut.', modText: 'Shadow Slash +10% damage and +5 Shadow when it hits.', price: 320,
   },
   shade_charm: {
-    name: 'Shade Charm', cat: 'Armor', slot: 'accessory', rarity: 'rare', icon: 'charm', color: '#8a70ff',
+    type: 'charm', name: 'Shade Charm', cat: 'Armor', slot: 'accessory', rarity: 'rare', icon: 'charm', color: '#8a70ff',
     stats: {}, skillModifiers: [{ skillId: 'shade_step', stat: 'charges', operation: 'ADD', value: 1 }],
     desc: 'Two shadows follow its wearer.', modText: 'Shade Step gains 1 extra charge (2 / 2).', price: 360,
   },
   eclipse_relic: {
-    name: 'Eclipse Relic', cat: 'Armor', slot: 'accessory', rarity: 'epic', icon: 'heart', color: '#e0a0ff',
+    type: 'relic', name: 'Eclipse Relic', cat: 'Armor', slot: 'accessory', rarity: 'epic', icon: 'heart', color: '#e0a0ff',
     stats: {}, skillModifiers: [
       { skillId: 'eclipse_sever', stat: 'cooldown', operation: 'MULTIPLY', value: 0.9 },
       { tag: 'shadow', stat: 'damage', operation: 'MULTIPLY', value: 1.03 },
@@ -142,21 +148,21 @@ export const ITEMS = {
     desc: 'A shard of the first eclipse.', modText: 'Eclipse Sever -10% cooldown · shadow skills +3% damage.', price: 520,
   },
   hunters_charm: {
-    name: "Hunter's Charm", cat: 'Armor', slot: 'accessory', rarity: 'rare', icon: 'charm', color: '#80d080',
+    type: 'charm', name: "Hunter's Charm", cat: 'Armor', slot: 'accessory', rarity: 'rare', icon: 'charm', color: '#80d080',
     stats: { crit: 0.08, shadowGain: 0.25 }, desc: 'A charm of braided fang and silver.', modText: 'Shadow gain +25%.', price: 260,
   },
   guardian_heart: {
-    name: 'Heart of the Guardian', cat: 'Armor', slot: 'accessory', rarity: 'legendary', icon: 'heart', color: '#5af0ff',
+    type: 'relic', name: 'Heart of the Guardian', cat: 'Armor', slot: 'accessory', rarity: 'legendary', icon: 'heart', color: '#5af0ff',
     stats: { hp: 60, def: 3 }, mods: { perfectHeal: true },
     desc: 'The Guardian’s crystal heart, now calm.', modText: 'Perfect Dodge restores 5% HP.',
   },
   veil_stillness: {
-    name: 'Veil of Stillness', cat: 'Armor', slot: 'accessory', rarity: 'epic', icon: 'charm', color: '#9af8ff',
+    type: 'relic', name: 'Veil of Stillness', cat: 'Armor', slot: 'accessory', rarity: 'epic', icon: 'charm', color: '#9af8ff',
     stats: { crit: 0.04 }, mods: { perfectBonus: true },
     desc: 'A silver veil found behind Silverfall.', modText: 'Perfect Dodge grants +1 extra Shadow Mark and +15 SHADOW.',
   },
   umbral_band: {
-    name: 'Umbral Band', cat: 'Armor', slot: 'accessory', rarity: 'epic', icon: 'sigil', color: '#b070ff',
+    type: 'charm', name: 'Umbral Band', cat: 'Armor', slot: 'accessory', rarity: 'epic', icon: 'sigil', color: '#b070ff',
     stats: { atk: 2 }, mods: { breakDmg: 1.3 },
     desc: 'A ring of blackened iron that drinks shadow.', modText: 'Shadow Break damage +30%.',
   },
@@ -190,6 +196,11 @@ export const ITEMS = {
   varkharon_seal: { name: "Varkharon's Seal", cat: 'Quest Item', rarity: 'quest', icon: 'sigil', color: '#ff5a20', desc: 'Three cinder shards fused into a dragon-headed seal. A door in the Ancient Valley is waiting for it.' },
   seal_fragment: { name: 'Ancient Seal Fragment', cat: 'Quest Item', rarity: 'quest', icon: 'rune', color: '#5af0ff', desc: 'Resonates with the sealed Guardian Gate.' },
 };
+for (const [id, def] of Object.entries(GEAR_ITEMS)) {
+  if (ITEMS[id]) throw new Error(`item id "${id}" is defined twice`);
+  ITEMS[id] = def;
+}
+for (const [id, def] of Object.entries(ITEMS)) normalizeItem(id, def);
 
 // Max stack per category (an item may override with its own `maxStack`). Inventory never holds more.
 export const MAX_STACK = { Weapon: 9, Armor: 9, Consumable: 20, Material: 99, 'Quest Item': 1 };
