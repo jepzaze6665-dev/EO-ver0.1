@@ -25,6 +25,7 @@ const SRC = 'desgin/monster/';
 // `flip: true` on the sheet = every row faces left. Row opts.mirrorFrames: [i] = only those frames face the other way.
 // `height`   : game px of the neutral body (row 0 frame 0 measures it); `feet` = pivot row inside the output cell.
 // `anims`    : game animation -> [row name, frame indices?]; missing anims fall back in sheetSprites.js.
+const VK_BLOBS = { min: 2500, reach: 90, maxW: 360, edgeDrop: true, tight: 24 }; // Varkharon rows: fire / aura touch the next pose -> cut by shape
 const SHEETS = {
   // ---------------- A1 WHISPERING FOREST
   rabbit: {
@@ -164,9 +165,31 @@ const SHEETS = {
       ['p3', 0, { y: [628, 782], x: [118, 1990], blobs: { min: 2500 } }], ['death', 0, { y: [1780, 1935], x: [140, 1990], blobs: { min: 700 } }],
     ],
   },
+  // A2 SECRET BOSS: VARKHARON, the Sealed Cinder King — the owner's 4-phase dragon sheet (A/A2/SC/dragon/SP): four
+  // panels (phase 1 | 2 on top, 3 | 4 below), the three transformations and the common rows. Every row names its band.
+  varkharon: {
+    file: 'A/A2/SC/dragon/SP/1.png', height: 96, bgTone: [185, 250], // black headers sit on the sheet edge: give the checker tones
+    clear: [[0, 0, 2048, 34], [0, 684, 2048, 716], [1100, 716, 1960, 724], [0, 0, 106, 1500], [990, 0, 1106, 1500]], // header bars the horns touch + row labels
+    // rows whose fire / aura joins the poses into one shape (p3 / p4 hurt + stagger, enrage, p2 stagger, 3->4 transition, common hurt) are not cut: the common rows cover them
+    rows: [
+      ['p1_idle', 7, { y: [36, 124], x: [96, 960], blobs: VK_BLOBS }], ['p1_move', 7, { y: [132, 220], x: [96, 960], blobs: VK_BLOBS }],
+      ['p1_attack', 7, { y: [228, 318], x: [96, 960], blobs: VK_BLOBS }], ['p1_special', 7, { y: [326, 416], x: [96, 960], blobs: VK_BLOBS }],
+      ['p1_hurt', 7, { y: [426, 518], x: [96, 960], blobs: VK_BLOBS }], ['p1_stagger', 6, { y: [524, 632], x: [86, 960], blobs: VK_BLOBS }],
+      ['p2_idle', 7, { y: [36, 126], x: [1082, 1960], blobs: VK_BLOBS }], ['p2_move', 7, { y: [134, 222], x: [1082, 1960], blobs: VK_BLOBS }],
+      ['p2_attack', 7, { y: [232, 318], x: [1082, 1960], blobs: VK_BLOBS }], ['p2_special', 7, { y: [328, 420], x: [1082, 1960], blobs: VK_BLOBS }],
+      ['p2_hurt', 7, { y: [432, 518], x: [1082, 1960], blobs: VK_BLOBS }],
+      ['p3_idle', 7, { y: [716, 780], x: [96, 960], blobs: VK_BLOBS }], ['p3_move', 7, { y: [792, 882], x: [96, 960], blobs: VK_BLOBS }],
+      ['p3_attack', 7, { y: [894, 984], x: [96, 960], blobs: VK_BLOBS }], ['p3_special', 7, { y: [992, 1086], x: [96, 980], blobs: VK_BLOBS }],
+      ['p4_idle', 7, { y: [716, 780], x: [1082, 1960], blobs: VK_BLOBS }], ['p4_move', 7, { y: [780, 866], x: [1082, 1960], blobs: VK_BLOBS }],
+      ['p4_attack', 7, { y: [866, 954], x: [1082, 1960], blobs: VK_BLOBS }], ['p4_special', 7, { y: [956, 1056], x: [1082, 1960], blobs: VK_BLOBS }],
+      ['t12', 7, { y: [1590, 1735], x: [8, 650], blobs: VK_BLOBS }], ['t23', 7, { y: [1590, 1735], x: [662, 1320], blobs: VK_BLOBS }],
+      ['stagger', 5, { y: [1818, 1935], x: [540, 1150], blobs: VK_BLOBS }],
+      ['death', 6, { y: [1818, 1995], x: [1160, 2030], blobs: { min: 2500, reach: 120, maxW: 420, edgeDrop: true } }],
+    ],
+  },
   // B2 BOSS: the AMETHYST COLOSSUS (a giant crystal golem, faces right)
   amethyst_colossus: {
-    file: 'B/B2/BOSS', height: 84,
+    file: 'B/B2/BOSS.png', height: 84,
     rows: [['idle', 8], ['walk', 9], ['charge', 9], ['slam', 8], ['strike', 7], ['hit', 10], ['glow', 10], ['death', 10]],
   },
   // B1 BOSS: HOARFANG, a giant frost wolf (faces right on every row)
@@ -204,9 +227,9 @@ function measureBackground(img) {
 // background, so a normal flood leaks into the body through every small gap in the outline. With r > 0 the flood only
 // travels through "core" background (every pixel within r is background-toned) and is then widened back by r px:
 // gaps up to 2r px wide in the outline stop it.
-function removeBackground(img, pocket = 40, erode = 0) {
+function removeBackground(img, pocket = 40, erode = 0, tone0 = null) {
   const { width: w, height: h, data } = img;
-  const bg = measureBackground(img);
+  const bg = tone0 ? { lo: tone0[0], hi: tone0[1] } : measureBackground(img); // sheet `bgTone: [lo, hi]` when black headers touch the edge
   const tone = (p) => { const i = p * 4, l = lum(data, i); return neutral(data, i) <= 16 && l >= bg.lo && l <= bg.hi; };
   let isBg = tone;
   if (erode > 0) {
@@ -366,14 +389,18 @@ function blobFrames(img, name, y0, y1, x0, x1, o) {
     }
     size.push(n); box.push(bb);
   }
-  const big = size.map((n, i) => i).filter((i) => size[i] >= (o.min || 1500)).sort((a, b) => box[a].minx - box[b].minx);
+  const wide = (i) => o.maxW && box[i].maxx - box[i].minx > o.maxW; // `maxW`: panel borders / header edges crossing the row are dropped
+  const big = size.map((n, i) => i).filter((i) => size[i] >= (o.min || 1500) && !wide(i)).sort((a, b) => box[a].minx - box[b].minx);
   const owner = new Int32Array(size.length).fill(-1);
   big.forEach((i, k) => { owner[i] = k; });
   for (let i = 0; i < size.length; i++) {
-    if (owner[i] >= 0 || size[i] < 6) continue;
+    if (owner[i] >= 0 || size[i] < 6 || wide(i)) continue;
+    if (o.edgeDrop && (box[i].miny === 0 || box[i].maxy === h - 1)) continue; // `edgeDrop`: a small piece cut by the band edge belongs to the next row
     const cx = (box[i].minx + box[i].maxx) / 2;
     let best = 0, bd = 1e9;
     big.forEach((j, k) => { const d = Math.abs((box[j].minx + box[j].maxx) / 2 - cx); if (d < bd) { bd = d; best = k; } });
+    const B = box[big[best]] || box[0]; // `tight`: a loose piece must sit over its frame (label remnants beside the first pose stay out)
+    if (o.tight && (box[i].maxx < B.minx - o.tight || box[i].minx > B.maxx + o.tight)) continue;
     if (bd < (o.reach || 90)) owner[i] = best;
   }
   const cols = big.map((j, k) => {
@@ -455,7 +482,7 @@ function centreOf(im, bb) {
 
 function buildMonster(id, def, probe) {
   const img = png.read(path.join(ROOT, SRC, def.file));
-  const bg = removeBackground(img, def.pocket, def.bgErode || 0);
+  const bg = removeBackground(img, def.pocket, def.bgErode || 0, def.bgTone);
   if (def.darkBg) {
     // dark checkerboard sheets: background = dark NEUTRAL pixels in [minLum, lum] that form a LARGE connected region.
     // The art's own dark greys sit inside its black outline (below minLum), so they are separate small regions and stay.
@@ -476,6 +503,8 @@ function buildMonster(id, def, probe) {
     const d = img.data;
     for (let i = 0; i < d.length; i += 4) if (d[i + 3] && (d[i] + d[i + 1] + d[i + 2]) / 3 >= def.clearLight && Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]) <= 40) d[i + 3] = 0;
   }
+  if (def.clear) for (const [x0, y0, x1, y1] of def.clear) // sheet `clear`: rectangles blanked (header bars touching the art)
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) img.data[(y * img.width + x) * 4 + 3] = 0;
   if (def.region) { // everything outside the region (labels, headers) is dropped
     const [x0, y0, x1, y1] = def.region;
     for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width; x++) if (x < x0 || x >= x1 || y < y0 || y >= y1) img.data[(y * img.width + x) * 4 + 3] = 0;

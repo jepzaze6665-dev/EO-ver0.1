@@ -790,6 +790,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   the open ground of other maps: 31 monsters / 15 packs / 31% of ground within 15 tiles of a pack -> 65 / 50 / 81% (a1 89%,
   a2 69%, b2 67%). b1 levelBand.exp 1.5 -> 1.0 (the bonus only made up for the few monsters). New packs never within 8 tiles
   of an NPC / waystone (World.buildGrid). Pacing now: A 10 / 21 / 30 -> LV 31 · B 15 / 26 / 38 -> LV 39.
+- **Current: A2 SECRET BOSS VARKHARON, the Sealed Cinder King** (owner 2026-10-01; art desgin/monster/A/A2/SC/dragon/{SP,VFX} +
+  map art desgin/Map/A/a2/SC/DRAGON: tileset + props). Plan: D1 sprites/VFX · D2 lair (Quiet Hollow in A2 [148,176], widened,
+  scorched; dragon door locked by Varkharon's Seal -> boss arena map 'The Cinder Throne') · D3 Ashen Pilgrim NPC at a random
+  spot (4-5 per map, re-rolled per map entry; A1 after boss_a1, A2 after mini_sunken_horn, A3 after mini_archive_warden) with
+  a task each (A1 light 3 old altars · A2 kill 3 Crag Rhinos without being hit · A3 rune statue puzzle) -> Cinder Shard ×3 ->
+  forged at the rumour stone -> Varkharon's Seal · D4 4-phase boss (Sealed Ember / Awakened Flame / Abyssal Corruption /
+  Cinder King's Wrath), reward Heart of Varkharon + flag dragon_slain (future secret class = data only).
+  Done D1: build-monsters `varkharon` (blob rows; new sheet opts `bgTone` (checker tones when black headers touch the edge),
+  `clear` rects (headers / labels), blob opts `maxW` (drop borders), `edgeDrop` (pieces cut by the band edge), `tight`); anims
+  p1-p4 idle/move/attack/special, p1/p2 hurt, p1 stagger, t12/t23, stagger, death (p4_idle[0] + p4_special[0] are dirty: skip).
+  build-boss-vfx set 'd' (dark sheet, `floor` 60, skipX 205): d_aura/impact/ground/bolt/hit/telegraph/explosion/weak/stagger/
+  enrage/phase/death (d_trail frames overlap: unused). B2 BOSS path fixed (file is now BOSS.png).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

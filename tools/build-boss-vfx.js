@@ -59,19 +59,25 @@ const SHEETS = [
     names: ['form', 'ring', 'vortex', 'surge', 'burst'],
     counts: { ring: 8, vortex: 8, surge: 7, burst: 9 },
   },
+  {
+    // A2 SECRET BOSS VARKHARON (dragon): dark checker sheet, row titles on the left
+    prefix: 'd', dir: 'desgin/monster/A/A2/SC/dragon/VFX', bg: 'dark', skipX: 205, floor: 60,
+    names: ['aura', 'trail', 'impact', 'ground', 'bolt', 'hit', 'telegraph', 'explosion', 'weak', 'stagger', 'enrage', 'phase', 'death'],
+    counts: { aura: 12, trail: 8, impact: 9, ground: 13, bolt: 10, hit: 8, telegraph: 12, explosion: 13, weak: 10, stagger: 11, enrage: 10, phase: 11, death: 10 },
+  },
 ];
 
 // dark background: keep the glow. alpha = brightness above the background, colour un-mixed from the background
-function glowExtract(img) {
+function glowExtract(img, skipX = 0, floor0 = 0) { // skipX: the row labels on the left are not background samples
   const { width: w, height: h, data } = img;
   let n = 0, sum = [0, 0, 0], mx = 0;
   for (let y = 0; y < h; y += 3) for (let x = 0; x < w; x += 3) {
-    if (x > 24 && y > 24 && x < w - 24 && y < h - 24) continue;
+    if (x < skipX || (x > 24 && y > 24 && x < w - 24 && y < h - 24)) continue;
     const i = (y * w + x) * 4;
     for (let c = 0; c < 3; c++) sum[c] += data[i + c];
     mx = Math.max(mx, data[i], data[i + 1], data[i + 2]); n++;
   }
-  const bg = sum.map((v) => v / n), floor = mx + 6;
+  const bg = sum.map((v) => v / n), floor = floor0 || mx + 6; // sheet `floor`: effects reach the sheet edge, so the max is not background
   for (let p = 0; p < w * h; p++) {
     const i = p * 4, m = Math.max(data[i], data[i + 1], data[i + 2]);
     const a = Math.max(0, Math.min(1, (m - floor) / (190 - floor)));
@@ -85,7 +91,7 @@ function buildSheet(sh, out, preview) {
   const dir = path.join(ROOT, sh.dir);
   const file = fs.readdirSync(dir).find((f) => !f.startsWith('.'));
   const img = png.read(path.join(dir, file));
-  if (sh.bg === 'dark') glowExtract(img); else removeBackground(img);
+  if (sh.bg === 'dark') glowExtract(img, sh.skipX, sh.floor); else removeBackground(img);
   if (sh.skipX) for (let y = 0; y < img.height; y++) for (let x = 0; x < sh.skipX; x++) img.data[(y * img.width + x) * 4 + 3] = 0;
   // separator lines drawn across the sheet between rows would join every frame of a row: clear any pixel row
   // (and its neighbours) that is opaque across most of the width

@@ -614,5 +614,96 @@
   "fh": 136,
   "frames": 9,
   "set": "boss"
+ },
+ "d_aura": {
+  "file": "assets/vfx/boss/d_aura.png",
+  "fw": 49,
+  "fh": 53,
+  "frames": 12,
+  "set": "boss"
+ },
+ "d_trail": {
+  "file": "assets/vfx/boss/d_trail.png",
+  "fw": 131,
+  "fh": 74,
+  "frames": 8,
+  "set": "boss"
+ },
+ "d_impact": {
+  "file": "assets/vfx/boss/d_impact.png",
+  "fw": 96,
+  "fh": 72,
+  "frames": 8,
+  "set": "boss"
+ },
+ "d_ground": {
+  "file": "assets/vfx/boss/d_ground.png",
+  "fw": 76,
+  "fh": 68,
+  "frames": 13,
+  "set": "boss"
+ },
+ "d_bolt": {
+  "file": "assets/vfx/boss/d_bolt.png",
+  "fw": 81,
+  "fh": 29,
+  "frames": 10,
+  "set": "boss"
+ },
+ "d_hit": {
+  "file": "assets/vfx/boss/d_hit.png",
+  "fw": 65,
+  "fh": 62,
+  "frames": 7,
+  "set": "boss"
+ },
+ "d_telegraph": {
+  "file": "assets/vfx/boss/d_telegraph.png",
+  "fw": 58,
+  "fh": 55,
+  "frames": 12,
+  "set": "boss"
+ },
+ "d_explosion": {
+  "file": "assets/vfx/boss/d_explosion.png",
+  "fw": 82,
+  "fh": 85,
+  "frames": 13,
+  "set": "boss"
+ },
+ "d_weak": {
+  "file": "assets/vfx/boss/d_weak.png",
+  "fw": 58,
+  "fh": 55,
+  "frames": 10,
+  "set": "boss"
+ },
+ "d_stagger": {
+  "file": "assets/vfx/boss/d_stagger.png",
+  "fw": 71,
+  "fh": 60,
+  "frames": 11,
+  "set": "boss"
+ },
+ "d_enrage": {
+  "file": "assets/vfx/boss/d_enrage.png",
+  "fw": 93,
+  "fh": 91,
+  "frames": 10,
+  "set": "boss"
+ },
+ "d_phase": {
+  "file": "assets/vfx/boss/d_phase.png",
+  "fw": 91,
+  "fh": 99,
+  "frames": 11,
+  "set": "boss"
+ },
+ "d_death": {
+  "file": "assets/vfx/boss/d_death.png",
+  "fw": 92,
+  "fh": 86,
+  "frames": 9,
+  "set": "boss"
  }
 }
