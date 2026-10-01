@@ -990,6 +990,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   colours, .keys + kbd hint bar); fonts served with the game in assets/fonts (Kanit 400-700 = titles / numbers, Noto Sans Thai =
   Thai body, Latin body = Segoe UI; OFL licences kept); main.js waits for document.fonts before the canvas draws; hud.js FONT /
   TITLE + vfx damage numbers use them. ui.test checks theme.css is linked last + its font files exist.
+  UI ICONS (owner's art, desgin/UI/*.png, transparent sheets; the old pixel-kit SOURCE sheets were removed by the owner ->
+  tools/build-ui.js can no longer rebuild assets/ui/*, the built pieces stay): `node tools/build-ui-icons.js [--preview]` ->
+  assets/ui/icons/<name>.png + icons.json (blobs on a 4x mask, per-sheet `solid` alpha / `join`; the count must match NAMES):
+  tab_* (bag filters 8) · menu_* (8) · stat_* (14) · empty_* (5 loadout slots) · npc_* (shop smith storage waystone guild) ·
+  cur_* (gold crystal token) · level_diamond (128) · pedestal (320 wide). Line icons are made pure white + alpha stretched.
+  Done U-B: CHARACTER WINDOW = Layout C, src/ui/charWindow.js (built by panels.inventory, overlay class 'side' = left panel,
+  world visible): header (level diamond, class, EXP, POWER = pure src/progression/power.js), icon tabs Equipment / Skills /
+  Class / Codex / Quests (bag + loadout merged into Equipment; 'inventory' tab id maps to it), Equipment tab = real class sprite
+  walking in place and turning (canvas ×2 pixelated) on the pedestal, 7 gear slots (empty-slot icons), key stats with stat icons,
+  "All stats · sets · item effects" fold, bag with 8 icon filters (BAG_FILTERS) + gold; clicking a slot filters the bag to
+  that slot's items (data-equip-to) + Unequip / Cancel. Other tabs open the panel wide. Panels.show: a redraw of the open
+  window skips the fade-in (no flicker). loadoutUI.js keeps finalStatRows / setsHTML (loadoutHTML unused). tools/tests/uiV2.test.mjs.
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

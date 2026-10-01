@@ -1,0 +1,227 @@
+{
+ "tab_all": {
+  "file": "assets/ui/icons/tab_all.png",
+  "w": 64,
+  "h": 64
+ },
+ "tab_weapon": {
+  "file": "assets/ui/icons/tab_weapon.png",
+  "w": 64,
+  "h": 64
+ },
+ "tab_armor": {
+  "file": "assets/ui/icons/tab_armor.png",
+  "w": 64,
+  "h": 64
+ },
+ "tab_relic": {
+  "file": "assets/ui/icons/tab_relic.png",
+  "w": 64,
+  "h": 64
+ },
+ "tab_charm": {
+  "file": "assets/ui/icons/tab_charm.png",
+  "w": 64,
+  "h": 64
+ },
+ "tab_rune": {
+  "file": "assets/ui/icons/tab_rune.png",
+  "w": 64,
+  "h": 64
+ },
+ "tab_material": {
+  "file": "assets/ui/icons/tab_material.png",
+  "w": 64,
+  "h": 64
+ },
+ "tab_consumable": {
+  "file": "assets/ui/icons/tab_consumable.png",
+  "w": 64,
+  "h": 64
+ },
+ "menu_equipment": {
+  "file": "assets/ui/icons/menu_equipment.png",
+  "w": 64,
+  "h": 64
+ },
+ "menu_skills": {
+  "file": "assets/ui/icons/menu_skills.png",
+  "w": 64,
+  "h": 64
+ },
+ "menu_class": {
+  "file": "assets/ui/icons/menu_class.png",
+  "w": 64,
+  "h": 64
+ },
+ "menu_codex": {
+  "file": "assets/ui/icons/menu_codex.png",
+  "w": 64,
+  "h": 64
+ },
+ "menu_quests": {
+  "file": "assets/ui/icons/menu_quests.png",
+  "w": 64,
+  "h": 64
+ },
+ "menu_map": {
+  "file": "assets/ui/icons/menu_map.png",
+  "w": 64,
+  "h": 64
+ },
+ "menu_settings": {
+  "file": "assets/ui/icons/menu_settings.png",
+  "w": 64,
+  "h": 64
+ },
+ "menu_save": {
+  "file": "assets/ui/icons/menu_save.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_hp": {
+  "file": "assets/ui/icons/stat_hp.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_attack": {
+  "file": "assets/ui/icons/stat_attack.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_defense": {
+  "file": "assets/ui/icons/stat_defense.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_speed": {
+  "file": "assets/ui/icons/stat_speed.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_crit": {
+  "file": "assets/ui/icons/stat_crit.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_critDmg": {
+  "file": "assets/ui/icons/stat_critDmg.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_attackSpeed": {
+  "file": "assets/ui/icons/stat_attackSpeed.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_cdr": {
+  "file": "assets/ui/icons/stat_cdr.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_resource": {
+  "file": "assets/ui/icons/stat_resource.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_guard": {
+  "file": "assets/ui/icons/stat_guard.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_barrier": {
+  "file": "assets/ui/icons/stat_barrier.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_counter": {
+  "file": "assets/ui/icons/stat_counter.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_magic": {
+  "file": "assets/ui/icons/stat_magic.png",
+  "w": 64,
+  "h": 64
+ },
+ "stat_damageReduction": {
+  "file": "assets/ui/icons/stat_damageReduction.png",
+  "w": 64,
+  "h": 64
+ },
+ "empty_weapon": {
+  "file": "assets/ui/icons/empty_weapon.png",
+  "w": 64,
+  "h": 64
+ },
+ "empty_armor": {
+  "file": "assets/ui/icons/empty_armor.png",
+  "w": 64,
+  "h": 64
+ },
+ "empty_relic": {
+  "file": "assets/ui/icons/empty_relic.png",
+  "w": 64,
+  "h": 64
+ },
+ "empty_charm": {
+  "file": "assets/ui/icons/empty_charm.png",
+  "w": 64,
+  "h": 64
+ },
+ "empty_rune": {
+  "file": "assets/ui/icons/empty_rune.png",
+  "w": 64,
+  "h": 64
+ },
+ "npc_shop": {
+  "file": "assets/ui/icons/npc_shop.png",
+  "w": 64,
+  "h": 64
+ },
+ "npc_smith": {
+  "file": "assets/ui/icons/npc_smith.png",
+  "w": 64,
+  "h": 64
+ },
+ "npc_storage": {
+  "file": "assets/ui/icons/npc_storage.png",
+  "w": 64,
+  "h": 64
+ },
+ "npc_waystone": {
+  "file": "assets/ui/icons/npc_waystone.png",
+  "w": 64,
+  "h": 64
+ },
+ "npc_guild": {
+  "file": "assets/ui/icons/npc_guild.png",
+  "w": 64,
+  "h": 64
+ },
+ "cur_gold": {
+  "file": "assets/ui/icons/cur_gold.png",
+  "w": 64,
+  "h": 64
+ },
+ "cur_crystal": {
+  "file": "assets/ui/icons/cur_crystal.png",
+  "w": 64,
+  "h": 64
+ },
+ "cur_token": {
+  "file": "assets/ui/icons/cur_token.png",
+  "w": 64,
+  "h": 64
+ },
+ "level_diamond": {
+  "file": "assets/ui/icons/level_diamond.png",
+  "w": 128,
+  "h": 128
+ },
+ "pedestal": {
+  "file": "assets/ui/icons/pedestal.png",
+  "w": 320,
+  "h": 225
+ }
+}

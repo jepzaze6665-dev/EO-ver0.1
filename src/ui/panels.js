@@ -19,7 +19,7 @@ import { describe as describeMod } from '../progression/skillModifiers.js';
 import { expToNext } from '../progression/experience.js';
 import { isGear } from '../items/itemDefs.js';
 import { itemTooltipHTML, swapPreview } from './itemTooltip.js';
-import { loadoutHTML } from './loadoutUI.js';
+import { charHeaderHTML, charTabsHTML, equipmentTabHTML, startHeroPreview } from './charWindow.js';
 
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
@@ -47,16 +47,19 @@ export class Panels {
     this.game = game;
     this.root = $('#ui');
     this.current = null;
-    this.invTab = 'inventory';
+    this.invTab = 'equipment';
+    this.invFilter = 'all';
     this.invCat = 'All';
     this.selected = null;
   }
   get open() { return !!this.current; }
 
   show(name, html, cls = '') {
+    const same = this.current && this.current.name === name; // a redraw of the open window: no fade-in again (no flicker)
     this.close(true);
     const el = document.createElement('div');
     el.className = 'overlay ' + cls;
+    if (same) el.style.animation = 'none';
     el.innerHTML = html;
     this.root.appendChild(el);
     this.current = { name, el };
@@ -193,24 +196,11 @@ export class Panels {
   // ---------------- inventory / equipment / knowledge / lore
   inventory(tab) {
     if (tab) this.invTab = tab;
+    if (this.invTab === 'inventory') this.invTab = 'equipment'; // UI v2: bag + loadout are one tab
     const g = this.game, p = g.player, inv = g.inventory, eq = g.equipment;
-    const tabs = [['inventory', 'Inventory'], ['equipment', 'Loadout'], ['skills', 'Skills'], ['class', 'Class'], ['knowledge', 'Monster Knowledge'], ['lore', 'Lore & Quests']];
     let body = '';
-    if (this.invTab === 'inventory') {
-      const items = inv.list(this.invCat);
-      body = `
-        <div class="cats">${CATEGORIES.map((c) => `<button data-cat="${c}" class="${c === this.invCat ? 'on' : ''}">${c}</button>`).join('')}</div>
-        <div class="inv-layout">
-          <div class="grid">${items.map(({ id, n, def }) => `
-            <div class="slot ${this.selected === id ? 'sel' : ''}" data-item="${id}" data-tip="${id}" style="border-color:${RARITY_COLOR[def.rarity]}">
-              <img src="${itemIconURL(def)}"><span class="n">${n > 1 ? n : ''}</span>
-            </div>`).join('') || '<div class="empty">Nothing here yet.</div>'}
-          </div>
-          <div class="detail">${this.itemDetail(this.selected)}</div>
-        </div>
-        <div class="gold">Gold: <b>${p.gold}</b></div>`;
-    } else if (this.invTab === 'equipment') {
-      body = loadoutHTML(g, { pickSlot: this.pickSlot || null }); // ui/loadoutUI.js
+    if (this.invTab === 'equipment') {
+      body = equipmentTabHTML(g, { filter: this.invFilter, selected: this.selected, pickSlot: this.pickSlot || null }, (id) => this.itemDetail(id)); // ui/charWindow.js
     } else if (this.invTab === 'skills') {
       // generic loadout editor: every class skill, keys 1-4 are chosen here (5 = ultimate, Q = special)
       const tierTag = (s) => { const t = SKILL_TIERS[s.tier]; return t ? `<span style="color:${t.color}">${t.label}</span> · ` : ''; };
@@ -376,21 +366,23 @@ export class Panels {
       </div>`;
     }
     const el = this.show('inventory', `
-      <div class="panel big">
-        <div class="tabs">${tabs.map(([k, l]) => `<button data-tab="${k}" class="${k === this.invTab ? 'on' : ''}">${l}</button>`).join('')}<button class="x">✕</button></div>
+      <div class="panel big cw${this.invTab === 'equipment' ? ' cw-narrow' : ''}">
+        ${charHeaderHTML(g)}${charTabsHTML(this.invTab)}
         <div class="content">${body}</div>
-      </div>`);
+      </div>`, 'side');
+    startHeroPreview(el, g);
     this.wireTooltip(el);
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-tab],[data-cat],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
+      const t = e.target.closest('[data-tab],[data-cat],[data-filter],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
       if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
+      else if (t.dataset.filter) { this.invFilter = t.dataset.filter; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.cat) { this.invCat = t.dataset.cat; this.inventory(); }
       else if (t.dataset.item) { this.selected = t.dataset.item; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.use) { g.inventory.use(t.dataset.use); this.inventory(); }
       else if (t.dataset.equip) { if (!g.equipment.equip(t.dataset.equip)) g.ui.toast(g.equipment.lastErrorText(), 1.2); if (!g.inventory.has(this.selected)) this.selected = null; this.inventory(); }
-      else if (t.dataset.unequip) { if (!g.equipment.unequip(t.dataset.unequip)) g.ui.toast(g.equipment.lastErrorText(), 1.2); this.inventory(); }
+      else if (t.dataset.unequip) { if (!g.equipment.unequip(t.dataset.unequip)) g.ui.toast(g.equipment.lastErrorText(), 1.2); else this.pickSlot = null; this.inventory(); }
       else if (t.dataset.equipTo) { const [id, slot] = t.dataset.equipTo.split(':'); if (!g.equipment.equip(id, slot)) g.ui.toast(g.equipment.lastErrorText(), 1.2); else this.pickSlot = null; this.inventory(); }
       else if (t.dataset.pick) { this.pickSlot = this.pickSlot === t.dataset.pick ? null : t.dataset.pick; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.evoOpen !== undefined) { this.evoSel = t.dataset.evoOpen || null; this.inventory(); g.audio.sfx('ui'); }
