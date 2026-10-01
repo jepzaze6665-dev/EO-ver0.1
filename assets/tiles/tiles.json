@@ -16,7 +16,9 @@
    "WATER": 9,
    "DEEP_WATER": 10,
    "SHALLOW": 11,
-   "face:cliff": 12
+   "face:cliff": 12,
+   "ARENA": 13,
+   "CORRUPT": 14
   }
  },
  "citadel": {

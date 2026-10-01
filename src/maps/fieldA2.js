@@ -13,6 +13,14 @@ const PLAQUE = [
   'The road climbs north past the river fords to the statue of the last king.',
   'Beyond the high meadow the ground still burns. Travellers do not go there.',
 ].join('\n');
+// the Quiet Hollow's gargoyle: the first hint of the secret boss (the Ashen Pilgrim's quest tells the rest)
+const EMBER_RUMOUR = [
+  'Words cut into the gargoyle\'s plinth, still warm to the touch:',
+  '"Here the kings of the valley chained the Cinder King beneath their summer court.',
+  ' Three cinders of his crown were carried far — to the old forest, to this valley, to the city of runes.',
+  ' Who brings them home breaks the seal. Who breaks the seal will burn."',
+  'Behind you the dragon door breathes, slow and hot, like something asleep.',
+].join('\n');
 
 export const FIELD_A2 = {
   id: 'a2', name: 'ANCIENT VALLEY', short: 'A2', sub: 'Route A · A2 — Ancient Valley · Lv. 14 – 26',
@@ -27,6 +35,16 @@ export const FIELD_A2 = {
     interactables: [
       { id: 'a2_gate_plaque', kind: 'sign', tx: 88, ty: 191, prompt: 'Read Plaque', title: 'Valley Gate', text: PLAQUE },
       { id: 'ws_a2_gate', kind: 'waystone', tx: 79, ty: 194, name: 'Valley Gate', prompt: 'Waystone' },
+      // QUIET HOLLOW (secret lair): the rumour gargoyle + the sealed dragon door (generic `sealDoor`: item -> flag)
+      { id: 'a2_ember_rumour', kind: 'sign', tx: 141, ty: 180, prompt: 'Read the Inscription', title: 'The Gargoyle\'s Plinth', text: EMBER_RUMOUR },
+      {
+        id: 'a2_dragon_door', kind: 'sealDoor', tx: 148, ty: 172, prompt: 'Touch the Dragon Door', flag: 'cinderSealBroken', item: 'varkharon_seal', consume: true,
+        title: 'The Dragon Door',
+        locked: 'A door of black stone under a dragon\'s head. Its eyes are coals. In the centre, a hollow shaped like a dragon\'s seal — empty.\n\nThe door does not move. Something on the other side is breathing.',
+        opening: 'You press Varkharon\'s Seal into the hollow. The coals in the dragon\'s eyes flare white, the runes run like molten gold — and the door grinds open on a stair climbing into red light.',
+        open: 'The dragon door stands open. Heat rolls down the stair beyond it.',
+        banner: ['THE SEAL IS BROKEN', 'The Cinder Throne awaits', '#ff7a30'],
+      },
     ],
     // packs per terrace: the Valley Gate stays quiet; armadillos on the open terraces, rhinos guard the ruins
     spawns: [
@@ -53,6 +71,15 @@ export const FIELD_A2 = {
   },
   exits: [
     { id: 'south_road', rect: [80, 202, 88, 203], to: 'arena', entry: [136, 14.5], label: 'Guardian Arena' },
+    {
+      id: 'cinder_door', rect: [146, 171, 150, 171], to: 'cinder', entry: [148, 165], label: 'Dragon Door', // the name stays a secret
+      requires: [{ type: 'flag', flag: 'cinderSealBroken', label: 'Sealed — a dragon-shaped hollow waits for its seal' }],
+      confirm: {
+        title: 'The Cinder Throne',
+        text: 'The stair climbs into red light. Something vast lies coiled at the top — and it is waking.\nOnce it rises, the door seals behind you until one of you falls.\n\nClimb to the Cinder Throne?',
+        yes: 'Climb', no: 'Not yet',
+      },
+    },
     {
       id: 'rift_gate', rect: [81, 43, 87, 43], to: 'rift', entry: [84, 38], label: 'Magma Rift',
       confirm: {

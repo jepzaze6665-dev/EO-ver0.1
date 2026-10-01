@@ -730,7 +730,7 @@ export class HUD {
       const to = w.mapManager.get(e.to);
       if (!w.transitions.isOpen(e)) {
         if (w.inBossFight()) continue;
-        this.text(ctx, `✕ ${to ? to.name : e.label} — LOCKED`, s.x, s.y, 9 * u, '#ff9a8a', { align: 'center' });
+        this.text(ctx, `✕ ${to && !to.secret ? to.name : e.label} — LOCKED`, s.x, s.y, 9 * u, '#ff9a8a', { align: 'center' });
         const why = w.transitions.lockReason(e);
         if (why) this.text(ctx, why, s.x, s.y + 12 * u, 8 * u, '#c8b0b0', { align: 'center' });
         continue;

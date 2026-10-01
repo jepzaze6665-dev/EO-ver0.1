@@ -153,6 +153,23 @@ export function interact(w, it) {
       }
       g.ui.showLore('The Sealed Depths', 'A colossal door of violet crystal, veined with the same corruption that poisoned the Guardian. Runes crawl across its surface, rearranging themselves as you watch.\n\nIt will not open. Not yet.', () => g.ui.showEnding());
       break;
+    // generic SEALED DOOR (data: flag, item, consume, title, locked / opening / open texts, banner): bringing the item
+    // sets the flag (an exit / gate names it in its requirements); without it the door only describes itself
+    case 'sealDoor':
+      if (f[it.flag]) { g.ui.showLore(it.title, it.open); break; }
+      if (it.item && g.inventory.has(it.item)) {
+        if (it.consume) g.inventory.remove(it.item, 1);
+        w.setFlag(it.flag);
+        w.applyState();
+        g.audio.sfx('gate');
+        g.camera.shake(0.6);
+        g.vfx.flash('255,120,40', 0.45, 2);
+        g.vfx.burst(it.x, it.y - 40, '#ff8a30', 70, 220);
+        if (it.banner) g.ui.banner(...it.banner);
+        g.ui.showLore(it.title, it.opening);
+        g.save.dirty = true;
+      } else g.ui.showLore(it.title, it.locked);
+      break;
     case 'crackInfo':
       g.ui.showLore('Cracked Stone', 'Violet light seeps through the cracks and the stone hums faintly. It looks brittle — as if a strong strike would bring it down.');
       break;

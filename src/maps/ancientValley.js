@@ -8,12 +8,14 @@ import { T, Z, TILE, SOLID_TILES } from '../core/constants.js';
 // Beast's lair (A2 boss).
 //   main route : Valley Gate (south) -> Pine Terraces -> River Fords -> Statue Commons -> High Meadow -> Magma Rift
 //   side routes: Sunken Temple (west) · Golden Arch -> Gilded Shrine (east, loops back north) · Mirror Lake (south-west)
-//   hidden slot: Quiet Hollow (south-east, a narrow cleft off the Valley Gate) — content later (data/hidden.js)
+//   hidden slot: Quiet Hollow (south-east, a narrow cleft off the Valley Gate) = the SECRET LAIR: a scorched hollow with
+//   the sealed dragon door; behind it (north, zone CINDER) the Cinder Throne, Varkharon's arena (maps/cinderThrone.js)
 const G = T.GRASS, V = T.VALLEY, D = T.DIRT;
 
 export const VALLEY_PLACES = {
   gate: [84, 192], pines: [60, 158], fords: [98, 132], commons: [84, 104], temple: [34, 98], arch: [140, 118],
-  shrine: [138, 62], lake: [32, 166], upper: [80, 62], rift: [84, 22], hollow: [148, 176],
+  shrine: [138, 62], lake: [32, 166], upper: [80, 62], rift: [84, 22], hollow: [148, 178],
+  throne: [148, 151], // the Cinder Throne (secret arena) — floor r 12.5, lava moat to r 15.5, door at row 171
 };
 
 export function buildAncientValleyTerrain(b) {
@@ -31,7 +33,7 @@ export function buildAncientValleyTerrain(b) {
   const meadow = (p, rx, ry, t = G) => b.ellipse(p[0], p[1], rx, ry, t, { noise: 2.2 });
   meadow(P.gate, 13, 11); meadow(P.pines, 20, 13); meadow(P.fords, 18, 12); meadow(P.commons, 22, 15, V);
   meadow(P.temple, 18, 16); meadow(P.arch, 15, 13); meadow(P.shrine, 15, 12, V); meadow(P.lake, 17, 13);
-  meadow(P.upper, 18, 12); meadow(P.hollow, 6, 5);
+  meadow(P.upper, 18, 12);
   // flower patches
   for (const [x, y, rr] of [[54, 154, 4], [92, 100, 3], [132, 64, 3], [26, 162, 3], [88, 196, 2]]) b.disc(x, y, rr, T.FLOWERS, { only: [G, V] });
 
@@ -73,7 +75,23 @@ export function buildAncientValleyTerrain(b) {
     for (const i of before) m.tiles[i] = T.BRIDGE;
   }
   // the quiet cleft to the hidden hollow (narrow on purpose)
-  b.line([[94, 194], [120, 186], [142, 178]], 2, D, { noise: 0.3, seed: 41 });
+  b.line([[94, 194], [120, 186], [140, 179]], 2, D, { noise: 0.3, seed: 41 });
+
+  // ---------------- QUIET HOLLOW = the secret lair: scorched ground, cracks of lava light, the sealed dragon door
+  const [hx, hy] = P.hollow;
+  b.ellipse(hx, hy + 1, 9, 6, T.SCORCHED, { noise: 1.2 });
+  b.rect(hx - 3, hy - 7, hx + 3, hy - 5, T.SCORCHED); // the doorstep (the door itself stands on row hy - 7)
+  for (const [x, y] of [[hx - 4, hy + 2], [hx + 5, hy - 1], [hx + 1, hy + 4]]) b.disc(x, y, 1.6, T.CORRUPT, { noise: 0.6, only: [T.SCORCHED] });
+
+  // ---------------- THE CINDER THRONE (zone CINDER): round dragon-stone floor in a lava moat, carved into the high
+  // ground north of the hollow. One way in: the dragon door (an exit, not a path) -> the landing on its south side.
+  const [cx, cy] = P.throne;
+  b.disc(cx, cy, 15.5, T.LAVA, { noise: 0.7, seed: 61 });
+  b.disc(cx, cy, 12.5, T.ARENA, { noise: 0.3, seed: 62 });
+  b.line([[cx, cy + 11], [cx, cy + 16]], 5, T.ARENA, { noise: 0.2 });   // the landing over the moat
+  b.rect(cx - 2, cy + 15, cx + 2, cy + 16, T.STAIRS);
+  for (let k = 0; k < 7; k++) { const a = (k / 7) * Math.PI * 2 + 0.4, rr = 6 + (k % 3) * 2; b.disc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, 1.4, T.CORRUPT, { noise: 0.5, only: [T.ARENA] }); }
+  for (let ty = cy - 18; ty <= cy + 16; ty++) for (let tx = cx - 18; tx <= cx + 18; tx++) if (m.inBounds(tx, ty)) m.zone[m.idx(tx, ty)] = Z.CINDER;
 
   // ---------------- MAGMA RIFT = the A2 boss arena (its own map: maps/magmaRift.js, zone RIFT above row 41). A round
   // fighting ground as large as the Guardian's, ringed by a lava moat, one road in from the south (like A1's arena)
@@ -86,7 +104,7 @@ export function buildAncientValleyTerrain(b) {
   for (let ty = 0; ty <= 41; ty++) for (let tx = 58; tx <= 110; tx++) b.m.zone[b.m.idx(tx, ty)] = Z.RIFT;
 
   // ---------------- sub-areas (banners, map labels)
-  const sub = { gate: [P.gate, 13], pines: [P.pines, 18], fords: [P.fords, 14], commons: [P.commons, 18], temple: [P.temple, 16], arch: [P.arch, 14], shrine: [P.shrine, 13], lake: [P.lake, 15], upper: [P.upper, 14], rift: [[rx, ry], 21], hollow: [P.hollow, 7] };
+  const sub = { gate: [P.gate, 13], pines: [P.pines, 18], fords: [P.fords, 14], commons: [P.commons, 18], temple: [P.temple, 16], arch: [P.arch, 14], shrine: [P.shrine, 13], lake: [P.lake, 15], upper: [P.upper, 14], rift: [[rx, ry], 21], hollow: [P.hollow, 9] };
   for (const [k, [[x, y], rr]] of Object.entries(sub)) b.subDisc(x, y, rr, A[k]);
 
   // ---------------- landmarks + ruins (owner's A2 props)
@@ -105,6 +123,42 @@ export function buildAncientValleyTerrain(b) {
   b.prop('v_lamp_post', 92, 196, {}); b.light(92, 195, 50, '#ffd890', { a: 0.4 });
   b.prop('v_cascade', 116, 70, {});
 
+  // ---------------- the secret lair (owner's lair sheet 'dr_*'): the dragon door, braziers, the rumour statue
+  b.prop('dr_door', hx, hy - 7, { scale: 0.55, solid: true, footprint: [[-4, 0], [-3, 0], [3, 0], [4, 0]] });
+  // spiked walls + spires either side hide the edges of the door's painted backdrop and make it read as a gatehouse
+  for (const s of [-1, 1]) {
+    b.prop('dr_wall_spiked', hx + s * 9, hy - 7, { scale: 0.75, solid: true, footprint: [[-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0]] });
+    b.prop('dr_spire', hx + s * 13, hy - 7, { solid: true, flip: s > 0 });
+    b.prop('dr_lavarock_b', hx + s * 8, hy - 10, { flip: s > 0 });
+  }
+  for (const dx of [-5, 5]) { b.prop('dr_brazier_spiked', hx + dx, hy - 5, { solid: true }); b.light(hx + dx, hy - 6, 70, '#ff6a20', { a: 0.6, flicker: true }); }
+  b.prop('dr_gargoyle', hx - 7, hy + 1, { solid: true, scale: 0.8 });
+  b.prop('dr_crack_a', hx + 4, hy + 3, { layer: 'ground', scale: 0.6 });
+  b.prop('dr_skeleton', hx + 6, hy + 4, { layer: 'ground', scale: 0.7 });
+  b.prop('dr_rocks_a', hx - 8, hy + 5, {}); b.prop('dr_rocks_b', hx + 9, hy, {});
+  b.light(hx, hy - 6, 110, '#ff4a10', { a: 0.45, flicker: true });
+  // the throne: seal under the dragon, braziers round the rim, chain posts (Varkharon's anchors), statues on the cliffs
+  b.prop('dr_seal_rune', cx, cy + 3, { layer: 'ground', scale: 1.5 });
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2 + Math.PI / 8;
+    if (Math.abs(a - Math.PI / 2) < 0.5) continue; // the landing stays clear
+    const x = cx + Math.cos(a) * 12, y = cy + Math.sin(a) * 12;
+    b.prop(k % 2 ? 'dr_brazier_a' : 'dr_brazier_round', Math.round(x), Math.round(y), { solid: true });
+    b.light(Math.round(x), Math.round(y) - 1, 70, '#ff6a20', { a: 0.55, flicker: true });
+  }
+  b.regions.cinderAnchors = [];
+  for (const [ax, ay] of [[cx, cy - 10], [cx - 10, cy - 1], [cx + 10, cy - 1]]) {
+    b.prop('dr_chain_lantern', ax, ay, { solid: true });
+    b.regions.cinderAnchors.push({ x: (ax + 0.5) * TILE, y: (ay + 1) * TILE });
+  }
+  b.prop('dr_statue_gargoyle', cx, cy - 17, { scale: 0.9 });
+  b.prop('dr_statue_dragon', cx - 13, cy - 13, { scale: 0.8 }); b.prop('dr_statue_dragon', cx + 13, cy - 13, { scale: 0.8, flip: true });
+  for (const [x, y, n] of [[cx - 6, cy - 16, 'dr_banner_a'], [cx + 6, cy - 16, 'dr_banner_b'], [cx - 16, cy - 4, 'dr_cage_a'], [cx + 16, cy - 4, 'dr_cage_b'], [cx - 15, cy + 8, 'dr_spire'], [cx + 15, cy + 8, 'dr_lavarock_a']]) b.prop(n, x, y, {});
+  b.prop('dr_skeleton', cx - 6, cy + 7, { layer: 'ground', scale: 0.8 });
+  for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2; b.light(cx + Math.cos(a) * 14, cy + Math.sin(a) * 14, 80, '#ff5a10', { a: 0.5, flicker: true }); }
+  b.light(cx, cy, 190, '#ff6a20', { a: 0.28, flicker: true });
+  b.regions.cinderThrone = { x: (cx + 0.5) * TILE, y: (cy + 0.5) * TILE };
+
   // ---------------- vegetation: pines on the terraces and the high ground at their rims, bushes, flowers
   const PINES = ['v_pine_a', 'v_pine_b', 'v_pine_c', 'v_pine_d', 'v_pine_e', 'v_pine_f', 'v_pine_g', 'v_pine_h', 'v_pine_i'];
   const keep = [...Object.values(P).map(([x, y]) => [x, y, 6]), ...roads.flat().map(([x, y]) => [x, y, 3])];
@@ -115,7 +169,7 @@ export function buildAncientValleyTerrain(b) {
   // the high ground: pines and rocks just behind the cliff rims (never on open ground)
   const open = (x, y) => m.inBounds(x, y) && !SOLID_TILES.has(m.get(x, y));
   for (let ty = 2; ty < m.h - 2; ty++) for (let tx = 2; tx < m.w - 2; tx++) {
-    if (m.get(tx, ty) !== T.CLIFF) continue;
+    if (m.get(tx, ty) !== T.CLIFF || m.zone[m.idx(tx, ty)] === Z.CINDER) continue; // no pines round the lava moat
     let near = false;
     for (let dy = -3; dy <= 3 && !near; dy++) for (let dx = -3; dx <= 3; dx++) if (open(tx + dx, ty + dy)) { near = true; break; }
     if (!near || !r.chance(0.16)) continue;

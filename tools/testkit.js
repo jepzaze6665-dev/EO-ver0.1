@@ -209,6 +209,8 @@ export function mapTour(g, classId = 'umbral_sword') {
   ok('New Game starts on Lumina', w.mapId === 'lumina');
   for (const f of ['ruinsGate', 'logBridge', 'bramble', 'gateOpened', 'guardianDefeated']) w.setFlag(f);
   for (const b of g.bosses.list) g.worldProgress.defeatBoss(b.id); // V2.2 boss gates: every road open for the tour
+  // exits sealed by a flag (the A2 dragon door: cinderSealBroken) open too
+  for (const def of mm.list) for (const e of def.exits) for (const r of Array.isArray(e.requires) ? e.requires : []) if (r.type === 'flag') w.setFlag(r.flag);
   w.applyState();
   const events = [];
   g.events.on('mapEntered', (e) => events.push(e.id));

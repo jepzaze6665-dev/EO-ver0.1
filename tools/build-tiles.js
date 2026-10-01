@@ -20,6 +20,7 @@ const A3 = 'desgin/Map/A/a3/image-092dabfa-467b-48b0-901c-8dad361ac42e-0';
 const CITY = 'desgin/Map/City/ASTERIA CITY/image-c0f27881-0e5a-4221-ab7f-192ea8b07205-0';
 const B3 = 'desgin/Map/B/B3/image-9f857ead-dee4-45da-90c6-536a066b2a3b-0';
 const B2 = 'desgin/Map/B/B2/image-76690731-d973-441f-ba7f-1b03cda9b3eb-0';
+const DRT = 'desgin/Map/A/a2/SC/DRAGON/image-097bd277-76c5-4f9d-af5e-906c6ea9c94d-0'; // A2 secret lair tileset (Varkharon)
 const B1 = 'desgin/Map/B/B1/image-4e5b0ee7-22d6-4f86-96e0-1b8e9df7ebb6-0';
 
 // skin -> sheet + rows. Each row: [name, region [x0, y0, x1, y1] (sheet px), picks (card indices in reading order)]
@@ -43,6 +44,9 @@ const SKINS = {
       ['DEEP_WATER', [15, 983, 625, 1117], [0, 1, 0, 1]],
       ['SHALLOW', [15, 983, 625, 1117], [4, 3, 4, 2]],
       ['face:cliff', [981, 1262, 1338, 1350], [0, 1, 2, 3]],
+      // the Cinder Throne (secret lair): dark dragon-stone floor + lava-cracked stone, cut by box from the lair sheet
+      ['ARENA', null, [[276, 633, 340, 699], [359, 633, 425, 699], [276, 716, 340, 780], [359, 716, 425, 780]], { src: DRT }],
+      ['CORRUPT', null, [[320, 1280, 433, 1398], [320, 1422, 433, 1538], [320, 1280, 433, 1398], [320, 1422, 433, 1538]], { src: DRT }],
     ],
   },
   // A3 RUNE CITADEL (owner's sheet desgin/Map/A/a3): dark stone + bronze gold, grid cards ~72 px
@@ -249,11 +253,12 @@ const outDir = path.join(ROOT, 'assets/tiles');
 fs.mkdirSync(outDir, { recursive: true });
 const meta = {};
 for (const [id, skin] of Object.entries(SKINS)) {
-  const img = png.read(sheetPath(skin.src));
-  measureBg(img); BG_MODE = skin.bg || 'navy';
+  const sheet = png.read(sheetPath(skin.src));
+  measureBg(sheet); BG_MODE = skin.bg || 'navy';
   const atlas = png.create(TILE * VARIANTS, TILE * skin.rows.length);
   const rows = {};
-  skin.rows.forEach(([name, region, picks], r) => {
+  skin.rows.forEach(([name, region, picks, opts = {}], r) => {
+    const img = opts.src ? png.read(sheetPath(opts.src)) : sheet; // row `src`: a second sheet (card boxes only)
     const list = region ? cards(img, region) : [];
     const face = name.startsWith('face:');
     const tiles = picks.map((k) => {

@@ -802,6 +802,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   p1-p4 idle/move/attack/special, p1/p2 hurt, p1 stagger, t12/t23, stagger, death (p4_idle[0] + p4_special[0] are dirty: skip).
   build-boss-vfx set 'd' (dark sheet, `floor` 60, skipX 205): d_aura/impact/ground/bolt/hit/telegraph/explosion/weak/stagger/
   enrage/phase/death (d_trail frames overlap: unused). B2 BOSS path fixed (file is now BOSS.png).
+  Done D2: Quiet Hollow = scorched lair ([148,178]) with the DRAGON DOOR (prop dr_door + spiked walls) = generic interactable
+  `sealDoor` { flag, item, consume, title, locked / opening / open, banner } (exploration/interactables.js) -> flag
+  cinderSealBroken; A2 exit `cinder_door` (requires that flag, confirm) -> map `cinder` THE CINDER THRONE (maps/cinderThrone.js,
+  zone Z.CINDER 19, secret, parent a2): dragon-stone floor r 12.5 in a lava moat r 15.5 centred [148,151], landing + stairs south.
+  Rumour gargoyle sign `a2_ember_rumour`. Items cinder_shard / varkharon_seal. Props `dr_*` (extract-props sheet DRP: NEAR_BLACK
+  bg, FILL_HOLES, SCALE 0.5); valley skin rows ARENA + CORRUPT from the lair tileset (build-tiles row option `{ src }` = a second
+  sheet, card boxes). regions.cinderAnchors = 3 chain posts for the fight. HUD: a locked exit into a `secret` map shows the exit
+  label, not the map name. mapTour opens flag-sealed exits.
+  FIGHT PLAN (D4, owner: 'different from every boss'): CHAIN THE DRAGON (flight phases: untargetable, dives / strafing breath;
+  hold E at 2 glowing chain posts -> crash = GROUNDED weak window; posts spent per flight) · RISING LAVA (each phase turns the
+  outer floor ring into lava for the fight, restored on reset) · EMBER DEBT (fire hits stack EMBER on the player; IGNITE roar
+  detonates stacks; perfect dodges / hits in weak windows burn stacks off) · P4 final: last chain + HP floor until LAST BREATH.
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

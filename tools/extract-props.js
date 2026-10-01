@@ -21,14 +21,33 @@ const CP = '../City/ASTERIA CITY/image-6fbe1327-6060-4dcf-be43-116029029bdb-0';
 const B1P = '../B/B1/image-53b4c9a1-506f-42b5-904f-7281d8bc5b1f-0';
 const B2P = '../B/B2/image-b4a161fc-56d2-45fc-9b60-7300aa39c577-0';
 const B3P = '../B/B3/image-e8e42a4f-cf0e-4610-8207-6e224b047dca-0';
-const SCALE = { [A2P]: 0.5, [A3P]: 0.5, [B1P]: 0.5, [B2P]: 0.5, [B3P]: 0.5 }; // the city sheet (CP) stays full size: its buildings are drawn large
+const DRP = '../A/a2/SC/DRAGON/image-1e3f0fef-1571-4868-b296-d7673ea2e55d-0'; // A2 secret lair (Varkharon): near-black sheet
+const SCALE = { [DRP]: 0.5, [A2P]: 0.5, [A3P]: 0.5, [B1P]: 0.5, [B2P]: 0.5, [B3P]: 0.5 }; // the city sheet (CP) stays full size: its buildings are drawn large
 // sheets whose background is not the navy of the old sets: their own background test. `fillHoles` = box mode keeps
 // background-coloured pixels enclosed by the prop (dark grey stone inside the city buildings)
 const GREY_BG = (r, g, b) => { const l = (r + g + b) / 3; return l >= 24 && l <= 58 && Math.max(r, g, b) - Math.min(r, g, b) <= 8; };
 const NAVY_DEEP = (r, g, b) => r <= 20 && g >= 20 && g <= 42 && b >= 46 && b <= 66 && b - g >= 14;
-const SHEET_BG = { [CP]: GREY_BG, [B3P]: NAVY_DEEP };
-const FILL_HOLES = new Set([CP]);
+const NEAR_BLACK = (r, g, b) => Math.max(r, g, b) <= 15 && b >= r;
+const SHEET_BG = { [CP]: GREY_BG, [B3P]: NAVY_DEEP, [DRP]: NEAR_BLACK };
+const FILL_HOLES = new Set([CP, DRP]);
 const MANIFEST = {
+  // ---- A2 secret lair: the Cinder Throne (Varkharon). Boxes in the sheet's pixels; 'dr_*'
+  dr_door: [DRP, 1128, 0, 1952, 628],
+  dr_fence_post: [DRP, 30, 985, 95, 1100], dr_wall_a: [DRP, 118, 980, 300, 1100], dr_wall_spiked: [DRP, 325, 995, 615, 1110], dr_fence_iron: [DRP, 645, 985, 820, 1110],
+  dr_brazier_round: [DRP, 28, 1135, 130, 1290], dr_brazier_a: [DRP, 150, 1130, 235, 1290], dr_brazier_b: [DRP, 258, 1150, 338, 1290],
+  dr_brazier_c: [DRP, 360, 1140, 440, 1290], dr_brazier_d: [DRP, 458, 1150, 550, 1290], dr_brazier_e: [DRP, 572, 1140, 672, 1290],
+  dr_brazier_f: [DRP, 700, 1140, 800, 1290], dr_brazier_g: [DRP, 820, 1160, 898, 1290], dr_brazier_spiked: [DRP, 918, 1140, 1038, 1290],
+  dr_seal_lava: [DRP, 18, 1335, 252, 1540], dr_seal_rune: [DRP, 270, 1335, 510, 1540], dr_platform: [DRP, 528, 1315, 802, 1550],
+  dr_slab_a: [DRP, 828, 1330, 972, 1550], dr_slab_b: [DRP, 998, 1330, 1118, 1550],
+  dr_pillar_chain: [DRP, 1135, 660, 1380, 955], dr_banner_a: [DRP, 1410, 675, 1515, 955], dr_banner_b: [DRP, 1545, 675, 1665, 955],
+  dr_banner_c: [DRP, 1680, 675, 1800, 955], dr_chain_lantern: [DRP, 1815, 660, 1905, 955], dr_cage_hang: [DRP, 1915, 660, 2020, 955],
+  dr_totem: [DRP, 1290, 980, 1440, 1300], dr_gargoyle: [DRP, 1450, 980, 1580, 1300], dr_statue_dragon: [DRP, 1600, 985, 1800, 1300], dr_statue_gargoyle: [DRP, 1800, 1000, 2030, 1300],
+  dr_lavarock_a: [DRP, 10, 1575, 190, 1800], dr_lavarock_b: [DRP, 180, 1575, 330, 1800], dr_crack_a: [DRP, 370, 1580, 620, 1800], dr_crack_b: [DRP, 620, 1580, 830, 1800],
+  dr_blocks: [DRP, 840, 1590, 1140, 1790], dr_spire: [DRP, 1167, 1585, 1331, 1790], dr_chain_floor: [DRP, 1428, 1600, 1567, 1790],
+  dr_banner_d: [DRP, 1576, 1590, 1680, 1790], dr_banner_e: [DRP, 1690, 1590, 1802, 1790],
+  dr_rocks_a: [DRP, 15, 1800, 140, 1930], dr_rocks_b: [DRP, 140, 1800, 290, 1930],
+  dr_skeleton: [DRP, 850, 1838, 1137, 2025], dr_brazier_bowl: [DRP, 1377, 1818, 1475, 1912],
+  dr_cage_a: [DRP, 1500, 1800, 1588, 2025], dr_cage_b: [DRP, 1608, 1800, 1705, 2025], dr_cage_c: [DRP, 1740, 1800, 1843, 2025], dr_chains_hang: [DRP, 1874, 1800, 2038, 2025],
   // ---- forest
   tree_small_a: [F, 35, 90], tree_small_b: [F, 78, 88],
   tree_pine_a: [F, 140, 90], tree_round_a: [F, 190, 85], tree_round_b: [F, 240, 90], tree_teal_a: [F, 240, 145],

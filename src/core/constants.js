@@ -57,6 +57,7 @@ export const Z = {
   CAVERN_HEART: 16, // B2 boss arena (the Heart of the Caverns)
   FROSTPEAK: 17, // B3 Frostpeak grid (world/levels/frostpeak.js)
   PEAK_SUMMIT: 18, // B3 major boss arena (the Summit Citadel)
+  CINDER: 19, // A2 secret boss arena: the Cinder Throne (Varkharon, maps/cinderThrone.js)
 };
 
 export const ZONE_INFO = {
@@ -78,6 +79,7 @@ export const ZONE_INFO = {
   [Z.CAVERN_HEART]: { name: 'HEART OF THE CAVERNS', sub: 'Route B · B2 Boss', music: 'gate' },
   [Z.FROSTPEAK]: { name: 'FROSTPEAK', sub: 'Route B · the mountain above the caverns', music: 'peak' },
   [Z.PEAK_SUMMIT]: { name: 'THE SUMMIT CITADEL', sub: 'Route B · B3 Major Boss', music: 'gate' },
+  [Z.CINDER]: { name: 'THE CINDER THRONE', sub: 'Secret · where the Cinder King was sealed', music: 'gate' },
 };
 
 export const TEAM = { PLAYER: 1, ENEMY: 2, NEUTRAL: 3 };
