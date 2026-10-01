@@ -844,6 +844,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   'varkharon'; trigger varkharon_defeated sets flag dragon_slain (future secret class). `T.varkharonCheck(g, classId, { god,
   level: 32 })` 13 steps (bot runs to lit posts + holds E, dodges in flight). God 13/13 · no god LV 32: AG 249 s · RP 165 s ·
   AW 181 s · UB 185 s (UB also lost one run at 68 s) — a hard optional fight; human playtest needed.
+  Polish (owner: white edge round the boss): build-monsters sheet option `defringe { passes, minLum, neutral, pure, minSize }`
+  = peel light-grey / half-transparent pixels off the outline + drop PURE-grey checker pockets (flame cores are warm: kept).
   A2 SECRET BOSS COMPLETE (D1-D4). Next: owner decides (secret class from Heart of Varkharon = data only until asked).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
