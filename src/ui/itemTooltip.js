@@ -26,7 +26,7 @@ const TRIGGER_TEXT = {
   onCrit: 'On critical hit', onFullResource: 'At full resource', onStatusApplied: 'On applying a status', onBossPhase: 'On boss phase',
   onMarksFull: 'Marks full', onMarkTriggered: 'Mark detonates',
 };
-const TABLE_TEXT = { elite: 'Elites / mini-bosses', hollow_fang: 'Hollow Fang', grukk: 'Thornbound Elder', hoarfang: 'Hoarfang', guardian: 'Guardian', magma_beast: 'Magma Beast' };
+const TABLE_TEXT = { elite: 'Elites', mini_relic: 'Mini-bosses (A2+)', rune_knight: 'Rune Knight', amethyst_colossus: 'Amethyst Colossus', crystal_warden: 'Crystal Warden', varkharon: 'Varkharon', hollow_fang: 'Hollow Fang', grukk: 'Thornbound Elder', hoarfang: 'Hoarfang', guardian: 'Guardian', magma_beast: 'Magma Beast' };
 const sourceText = (id) => (id ? id.replace(/^boss_/, 'Boss ').replace(/^mini_/, 'Mini-boss ').replace(/_/g, ' ').toUpperCase() : '');
 
 // what changes if this item goes on: { slot, replaces, changes: [{ type, before, after }] } (null = not gear)
@@ -61,6 +61,8 @@ export function itemTooltipHTML(def, { classId = null, level = null, swap = null
   const rows = [];
   rows.push(`<div class="tt-name" style="color:${color}">${esc(def.name.toUpperCase())}</div>`);
   rows.push(`<div class="tt-sub"><span style="color:${color}">${esc((def.rarity || '').toUpperCase())}</span> · ${esc((TYPE_LABEL[def.type] || def.cat || '').toUpperCase())}${equipped ? ' · <b>EQUIPPED</b>' : ''}</div>`);
+  // KEY ITEM (item data `key: true`): only opens something — no stats, cannot be sold or stored
+  if (def.key) rows.push(`<div class="tt-head" style="color:${color}">KEY ITEM — entry only</div>`);
   if (def.levelRequirement > 0) rows.push(`<div class="tt-class ${level == null || meetsLevel(def, level) ? '' : 'bad'}">Requires LV ${def.levelRequirement}</div>`);
   if (def.description) rows.push(`<div class="tt-desc">${esc(def.description)}</div>`);
   // older gear: flat stats + its unique behaviour text

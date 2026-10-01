@@ -193,7 +193,8 @@ export const ITEMS = {
   warchief_totem: { name: 'Thornbound Totem', cat: 'Material', rarity: 'epic', icon: 'rune', color: '#b060ff', desc: 'Trophy of the Thornbound Elder. Its thorns still twitch toward the ruins.', sell: 120 },
   heart_of_varkharon: { name: 'Heart of Varkharon', cat: 'Material', rarity: 'legendary', icon: 'heart', color: '#ff5a20', maxStack: 1, desc: 'It still beats, slow and furious. The fire of a sealed king — something may be born from it one day.' },
   cinder_shard: { name: 'Cinder Shard', cat: 'Quest Item', rarity: 'quest', maxStack: 3, icon: 'rune', color: '#ff7a30', desc: 'A splinter of black stone, warm as a coal. The Ashen Pilgrim said there are three.' },
-  varkharon_seal: { name: "Varkharon's Seal", cat: 'Quest Item', rarity: 'quest', icon: 'sigil', color: '#ff5a20', desc: 'Three cinder shards fused into a dragon-headed seal. A door in the Ancient Valley is waiting for it.' },
+  // KEY ITEM (owner): red MYTHIC grade, its only use = the key to the Dragon Door (kept after the door opens; no stats, no sale)
+  varkharon_seal: { name: "Varkharon's Seal", cat: 'Quest Item', rarity: 'mythic', key: true, maxStack: 1, icon: 'sigil', color: '#ff3030', desc: 'Three cinder shards fused into a dragon-headed seal. It opens the Dragon Door in the Quiet Hollow, and nothing else.' },
   seal_fragment: { name: 'Ancient Seal Fragment', cat: 'Quest Item', rarity: 'quest', icon: 'rune', color: '#5af0ff', desc: 'Resonates with the sealed Guardian Gate.' },
 };
 for (const [id, def] of Object.entries(GEAR_ITEMS)) {
@@ -206,7 +207,7 @@ for (const [id, def] of Object.entries(ITEMS)) normalizeItem(id, def);
 export const MAX_STACK = { Weapon: 9, Armor: 9, Consumable: 20, Material: 99, 'Quest Item': 1 };
 export const maxStackOf = (id) => (ITEMS[id] ? ITEMS[id].maxStack || MAX_STACK[ITEMS[id].cat] || 99 : 0);
 
-export const RARITY_COLOR = { common: '#c8c8d0', uncommon: '#7ad8a0', rare: '#6aa8ff', epic: '#c080ff', legendary: '#ffb040', mythic: '#ff5a8a', quest: '#5af0ff' };
+export const RARITY_COLOR = { common: '#c8c8d0', uncommon: '#7ad8a0', rare: '#6aa8ff', epic: '#c080ff', legendary: '#ffb040', mythic: '#ff3030', quest: '#5af0ff' };
 
 export const CATEGORIES = ['All', 'Weapon', 'Armor', 'Material', 'Consumable', 'Quest Item'];
 

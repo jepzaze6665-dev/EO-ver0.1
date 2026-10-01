@@ -271,7 +271,7 @@ export async function pilgrimCheck(g, classId = 'umbral_sword') {
   ok('Pilgrim is gone once the seal is forged', gone && !pilgrim());
   I.interact(w, it('a2_dragon_door'));
   const ex = w.mapManager.get('a2').exits.find((e) => e.id === 'cinder_door');
-  ok('Dragon door opens (seal used, exit unlocked)', w.state.flags.cinderSealBroken && inv.count('varkharon_seal') === 0 && !w.transitions.lockReason(ex));
+  ok('Dragon door opens (the seal is a KEY: kept, exit unlocked)', w.state.flags.cinderSealBroken && inv.count('varkharon_seal') === 1 && !w.transitions.lockReason(ex));
   g.ui.close && g.ui.close();
   return R;
 }
@@ -1927,6 +1927,74 @@ export function itemBuildCheck(g, { level = 13, seconds = 200 } = {}) {
     if (name === 'astral_star') ok('astral_star: Constellation Break fed the Orrery / set', (fired.relic_orrery || 0) + (fired.constellation || 0) > 0, JSON.stringify(fired));
     if (name === 'aegis_boss') ok('aegis_boss: Ember of War on a boss phase', (fired.relic_ember_war || 0) > 0, JSON.stringify(fired));
   }
+  return R;
+}
+// ITEM BUILD I4 — the owner's §33 test list (20 steps) on a real Umbral Sword, in order. Fast (no boss fight: the
+// boss / monster drops go through the same 'enemyDefeated' event the BossSystem / World emit).
+//   T.itemSystemCheck(__game)  -> [step, pass, detail] rows
+export function itemSystemCheck(g) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame('umbral_sword'); releaseInput(g); g.simulate(0.2);
+  const p = () => g.player, eq = g.equipment, inv = g.inventory;
+  p().setLevel(30);
+  for (const id of ['core_shadow_fang', 'armor_risk', 'relic_heart_eclipse', 'charm_focus', 'rune_full_moon', 'rune_red_thirst', 'rune_shadow_hunger',
+    'core_star_loom', 'relic_cinder_crown', 'shade_charm', 'core_nightglass']) inv.add(id, 1, true);
+  inv.add('rune_full_moon', 1, true); // a second copy for the duplicate rule
+  const base = { hp: p().maxHp, crit: p().stats.crit, def: p().stats.def, cdr: p().stats.cdr || 0 }, startWeapon = eq.slots.weapon;
+  // 1-2 weapon core
+  ok('1 Equip Weapon Core (Shadow Fang: +10% crit)', eq.equip('core_shadow_fang') && Math.abs(p().stats.crit - base.crit - 0.1) < 1e-9, `${base.crit} -> ${p().stats.crit}`);
+  const noEmpty = !eq.unequip('weapon') && eq.lastError === 'fixed';
+  ok('2 Unequip Weapon Core: never empty (fixed) -> swap back to the class weapon', noEmpty && eq.equip(startWeapon) && Math.abs(p().stats.crit - base.crit) < 1e-9, `slot = ${eq.slots.weapon}`);
+  eq.equip('core_shadow_fang');
+  ok('3 Equip Armor Core (Risk Armor: -20% defense)', eq.equip('armor_risk') && p().stats.def < base.def, `${base.def.toFixed(1)} -> ${p().stats.def.toFixed(1)}`);
+  ok('4 Equip Relic (Heart of the Eclipse)', eq.equip('relic_heart_eclipse') && eq.slots.relic === 'relic_heart_eclipse');
+  ok('5 Equip Charm (Focus Charm)', eq.equip('charm_focus') && eq.slots.charm === 'charm_focus');
+  ok('6 Equip 3 Runes', eq.equip('rune_full_moon', 'rune1') && eq.equip('rune_red_thirst', 'rune2') && eq.equip('rune_shadow_hunger', 'rune3'), eq.view().runes.join(', '));
+  ok('7 Class restriction: Star Loom Core (Astral line) refused for Umbral', !eq.equip('core_star_loom') && eq.lastError === 'class');
+  ok('8 Level restriction: Cinder King\'s Crown (LV 45) refused at LV 30', !eq.equip('relic_cinder_crown') && eq.lastError === 'level', `LV ${p().level}`);
+  ok('9 Duplicate restriction: a 2nd Full Moon into Rune 2 refused', !eq.equip('rune_full_moon', 'rune2') && eq.lastError === 'duplicate');
+  // 10 passive: Full Moon (marks full -> +15% crit) + the Eclipse set (2 pieces: +8% shadow damage)
+  const crit0 = p().stats.crit;
+  p().addMark(3); g.simulate(0.05);
+  ok('10 Passive activation: marks full -> Full Moon +15% crit (+ Eclipse set 2/3 shadow damage)', p().stats.crit > crit0 + 0.14 && p().gearMod('shadowDamage') >= 0.08 + 0.08 - 1e-9, `crit ${crit0.toFixed(2)} -> ${p().stats.crit.toFixed(2)} · shadow ${p().gearMod('shadowDamage').toFixed(2)}`);
+  // 11 skill modifier: Shade Charm = Shade Step 2 charges (older gear skillModifiers)
+  const ch0 = p().skillSys.cooldowns.maxCharges('shade_step');
+  eq.equip('shade_charm'); g.simulate(0.1);
+  ok('11 Skill modifier: Shade Charm -> Shade Step 2 charges', p().skillSys.cooldowns.maxCharges('shade_step') === ch0 + 1, `${ch0} -> ${p().skillSys.cooldowns.maxCharges('shade_step')}`);
+  ok('12 Resource modifier: Risk Armor +25% resource generation reaches the pool', Math.abs(p().resources.mult(p().primaryResource, 'gainMult') - 1.25) < 1e-6, `gain x${p().resources.mult(p().primaryResource, 'gainMult')}`);
+  eq.equip('charm_focus');
+  ok('13 Cooldown modifier: Focus Charm +8% CDR', Math.abs((p().stats.cdr || 0) - base.cdr - 0.08) < 1e-9, `${base.cdr} -> ${p().stats.cdr}`);
+  ok('14 Stat recalculation: base stats untouched (max HP from Shadow Fang / Heart / Focus minus)', Math.round(p().baseStats.hp) === base.hp && p().maxHp < base.hp, `base ${p().baseStats.hp} · final ${p().maxHp}`);
+  // 15 save / load
+  const view = JSON.stringify(eq.slots), insts = JSON.stringify(eq.inst);
+  g.saveGame(); eq.equip('core_nightglass'); g.loadGame(); g.simulate(0.1);
+  ok('15 Save / Load: loadout + instance ids come back', JSON.stringify(g.equipment.slots) === view && JSON.stringify(g.equipment.inst) === insts, g.equipment.slots.weapon);
+  // 16 item drop: an elite kill with the loot dice forced -> a rune / charm instance in the bag
+  const rng0 = g.loot.rng, drops = []; g.events.on('lootDropped', (e) => drops.push(e));
+  g.loot.rng = () => 0;
+  const gear0 = g.inventory.gear.length;
+  g.events.emit('enemyDefeated', { entity: {}, type: 'wolf', source: g.player, x: g.player.x, y: g.player.y, loot: ['wolf', 'elite'] });
+  ok('16 Item drop: elite kill -> gear piece in the bag (as an instance)', g.inventory.gear.length === gear0 + 1, drops.length ? drops[drops.length - 1].items.map((x) => x.item).join(', ') : 'none');
+  g.loot.rng = rng0;
+  // 17 boss drop: the BossSystem reward event for Varkharon -> the MYTHIC crown (signature, 100%)
+  const crowns0 = g.inventory.count('relic_cinder_crown');
+  g.events.emit('enemyDefeated', { entity: {}, type: 'varkharon', bossId: 'boss_varkharon', boss: true, source: g.player, x: 0, y: 0, loot: 'varkharon' });
+  ok('17 Boss drop: Varkharon -> Cinder King\'s Crown (signature)', g.inventory.count('relic_cinder_crown') === crowns0 + 1 && drops.some((d) => d.bossId === 'boss_varkharon'));
+  // 18 persistence: death + respawn keeps the loadout
+  const before = JSON.stringify(g.equipment.slots);
+  g.player.hp = 0; g.player.onDeath && g.player.onDeath(null, {}); g.simulate(1); g.respawn(); g.simulate(0.5);
+  ok('18 Loadout persistence: death + respawn keeps every slot', JSON.stringify(g.equipment.slots) === before);
+  // 19 remove item (bag)
+  const n19 = g.inventory.count('core_nightglass');
+  ok('19 Remove Item: a bag item is removed; a worn one is not taken from the slot', g.inventory.remove('core_nightglass', 1) && g.inventory.count('core_nightglass') === n19 - 1 && !g.inventory.remove('relic_heart_eclipse', 1) && g.equipment.slots.relic === 'relic_heart_eclipse');
+  // 20 replace: the old item returns to the bag with the same instance id
+  const oldInst = g.equipment.inst.armor && g.equipment.inst.armor.instanceId;
+  g.inventory.add('armor_duskweave', 1, true); // (load replaced the inventory object: never keep an old reference)
+  const rep = g.equipment.equip('armor_duskweave');
+  ok('20 Replace Item: Duskweave Coat replaces Risk Armor; Risk Armor back in the bag, same instance', rep && g.inventory.gear.some((x) => x.instanceId === oldInst && x.itemId === 'armor_risk'), oldInst);
+  // debug API (§32) answers
+  const ins = g.items.inspect('core_shadow_fang');
+  ok('Debug: __game.items.inspect / modifiers / stats work', ins.name === 'Shadow Fang' && g.items.modifiers().length > 0 && g.items.stats().stats.length > 5);
   return R;
 }
 export function buildCompare(g, opts = {}) {

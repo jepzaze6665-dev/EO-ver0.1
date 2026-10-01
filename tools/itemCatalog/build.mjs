@@ -21,6 +21,7 @@ const outDir = join(root, 'docs', 'items');
 mkdirSync(outDir, { recursive: true });
 
 const gear = Object.values(ITEMS).filter(isGear);
+const keys = Object.values(ITEMS).filter((d) => d.key); // KEY ITEMS (not gear): only open something
 // which class starts with an item (class signature gear)
 const signatureOf = {};
 for (const c of Object.values(CLASSES)) for (const id of Object.values(c.startingGear || {})) if (id) signatureOf[id] = c.name;
@@ -29,9 +30,10 @@ const G1 = ['core_ironheart', 'core_counter', 'core_vanguard', 'armor_fortress',
   'rune_iron_will', 'rune_retribution', 'rune_provocation'];
 const line = (d, l) => d.allowedClasses.includes('line:' + l) || d.allowedClasses.includes(l);
 const SECTIONS = [
+  ['BOSS SIGNATURE — ของประจำบอส (ดรอป 100% ครั้งแรก)', (d) => !!d.signature],
   ['UMBRAL LINE — สายเงา / นักฆ่า', (d) => line(d, 'umbral_sword')],
   ['ASTRAL LINE — สายดวงดาว / เวท', (d) => line(d, 'astral_weaver')],
-  ['UNIVERSAL — ทุกคลาสใช้ได้ (Item Build I3)', (d) => ['armor_pathfinder', 'relic_ember_war', 'rune_second_wind', 'rune_executioner', 'rune_hunters_sigil', 'charm_wanderer'].includes(d.id)],
+  ['UNIVERSAL — ทุกคลาสใช้ได้', (d) => ['armor_pathfinder', 'relic_ember_war', 'rune_second_wind', 'rune_executioner', 'rune_hunters_sigil', 'charm_wanderer'].includes(d.id)],
   ['GUARD / COUNTER / BARRIER — ชุดแรก (G1, เหมาะกับ Aegis)', (d) => G1.includes(d.id)],
   ['CLASS SIGNATURE GEAR — อาวุธ / ชุดประจำคลาส', (d) => !!signatureOf[d.id]],
   ['LEGACY ACCESSORIES — ของเก่าก่อนระบบ Item', () => true],
@@ -44,6 +46,7 @@ const used = new Set(), groups = SECTIONS.map(([title, pick]) => {
 
 const TYPE_TH = { weapon_core: 'แกนอาวุธ', armor_core: 'แกนเกราะ', relic: 'เรลิก', charm: 'ชาร์ม', rune: 'รูน' };
 const sourceText = (d) => {
+  if (d.key) return 'ได้จากเควสต์ / การตีขึ้นรูป (ไม่ดรอป)';
   if (d.dropSource) return `ดรอปจากบอส ${d.dropSource} (100% ครั้งแรก)`;
   if (signatureOf[d.id]) return `อุปกรณ์เริ่มต้นของ ${signatureOf[d.id]}`;
   const s = itemSources(d.id);
@@ -66,11 +69,11 @@ const card = (d) => {
   return `<div class="card" style="--rc:${col};--ic:${d.color || col}">
     <div class="top"><div class="sw" title="item colour"><span>${esc((d.icon || '').toUpperCase())}</span></div>
       <div><div class="nm">${esc(d.name)}</div>
-      <div class="sub"><b style="color:${col}">${esc(d.rarity.toUpperCase())}</b> · ${esc(TYPE_LABEL[d.type] || d.type)} (${TYPE_TH[d.type] || ''})</div>
+      <div class="sub"><b style="color:${col}">${esc(d.rarity.toUpperCase())}</b> · ${d.key ? 'Key Item (ไอเทมกุญแจ)' : `${esc(TYPE_LABEL[d.type] || d.type)} (${TYPE_TH[d.type] || ''})`}</div>
       <div class="id">${esc(d.id)} · สี ${esc(d.color || '-')}</div></div></div>
     <div class="desc">${esc(d.description)}</div>
     <ul class="st">${statLines(d)}</ul>
-    <div class="meta">${d.allowedClasses.includes(ANY_CLASS) ? 'ทุกคลาส' : 'เฉพาะ: ' + esc(d.allowedClasses.map(classLabel).join(', '))}${set ? ` · <b style="color:${set.color}">SET ${esc(set.name)}</b>` : ''}${d.levelRequirement ? ` · LV ${d.levelRequirement}+` : ''}</div>
+    <div class="meta">${d.key ? '<b style="color:var(--rc)">KEY ITEM — ใช้เปิดประตู ไม่มีค่าสถานะ ขาย / ฝากไม่ได้</b>' : d.allowedClasses.includes(ANY_CLASS) ? 'ทุกคลาส' : 'เฉพาะ: ' + esc(d.allowedClasses.map(classLabel).join(', '))}${set ? ` · <b style="color:${set.color}">SET ${esc(set.name)}</b>` : ''}${d.levelRequirement ? ` · LV ${d.levelRequirement}+` : ''}</div>
     <div class="meta">${esc(sourceText(d))}</div>
     ${d.tags.length ? `<div class="tags">${d.tags.map((t) => `<span>${esc(t.toUpperCase())}</span>`).join('')}</div>` : ''}
     <div class="brief"><b>ART BRIEF:</b> ${esc(BRIEFS[d.id] || autoBrief(d))}</div>
@@ -119,7 +122,7 @@ h2 { font-size: 15px; letter-spacing: 1.5px; color: #d8c0ff; border-bottom: 1px 
 <div class="cover">
   <h1>ECLIPSE ONLINE</h1>
   <div style="font-size:15px;color:#c8b0ff;letter-spacing:2px">ITEM CATALOGUE — สำหรับทำกราฟิก / ไอคอน</div>
-  <p>สร้างจากข้อมูลในเกมโดยตรง (src/data/items, src/items/items.js) วันที่ ${today} · ไอเทมสวมใส่ทั้งหมด ${gear.length} ชิ้น · เซ็ต ${Object.keys(SETS).length} ชุด<br>
+  <p>สร้างจากข้อมูลในเกมโดยตรง (src/data/items, src/items/items.js) วันที่ ${today} · ไอเทมสวมใส่ทั้งหมด ${gear.length} ชิ้น · ไอเทมกุญแจ ${keys.length} · เซ็ต ${Object.keys(SETS).length} ชุด<br>
   สร้างใหม่ได้ทุกเมื่อด้วย <code>node tools/itemCatalog/build.mjs</code></p>
   <div class="guide"><b>แนวทางทำไอคอน</b><ul>
     <li><b>ไอเทมไม่เปลี่ยนหน้าตาตัวละคร</b> — กราฟิกที่ต้องทำคือ <b>ไอคอนไอเทม</b> (ช่อง Loadout, กระเป๋า, tooltip) ไม่ใช่สไปรต์บนตัว</li>
@@ -132,6 +135,7 @@ h2 { font-size: 15px; letter-spacing: 1.5px; color: #d8c0ff; border-bottom: 1px 
   </ul></div>
 </div>
 <h2>SETS — เซ็ตไอเทม</h2>${setsHTML}
+${keys.length ? `<h2>KEY ITEMS — ไอเทมกุญแจ (ใช้เปิดทางเข้าเท่านั้น)</h2><div class="grid">${keys.map(card).join('')}</div>` : ''}
 ${groups.filter(([, items]) => items.length).map(([title, items], i) => `<h2 class="${i === 0 ? 'pb' : ''}">${esc(title)} (${items.length})</h2><div class="grid">${items.map(card).join('')}</div>`).join('')}
 </body></html>`;
 

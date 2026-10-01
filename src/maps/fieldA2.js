@@ -45,10 +45,10 @@ export const FIELD_A2 = {
         banner: ['VARKHARON\'S SEAL', 'Three cinders made one', '#ff7a30'],
       },
       {
-        id: 'a2_dragon_door', kind: 'sealDoor', tx: 148, ty: 172, prompt: 'Touch the Dragon Door', flag: 'cinderSealBroken', item: 'varkharon_seal', consume: true,
+        id: 'a2_dragon_door', kind: 'sealDoor', tx: 148, ty: 172, prompt: 'Touch the Dragon Door', flag: 'cinderSealBroken', item: 'varkharon_seal', consume: false,
         title: 'The Dragon Door',
         locked: 'A door of black stone under a dragon\'s head. Its eyes are coals. In the centre, a hollow shaped like a dragon\'s seal — empty.\n\nThe door does not move. Something on the other side is breathing.',
-        opening: 'You press Varkharon\'s Seal into the hollow. The coals in the dragon\'s eyes flare white, the runes run like molten gold — and the door grinds open on a stair climbing into red light.',
+        opening: 'You press Varkharon\'s Seal into the hollow. The coals in the dragon\'s eyes flare white, the runes run like molten gold — and the door grinds open on a stair climbing into red light. The seal stays warm in your hand: it is your key to the throne.',
         open: 'The dragon door stands open. Heat rolls down the stair beyond it.',
         banner: ['THE SEAL IS BROKEN', 'The Cinder Throne awaits', '#ff7a30'],
       },

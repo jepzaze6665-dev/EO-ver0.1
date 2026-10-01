@@ -8,6 +8,7 @@ import { RUNES } from './runes.js';
 import { UMBRAL_ITEMS } from './umbralItems.js';
 import { ASTRAL_ITEMS } from './astralItems.js';
 import { UNIVERSAL_ITEMS } from './universalItems.js';
+import { BOSS_ITEMS } from './bossItems.js';
 
-export const GEAR_SOURCES = { WEAPON_CORES, ARMOR_CORES, RELICS, CHARMS, RUNES, UMBRAL_ITEMS, ASTRAL_ITEMS, UNIVERSAL_ITEMS };
+export const GEAR_SOURCES = { WEAPON_CORES, ARMOR_CORES, RELICS, CHARMS, RUNES, UMBRAL_ITEMS, ASTRAL_ITEMS, UNIVERSAL_ITEMS, BOSS_ITEMS };
 export const GEAR_ITEMS = Object.assign({}, ...Object.values(GEAR_SOURCES));

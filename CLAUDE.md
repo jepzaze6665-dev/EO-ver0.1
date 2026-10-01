@@ -991,6 +991,16 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   ≤ 150) + telegraph row `x: [210, 2048]` (its long "TELEGRAPH" label reached past 200; the pose starts at 217).
 - AG art swapped to the owner's new set (2026-09-29): build-player sheet option `facing` (per-sheet side rows; AG ATK1's
   attack poses are mirrored vs its idle poses) + AG `nearestBody`; dodge now plays the real DASH sheet. Walk step-bob kept.
+  Done I4: BOSS SIGNATURE items for every boss that had none (`src/data/items/bossItems.js`, 100% on the first kill): Rune Knight
+  (boss_a3) Runeknight's Blade · Amethyst Colossus (boss_b2) Amethyst Shell · Crystal Warden (boss_b3) Warden's Prism (legendary) ·
+  Varkharon Cinder King's Crown (MYTHIC, LV 45, burn on hit + low-HP wrath, big minus HP / DEF). Test: every area / major / secret
+  boss has exactly one signature item. MYTHIC colour = RED (#ff3030). OWNER: Varkharon's Seal = red MYTHIC KEY ITEM (item data
+  `key: true`, maxStack 1, no stats / sale): the Dragon Door no longer consumes it (consume: false) — it stays in the bag as the
+  key to the Cinder Throne; tooltip "KEY ITEM — entry only". DEBUG API (spec §32) `src/items/itemDebug.js` = `__game.items`:
+  help / list(filter) / give / remove / equip(id, slot?) / unequip(slot) / inspect(id) / modifiers() / stats() / loadout().
+  `T.itemSystemCheck(g)` = the owner's §33 list, 20 steps + debug (21/21; fast, boss / monster drops via the real
+  'enemyDefeated' event). GOTCHA: g.loadGame() replaces g.inventory — never keep an old reference across a load.
+  Tests itemI4.test.mjs (6). ITEM BUILD PASS COMPLETE (I1-I4).
 - ITEM CATALOGUE (owner: for making item graphics): `node tools/itemCatalog/build.mjs` -> docs/items/item_catalog.html +
   docs/items/ECLIPSE_ONLINE_Items.pdf (headless Edge / Chrome print-to-PDF; no Python on this machine). Reads the live item data;
   Thai art briefs per item in tools/itemCatalog/briefs.mjs (items without one get an automatic brief). Rebuild after item changes.
