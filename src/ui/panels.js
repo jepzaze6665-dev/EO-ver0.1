@@ -168,10 +168,10 @@ export class Panels {
   // ---------------- yes / no (e.g. entering a boss arena). [E] = yes, [Esc] = no
   confirm(title, body, yesLabel, noLabel, onYes, onNo) {
     const el = this.show('confirm', `
-      <div class="panel lore">
+      <div class="panel lore confirm">
         <h2>${esc(title)}</h2>
         <div class="body">${esc(body).replace(/\n/g, '<br>')}</div>
-        <button class="yes">${esc(yesLabel)} [E]</button> <button class="no">${esc(noLabel)} [Esc]</button>
+        <div class="confirm-btns"><button class="yes primary"><kbd>E</kbd>${esc(yesLabel)}</button><button class="no"><kbd>Esc</kbd>${esc(noLabel)}</button></div>
       </div>`);
     let done = false;
     const answer = (yes) => { if (done) return; done = true; this.close(); (yes ? onYes : onNo)(); };
@@ -505,7 +505,7 @@ export class Panels {
   worldMap() {
     const g = this.game, w = g.world, map = w.map, hud = g.ui.hud;
     hud.refreshMini();
-    const el = this.show('map', `<div class="panel map"><h2>World Map <span class="muted small">[M] close</span></h2><canvas></canvas><div class="legend">
+    const el = this.show('map', `<div class="panel map"><h2><img class="h2-ico" src="${UI_ICON('menu_map')}" alt="">World Map <span class="keys" style="float:right;padding:0"><span><kbd>M</kbd>Close</span></span></h2><canvas></canvas><div class="legend">
       <span style="color:#fff">▲ You</span><span style="color:#ffe070">◆ Objective</span><span style="color:#5af0ff">◆ Waystone</span><span style="color:#ffc050">● Chest</span><span style="color:#ff4060">● Boss</span><span style="color:#8adfff">● NPC</span></div>
       <div class="routes">${this.routeProgressHtml()}</div></div>`);
     const cv = el.querySelector('canvas');
@@ -573,22 +573,24 @@ export class Panels {
   menu() {
     const g = this.game;
     const el = this.show('menu', `
-      <div class="panel menu">
-        <h2>ECLIPSE ONLINE</h2>
-        <div class="menu-buttons">
-          <button data-a="resume" class="primary">Resume</button>
-          <button data-a="save">Save</button>
-          <button data-a="load" ${g.save.exists() ? '' : 'disabled'}>Load</button>
-          <button data-a="reset">Reset Progress</button>
-          <button data-a="controls">Controls</button>
-          <button data-a="mute">${g.audio.muted ? 'Unmute' : 'Mute'} Audio</button>
-          <button data-a="title">Title Screen</button>
+      <div class="panel menu esc-menu">
+        <div class="np-head"><img class="np-ico" src="${UI_ICON('menu_settings')}" alt=""><div class="np-title"><b>ECLIPSE ONLINE</b><div class="np-sub">Paused</div></div></div>
+        <div class="esc-list">
+          ${[['resume', 'Resume', 'menu_class', ''], ['save', 'Save', 'menu_save', ''], ['load', 'Load', 'menu_save', g.save.exists() ? '' : 'disabled'],
+            ['map', 'World Map', 'menu_map', ''], ['controls', 'Controls', 'menu_codex', ''], ['mute', (g.audio.muted ? 'Unmute' : 'Mute') + ' Audio', 'menu_settings', ''],
+            ['reset', 'Reset Progress', 'menu_quests', ''], ['title', 'Title Screen', 'menu_equipment', '']]
+            .map(([a, l, ic, dis]) => `<button data-a="${a}" ${dis}><img src="${UI_ICON(ic)}" alt="">${l}</button>`).join('')}
         </div>
-        <div class="muted small">${g.save.info()}</div>
-      </div>`);
+        <div class="muted small esc-save">${g.save.info()}</div>
+        <div class="keys"><span><kbd>Esc</kbd>Resume</span></div>
+      </div>`, 'side');
     el.addEventListener('click', (e) => {
-      const a = e.target.dataset.a;
+      const btn = e.target.closest('[data-a]');
+      if (!btn) return;
+      const a = btn.dataset.a;
+      e = { target: btn };
       if (a === 'resume') this.close();
+      if (a === 'map') { this.close(); this.worldMap(); }
       if (a === 'save') { g.saveGame(); this.menu(); }
       if (a === 'load') { this.close(); g.loadGame(); }
       if (a === 'reset') {

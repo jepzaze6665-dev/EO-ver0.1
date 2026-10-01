@@ -175,3 +175,26 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 .npc-panel .keys { border-top: 1px solid var(--line); padding: 10px 22px; }
 .npc-panel .np-close { position: absolute; top: 18px; right: 14px; display: block; margin: 0; padding: 4px 10px; }
 .np-row .grow { flex: 1; min-width: 0; } .np-right { margin-left: auto; }
+
+/* ---------- U-E: ESC menu (left side panel), confirm pop-up, world map, death, title ---------- */
+.panel.esc-menu { height: 100vh; max-height: none; width: min(360px, 96vw); min-width: 0; border-radius: 0; border-top: 0; padding: 0; text-align: left;
+  display: flex; flex-direction: column; background: linear-gradient(90deg, rgba(6, 6, 10, 0.95) 0%, rgba(6, 6, 10, 0.9) 85%, rgba(6, 6, 10, 0.6)); }
+.esc-menu .np-head { margin-right: 0; }
+.esc-list { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; flex: 1; }
+.esc-list button { display: flex; align-items: center; gap: 12px; text-align: left; border: 0; border-left: 2px solid transparent; border-radius: 0;
+  background: transparent; padding: 11px 14px; margin: 0; font-size: 15px; letter-spacing: 1px; }
+.esc-list button img { width: 20px; height: 20px; opacity: 0.6; }
+.esc-list button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.05); border-left-color: var(--hl); border-top-color: transparent; border-right-color: transparent; border-bottom-color: transparent; }
+.esc-list button:hover:not(:disabled) img { opacity: 1; }
+.esc-list button.danger { color: #ff8a8a; border-left-color: #ff6060; }
+.esc-save { padding: 0 30px 6px; } .esc-menu .keys { border-top: 1px solid var(--line); padding: 10px 22px; }
+.panel.confirm { min-width: 380px; max-width: 520px; }
+.confirm-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+.confirm-btns button kbd { margin-right: 8px; }
+.h2-ico { width: 20px; height: 20px; vertical-align: -3px; margin-right: 8px; opacity: 0.85; }
+.panel.map canvas { border: 1px solid var(--line-strong); }
+.death h1 { color: #ff6a6a; text-shadow: 0 0 24px rgba(160, 20, 30, 0.8); letter-spacing: 10px; }
+.death p { color: var(--ink-dim); }
+.logo { text-shadow: 0 0 24px rgba(160, 90, 255, 0.45); font-weight: 500; }
+.tag { color: var(--ink-dim); }
+.esc-list { overflow-y: auto; min-height: 0; } @media (max-height: 560px) { .esc-list button { padding: 7px 14px; font-size: 14px; } .esc-menu .np-head { padding: 12px 22px 8px; } }
