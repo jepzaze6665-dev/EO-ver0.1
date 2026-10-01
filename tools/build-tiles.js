@@ -46,6 +46,9 @@ const SKINS = {
       ['face:cliff', [981, 1262, 1338, 1350], [0, 1, 2, 3]],
       // the Cinder Throne (secret lair): dark dragon-stone floor + lava-cracked stone, cut by box from the lair sheet
       ['ARENA', null, [[276, 633, 340, 699], [359, 633, 425, 699], [276, 716, 340, 780], [359, 716, 425, 780]], { src: DRT }],
+      // the ash ground round the Quiet Hollow: CAVE_WALL (solid) = ashen rock top, its face = the lair's rock wall
+      ['CAVE_WALL', null, [[184, 1280, 302, 1398], [184, 1422, 302, 1538], [184, 1280, 302, 1398], [184, 1422, 302, 1538]], { src: DRT }],
+      ['face:cave', null, [[1652, 797, 1738, 846], [1540, 797, 1625, 846], [1652, 797, 1738, 846], [1540, 797, 1625, 846]], { src: DRT }],
       ['CORRUPT', null, [[320, 1280, 433, 1398], [320, 1422, 433, 1538], [320, 1280, 433, 1398], [320, 1422, 433, 1538]], { src: DRT }],
     ],
   },

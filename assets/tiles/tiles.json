@@ -18,7 +18,9 @@
    "SHALLOW": 11,
    "face:cliff": 12,
    "ARENA": 13,
-   "CORRUPT": 14
+   "CAVE_WALL": 14,
+   "face:cave": 15,
+   "CORRUPT": 16
   }
  },
  "citadel": {

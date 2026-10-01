@@ -29,7 +29,7 @@ export const FIELD_A2 = {
   type: 'field', route: 'A', nextMap: 'a3', bossId: 'boss_a2', // the Magma Beast waits in the Magma Rift (planned fight)
   requires: [{ type: 'boss_defeated', boss: 'boss_a1', label: 'Defeat the Guardian of the Forest (A1 Boss)' }],
   hiddenAreas: [],
-  region: { zones: [Z.ANCIENT] },
+  region: { zones: [Z.ANCIENT, Z.EMBER] }, // EMBER = the Quiet Hollow (ash lair, own zone tint + banner)
   spawn: [84.5, 192],
   content: {
     interactables: [
