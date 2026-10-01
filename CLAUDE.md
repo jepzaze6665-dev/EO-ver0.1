@@ -1002,5 +1002,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   'enemyDefeated' event). GOTCHA: g.loadGame() replaces g.inventory — never keep an old reference across a load.
   Tests itemI4.test.mjs (6). ITEM BUILD PASS COMPLETE (I1-I4).
 - ITEM CATALOGUE (owner: for making item graphics): `node tools/itemCatalog/build.mjs` -> docs/items/item_catalog.html +
-  docs/items/ECLIPSE_ONLINE_Items.pdf (headless Edge / Chrome print-to-PDF; no Python on this machine). Reads the live item data;
+  docs/items/ECLIPSE_ONLINE_Items.pdf (headless Edge / Chrome print-to-PDF; no Python on this machine). UPDATE-ONLY catalogue
+  (owner: new items in their own PDF, not merged): `--only id1,id2 --name I4 [--note text]` -> ECLIPSE_ONLINE_Items_<name>.pdf.
+  The full PDF is kept at its first version (I3, 75 items); _I4 = the 4 boss items + the dragon key. Reads the live item data;
   Thai art briefs per item in tools/itemCatalog/briefs.mjs (items without one get an automatic brief). Rebuild after item changes.

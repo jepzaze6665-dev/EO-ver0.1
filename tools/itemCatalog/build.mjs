@@ -1,6 +1,8 @@
 // ITEM CATALOGUE — builds a printable HTML + PDF of every gear item for the artists (icons / graphics).
 // Reads the live game data (ITEMS, SETS, loot tables), so it never goes out of date. Art briefs: ./briefs.mjs.
 //   node tools/itemCatalog/build.mjs        -> docs/items/item_catalog.html + docs/items/ECLIPSE_ONLINE_Items.pdf
+//   node tools/itemCatalog/build.mjs --only id1,id2 --name I4_update   -> an UPDATE catalogue with only those items
+//     (docs/items/ECLIPSE_ONLINE_Items_<name>.pdf; the full catalogue is not touched)
 // PDF = headless Microsoft Edge (or Chrome) "print to PDF"; if neither is found only the HTML is written.
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { spawnSync } from 'child_process';
@@ -20,8 +22,14 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const outDir = join(root, 'docs', 'items');
 mkdirSync(outDir, { recursive: true });
 
-const gear = Object.values(ITEMS).filter(isGear);
-const keys = Object.values(ITEMS).filter((d) => d.key); // KEY ITEMS (not gear): only open something
+// --only a,b,c = update catalogue (only those ids) · --name = output suffix
+const arg = (k) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : null; };
+const only = arg('--only') ? new Set(arg('--only').split(',').map((x) => x.trim()).filter(Boolean)) : null;
+const updateName = arg('--name') || (only ? 'update' : null);
+if (only) for (const id of only) if (!ITEMS[id]) { console.error('unknown item: ' + id); process.exit(1); }
+const pick = (d) => !only || only.has(d.id);
+const gear = Object.values(ITEMS).filter(isGear).filter(pick);
+const keys = Object.values(ITEMS).filter((d) => d.key).filter(pick); // KEY ITEMS (not gear): only open something
 // which class starts with an item (class signature gear)
 const signatureOf = {};
 for (const c of Object.values(CLASSES)) for (const id of Object.values(c.startingGear || {})) if (id) signatureOf[id] = c.name;
@@ -121,8 +129,8 @@ h2 { font-size: 15px; letter-spacing: 1.5px; color: #d8c0ff; border-bottom: 1px 
 </style></head><body>
 <div class="cover">
   <h1>ECLIPSE ONLINE</h1>
-  <div style="font-size:15px;color:#c8b0ff;letter-spacing:2px">ITEM CATALOGUE — สำหรับทำกราฟิก / ไอคอน</div>
-  <p>สร้างจากข้อมูลในเกมโดยตรง (src/data/items, src/items/items.js) วันที่ ${today} · ไอเทมสวมใส่ทั้งหมด ${gear.length} ชิ้น · ไอเทมกุญแจ ${keys.length} · เซ็ต ${Object.keys(SETS).length} ชุด<br>
+  <div style="font-size:15px;color:#c8b0ff;letter-spacing:2px">ITEM CATALOGUE${only ? ` — UPDATE ${esc(updateName)} (เฉพาะไอเทมใหม่ / ที่เปลี่ยน)` : ''} — สำหรับทำกราฟิก / ไอคอน</div>
+  <p>สร้างจากข้อมูลในเกมโดยตรง (src/data/items, src/items/items.js) วันที่ ${today} · ${only ? `ไอเทมในอัปเดตนี้ ${gear.length + keys.length} ชิ้น (ไอเทมสวมใส่ ${gear.length} · กุญแจ ${keys.length}) — ไม่รวมของใน PDF ชุดแรก` : `ไอเทมสวมใส่ทั้งหมด ${gear.length} ชิ้น · ไอเทมกุญแจ ${keys.length} · เซ็ต ${Object.keys(SETS).length} ชุด`}<br>${only && arg('--note') ? `<b style="color:#ff8080">${esc(arg('--note'))}</b><br>` : ''}
   สร้างใหม่ได้ทุกเมื่อด้วย <code>node tools/itemCatalog/build.mjs</code></p>
   <div class="guide"><b>แนวทางทำไอคอน</b><ul>
     <li><b>ไอเทมไม่เปลี่ยนหน้าตาตัวละคร</b> — กราฟิกที่ต้องทำคือ <b>ไอคอนไอเทม</b> (ช่อง Loadout, กระเป๋า, tooltip) ไม่ใช่สไปรต์บนตัว</li>
@@ -134,18 +142,18 @@ h2 { font-size: 15px; letter-spacing: 1.5px; color: #d8c0ff; border-bottom: 1px 
     <li>LEGENDARY / ของบอส ควรมีแสง/ออร่าชัดกว่าชิ้นอื่น · ชิ้นในเซ็ตเดียวกันควรมีสัญลักษณ์ร่วมกัน</li>
   </ul></div>
 </div>
-<h2>SETS — เซ็ตไอเทม</h2>${setsHTML}
+${only ? '' : `<h2>SETS — เซ็ตไอเทม</h2>${setsHTML}`}
 ${keys.length ? `<h2>KEY ITEMS — ไอเทมกุญแจ (ใช้เปิดทางเข้าเท่านั้น)</h2><div class="grid">${keys.map(card).join('')}</div>` : ''}
 ${groups.filter(([, items]) => items.length).map(([title, items], i) => `<h2 class="${i === 0 ? 'pb' : ''}">${esc(title)} (${items.length})</h2><div class="grid">${items.map(card).join('')}</div>`).join('')}
 </body></html>`;
 
-const htmlPath = join(outDir, 'item_catalog.html');
+const htmlPath = join(outDir, only ? `item_catalog_${updateName}.html` : 'item_catalog.html');
 writeFileSync(htmlPath, html);
 console.log('HTML:', htmlPath, `(${gear.length} items)`);
 
 const browsers = ['C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/Google/Chrome/Application/chrome.exe'];
 const exe = browsers.find((b) => existsSync(b));
 if (!exe) { console.log('No Edge / Chrome found: open the HTML and print it to PDF.'); process.exit(0); }
-const pdfPath = join(outDir, 'ECLIPSE_ONLINE_Items.pdf');
+const pdfPath = join(outDir, only ? `ECLIPSE_ONLINE_Items_${updateName}.pdf` : 'ECLIPSE_ONLINE_Items.pdf');
 const r = spawnSync(exe, ['--headless', '--disable-gpu', '--no-pdf-header-footer', `--print-to-pdf=${pdfPath}`, pathToFileURL(htmlPath).href], { stdio: 'inherit', timeout: 90000 });
 console.log(existsSync(pdfPath) ? 'PDF: ' + pdfPath : 'PDF failed (status ' + r.status + ')');

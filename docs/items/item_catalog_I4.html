@@ -1,0 +1,105 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><title>ECLIPSE ONLINE — Item Catalogue</title><style>
+@page { size: A4; margin: 11mm; }
+* { box-sizing: border-box; }
+body { font-family: 'Leelawadee UI', 'Segoe UI', Tahoma, sans-serif; color: #e8e4f0; background: #14111c; margin: 0; font-size: 10.5px;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+h1 { font-size: 26px; letter-spacing: 3px; margin: 0 0 2px; color: #f0d8ff; }
+h2 { font-size: 15px; letter-spacing: 1.5px; color: #d8c0ff; border-bottom: 1px solid #4a3a66; padding-bottom: 4px; margin: 16px 0 8px; break-after: avoid; }
+.cover p, .guide li { font-size: 11.5px; line-height: 1.55; }
+.guide { background: #1d1828; border: 1px solid #3a2f50; border-radius: 6px; padding: 8px 14px; }
+.rar { display: inline-block; border: 1px solid var(--rc); color: var(--rc); border-radius: 3px; padding: 1px 6px; margin: 2px 4px 2px 0; font-weight: 700; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.card, .set, .brief, .st li { overflow-wrap: anywhere; }
+@media screen { body { padding: 16px; max-width: 900px; margin: 0 auto; } }
+.card, .set { background: #1d1828; border: 1px solid #3a2f50; border-left: 4px solid var(--rc, var(--ic)); border-radius: 6px; padding: 8px 10px; break-inside: avoid; }
+.set { margin-bottom: 8px; border-left-color: var(--ic); }
+.top { display: flex; gap: 9px; align-items: center; }
+.sw { width: 42px; height: 42px; flex: none; border-radius: 6px; background: radial-gradient(circle at 35% 30%, #fff8, var(--ic) 45%, #000a 100%); border: 2px solid var(--rc);
+  display: flex; align-items: flex-end; justify-content: center; }
+.sw span { font-size: 6.5px; color: #000c; background: #fffb; border-radius: 2px; padding: 0 2px; margin-bottom: 2px; }
+.nm { font-size: 13.5px; font-weight: 700; }
+.sub { font-size: 10px; color: #b8b0c8; }
+.id { font-size: 9px; color: #8a809c; font-family: Consolas, monospace; }
+.desc { font-style: italic; color: #c8c0d8; margin: 5px 0 3px; }
+.st { margin: 2px 0 4px; padding-left: 14px; }
+.st li { margin: 1px 0; } .st .up { color: #8fe0a0; } .st .down { color: #ff8a80; } .st .fx { color: #ffd88a; list-style: none; margin-left: -12px; }
+.meta { font-size: 9.5px; color: #a8a0b8; margin-top: 2px; }
+.tags span { display: inline-block; font-size: 8.5px; background: #2c2440; border-radius: 3px; padding: 0 5px; margin: 3px 3px 0 0; color: #cfc4e8; }
+.brief { margin-top: 5px; padding: 4px 6px; background: #261f36; border-radius: 4px; color: #efe8ff; font-size: 10.5px; }
+.brief b { color: #c8a0ff; }
+.pb { break-before: page; }
+</style></head><body>
+<div class="cover">
+  <h1>ECLIPSE ONLINE</h1>
+  <div style="font-size:15px;color:#c8b0ff;letter-spacing:2px">ITEM CATALOGUE — UPDATE I4 (เฉพาะไอเทมใหม่ / ที่เปลี่ยน) — สำหรับทำกราฟิก / ไอคอน</div>
+  <p>สร้างจากข้อมูลในเกมโดยตรง (src/data/items, src/items/items.js) วันที่ 2026-10-01 · ไอเทมในอัปเดตนี้ 5 ชิ้น (ไอเทมสวมใส่ 4 · กุญแจ 1) — ไม่รวมของใน PDF ชุดแรก<br><b style="color:#ff8080">เปลี่ยนในอัปเดตนี้: ระดับ MYTHIC เป็นสีแดงแล้ว — Varkharon's Seal กลายเป็นไอเทมกุญแจสีแดง (ใช้เข้าบอสมังกรเท่านั้น)</b><br>
+  สร้างใหม่ได้ทุกเมื่อด้วย <code>node tools/itemCatalog/build.mjs</code></p>
+  <div class="guide"><b>แนวทางทำไอคอน</b><ul>
+    <li><b>ไอเทมไม่เปลี่ยนหน้าตาตัวละคร</b> — กราฟิกที่ต้องทำคือ <b>ไอคอนไอเทม</b> (ช่อง Loadout, กระเป๋า, tooltip) ไม่ใช่สไปรต์บนตัว</li>
+    <li>สไตล์: pixel-art / dark fantasy ให้เข้ากับ UI kit และไอคอนสกิล · พื้นหลังโปร่งใส · ของอยู่กลางภาพ เว้นขอบเล็กน้อย</li>
+    <li>ขนาดที่แนะนำ: วาดสี่เหลี่ยมจัตุรัส 1024×1024 (แบบเดียวกับ ICON SKILL) แล้วย่อเหลือ 64 px ในเกม — ต้องยังอ่านรูปทรงออกตอนเล็ก</li>
+    <li>ตั้งชื่อไฟล์ตาม <b>id</b> ของไอเทม เช่น <code>desgin/ICON ITEM/core_shadow_fang.png</code> (ระบบตัดไอคอนไอเทมยังไม่ได้สร้าง — ทำได้เมื่อมีภาพ)</li>
+    <li><b>กรอบสีตาม Rarity</b> (เกมวาดกรอบเอง ไม่ต้องใส่ในภาพ): <span class="rar" style="--rc:#c8c8d0">COMMON</span><span class="rar" style="--rc:#7ad8a0">UNCOMMON</span><span class="rar" style="--rc:#6aa8ff">RARE</span><span class="rar" style="--rc:#c080ff">EPIC</span><span class="rar" style="--rc:#ffb040">LEGENDARY</span><span class="rar" style="--rc:#ff3030">MYTHIC</span></li>
+    <li>"สี" ในการ์ด = สีหลักของไอเทมในเกมตอนนี้ (ใช้เป็นโทนหลักของไอคอน) · ช่องสี่เหลี่ยมซ้ายบน = ตัวอย่างโทนสี + ชนิดไอคอนชั่วคราว</li>
+    <li>LEGENDARY / ของบอส ควรมีแสง/ออร่าชัดกว่าชิ้นอื่น · ชิ้นในเซ็ตเดียวกันควรมีสัญลักษณ์ร่วมกัน</li>
+  </ul></div>
+</div>
+
+<h2>KEY ITEMS — ไอเทมกุญแจ (ใช้เปิดทางเข้าเท่านั้น)</h2><div class="grid"><div class="card" style="--rc:#ff3030;--ic:#ff3030">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Varkharon's Seal</div>
+      <div class="sub"><b style="color:#ff3030">MYTHIC</b> · Key Item (ไอเทมกุญแจ)</div>
+      <div class="id">varkharon_seal · สี #ff3030</div></div></div>
+    <div class="desc">Three cinder shards fused into a dragon-headed seal. It opens the Dragon Door in the Quiet Hollow, and nothing else.</div>
+    <ul class="st"></ul>
+    <div class="meta"><b style="color:var(--rc)">KEY ITEM — ใช้เปิดประตู ไม่มีค่าสถานะ ขาย / ฝากไม่ได้</b></div>
+    <div class="meta">ได้จากเควสต์ / การตีขึ้นรูป (ไม่ดรอป)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> ตราประทับหินดำรูปหัวมังกร ยังมีควันและถ่านแดงลุกอยู่ — KEY ITEM ระดับ MYTHIC (สีแดง) ใช้เปิดประตูมังกรเท่านั้น ควรดูเป็น &quot;กุญแจ&quot; ชัดเจน</div>
+  </div></div>
+<h2 class="pb">BOSS SIGNATURE — ของประจำบอส (ดรอป 100% ครั้งแรก) (4)</h2><div class="grid"><div class="card" style="--rc:#c080ff;--ic:#7ac8ff">
+    <div class="top"><div class="sw" title="item colour"><span>SWORD</span></div>
+      <div><div class="nm">Runeknight's Blade</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Weapon Core (แกนอาวุธ)</div>
+      <div class="id">core_runeblade · สี #7ac8ff</div></div></div>
+    <div class="desc">The Rune Knight's blade, still answering its old commands. Heavy in the swing, sure in the guard.</div>
+    <ul class="st"><li class="up">+10% Attack</li><li class="up">+20% Critical Damage</li><li class="down">-10% Attack Speed</li><li class="fx">✦ Cast a skill: SHIELD STANCE, +30% Defense for 3 s (8 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอปจากบอส boss_a3 (100% ครั้งแรก)</div>
+    <div class="tags"><span>BURST</span><span>GUARD</span><span>BOSS</span></div>
+    <div class="brief"><b>ART BRIEF:</b> ดาบยาวของ Rune Knight สีเงิน-บรอนซ์ ใบดาบสลักรูนเรืองฟ้า ด้ามมีโล่เล็กติด (ท่าดาบ/โล่) — ของบอส A3</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#c080ff">
+    <div class="top"><div class="sw" title="item colour"><span>CLOAK</span></div>
+      <div><div class="nm">Amethyst Shell</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Armor Core (แกนเกราะ)</div>
+      <div class="id">armor_amethyst_shell · สี #c080ff</div></div></div>
+    <div class="desc">Plates of living amethyst from the Colossus. They regrow after a blow — and weigh like stone.</div>
+    <ul class="st"><li class="up">+25% Defense</li><li class="up">+5% Damage Reduction</li><li class="down">-10% Movement Speed</li><li class="down">-5% Attack Speed</li><li class="fx">✦ Hit: crystal regrows, barrier of 12% max HP for 5 s (12 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอปจากบอส boss_b2 (100% ครั้งแรก)</div>
+    <div class="tags"><span>DEFENSE</span><span>BARRIER</span><span>BOSS</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เกราะทำจากแผ่นคริสตัลอเมทิสต์สีม่วง มีผลึกงอกตามไหล่ ดูหนักเหมือนหิน — ของบอส B2 Amethyst Colossus</div>
+  </div><div class="card" style="--rc:#ffb040;--ic:#bfe6ff">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Warden's Prism</div>
+      <div class="sub"><b style="color:#ffb040">LEGENDARY</b> · Relic (เรลิก)</div>
+      <div class="id">relic_warden_prism · สี #bfe6ff</div></div></div>
+    <div class="desc">The heart-prism of the Crystal Warden. It bends time a little — and light through your body.</div>
+    <ul class="st"><li class="up">+8% Cooldown Reduction</li><li class="down">-8% Max HP</li><li class="fx">✦ Falling below 40% HP: PRISM WARD, barrier of 25% max HP for 6 s (45 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอปจากบอส boss_b3 (100% ครั้งแรก)</div>
+    <div class="tags"><span>COOLDOWN</span><span>SUSTAIN</span><span>BOSS</span></div>
+    <div class="brief"><b>ART BRIEF:</b> ปริซึมคริสตัลน้ำแข็งสีฟ้าขาว หักเหแสงเป็นสายรุ้งอ่อน LEGENDARY: ออร่าฟ้าใส — หัวใจของ Crystal Warden (บอส B3)</div>
+  </div><div class="card" style="--rc:#ff3030;--ic:#ff3030">
+    <div class="top"><div class="sw" title="item colour"><span>HEART</span></div>
+      <div><div class="nm">Cinder King's Crown</div>
+      <div class="sub"><b style="color:#ff3030">MYTHIC</b> · Relic (เรลิก)</div>
+      <div class="id">relic_cinder_crown · สี #ff3030</div></div></div>
+    <div class="desc">A crown of black stone and living fire, torn from the sealed king. It burns everything — its wearer too.</div>
+    <ul class="st"><li class="up">+15% Attack</li><li class="up">+20% Critical Damage</li><li class="down">-12% Max HP</li><li class="down">-10% Defense</li><li class="fx">✦ Hit: BURN for 3 s (12% ATK per tick per stack; 1 s cooldown).</li><li class="fx">✦ Falling below 25% HP: KING'S WRATH, +25% Attack for 8 s (40 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส · LV 45+</div>
+    <div class="meta">ดรอปจากบอส boss_varkharon (100% ครั้งแรก)</div>
+    <div class="tags"><span>FIRE</span><span>BURST</span><span>BOSS</span><span>SECRET</span></div>
+    <div class="brief"><b>ART BRIEF:</b> มงกุฎหินดำมีลาวาแดงไหลตามร่อง เปลวไฟแดงลุกจากยอดมงกุฎ มีรูปหัวมังกรตรงกลาง — MYTHIC = ใช้ &quot;สีแดง&quot; เป็นหลัก ออร่าแดงเข้มชัดที่สุดในเกม (ของบอสลับ Varkharon)</div>
+  </div></div>
+</body></html>
