@@ -360,6 +360,12 @@ export function iconURL(name, color) {
   return icon(name, color).toDataURL();
 }
 
+// an ITEM's icon: the owner's art (tools/build-item-icons.js -> Assets.itemIcons) when it exists, else the drawn placeholder
+export function itemIconURL(def) {
+  const art = def && Assets.itemIcons && Assets.itemIcons[def.id];
+  return art ? art.file : iconURL(def.icon, def.color);
+}
+
 // a SKILL's icon: the owner's art when data/skillIcons.js names one that was built, else the drawn placeholder
 function skillArt(skill) {
   const a = skill && Assets.icons[SKILL_ICONS[skill.id]];

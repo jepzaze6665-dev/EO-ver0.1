@@ -7,6 +7,7 @@ export const Assets = {
   vfx: {}, // name -> {img, fw, fh, frames} (skill effect strips, right-facing)
   ui: {}, // name -> {img, w, h, slice?, file} (UI kit built by tools/build-ui.js: frames, buttons, slots, boss bar)
   icons: {}, // key -> {img, file} (skill icon art built by tools/build-icons.js; which skill uses which = data/skillIcons.js)
+  itemIcons: {}, // item id -> {file} (item icon art built by tools/build-item-icons.js; the UI shows it with <img src>)
   tiles: {}, // skin -> {img, tile, variants, rows} (ground skins built by tools/build-tiles.js, used per grid)
 };
 
@@ -43,6 +44,7 @@ export async function loadAll(onProgress) {
   Assets.data.monsters = await loadJSON('assets/monsters/monsters.json').catch(() => ({}));
   const tileMeta = await loadJSON('assets/tiles/tiles.json').catch(() => ({})); // optional too: painted tiles stay
   const iconMeta = await loadJSON('assets/icons/icons.json').catch(() => ({})); // optional: drawn icons stay
+  Assets.itemIcons = await loadJSON('assets/icons/items/items.json').catch(() => ({})); // optional: items without art keep the drawn icon
   const jobs = [];
   for (const [key, atlas] of Object.entries(Assets.data.atlases)) for (const [name, s] of Object.entries(atlas.sheets)) jobs.push([`player_${key}_${name}`, s.file]);
   jobs.push(['props', 'assets/props/props.png']);

@@ -1,0 +1,164 @@
+{
+ "core_ironheart": {
+  "file": "assets/icons/items/core_ironheart.png"
+ },
+ "core_counter": {
+  "file": "assets/icons/items/core_counter.png"
+ },
+ "core_vanguard": {
+  "file": "assets/icons/items/core_vanguard.png"
+ },
+ "armor_fortress": {
+  "file": "assets/icons/items/armor_fortress.png"
+ },
+ "armor_guardian": {
+  "file": "assets/icons/items/armor_guardian.png"
+ },
+ "armor_risk": {
+  "file": "assets/icons/items/armor_risk.png"
+ },
+ "charm_heavy": {
+  "file": "assets/icons/items/charm_heavy.png"
+ },
+ "charm_guardian": {
+  "file": "assets/icons/items/charm_guardian.png"
+ },
+ "rune_guarding_soul": {
+  "file": "assets/icons/items/rune_guarding_soul.png"
+ },
+ "rune_iron_will": {
+  "file": "assets/icons/items/rune_iron_will.png"
+ },
+ "rune_retribution": {
+  "file": "assets/icons/items/rune_retribution.png"
+ },
+ "rune_provocation": {
+  "file": "assets/icons/items/rune_provocation.png"
+ },
+ "core_shadow_fang": {
+  "file": "assets/icons/items/core_shadow_fang.png"
+ },
+ "core_nightglass": {
+  "file": "assets/icons/items/core_nightglass.png"
+ },
+ "armor_duskweave": {
+  "file": "assets/icons/items/armor_duskweave.png"
+ },
+ "relic_heart_eclipse": {
+  "file": "assets/icons/items/relic_heart_eclipse.png"
+ },
+ "relic_bloodletter": {
+  "file": "assets/icons/items/relic_bloodletter.png"
+ },
+ "rune_red_thirst": {
+  "file": "assets/icons/items/rune_red_thirst.png"
+ },
+ "rune_full_moon": {
+  "file": "assets/icons/items/rune_full_moon.png"
+ },
+ "rune_shadow_hunger": {
+  "file": "assets/icons/items/rune_shadow_hunger.png"
+ },
+ "charm_assassin": {
+  "file": "assets/icons/items/charm_assassin.png"
+ },
+ "core_star_loom": {
+  "file": "assets/icons/items/core_star_loom.png"
+ },
+ "core_fallen_constellation": {
+  "file": "assets/icons/items/core_fallen_constellation.png"
+ },
+ "armor_starveil": {
+  "file": "assets/icons/items/armor_starveil.png"
+ },
+ "relic_orrery": {
+  "file": "assets/icons/items/relic_orrery.png"
+ },
+ "relic_spindle": {
+  "file": "assets/icons/items/relic_spindle.png"
+ },
+ "rune_comet_tail": {
+  "file": "assets/icons/items/rune_comet_tail.png"
+ },
+ "rune_supernova": {
+  "file": "assets/icons/items/rune_supernova.png"
+ },
+ "charm_starfocus": {
+  "file": "assets/icons/items/charm_starfocus.png"
+ },
+ "armor_pathfinder": {
+  "file": "assets/icons/items/armor_pathfinder.png"
+ },
+ "relic_ember_war": {
+  "file": "assets/icons/items/relic_ember_war.png"
+ },
+ "rune_second_wind": {
+  "file": "assets/icons/items/rune_second_wind.png"
+ },
+ "rune_executioner": {
+  "file": "assets/icons/items/rune_executioner.png"
+ },
+ "rune_hunters_sigil": {
+  "file": "assets/icons/items/rune_hunters_sigil.png"
+ },
+ "charm_wanderer": {
+  "file": "assets/icons/items/charm_wanderer.png"
+ },
+ "relic_oath_mirror": {
+  "file": "assets/icons/items/relic_oath_mirror.png"
+ },
+ "relic_last_bastion": {
+  "file": "assets/icons/items/relic_last_bastion.png"
+ },
+ "relic_dawn_core": {
+  "file": "assets/icons/items/relic_dawn_core.png"
+ },
+ "core_runeblade": {
+  "file": "assets/icons/items/core_runeblade.png"
+ },
+ "armor_amethyst_shell": {
+  "file": "assets/icons/items/armor_amethyst_shell.png"
+ },
+ "relic_warden_prism": {
+  "file": "assets/icons/items/relic_warden_prism.png"
+ },
+ "relic_cinder_crown": {
+  "file": "assets/icons/items/relic_cinder_crown.png"
+ },
+ "duskfang_blade": {
+  "file": "assets/icons/items/duskfang_blade.png"
+ },
+ "crystalbreaker": {
+  "file": "assets/icons/items/crystalbreaker.png"
+ },
+ "shadeweave": {
+  "file": "assets/icons/items/shadeweave.png"
+ },
+ "eclipse_sigil": {
+  "file": "assets/icons/items/eclipse_sigil.png"
+ },
+ "hunger_rune": {
+  "file": "assets/icons/items/hunger_rune.png"
+ },
+ "shade_charm": {
+  "file": "assets/icons/items/shade_charm.png"
+ },
+ "eclipse_relic": {
+  "file": "assets/icons/items/eclipse_relic.png"
+ },
+ "hunters_charm": {
+  "file": "assets/icons/items/hunters_charm.png"
+ },
+ "guardian_heart": {
+  "file": "assets/icons/items/guardian_heart.png"
+ },
+ "veil_stillness": {
+  "file": "assets/icons/items/veil_stillness.png"
+ },
+ "umbral_band": {
+  "file": "assets/icons/items/umbral_band.png"
+ },
+ "varkharon_seal": {
+  "file": "assets/icons/items/varkharon_seal.png"
+ }
+}

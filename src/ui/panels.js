@@ -2,7 +2,7 @@ import { PARTY } from '../data/party.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { ITEMS, RARITY_COLOR, CATEGORIES, RECIPES, SHOPS } from '../items/items.js';
 import { KIT_PIECES } from '../data/classKits.js';
-import { iconURL, skillIconURL } from './icons.js';
+import { iconURL, itemIconURL, skillIconURL } from './icons.js';
 import { dialogueFor, LORE } from '../world/narrative.js';
 import { QUESTS } from '../quests/quests.js';
 import { TILE, T } from '../core/constants.js';
@@ -204,7 +204,7 @@ export class Panels {
         <div class="inv-layout">
           <div class="grid">${items.map(({ id, n, def }) => `
             <div class="slot ${this.selected === id ? 'sel' : ''}" data-item="${id}" data-tip="${id}" style="border-color:${RARITY_COLOR[def.rarity]}">
-              <img src="${iconURL(def.icon, def.color)}"><span class="n">${n > 1 ? n : ''}</span>
+              <img src="${itemIconURL(def)}"><span class="n">${n > 1 ? n : ''}</span>
             </div>`).join('') || '<div class="empty">Nothing here yet.</div>'}
           </div>
           <div class="detail">${this.itemDetail(this.selected)}</div>
@@ -412,7 +412,7 @@ export class Panels {
     const g = this.game;
     if (!id || !ITEMS[id] || !g.inventory.has(id)) return '<div class="muted">Select an item.</div>';
     const d = ITEMS[id];
-    return `<img src="${iconURL(d.icon, d.color)}" class="big-icon">
+    return `<img src="${itemIconURL(d)}" class="big-icon">
       <div class="tt">${itemTooltipHTML(d, { classId: g.player.cls.id, level: g.player.level, worn: g.equipment.wornIds(), swap: swapPreview(g.equipment, id) })}</div>
       ${d.use ? `<button data-use="${id}">Use</button>` : ''}${isGear(d) ? `<button data-equip="${id}">Equip</button>` : ''}`;
   }
@@ -446,9 +446,9 @@ export class Panels {
       <div class="panel">
         <h2>${esc(shop.title)} <span class="gold-inline">${p.gold} G</span></h2>
         <h3>Buy</h3>
-        ${shop.stock.map((id) => { const d = ITEMS[id]; return `<div class="row"><img src="${iconURL(d.icon, d.color)}"><div class="grow"><b style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</b><div class="muted small">${esc(d.modText || d.desc)}</div></div><button data-buy="${id}" ${!p.canAfford(d.price) ? 'disabled' : ''}>${d.price} G</button></div>`; }).join('')}
+        ${shop.stock.map((id) => { const d = ITEMS[id]; return `<div class="row"><img src="${itemIconURL(d)}"><div class="grow"><b style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</b><div class="muted small">${esc(d.modText || d.desc)}</div></div><button data-buy="${id}" ${!p.canAfford(d.price) ? 'disabled' : ''}>${d.price} G</button></div>`; }).join('')}
         <h3>Sell materials</h3>
-        ${sellable.map(({ id, n, def }) => `<div class="row"><img src="${iconURL(def.icon, def.color)}"><div class="grow">${esc(def.name)} ×${n}</div><button data-sell="${id}">+${def.sell} G</button></div>`).join('') || '<div class="muted">No materials to sell.</div>'}
+        ${sellable.map(({ id, n, def }) => `<div class="row"><img src="${itemIconURL(def)}"><div class="grow">${esc(def.name)} ×${n}</div><button data-sell="${id}">+${def.sell} G</button></div>`).join('') || '<div class="muted">No materials to sell.</div>'}
         <button class="close">Close</button>
       </div>`);
     el.addEventListener('click', (e) => {
@@ -465,7 +465,7 @@ export class Panels {
     const el = this.show('smith', `
       <div class="panel">
         <h2>Borin's Forge <span class="gold-inline">${p.gold} G</span></h2>
-        ${RECIPES.map((r, i) => { const d = ITEMS[r.out]; return `<div class="row recipe"><img src="${iconURL(d.icon, d.color)}"><div class="grow"><b style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</b>
+        ${RECIPES.map((r, i) => { const d = ITEMS[r.out]; return `<div class="row recipe"><img src="${itemIconURL(d)}"><div class="grow"><b style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</b>
           <div class="small">${Object.entries(d.stats).map(([k, v]) => `${statLabel(k)} ${statVal(k, v)}`).join(' · ')}</div>
           <div class="mod small">◆ ${esc(d.modText)}</div>
           <div class="small">${Object.entries(r.mats).map(([m, n]) => `<span class="${inv.has(m, n) ? 'ok' : 'bad'}">${ITEMS[m].name} ${inv.count(m)}/${n}</span>`).join(' · ')} · <span class="${p.gold >= r.gold ? 'ok' : 'bad'}">${r.gold} G</span></div></div>
@@ -489,7 +489,7 @@ export class Panels {
   }
   storage() {
     const g = this.game, inv = g.inventory;
-    const col = (list, attr, label) => list.map(([id, n]) => { const d = ITEMS[id]; return `<div class="row"><img src="${iconURL(d.icon, d.color)}"><div class="grow">${esc(d.name)} ×${n}</div><button data-${attr}="${id}">${label}</button></div>`; }).join('') || '<div class="muted">Empty</div>';
+    const col = (list, attr, label) => list.map(([id, n]) => { const d = ITEMS[id]; return `<div class="row"><img src="${itemIconURL(d)}"><div class="grow">${esc(d.name)} ×${n}</div><button data-${attr}="${id}">${label}</button></div>`; }).join('') || '<div class="muted">Empty</div>';
     const el = this.show('storage', `
       <div class="panel wide">
         <h2>Storage</h2>

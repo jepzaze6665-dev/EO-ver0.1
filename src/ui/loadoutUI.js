@@ -4,7 +4,7 @@
 //   right : FINAL STATS (base -> final), build tags, active item effects (cooldowns / running buffs)
 import { ITEMS, RARITY_COLOR } from '../items/items.js';
 import { GEAR_SLOTS, MODIFIER_TYPES } from '../data/items/rules.js';
-import { iconURL } from './icons.js';
+import { iconURL, itemIconURL } from './icons.js';
 import { esc, modifierText, modValue, swapPreview } from './itemTooltip.js';
 import { meetsLevel } from '../items/itemDefs.js';
 import { setSummary } from '../items/setSystem.js';
@@ -70,7 +70,7 @@ export function loadoutHTML(g, { pickSlot = null } = {}) {
     const id = eq.slots[s.id], d = ITEMS[id];
     return `<div class="lo-slot${pickSlot === s.id ? ' on' : ''}" data-pick="${s.id}"${d ? ` data-tip="${id}" data-tip-eq="1"` : ''}>
       <div class="lbl">${esc(s.label.toUpperCase())}</div>
-      ${d ? `<img src="${iconURL(d.icon, d.color)}"><div class="lo-name" style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</div>` : '<div class="muted lo-name">— empty —</div>'}
+      ${d ? `<img src="${itemIconURL(d)}"><div class="lo-name" style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</div>` : '<div class="muted lo-name">— empty —</div>'}
       ${d && !s.fixed ? `<button data-unequip="${s.id}">✕</button>` : ''}
     </div>`;
   };
@@ -84,7 +84,7 @@ export function loadoutHTML(g, { pickSlot = null } = {}) {
       const hint = sw && sw.changes.length ? sw.changes.slice(0, 3).map((c) => `${(MODIFIER_TYPES[c.type] || {}).label} ${modValue(c.type, c.after - c.before)}`).join(' · ') : '';
       const lvl = meetsLevel(d, p.level) ? '' : `<div class="small" style="color:#ff7a6a">Requires LV ${d.levelRequirement}</div>`;
       return `<div class="lo-pick" data-equip-to="${id}:${pickSlot}" data-tip="${id}">
-        <img src="${iconURL(d.icon, d.color)}"><div><div style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</div><div class="small muted">${esc(hint)}</div>${lvl}</div></div>`;
+        <img src="${itemIconURL(d)}"><div><div style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</div><div class="small muted">${esc(hint)}</div>${lvl}</div></div>`;
     }).join('') : '<div class="muted small">Nothing for this slot yet.</div>'}</div>`;
   }
   const rows = finalStatRows(p).map(([label, now, base]) => `<div><span>${label}</span><b>${now}${String(now) !== String(base) ? ` <span class="lo-base">(${base})</span>` : ''}</b></div>`).join('');

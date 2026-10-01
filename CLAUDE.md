@@ -1012,6 +1012,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   already delivered still contain them). Verified: unit tests, itemSystemCheck 22/22, gearCheck 30/30, loadoutCheck 9/9 ×3,
   gearCombat 7/7, effectCheck 9/9, classChange 14/14, playthrough 17/17, checklist 31/31, tank / dodge; old v5 save loads.
   (astral_star build vs the Guardian at LV 13 wins ~2 of 3 without god mode: the fragile Astral line, unchanged.)
+- ITEM ICONS (owner's art, desgin/ITEM/v1.0/: 8 sheets in catalogue order — Aegis / Umbral / Astral / Universal / boss signature /
+  LEGACY (opaque fake checkerboard) / KEY (6 takes on the dragon seal) / SET pieces) -> `node tools/build-item-icons.js [--preview]`
+  -> assets/icons/items/<id>.png (64 px) + items.json. Manifest SHEETS = item ids per row in reading order (null = unused); later
+  sheets win (the SET sheet's matching set pieces). Cut: row bands from empty lines (equal rows when icons overlap in height) ->
+  per row 2-D solid components (alpha > 120; sparks join) -> else column gaps -> else equal cells; checker sheet: build-monsters
+  removeBackground(erode 2) + defringe (light grey outline). UI: Assets.itemIcons + ui/icons.js `itemIconURL(def)` (art, else the
+  drawn icon) in panels.js / loadoutUI.js. No art yet: charm_swift, charm_focus (class kit pieces keep drawn icons).
+  Test tools/tests/itemIcons.test.mjs. Boss rematch / drop-rate work (D1) was REVERTED by the owner (bosses pay once, as before).
 - ITEM CATALOGUE (owner: for making item graphics): `node tools/itemCatalog/build.mjs` -> docs/items/item_catalog.html +
   docs/items/ECLIPSE_ONLINE_Items.pdf (headless Edge / Chrome print-to-PDF; no Python on this machine). UPDATE-ONLY catalogue
   (owner: new items in their own PDF, not merged): `--only id1,id2 --name I4 [--note text]` -> ECLIPSE_ONLINE_Items_<name>.pdf.
