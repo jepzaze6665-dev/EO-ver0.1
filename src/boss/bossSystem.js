@@ -4,7 +4,6 @@ import { BOSS_STATE as S, nextBossState, isFighting } from './bossState.js';
 import { AreaBoss } from './areaBoss.js';
 import { dist, angleTo, TAU } from '../core/math.js';
 import { bossScale } from '../progression/levelScaling.js';
-import { DROP_RATES } from '../data/dropRates.js';
 
 // BOSS SYSTEM — runs every boss encounter from data/bosses.js through the state machine in boss/bossState.js:
 //   HIDDEN -> IDLE -> ENGAGED <-> PHASE_CHANGE -> DEFEATED   (+ RESET -> IDLE when the player dies / leaves)
@@ -12,11 +11,7 @@ import { DROP_RATES } from '../data/dropRates.js';
 //   Boss Arena  : trigger radius (engage) + collision boundary (player and boss stay inside while engaged)
 //   Arena Lock  : exits and gates are closed while any boss fight is active (World.inBossFight)
 //   Boss bar    : barInfo() for the HUD (name, HP, phase, weak window) — area and major bosses alike
-//   Rewards     : EVERY kill -> 'enemyDefeated' (EXP + loot table) + 'bossRewarded' (gold / items / lore); later kills pay
-//                 the repeat rates of data/dropRates.js (less EXP / gold, signature ~1 in 9, no one-time trophies)
-//   Rematch     : a defeated boss comes back when the player enters its map again (respawn, DROP_RATES.bossRematch).
-//                 It only WAITS: many arenas are roads (Sanctum -> City 2, Rift -> A3 ...), so a rematch starts only when the
-//                 player asks for it — [E] Challenge next to the boss (interactable 'bossChallenge').
+//   Rewards     : first kill only -> 'enemyDefeated' (EXP + loot table) + 'bossRewarded' (gold / items / lore)
 //   Progression : WorldProgression.defeatBoss(id) -> 'bossDefeated' { bossId, first, major } -> world triggers
 // Which code fights is chosen by the boss's `impl` (IMPLS below): the generic data-driven AreaBoss, or the V2
 // Guardian of the Forest (its own class + World.startBoss / resetBoss). A new impl = one more entry, no core changes.
@@ -29,7 +24,7 @@ export const IMPLS = {
     ownsArena: false,      // the BossSystem keeps player + boss inside the arena circle
   },
   guardian: {
-    create: (g) => g.world.guardian || g.world.ensureGuardian(), // spawned by the world (maps/ruins.js spawn 'guardian'); rebuilt for a rematch
+    create: (g) => g.world.guardian,          // spawned by the world (maps/ruins.js spawn 'guardian')
     engage: (g) => g.world.startBoss(),       // seals the arena gate, phase hazards, camera lock
     reset: (g) => g.world.resetBoss(),
     ownsArena: true,       // its arena seal + inArena clamp already exist (world.js / guardian.js)
@@ -44,25 +39,6 @@ export class BossSystem {
     this.list = liveBosses(data).map((def) => ({ id: def.id, def, state: S.HIDDEN, entity: null, phase: 1, leaveT: 0 }));
     this.byId = Object.fromEntries(this.list.map((e) => [e.id, e]));
     this.engaged = null;       // the encounter being fought (one at a time)
-    // REMATCH: entering a map brings its defeated bosses back (progression stays saved)
-    game.events.on('mapEntered', (e) => this.respawnOn(e.id));
-  }
-  // every defeated boss of this map comes back for a rematch (its entity healed and sent home). Returns how many.
-  respawnOn(mapId) {
-    if (!DROP_RATES.bossRematch) return 0;
-    let n = 0;
-    for (const enc of this.list) {
-      if (enc.def.map !== mapId || isFighting(enc.state) || !this.game.worldProgress.isBossDefeated(enc.id)) continue;
-      enc.rematch = true; enc.phase = 1; enc.leaveT = 0;
-      // not built yet (a save loaded on this map): the next update creates it and, with `rematch`, goes HIDDEN -> IDLE
-      enc.challenged = false;
-      this.addChallenge(enc);
-      if (!enc.entity) { enc.state = S.HIDDEN; n++; continue; }
-      this.impl(enc).reset(this.game, enc);
-      enc.state = S.IDLE;
-      n++;
-    }
-    return n;
   }
   get(id) { return this.byId[id] || null; }
   impl(enc) { return IMPLS[enc.def.impl] || IMPLS.area; }
@@ -76,24 +52,6 @@ export class BossSystem {
   arenaPx(enc) {
     const a = enc.def.arena;
     return { x: a.center[0] * TILE, y: a.center[1] * TILE, r: a.radius * TILE, trigger: (a.trigger || a.radius - 1) * TILE };
-  }
-  // the [E] Challenge point of a waiting rematch boss (a world interactable at the boss's home; one per boss)
-  addChallenge(enc) {
-    const w = this.game.world, id = 'boss_challenge_' + enc.id, a = this.arenaPx(enc), home = enc.entity && enc.entity.home;
-    w.interactables = w.interactables.filter((it) => it.id !== id);
-    w.interactables.push({ id, kind: 'bossChallenge', bossId: enc.id, x: home ? home.x : a.x, y: home ? home.y : a.y, radius: 110, prompt: `Challenge ${enc.def.name} (rematch)` });
-  }
-  removeChallenge(enc) {
-    const w = this.game.world, id = 'boss_challenge_' + enc.id;
-    w.interactables = w.interactables.filter((it) => it.id !== id);
-  }
-  // the player asked for the rematch: the fight starts
-  challenge(id) {
-    const enc = this.get(id);
-    if (!enc || !enc.rematch || isFighting(enc.state)) return false;
-    enc.challenged = true;
-    this.removeChallenge(enc);
-    return true;
   }
   // area-boss entities the world should simulate / draw / let the player hit (the Guardian is the world's own)
   entities() {
@@ -118,10 +76,9 @@ export class BossSystem {
       const gone = !this.onMap(enc) || (!this.impl(enc).ownsArena && inside > a.r + 3 * TILE);
       if (isFighting(enc.state)) enc.leaveT = gone ? enc.leaveT + dt : 0;
       const next = nextBossState(enc.state, {
-        alreadyDefeated: prog.isBossDefeated(enc.id) && !enc.rematch,
+        alreadyDefeated: prog.isBossDefeated(enc.id),
         canAppear: prog.meets(enc.def.appear),
-        // a rematch boss waits until challenged ([E]); then the fight starts wherever the player stands in the arena
-        playerInTrigger: this.onMap(enc) && (enc.rematch ? !!enc.challenged && inside < a.r : inside < a.trigger),
+        playerInTrigger: this.onMap(enc) && inside < a.trigger,
         playerAlive: !p.dead,
         entityDead: !!e.dead,
         transitioning: this.impl(enc).transitioning ? this.impl(enc).transitioning(e) : e.state === 'transition',
@@ -168,7 +125,6 @@ export class BossSystem {
   // player died or left: the boss heals, goes back to its spawn and waits (IDLE) — nothing is lost
   reset(enc) {
     const g = this.game;
-    if (enc.rematch) { enc.challenged = false; this.addChallenge(enc); } // lost / left a rematch: it waits for a new challenge
     this.impl(enc).reset(g, enc);
     this.lockCamera(enc, false);
     if (this.engaged === enc) this.engaged = null;
@@ -222,7 +178,7 @@ export class BossSystem {
       this.complete(enc.id, e);
     }, true);
   }
-  // progression + rewards + events. First kill = full rewards; later kills (rematch) = repeat rates.
+  // progression + rewards + events. Safe to call again (rewards only the first time).
   complete(id, entity) {
     const g = this.game, enc = this.get(id);
     if (!enc) return false;
@@ -230,15 +186,12 @@ export class BossSystem {
     if (this.engaged === enc) this.engaged = null;
     enc.state = S.DEFEATED;
     const first = g.worldProgress.defeatBoss(id);
-    enc.rematch = false; enc.challenged = false;
-    this.removeChallenge(enc);
-    const r = def.rewards || {}, rep = DROP_RATES.repeat;
-    // EXP + loot table go through the normal 'enemyDefeated' listeners (ExperienceSystem, LootSystem); a REPEAT kill
-    // (rematch) pays the repeat rates (data/dropRates.js): the loot system reads `repeat`
-    const expMult = first ? 1 : rep.exp;
-    g.events.emit('enemyDefeated', { entity: e, type: def.monster || id, bossId: id, name: def.name, source: g.player, x: e.x, y: e.y, summoned: false, boss: true, repeat: !first, exp: Math.round((r.exp || 0) * bossScale(def).exp * expMult), loot: r.loot || null });
-    if (first) g.events.emit('bossRewarded', { bossId: id, reward: { gold: r.gold || 0, items: r.items || {}, lore: r.lore || null } });
-    else g.events.emit('bossRewarded', { bossId: id, repeat: true, reward: { gold: Math.round((r.gold || 0) * rep.gold), items: rep.trophies ? (r.items || {}) : {}, lore: null } });
+    const r = def.rewards || {};
+    if (first) {
+      // EXP + loot table go through the normal 'enemyDefeated' listeners (ExperienceSystem, LootSystem)
+      g.events.emit('enemyDefeated', { entity: e, type: def.monster || id, bossId: id, name: def.name, source: g.player, x: e.x, y: e.y, summoned: false, boss: true, exp: Math.round((r.exp || 0) * bossScale(def).exp), loot: r.loot || null });
+      g.events.emit('bossRewarded', { bossId: id, reward: { gold: r.gold || 0, items: r.items || {}, lore: r.lore || null } });
+    }
     g.events.emit('bossDefeated', { bossId: id, type: def.monster || id, boss: def, first, major: def.type === 'major', entity: e });
     g.save.dirty = true;
     return first;

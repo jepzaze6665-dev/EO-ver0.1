@@ -1012,20 +1012,6 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   already delivered still contain them). Verified: unit tests, itemSystemCheck 22/22, gearCheck 30/30, loadoutCheck 9/9 ×3,
   gearCombat 7/7, effectCheck 9/9, classChange 14/14, playthrough 17/17, checklist 31/31, tank / dodge; old v5 save loads.
   (astral_star build vs the Guardian at LV 13 wins ~2 of 3 without god mode: the fragile Astral line, unchanged.)
-- **DROP RATES for online** (owner 2026-10-01; item icon sheets for every item arrived in desgin/ITEM/v1.0/, not wired yet).
-  Owner: bosses drop EVERY kill when you come back (no daily lockout), NO pity, duplicates -> salvage materials (D2), boss
-  signature on a rematch about 1 in 8-10 kills. Done D1: `src/data/dropRates.js` DROP_RATES { global (× every GEAR chance, events),
-  bossRematch, repeat { exp 0.5, gold 0.5, signature 0.11, gearGroup 0.3, trophies false } }. lootSystem `entryChance(entry, kind,
-  { repeat, rates })` (pure) used by rollLoot / calculateDropChance; LootSystem passes enemyDefeated.repeat. BOSS REMATCH:
-  BossSystem.respawnOn(mapId) on 'mapEntered' brings a defeated boss back (impl reset; save-loaded = built on the next update;
-  the Guardian via World.ensureGuardian, its spawn is cond 'before'). Many arenas are ROADS (Sanctum / Summit -> City 2, Rift -> A3,
-  Guardian arena -> A2, Frost Arena -> B2): a rematch boss only WAITS; the fight starts with [E] Challenge (interactable kind
-  'bossChallenge' at the boss home; nextBossState playerInTrigger needs enc.challenged while enc.rematch). complete(): every kill
-  emits enemyDefeated (repeat: !first, EXP × repeat.exp) + bossRewarded (repeat: half gold, no trophies / lore); world triggers stay
-  once, Guardian flowers / banner / follow-up quest first kill only. Tooltip: "first kill 100% · rematch 11%". Tests
-  tools/tests/dropRates.test.mjs (6) + `T.rematchCheck(g)` 11/11 (real Magma Beast map; forced kills via entity.onDeath —
-  phase HP floors stop a forced hit; save / load; Guardian). GOTCHA again: g.loadGame() replaces world / inventory /
-  transitions — tests must read g.world etc. fresh (autoConfirm is lost too). Next: D2 salvage duplicates into materials.
 - ITEM CATALOGUE (owner: for making item graphics): `node tools/itemCatalog/build.mjs` -> docs/items/item_catalog.html +
   docs/items/ECLIPSE_ONLINE_Items.pdf (headless Edge / Chrome print-to-PDF; no Python on this machine). UPDATE-ONLY catalogue
   (owner: new items in their own PDF, not merged): `--only id1,id2 --name I4 [--note text]` -> ECLIPSE_ONLINE_Items_<name>.pdf.

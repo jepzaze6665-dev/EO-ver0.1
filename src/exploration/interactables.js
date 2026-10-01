@@ -224,10 +224,6 @@ export function interact(w, it) {
         g.save.dirty = true;
       } else g.ui.showLore(it.title, it.locked);
       break;
-    // REMATCH (data/dropRates.js bossRematch): a defeated boss waits at home; the player starts the fight here
-    case 'bossChallenge':
-      if (g.bosses.challenge(it.bossId)) g.ui.toast('The fight begins!', 1.2);
-      break;
     case 'crackInfo':
       g.ui.showLore('Cracked Stone', 'Violet light seeps through the cracks and the stone hums faintly. It looks brittle — as if a strong strike would bring it down.');
       break;

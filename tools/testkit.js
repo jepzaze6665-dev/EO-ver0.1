@@ -6,8 +6,6 @@ const TILE = 32;
 import { SKILL_TREE } from '../src/data/skillTree.js';
 import { CLASS_TREE } from '../src/data/classTree.js';
 import { GEAR_ITEMS } from '../src/data/items/index.js';
-import { calculateDropChance } from '../src/loot/lootSystem.js';
-import { DROP_RATES } from '../src/data/dropRates.js';
 SKILL_TREE.unlockAll = true;
 
 export function bot(g, i, opts = {}) {
@@ -1083,60 +1081,6 @@ export function a2MonsterCheck(g, classId = 'umbral_sword') {
 
 // W3c: the A2 boss (Magma Beast) — quest, idle in the Magma Rift, engage on foot, every move used, 2 phases, sheet
 // art per pose, defeat + rewards once, world trigger, route status. opts.god false = a real fight (balance).
-// DROP RATES D1 — boss REMATCH + repeat rewards on the real Magma Beast (A2) map. The kill itself is forced (this checks
-// the reward / respawn rules, not the fight). Also: the Guardian (own impl) comes back, save / load keeps it working.
-//   T.rematchCheck(__game)  -> [step, pass, detail] rows
-export function rematchCheck(g) {
-  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
-  g.newGame('umbral_sword'); releaseInput(g);
-  // read world / progress / bosses FRESH every time: g.loadGame() replaces these objects
-  const W = () => g.world, p = () => g.player, wp = () => g.worldProgress, enc = () => g.bosses.get('boss_a2');
-  wp().defeatBoss('boss_a1'); W().setFlag('guardianDefeated'); W().applyState();
-  p().setLevel(30); W().transitions.autoConfirm = true;
-  const drops = [], defeats = []; g.events.on('lootDropped', (e) => { if (e.bossId) drops.push(e); }); g.events.on('bossDefeated', (e) => defeats.push(e));
-  const toRift = () => { W().transitions.autoConfirm = true; W().changeMap('a2', { entry: [84.5, 190] }); g.simulate(0.3); goto(g, 84, 48); for (let k = 0; k < 8 && W().mapId !== 'rift'; k++) walk(g, 'KeyW', 0.4); g.simulate(0.3); };
-  const killBoss = () => {
-    goto(g, 84, 36); for (let k = 0; k < 10 && enc().state !== 'engaged'; k++) walk(g, 'KeyW', 0.4);
-    const e = enc().entity; for (let k = 0; k < 40 && !e.hurtable; k++) g.simulate(0.25, (gg) => { p().hp = p().maxHp; });
-    e.hp = 0; e.onDeath(p()); // the real death path (phase HP floors would stop a forced hit)
-    for (let k = 0; k < 16 && enc().state !== 'defeated'; k++) g.simulate(0.25, () => { p().hp = p().maxHp; });
-    g.simulate(3, () => { p().hp = p().maxHp; });
-  };
-  toRift();
-  ok('Magma Beast waits in the Rift', W().mapId === 'rift' && enc().state === 'idle', `${W().mapId} ${enc().state}`);
-  const exp0 = p().exp + p().level * 1e6, gold0 = p().gold;
-  killBoss();
-  const first = drops[drops.length - 1];
-  ok('1st kill: full rewards (signature Dawn Core + trophy Magma Heart), bossDefeated first', enc().state === 'defeated' && first && !first.repeat && g.inventory.has('relic_dawn_core') && g.inventory.has('magma_heart') && defeats.slice(-1)[0].first, first ? first.items.map((x) => x.item).join(', ') : 'no drop');
-  const expFirst = p().exp + p().level * 1e6 - exp0, goldFirst = p().gold - gold0;
-  // leave + come back = rematch
-  W().changeMap('a2', { entry: [84.5, 190] }); g.simulate(0.5);
-  ok('Leaving the Rift: the boss stays defeated (progression kept, A3 still unlocked)', enc().state === 'defeated' && wp().isBossDefeated('boss_a2'));
-  toRift();
-  ok('Coming back: REMATCH, the boss is back (healed, idle)', enc().state === 'idle' && !enc().entity.dead && enc().entity.hp === enc().entity.maxHp, `${enc().state} hp ${enc().entity.hp}/${enc().entity.maxHp}`);
-  // the arena is also a road: walking through must not start the fight
-  goto(g, 84, 36); for (let k = 0; k < 6; k++) walk(g, 'KeyW', 0.4);
-  const ch = W().interactables.find((it) => it.kind === 'bossChallenge' && it.bossId === 'boss_a2');
-  ok('Walking through the arena does NOT start the rematch; an [E] Challenge point waits at the boss', enc().state === 'idle' && !W().inBossFight() && !!ch, `${enc().state} challenge=${!!ch}`);
-  if (ch) { goto(g, ch.x / TILE, ch.y / TILE + 2); g.simulate(0.2); W().findNearest(p()); W().interactNearest(); g.simulate(0.5); }
-  ok('[E] Challenge starts the fight (arena sealed)', enc().state === 'engaged' && W().inBossFight(), `${enc().state} nearest=${W().nearest && W().nearest.kind}`);
-  const hearts = g.inventory.count('magma_heart'), exp1 = p().exp + p().level * 1e6, gold1 = p().gold;
-  killBoss();
-  const rep = drops[drops.length - 1];
-  ok('2nd kill: loot again, flagged repeat; bossDefeated first = false', rep && rep !== first && rep.repeat && defeats.slice(-1)[0].first === false, rep ? rep.items.map((x) => x.item).join(', ') || '(no item this time)' : 'no drop');
-  ok('2nd kill: no second trophy, less EXP / gold than the 1st', g.inventory.count('magma_heart') === hearts && p().exp + p().level * 1e6 - exp1 < expFirst && p().gold - gold1 < goldFirst, `EXP ${expFirst} -> ${p().exp + p().level * 1e6 - exp1} · gold ${goldFirst} -> ${p().gold - gold1}`);
-  ok('Repeat signature chance ~1 in 9 (owner: 8-10 kills)', Math.abs(calculateDropChance('magma_beast', 'relic_dawn_core', { repeat: true }) - DROP_RATES.repeat.signature) < 1e-9, `${calculateDropChance('magma_beast', 'relic_dawn_core', { repeat: true })}`);
-  // save / load on the boss map: the boss comes back
-  g.saveGame(); g.loadGame(); g.simulate(0.5);
-  W().changeMap('a2', { entry: [84.5, 190] }); g.simulate(0.3); toRift();
-  ok('After save / load: still a rematch on the next visit', g.bosses.get('boss_a2').state === 'idle', g.bosses.get('boss_a2').state);
-  // the Guardian (own world impl) comes back too
-  const ge = g.bosses.get('boss_a1');
-  W().setFlag('gateOpened'); W().changeMap('arena', { entry: [140.5, 28.5] }); g.simulate(0.5);
-  ok('Guardian (A1, own impl) is back for a rematch in its arena and waits for a challenge', ge.state === 'idle' && W().interactables.some((it) => it.bossId === 'boss_a1') && g.world.guardian && !g.world.guardian.dead, `${ge.state}`);
-  W().transitions.autoConfirm = false; releaseInput(g);
-  return R;
-}
 export function a2BossCheck(g, classId = 'umbral_sword', { god = true, level = 25, seconds = 300 } = {}) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
