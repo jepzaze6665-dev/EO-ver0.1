@@ -1006,6 +1006,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   keys } + npcRow + goldTag): shop (Buy / Sell menu, SHOPS per NPC), Borin's forge, storage (Store / Take), waystone network —
   service icons npc_*, gold icon prices; Panels.npcTab / wireNpc (menu tab per service, clicks via closest(button)). cityCheck reads
   the shop title from .np-title b.
+  Done U-D: HUD (canvas, src/ui/hud.js): Assets.uiIcons (core/assets.js loads assets/ui/icons/icons.json) + hud.uiIcon(name,...)
+  (false when missing -> drawn fallback). Player frame = owner's LEVEL DIAMOND with the level number (portrait box removed),
+  fading glass strip, class-colour tick, gold with cur_gold. hud.panel() = glass (dark fill, cream edge + top line), bars cream edge.
+  NEW SKILL FRAMES (owner asked for all-new frames): code-drawn hud.skillFrame(kind skill / special violet / ultimate gold +
+  diamond crest / item, state ready / cooldown / disabled / pressed, hover / glow pulse) with corner ticks, rounded icon clip
+  (hud.rrect), key cap on the bottom edge; the pixel-kit slot_* images are no longer drawn. Quest tracker = dark title band +
+  diamond + plain shadowed lines; minimap edge cream.
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

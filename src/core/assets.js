@@ -7,6 +7,7 @@ export const Assets = {
   vfx: {}, // name -> {img, fw, fh, frames} (skill effect strips, right-facing)
   ui: {}, // name -> {img, w, h, slice?, file} (UI kit built by tools/build-ui.js: frames, buttons, slots, boss bar)
   icons: {}, // key -> {img, file} (skill icon art built by tools/build-icons.js; which skill uses which = data/skillIcons.js)
+  uiIcons: {}, // name -> {img, w, h, file} (owner's UI v2 icons built by tools/build-ui-icons.js: level diamond, stat / tab / currency icons)
   itemIcons: {}, // item id -> {file} (item icon art built by tools/build-item-icons.js; the UI shows it with <img src>)
   tiles: {}, // skin -> {img, tile, variants, rows} (ground skins built by tools/build-tiles.js, used per grid)
 };
@@ -43,6 +44,7 @@ export async function loadAll(onProgress) {
   // monster sheets (tools/build-monsters.js); optional: without it every monster keeps its canvas placeholder
   Assets.data.monsters = await loadJSON('assets/monsters/monsters.json').catch(() => ({}));
   const tileMeta = await loadJSON('assets/tiles/tiles.json').catch(() => ({})); // optional too: painted tiles stay
+  const uiIconMeta = await loadJSON('assets/ui/icons/icons.json').catch(() => ({})); // optional: the HUD falls back to drawn shapes
   const iconMeta = await loadJSON('assets/icons/icons.json').catch(() => ({})); // optional: drawn icons stay
   Assets.itemIcons = await loadJSON('assets/icons/items/items.json').catch(() => ({})); // optional: items without art keep the drawn icon
   const jobs = [];
@@ -50,6 +52,7 @@ export async function loadAll(onProgress) {
   jobs.push(['props', 'assets/props/props.png']);
   for (const [name, v] of Object.entries(vfxMeta)) jobs.push(['vfx_' + name, v.file]);
   for (const [name, v] of Object.entries(uiMeta)) jobs.push(['ui_' + name, v.file]);
+  for (const [name, v] of Object.entries(uiIconMeta)) jobs.push(['uiicon_' + name, v.file]);
   for (const [name, v] of Object.entries(Assets.data.monsters)) jobs.push(['monster_' + name, v.file]);
   for (const [name, v] of Object.entries(tileMeta)) jobs.push(['tiles_' + name, v.file]);
   for (const [name, v] of Object.entries(iconMeta)) jobs.push(['icon_' + name, v.file]);
@@ -63,6 +66,7 @@ export async function loadAll(onProgress) {
   );
   for (const [name, v] of Object.entries(vfxMeta)) Assets.vfx[name] = { ...v, img: Assets.images['vfx_' + name] };
   for (const [name, v] of Object.entries(uiMeta)) Assets.ui[name] = { ...v, img: Assets.images['ui_' + name] };
+  for (const [name, v] of Object.entries(uiIconMeta)) Assets.uiIcons[name] = { ...v, img: Assets.images['uiicon_' + name] };
   for (const [name, v] of Object.entries(tileMeta)) Assets.tiles[name] = { ...v, img: Assets.images['tiles_' + name] };
   for (const [name, v] of Object.entries(iconMeta)) Assets.icons[name] = { ...v, img: Assets.images['icon_' + name] };
   const pimg = Assets.images.props;

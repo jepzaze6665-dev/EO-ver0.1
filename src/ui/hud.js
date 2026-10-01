@@ -142,15 +142,37 @@ export class HUD {
     ctx.fillText(str, x, y);
   }
 
+  // UI v2 glass box (theme.css): dark see-through fill, faint cream edge, a brighter line on top
   panel(ctx, x, y, w, h, alpha = 0.72) {
-    ctx.fillStyle = `rgba(10,6,20,${alpha})`;
+    ctx.fillStyle = `rgba(6,6,10,${alpha})`;
     ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = 'rgba(150,110,220,0.45)';
+    ctx.strokeStyle = 'rgba(236,228,210,0.16)';
     ctx.lineWidth = 1;
     ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    ctx.fillStyle = 'rgba(236,228,210,0.32)';
+    ctx.fillRect(x, y, w, 1);
   }
 
-  bar(ctx, x, y, w, h, pct, col1, col2, lag, back = 'rgba(0,0,0,0.6)') {
+  // owner's UI icon (assets/ui/icons via Assets.uiIcons); false when missing so callers can draw a fallback
+  uiIcon(ctx, name, x, y, w, h = w, alpha = 1) {
+    const a = Assets.uiIcons && Assets.uiIcons[name];
+    if (!a || !a.img) return false;
+    const sm = ctx.imageSmoothingEnabled; ctx.imageSmoothingEnabled = true;
+    if (alpha !== 1) ctx.globalAlpha *= alpha;
+    ctx.drawImage(a.img, x, y, w, h);
+    if (alpha !== 1) ctx.globalAlpha /= alpha;
+    ctx.imageSmoothingEnabled = sm;
+    return true;
+  }
+
+  // rounded-rect path (skill slots)
+  rrect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  bar(ctx, x, y, w, h, pct, col1, col2, lag, back = 'rgba(6,6,10,0.7)') {
     ctx.fillStyle = back;
     ctx.fillRect(x, y, w, h);
     if (lag !== undefined && lag > pct) { ctx.fillStyle = 'rgba(255,240,200,0.7)'; ctx.fillRect(x, y, w * clamp(lag, 0, 1), h); }
@@ -160,27 +182,28 @@ export class HUD {
     ctx.fillRect(x, y, w * clamp(pct, 0, 1), h);
     ctx.fillStyle = 'rgba(255,255,255,0.18)';
     ctx.fillRect(x, y, w * clamp(pct, 0, 1), Math.max(1, h * 0.3));
-    ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+    ctx.strokeStyle = 'rgba(236,228,210,0.22)';
+    ctx.lineWidth = 1;
     ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
   }
 
   drawPlayerFrame(ctx, u) {
     const g = this.game, p = g.player;
     const x = 18 * u, y = 18 * u, ps = 78 * u;
-    // portrait
-    this.panel(ctx, x, y, ps, ps, 0.85);
-    const f = p.sprites.frame('idle', 0, 0);
-    ctx.save();
-    ctx.beginPath(); ctx.rect(x + 2, y + 2, ps - 4, ps - 4); ctx.clip();
-    ctx.imageSmoothingEnabled = false;
-    const sc = ps / 34;
-    ctx.drawImage(f.img, f.sx + f.ax - 16, f.sy + f.ay - 64, 32, 34, x + 2, y + 2, 32 * sc - 4, 34 * sc - 4);
-    ctx.restore();
-    ctx.strokeStyle = (p.cls.theme && p.cls.theme.color) || '#8a5ad8'; ctx.lineWidth = 2 * u; ctx.strokeRect(x, y, ps, ps);
-    // name + level
+    // UI v2: soft glass strip behind the frame + the owner's LEVEL DIAMOND with the level number (no portrait box)
+    const gr = ctx.createLinearGradient(x - 18 * u, 0, x + ps + 300 * u, 0);
+    gr.addColorStop(0, 'rgba(6,6,10,0.72)'); gr.addColorStop(0.75, 'rgba(6,6,10,0.5)'); gr.addColorStop(1, 'rgba(6,6,10,0)');
+    ctx.fillStyle = gr; ctx.fillRect(0, y - 10 * u, x + ps + 300 * u, ps + 16 * u);
+    if (!this.uiIcon(ctx, 'level_diamond', x, y, ps, ps)) {
+      ctx.save(); ctx.translate(x + ps / 2, y + ps / 2); ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = 'rgba(6,6,10,0.85)'; ctx.fillRect(-ps * 0.33, -ps * 0.33, ps * 0.66, ps * 0.66);
+      ctx.strokeStyle = '#cfc5ad'; ctx.lineWidth = 2 * u; ctx.strokeRect(-ps * 0.33, -ps * 0.33, ps * 0.66, ps * 0.66); ctx.restore();
+    }
+    this.text(ctx, String(p.level), x + ps / 2, y + ps / 2 + 8 * u, (p.level >= 10 ? 22 : 24) * u, '#ffffff', { align: 'center', font: TITLE, weight: 600 });
+    // name (+ class colour tick)
     const bx = x + ps + 10 * u, bw = 250 * u;
-    this.text(ctx, p.cls.name, bx, y + 16 * u, 16 * u, '#efe4ff', { font: TITLE });
-    this.text(ctx, `LV.${p.level}`, bx + bw, y + 16 * u, 15 * u, '#ffd96a', { align: 'right' });
+    ctx.fillStyle = (p.cls.theme && p.cls.theme.color) || '#e8d7a5'; ctx.fillRect(bx, y + 5 * u, 3 * u, 12 * u);
+    this.text(ctx, p.cls.name, bx + 8 * u, y + 16 * u, 16 * u, '#ece4d2', { font: TITLE, weight: 600 });
     // HP
     this.text(ctx, 'HP', bx, y + 33 * u, 11 * u, '#ff9aa8');
     this.bar(ctx, bx + 26 * u, y + 23 * u, bw - 26 * u, 12 * u, p.hp / p.maxHp, '#ff5a6e', '#a01830', this.hpLag);
@@ -216,7 +239,9 @@ export class HUD {
     // EXP (thin) + numbers, gold
     this.bar(ctx, bx, y + 63 * u, bw, 4 * u, p.isMaxLevel ? 1 : p.exp / p.expToNext(), '#ffe08a', '#b08a20');
     this.text(ctx, p.isMaxLevel ? 'EXP MAX' : `EXP ${p.exp} / ${p.expToNext()}`, bx, y + 78 * u, 9 * u, '#e8d08a');
-    this.text(ctx, `${p.gold} G`, bx + bw, y + 78 * u, 10 * u, '#ffd24a', { align: 'right' });
+    this.text(ctx, p.gold.toLocaleString(), bx + bw, y + 78 * u, 11 * u, '#f0c860', { align: 'right', font: TITLE, weight: 500 });
+    ctx.font = `500 ${Math.round(11 * u)}px ${TITLE}`;
+    this.uiIcon(ctx, 'cur_gold', bx + bw - ctx.measureText(p.gold.toLocaleString()).width - 15 * u, y + 68 * u, 12 * u);
     // class counter (Shadow Marks / Astral Threads / ...) — the class says what to show
     const my = y + ps + 22 * u;
     const hc = p.cls.hudCounter ? p.cls.hudCounter(p) : null;
@@ -269,20 +294,21 @@ export class HUD {
 
   drawSkillBar(ctx, W, H, u) {
     const g = this.game, p = g.player, cls = p.cls;
-    // UI kit slot frames (assets/ui slot_*): the icon sits in the frame's see-through middle (≈ 63% of it)
-    const kit = !!(Assets.ui && Assets.ui.slot_normal && Assets.ui.slot_normal.img);
-    const size = (kit ? 64 : 50) * u, gap = (kit ? 2 : 8) * u, pad = kit ? size * 0.19 : 5 * u;
+    // UI v2 SKILL FRAMES (owner: new frames for every slot): code-drawn glass slots, see skillFrame() — the old pixel-kit
+    // slot images are no longer used here
+    const size = 54 * u, gap = 7 * u, pad = 4 * u;
     // keys 1-5 come from the player's loadout (Skills tab), not from fixed slots in the class data
     const binds = p.loadout.bindings();
     const slots = [...binds.map((b) => ({ s: b.skill, key: b.key })), { s: cls.special, key: 'Q', special: true }, { potion: 'hp_potion', key: 'R' }, { potion: 'shadow_tonic', key: 'F' }];
     const total = slots.length * size + (slots.length - 1) * gap + 14 * u;
     let x = W / 2 - total / 2;
     const y = H - size - 22 * u;
-    if (kit) { // soft dark band under the frames instead of a box
-      const gr = ctx.createLinearGradient(0, y - 6 * u, 0, y + size + 6 * u);
-      gr.addColorStop(0, 'rgba(8,4,16,0)'); gr.addColorStop(0.3, 'rgba(8,4,16,0.55)'); gr.addColorStop(1, 'rgba(8,4,16,0.7)');
-      ctx.fillStyle = gr; ctx.fillRect(x - 24 * u, y - 6 * u, total + 48 * u, size + 12 * u);
-    } else this.panel(ctx, x - 10 * u, y - 10 * u, total + 20 * u, size + 20 * u, 0.6);
+    { // soft dark band under the slots (fades out at both ends) instead of a box
+      const bx0 = x - 60 * u, bw0 = total + 120 * u, gr = ctx.createLinearGradient(bx0, 0, bx0 + bw0, 0);
+      gr.addColorStop(0, 'rgba(6,6,10,0)'); gr.addColorStop(0.15, 'rgba(6,6,10,0.6)'); gr.addColorStop(0.85, 'rgba(6,6,10,0.6)'); gr.addColorStop(1, 'rgba(6,6,10,0)');
+      ctx.fillStyle = gr; ctx.fillRect(bx0, y - 8 * u, bw0, size + 30 * u);
+      ctx.fillStyle = 'rgba(236,228,210,0.18)'; ctx.fillRect(bx0 + bw0 * 0.15, y - 8 * u, bw0 * 0.7, 1);
+    }
     // dodge hint: bright when there is stamina for a dodge
     // (a tutorial hint: it fades out for good once the player has learned to dodge — data/combatUI.js)
     if (this.dodgeHintA > 0) { ctx.globalAlpha = this.dodgeHintA; this.text(ctx, 'DODGE [SPACE]', W / 2, y - 18 * u, 9 * u, p.resources.canAfford(STAMINA.resource, p.dodgeCost ? p.dodgeCost() : STAMINA.dodge) ? '#9af8ff' : 'rgba(150,120,120,0.8)', { align: 'center' }); ctx.globalAlpha = 1; }
@@ -294,8 +320,9 @@ export class HUD {
     slots.forEach((sl, i) => {
       if (i === binds.length) x += 14 * u;
       const sx = x, sy = y, ix = sx + pad, iy = sy + pad, is = size - pad * 2; // icon box
-      ctx.fillStyle = 'rgba(20,12,34,0.95)';
-      ctx.fillRect(ix, iy, is, is);
+      this.rrect(ctx, sx, sy, size, size, 7 * u);
+      ctx.fillStyle = 'rgba(8,8,12,0.88)'; ctx.fill();
+      ctx.save(); this.rrect(ctx, ix, iy, is, is, 5 * u); ctx.clip(); // icon + overlays stay inside the rounded box
       let ready = true, cdPct = 0, cdLeft = 0, label = '';
       if (sl.potion) {
         const n = g.inventory.count(sl.potion);
@@ -327,7 +354,6 @@ export class HUD {
         sl.glow = sl.special && ready && (s.requirements || []).length > 0; // e.g. SHADOW BREAK READY
         // RECAST open (SkillSystem recast: Flash Step's 2nd dash, Mirage Shift's return): usable again right now
         if (p.skillSys.recastLeft(s.id) > 0) { ready = true; cdPct = 0; sl.state = 'ready'; sl.glow = true; label = 'AGAIN'; }
-        if (sl.glow && !kit) { ctx.strokeStyle = `rgba(230,200,255,${0.6 + 0.4 * Math.sin(g.time * 8)})`; ctx.lineWidth = 3 * u; ctx.strokeRect(sx - 1, sy - 1, size + 2, size + 2); }
       }
       if (!ready) { ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(ix, iy, is, is); }
       if (cdPct > 0) {
@@ -341,22 +367,16 @@ export class HUD {
       }
       const m = g.input.mouse, mx = m.x * g.renderer.dpr, my = m.y * g.renderer.dpr;
       const hover = mx > sx && mx < sx + size && my > sy && my < sy + size;
-      if (kit) {
-        // frame state (UI kit): disabled / pressed / hover or "ready" glow / normal. Cooldown keeps the normal frame:
-        // the live radial sweep above shows the real time left (the kit's cooldown frame has a fixed ring drawn in)
-        const st = sl.potion ? (ready ? 'normal' : 'disabled') : sl.state === 'disabled' ? 'disabled' : sl.state === 'pressed' ? 'pressed' : 'normal';
-        const frame = st !== 'normal' ? 'slot_' + st : hover || sl.glow ? 'slot_hover' : 'slot_normal';
-        if (sl.glow) ctx.globalAlpha = 0.75 + 0.25 * Math.sin(g.time * 8);
-        this.uiImage(ctx, frame, sx, sy, size, size);
-        ctx.globalAlpha = 1;
-      } else {
-        ctx.strokeStyle = sl.s && sl.s.ultimate ? '#ffb040' : sl.special ? '#c080ff' : 'rgba(160,120,230,0.8)';
-        ctx.lineWidth = 1.5 * u;
-        ctx.strokeRect(sx + 0.5, sy + 0.5, size - 1, size - 1);
-      }
-      // key binding (top-left of the icon) + cost (bottom-right) — red when the class resource / stamina is short
-      ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(ix, iy, 13 * u, 13 * u);
-      this.text(ctx, sl.key, ix + 6.5 * u, iy + 10.5 * u, 10 * u, sl.s && sl.s.ultimate ? '#ffc060' : '#ffe8a0', { align: 'center', stroke: false });
+      ctx.restore(); // end of the icon clip
+      const kind = sl.potion ? 'item' : sl.s && sl.s.ultimate ? 'ultimate' : sl.special ? 'special' : 'skill';
+      const st = sl.potion ? (ready ? 'ready' : 'disabled') : sl.locked ? 'disabled' : sl.state;
+      this.skillFrame(ctx, sx, sy, size, u, kind, st, hover, sl.glow);
+      // key binding = a small key cap on the bottom edge; cost (bottom-right) — red when the class resource / stamina is short
+      ctx.font = `600 ${Math.round(9 * u)}px ${TITLE}`;
+      const kw = Math.max(14 * u, ctx.measureText(sl.key).width + 8 * u), kx = sx + size / 2 - kw / 2, ky = sy + size - 5 * u;
+      this.rrect(ctx, kx, ky, kw, 13 * u, 3 * u); ctx.fillStyle = 'rgba(6,6,10,0.95)'; ctx.fill();
+      ctx.strokeStyle = kind === 'ultimate' ? 'rgba(231,161,58,0.9)' : 'rgba(236,228,210,0.45)'; ctx.lineWidth = 1; ctx.stroke();
+      this.text(ctx, sl.key, sx + size / 2, ky + 10 * u, 9 * u, kind === 'ultimate' ? '#f0c060' : '#ece4d2', { align: 'center', stroke: false, font: TITLE, weight: 600 });
       if (label === 'AGAIN') this.text(ctx, label, ix + is - 1 * u, iy + is - 2 * u, 8 * u, '#9af8ff', { align: 'right' });
       else if (label && !sl.special) this.text(ctx, label, ix + is - 1 * u, iy + is - 2 * u, 9 * u, p.resources.canAfford(sl.s.costResource || p.primaryResource, +label) ? '#c9a0ff' : '#ff6a6a', { align: 'right' });
       if (sl.noSta && !(cdLeft > 0) && !sl.locked) this.text(ctx, 'STA', ix + 1 * u, iy + is - 2 * u, 8 * u, '#ff7060');
@@ -377,6 +397,31 @@ export class HUD {
       if (hover && sl.s) this.tooltip(ctx, sx, sy - 8 * u, sl.s, u);
       x += size + gap;
     });
+  }
+
+  // UI v2 SKILL FRAME: thin rounded border + corner ticks. kind: skill / special (violet) / ultimate (gold, diamond
+  // crest) / item. state: ready / cooldown / disabled / pressed. Hover and "ready to fire" glow brighten it.
+  skillFrame(ctx, x, y, s, u, kind, state, hover, glow) {
+    const COL = { skill: [236, 228, 210], special: [176, 128, 240], ultimate: [231, 161, 58], item: [236, 228, 210] }[kind];
+    const pulse = glow ? 0.7 + 0.3 * Math.sin(this.game.time * 7) : 0;
+    const a = state === 'disabled' ? 0.25 : state === 'cooldown' ? 0.35 : hover || glow ? 0.95 : kind === 'skill' || kind === 'item' ? 0.42 : 0.75;
+    const rgba = (al) => `rgba(${COL[0]},${COL[1]},${COL[2]},${al})`;
+    if (glow) { ctx.save(); ctx.shadowColor = rgba(0.9); ctx.shadowBlur = 14 * u * pulse; }
+    this.rrect(ctx, x + 0.5, y + 0.5, s - 1, s - 1, 7 * u);
+    ctx.strokeStyle = rgba(glow ? pulse : a); ctx.lineWidth = (kind === 'ultimate' || glow ? 2 : 1.25) * u; ctx.stroke();
+    if (glow) ctx.restore();
+    // corner ticks (top-left / bottom-right): a light accent so slots read as framed, not plain boxes
+    const t = 7 * u;
+    ctx.strokeStyle = rgba(Math.min(1, a + 0.3)); ctx.lineWidth = 1.5 * u;
+    ctx.beginPath(); ctx.moveTo(x - 1.5 * u, y + t + 3 * u); ctx.lineTo(x - 1.5 * u, y - 1.5 * u); ctx.lineTo(x + t + 3 * u, y - 1.5 * u);
+    ctx.moveTo(x + s + 1.5 * u, y + s - t - 3 * u); ctx.lineTo(x + s + 1.5 * u, y + s + 1.5 * u); ctx.lineTo(x + s - t - 3 * u, y + s + 1.5 * u); ctx.stroke();
+    if (kind === 'ultimate') { // diamond crest on the top edge
+      const cx = x + s / 2, cy = y, r = 4.5 * u;
+      ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.lineTo(cx + r, cy); ctx.lineTo(cx, cy + r); ctx.lineTo(cx - r, cy); ctx.closePath();
+      ctx.fillStyle = state === 'disabled' || state === 'cooldown' ? 'rgba(90,70,40,0.9)' : rgba(1); ctx.fill();
+      ctx.strokeStyle = 'rgba(6,6,10,0.9)'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    if (state === 'pressed') { this.rrect(ctx, x + 2, y + 2, s - 4, s - 4, 6 * u); ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fill(); }
   }
 
   // draw one UI-kit piece (assets/ui, tools/build-ui.js) stretched to a box
@@ -489,7 +534,7 @@ export class HUD {
     ctx.lineTo(cx + Math.cos(a - 2.5) * 5 * u, cy + Math.sin(a - 2.5) * 5 * u);
     ctx.closePath(); ctx.fill();
     ctx.restore();
-    ctx.strokeStyle = '#8a5ad8'; ctx.lineWidth = 2 * u; ctx.strokeRect(x, y, size, size);
+    ctx.strokeStyle = 'rgba(236,228,210,0.45)'; ctx.lineWidth = 1.5 * u; ctx.strokeRect(x, y, size, size);
     // zone label
     const sa = g.world.currentSub;
     const md = g.world.mapDef;
@@ -505,13 +550,18 @@ export class HUD {
     const w = 250 * u, x = W - w - 18 * u;
     ctx.globalAlpha = this.questA ?? 1; // fades during intense fights
     for (const q of list) {
-      const h = (28 + q.lines.length * 17) * u;
-      this.panel(ctx, x, y, w, h, 0.6);
-      this.text(ctx, q.title, x + 10 * u, y + 18 * u, 12 * u, q.side ? '#9ad8ff' : '#ffd98a', { font: TITLE });
+      // UI v2 tracker: a dark title band with a diamond, then plain lines over the world (shadowed text)
+      const h = (28 + q.lines.length * 17) * u, col = q.side ? '#9ad8ff' : '#e8d7a5';
+      const gr = ctx.createLinearGradient(x, 0, x + w, 0); gr.addColorStop(0, 'rgba(6,6,10,0)'); gr.addColorStop(0.25, 'rgba(6,6,10,0.4)'); gr.addColorStop(1, 'rgba(6,6,10,0.55)');
+      ctx.fillStyle = gr; ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = 'rgba(6,6,10,0.82)'; ctx.fillRect(x, y, w, 24 * u);
+      ctx.fillStyle = col; ctx.fillRect(x, y, 2 * u, 24 * u);
+      this.text(ctx, '◆', x + 10 * u, y + 16 * u, 9 * u, col, { stroke: false });
+      this.text(ctx, q.title, x + 23 * u, y + 17 * u, 12 * u, col, { font: TITLE, weight: 600, stroke: false });
       q.lines.forEach((l, i) => {
         const ly = y + (36 + i * 17) * u;
-        this.text(ctx, l.done ? '✓' : '○', x + 12 * u, ly, 11 * u, l.done ? '#8af0a0' : '#a8a0c0');
-        this.text(ctx, l.text, x + 28 * u, ly, 11 * u, l.done ? '#7a9a80' : '#e8e0f8', { weight: 500 });
+        this.text(ctx, l.done ? '✓' : '•', x + 12 * u, ly, 11 * u, l.done ? '#8af0a0' : '#cfc7b4');
+        this.text(ctx, l.text, x + 26 * u, ly, 11 * u, l.done ? '#7a9a80' : '#ece4d2', { weight: 500 });
       });
       y += h + 8 * u;
     }
