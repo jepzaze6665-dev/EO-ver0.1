@@ -3,7 +3,7 @@ export const ARMOR_CORES = {
   armor_fortress: {
     name: 'Fortress Armor', type: 'armor_core', rarity: 'rare', icon: 'cloak', color: '#c8a050',
     description: 'Walls you wear. Very hard to kill, slow to move.',
-    tags: ['defense', 'tank'], allowedClasses: ['all'],
+    tags: ['defense', 'tank'], allowedClasses: ['all'], setId: 'iron_vigil',
     modifiers: [{ type: 'defense', value: 0.2 }, { type: 'maxHP', value: 0.12 }, { type: 'movementSpeed', value: -0.1 }],
     effects: [],
   },

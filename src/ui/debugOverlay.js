@@ -51,7 +51,7 @@ export function gearDebugInfo(g) {
     loadout: GEAR_SLOTS.map((s) => [s.label, eq.slots[s.id] ? ITEMS[eq.slots[s.id]].name : '-']),
     stats: finalStatRows(p).map(([l, v]) => [l, v]),
     modifiers: eq.itemModifiers().active().map((m) => `${name(m.source)}: ${m.value > 0 ? '+' : ''}${Math.round(m.value * 100)}% ${(MODIFIER_TYPES[m.type] || {}).label || m.type}`),
-    effects: g.itemEffects ? g.itemEffects.active().map((x) => `${ITEMS[x.itemId].name} [${x.trigger}] ${x.running ? 'ACTIVE' : x.cooldownLeft > 0 ? 'cd ' + x.cooldownLeft.toFixed(1) + 's' : 'ready'}`) : [],
+    effects: g.itemEffects ? g.itemEffects.active().map((x) => `${x.name} [${x.trigger}] ${x.running ? 'ACTIVE' : x.cooldownLeft > 0 ? 'cd ' + x.cooldownLeft.toFixed(1) + 's' : 'ready'}`) : [],
     lastFired: g.itemEffects ? g.itemEffects.log.slice(-3).map((l) => `${l.itemId} ${l.effect}`) : [],
   };
 }

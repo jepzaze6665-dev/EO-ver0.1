@@ -12,6 +12,7 @@ import { ITEMS } from './items.js';
 import { checkCondition } from './conditionSystem.js';
 import { TRIGGER_EVENTS, LOW_HP_DEFAULT, EFFECT_LIMITS as L } from '../data/items/triggers.js';
 import { GEAR_SLOTS } from '../data/items/rules.js';
+import { activeSetBonuses } from './setSystem.js';
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
@@ -91,7 +92,13 @@ export class ItemEffectSystem {
       const def = ITEMS[eq.slots[s.id]];
       if (!def) continue;
       def.effects.forEach((effect, i) => {
-        (this.byTrigger[effect.trigger] ||= []).push({ key: `${def.id}#${i}`, itemId: def.id, slot: s.id, trigger: effect.trigger, effect });
+        (this.byTrigger[effect.trigger] ||= []).push({ key: `${def.id}#${i}`, itemId: def.id, slot: s.id, trigger: effect.trigger, effect, name: def.name, color: def.color });
+      });
+    }
+    // set bonus effects (data/items/sets.js) — on while enough pieces are worn
+    for (const a of activeSetBonuses(eq.wornIds())) {
+      (a.bonus.effects || []).forEach((effect, i) => {
+        (this.byTrigger[effect.trigger] ||= []).push({ key: `${a.key}#${i}`, itemId: null, setId: a.setId, slot: null, trigger: effect.trigger, effect, name: a.set.name + ' (set)', color: a.set.color });
       });
     }
     // buffs of items no longer worn end now
@@ -133,11 +140,10 @@ export class ItemEffectSystem {
     if (!acted) return false;
     times.push(now); this.recent.set(entry.key, times);
     this.readyAt.set(entry.key, now + Math.max(eff.cooldown || 0, 1 / L.maxPerSecond));
-    const def = ITEMS[entry.itemId];
-    this.log.push({ t: now, itemId: entry.itemId, trigger: entry.trigger, effect: eff.effect.type });
+    this.log.push({ t: now, itemId: entry.itemId, setId: entry.setId, trigger: entry.trigger, effect: eff.effect.type });
     if (this.log.length > 20) this.log.shift();
-    if ((eff.cooldown || 0) >= 3) g.vfx.text(p.x, p.y - 84, def.name.toUpperCase(), { color: def.color || '#ffd070', size: 9, life: 1 });
-    g.events.emit('itemEffect', { player: p, itemId: entry.itemId, slot: entry.slot, trigger: entry.trigger, effect: eff.effect.type });
+    if ((eff.cooldown || 0) >= 3) g.vfx.text(p.x, p.y - 84, entry.name.toUpperCase(), { color: entry.color || '#ffd070', size: 9, life: 1 });
+    g.events.emit('itemEffect', { player: p, itemId: entry.itemId, setId: entry.setId, slot: entry.slot, trigger: entry.trigger, effect: eff.effect.type });
     return true;
   }
   endTimed(key, t) {

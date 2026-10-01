@@ -5,7 +5,7 @@ export const WEAPON_CORES = {
   core_ironheart: {
     name: 'Ironheart Core', type: 'weapon_core', rarity: 'rare', icon: 'shield', color: '#c8d0e0',
     description: 'A core of folded iron. Every blow you take steels the next block.',
-    tags: ['guard', 'defense'], allowedClasses: ['all'],
+    tags: ['guard', 'defense'], allowedClasses: ['all'], setId: 'iron_vigil',
     modifiers: [{ type: 'defense', value: 0.15 }, { type: 'guardGeneration', value: 0.25 }],
     effects: [],
   },

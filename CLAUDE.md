@@ -958,6 +958,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (UNIQUE_RARITIES legendary + mythic need an effect). Tooltip: "Requires LV n", flat values (modValue), swap preview
   PASSIVE CHANGES (swapPreview gained / lost effect texts). Loadout FINAL STATS: crit, crit dmg, attack speed, physical /
   shadow dmg, healing, status res, resource max. Tests tools/tests/itemI1.test.mjs (12, test-only items).
+  Done I2: SET BONUSES = data `src/data/items/sets.js` (SETS { name, color, description, bonuses: [{ pieces, modifiers?, effects?,
+  text }] }); an item joins with `setId` (pieces = every item naming it). `src/items/setSystem.js` (pure): setPieces / setCounts
+  (each id once) / activeSetBonuses (key 'set:<id>:<pieces>') / setSummary (UI) / setProblems (data check). Equipment.itemModifiers
+  adds active bonus modifiers to the SAME ModifierSet (same caps); Equipment.wornIds(). ItemEffectSystem indexes active bonus
+  effects (entry setId, itemId null); every effect entry now carries `name` / `color` (UI / F3 read those, not ITEMS[itemId]).
+  itemDefs.effectProblems = shared effect check (items + sets). Swap preview counts set modifiers and lists set bonuses gained /
+  lost; tooltip SET block (pieces, worn lit, bonuses; option `worn`); Loadout window SETS section. Example set IRON VIGIL =
+  core_ironheart + armor_fortress + charm_heavy: (2) +10% Guard Generation, (3) block -> -10% damage taken 3 s (cd 4).
+  Tests tools/tests/itemSets.test.mjs (8).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

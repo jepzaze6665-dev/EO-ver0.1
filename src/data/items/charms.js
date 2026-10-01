@@ -2,7 +2,7 @@
 export const CHARMS = {
   charm_heavy: {
     name: 'Heavy Charm', type: 'charm', rarity: 'common', icon: 'charm', color: '#a89880',
-    description: 'A lump of lead on a cord.', tags: ['defense'], allowedClasses: ['all'],
+    description: 'A lump of lead on a cord.', tags: ['defense'], allowedClasses: ['all'], setId: 'iron_vigil',
     modifiers: [{ type: 'maxHP', value: 0.08 }, { type: 'movementSpeed', value: -0.05 }], effects: [],
   },
   charm_swift: {

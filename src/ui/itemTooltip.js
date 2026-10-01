@@ -7,6 +7,8 @@ import { ModifierSet } from '../items/modifierSystem.js';
 import { canClassUse, isGear, meetsLevel } from '../items/itemDefs.js';
 import { CLASSES } from '../skills/classes.js';
 import { itemSources } from '../loot/lootSystem.js';
+import { SETS } from '../data/items/sets.js';
+import { setPieces, activeSetBonuses } from '../items/setSystem.js';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pct = (v) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}%`;
@@ -30,16 +32,27 @@ export function swapPreview(eq, itemId) {
   if (!isGear(def)) return null;
   const slot = eq.slotFor(def);
   if (!slot) return null;
-  const set = (slots) => { const m = new ModifierSet(); for (const s of GEAR_SLOTS) { const d = ITEMS[slots[s.id]]; if (d) for (const x of d.modifiers) m.addModifier(s.id, x); } return m.totals(); };
-  const before = set(eq.slots), after = set({ ...eq.slots, [slot]: itemId });
+  const ids = (slots) => GEAR_SLOTS.map((s) => slots[s.id]).filter(Boolean);
+  const set = (slots) => {
+    const m = new ModifierSet();
+    for (const s of GEAR_SLOTS) { const d = ITEMS[slots[s.id]]; if (d) for (const x of d.modifiers) m.addModifier(s.id, x); }
+    for (const a of activeSetBonuses(ids(slots))) for (const x of a.bonus.modifiers || []) m.addModifier(a.key, x);
+    return m.totals();
+  };
+  const newSlots = { ...eq.slots, [slot]: itemId };
+  const before = set(eq.slots), after = set(newSlots);
   const types = new Set([...Object.keys(before), ...Object.keys(after)]);
   const changes = [...types].map((type) => ({ type, before: before[type] || 0, after: after[type] || 0 })).filter((c) => Math.abs(c.after - c.before) > 1e-9);
   // PASSIVE CHANGES: effect texts gained / lost by the swap (the replaced item's effects go away)
   const fx = (id) => (ITEMS[id] ? ITEMS[id].effects.map((e) => e.text) : []);
-  return { slot, replaces: eq.slots[slot], changes, gained: fx(itemId), lost: fx(eq.slots[slot]) };
+  const bonusKeys = (slots) => new Map(activeSetBonuses(ids(slots)).map((a) => [a.key, `[${a.set.name} ${a.bonus.pieces}] ${a.bonus.text}`]));
+  const bb = bonusKeys(eq.slots), ba = bonusKeys(newSlots);
+  const gained = [...fx(itemId), ...[...ba].filter(([k]) => !bb.has(k)).map(([, t]) => t)];
+  const lost = [...fx(eq.slots[slot]), ...[...bb].filter(([k]) => !ba.has(k)).map(([, t]) => t)];
+  return { slot, replaces: eq.slots[slot], changes, gained, lost };
 }
 
-export function itemTooltipHTML(def, { classId = null, level = null, swap = null, equipped = false } = {}) {
+export function itemTooltipHTML(def, { classId = null, level = null, swap = null, equipped = false, worn = [] } = {}) {
   if (!def) return '';
   const color = RARITY_COLOR[def.rarity] || '#ccc';
   const rows = [];
@@ -56,6 +69,12 @@ export function itemTooltipHTML(def, { classId = null, level = null, swap = null
     rows.push(`<div class="tt-head">${UNIQUE_RARITIES.includes(def.rarity) ? 'UNIQUE EFFECT' : 'EFFECT'}</div>`);
     for (const e of def.effects) rows.push(`<div class="tt-effect"><span class="tt-trig">${esc(TRIGGER_TEXT[e.trigger] || e.trigger)}</span> ${esc(e.text)}</div>`);
     if (def.modText) rows.push(`<div class="tt-effect">${esc(def.modText)}</div>`);
+  }
+  if (def.setId && SETS[def.setId]) { // SET: pieces (worn ones lit) + bonuses (lit when on)
+    const st = SETS[def.setId], pieces = setPieces(def.setId), n = pieces.filter((id) => worn.includes(id)).length;
+    rows.push(`<div class="tt-head" style="color:${st.color || '#ddd'}">SET: ${esc(st.name.toUpperCase())} ${n}/${pieces.length}</div>`);
+    rows.push(`<div class="tt-src">${pieces.map((id) => `<span class="${worn.includes(id) ? 'set-on' : ''}">${esc(ITEMS[id].name)}</span>`).join(' · ')}</div>`);
+    for (const b of st.bonuses) rows.push(`<div class="tt-mod ${n >= b.pieces ? 'good' : 'muted'}">(${b.pieces}) ${esc(b.text)}</div>`);
   }
   if (def.tags && def.tags.length) rows.push(`<div class="tt-tags">${def.tags.map((t) => `<span>${esc(t.toUpperCase())}</span>`).join('')}</div>`);
   if (isGear(def) && !def.allowedClasses.includes(ANY_CLASS)) {

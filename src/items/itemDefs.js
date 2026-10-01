@@ -25,6 +25,7 @@ export function normalizeItem(id, def) {
   if (!def.effects) def.effects = [];
   if (def.dropSource == null) def.dropSource = null;
   if (def.levelRequirement == null) def.levelRequirement = 0; // character level needed to equip (0 = none)
+  if (def.setId == null) def.setId = null; // item set (data/items/sets.js)
   if (!def.persistence) def.persistence = isGear(def) || def.type === 'quest_item' ? PERSISTENCE.PERMANENT : PERSISTENCE.NORMAL;
   return def;
 }
@@ -36,6 +37,17 @@ export const lostOnDeath = (def) => !!def && def.persistence === PERSISTENCE.DUN
 export const canClassUse = (def, classId) => !!def && (def.allowedClasses.includes(ANY_CLASS) || def.allowedClasses.includes(classId));
 // is the character level high enough?
 export const meetsLevel = (def, level) => !!def && (level || 0) >= (def.levelRequirement || 0);
+
+// one item / set-bonus effect -> list of problems (shared by items and data/items/sets.js)
+export function effectProblems(e) {
+  const out = [];
+  if (!TRIGGERS.includes(e.trigger)) out.push(`trigger "${e.trigger}"`);
+  if (e.condition && !CONDITIONS.includes(e.condition.type)) out.push(`condition "${e.condition.type}"`);
+  if (!e.effect || !EFFECT_TYPES.includes(e.effect.type)) out.push(`effect "${e.effect && e.effect.type}"`);
+  if (!(e.cooldown > 0) && !(e.duration > 0)) out.push(`effect ${e.effect && e.effect.type} needs a cooldown or duration (no endless trigger)`);
+  if (!e.text) out.push('effect without text (tooltip)');
+  return out;
+}
 
 // data check -> list of problems ([] = fine). classIds: known class ids (optional; skipped when not given).
 export function itemProblems(def, classIds = null) {
@@ -55,13 +67,7 @@ export function itemProblems(def, classIds = null) {
     if (!Number.isFinite(m.value)) bad(`modifier ${m.type} value`);
     else if (m.value < rule.min || m.value > rule.max) bad(`modifier ${m.type} ${m.value} outside ${rule.min}..${rule.max}`);
   }
-  for (const e of def.effects) {
-    if (!TRIGGERS.includes(e.trigger)) bad(`trigger "${e.trigger}"`);
-    if (e.condition && !CONDITIONS.includes(e.condition.type)) bad(`condition "${e.condition.type}"`);
-    if (!e.effect || !EFFECT_TYPES.includes(e.effect.type)) bad(`effect "${e.effect && e.effect.type}"`);
-    if (!(e.cooldown > 0) && !(e.duration > 0)) bad(`effect ${e.effect && e.effect.type} needs a cooldown or duration (no endless trigger)`);
-    if (!e.text) bad('effect without text (tooltip)');
-  }
+  for (const e of def.effects) for (const m of effectProblems(e)) bad(m);
   // older gear keeps its unique effect in `mods` / `skillModifiers` until it is converted
   if (UNIQUE_RARITIES.includes(def.rarity) && !def.effects.length && !def.mods && !def.skillModifiers) bad(`${def.rarity} needs a unique effect`);
   if (def.type === 'charm' && def.effects.length) bad('charms carry modifiers only');

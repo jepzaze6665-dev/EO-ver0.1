@@ -1,6 +1,7 @@
 import { ITEMS } from '../items/items.js';
 import { isGear, canClassUse, meetsLevel } from '../items/itemDefs.js';
 import { ModifierSet } from '../items/modifierSystem.js';
+import { activeSetBonuses } from '../items/setSystem.js';
 import { GEAR_SLOTS, LOADOUT_RULES, EQUIP_FAIL } from '../data/items/rules.js';
 
 const SLOT = Object.fromEntries(GEAR_SLOTS.map((s) => [s.id, s]));
@@ -86,6 +87,8 @@ export class Equipment {
     this.game.events.emit('equipChanged', { slot, id: null, removed: id });
     return true;
   }
+  // item ids worn right now (set counts, UI)
+  wornIds() { return GEAR_SLOTS.map((s) => this.slots[s.id]).filter(Boolean); }
   lastErrorText() { return EQUIP_FAIL[this.lastError] || ''; }
   // takes off everything the class may not use (after a class change). Fixed slots keep their item.
   enforceClass(classId) {
@@ -111,6 +114,8 @@ export class Equipment {
         const def = ITEMS[this.slots[s.id]];
         if (def) for (const m of def.modifiers) this.modifiers.addModifier(s.id, m);
       }
+      // SET BONUSES (data/items/sets.js): their modifiers join the same set, so the same caps apply
+      for (const a of activeSetBonuses(this.wornIds())) for (const m of a.bonus.modifiers || []) this.modifiers.addModifier(a.key, m);
       for (const [source, m] of this.temp) this.modifiers.addModifier(source, m);
       this.modKey = key;
     }

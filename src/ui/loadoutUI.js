@@ -7,6 +7,7 @@ import { GEAR_SLOTS, MODIFIER_TYPES } from '../data/items/rules.js';
 import { iconURL } from './icons.js';
 import { esc, modifierText, modValue, swapPreview } from './itemTooltip.js';
 import { meetsLevel } from '../items/itemDefs.js';
+import { setSummary } from '../items/setSystem.js';
 
 const pct = (v) => `${Math.round(v * 100)}%`;
 const signed = (v) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}%`;
@@ -55,6 +56,13 @@ export function buildTags(eq) {
   return Object.entries(n).sort((a, b) => b[1] - a[1]);
 }
 
+// worn sets: name n/total + every bonus (lit when on)
+export function setsHTML(eq) {
+  const sets = setSummary(eq.wornIds());
+  if (!sets.length) return '<div class="muted small">No set pieces worn.</div>';
+  return sets.map((s) => `<div class="lo-set"><b style="color:${s.color || '#ddd'}">${esc(s.name)} ${s.count}/${s.total}</b>${s.bonuses.map((b) => `<div class="small ${b.on ? 'set-on' : 'muted'}">(${b.pieces}) ${esc(b.text)}</div>`).join('')}</div>`).join('');
+}
+
 export function loadoutHTML(g, { pickSlot = null } = {}) {
   const p = g.player, eq = g.equipment, inv = g.inventory;
   const slotRow = (s) => {
@@ -81,7 +89,7 @@ export function loadoutHTML(g, { pickSlot = null } = {}) {
   const rows = finalStatRows(p).map(([label, now, base]) => `<div><span>${label}</span><b>${now}${String(now) !== String(base) ? ` <span class="lo-base">(${base})</span>` : ''}</b></div>`).join('');
   const tags = buildTags(eq);
   const fx = g.itemEffects ? g.itemEffects.active() : [];
-  const fxRows = fx.map((x) => `<div class="lo-fx"><span style="color:${ITEMS[x.itemId].color || '#ddd'}">${esc(ITEMS[x.itemId].name)}</span> ${esc(x.effect.text)}
+  const fxRows = fx.map((x) => `<div class="lo-fx"><span style="color:${x.color || '#ddd'}">${esc(x.name)}</span> ${esc(x.effect.text)}
     <b class="${x.running ? 'run' : x.cooldownLeft > 0 ? 'cd' : 'ready'}">${x.running ? 'ACTIVE' : x.cooldownLeft > 0 ? x.cooldownLeft.toFixed(1) + 's' : 'READY'}</b></div>`).join('');
   return `
     <div class="lo-layout">
@@ -95,6 +103,7 @@ export function loadoutHTML(g, { pickSlot = null } = {}) {
         <h3>${esc(p.cls.name)} — LV.${p.level}</h3>
         <h4>FINAL STATS</h4>${rows}
         <h4>BUILD</h4><div class="lo-tags">${tags.length ? tags.map(([t, n]) => `<span>${esc(t.toUpperCase())} ×${n}</span>`).join('') : '<span class="muted">—</span>'}</div>
+        <h4>SETS</h4>${setsHTML(eq)}
         <h4>ITEM EFFECTS</h4>${fxRows || '<div class="muted small">No effect items worn (relics / runes).</div>'}
         ${Object.values(eq.slots).some((id) => id && ITEMS[id].modText) ? `<h4>SKILL MODIFIERS</h4>${Object.values(eq.slots).filter((id) => id && ITEMS[id].modText).map((id) => `<div class="mod">◆ ${esc(ITEMS[id].modText)}</div>`).join('')}` : ''}
       </div>
