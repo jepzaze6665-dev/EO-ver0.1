@@ -68,7 +68,7 @@ export const WardenOfDawn = {
   loop: ['Guard', 'Protect', 'Dawnlight', 'Barrier', 'Support', 'Sanctuary'],
   strengths: ['Keeps the party alive: barriers, damage reduction, a safe zone', 'Radiant Chain takes pressure off an ally', 'Holy ground stops knockback and staggers'],
   weaknesses: ['Lower personal damage than the Oathbreaker', 'Must manage Dawnlight (it fades outside the fight)', 'Needs good positioning: zones stay where you cast them', 'Strongest when there is someone to protect'],
-  signatureWeapon: 'dawn_aegis',
+  signatureWeapon: 'Dawn Aegis & Holy Sword',
   preset: 'wd',
   anims: WD_ANIMS,
   theme: { color: BLUE, ghost: '#bfe6ff', trail: 'shadow' },
@@ -76,9 +76,8 @@ export const WardenOfDawn = {
   resources: [R],
   mark: null,
   enemyMark: 'guardian_mark',
-  base: { hp: 320, atk: 17, def: 12, crit: 0.04, critDmg: 0, holyDmg: 0, cdr: 0, speed: 138, dawnGain: 1, armorBreak: 1.1, barrierPower: 0 },
+  base: { hp: 340, atk: 17, def: 15, crit: 0.04, critDmg: 0, holyDmg: 0, cdr: 0, speed: 138, dawnGain: 1, armorBreak: 1.1, barrierPower: 0 },
   perLevel: { hp: 15, atk: 1.1, def: 0.8 },
-  kit: { weapon: 'dawn_aegis', armor: 'dawn_plate' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   // solo-friendly default; Radiant Chain (an ally skill) is swapped in from the Skills tab in a party
   defaultLoadout: ['dawn_shield', 'guardian_march', 'dawn_bastion', 'grace_of_dawn'],
   guard: { arc: 1.25, reduction: 0.75, perfectWindow: 0.2, moveMul: 0.4, recover: 0.3, fx: 'dw_shield' },

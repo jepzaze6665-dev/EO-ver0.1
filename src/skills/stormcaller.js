@@ -81,15 +81,14 @@ export const Stormcaller = {
   loop: ['Move', 'Shock', 'Chain', 'Move', 'Build Storm Charge', 'Storm Burst'],
   strengths: ['Chain lightning: one cast hits a whole pack, hopping to shocked foes first', 'Mobile caster: Storm Step blinks and discharges, moving builds Storm Charge', 'Big AoE payoffs: Storm Burst, Tempest Field, Heaven\'s Tempest'],
   weaknesses: ['Lowest defence of the Astral line', 'Standing still in a fight: STILL AIR (-15% damage) and the charge leaks away', 'Must spend Storm Charge well — Storm Burst takes all of it'],
-  signatureWeapon: 'storm_staff',
+  signatureWeapon: 'Storm Staff & Focus',
   preset: 'sm',
   anims: SM_ANIMS,
   theme: { color: C, ghost: '#2a6aff', trail: 'stardust' },
-  kit: { weapon: 'storm_staff', armor: 'stormweave_robe' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   resource: S,
   resources: [S],
   mark: null,
-  base: { hp: 205, atk: 21, def: 3, crit: 0.08, critDmg: 0, magicDmg: 0, lightningDmg: 0, cdr: 0, speed: 156, stormGain: 1, armorBreak: 1, stormRange: 0, stormChain: 0 },
+  base: { hp: 210, atk: 22, def: 3, crit: 0.08, critDmg: 0, magicDmg: 0, lightningDmg: 0.05, cdr: 0, speed: 156, stormGain: 1, armorBreak: 1, stormRange: 0, stormChain: 0 },
   perLevel: { hp: 10, atk: 1.65, def: 0.35 },
   defaultLoadout: ['thunder_lash', 'storm_step', 'chain_tempest', 'static_thread'],
   // STORM CHARGE rules (data, not code)

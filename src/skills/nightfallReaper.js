@@ -73,17 +73,16 @@ export const NightfallReaper = {
   identity: 'Mark them all. Let night fall. Reap.',
   strengths: ['Best area damage: 360° sweeps, shadow zones, mark explosions', 'Executes low-HP foes (Bloodless Night, Funeral Eclipse)', 'Snowballs: every kill refills the gauge and speeds you up'],
   weaknesses: ['Needs marks before it bursts', 'Weak on a single tough target early in a fight', 'Low defence, short reach outside Reaper\'s Step'],
-  signatureWeapon: 'reaper_scythe',
+  signatureWeapon: 'Reaper Scythe',
   preset: 'rp',
   anims: RP_ANIMS,
   theme: { color: C, ghost: '#7a3aff', trail: 'shadow' },
-  kit: { weapon: 'reaper_scythe', armor: 'reaper_shroud' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   resource: 'nightfall_gauge', // builder: kills, shadow skills, combos, mark explosions (tiers in data/resources.js)
   resources: ['nightfall_gauge'],
   mark: null, // no self mark; Shadow Marks live on enemies
   enemyMark: MARK,
   // Bloodless Night = execute stats (combat/damageSystem.js): +30% shadow damage to foes under 35% HP
-  base: { hp: 240, atk: 21, def: 5, crit: 0.08, critDmg: 0, shadowDmg: 0, cdr: 0, speed: 150, nightfallGain: 1, armorBreak: 1, aoe: 0, executeDmg: 0.3, executeAt: 0.35, executeType: 'shadow' },
+  base: { hp: 250, atk: 23, def: 6, crit: 0.08, critDmg: 0, shadowDmg: 0, cdr: 0, speed: 150, nightfallGain: 1, armorBreak: 1, aoe: 0, executeDmg: 0.3, executeAt: 0.35, executeType: 'shadow' },
   perLevel: { hp: 12, atk: 1.6, def: 0.5 },
   defaultLoadout: ['reapers_arc', 'phantom_reap', 'shadow_doppel', 'nightfall_zone'],
   // Nightfall Gauge generation rules (data, not code)

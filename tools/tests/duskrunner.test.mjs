@@ -1,6 +1,5 @@
 // Unit tests for Class 2 DUSKRUNNER + the generic pieces it needed (SkillSystem recast, momentum tiers,
 // attack speed / dodge cost stats). Run:  node tools/tests/duskrunner.test.mjs
-import { KIT_PIECES } from '../../src/data/classKits.js';
 import { ResourcePool } from '../../src/combat/resourceSystem.js';
 import { SkillSystem, REQUIREMENTS } from '../../src/combat/skillSystem.js';
 import { SummonSystem } from '../../src/combat/summonSystem.js';
@@ -77,7 +76,7 @@ console.log('duskrunner');
 test('class data matches the shared schema; registered, playable, own gear + preset', () => {
   ok(CLASSES.duskrunner === D && CLASS_TREE.duskrunner.playable && CLASS_TREE.duskrunner.parent === 'umbral_sword', 'registry + tree');
   ok(D.preset === 'dr' && D.anims && RESOURCES[D.resource].tiers, 'preset + resource with tiers');
-  ok(KIT_PIECES[D.kit.weapon] && KIT_PIECES[D.kit.armor], 'signature gear exists');
+  ok(typeof D.signatureWeapon === 'string', 'signature gear exists');
   ok(D.skills.length === 5 && D.special && typeof D.basic === 'function' && D.passives.length === 2, 'kit: 4 actives + ultimate, Q, 2 passives');
   const ids = [...D.skills, D.special].map((s) => s.id);
   ok(new Set(ids).size === ids.length, 'unique ids');

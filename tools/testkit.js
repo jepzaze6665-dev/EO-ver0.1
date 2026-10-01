@@ -1932,7 +1932,7 @@ export function itemSystemCheck(g) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame('umbral_sword'); releaseInput(g); g.simulate(0.2);
   const p = () => g.player, eq = g.equipment, inv = g.inventory;
-  ok('0 New game: all 7 slots start empty; the class kit is not an item', eq.wornIds().length === 0 && !inv.has('umbral_sword') && !!p().cls.kit);
+  ok('0 New game: all 7 slots start empty; the class weapon is not an item', eq.wornIds().length === 0 && !inv.has('umbral_sword'));
   p().setLevel(30);
   for (const id of ['core_shadow_fang', 'armor_risk', 'relic_heart_eclipse', 'charm_focus', 'rune_full_moon', 'rune_red_thirst', 'rune_shadow_hunger',
     'core_star_loom', 'relic_cinder_crown', 'shade_charm', 'core_nightglass']) inv.add(id, 1, true);

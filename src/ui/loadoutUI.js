@@ -8,7 +8,6 @@ import { iconURL, itemIconURL } from './icons.js';
 import { esc, modifierText, modValue, swapPreview } from './itemTooltip.js';
 import { meetsLevel } from '../items/itemDefs.js';
 import { setSummary } from '../items/setSystem.js';
-import { kitPieces } from '../data/classKits.js';
 
 const pct = (v) => `${Math.round(v * 100)}%`;
 const signed = (v) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}%`;
@@ -95,9 +94,6 @@ export function loadoutHTML(g, { pickSlot = null } = {}) {
   return `
     <div class="lo-layout">
       <div>
-        <h3>CLASS KIT</h3>
-        <div class="lo-kit">${kitPieces(p.cls).map((k) => `<div class="lo-slot kit" title="${esc(k.desc)}"><div class="lbl">${k.slot === 'weapon' ? 'WEAPON' : 'ARMOR'}</div><img src="${iconURL(k.icon, k.color)}"><div class="lo-name" style="color:${k.color}">${esc(k.name)}</div></div>`).join('')}</div>
-        <p class="muted small">Part of the class — always with you, never an item.</p>
         <h3>COMBAT LOADOUT</h3>
         ${GEAR_SLOTS.map(slotRow).join('')}
         ${picker}

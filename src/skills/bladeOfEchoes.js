@@ -67,15 +67,14 @@ export const BladeOfEchoes = {
   identity: 'Read. Counter. Remember. Strike again.',
   strengths: ['Huge counter damage against enemies with clear attack patterns (bosses)', 'Replays its own actions: Crimson Memory, Blade of Recollection', 'Sturdiest of the Umbral line: Last Stand, Rewind Edge heals'],
   weaknesses: ['Needs to read timing: a missed counter wastes the opening', 'Slow against packs that never commit to an attack', 'Echo must be earned — often by getting hurt'],
-  signatureWeapon: 'memory_blade',
+  signatureWeapon: 'Memory Blade',
   preset: 'be',
   anims: BE_ANIMS,
   theme: { color: C, ghost: '#ff2040', trail: 'shadow' },
-  kit: { weapon: 'memory_blade', armor: 'echo_coat' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   resource: E, // builder: taking hits, perfect counters, echo skills (tiers in data/resources.js = PAIN REMEMBERS)
   resources: [E],
   mark: null,
-  base: { hp: 260, atk: 20, def: 7, crit: 0.08, critDmg: 0, physicalDmg: 0, cdr: 0, speed: 148, echoGain: 1, armorBreak: 1, echoPower: 0 },
+  base: { hp: 275, atk: 22, def: 9, crit: 0.08, critDmg: 0, physicalDmg: 0, cdr: 0, speed: 148, echoGain: 1, armorBreak: 1, echoPower: 0 },
   perLevel: { hp: 13, atk: 1.5, def: 0.6 },
   defaultLoadout: ['echo_slash', 'rewind_edge', 'crimson_memory', 'last_stand'],
   // ECHO rules (data, not code)

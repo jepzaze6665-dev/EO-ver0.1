@@ -48,7 +48,7 @@ export const AegisGuardian = {
   identity: 'Stand in front. Take the blow. Answer it.',
   strengths: ['Highest survivability: block, shields, damage reduction', 'Taunt and crowd control', 'Protects the party (barriers)'],
   weaknesses: ['Lowest damage', 'Slow on its feet', 'Must face the danger to block it'],
-  signatureWeapon: 'aegis_shield',
+  signatureWeapon: 'Aegis Shield & Blade',
   preset: 'ag',
   anims: AG_ANIMS,
   theme: { color: GOLD, ghost: '#ffd070', trail: 'shadow' },
@@ -58,7 +58,6 @@ export const AegisGuardian = {
   enemyMark: 'guardian_mark',
   base: { hp: 330, atk: 20, def: 13, crit: 0.04, critDmg: 0, holyDmg: 0, cdr: 0, speed: 138, guardGain: 1, armorBreak: 1.2 },
   perLevel: { hp: 16, atk: 1.2, def: 0.8 },
-  kit: { weapon: 'aegis_shield', armor: 'aegis_plate' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   defaultLoadout: ['shield_bash', 'guardian_slash', 'guardian_challenge', 'holy_barrier'],
   // Guard System data (combat/guardSystem.js)
   guard: { arc: 1.25, reduction: 0.75, perfectWindow: 0.2, moveMul: 0.4, recover: 0.3, fx: 'ag_emblem' },

@@ -1,6 +1,5 @@
 // Unit tests for Class 2 WARDEN OF DAWN + the generic pieces it needed (status flags unshakable / debuffImmune,
 // status tenacity, Dawnlight resource). Run:  node tools/tests/warden.test.mjs
-import { KIT_PIECES } from '../../src/data/classKits.js';
 import { ResourcePool } from '../../src/combat/resourceSystem.js';
 import { SkillSystem } from '../../src/combat/skillSystem.js';
 import { StatusSet } from '../../src/status/status.js';
@@ -55,7 +54,7 @@ console.log('warden of dawn — data');
 test('class data: shared schema, registered + playable Class 2 of the Aegis, own preset / gear / resource', () => {
   ok(CLASSES.warden_of_dawn === W && CLASS_TREE.warden_of_dawn.playable && CLASS_TREE.warden_of_dawn.parent === 'aegis_guardian' && W.parentClass === 'aegis_guardian', 'registry + tree');
   for (const k of ['id', 'name', 'description', 'role', 'difficulty', 'signatureWeapon', 'preset', 'resource', 'base', 'skills', 'passives', 'anims']) ok(W[k] !== undefined, 'missing ' + k);
-  ok(W.preset === 'wd' && KIT_PIECES[W.kit.weapon] && KIT_PIECES[W.kit.armor], 'preset + gear');
+  ok(W.preset === 'wd' && typeof W.signatureWeapon === 'string', 'preset + gear');
   ok(W.skills.some((s) => s.ultimate && s.id === 'dawns_sanctuary') && W.special.hold, 'ultimate + hold guard');
   ok(W.passives.map((x) => x.id).includes('last_light') && W.passives.map((x) => x.id).includes('shared_resolve'), 'passives');
 });

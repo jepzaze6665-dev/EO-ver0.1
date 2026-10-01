@@ -178,7 +178,7 @@ export class Game {
     const cls = CLASSES[classId];
     this.inventory = new Inventory(this);
     this.equipment = new Equipment(this);
-    // (no starting gear: the class weapon / armour are its kit, data/classKits.js — the 7 slots start empty)
+    // (no starting gear: the 7 loadout slots start empty; the class sprite draws its own weapon)
     this.knowledge = new Knowledge(this);
     // fresh event bus per session so listeners never accumulate
     this.events = new EventBus();

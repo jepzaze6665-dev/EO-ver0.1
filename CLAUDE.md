@@ -1001,6 +1001,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `T.itemSystemCheck(g)` = the owner's §33 list, 20 steps + debug (21/21; fast, boss / monster drops via the real
   'enemyDefeated' event). GOTCHA: g.loadGame() replaces g.inventory — never keep an old reference across a load.
   Tests itemI4.test.mjs (6). ITEM BUILD PASS COMPLETE (I1-I4).
+  CLASS KIT REMOVED (owner, after K1): no kit data / file / Loadout box any more. Each class's old kit stats were folded into
+  its `base` (same totals: e.g. Reaper hp 250 / atk 23 / def 6); class `signatureWeapon` is now just a display name (codex).
+  Signature weapons / armours stay NOT items; the 7 loadout slots start empty. (Below = the K1 history.)
   Done K1 CLASS KIT (owner: class signature gear must not be items — online / no dupes): each class's weapon + armour are
   `kit: { weapon, armor }` in its class file (was `startingGear`), pieces in `src/data/classKits.js` (KIT_PIECES, kitPieces,
   kitStats). They are NOT in ITEMS: never in the bag / loadout / loot / shops, a class change creates or moves nothing (no

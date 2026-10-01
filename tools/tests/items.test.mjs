@@ -45,7 +45,7 @@ test('first item set (G1) still there; I3 adds the Umbral / Astral / universal f
 });
 test('older gear got a type; stack items are not gear', () => {
   eq(ITEMS.duskfang_blade.type, 'weapon_core'); eq(ITEMS.shadeweave.type, 'armor_core'); eq(ITEMS.eclipse_sigil.type, 'relic');
-  for (const id of ['umbral_sword', 'umbral_cloak', 'aegis_plate', 'reaper_scythe']) ok(!ITEMS[id], id + ' is a CLASS KIT piece, not an item (K1)');
+  for (const id of ['umbral_sword', 'umbral_cloak', 'aegis_plate', 'reaper_scythe']) ok(!ITEMS[id], id + ' (class signature gear) is not an item');
   eq(ITEMS.shade_charm.type, 'charm'); eq(ITEMS.hunger_rune.type, 'rune');
   for (const id of ['hp_potion', 'wolf_fang', 'cinder_shard']) ok(!isGear(ITEMS[id]), id);
   for (const d of Object.values(ITEMS)) if (d.slot) ok(GEAR_TYPES.includes(d.type), d.id);

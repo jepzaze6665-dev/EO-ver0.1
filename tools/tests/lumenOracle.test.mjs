@@ -1,6 +1,5 @@
 // Unit tests for the Lumen Oracle (Class 2 of the Astral Weaver). Run:  node tools/tests/lumenOracle.test.mjs
 // Heals / barriers / purify / radiant thread / judgment with a real ally are checked in the game by C.lumenChecks.
-import { KIT_PIECES } from '../../src/data/classKits.js';
 import { CLASSES } from '../../src/skills/classes.js';
 import { CLASS_TREE } from '../../src/data/classTree.js';
 import { RESOURCES } from '../../src/data/resources.js';
@@ -27,7 +26,7 @@ const g = { events: { emit() {} }, vfx: { text() {} } };
 console.log('lumen oracle');
 test('registered, playable Class 2 of the Astral Weaver, own preset / weapon / resource', () => {
   ok(LO && CLASS_TREE.lumen_oracle.playable && CLASS_TREE.lumen_oracle.parent === 'astral_weaver', 'tree');
-  ok(LO.preset === 'lo' && LO.resource === 'lumen' && RESOURCES.lumen && KIT_PIECES[LO.signatureWeapon] && KIT_PIECES[LO.kit.armor], 'data');
+  ok(LO.preset === 'lo' && LO.resource === 'lumen' && RESOURCES.lumen && typeof LO.signatureWeapon === 'string', 'data');
 });
 test('kit: 5 actives + ultimate + Lumen Burst, each with a tier, icon art and a description; own skills', () => {
   ok(LO.skills.filter((s) => s.type === 'active').length === 5 && LO.skills.some((s) => s.ultimate) && LO.special.id === 'lumen_burst', 'counts');

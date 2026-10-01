@@ -80,15 +80,14 @@ export const LumenOracle = {
   loop: ['Mark', 'Heal / Barrier', 'Build Lumen', 'Support', 'Purify', 'Judgment'],
   strengths: ['The only real healer of the game: heals over time, bursts, heal threads', 'Barriers and purification for the whole party', 'Strong alone too: every heal on yourself is a heal, and the ultimate is also a big attack'],
   weaknesses: ['Lowest personal damage of the Astral line', 'Must keep the party close (every tool has a range)', 'Lumen must be split between protecting and judging'],
-  signatureWeapon: 'lumen_staff',
+  signatureWeapon: 'Lumen Staff & Celestial Codex',
   preset: 'lo',
   anims: LO_ANIMS,
   theme: { color: C, ghost: '#ffd070', trail: 'stardust' },
-  kit: { weapon: 'lumen_staff', armor: 'oracle_vestment' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   resource: L,
   resources: [L],
   mark: null,
-  base: { hp: 220, atk: 20, def: 5, crit: 0.06, critDmg: 0, magicDmg: 0, lightDmg: 0, cdr: 0, speed: 148, lumenGain: 1, armorBreak: 1, healPower: 0 },
+  base: { hp: 235, atk: 20, def: 6, crit: 0.06, critDmg: 0, magicDmg: 0, lightDmg: 0.05, cdr: 0, speed: 148, lumenGain: 1, armorBreak: 1, healPower: 0 },
   perLevel: { hp: 11, atk: 1.5, def: 0.45 },
   defaultLoadout: ['lumen_bolt', 'oracles_grace', 'radiant_thread', 'divine_barrier'],
   // basic combo steps 1-3: the painted attack light, lifted off the sprites at build time and drawn in front of the staff

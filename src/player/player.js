@@ -21,7 +21,6 @@ import { CLASS_TREE } from '../data/classTree.js';
 import { ActionRecorder } from '../combat/actionRecorder.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
 import { LEVELS } from '../data/levels.js';
-import { kitStats } from '../data/classKits.js';
 import { STAMINA } from '../data/stamina.js';
 import { MAGIC_DAMAGE_TYPES, COUNTER_STATUS } from '../data/items/rules.js';
 import { expToNext, addExp, normalize as normalizeExp, levelStats } from '../progression/experience.js';
@@ -118,7 +117,6 @@ export class Player extends Entity {
     const c = this.cls;
     let s = { ...c.base }; // class base = level 1
     for (const [k, v] of Object.entries(levelStats(c.perLevel, this.level))) s[k] = (s[k] || 0) + v;
-    for (const [k, v] of Object.entries(kitStats(c))) s[k] = (s[k] || 0) + v; // class kit (signature weapon + armour)
     const mods = {};
     const eq = this.game.equipment;
     if (eq) eq.applyTo(s, mods);

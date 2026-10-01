@@ -7,7 +7,7 @@ import { GEAR_ITEMS } from '../data/items/index.js';
 import { normalizeItem } from './itemDefs.js';
 
 export const ITEMS = {
-  // ---- weapons (class signature weapons / armours are NOT items: data/classKits.js)
+  // ---- weapons (class signature weapons / armours are NOT items: the class sprite draws them)
   duskfang_blade: {
     name: 'Duskfang Blade', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'sword', color: '#e0a040',
     stats: { atk: 4, crit: 0.15 }, mods: { twinFangTriple: true },

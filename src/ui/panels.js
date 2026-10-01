@@ -1,7 +1,6 @@
 import { PARTY } from '../data/party.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { ITEMS, RARITY_COLOR, CATEGORIES, RECIPES, SHOPS } from '../items/items.js';
-import { KIT_PIECES } from '../data/classKits.js';
 import { iconURL, itemIconURL, skillIconURL } from './icons.js';
 import { dialogueFor, LORE } from '../world/narrative.js';
 import { QUESTS } from '../quests/quests.js';
@@ -332,7 +331,7 @@ export class Panels {
       const codex = `<div class="codex"><h3>${esc(src.name)} <span class="muted small">Tier ${selNode.tier} · ${esc(src.role || '')}</span></h3>
           ${selCls && selCls.identity ? `<p class="identity">“${esc(selCls.identity)}”</p>` : ''}
           <div class="small">${esc(src.description || '')}</div>
-          <div class="muted small">Resource: <b>${esc(res)}</b>${selCls && KIT_PIECES[selCls.signatureWeapon] ? ` · Signature weapon: <b>${esc(KIT_PIECES[selCls.signatureWeapon].name)}</b>` : ''}</div>
+          <div class="muted small">Resource: <b>${esc(res)}</b>${selCls && selCls.signatureWeapon ? ` · Signature weapon: <b>${esc(selCls.signatureWeapon)}</b>` : ''}</div>
           ${selCls && selCls.loop ? `<div class="muted small">Gameplay loop: <b>${selCls.loop.map(esc).join(' → ')}</b></div>` : ''}
           ${ratings}${sw}${skills}</div>`;
 

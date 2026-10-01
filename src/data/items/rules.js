@@ -76,7 +76,7 @@ export const MAGIC_DAMAGE_TYPES = ['magic', 'holy', 'light', 'shadow', 'lightnin
 export const COUNTER_STATUS = 'counter_window';
 
 // GEAR LOADOUT — the 7 slots (G2). Slot ids 'weapon' / 'armor' are kept from the old 3-slot equipment (saves).
-// Every slot may be EMPTY (K1: the class's own weapon / armour are its kit, data/classKits.js — not items).
+// Every slot may be EMPTY (the class sprite draws its own weapon; signature weapons are not items).
 // `fixed` (no slot uses it now) = never empty: unequip refused, swap instead. A slot takes exactly its `type`.
 export const GEAR_SLOTS = [
   { id: 'weapon', type: 'weapon_core', label: 'Weapon Core' },

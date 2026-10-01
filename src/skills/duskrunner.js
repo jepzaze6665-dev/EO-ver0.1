@@ -63,15 +63,14 @@ export const Duskrunner = {
   identity: 'Dash. Cut. Dodge. Never stop.',
   strengths: ['Highest mobility: Flash Step, Blue Fang and Mirage Shift all move you', 'Momentum scales every skill (Dusk Barrage 3 → 9 hits)', 'Great single-target pressure on bosses that you can dance around'],
   weaknesses: ['Lowest defence of the Umbral line', 'Standing still or taking a heavy hit throws momentum away', 'Little area damage: packs take longer than for the Reaper'],
-  signatureWeapon: 'twin_dusk_blades',
+  signatureWeapon: 'Twin Dusk Blades',
   preset: 'dr',
   anims: DR_ANIMS,
   theme: { color: C, ghost: '#2a7aff', trail: 'shadow' },
-  kit: { weapon: 'twin_dusk_blades', armor: 'dusk_scarf' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   resource: M, // builder: dodges, dashes, hits, combos, perfect dodges (tiers in data/resources.js = ENDLESS MOTION)
   resources: [M],
   mark: null,
-  base: { hp: 225, atk: 19, def: 4, crit: 0.1, critDmg: 0, physicalDmg: 0, cdr: 0, speed: 158, momentumGain: 1, armorBreak: 1, attackSpeed: 0, dodgeCostCut: 0 },
+  base: { hp: 230, atk: 20, def: 4, crit: 0.13, critDmg: 0, physicalDmg: 0, cdr: 0, speed: 158, momentumGain: 1, armorBreak: 1, attackSpeed: 0, dodgeCostCut: 0 },
   perLevel: { hp: 11, atk: 1.55, def: 0.4 },
   defaultLoadout: ['blue_fang', 'dusk_barrage', 'mirage_shift', 'silent_run'],
   // MOMENTUM rules (data, not code)

@@ -53,7 +53,7 @@ export const Oathbreaker = {
   loop: ['Get Hit', 'Guard', 'Broken Oath', 'Counter', 'Take Risk', 'Burst'],
   strengths: ['Huge capped counter bursts (Sinful Counter, Verdict)', 'Holds aggro: brands, taunts, chains foes to itself', 'Turns defence into offence: blocked damage becomes power'],
   weaknesses: ['High risk: lowest DEF of the Aegis line, weaker guard', 'Timing matters: counters are strongest right after a block', 'A missed counter wastes the stored oath', 'Oath of Ruin trades defence for attack'],
-  signatureWeapon: 'ruin_blade',
+  signatureWeapon: 'Ruin Blade & Broken Aegis',
   preset: 'ok',
   anims: OK_ANIMS,
   theme: { color: VIOLET, ghost: '#9a40ff', trail: 'shadow' },
@@ -61,9 +61,8 @@ export const Oathbreaker = {
   resources: [R],
   mark: null,
   enemyMark: 'oath_brand',
-  base: { hp: 320, atk: 21, def: 9, crit: 0.06, critDmg: 0, physicalDmg: 0, cdr: 0, speed: 140, oathGain: 1, armorBreak: 1.1 },
+  base: { hp: 335, atk: 23, def: 10, crit: 0.06, critDmg: 0, physicalDmg: 0, cdr: 0, speed: 140, oathGain: 1, armorBreak: 1.1 },
   perLevel: { hp: 15, atk: 1.4, def: 0.6 },
-  kit: { weapon: 'ruin_blade', armor: 'oathbreaker_plate' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   defaultLoadout: ['oath_brand', 'sinful_counter', 'ruin_chain', 'oath_of_ruin'],
   // DEFIANT GUARD: weaker than the Aegis guard (65%), slower while held
   guard: { arc: 1.2, reduction: 0.65, perfectWindow: 0.2, moveMul: 0.3, recover: 0.3, fx: 'ok_brand' },

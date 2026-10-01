@@ -29,7 +29,7 @@ export function changeClass(game, toId, opts = {}) {
   if (!check.ok) return check;
   const old = game.player, from = old.cls, to = CLASSES[toId];
 
-  // K1: the class weapon / armour are the class's KIT (data/classKits.js), not items — nothing is created or moved here,
+  // signature weapons / armours are not items (the class sprite draws them) — nothing is created or moved here,
   // so a class change can never duplicate an item. Found gear stays equipped (enforceClass below drops what is not allowed).
   const eq = game.equipment;
 

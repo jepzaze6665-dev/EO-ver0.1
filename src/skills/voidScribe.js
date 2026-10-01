@@ -67,15 +67,14 @@ export const VoidScribe = {
   loop: ['Place Script', 'Debuff', 'Connect', 'Summon Phantom', 'Damage over Time', 'Rewrite', 'Null'],
   strengths: ['Strongest control of the line: slow, silence, root, DoT acceleration', 'Damage keeps ticking while you reposition', 'Phantoms and scripts fight for you — great on long fights and packs'],
   weaknesses: ['Needs time to prepare the ground before it deals real damage', 'Lowest mobility of the Astral line (no blink)', 'Little burst: Void Ink must be spent at the right moment'],
-  signatureWeapon: 'void_tome',
+  signatureWeapon: 'Void Tome & Arcane Quill',
   preset: 'vs',
   anims: VS_ANIMS,
   theme: { color: C, ghost: '#6a2aff', trail: 'shadow' },
-  kit: { weapon: 'void_tome', armor: 'scribe_robe' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   resource: INK,
   resources: [INK],
   mark: null,
-  base: { hp: 215, atk: 21, def: 4, crit: 0.06, critDmg: 0, magicDmg: 0, voidDmg: 0, cdr: 0, speed: 146, inkGain: 1, armorBreak: 1 },
+  base: { hp: 225, atk: 22, def: 5, crit: 0.06, critDmg: 0, magicDmg: 0, voidDmg: 0.05, cdr: 0, speed: 146, inkGain: 1, armorBreak: 1 },
   perLevel: { hp: 10.5, atk: 1.6, def: 0.4 },
   defaultLoadout: ['void_script', 'sable_mark', 'phantom_quill', 'rewrite'],
   // basic combo steps 1-3: the painted attack light, lifted off the sprites at build time and drawn in front of the hand

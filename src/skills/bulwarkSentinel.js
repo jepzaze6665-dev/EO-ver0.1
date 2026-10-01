@@ -54,7 +54,7 @@ export const BulwarkSentinel = {
   loop: ['Taunt', 'Block', 'Bastion', 'Hold Position', 'Fortified', 'Counter'],
   strengths: ['Highest defence: strong guard, damage reduction, FORTIFIED', 'Taunts whole packs and holds their aggro', 'Hard to move: little knockback, stagger or displacement', 'Shieldwall protects the ones behind'],
   weaknesses: ['Lowest mobility: slow, and the stance / ultimate slow it more', 'Positioning matters: the wall only covers one side', 'Must keep Bastion up by blocking', 'Poor at chasing a fleeing target'],
-  signatureWeapon: 'bastion_aegis',
+  signatureWeapon: 'Bulwark Shield & Bastion Sword',
   preset: 'bs',
   anims: BS_ANIMS,
   theme: { color: GOLD, ghost: '#ffe7a0', trail: 'shadow' },
@@ -63,9 +63,8 @@ export const BulwarkSentinel = {
   mark: null,
   enemyMark: 'guardian_mark',
   // UNBROKEN (passive) = tenacity / knockResist / poiseResist in the base stats
-  base: { hp: 360, atk: 18, def: 16, crit: 0.03, critDmg: 0, holyDmg: 0, cdr: 0, speed: 126, bastionGain: 1, armorBreak: 1.1, tenacity: 0.3, knockResist: 0.5, poiseResist: 0.4 },
+  base: { hp: 385, atk: 18, def: 21, crit: 0.03, critDmg: 0, holyDmg: 0, cdr: 0, speed: 126, bastionGain: 1, armorBreak: 1.1, tenacity: 0.3, knockResist: 0.5, poiseResist: 0.4 },
   perLevel: { hp: 18, atk: 1.1, def: 1.0 },
-  kit: { weapon: 'bastion_aegis', armor: 'fortress_plate' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   defaultLoadout: ['fortress_step', 'absolute_provocation', 'counterweight', 'shieldwall'],
   guard: { arc: 1.35, reduction: 0.8, perfectWindow: 0.2, moveMul: 0.35, recover: 0.3, fx: 'bs_aegis' },
 
