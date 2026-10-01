@@ -1,6 +1,7 @@
 // ITEM CATALOGUE — builds a printable HTML + PDF of every gear item for the artists (icons / graphics).
 // Reads the live game data (ITEMS, SETS, loot tables), so it never goes out of date. Art briefs: ./briefs.mjs.
 //   node tools/itemCatalog/build.mjs        -> docs/items/item_catalog.html + docs/items/ECLIPSE_ONLINE_Items.pdf
+//   node tools/itemCatalog/build.mjs --name v2   -> a full catalogue under another name (does not overwrite the default files)
 //   node tools/itemCatalog/build.mjs --only id1,id2 --name I4_update   -> an UPDATE catalogue with only those items
 //     (docs/items/ECLIPSE_ONLINE_Items_<name>.pdf; the full catalogue is not touched)
 // PDF = headless Microsoft Edge (or Chrome) "print to PDF"; if neither is found only the HTML is written.
@@ -145,13 +146,13 @@ ${keys.length ? `<h2>KEY ITEMS — ไอเทมกุญแจ (ใช้เ�
 ${groups.filter(([, items]) => items.length).map(([title, items], i) => `<h2 class="${i === 0 ? 'pb' : ''}">${esc(title)} (${items.length})</h2><div class="grid">${items.map(card).join('')}</div>`).join('')}
 </body></html>`;
 
-const htmlPath = join(outDir, only ? `item_catalog_${updateName}.html` : 'item_catalog.html');
+const htmlPath = join(outDir, updateName ? `item_catalog_${updateName}.html` : 'item_catalog.html');
 writeFileSync(htmlPath, html);
 console.log('HTML:', htmlPath, `(${gear.length} items)`);
 
 const browsers = ['C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/Google/Chrome/Application/chrome.exe'];
 const exe = browsers.find((b) => existsSync(b));
 if (!exe) { console.log('No Edge / Chrome found: open the HTML and print it to PDF.'); process.exit(0); }
-const pdfPath = join(outDir, only ? `ECLIPSE_ONLINE_Items_${updateName}.pdf` : 'ECLIPSE_ONLINE_Items.pdf');
+const pdfPath = join(outDir, updateName ? `ECLIPSE_ONLINE_Items_${updateName}.pdf` : 'ECLIPSE_ONLINE_Items.pdf');
 const r = spawnSync(exe, ['--headless', '--disable-gpu', '--no-pdf-header-footer', `--print-to-pdf=${pdfPath}`, pathToFileURL(htmlPath).href], { stdio: 'inherit', timeout: 90000 });
 console.log(existsSync(pdfPath) ? 'PDF: ' + pdfPath : 'PDF failed (status ' + r.status + ')');

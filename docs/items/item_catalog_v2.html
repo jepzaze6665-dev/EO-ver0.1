@@ -1,0 +1,675 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><title>ECLIPSE ONLINE — Item Catalogue</title><style>
+@page { size: A4; margin: 11mm; }
+* { box-sizing: border-box; }
+body { font-family: 'Leelawadee UI', 'Segoe UI', Tahoma, sans-serif; color: #e8e4f0; background: #14111c; margin: 0; font-size: 10.5px;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+h1 { font-size: 26px; letter-spacing: 3px; margin: 0 0 2px; color: #f0d8ff; }
+h2 { font-size: 15px; letter-spacing: 1.5px; color: #d8c0ff; border-bottom: 1px solid #4a3a66; padding-bottom: 4px; margin: 16px 0 8px; break-after: avoid; }
+.cover p, .guide li { font-size: 11.5px; line-height: 1.55; }
+.guide { background: #1d1828; border: 1px solid #3a2f50; border-radius: 6px; padding: 8px 14px; }
+.rar { display: inline-block; border: 1px solid var(--rc); color: var(--rc); border-radius: 3px; padding: 1px 6px; margin: 2px 4px 2px 0; font-weight: 700; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.card, .set, .brief, .st li { overflow-wrap: anywhere; }
+@media screen { body { padding: 16px; max-width: 900px; margin: 0 auto; } }
+.card, .set { background: #1d1828; border: 1px solid #3a2f50; border-left: 4px solid var(--rc, var(--ic)); border-radius: 6px; padding: 8px 10px; break-inside: avoid; }
+.set { margin-bottom: 8px; border-left-color: var(--ic); }
+.top { display: flex; gap: 9px; align-items: center; }
+.sw { width: 42px; height: 42px; flex: none; border-radius: 6px; background: radial-gradient(circle at 35% 30%, #fff8, var(--ic) 45%, #000a 100%); border: 2px solid var(--rc);
+  display: flex; align-items: flex-end; justify-content: center; }
+.sw span { font-size: 6.5px; color: #000c; background: #fffb; border-radius: 2px; padding: 0 2px; margin-bottom: 2px; }
+.nm { font-size: 13.5px; font-weight: 700; }
+.sub { font-size: 10px; color: #b8b0c8; }
+.id { font-size: 9px; color: #8a809c; font-family: Consolas, monospace; }
+.desc { font-style: italic; color: #c8c0d8; margin: 5px 0 3px; }
+.st { margin: 2px 0 4px; padding-left: 14px; }
+.st li { margin: 1px 0; } .st .up { color: #8fe0a0; } .st .down { color: #ff8a80; } .st .fx { color: #ffd88a; list-style: none; margin-left: -12px; }
+.meta { font-size: 9.5px; color: #a8a0b8; margin-top: 2px; }
+.tags span { display: inline-block; font-size: 8.5px; background: #2c2440; border-radius: 3px; padding: 0 5px; margin: 3px 3px 0 0; color: #cfc4e8; }
+.brief { margin-top: 5px; padding: 4px 6px; background: #261f36; border-radius: 4px; color: #efe8ff; font-size: 10.5px; }
+.brief b { color: #c8a0ff; }
+.pb { break-before: page; }
+</style></head><body>
+<div class="cover">
+  <h1>ECLIPSE ONLINE</h1>
+  <div style="font-size:15px;color:#c8b0ff;letter-spacing:2px">ITEM CATALOGUE — สำหรับทำกราฟิก / ไอคอน</div>
+  <p>สร้างจากข้อมูลในเกมโดยตรง (src/data/items, src/items/items.js) วันที่ 2026-10-01 · ไอเทมสวมใส่ทั้งหมด 55 ชิ้น · ไอเทมกุญแจ 1 · เซ็ต 3 ชุด<br>
+  สร้างใหม่ได้ทุกเมื่อด้วย <code>node tools/itemCatalog/build.mjs</code></p>
+  <div class="guide"><b>แนวทางทำไอคอน</b><ul>
+    <li><b>ไอเทมไม่เปลี่ยนหน้าตาตัวละคร</b> — กราฟิกที่ต้องทำคือ <b>ไอคอนไอเทม</b> (ช่อง Loadout, กระเป๋า, tooltip) ไม่ใช่สไปรต์บนตัว</li>
+    <li>สไตล์: pixel-art / dark fantasy ให้เข้ากับ UI kit และไอคอนสกิล · พื้นหลังโปร่งใส · ของอยู่กลางภาพ เว้นขอบเล็กน้อย</li>
+    <li>ขนาดที่แนะนำ: วาดสี่เหลี่ยมจัตุรัส 1024×1024 (แบบเดียวกับ ICON SKILL) แล้วย่อเหลือ 64 px ในเกม — ต้องยังอ่านรูปทรงออกตอนเล็ก</li>
+    <li>ตั้งชื่อไฟล์ตาม <b>id</b> ของไอเทม เช่น <code>desgin/ICON ITEM/core_shadow_fang.png</code> (ระบบตัดไอคอนไอเทมยังไม่ได้สร้าง — ทำได้เมื่อมีภาพ)</li>
+    <li><b>กรอบสีตาม Rarity</b> (เกมวาดกรอบเอง ไม่ต้องใส่ในภาพ): <span class="rar" style="--rc:#c8c8d0">COMMON</span><span class="rar" style="--rc:#7ad8a0">UNCOMMON</span><span class="rar" style="--rc:#6aa8ff">RARE</span><span class="rar" style="--rc:#c080ff">EPIC</span><span class="rar" style="--rc:#ffb040">LEGENDARY</span><span class="rar" style="--rc:#ff3030">MYTHIC</span></li>
+    <li>"สี" ในการ์ด = สีหลักของไอเทมในเกมตอนนี้ (ใช้เป็นโทนหลักของไอคอน) · ช่องสี่เหลี่ยมซ้ายบน = ตัวอย่างโทนสี + ชนิดไอคอนชั่วคราว</li>
+    <li>LEGENDARY / ของบอส ควรมีแสง/ออร่าชัดกว่าชิ้นอื่น · ชิ้นในเซ็ตเดียวกันควรมีสัญลักษณ์ร่วมกัน</li>
+  </ul></div>
+</div>
+<h2>SETS — เซ็ตไอเทม</h2><div class="set" style="--ic:#c8b080">
+  <div class="nm" style="color:#c8b080">SET: IRON VIGIL</div><div class="desc">Old watch-post gear. Alone, each piece is plain iron; together they hold a line.</div>
+  <div class="meta">ชิ้นในเซ็ต: Ironheart Core · Fortress Armor · Heavy Charm</div>
+  <ul class="st"><li class="fx">(2 ชิ้น) +10% Guard Generation.</li><li class="fx">(3 ชิ้น) Block: -10% damage taken for 3 s (4 s cooldown).</li></ul></div><div class="set" style="--ic:#c080ff">
+  <div class="nm" style="color:#c080ff">SET: ECLIPSE</div><div class="desc">Pieces of the same dark sun. Worn together they turn every full mark into a faster cut.</div>
+  <div class="meta">ชิ้นในเซ็ต: Shadow Fang · Heart of the Eclipse · Assassin's Charm</div>
+  <ul class="st"><li class="fx">(2 ชิ้น) +8% Shadow Damage.</li><li class="fx">(3 ชิ้น) Marks full: shadow skills recover 1.5 s (6 s cooldown).</li></ul></div><div class="set" style="--ic:#8ad8ff">
+  <div class="nm" style="color:#8ad8ff">SET: CONSTELLATION</div><div class="desc">Three lights that belong in one sky.</div>
+  <div class="meta">ชิ้นในเซ็ต: Star Loom Core · Starveil Robe · Supernova</div>
+  <ul class="st"><li class="fx">(2 ชิ้น) +6% Magic Damage.</li><li class="fx">(3 ชิ้น) Your mark detonates: barrier of 6% max HP for 4 s (8 s cooldown).</li></ul></div>
+<h2>KEY ITEMS — ไอเทมกุญแจ (ใช้เปิดทางเข้าเท่านั้น)</h2><div class="grid"><div class="card" style="--rc:#ff3030;--ic:#ff3030">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Varkharon's Seal</div>
+      <div class="sub"><b style="color:#ff3030">MYTHIC</b> · Key Item (ไอเทมกุญแจ)</div>
+      <div class="id">varkharon_seal · สี #ff3030</div></div></div>
+    <div class="desc">Three cinder shards fused into a dragon-headed seal. It opens the Dragon Door in the Quiet Hollow, and nothing else.</div>
+    <ul class="st"></ul>
+    <div class="meta"><b style="color:var(--rc)">KEY ITEM — ใช้เปิดประตู ไม่มีค่าสถานะ ขาย / ฝากไม่ได้</b></div>
+    <div class="meta">ได้จากเควสต์ / การตีขึ้นรูป (ไม่ดรอป)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> ตราประทับหินดำรูปหัวมังกร ยังมีควันและถ่านแดงลุกอยู่ — KEY ITEM ระดับ MYTHIC (สีแดง) ใช้เปิดประตูมังกรเท่านั้น ควรดูเป็น &quot;กุญแจ&quot; ชัดเจน</div>
+  </div></div>
+<h2 class="pb">BOSS SIGNATURE — ของประจำบอส (ดรอป 100% ครั้งแรก) (7)</h2><div class="grid"><div class="card" style="--rc:#ffb040;--ic:#ffb040">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Oath Mirror</div>
+      <div class="sub"><b style="color:#ffb040">LEGENDARY</b> · Relic (เรลิก)</div>
+      <div class="id">relic_oath_mirror · สี #ffb040</div></div></div>
+    <div class="desc">Perfect Guard reflects a portion of the blocked damage.</div>
+    <ul class="st"><li class="up">+15% Counter Damage</li><li class="fx">✦ Perfect Guard: reflect 15% of the blocked damage to the attacker (8 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอปจากบอส boss_a1 (100% ครั้งแรก)</div>
+    <div class="tags"><span>GUARD</span><span>COUNTER</span></div>
+    <div class="brief"><b>ART BRIEF:</b> กระจกกลมกรอบทองแกะสลักคำสาบาน ผิวกระจกสะท้อนแสงกลับเป็นลำ (LEGENDARY: แสงทองรอบขอบ) — ของจาก Guardian (บอส A1) ใส่ลายใบไม้/เขากวางเล็กๆ</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#e0e8ff">
+    <div class="top"><div class="sw" title="item colour"><span>HEART</span></div>
+      <div><div class="nm">Last Bastion</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Relic (เรลิก)</div>
+      <div class="id">relic_last_bastion · สี #e0e8ff</div></div></div>
+    <div class="desc">When you are nearly broken, the stone holds.</div>
+    <ul class="st"><li class="fx">✦ HP below 30%: take 25% less damage for 6 s (30 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอปจากบอส boss_b1 (100% ครั้งแรก)</div>
+    <div class="tags"><span>DEFENSE</span><span>SURVIVAL</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หัวใจคริสตัลน้ำแข็งสีขาว-ฟ้าครอบด้วยกรงโล่เล็ก ใกล้แตกแต่ยังเรืองแสง — ของจาก Hoarfang (บอส B1) ขอบมีน้ำแข็งเกาะ</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#ffe08a">
+    <div class="top"><div class="sw" title="item colour"><span>HEART</span></div>
+      <div><div class="nm">Dawn Core</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Relic (เรลิก)</div>
+      <div class="id">relic_dawn_core · สี #ffe08a</div></div></div>
+    <div class="desc">Each shield you raise for others warms your own guard.</div>
+    <ul class="st"><li class="up">+10% Barrier Strength</li><li class="fx">✦ Creating a barrier: +10 class resource (4 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอปจากบอส boss_a2 (100% ครั้งแรก)</div>
+    <div class="tags"><span>BARRIER</span><span>SUPPORT</span><span>GUARD</span></div>
+    <div class="brief"><b>ART BRIEF:</b> แกนกลมสีทองอ่อนเหมือนดวงอาทิตย์ยามเช้า รังสีแผ่ 8 แฉก ข้างในมีลาวาส้มเล็กๆ — ของจาก Magma Beast (บอส A2)</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#7ac8ff">
+    <div class="top"><div class="sw" title="item colour"><span>SWORD</span></div>
+      <div><div class="nm">Runeknight's Blade</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Weapon Core (แกนอาวุธ)</div>
+      <div class="id">core_runeblade · สี #7ac8ff</div></div></div>
+    <div class="desc">The Rune Knight's blade, still answering its old commands. Heavy in the swing, sure in the guard.</div>
+    <ul class="st"><li class="up">+10% Attack</li><li class="up">+20% Critical Damage</li><li class="down">-10% Attack Speed</li><li class="fx">✦ Cast a skill: SHIELD STANCE, +30% Defense for 3 s (8 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอปจากบอส boss_a3 (100% ครั้งแรก)</div>
+    <div class="tags"><span>BURST</span><span>GUARD</span><span>BOSS</span></div>
+    <div class="brief"><b>ART BRIEF:</b> ดาบยาวของ Rune Knight สีเงิน-บรอนซ์ ใบดาบสลักรูนเรืองฟ้า ด้ามมีโล่เล็กติด (ท่าดาบ/โล่) — ของบอส A3</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#c080ff">
+    <div class="top"><div class="sw" title="item colour"><span>CLOAK</span></div>
+      <div><div class="nm">Amethyst Shell</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Armor Core (แกนเกราะ)</div>
+      <div class="id">armor_amethyst_shell · สี #c080ff</div></div></div>
+    <div class="desc">Plates of living amethyst from the Colossus. They regrow after a blow — and weigh like stone.</div>
+    <ul class="st"><li class="up">+25% Defense</li><li class="up">+5% Damage Reduction</li><li class="down">-10% Movement Speed</li><li class="down">-5% Attack Speed</li><li class="fx">✦ Hit: crystal regrows, barrier of 12% max HP for 5 s (12 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอปจากบอส boss_b2 (100% ครั้งแรก)</div>
+    <div class="tags"><span>DEFENSE</span><span>BARRIER</span><span>BOSS</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เกราะทำจากแผ่นคริสตัลอเมทิสต์สีม่วง มีผลึกงอกตามไหล่ ดูหนักเหมือนหิน — ของบอส B2 Amethyst Colossus</div>
+  </div><div class="card" style="--rc:#ffb040;--ic:#bfe6ff">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Warden's Prism</div>
+      <div class="sub"><b style="color:#ffb040">LEGENDARY</b> · Relic (เรลิก)</div>
+      <div class="id">relic_warden_prism · สี #bfe6ff</div></div></div>
+    <div class="desc">The heart-prism of the Crystal Warden. It bends time a little — and light through your body.</div>
+    <ul class="st"><li class="up">+8% Cooldown Reduction</li><li class="down">-8% Max HP</li><li class="fx">✦ Falling below 40% HP: PRISM WARD, barrier of 25% max HP for 6 s (45 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอปจากบอส boss_b3 (100% ครั้งแรก)</div>
+    <div class="tags"><span>COOLDOWN</span><span>SUSTAIN</span><span>BOSS</span></div>
+    <div class="brief"><b>ART BRIEF:</b> ปริซึมคริสตัลน้ำแข็งสีฟ้าขาว หักเหแสงเป็นสายรุ้งอ่อน LEGENDARY: ออร่าฟ้าใส — หัวใจของ Crystal Warden (บอส B3)</div>
+  </div><div class="card" style="--rc:#ff3030;--ic:#ff3030">
+    <div class="top"><div class="sw" title="item colour"><span>HEART</span></div>
+      <div><div class="nm">Cinder King's Crown</div>
+      <div class="sub"><b style="color:#ff3030">MYTHIC</b> · Relic (เรลิก)</div>
+      <div class="id">relic_cinder_crown · สี #ff3030</div></div></div>
+    <div class="desc">A crown of black stone and living fire, torn from the sealed king. It burns everything — its wearer too.</div>
+    <ul class="st"><li class="up">+15% Attack</li><li class="up">+20% Critical Damage</li><li class="down">-12% Max HP</li><li class="down">-10% Defense</li><li class="fx">✦ Hit: BURN for 3 s (12% ATK per tick per stack; 1 s cooldown).</li><li class="fx">✦ Falling below 25% HP: KING'S WRATH, +25% Attack for 8 s (40 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส · LV 45+</div>
+    <div class="meta">ดรอปจากบอส boss_varkharon (100% ครั้งแรก)</div>
+    <div class="tags"><span>FIRE</span><span>BURST</span><span>BOSS</span><span>SECRET</span></div>
+    <div class="brief"><b>ART BRIEF:</b> มงกุฎหินดำมีลาวาแดงไหลตามร่อง เปลวไฟแดงลุกจากยอดมงกุฎ มีรูปหัวมังกรตรงกลาง — MYTHIC = ใช้ &quot;สีแดง&quot; เป็นหลัก ออร่าแดงเข้มชัดที่สุดในเกม (ของบอสลับ Varkharon)</div>
+  </div></div><h2 class="">UMBRAL LINE — สายเงา / นักฆ่า (9)</h2><div class="grid"><div class="card" style="--rc:#6aa8ff;--ic:#b060ff">
+    <div class="top"><div class="sw" title="item colour"><span>SWORD</span></div>
+      <div><div class="nm">Shadow Fang</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Weapon Core (แกนอาวุธ)</div>
+      <div class="id">core_shadow_fang · สี #b060ff</div></div></div>
+    <div class="desc">A blade core that drinks the dark. It bites deep — and leaves you thin-skinned.</div>
+    <ul class="st"><li class="up">+10% Critical Chance</li><li class="up">+10% Shadow Damage</li><li class="down">-8% Max HP</li><li class="fx">✦ Critical hit: +4 class resource (0.8 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Umbral Sword line · <b style="color:#c080ff">SET Eclipse</b></div>
+    <div class="meta">ดรอป: hoarfang 20% · hollow_fang 20%</div>
+    <div class="tags"><span>SHADOW</span><span>CRITICAL</span><span>ASSASSIN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> ใบมีดสั้นทรงเขี้ยวสัตว์ สีดำม่วง ขอบคมเรืองม่วง มีควันดำไหลจากโคนดาบ — ชิ้นของเซ็ต ECLIPSE (ใส่สัญลักษณ์สุริยุปราคาเล็กที่ด้าม)</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#7ab0ff">
+    <div class="top"><div class="sw" title="item colour"><span>SWORD</span></div>
+      <div><div class="nm">Nightglass Edge</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Weapon Core (แกนอาวุธ)</div>
+      <div class="id">core_nightglass · สี #7ab0ff</div></div></div>
+    <div class="desc">Thin as a sliver of night. Fast hands, no guard.</div>
+    <ul class="st"><li class="up">+15% Attack Speed</li><li class="up">+10% Physical Damage</li><li class="down">-15% Defense</li><li class="fx">✦ Dodge: your next hit within 2 s deals +25% damage (3 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Umbral Sword line</div>
+    <div class="meta">ดรอป: amethyst_colossus 50% · magma_beast 50%</div>
+    <div class="tags"><span>MOBILITY</span><span>BURST</span><span>ASSASSIN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> ใบมีดบางใสเหมือนแก้วสีน้ำเงินกลางคืน มองทะลุได้ มีดาวเล็กๆ ข้างใน ดูเปราะแต่เร็ว</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#8a70c0">
+    <div class="top"><div class="sw" title="item colour"><span>CLOAK</span></div>
+      <div><div class="nm">Duskweave Coat</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Armor Core (แกนเกราะ)</div>
+      <div class="id">armor_duskweave · สี #8a70c0</div></div></div>
+    <div class="desc">Cloth that forgets where you stood. Light, quick, and little else.</div>
+    <ul class="st"><li class="up">+8% Movement Speed</li><li class="down">-10% Defense</li><li class="fx">✦ Dash skill: -15% damage taken for 1.5 s (5 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Umbral Sword line</div>
+    <div class="meta">ดรอป: grukk 16.7%</div>
+    <div class="tags"><span>MOBILITY</span><span>SUSTAIN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เสื้อคลุมผ้าบางสีม่วงอมเทา ชายผ้าสลายเป็นเงา/ควัน ไม่มีเกราะเหล็ก</div>
+  </div><div class="card" style="--rc:#ffb040;--ic:#ff80ff">
+    <div class="top"><div class="sw" title="item colour"><span>HEART</span></div>
+      <div><div class="nm">Heart of the Eclipse</div>
+      <div class="sub"><b style="color:#ffb040">LEGENDARY</b> · Relic (เรลิก)</div>
+      <div class="id">relic_heart_eclipse · สี #ff80ff</div></div></div>
+    <div class="desc">It beats only when you are close to the end.</div>
+    <ul class="st"><li class="up">+8% Shadow Damage</li><li class="down">-6% Max HP</li><li class="fx">✦ Falling below 30% HP: +30% Shadow Damage for 8 s (30 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Umbral Sword line · <b style="color:#c080ff">SET Eclipse</b></div>
+    <div class="meta">ดรอป: mini_relic 20%</div>
+    <div class="tags"><span>SHADOW</span><span>BURST</span><span>SUSTAIN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หัวใจสีดำมีวงแหวนแสงชมพูม่วงรอบขอบ (สุริยุปราคา) เต้นช้าๆ LEGENDARY: ออร่าชมพูม่วง — ชิ้นของเซ็ต ECLIPSE</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#e04050">
+    <div class="top"><div class="sw" title="item colour"><span>SWORD</span></div>
+      <div><div class="nm">Bloodletter's Hook</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Relic (เรลิก)</div>
+      <div class="id">relic_bloodletter · สี #e04050</div></div></div>
+    <div class="desc">A barbed hook. Wounds that keep bleeding, crits that land softer.</div>
+    <ul class="st"><li class="down">-15% Critical Damage</li><li class="fx">✦ Hit: BLEED for 4 s (15% ATK per second per stack, up to 5 stacks; 0.6 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Umbral Sword line</div>
+    <div class="meta">ดรอป: mini_relic 20%</div>
+    <div class="tags"><span>BLEED</span><span>ASSASSIN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> ตะขอโลหะมีเงี่ยง สีเหล็กดำ ปลายมีหยดเลือดแดงสด เชือกพันด้าม</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#ff6070">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Red Thirst</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · Rune (รูน)</div>
+      <div class="id">rune_red_thirst · สี #ff6070</div></div></div>
+    <div class="desc">Blood that is already flowing is easy to take.</div>
+    <ul class="st"><li class="fx">✦ Hit a bleeding foe: heal 2% max HP (1 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Umbral Sword line</div>
+    <div class="meta">ดรอป: elite 1.1%</div>
+    <div class="tags"><span>BLEED</span><span>SUSTAIN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินรูนสีแดงเลือด สลักรูปหยดเลือด/ปากดูด แสงแดงชุ่ม</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#f0c8ff">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Full Moon</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Rune (รูน)</div>
+      <div class="id">rune_full_moon · สี #f0c8ff</div></div></div>
+    <div class="desc">When the marks are full, the blade sees every gap.</div>
+    <ul class="st"><li class="fx">✦ Marks full: +15% Critical Chance for 4 s (6 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Umbral Sword line</div>
+    <div class="meta">ดรอป: elite 1.1% · mini_relic 5%</div>
+    <div class="tags"><span>MARK</span><span>CRITICAL</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินรูนกลมสีขาวม่วงอ่อน สลักพระจันทร์เต็มดวง 3 จุดรอบๆ (3 Shadow Mark)</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#9060e0">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Shadow Hunger</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Rune (รูน)</div>
+      <div class="id">rune_shadow_hunger · สี #9060e0</div></div></div>
+    <div class="desc">Spent marks feed the gauge.</div>
+    <ul class="st"><li class="fx">✦ Cast a skill that spends marks (Shadow Break, Eclipse Sever): +15 class resource (5 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Umbral Sword line</div>
+    <div class="meta">ดรอป: elite 1.1%</div>
+    <div class="tags"><span>SHADOW</span><span>RESOURCE</span><span>MARK</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินรูนม่วงเข้ม สลักปากเงาอ้ากินจุดแสง 3 จุด</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#c080ff">
+    <div class="top"><div class="sw" title="item colour"><span>CHARM</span></div>
+      <div><div class="nm">Assassin's Charm</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · Charm (ชาร์ม)</div>
+      <div class="id">charm_assassin · สี #c080ff</div></div></div>
+    <div class="desc">A black thread knotted nine times.</div>
+    <ul class="st"><li class="up">+6% Critical Chance</li><li class="down">-6% Max HP</li></ul>
+    <div class="meta">เฉพาะ: Umbral Sword line · <b style="color:#c080ff">SET Eclipse</b></div>
+    <div class="meta">ดรอป: elite 1.1%</div>
+    <div class="tags"><span>CRITICAL</span><span>ASSASSIN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เชือกดำผูกปม 9 ปม ปลายมีจี้คริสตัลม่วงเล็ก — ชิ้นของเซ็ต ECLIPSE</div>
+  </div></div><h2 class="">ASTRAL LINE — สายดวงดาว / เวท (8)</h2><div class="grid"><div class="card" style="--rc:#6aa8ff;--ic:#8ad8ff">
+    <div class="top"><div class="sw" title="item colour"><span>STAFF</span></div>
+      <div><div class="nm">Star Loom Core</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Weapon Core (แกนอาวุธ)</div>
+      <div class="id">core_star_loom · สี #8ad8ff</div></div></div>
+    <div class="desc">A loom fragment still humming with starlight. Heavy to carry.</div>
+    <ul class="st"><li class="up">+12% Magic Damage</li><li class="up">+10% Resource Generation</li><li class="down">-6% Movement Speed</li><li class="fx">✦ Your mark detonates (Constellation Break): magic skills recover 1 s (2 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Astral Weaver line · <b style="color:#8ad8ff">SET Constellation</b></div>
+    <div class="meta">ดรอป: hoarfang 20% · hollow_fang 20%</div>
+    <div class="tags"><span>ASTRAL</span><span>STAR_MARK</span><span>COOLDOWN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> ชิ้นส่วนกี่ทอผ้าทำจากแสงดาว ไม้สีน้ำเงินเข้ม ด้ายแสงฟ้าขึงอยู่ มีดาว 3 ดวงบนด้าย — ชิ้นของเซ็ต CONSTELLATION</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#c8b0ff">
+    <div class="top"><div class="sw" title="item colour"><span>STAFF</span></div>
+      <div><div class="nm">Fallen Constellation</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Weapon Core (แกนอาวุธ)</div>
+      <div class="id">core_fallen_constellation · สี #c8b0ff</div></div></div>
+    <div class="desc">Stars that fell together. Cheaper to call down, never as bright.</div>
+    <ul class="st"><li class="up">-15% Resource Cost</li><li class="down">-8% Magic Damage</li><li class="up">+5% Cooldown Reduction</li><li class="fx">✦ Starfall costs 30% less Astral Charge but deals 15% less damage.</li></ul>
+    <div class="meta">เฉพาะ: Astral Weaver</div>
+    <div class="meta">ดรอป: amethyst_colossus 50% · magma_beast 50%</div>
+    <div class="tags"><span>ASTRAL</span><span>RESOURCE</span><span>AOE</span></div>
+    <div class="brief"><b>ART BRIEF:</b> คทาสั้นปลายเป็นกลุ่มดาวที่กำลังร่วงลง สีม่วงลาเวนเดอร์ ดาวบางดวงดับแล้ว (ถูกลง แต่แสงน้อยลง)</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#a0c8ff">
+    <div class="top"><div class="sw" title="item colour"><span>CLOAK</span></div>
+      <div><div class="nm">Starveil Robe</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Armor Core (แกนเกราะ)</div>
+      <div class="id">armor_starveil · สี #a0c8ff</div></div></div>
+    <div class="desc">Woven from the night sky. It catches the blow you did not see.</div>
+    <ul class="st"><li class="up">+10% Max HP</li><li class="up">+15% Barrier Strength</li><li class="down">-6% Magic Damage</li><li class="fx">✦ Hit while below 50% HP: barrier of 10% max HP for 4 s (15 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Astral Weaver line · <b style="color:#8ad8ff">SET Constellation</b></div>
+    <div class="meta">ดรอป: grukk 16.7%</div>
+    <div class="tags"><span>SUSTAIN</span><span>UTILITY</span><span>BARRIER</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เสื้อคลุมยาวสีน้ำเงินกรมท่า ลายท้องฟ้ากลางคืน มีดาวกระพริบ ขอบเรืองฟ้า — ชิ้นของเซ็ต CONSTELLATION</div>
+  </div><div class="card" style="--rc:#ffb040;--ic:#5af0ff">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Shattered Orrery</div>
+      <div class="sub"><b style="color:#ffb040">LEGENDARY</b> · Relic (เรลิก)</div>
+      <div class="id">relic_orrery · สี #5af0ff</div></div></div>
+    <div class="desc">Its rings still turn. Every falling star winds it a little further.</div>
+    <ul class="st"><li class="down">-5% Critical Chance</li><li class="fx">✦ Your mark detonates: +12 class resource (1.5 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Astral Weaver line</div>
+    <div class="meta">ดรอป: mini_relic 20%</div>
+    <div class="tags"><span>STAR_MARK</span><span>RESOURCE</span></div>
+    <div class="brief"><b>ART BRIEF:</b> แบบจำลองระบบดาว (orrery) ทองเหลืองที่แตกหัก วงแหวนบางวงหลุด แต่ยังหมุนอยู่ LEGENDARY: แสงฟ้าเทอร์ควอยซ์</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#80e0c0">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Weaver's Spindle</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Relic (เรลิก)</div>
+      <div class="id">relic_spindle · สี #80e0c0</div></div></div>
+    <div class="desc">Threads spun on it hold fast. Your hands grow slow at the wheel.</div>
+    <ul class="st"><li class="down">-5% Cooldown Reduction</li><li class="fx">✦ A thread skill hits: SLOW the foe for 1.5 s (2 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Astral Weaver line</div>
+    <div class="meta">ดรอป: mini_relic 20%</div>
+    <div class="tags"><span>THREAD</span><span>CONTROL</span></div>
+    <div class="brief"><b>ART BRIEF:</b> แกนปั่นด้ายไม้ มีด้ายแสงสีเขียวมิ้นต์พันแน่น ปลายด้ายยังลอยอยู่</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#ffe08a">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Comet Tail</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · Rune (รูน)</div>
+      <div class="id">rune_comet_tail · สี #ffe08a</div></div></div>
+    <div class="desc">Moving fast leaves light behind.</div>
+    <ul class="st"><li class="fx">✦ Dash skill: +6 class resource (3 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Astral Weaver line</div>
+    <div class="meta">ดรอป: elite 1.1%</div>
+    <div class="tags"><span>MOBILITY</span><span>RESOURCE</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินรูนสีเหลืองนวล สลักดาวหางมีหางยาว</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#ffb0ff">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Supernova</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Rune (รูน)</div>
+      <div class="id">rune_supernova · สี #ffb0ff</div></div></div>
+    <div class="desc">A full sky wants to burst.</div>
+    <ul class="st"><li class="fx">✦ Class resource full: your next hit within 5 s deals +40% damage (10 s cooldown).</li></ul>
+    <div class="meta">เฉพาะ: Astral Weaver line · <b style="color:#8ad8ff">SET Constellation</b></div>
+    <div class="meta">ดรอป: elite 1.1% · mini_relic 5%</div>
+    <div class="tags"><span>BURST</span><span>RESOURCE</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินรูนสีชมพูม่วง สลักดาวระเบิดแสงออกรอบทิศ</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#8ab8ff">
+    <div class="top"><div class="sw" title="item colour"><span>CHARM</span></div>
+      <div><div class="nm">Starfocus Charm</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · Charm (ชาร์ม)</div>
+      <div class="id">charm_starfocus · สี #8ab8ff</div></div></div>
+    <div class="desc">A lens of frozen starlight.</div>
+    <ul class="st"><li class="up">+8% Magic Damage</li><li class="down">-8% Defense</li></ul>
+    <div class="meta">เฉพาะ: Astral Weaver line</div>
+    <div class="meta">ดรอป: elite 1.1%</div>
+    <div class="tags"><span>ASTRAL</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เลนส์คริสตัลน้ำแข็งสีฟ้าใส ข้างในมีดาวดวงเดียว แขวนโซ่เงิน</div>
+  </div></div><h2 class="">UNIVERSAL — ทุกคลาสใช้ได้ (6)</h2><div class="grid"><div class="card" style="--rc:#7ad8a0;--ic:#a0c890">
+    <div class="top"><div class="sw" title="item colour"><span>CLOAK</span></div>
+      <div><div class="nm">Pathfinder Mail</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · Armor Core (แกนเกราะ)</div>
+      <div class="id">armor_pathfinder · สี #a0c890</div></div></div>
+    <div class="desc">Road armour: light, patched, made to keep walking.</div>
+    <ul class="st"><li class="up">+8% Max HP</li><li class="up">+5% Movement Speed</li><li class="up">+10% Status Resistance</li><li class="down">-5% Defense</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: grukk 16.7%</div>
+    <div class="tags"><span>MOBILITY</span><span>SUSTAIN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เกราะหนังเย็บปะ สีเขียวขี้ม้า-น้ำตาล มีกระเป๋า เข็มทิศเล็กห้อย ดูเบาสำหรับเดินทาง</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#ff8a40">
+    <div class="top"><div class="sw" title="item colour"><span>HEART</span></div>
+      <div><div class="nm">Ember of War</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Relic (เรลิก)</div>
+      <div class="id">relic_ember_war · สี #ff8a40</div></div></div>
+    <div class="desc">It flares when a great foe changes its rage. Costs a little of your own fire.</div>
+    <ul class="st"><li class="down">-5% Max HP</li><li class="fx">✦ A boss enters a new phase: +15% Attack for 10 s (20 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: mini_relic 20%</div>
+    <div class="tags"><span>BOSS</span><span>BURST</span></div>
+    <div class="brief"><b>ART BRIEF:</b> ถ่านไฟสีส้มในกรงเหล็กสีดำ เปลวไฟพุ่งขึ้น มีประกายไฟลอย</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#8fe0a0">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Second Wind</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · Rune (รูน)</div>
+      <div class="id">rune_second_wind · สี #8fe0a0</div></div></div>
+    <div class="desc">One deep breath, once in a while.</div>
+    <ul class="st"><li class="fx">✦ Falling below 35% HP: heal 12% max HP (40 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 1.7% · mini_relic 5%</div>
+    <div class="tags"><span>SUSTAIN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินรูนสีเขียวใบไม้ สลักลมหมุนวน / ปอด</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#ff9a70">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Executioner's Rune</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Rune (รูน)</div>
+      <div class="id">rune_executioner · สี #ff9a70</div></div></div>
+    <div class="desc">One good cut calls the next.</div>
+    <ul class="st"><li class="fx">✦ Critical hit: your next hit within 2 s deals +20% damage (4 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 1.1% · mini_relic 5%</div>
+    <div class="tags"><span>CRITICAL</span><span>BURST</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินรูนสีส้มแซลมอน สลักขวานเพชฌฆาต</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#f0d070">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Hunter's Sigil</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Rune (รูน)</div>
+      <div class="id">rune_hunters_sigil · สี #f0d070</div></div></div>
+    <div class="desc">A clean strike leaves a sign on the prey.</div>
+    <ul class="st"><li class="fx">✦ Critical hit: +1 class mark (5 s cooldown) — a Shadow Mark on you, or your mark on the foe. Classes without a mark gain nothing.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 1.1%</div>
+    <div class="tags"><span>MARK</span><span>CRITICAL</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินรูนสีทองอ่อน สลักเป้าหมาย/รอยเท้าสัตว์ในวงกลม</div>
+  </div><div class="card" style="--rc:#c8c8d0;--ic:#d0c8a0">
+    <div class="top"><div class="sw" title="item colour"><span>CHARM</span></div>
+      <div><div class="nm">Wanderer's Charm</div>
+      <div class="sub"><b style="color:#c8c8d0">COMMON</b> · Charm (ชาร์ม)</div>
+      <div class="id">charm_wanderer · สี #d0c8a0</div></div></div>
+    <div class="desc">A lucky stone from a far road.</div>
+    <ul class="st"><li class="up">+6% Movement Speed</li><li class="up">+10% Status Resistance</li><li class="down">-5% Attack</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 1.7% · mini_relic 5%</div>
+    <div class="tags"><span>MOBILITY</span><span>UTILITY</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินแม่น้ำเรียบสีครีมมีรูตรงกลาง ผูกเชือกหนัง (COMMON)</div>
+  </div></div><h2 class="">GUARD / COUNTER / BARRIER — ชุดแรก (G1, เหมาะกับ Aegis) (14)</h2><div class="grid"><div class="card" style="--rc:#6aa8ff;--ic:#c8d0e0">
+    <div class="top"><div class="sw" title="item colour"><span>SHIELD</span></div>
+      <div><div class="nm">Ironheart Core</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Weapon Core (แกนอาวุธ)</div>
+      <div class="id">core_ironheart · สี #c8d0e0</div></div></div>
+    <div class="desc">A core of folded iron. Every blow you take steels the next block.</div>
+    <ul class="st"><li class="up">+15% Defense</li><li class="up">+25% Guard Generation</li></ul>
+    <div class="meta">ทุกคลาส · <b style="color:#c8b080">SET Iron Vigil</b></div>
+    <div class="meta">ดรอป: hoarfang 20% · hollow_fang 20%</div>
+    <div class="tags"><span>GUARD</span><span>DEFENSE</span></div>
+    <div class="brief"><b>ART BRIEF:</b> แกนเหล็กพับหลายชั้นทรงหัวใจ ฝังในโล่สั้น สีเงินหม่น ขอบสนิมนิดๆ ตรงกลางมีแสงน้ำเงินอ่อนเต้นเป็นจังหวะ</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#ff7a6a">
+    <div class="top"><div class="sw" title="item colour"><span>SWORD</span></div>
+      <div><div class="nm">Counter Core</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Weapon Core (แกนอาวุธ)</div>
+      <div class="id">core_counter · สี #ff7a6a</div></div></div>
+    <div class="desc">Built to answer. Your counters cut deeper, your shields grow thinner.</div>
+    <ul class="st"><li class="up">+30% Counter Damage</li><li class="down">-20% Barrier Strength</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: hoarfang 20% · hollow_fang 20%</div>
+    <div class="tags"><span>COUNTER</span><span>RISK</span></div>
+    <div class="brief"><b>ART BRIEF:</b> แกนดาบสีแดงอมส้ม ใบมีดหักเป็นสองท่อนต่อกันด้วยเปลวไฟ สื่อ &quot;ตอบโต้&quot; — ฟาดกลับ</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#f0c850">
+    <div class="top"><div class="sw" title="item colour"><span>SHIELD</span></div>
+      <div><div class="nm">Vanguard Core</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · Weapon Core (แกนอาวุธ)</div>
+      <div class="id">core_vanguard · สี #f0c850</div></div></div>
+    <div class="desc">Stand at the front. Foes look at you first — and you are slower to leave.</div>
+    <ul class="st"><li class="up">+15% Max HP</li><li class="up">+50% Aggro</li><li class="down">-8% Movement Speed</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: hoarfang 20% · hollow_fang 20%</div>
+    <div class="tags"><span>AGGRO</span><span>DEFENSE</span></div>
+    <div class="brief"><b>ART BRIEF:</b> แกนโล่ทรงหัวลูกศรชี้ขึ้น สีทองด้าน มีธงผืนเล็กติดด้านบน ดูหนักและยืนแนวหน้า</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#c8a050">
+    <div class="top"><div class="sw" title="item colour"><span>CLOAK</span></div>
+      <div><div class="nm">Fortress Armor</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Armor Core (แกนเกราะ)</div>
+      <div class="id">armor_fortress · สี #c8a050</div></div></div>
+    <div class="desc">Walls you wear. Very hard to kill, slow to move.</div>
+    <ul class="st"><li class="up">+20% Defense</li><li class="up">+12% Max HP</li><li class="down">-10% Movement Speed</li></ul>
+    <div class="meta">ทุกคลาส · <b style="color:#c8b080">SET Iron Vigil</b></div>
+    <div class="meta">ดรอป: grukk 16.7%</div>
+    <div class="tags"><span>DEFENSE</span><span>TANK</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เกราะอกหนาทรงกำแพงปราสาท มีเชิงเทินที่บ่า สีทองแดง-น้ำตาล หมุดเหล็กใหญ่ ดูหนักมาก</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#8ad0ff">
+    <div class="top"><div class="sw" title="item colour"><span>CLOAK</span></div>
+      <div><div class="nm">Guardian Armor</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Armor Core (แกนเกราะ)</div>
+      <div class="id">armor_guardian · สี #8ad0ff</div></div></div>
+    <div class="desc">Armor of a protector: stronger barriers, a steadier guard.</div>
+    <ul class="st"><li class="up">+25% Barrier Strength</li><li class="up">+5% Damage Reduction</li><li class="up">+15% Guard Generation</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: grukk 16.7%</div>
+    <div class="tags"><span>BARRIER</span><span>GUARD</span><span>SUPPORT</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เกราะเงินอมฟ้า มีลวดลายโล่โปร่งแสงลอยรอบตัวเกราะ (บาเรีย) เส้นแสงฟ้าอ่อน</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#ff5a7a">
+    <div class="top"><div class="sw" title="item colour"><span>CLOAK</span></div>
+      <div><div class="nm">Risk Armor</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Armor Core (แกนเกราะ)</div>
+      <div class="id">armor_risk · สี #ff5a7a</div></div></div>
+    <div class="desc">Half the plates are missing on purpose. Pain feeds you.</div>
+    <ul class="st"><li class="down">-20% Defense</li><li class="up">+25% Resource Generation</li><li class="up">+15% Counter Damage</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: grukk 16.7%</div>
+    <div class="tags"><span>RISK</span><span>COUNTER</span><span>RESOURCE</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เกราะแดงเข้มที่มีรอยร้าวทั่ว แสงแดงลอดออกจากรอยแตก ดูอันตราย เปราะแต่ดุ</div>
+  </div><div class="card" style="--rc:#c8c8d0;--ic:#a89880">
+    <div class="top"><div class="sw" title="item colour"><span>CHARM</span></div>
+      <div><div class="nm">Heavy Charm</div>
+      <div class="sub"><b style="color:#c8c8d0">COMMON</b> · Charm (ชาร์ม)</div>
+      <div class="id">charm_heavy · สี #a89880</div></div></div>
+    <div class="desc">A lump of lead on a cord.</div>
+    <ul class="st"><li class="up">+8% Max HP</li><li class="down">-5% Movement Speed</li></ul>
+    <div class="meta">ทุกคลาส · <b style="color:#c8b080">SET Iron Vigil</b></div>
+    <div class="meta">ดรอป: elite 1.7%</div>
+    <div class="tags"><span>DEFENSE</span></div>
+    <div class="brief"><b>ART BRIEF:</b> ก้อนตะกั่วผูกเชือกหยาบ สีเทาน้ำตาล เรียบง่ายที่สุด (COMMON)</div>
+  </div><div class="card" style="--rc:#c8c8d0;--ic:#7ad8a0">
+    <div class="top"><div class="sw" title="item colour"><span>CHARM</span></div>
+      <div><div class="nm">Swift Charm</div>
+      <div class="sub"><b style="color:#c8c8d0">COMMON</b> · Charm (ชาร์ม)</div>
+      <div class="id">charm_swift · สี #7ad8a0</div></div></div>
+    <div class="desc">A feather that never stops moving.</div>
+    <ul class="st"><li class="up">+8% Movement Speed</li><li class="down">-8% Defense</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 1.7%</div>
+    <div class="tags"><span>MOBILITY</span></div>
+    <div class="brief"><b>ART BRIEF:</b> ขนนกสีเขียวอ่อนผูกกับลูกปัดไม้ มีเส้นลมพัดผ่าน</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#8ab8ff">
+    <div class="top"><div class="sw" title="item colour"><span>CHARM</span></div>
+      <div><div class="nm">Focus Charm</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · Charm (ชาร์ม)</div>
+      <div class="id">charm_focus · สี #8ab8ff</div></div></div>
+    <div class="desc">A cold bead that quiets the mind.</div>
+    <ul class="st"><li class="up">+8% Cooldown Reduction</li><li class="down">-6% Max HP</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 1.1%</div>
+    <div class="tags"><span>COOLDOWN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เลนส์แก้วกลมสีฟ้าในกรอบทองเหลือง มีจุดแสงตรงกลาง</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#f0c850">
+    <div class="top"><div class="sw" title="item colour"><span>CHARM</span></div>
+      <div><div class="nm">Guardian Charm</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · Charm (ชาร์ม)</div>
+      <div class="id">charm_guardian · สี #f0c850</div></div></div>
+    <div class="desc">A tiny bronze shield. Monsters hate it.</div>
+    <ul class="st"><li class="up">+30% Aggro</li><li class="up">+20% Taunt Power</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 1.1%</div>
+    <div class="tags"><span>AGGRO</span><span>TAUNT</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เหรียญทองรูปโล่ มีสายริบบิ้นแดง ด้านหน้ามีรูปหน้าสิงโตคำราม (ยั่วยุศัตรู)</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#c8d0e0">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Guarding Soul</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · Rune (รูน)</div>
+      <div class="id">rune_guarding_soul · สี #c8d0e0</div></div></div>
+    <div class="desc">Every block feeds the guard.</div>
+    <ul class="st"><li class="fx">✦ Block: +4 class resource (0.5 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 1.7%</div>
+    <div class="tags"><span>GUARD</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินรูนเทาเงิน สลักสัญลักษณ์โล่ แสงฟ้าอ่อนไหลตามร่อง</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#b0b8c8">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Iron Will</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · Rune (รูน)</div>
+      <div class="id">rune_iron_will · สี #b0b8c8</div></div></div>
+    <div class="desc">The lower you fall, the harder you stand.</div>
+    <ul class="st"><li class="fx">✦ Hit while below 40% HP: +20% Defense for 4 s.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 1.7%</div>
+    <div class="tags"><span>DEFENSE</span><span>SURVIVAL</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินรูนเทาเข้ม สลักรูปกำปั้น/ทั่งตีเหล็ก แสงขาวหม่น</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#ff7a6a">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Retribution</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Rune (รูน)</div>
+      <div class="id">rune_retribution · สี #ff7a6a</div></div></div>
+    <div class="desc">A perfect guard sharpens the answer.</div>
+    <ul class="st"><li class="fx">✦ Perfect Guard: your next hit within 3 s deals +30% damage.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 1.1%</div>
+    <div class="tags"><span>GUARD</span><span>COUNTER</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินรูนแดงส้ม สลักรูปดาบไขว้หัวลูกศรย้อนกลับ</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#f0a050">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Provocation</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Rune (รูน)</div>
+      <div class="id">rune_provocation · สี #f0a050</div></div></div>
+    <div class="desc">Their anger is your rest.</div>
+    <ul class="st"><li class="fx">✦ Taunt: defensive skills recover 1 s (3 s cooldown).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 1.1%</div>
+    <div class="tags"><span>TAUNT</span><span>AGGRO</span><span>COOLDOWN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> หินรูนส้มอำพัน สลักรูปปากที่ตะโกน/คลื่นเสียง</div>
+  </div></div><h2 class="">LEGACY ACCESSORIES — ของเก่าก่อนระบบ Item (11)</h2><div class="grid"><div class="card" style="--rc:#c080ff;--ic:#e0a040">
+    <div class="top"><div class="sw" title="item colour"><span>SWORD</span></div>
+      <div><div class="nm">Duskfang Blade</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Weapon Core (แกนอาวุธ)</div>
+      <div class="id">duskfang_blade · สี #e0a040</div></div></div>
+    <div class="desc">Serrated with wolf fangs.</div>
+    <ul class="st"><li class="up">atk +4</li><li class="up">crit +0.15</li><li class="fx">✦ Twin Fang strikes 3 times.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Duskfang Blade: Serrated with wolf fangs.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#5af0ff">
+    <div class="top"><div class="sw" title="item colour"><span>SWORD</span></div>
+      <div><div class="nm">Crystalbreaker Edge</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Weapon Core (แกนอาวุธ)</div>
+      <div class="id">crystalbreaker · สี #5af0ff</div></div></div>
+    <div class="desc">Heavy crystal-edged blade.</div>
+    <ul class="st"><li class="up">atk +9</li><li class="up">armorBreak +2.2</li><li class="fx">✦ Shatters crystal armour 2.2× faster.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Crystalbreaker Edge: Heavy crystal-edged blade.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#c080ff">
+    <div class="top"><div class="sw" title="item colour"><span>CLOAK</span></div>
+      <div><div class="nm">Shadeweave Mantle</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Armor Core (แกนเกราะ)</div>
+      <div class="id">shadeweave · สี #c080ff</div></div></div>
+    <div class="desc">Recovered from the Sealed Archive.</div>
+    <ul class="st"><li class="up">def +3</li><li class="up">hp +30</li><li class="up">cdr +0.15</li><li class="fx">✦ Cooldowns -15%. Shade Step leaves an afterimage that explodes.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Shadeweave Mantle: Recovered from the Sealed Archive.</div>
+  </div><div class="card" style="--rc:#ffb040;--ic:#ff80ff">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Eclipse Sigil</div>
+      <div class="sub"><b style="color:#ffb040">LEGENDARY</b> · Relic (เรลิก)</div>
+      <div class="id">eclipse_sigil · สี #ff80ff</div></div></div>
+    <div class="desc">A black medallion found in the Hidden Cave.</div>
+    <ul class="st"><li class="up">shadowDmg +0.1</li><li class="fx">✦ Shadow Break +40% and releases a second wave. Perfect Dodge window +60ms.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Eclipse Sigil: A black medallion found in the Hidden Cave.</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#c080ff">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Rune of Hunger</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Rune (รูน)</div>
+      <div class="id">hunger_rune · สี #c080ff</div></div></div>
+    <div class="desc">A rune that drinks from every cut.</div>
+    <ul class="st"><li class="fx">✦ Shadow Slash +10% damage and +5 Shadow when it hits.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ร้านค้า (320 G)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Rune of Hunger: A rune that drinks from every cut.</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#8a70ff">
+    <div class="top"><div class="sw" title="item colour"><span>CHARM</span></div>
+      <div><div class="nm">Shade Charm</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Charm (ชาร์ม)</div>
+      <div class="id">shade_charm · สี #8a70ff</div></div></div>
+    <div class="desc">Two shadows follow its wearer.</div>
+    <ul class="st"><li class="fx">✦ Shade Step gains 1 extra charge (2 / 2).</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ร้านค้า (360 G)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Shade Charm: Two shadows follow its wearer.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#e0a0ff">
+    <div class="top"><div class="sw" title="item colour"><span>HEART</span></div>
+      <div><div class="nm">Eclipse Relic</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Relic (เรลิก)</div>
+      <div class="id">eclipse_relic · สี #e0a0ff</div></div></div>
+    <div class="desc">A shard of the first eclipse.</div>
+    <ul class="st"><li class="fx">✦ Eclipse Sever -10% cooldown · shadow skills +3% damage.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ร้านค้า (520 G)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Eclipse Relic: A shard of the first eclipse.</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#80d080">
+    <div class="top"><div class="sw" title="item colour"><span>CHARM</span></div>
+      <div><div class="nm">Hunter's Charm</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · Charm (ชาร์ม)</div>
+      <div class="id">hunters_charm · สี #80d080</div></div></div>
+    <div class="desc">A charm of braided fang and silver.</div>
+    <ul class="st"><li class="up">crit +0.08</li><li class="up">shadowGain +0.25</li><li class="fx">✦ Shadow gain +25%.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ร้านค้า (260 G)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Hunter's Charm: A charm of braided fang and silver.</div>
+  </div><div class="card" style="--rc:#ffb040;--ic:#5af0ff">
+    <div class="top"><div class="sw" title="item colour"><span>HEART</span></div>
+      <div><div class="nm">Heart of the Guardian</div>
+      <div class="sub"><b style="color:#ffb040">LEGENDARY</b> · Relic (เรลิก)</div>
+      <div class="id">guardian_heart · สี #5af0ff</div></div></div>
+    <div class="desc">The Guardian’s crystal heart, now calm.</div>
+    <ul class="st"><li class="up">hp +60</li><li class="up">def +3</li><li class="fx">✦ Perfect Dodge restores 5% HP.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: guardian 100%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Heart of the Guardian: The Guardian’s crystal heart, now calm.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#9af8ff">
+    <div class="top"><div class="sw" title="item colour"><span>CHARM</span></div>
+      <div><div class="nm">Veil of Stillness</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Relic (เรลิก)</div>
+      <div class="id">veil_stillness · สี #9af8ff</div></div></div>
+    <div class="desc">A silver veil found behind Silverfall.</div>
+    <ul class="st"><li class="up">crit +0.04</li><li class="fx">✦ Perfect Dodge grants +1 extra Shadow Mark and +15 SHADOW.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Veil of Stillness: A silver veil found behind Silverfall.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#b070ff">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Umbral Band</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Charm (ชาร์ม)</div>
+      <div class="id">umbral_band · สี #b070ff</div></div></div>
+    <div class="desc">A ring of blackened iron that drinks shadow.</div>
+    <ul class="st"><li class="up">atk +2</li><li class="fx">✦ Shadow Break damage +30%.</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Umbral Band: A ring of blackened iron that drinks shadow.</div>
+  </div></div>
+</body></html>
