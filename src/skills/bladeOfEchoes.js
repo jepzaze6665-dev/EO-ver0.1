@@ -71,7 +71,7 @@ export const BladeOfEchoes = {
   preset: 'be',
   anims: BE_ANIMS,
   theme: { color: C, ghost: '#ff2040', trail: 'shadow' },
-  startingGear: { weapon: 'memory_blade', armor: 'echo_coat' },
+  kit: { weapon: 'memory_blade', armor: 'echo_coat' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   resource: E, // builder: taking hits, perfect counters, echo skills (tiers in data/resources.js = PAIN REMEMBERS)
   resources: [E],
   mark: null,

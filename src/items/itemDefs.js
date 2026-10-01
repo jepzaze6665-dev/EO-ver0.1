@@ -28,6 +28,7 @@ export function normalizeItem(id, def) {
   if (def.dropSource == null) def.dropSource = null;
   if (def.levelRequirement == null) def.levelRequirement = 0; // character level needed to equip (0 = none)
   if (def.setId == null) def.setId = null; // item set (data/items/sets.js)
+  if (def.bound == null) def.bound = false; // BOUND: never leaves its owner (no sale / storage; future: no trade / drop)
   if (!def.persistence) def.persistence = isGear(def) || def.type === 'quest_item' ? PERSISTENCE.PERMANENT : PERSISTENCE.NORMAL;
   return def;
 }

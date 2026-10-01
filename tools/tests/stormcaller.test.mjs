@@ -1,5 +1,6 @@
 // Unit tests for the Stormcaller (Class 2 of the Astral Weaver). Run:  node tools/tests/stormcaller.test.mjs
 // The live-game behaviour (chains, wires, bursts, class change) is checked by C.stormChecks in tools/combatTest.js.
+import { KIT_PIECES } from '../../src/data/classKits.js';
 import { CLASSES } from '../../src/skills/classes.js';
 import { CLASS_TREE } from '../../src/data/classTree.js';
 import { RESOURCES } from '../../src/data/resources.js';
@@ -21,7 +22,7 @@ console.log('stormcaller');
 test('registered, playable Class 2 of the Astral Weaver, own preset / weapon / resource', () => {
   ok(SC && CLASS_TREE.stormcaller.playable && CLASS_TREE.stormcaller.parent === 'astral_weaver', 'tree');
   ok(SC.preset === 'sm' && SC.resource === 'storm_charge' && RESOURCES.storm_charge, 'preset / resource');
-  ok(ITEMS[SC.startingGear.weapon] && ITEMS[SC.startingGear.armor] && SC.signatureWeapon === 'storm_staff', 'gear');
+  ok(KIT_PIECES[SC.kit.weapon] && KIT_PIECES[SC.kit.armor] && SC.signatureWeapon === 'storm_staff', 'gear');
 });
 test('kit: 5 actives + ultimate + Storm Burst special, all with a tier, icon art and a description', () => {
   ok(SC.skills.filter((s) => s.type === 'active').length === 5 && SC.skills.some((s) => s.ultimate) && SC.special.id === 'storm_burst', 'counts');

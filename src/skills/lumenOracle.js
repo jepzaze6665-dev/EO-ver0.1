@@ -84,7 +84,7 @@ export const LumenOracle = {
   preset: 'lo',
   anims: LO_ANIMS,
   theme: { color: C, ghost: '#ffd070', trail: 'stardust' },
-  startingGear: { weapon: 'lumen_staff', armor: 'oracle_vestment' },
+  kit: { weapon: 'lumen_staff', armor: 'oracle_vestment' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   resource: L,
   resources: [L],
   mark: null,

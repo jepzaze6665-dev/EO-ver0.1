@@ -65,7 +65,7 @@ export const BulwarkSentinel = {
   // UNBROKEN (passive) = tenacity / knockResist / poiseResist in the base stats
   base: { hp: 360, atk: 18, def: 16, crit: 0.03, critDmg: 0, holyDmg: 0, cdr: 0, speed: 126, bastionGain: 1, armorBreak: 1.1, tenacity: 0.3, knockResist: 0.5, poiseResist: 0.4 },
   perLevel: { hp: 18, atk: 1.1, def: 1.0 },
-  startingGear: { weapon: 'bastion_aegis', armor: 'fortress_plate' },
+  kit: { weapon: 'bastion_aegis', armor: 'fortress_plate' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   defaultLoadout: ['fortress_step', 'absolute_provocation', 'counterweight', 'shieldwall'],
   guard: { arc: 1.35, reduction: 0.8, perfectWindow: 0.2, moveMul: 0.35, recover: 0.3, fx: 'bs_aegis' },
 

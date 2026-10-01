@@ -1,5 +1,6 @@
 // Unit tests for Class 2 BULWARK SENTINEL + its generic pieces (knockResist / poiseResist stats, guardBlockMult).
 // Run:  node tools/tests/bulwark.test.mjs
+import { KIT_PIECES } from '../../src/data/classKits.js';
 import { ResourcePool } from '../../src/combat/resourceSystem.js';
 import { SkillSystem } from '../../src/combat/skillSystem.js';
 import { StatusSet } from '../../src/status/status.js';
@@ -41,7 +42,7 @@ const skill = (id) => [...B.skills, B.special].find((s) => s.id === id);
 console.log('bulwark sentinel');
 test('class data: registered + playable Class 2 of the Aegis, own preset / gear / Bastion, low mobility', () => {
   ok(CLASSES.bulwark_sentinel === B && CLASS_TREE.bulwark_sentinel.playable && CLASS_TREE.bulwark_sentinel.parent === 'aegis_guardian', 'registry');
-  ok(B.preset === 'bs' && ITEMS[B.startingGear.weapon] && ITEMS[B.startingGear.armor] && RESOURCES.bastion.max === 100, 'preset / gear / resource');
+  ok(B.preset === 'bs' && KIT_PIECES[B.kit.weapon] && KIT_PIECES[B.kit.armor] && RESOURCES.bastion.max === 100, 'preset / gear / resource');
   ok(B.base.speed < CLASSES.aegis_guardian.base.speed && B.base.def > CLASSES.aegis_guardian.base.def, 'slower + tougher than the Aegis');
   ok(B.base.knockResist > 0 && B.base.poiseResist > 0 && B.base.tenacity > 0, 'Unbroken stats');
   for (const s of [...B.skills, B.special]) ok(SKILL_TIERS[s.tier] && s.cooldown > 0, s.id);

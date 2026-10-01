@@ -29,15 +29,9 @@ export function changeClass(game, toId, opts = {}) {
   if (!check.ok) return check;
   const old = game.player, from = old.cls, to = CLASSES[toId];
 
-  // signature gear follows the class; other equipment (found / crafted) stays equipped
+  // K1: the class weapon / armour are the class's KIT (data/classKits.js), not items — nothing is created or moved here,
+  // so a class change can never duplicate an item. Found gear stays equipped (enforceClass below drops what is not allowed).
   const eq = game.equipment;
-  for (const slot of ['weapon', 'armor']) {
-    const oldSig = from.startingGear && from.startingGear[slot], newSig = to.startingGear && to.startingGear[slot];
-    if (!newSig || eq.slots[slot] !== oldSig) continue;
-    const worn = eq.instanceFor(slot); // the old signature item goes to the bag as the same instance
-    if (oldSig && !game.inventory.has(oldSig)) game.inventory.addItem(worn);
-    eq.slots[slot] = newSig;
-  }
 
   const p = new Player(game, to, game.spritesFor(to));
   // class progress: keep the old class's loadout + skills (now LOCKED), restore the new class's own loadout

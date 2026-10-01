@@ -78,7 +78,7 @@ export const WardenOfDawn = {
   enemyMark: 'guardian_mark',
   base: { hp: 320, atk: 17, def: 12, crit: 0.04, critDmg: 0, holyDmg: 0, cdr: 0, speed: 138, dawnGain: 1, armorBreak: 1.1, barrierPower: 0 },
   perLevel: { hp: 15, atk: 1.1, def: 0.8 },
-  startingGear: { weapon: 'dawn_aegis', armor: 'dawn_plate' },
+  kit: { weapon: 'dawn_aegis', armor: 'dawn_plate' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   // solo-friendly default; Radiant Chain (an ally skill) is swapped in from the Skills tab in a party
   defaultLoadout: ['dawn_shield', 'guardian_march', 'dawn_bastion', 'grace_of_dawn'],
   guard: { arc: 1.25, reduction: 0.75, perfectWindow: 0.2, moveMul: 0.4, recover: 0.3, fx: 'dw_shield' },

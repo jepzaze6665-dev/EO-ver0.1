@@ -1,4 +1,5 @@
 // Unit tests for Class 2 OATHBREAKER. Run:  node tools/tests/oathbreaker.test.mjs
+import { KIT_PIECES } from '../../src/data/classKits.js';
 import { ResourcePool } from '../../src/combat/resourceSystem.js';
 import { SkillSystem } from '../../src/combat/skillSystem.js';
 import { StatusSet } from '../../src/status/status.js';
@@ -38,7 +39,7 @@ const play = (act) => { if (act.start) act.start(); for (const [, fn] of act.eve
 console.log('oathbreaker');
 test('class data: registered + playable Class 2 of the Aegis, preset / gear / resource / mark, riskier than the Aegis', () => {
   ok(CLASSES.oathbreaker === O && CLASS_TREE.oathbreaker.playable && CLASS_TREE.oathbreaker.parent === 'aegis_guardian', 'registry');
-  ok(O.preset === 'ok' && ITEMS[O.startingGear.weapon] && ITEMS[O.startingGear.armor] && RESOURCES.broken_oath && MARKS.oath_brand, 'data');
+  ok(O.preset === 'ok' && KIT_PIECES[O.kit.weapon] && KIT_PIECES[O.kit.armor] && RESOURCES.broken_oath && MARKS.oath_brand, 'data');
   ok(O.base.def < CLASSES.aegis_guardian.base.def && O.guard.reduction < CLASSES.aegis_guardian.guard.reduction && O.base.atk > CLASSES.aegis_guardian.base.atk, 'risk trade');
   for (const s of [...O.skills, O.special]) ok(SKILL_TIERS[s.tier] && s.cooldown > 0, s.id);
 });

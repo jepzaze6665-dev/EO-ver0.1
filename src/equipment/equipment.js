@@ -16,7 +16,6 @@ export class Equipment {
   constructor(game) {
     this.game = game;
     this.slots = Object.fromEntries(GEAR_SLOTS.map((s) => [s.id, null]));
-    this.slots.weapon = 'umbral_sword'; this.slots.armor = 'umbral_cloak';
     this.inst = {}; // slot -> { instanceId, itemId }
     this.modifiers = new ModifierSet();
     this.modKey = null; // which slot contents the modifier set was built from

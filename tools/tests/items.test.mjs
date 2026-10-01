@@ -44,7 +44,8 @@ test('first item set (G1) still there; I3 adds the Umbral / Astral / universal f
   ok(Object.keys(GEAR_SOURCES).length === 9, 'nine data files');
 });
 test('older gear got a type; stack items are not gear', () => {
-  eq(ITEMS.umbral_sword.type, 'weapon_core'); eq(ITEMS.aegis_plate.type, 'armor_core'); eq(ITEMS.eclipse_sigil.type, 'relic');
+  eq(ITEMS.duskfang_blade.type, 'weapon_core'); eq(ITEMS.shadeweave.type, 'armor_core'); eq(ITEMS.eclipse_sigil.type, 'relic');
+  for (const id of ['umbral_sword', 'umbral_cloak', 'aegis_plate', 'reaper_scythe']) ok(!ITEMS[id], id + ' is a CLASS KIT piece, not an item (K1)');
   eq(ITEMS.shade_charm.type, 'charm'); eq(ITEMS.hunger_rune.type, 'rune');
   for (const id of ['hp_potion', 'wolf_fang', 'cinder_shard']) ok(!isGear(ITEMS[id]), id);
   for (const d of Object.values(ITEMS)) if (d.slot) ok(GEAR_TYPES.includes(d.type), d.id);
@@ -135,17 +136,18 @@ test('older saves (gear as counts) become instances; junk is cleaned', () => {
 console.log('equipment instances');
 test('equip moves the instance from the bag to the slot; the old item goes back as its own instance', () => {
   const g = game(), inv = g.inventory, eqp = g.equipment;
-  const worn = eqp.instanceFor('weapon');
-  inv.add('duskfang_blade'); const id = inv.findItem('duskfang_blade').instanceId;
-  ok(eqp.equip('duskfang_blade'), 'equip');
-  eq(eqp.slots.weapon, 'duskfang_blade'); eq(eqp.inst.weapon.instanceId, id); eq(inv.count('duskfang_blade'), 0);
-  eq(inv.findItem('umbral_sword').instanceId, worn.instanceId); ok(g.player.recomputed > 0, 'stats recomputed');
+  eq(eqp.slots.weapon, null, 'a new game starts with every slot empty (K1)');
+  inv.add('core_counter'); inv.add('duskfang_blade'); const id = inv.findItem('core_counter').instanceId;
+  ok(eqp.equip('core_counter'), 'equip');
+  eq(eqp.slots.weapon, 'core_counter'); eq(eqp.inst.weapon.instanceId, id); eq(inv.count('core_counter'), 0);
+  ok(eqp.equip('duskfang_blade'), 'replace');
+  eq(inv.findItem('core_counter').instanceId, id, 'the replaced core is back as the same instance'); ok(g.player.recomputed > 0, 'stats recomputed');
 });
-test('unequip puts the instance back; the weapon core slot is never empty', () => {
+test('unequip puts the instance back; every slot (weapon core too) may be empty (K1)', () => {
   const g = game(), inv = g.inventory, eqp = g.equipment;
   inv.add('umbral_band'); ok(eqp.equip('umbral_band'), 'equip charm'); const id = eqp.inst.charm.instanceId;
   ok(eqp.unequip('charm'), 'unequip'); eq(eqp.slots.charm, null); eq(inv.findItem('umbral_band').instanceId, id);
-  ok(!eqp.unequip('weapon'), 'weapon fixed'); eq(eqp.lastError, 'fixed');
+  inv.add('core_counter'); ok(eqp.equip('core_counter'), 'weapon core'); ok(eqp.unequip('weapon'), 'weapon core can be taken off'); eq(eqp.slots.weapon, null);
   ok(!eqp.equip('shade_charm'), 'not owned'); eq(eqp.lastError, 'notOwned');
 });
 test('equipment save / load keeps ids; bad slots repaired; an old accessory moves to its type slot', () => {
@@ -154,9 +156,11 @@ test('equipment save / load keeps ids; bad slots repaired; an old accessory move
   const g2 = game(); g2.inventory.load(inv); g2.equipment.load(e);
   eq(g2.equipment.slots.charm, 'umbral_band'); eq(g2.equipment.instanceFor('charm').instanceId, g.equipment.inst.charm.instanceId);
   const g3 = game(); g3.equipment.load({ weapon: 'ghost', armor: 'hp_potion', relic: 'umbral_sword' });
-  eq(g3.equipment.slots.weapon, 'umbral_sword'); eq(g3.equipment.slots.armor, null); eq(g3.equipment.slots.relic, null);
-  const g4 = game(); g4.equipment.load({ weapon: 'umbral_sword', armor: 'umbral_cloak', accessory: 'eclipse_sigil' }); // pre-v5
-  ok(g4.equipment.instanceFor('armor').instanceId.startsWith('item_'), 'made on demand'); eq(g4.equipment.slots.relic, 'eclipse_sigil');
+  eq(g3.equipment.slots.weapon, null); eq(g3.equipment.slots.armor, null); eq(g3.equipment.slots.relic, null);
+  // a pre-K1 save names the old class kit items: they no longer exist, so the slots stay empty (the kit is the class's own)
+  const g4 = game(); g4.equipment.load({ weapon: 'umbral_sword', armor: 'umbral_cloak', accessory: 'eclipse_sigil' });
+  eq(g4.equipment.slots.weapon, null, 'old kit weapon dropped'); eq(g4.equipment.slots.armor, null, 'old kit armor dropped');
+  ok(g4.equipment.instanceFor('relic').instanceId.startsWith('item_'), 'made on demand'); eq(g4.equipment.slots.relic, 'eclipse_sigil');
   const g5 = game(); g5.equipment.load({ accessory: 'hunger_rune' }); eq(g5.equipment.slots.rune1, 'hunger_rune');
   const g6 = game(); g6.equipment.load({ rune1: 'rune_iron_will', rune2: 'rune_iron_will' }); eq(g6.equipment.slots.rune2, null, 'edited duplicate');
 });
@@ -164,7 +168,7 @@ test('equipment save / load keeps ids; bad slots repaired; an old accessory move
 console.log('gear loadout (7 slots)');
 test('7 slots: weapon core, armor core, relic, charm, rune 1-3; view() in loadout shape', () => {
   eq(GEAR_SLOTS.length, 7); const g = game();
-  const v = g.equipment.view(); eq(v.weaponCore, 'umbral_sword'); eq(v.runes.length, 3); eq(v.relic, null);
+  const v = g.equipment.view(); eq(v.weaponCore, null); eq(v.runes.length, 3); eq(v.relic, null);
 });
 test('every type goes to its own slot; runes fill rune 1, 2, 3 then swap rune 1', () => {
   const g = game(), inv = g.inventory, eqp = g.equipment;
@@ -197,8 +201,8 @@ test('class restriction from data (allowedClasses); class change takes off what 
 });
 test('bag full: a swap that cannot return the old item changes nothing', () => {
   const g = game(), inv = g.inventory, eqp = g.equipment;
-  inv.add('umbral_sword', 9); inv.add('core_counter');
-  ok(!eqp.equip('core_counter'), 'refused'); eq(eqp.lastError, 'bagFull'); eq(eqp.slots.weapon, 'umbral_sword'); ok(inv.has('core_counter'), 'core kept');
+  inv.add('core_vanguard'); eqp.equip('core_vanguard'); inv.add('core_vanguard', 9); inv.add('core_counter'); // the bag already holds a full stack of the worn core
+  ok(!eqp.equip('core_counter'), 'refused'); eq(eqp.lastError, 'bagFull'); eq(eqp.slots.weapon, 'core_vanguard'); ok(inv.has('core_counter'), 'core kept');
 });
 
 console.log('modifier system');
@@ -235,12 +239,14 @@ test('equipment: final stats follow the worn items, back to exact base after une
   eqp.equip('armor_guardian'); eq(+eqp.finalStats(base).barrierPower.toFixed(3), 0.25, 'Guardian Armor barrier');
   eq(+eqp.getModifierValue('guardGeneration').toFixed(3), 0.4, 'guard gen 0.25 + 0.15');
   eqp.equip('charm_heavy'); eq(+eqp.finalStats(base).hp.toFixed(3), 356.4); eq(+eqp.finalStats(base).speed.toFixed(3), 131.1);
-  eqp.unequip('charm'); eqp.unequip('armor'); inv.add('umbral_sword'); eqp.equip('umbral_sword');
+  eqp.unequip('charm'); eqp.unequip('armor'); eqp.unequip('weapon');
   const back = eqp.finalStats(base); for (const k of Object.keys(base)) eq(back[k], base[k], k);
 });
-test('save v4 migrates to v5', () => {
+test('save v4 / v5 migrate to the current version (v6, K1); old kit item ids are dropped by the loaders', () => {
   const r = parseSave(JSON.stringify({ v: 4, player: { classId: 'aegis_guardian', x: 1, y: 2 }, inventory: { items: { aegis_plate: 1 } } }));
-  ok(r.ok, r.error); eq(r.data.v, 5);
+  ok(r.ok, r.error); eq(r.data.v, 6);
+  const r5 = parseSave(JSON.stringify({ v: 5, player: { classId: 'aegis_guardian', x: 1, y: 2 } })); ok(r5.ok, r5.error); eq(r5.data.v, 6);
+  const g = game(); g.inventory.load(r.data.inventory); eq(g.inventory.count('aegis_plate'), 0, 'the old starter armour is gone from the bag');
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -67,7 +67,7 @@ export const AstralWeaver = {
   enemyMark: 'star_mark',
   base: { hp: 210, atk: 21, def: 4, crit: 0.07, critDmg: 0, magicDmg: 0, cdr: 0, speed: 150, astralGain: 1, armorBreak: 1 },
   perLevel: { hp: 10, atk: 1.6, def: 0.4 },
-  startingGear: { weapon: 'celestial_loom', armor: 'astral_robe' },
+  kit: { weapon: 'celestial_loom', armor: 'astral_robe' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   // Astral Charge generation rules (data, not code)
   charge: { basicHit: 4, needleHit: 5, threadTouch: 3, markApplied: 2, bind: 6, constellation: 14 },
   guideIntro: [

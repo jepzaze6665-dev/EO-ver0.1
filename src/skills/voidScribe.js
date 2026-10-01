@@ -71,7 +71,7 @@ export const VoidScribe = {
   preset: 'vs',
   anims: VS_ANIMS,
   theme: { color: C, ghost: '#6a2aff', trail: 'shadow' },
-  startingGear: { weapon: 'void_tome', armor: 'scribe_robe' },
+  kit: { weapon: 'void_tome', armor: 'scribe_robe' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   resource: INK,
   resources: [INK],
   mark: null,

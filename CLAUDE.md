@@ -1001,6 +1001,17 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `T.itemSystemCheck(g)` = the owner's §33 list, 20 steps + debug (21/21; fast, boss / monster drops via the real
   'enemyDefeated' event). GOTCHA: g.loadGame() replaces g.inventory — never keep an old reference across a load.
   Tests itemI4.test.mjs (6). ITEM BUILD PASS COMPLETE (I1-I4).
+  Done K1 CLASS KIT (owner: class signature gear must not be items — online / no dupes): each class's weapon + armour are
+  `kit: { weapon, armor }` in its class file (was `startingGear`), pieces in `src/data/classKits.js` (KIT_PIECES, kitPieces,
+  kitStats). They are NOT in ITEMS: never in the bag / loadout / loot / shops, a class change creates or moves nothing (no
+  duplicates). Their small stats are added to the class stats in Player.recomputeStats (same totals as before). All 7 loadout
+  slots start EMPTY and may be empty (Weapon Core no longer `fixed`). Loadout window shows a CLASS KIT box (not clickable).
+  SAVE v6 (v5 -> v6 no rewrite: loaders drop the old kit ids; real gear kept). Item field `bound` (never sold / stored; future
+  trade / drop): Varkharon's Seal is bound. Old tests / tools moved to the new rules (items.test, class tests use KIT_PIECES,
+  testkit loadout / effect / item checks, combatTest class change). Catalogue builder no longer lists kit pieces (the two PDFs
+  already delivered still contain them). Verified: unit tests, itemSystemCheck 22/22, gearCheck 30/30, loadoutCheck 9/9 ×3,
+  gearCombat 7/7, effectCheck 9/9, classChange 14/14, playthrough 17/17, checklist 31/31, tank / dodge; old v5 save loads.
+  (astral_star build vs the Guardian at LV 13 wins ~2 of 3 without god mode: the fragile Astral line, unchanged.)
 - ITEM CATALOGUE (owner: for making item graphics): `node tools/itemCatalog/build.mjs` -> docs/items/item_catalog.html +
   docs/items/ECLIPSE_ONLINE_Items.pdf (headless Edge / Chrome print-to-PDF; no Python on this machine). UPDATE-ONLY catalogue
   (owner: new items in their own PDF, not merged): `--only id1,id2 --name I4 [--note text]` -> ECLIPSE_ONLINE_Items_<name>.pdf.

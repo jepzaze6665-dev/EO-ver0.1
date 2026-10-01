@@ -1190,7 +1190,7 @@ export function classChangeChecks(g) {
     g.combat.lastCombatTime = -99;
     g.progression.unlock('mock_unbuilt');
     ok('Unlocked but not playable yet (real Class 2) refused', g.changeClass('mock_unbuilt').reason === 'not_playable');
-    const before = { x: p.x, y: p.y, level: p.level, exp: p.exp, gold: p.gold, ratio: p.hp / p.maxHp };
+    const before = { x: p.x, y: p.y, level: p.level, exp: p.exp, gold: p.gold, ratio: p.hp / p.maxHp, gear: g.inventory.gear.length };
     const r = g.changeClass('mock_class2');
     const np = g.player;
     ok('Class changed', r.ok && np.cls.id === 'mock_class2' && np !== p, np.cls.id);
@@ -1198,7 +1198,7 @@ export function classChangeChecks(g) {
     ok('Kept level / EXP / gold / position / HP ratio', np.level === before.level && np.exp === before.exp && np.gold === before.gold && np.x === before.x && Math.abs(np.hp / np.maxHp - before.ratio) < 0.02, `LV${np.level} gold ${np.gold} hp ${np.hp}/${np.maxHp}`);
     ok('Old class passives detached', listeners('threadTouched') + listeners('markTriggered') < hooksBefore, `hooks ${hooksBefore} -> ${listeners('threadTouched') + listeners('markTriggered')}`);
     ok('Old class threads removed', g.threads.count() === 0);
-    ok('Signature gear swapped, old gear kept', g.equipment.slots.weapon === base.startingGear.weapon && g.inventory.has('celestial_loom'), g.equipment.slots.weapon);
+    ok('Class kit (K1): a class change creates no items and takes none away', g.inventory.gear.length === (before.gear || 0) && !g.inventory.has('celestial_loom'), `gear ${g.inventory.gear.length}`);
     ok('History + classChanged recorded', g.progression.history.length > 0 && g.progression.history.slice(-1)[0].to === 'mock_class2');
     // the new class fights
     releaseInput(g); np.x = d.x; np.y = d.y + 30; const hp0 = d.hp;

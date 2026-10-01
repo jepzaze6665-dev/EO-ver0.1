@@ -67,7 +67,7 @@ export const Duskrunner = {
   preset: 'dr',
   anims: DR_ANIMS,
   theme: { color: C, ghost: '#2a7aff', trail: 'shadow' },
-  startingGear: { weapon: 'twin_dusk_blades', armor: 'dusk_scarf' },
+  kit: { weapon: 'twin_dusk_blades', armor: 'dusk_scarf' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   resource: M, // builder: dodges, dashes, hits, combos, perfect dodges (tiers in data/resources.js = ENDLESS MOTION)
   resources: [M],
   mark: null,

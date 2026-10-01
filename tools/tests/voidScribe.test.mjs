@@ -1,5 +1,6 @@
 // Unit tests for the Void Scribe (Class 2 of the Astral Weaver). Run:  node tools/tests/voidScribe.test.mjs
 // The live-game behaviour (scripts, rewrite, phantoms, chain, seal, null, class change) is checked by C.voidChecks.
+import { KIT_PIECES } from '../../src/data/classKits.js';
 import { CLASSES } from '../../src/skills/classes.js';
 import { CLASS_TREE } from '../../src/data/classTree.js';
 import { RESOURCES } from '../../src/data/resources.js';
@@ -19,7 +20,7 @@ const all = [...VS.skills, VS.special];
 console.log('void scribe');
 test('registered, playable Class 2 of the Astral Weaver, own preset / weapon / resource', () => {
   ok(VS && CLASS_TREE.void_scribe.playable && CLASS_TREE.void_scribe.parent === 'astral_weaver', 'tree');
-  ok(VS.preset === 'vs' && VS.resource === 'void_ink' && RESOURCES.void_ink && ITEMS[VS.signatureWeapon] && ITEMS[VS.startingGear.armor], 'data');
+  ok(VS.preset === 'vs' && VS.resource === 'void_ink' && RESOURCES.void_ink && KIT_PIECES[VS.signatureWeapon] && KIT_PIECES[VS.kit.armor], 'data');
 });
 test('kit: 5 actives + ultimate + Void Seal, each with a tier, icon art and a description; own skills', () => {
   ok(VS.skills.filter((s) => s.type === 'active').length === 5 && VS.skills.some((s) => s.ultimate) && VS.special.id === 'void_seal', 'counts');

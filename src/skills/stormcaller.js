@@ -85,7 +85,7 @@ export const Stormcaller = {
   preset: 'sm',
   anims: SM_ANIMS,
   theme: { color: C, ghost: '#2a6aff', trail: 'stardust' },
-  startingGear: { weapon: 'storm_staff', armor: 'stormweave_robe' },
+  kit: { weapon: 'storm_staff', armor: 'stormweave_robe' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   resource: S,
   resources: [S],
   mark: null,

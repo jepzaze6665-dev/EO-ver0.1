@@ -58,7 +58,7 @@ export const AegisGuardian = {
   enemyMark: 'guardian_mark',
   base: { hp: 330, atk: 20, def: 13, crit: 0.04, critDmg: 0, holyDmg: 0, cdr: 0, speed: 138, guardGain: 1, armorBreak: 1.2 },
   perLevel: { hp: 16, atk: 1.2, def: 0.8 },
-  startingGear: { weapon: 'aegis_shield', armor: 'aegis_plate' },
+  kit: { weapon: 'aegis_shield', armor: 'aegis_plate' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   defaultLoadout: ['shield_bash', 'guardian_slash', 'guardian_challenge', 'holy_barrier'],
   // Guard System data (combat/guardSystem.js)
   guard: { arc: 1.25, reduction: 0.75, perfectWindow: 0.2, moveMul: 0.4, recover: 0.3, fx: 'ag_emblem' },

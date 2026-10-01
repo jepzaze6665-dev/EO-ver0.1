@@ -8,7 +8,9 @@
 // v5 (Item System G1): gear is kept as instances — inventory { items, storage, gear, storageGear, nextInstance },
 //   equipment { weapon, armor, relic, charm, rune1, rune2, rune3, inst } (G2 gear loadout; an old `accessory` moves to
 //   the slot of its type in Equipment.load). Older gear counts become instances in Inventory.load.
-export const SAVE_VERSION = 5;
+// v6 (K1 class kits): same sections; class signature weapons / armours are no longer items — Inventory / Equipment.load
+//   drop the old ids (unknown items), so their slots start empty and the bag loses only those free starter pieces.
+export const SAVE_VERSION = 6;
 
 // older formats -> current. v1 (V1 / V2 saves): no map (the loader finds it from the position) + no hidden state.
 const MIGRATIONS = {
@@ -19,6 +21,8 @@ const MIGRATIONS = {
     classes: d.player.classId ? { [d.player.classId]: { level: 1, exp: 0, mastery: 0, loadout: d.player.loadout || null, skills: {} } } : {} } }),
   // v4 -> v5: same sections; Inventory.load turns the old gear counts into instances (one per copy)
   4: (d) => ({ ...d, v: 5 }),
+  // v5 -> v6: nothing to rewrite (the loaders drop the old class-kit item ids)
+  5: (d) => ({ ...d, v: 6 }),
 };
 
 // v2 -> v3 (W2 world restructure): the old A1 / A2 / A3 maps are ONE map A1; the Guardian became the A1 boss and the old

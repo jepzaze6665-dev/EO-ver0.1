@@ -30,9 +30,8 @@ if (only) for (const id of only) if (!ITEMS[id]) { console.error('unknown item: 
 const pick = (d) => !only || only.has(d.id);
 const gear = Object.values(ITEMS).filter(isGear).filter(pick);
 const keys = Object.values(ITEMS).filter((d) => d.key).filter(pick); // KEY ITEMS (not gear): only open something
-// which class starts with an item (class signature gear)
+// K1: class signature weapons / armours are CLASS KIT pieces (data/classKits.js), not items — they are not in this catalogue
 const signatureOf = {};
-for (const c of Object.values(CLASSES)) for (const id of Object.values(c.startingGear || {})) if (id) signatureOf[id] = c.name;
 const G1 = ['core_ironheart', 'core_counter', 'core_vanguard', 'armor_fortress', 'armor_guardian', 'armor_risk', 'relic_oath_mirror',
   'relic_last_bastion', 'relic_dawn_core', 'charm_heavy', 'charm_swift', 'charm_focus', 'charm_guardian', 'rune_guarding_soul',
   'rune_iron_will', 'rune_retribution', 'rune_provocation'];
@@ -43,7 +42,6 @@ const SECTIONS = [
   ['ASTRAL LINE — สายดวงดาว / เวท', (d) => line(d, 'astral_weaver')],
   ['UNIVERSAL — ทุกคลาสใช้ได้', (d) => ['armor_pathfinder', 'relic_ember_war', 'rune_second_wind', 'rune_executioner', 'rune_hunters_sigil', 'charm_wanderer'].includes(d.id)],
   ['GUARD / COUNTER / BARRIER — ชุดแรก (G1, เหมาะกับ Aegis)', (d) => G1.includes(d.id)],
-  ['CLASS SIGNATURE GEAR — อาวุธ / ชุดประจำคลาส', (d) => !!signatureOf[d.id]],
   ['LEGACY ACCESSORIES — ของเก่าก่อนระบบ Item', () => true],
 ];
 const used = new Set(), groups = SECTIONS.map(([title, pick]) => {

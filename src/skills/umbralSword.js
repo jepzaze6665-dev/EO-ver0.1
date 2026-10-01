@@ -32,7 +32,7 @@ export const UmbralSword = {
   preset: 'ub',
   anims: ANIMS,
   theme: { color: '#b070ff', ghost: '#8a3aff', trail: 'shadow' },
-  startingGear: { weapon: 'umbral_sword', armor: 'umbral_cloak' },
+  kit: { weapon: 'umbral_sword', armor: 'umbral_cloak' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   // 6 actives, 4 slots: the rest are swapped in from the Skills tab (key 5 is always Eclipse Sever)
   defaultLoadout: ['shadow_slash', 'twin_fang', 'shade_step', 'shadow_arc'],
   guideIntro: ['Your blade feeds on shadow. Each well-placed strike leaves a Shadow Mark — build three and you can unleash a SHADOW BREAK. [Q / Right Click]'],

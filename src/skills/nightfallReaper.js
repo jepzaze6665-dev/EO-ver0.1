@@ -77,7 +77,7 @@ export const NightfallReaper = {
   preset: 'rp',
   anims: RP_ANIMS,
   theme: { color: C, ghost: '#7a3aff', trail: 'shadow' },
-  startingGear: { weapon: 'reaper_scythe', armor: 'reaper_shroud' },
+  kit: { weapon: 'reaper_scythe', armor: 'reaper_shroud' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   resource: 'nightfall_gauge', // builder: kills, shadow skills, combos, mark explosions (tiers in data/resources.js)
   resources: ['nightfall_gauge'],
   mark: null, // no self mark; Shadow Marks live on enemies

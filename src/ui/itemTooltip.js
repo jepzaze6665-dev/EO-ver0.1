@@ -62,6 +62,7 @@ export function itemTooltipHTML(def, { classId = null, level = null, swap = null
   rows.push(`<div class="tt-name" style="color:${color}">${esc(def.name.toUpperCase())}</div>`);
   rows.push(`<div class="tt-sub"><span style="color:${color}">${esc((def.rarity || '').toUpperCase())}</span> · ${esc((TYPE_LABEL[def.type] || def.cat || '').toUpperCase())}${equipped ? ' · <b>EQUIPPED</b>' : ''}</div>`);
   // KEY ITEM (item data `key: true`): only opens something — no stats, cannot be sold or stored
+  if (def.bound) rows.push(`<div class="tt-src">BOUND — cannot be sold, stored or traded</div>`);
   if (def.key) rows.push(`<div class="tt-head" style="color:${color}">KEY ITEM — entry only</div>`);
   if (def.levelRequirement > 0) rows.push(`<div class="tt-class ${level == null || meetsLevel(def, level) ? '' : 'bad'}">Requires LV ${def.levelRequirement}</div>`);
   if (def.description) rows.push(`<div class="tt-desc">${esc(def.description)}</div>`);

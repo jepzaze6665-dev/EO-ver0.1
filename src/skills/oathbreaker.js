@@ -63,7 +63,7 @@ export const Oathbreaker = {
   enemyMark: 'oath_brand',
   base: { hp: 320, atk: 21, def: 9, crit: 0.06, critDmg: 0, physicalDmg: 0, cdr: 0, speed: 140, oathGain: 1, armorBreak: 1.1 },
   perLevel: { hp: 15, atk: 1.4, def: 0.6 },
-  startingGear: { weapon: 'ruin_blade', armor: 'oathbreaker_plate' },
+  kit: { weapon: 'ruin_blade', armor: 'oathbreaker_plate' }, // signature weapon + armour = part of the class (data/classKits.js), not items
   defaultLoadout: ['oath_brand', 'sinful_counter', 'ruin_chain', 'oath_of_ruin'],
   // DEFIANT GUARD: weaker than the Aegis guard (65%), slower while held
   guard: { arc: 1.2, reduction: 0.65, perfectWindow: 0.2, moveMul: 0.3, recover: 0.3, fx: 'ok_brand' },

@@ -1727,7 +1727,7 @@ export function loadoutCheck(g, classId = 'aegis_guardian') {
   g.newGame(classId); releaseInput(g); g.simulate(0.2);
   const p = () => g.player, eq = () => g.equipment;
   const snap = () => ({ hp: p().maxHp, def: p().stats.def, atk: p().stats.atk, speed: p().stats.speed, cdr: p().stats.cdr || 0, barrier: p().stats.barrierPower || 0 });
-  const base = snap(), baseDef = p().cls.base.def, sig = p().cls.startingGear || {};
+  const base = snap(), baseDef = p().cls.base.def; // the class kit is part of the class (K1): base stats already include it
   const given = giveGear(g);
   ok('Gear items in the bag as instances', given.length >= 16 && given.every((id) => g.inventory.findItem(id)), `${given.length} items`);
   eq().equip('core_ironheart');
@@ -1746,11 +1746,9 @@ export function loadoutCheck(g, classId = 'aegis_guardian') {
   g.saveGame(); const before = JSON.stringify({ s: eq().serialize(), st: snap() });
   g.loadGame(); const after = JSON.stringify({ s: eq().serialize(), st: snap() });
   ok('Save / load keeps the loadout + instance ids + stats', before === after);
-  for (const s of ['armor', 'relic', 'charm', 'rune1', 'rune2', 'rune3']) eq().unequip(s);
-  if (sig.armor) eq().equip(sig.armor);
-  if (sig.weapon) eq().equip(sig.weapon);
+  for (const s of ['weapon', 'armor', 'relic', 'charm', 'rune1', 'rune2', 'rune3']) eq().unequip(s);
   const back = snap();
-  ok('Back to the starting gear: stats = the exact base', Object.keys(base).every((k) => Math.abs(back[k] - base[k]) < 1e-9), JSON.stringify(back));
+  ok('Everything off (empty slots, class kit only): stats = the exact base', Object.keys(base).every((k) => Math.abs(back[k] - base[k]) < 1e-9), JSON.stringify(back));
   ok('Class base stats never edited', p().cls.base.def === baseDef);
   return R;
 }
@@ -1843,7 +1841,6 @@ export function gearCombatCheck(g) {
   const guardUp = (early) => { reset(); inp.mouse.right = true; g.simulate(early ? 0.03 : 0.5, face); };
   const strike = (power = 40) => g.combat.enemyStrike(foe, { shape: 'circle', x: p.x, y: p.y, r: 40 }, power, {});
   const G = p.primaryResource;
-  const sig = { ...p.cls.startingGear };
   // 1: guard generation (Ironheart Core +25%) on a real block
   const blockGain = () => { guardUp(false); p.resources.set(G, 0); strike(30); return p.resources.get(G); };
   const g0 = blockGain(); g.equipment.equip('core_ironheart'); const g1 = blockGain();
@@ -1870,8 +1867,7 @@ export function gearCombatCheck(g) {
   const t0 = taunt(); g.equipment.equip('charm_guardian'); const t1 = taunt();
   ok('Taunt Power: a real taunt lasts longer (Guardian Charm +20%)', t1 > t0 && Math.abs(t1 / t0 - 1.2) < 0.02, `${t0.toFixed(2)} s -> ${t1.toFixed(2)} s`);
   // 5: everything off -> the same numbers as before
-  for (const s of ['armor', 'charm']) g.equipment.unequip(s);
-  g.equipment.equip(sig.weapon); if (sig.armor) g.equipment.equip(sig.armor);
+  for (const s of ['weapon', 'armor', 'charm']) g.equipment.unequip(s);
   const back = blockGain();
   ok('Items off: guard gain back to normal, no resource modifiers left', back === g0 && !p.resources.modifiers.some((m) => m.id.startsWith('gear_')), `${back} (was ${g0})`);
   releaseInput(g);
@@ -1936,15 +1932,15 @@ export function itemSystemCheck(g) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame('umbral_sword'); releaseInput(g); g.simulate(0.2);
   const p = () => g.player, eq = g.equipment, inv = g.inventory;
+  ok('0 New game: all 7 slots start empty; the class kit is not an item', eq.wornIds().length === 0 && !inv.has('umbral_sword') && !!p().cls.kit);
   p().setLevel(30);
   for (const id of ['core_shadow_fang', 'armor_risk', 'relic_heart_eclipse', 'charm_focus', 'rune_full_moon', 'rune_red_thirst', 'rune_shadow_hunger',
     'core_star_loom', 'relic_cinder_crown', 'shade_charm', 'core_nightglass']) inv.add(id, 1, true);
   inv.add('rune_full_moon', 1, true); // a second copy for the duplicate rule
-  const base = { hp: p().maxHp, crit: p().stats.crit, def: p().stats.def, cdr: p().stats.cdr || 0 }, startWeapon = eq.slots.weapon;
+  const base = { hp: p().maxHp, crit: p().stats.crit, def: p().stats.def, cdr: p().stats.cdr || 0 };
   // 1-2 weapon core
   ok('1 Equip Weapon Core (Shadow Fang: +10% crit)', eq.equip('core_shadow_fang') && Math.abs(p().stats.crit - base.crit - 0.1) < 1e-9, `${base.crit} -> ${p().stats.crit}`);
-  const noEmpty = !eq.unequip('weapon') && eq.lastError === 'fixed';
-  ok('2 Unequip Weapon Core: never empty (fixed) -> swap back to the class weapon', noEmpty && eq.equip(startWeapon) && Math.abs(p().stats.crit - base.crit) < 1e-9, `slot = ${eq.slots.weapon}`);
+  ok('2 Unequip Weapon Core: the slot may be empty (class kit only) -> stats back to base', eq.unequip('weapon') && eq.slots.weapon === null && Math.abs(p().stats.crit - base.crit) < 1e-9, `slot = ${eq.slots.weapon}`);
   eq.equip('core_shadow_fang');
   ok('3 Equip Armor Core (Risk Armor: -20% defense)', eq.equip('armor_risk') && p().stats.def < base.def, `${base.def.toFixed(1)} -> ${p().stats.def.toFixed(1)}`);
   ok('4 Equip Relic (Heart of the Eclipse)', eq.equip('relic_heart_eclipse') && eq.slots.relic === 'relic_heart_eclipse');

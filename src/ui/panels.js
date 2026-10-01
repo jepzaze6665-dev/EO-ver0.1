@@ -1,6 +1,7 @@
 import { PARTY } from '../data/party.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { ITEMS, RARITY_COLOR, CATEGORIES, RECIPES, SHOPS } from '../items/items.js';
+import { KIT_PIECES } from '../data/classKits.js';
 import { iconURL, skillIconURL } from './icons.js';
 import { dialogueFor, LORE } from '../world/narrative.js';
 import { QUESTS } from '../quests/quests.js';
@@ -331,7 +332,7 @@ export class Panels {
       const codex = `<div class="codex"><h3>${esc(src.name)} <span class="muted small">Tier ${selNode.tier} · ${esc(src.role || '')}</span></h3>
           ${selCls && selCls.identity ? `<p class="identity">“${esc(selCls.identity)}”</p>` : ''}
           <div class="small">${esc(src.description || '')}</div>
-          <div class="muted small">Resource: <b>${esc(res)}</b>${selCls && ITEMS[selCls.signatureWeapon] ? ` · Signature weapon: <b>${esc(ITEMS[selCls.signatureWeapon].name)}</b>` : ''}</div>
+          <div class="muted small">Resource: <b>${esc(res)}</b>${selCls && KIT_PIECES[selCls.signatureWeapon] ? ` · Signature weapon: <b>${esc(KIT_PIECES[selCls.signatureWeapon].name)}</b>` : ''}</div>
           ${selCls && selCls.loop ? `<div class="muted small">Gameplay loop: <b>${selCls.loop.map(esc).join(' → ')}</b></div>` : ''}
           ${ratings}${sw}${skills}</div>`;
 
@@ -440,7 +441,7 @@ export class Panels {
   // ---------------- shop / smith / storage / teleport
   shop() {
     const g = this.game, p = g.player;
-    const sellable = g.inventory.list('Material'), shop = SHOPS[this.dialogueNpc] || SHOPS.merchant;
+    const sellable = g.inventory.list('Material').filter(({ def }) => !def.bound), shop = SHOPS[this.dialogueNpc] || SHOPS.merchant;
     const el = this.show('shop', `
       <div class="panel">
         <h2>${esc(shop.title)} <span class="gold-inline">${p.gold} G</span></h2>
@@ -493,7 +494,7 @@ export class Panels {
       <div class="panel wide">
         <h2>Storage</h2>
         <div class="two">
-          <div><h3>Inventory</h3>${col(Object.entries(inv.items).filter(([id]) => ITEMS[id].cat !== 'Quest Item'), 'dep', 'Store →')}</div>
+          <div><h3>Inventory</h3>${col(Object.entries(inv.items).filter(([id]) => ITEMS[id].cat !== 'Quest Item' && !ITEMS[id].bound), 'dep', 'Store →')}</div>
           <div><h3>Storage Chest</h3>${col(Object.entries(inv.storage), 'wd', '← Take')}</div>
         </div>
         <button class="close">Close</button>

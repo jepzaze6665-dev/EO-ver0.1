@@ -1,5 +1,6 @@
 // Unit tests for Class 2 BLADE OF ECHOES + the generic pieces it needed (ActionRecorder, 'recorded' / 'hpBelow'
 // requirements, counter stance). Run:  node tools/tests/echoes.test.mjs
+import { KIT_PIECES } from '../../src/data/classKits.js';
 import { ActionRecorder } from '../../src/combat/actionRecorder.js';
 import { ResourcePool } from '../../src/combat/resourceSystem.js';
 import { SkillSystem, REQUIREMENTS } from '../../src/combat/skillSystem.js';
@@ -77,7 +78,7 @@ console.log('blade of echoes');
 test('class data matches the shared schema; registered, playable, own gear + preset', () => {
   ok(CLASSES.blade_of_echoes === B && CLASS_TREE.blade_of_echoes.playable && CLASS_TREE.blade_of_echoes.parent === 'umbral_sword', 'registry + tree');
   ok(B.preset === 'be' && B.anims && RESOURCES[B.resource].tiers, 'preset + resource with tiers');
-  ok(ITEMS[B.startingGear.weapon] && ITEMS[B.startingGear.armor], 'gear');
+  ok(KIT_PIECES[B.kit.weapon] && KIT_PIECES[B.kit.armor], 'gear');
   ok(B.skills.length === 5 && B.special && B.passives.length === 2 && typeof B.basic === 'function', 'kit');
   for (const s of [...B.skills, B.special]) {
     ok(s.id && s.name && s.tier && s.icon && s.cooldown > 0 && typeof s.cast === 'function', 'skill ' + s.id);

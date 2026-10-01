@@ -75,10 +75,11 @@ export const MAGIC_DAMAGE_TYPES = ['magic', 'holy', 'light', 'shadow', 'lightnin
 // hit on a foe inside a Counter Window (combat/counterSystem.js status 'counter_window')
 export const COUNTER_STATUS = 'counter_window';
 
-// GEAR LOADOUT — the 7 slots (G2). Slot ids 'weapon' / 'armor' are kept from the old 3-slot equipment (saves, class
-// starting gear). `fixed`: never empty (unequip refused; swap instead). A slot takes exactly its `type`.
+// GEAR LOADOUT — the 7 slots (G2). Slot ids 'weapon' / 'armor' are kept from the old 3-slot equipment (saves).
+// Every slot may be EMPTY (K1: the class's own weapon / armour are its kit, data/classKits.js — not items).
+// `fixed` (no slot uses it now) = never empty: unequip refused, swap instead. A slot takes exactly its `type`.
 export const GEAR_SLOTS = [
-  { id: 'weapon', type: 'weapon_core', label: 'Weapon Core', fixed: true },
+  { id: 'weapon', type: 'weapon_core', label: 'Weapon Core' },
   { id: 'armor', type: 'armor_core', label: 'Armor Core' },
   { id: 'relic', type: 'relic', label: 'Relic' },
   { id: 'charm', type: 'charm', label: 'Charm' },

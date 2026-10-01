@@ -7,11 +7,7 @@ import { GEAR_ITEMS } from '../data/items/index.js';
 import { normalizeItem } from './itemDefs.js';
 
 export const ITEMS = {
-  // ---- weapons
-  umbral_sword: {
-    name: 'Umbral Sword', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'sword', color: '#a060ff',
-    stats: { atk: 0 }, desc: 'A blade forged from a sliver of eclipse. Balanced and reliable.',
-  },
+  // ---- weapons (class signature weapons / armours are NOT items: data/classKits.js)
   duskfang_blade: {
     name: 'Duskfang Blade', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'sword', color: '#e0a040',
     stats: { atk: 4, crit: 0.15 }, mods: { twinFangTriple: true },
@@ -21,103 +17,11 @@ export const ITEMS = {
     name: 'Crystalbreaker Edge', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'sword', color: '#5af0ff',
     stats: { atk: 9, armorBreak: 2.2 }, desc: 'Heavy crystal-edged blade.', modText: 'Shatters crystal armour 2.2× faster.',
   },
-  celestial_loom: {
-    name: 'Celestial Loom', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'staff', color: '#8ad8ff',
-    stats: { atk: 0 }, desc: 'A gilded staff that spins starlight into thread. Signature weapon of the Astral Weaver.',
-  },
-  storm_staff: {
-    name: 'Storm Staff & Focus', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'staff', color: '#7ac8ff',
-    stats: { atk: 1, lightningDmg: 0.05 }, desc: 'A black staff crowned with a caged storm crystal, and a focus that hums with thunder. Signature weapon of the Stormcaller.',
-  },
-  void_tome: {
-    name: 'Void Tome & Arcane Quill', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'staff', color: '#b060ff',
-    stats: { atk: 1, voidDmg: 0.05 }, desc: 'A black grimoire whose blank pages drink the light, and a quill that writes laws into nothing. Signature weapon of the Void Scribe.',
-  },
-  lumen_staff: {
-    name: 'Lumen Staff & Celestial Codex', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'staff', color: '#ffe08a',
-    stats: { atk: 0, lightDmg: 0.05 }, desc: 'A gilded staff crowned with a captive dawn, and a codex of the stars that heals whoever it is read to. Signature weapon of the Lumen Oracle.',
-  },
-  reaper_scythe: {
-    name: 'Reaper Scythe', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'scythe', color: '#9a5cff',
-    stats: { atk: 2 }, desc: 'A shadow scythe that hungers for marked souls. Signature weapon of the Nightfall Reaper.',
-  },
-  twin_dusk_blades: {
-    name: 'Twin Dusk Blades', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'twin_blades', color: '#5ab8ff',
-    stats: { atk: 1, crit: 0.03 }, desc: 'Two short blades that never stop moving. Signature weapon of the Duskrunner.',
-  },
-  memory_blade: {
-    name: 'Memory Blade', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'memory_blade', color: '#ff4a5a',
-    stats: { atk: 2 }, desc: 'A long crimson blade that remembers every blow. Signature weapon of the Blade of Echoes.',
-  },
-  dawn_aegis: {
-    name: 'Dawn Aegis & Holy Sword', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'dawn_shield', color: '#8ad0ff',
-    stats: { atk: 0, def: 1 }, desc: 'A white-silver shield holding a blue dawn, and a holy longsword. Signature weapon of the Warden of Dawn.',
-  },
-  bastion_aegis: {
-    name: 'Bulwark Shield & Bastion Sword', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'bulwark', color: '#f0c850',
-    stats: { atk: 0, def: 2 }, desc: 'A gilded tower shield and a heavy bastion sword. Signature weapon of the Bulwark Sentinel.',
-  },
-  ruin_blade: {
-    name: 'Ruin Blade & Broken Aegis', cat: 'Weapon', slot: 'weapon', rarity: 'epic', icon: 'oath_brand', color: '#b060ff',
-    stats: { atk: 2 }, desc: 'A black greatsword that drinks the pain of its wielder, and a shattered oath-shield. Signature weapon of the Oathbreaker.',
-  },
-  aegis_shield: {
-    name: 'Aegis Shield & Blade', cat: 'Weapon', slot: 'weapon', rarity: 'rare', icon: 'shield', color: '#ffd070',
-    stats: { atk: 0 }, desc: 'A knight longsword and the gilded Aegis shield. Signature weapon of the Aegis Guardian.',
-  },
   // ---- armor
-  umbral_cloak: {
-    name: 'Umbral Cloak', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#7a50c0',
-    stats: { def: 0, hp: 0 }, desc: 'Black cloak woven with shadow thread.',
-  },
   shadeweave: {
     name: 'Shadeweave Mantle', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#c080ff',
     stats: { def: 3, hp: 30, cdr: 0.15 }, mods: { shadeBomb: true },
     desc: 'Recovered from the Sealed Archive.', modText: 'Cooldowns -15%. Shade Step leaves an afterimage that explodes.',
-  },
-  astral_robe: {
-    name: 'Astral Robe', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#5a7ad8',
-    stats: { def: 0, hp: 0 }, desc: 'Night-blue robe embroidered with gold constellations.',
-  },
-  reaper_shroud: {
-    name: 'Reaper Shroud', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#5a2aa0',
-    stats: { def: 1, hp: 10 }, desc: 'Tattered night given form. Worn by those who walk the Long Night.',
-  },
-  dusk_scarf: {
-    name: 'Duskrunner Scarf', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#2a5aaa',
-    stats: { def: 0, hp: 5 }, desc: 'A long blue scarf that trails behind like wind. Worn by those who never stop.',
-  },
-  echo_coat: {
-    name: 'Coat of Echoes', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#d8d0d8',
-    stats: { def: 2, hp: 15 }, desc: 'A pale duelist coat lined in red. Every scar on it is remembered.',
-  },
-  dawn_plate: {
-    name: 'Dawnward Plate', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#e8eef8',
-    stats: { def: 2, hp: 20 }, desc: 'Silver plate that catches the first light. Worn by those who guard others first.',
-  },
-  fortress_plate: {
-    name: 'Fortress Plate', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#c8a050',
-    stats: { def: 3, hp: 25 }, desc: 'Gold-chased steel over a midnight cape. Built to stand where others fall.',
-  },
-  oathbreaker_plate: {
-    name: 'Oathbreaker Plate', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#4a2a6a',
-    stats: { def: 1, hp: 15 }, desc: 'Black spiked plate with a torn violet mantle. Every scar is a vow unmade.',
-  },
-  stormweave_robe: {
-    name: 'Stormweave Robe', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#1a2a5a',
-    stats: { def: 0, hp: 5 }, desc: 'A long navy robe that crackles when it moves. Worn by those who never stand still.',
-  },
-  scribe_robe: {
-    name: "Scribe's Hooded Robe", cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#3a1a5a',
-    stats: { def: 1, hp: 10 }, desc: 'A violet-lined black robe covered in script that rewrites itself.',
-  },
-  oracle_vestment: {
-    name: 'Oracle Vestment', cat: 'Armor', slot: 'armor', rarity: 'epic', icon: 'cloak', color: '#e8d8a0',
-    stats: { def: 1, hp: 15 }, desc: 'A dark vestment embroidered with golden constellations that glow when someone is healed.',
-  },
-  aegis_plate: {
-    name: 'Aegis Plate', cat: 'Armor', slot: 'armor', rarity: 'rare', icon: 'cloak', color: '#c8d0e0',
-    stats: { def: 0, hp: 0 }, desc: 'Polished silver plate under a midnight-blue mantle.',
   },
   // ---- accessories
   eclipse_sigil: {
@@ -194,7 +98,7 @@ export const ITEMS = {
   heart_of_varkharon: { name: 'Heart of Varkharon', cat: 'Material', rarity: 'legendary', icon: 'heart', color: '#ff5a20', maxStack: 1, desc: 'It still beats, slow and furious. The fire of a sealed king — something may be born from it one day.' },
   cinder_shard: { name: 'Cinder Shard', cat: 'Quest Item', rarity: 'quest', maxStack: 3, icon: 'rune', color: '#ff7a30', desc: 'A splinter of black stone, warm as a coal. The Ashen Pilgrim said there are three.' },
   // KEY ITEM (owner): red MYTHIC grade, its only use = the key to the Dragon Door (kept after the door opens; no stats, no sale)
-  varkharon_seal: { name: "Varkharon's Seal", cat: 'Quest Item', rarity: 'mythic', key: true, maxStack: 1, icon: 'sigil', color: '#ff3030', desc: 'Three cinder shards fused into a dragon-headed seal. It opens the Dragon Door in the Quiet Hollow, and nothing else.' },
+  varkharon_seal: { name: "Varkharon's Seal", cat: 'Quest Item', rarity: 'mythic', key: true, bound: true, maxStack: 1, icon: 'sigil', color: '#ff3030', desc: 'Three cinder shards fused into a dragon-headed seal. It opens the Dragon Door in the Quiet Hollow, and nothing else.' },
   seal_fragment: { name: 'Ancient Seal Fragment', cat: 'Quest Item', rarity: 'quest', icon: 'rune', color: '#5af0ff', desc: 'Resonates with the sealed Guardian Gate.' },
 };
 for (const [id, def] of Object.entries(GEAR_ITEMS)) {
