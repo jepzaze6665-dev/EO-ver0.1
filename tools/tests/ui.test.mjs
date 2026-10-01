@@ -55,3 +55,11 @@ test('uiKit.css only points at images that exist, and index.html links it', () =
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
+
+test('theme.css (UI v2) is linked last and its fonts exist', () => {
+  const html = readFileSync(new URL('index.html', ROOT), 'utf8');
+  ok(html.indexOf('src/ui/theme.css') > html.indexOf('src/ui/uiKit.css'), 'theme.css after uiKit.css');
+  const css = readFileSync(new URL('src/ui/theme.css', ROOT), 'utf8');
+  for (const m of css.matchAll(/url\("([^"]+)"\)/g)) ok(existsSync(new URL(m[1].replace('../../', ''), ROOT)), 'missing ' + m[1]);
+  ok(existsSync(new URL('assets/fonts/OFL-Kanit.txt', ROOT)) && existsSync(new URL('assets/fonts/OFL-NotoSansThai.txt', ROOT)), 'font licences');
+});

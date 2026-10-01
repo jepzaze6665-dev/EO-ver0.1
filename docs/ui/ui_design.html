@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><title>ECLIPSE ONLINE — UI Redesign</title>
+<style>
+@page { size: A4 landscape; margin: 10mm; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Segoe UI", Tahoma, sans-serif; background: #fff; color: #222; }
+.page { page-break-after: always; padding: 4mm; }
+h1 { font-size: 26px; margin: 0 0 6px; } h2 { font-size: 19px; margin: 0 0 6px; border-bottom: 2px solid #333; padding-bottom: 3px; }
+p, li { font-size: 12.5px; line-height: 1.5; } .note { color: #555; font-size: 12px; }
+/* ---------- game screen mock ---------- */
+.scr { position: relative; width: 960px; height: 540px; margin: 6px auto; overflow: hidden; border-radius: 4px;
+  background: radial-gradient(ellipse at 60% 40%, #3b4a2c, #1d2617 70%), #1d2617; font-family: "Segoe UI", sans-serif; color: #ece4d2; }
+.scr::before { content: ""; position: absolute; inset: 0; background:
+  repeating-linear-gradient(0deg, rgba(0,0,0,.08) 0 32px, transparent 32px 64px), repeating-linear-gradient(90deg, rgba(0,0,0,.06) 0 32px, transparent 32px 64px); }
+.dim { position: absolute; inset: 0; background: rgba(6,6,10,.78); }
+.sprite { width: 160px; height: 160px; background: url(../../assets/player/walk.png) 0 0 no-repeat; image-rendering: pixelated; }
+.sprite.aw { background-image: url(../../assets/player/aw/walk.png); } .sprite.ag { background-image: url(../../assets/player/ag/walk.png); }
+.x2 { transform: scale(2); transform-origin: center bottom; }
+.slot { width: 44px; height: 44px; background: rgba(255,255,255,.05); border: 1px solid rgba(236,228,210,.18); border-radius: 3px;
+  display: flex; align-items: center; justify-content: center; position: relative; }
+.slot img { width: 36px; height: 36px; image-rendering: pixelated; }
+.slot.on { border-color: #5fd3a0; background: rgba(95,211,160,.15); }
+.slot.leg { border-color: #e7a13a; } .slot.epic { border-color: #a46be0; } .slot.rare { border-color: #4f9ae0; }
+.slot .ph { font-size: 9px; color: rgba(236,228,210,.35); text-align: center; }
+.grid { display: grid; gap: 4px; }
+.topbar { position: absolute; top: 0; left: 0; right: 0; height: 46px; display: flex; justify-content: center; gap: 30px; align-items: center;
+  border-bottom: 1px solid rgba(236,228,210,.25); font-size: 11px; color: #bdb5a3; }
+.topbar b { color: #ece4d2; font-weight: 600; }
+.tabs { position: absolute; top: 54px; left: 0; right: 0; display: flex; justify-content: center; gap: 26px; font-size: 13px; color: #a69e8d; }
+.tabs .a { color: #fff; border-bottom: 2px solid #e8d7a5; padding-bottom: 4px; }
+.lvl { width: 46px; height: 46px; transform: rotate(45deg); border: 2px solid #cfc5ad; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.5); }
+.lvl span { transform: rotate(-45deg); font-size: 20px; font-weight: 700; }
+.bar { height: 6px; background: rgba(255,255,255,.12); border-radius: 3px; overflow: hidden; } .bar i { display: block; height: 100%; background: linear-gradient(90deg, #8a3fb8, #c86fe8); }
+.pow { color: #f0c860; font-size: 24px; font-weight: 700; } .cap { font-size: 10px; letter-spacing: 1px; color: #bdb5a3; }
+.hint { position: absolute; bottom: 12px; right: 30px; display: flex; gap: 18px; font-size: 11px; color: #cfc7b4; }
+.k { display: inline-block; border: 1px solid #cfc7b4; border-radius: 3px; padding: 0 4px; margin-right: 4px; font-size: 10px; }
+.gold { font-size: 12px; } .gold::before { content: "◆ "; color: #e6c35c; }
+.stat { display: flex; justify-content: space-between; font-size: 11.5px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.stat em { font-style: normal; color: #9fe3b8; }
+.ftabs { display: flex; gap: 6px; margin-bottom: 6px; } .ftabs span { width: 30px; height: 24px; border-bottom: 2px solid transparent; text-align: center; font-size: 13px; color: #9a927f; }
+.ftabs .a { border-color: #e8d7a5; color: #fff; }
+.panelL { position: absolute; top: 0; bottom: 0; left: 0; width: 360px; background: linear-gradient(90deg, rgba(6,6,10,.92) 70%, rgba(6,6,10,0)); padding: 26px 22px; }
+.ttl { font-size: 17px; font-weight: 600; border-bottom: 1px solid rgba(236,228,210,.3); padding-bottom: 8px; margin-bottom: 12px; }
+.menu div { padding: 6px 8px; font-size: 13px; color: #a69e8d; } .menu .a { color: #fff; background: rgba(255,255,255,.07); border-left: 2px solid #e8d7a5; }
+.quest { position: absolute; right: 12px; top: 150px; width: 190px; font-size: 10.5px; }
+.quest .h { background: rgba(0,0,0,.65); padding: 3px 6px; font-weight: 600; margin-top: 6px; }
+.quest .b { padding: 2px 6px; color: #ddd4c0; text-shadow: 0 1px 2px #000; }
+.mini { position: absolute; right: 12px; top: 12px; width: 120px; height: 120px; border-radius: 50%; background: #23331d; border: 2px solid rgba(236,228,210,.5); }
+.hud { position: absolute; left: 14px; top: 14px; display: flex; gap: 10px; align-items: center; }
+.hb { width: 190px; } .hb .bar { height: 10px; margin-top: 4px; } .hp i { background: linear-gradient(90deg,#b8323a,#e85a5a); } .st i { background: linear-gradient(90deg,#c9a640,#ecd27a); } .rs i { background: linear-gradient(90deg,#5d3fb8,#9a7cf0); }
+.skillbar { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; }
+.skillbar .slot { width: 46px; height: 46px; } .skillbar .slot img { width: 40px; height: 40px; }
+.skillbar .kk { position: absolute; bottom: -2px; right: 2px; font-size: 9px; color: #fff; text-shadow: 0 0 2px #000; }
+.boss { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); width: 420px; text-align: center; font-size: 12px; letter-spacing: 2px; }
+.boss .bar { height: 8px; margin-top: 4px; } .boss .bar i { background: linear-gradient(90deg,#9b1d24,#e0464c); }
+.dlg { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); width: 640px; background: rgba(6,6,10,.85); border-top: 1px solid rgba(236,228,210,.35); padding: 12px 18px; font-size: 12.5px; }
+.dlg .n { color: #e8d7a5; font-weight: 600; margin-bottom: 4px; }
+table.req { border-collapse: collapse; width: 100%; font-size: 12px; } .req th, .req td { border: 1px solid #bbb; padding: 5px 7px; vertical-align: top; text-align: left; }
+.req th { background: #eee; } .req .p1 { color: #b00; font-weight: 700; } .req .p2 { color: #c70; font-weight: 700; } .req .p3 { color: #777; font-weight: 700; }
+.lab { position: absolute; background: #f2d34b; color: #000; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 3px; }
+</style></head><body>
+
+<!-- ============ PAGE 1 ============ -->
+<div class="page">
+<h1>ECLIPSE ONLINE — UI Redesign (ทั้งเกม)</h1>
+<p class="note">วันที่ 2026-10-01 · อ้างอิงสไตล์จากภาพตัวอย่าง (Drakantos) · ภาพในเอกสารนี้คือ <b>ม็อกอัปที่ทำด้วยโค้ด</b> ใช้ sprite จริงของเกมขนาด 160×160 (ตัวละครสูงประมาณ 60 px)</p>
+<h2>แนวทางสไตล์</h2>
+<ul>
+<li><b>มินิมอลแบบโปร่ง</b> ใช้พื้นดำโปร่งแสง (78-92%) วางทับฉากเกมแทนกรอบหนา เส้นคั่นบาง 1 px สีครีม <code>#ece4d2</code> ไฮไลต์สีทองอ่อน <code>#e8d7a5</code></li>
+<li>ช่องไอเทม = สี่เหลี่ยมโปร่ง ขอบเป็นสีตามความหายาก (rare ฟ้า · epic ม่วง · legendary ส้ม · mythic แดง)</li>
+<li>ทุกหน้าต่างมี <b>แถบปุ่มลัด</b> มุมขวาล่าง เช่น <span class="k">Esc</span>Back <span class="k">T</span>Sort</li>
+<li>หน้าต่างของ NPC (ร้าน / ช่างตีเหล็ก / เก็บของ) = <b>แผงซ้ายที่ไล่สีจางไปทางขวา</b> ฉากเกมยังมองเห็นอยู่</li>
+<li>ตัวอักษรเปลี่ยนจากตัวเหลี่ยมพิกเซลเป็นตัวสะอาด (ภาษาไทยอ่านง่าย) ส่วนตัวเลขสำคัญ (POWER, เลเวล) ใช้ตัวหนา</li>
+<li>กรอบพิกเซลเดิม (frame / plate / slot) <b>ยังเก็บไว้</b> ใช้เฉพาะ title screen / ป๊อปอัปยืนยัน</li>
+</ul>
+<h2>ตัวละครในหน้าต่าง: เลือกขนาด</h2>
+<div style="display:flex;gap:40px;align-items:flex-end;justify-content:center;background:#1d2617;padding:16px;border-radius:4px;color:#eee;font-size:12px">
+  <div style="text-align:center"><div class="sprite"></div>×1 (160 px, ตัวสูง ~60) — เล็กไป</div>
+  <div style="text-align:center"><div style="height:320px;width:320px;display:flex;align-items:flex-end;justify-content:center"><div class="sprite x2"></div></div>×2 พิกเซลคม — <b>แนะนำ</b></div>
+</div>
+<p class="note">ใช้ sprite จริงแบบไม่ต้องวาดเพิ่ม ขยายเป็นจำนวนเท่าเต็ม (×2) แบบ nearest-neighbour ทำให้พิกเซลคมเหมือนในฉาก ถ้าขยายเป็นเศษส่วนภาพจะเบลอ และตัวละครยังเล่นท่าเดินหมุนให้ดูได้ด้วย</p>
+</div>
+
+<!-- ============ PAGE 2: Layout A ============ -->
+<div class="page">
+<h2>LAYOUT A — "ตามต้นแบบ" (ช่องของซ้าย · ตัวละครกลาง · กระเป๋าขวา)</h2>
+<div class="scr"><div class="dim"></div>
+ <div class="topbar"><span>Social</span><span>Codex</span><span>Quests</span><span>World Map</span><span>Settings</span><span>Save</span></div>
+ <div class="tabs"><span class="a">Equipment</span><span>Skills</span><span>Class</span><span>Stats</span><span>Codex</span></div>
+ <div class="grid" style="position:absolute;left:70px;top:120px;grid-template-columns:44px;gap:8px">
+  <div class="slot leg"><img src="../../assets/icons/items/core_shadow_fang.png"></div>
+  <div class="slot epic"><img src="../../assets/icons/items/armor_duskweave.png"></div>
+  <div class="slot leg"><img src="../../assets/icons/items/relic_heart_eclipse.png"></div>
+  <div class="slot rare"><img src="../../assets/icons/items/charm_assassin.png"></div>
+ </div>
+ <div class="grid" style="position:absolute;left:330px;top:120px;grid-template-columns:44px;gap:8px">
+  <div class="slot rare"><img src="../../assets/icons/items/rune_red_thirst.png"></div>
+  <div class="slot"><div class="ph">RUNE</div></div><div class="slot"><div class="ph">RUNE</div></div>
+  <div class="slot"><img src="../../assets/icons/items/varkharon_seal.png" style="opacity:.4"></div>
+ </div>
+ <div style="position:absolute;left:125px;top:110px;width:200px;height:300px;display:flex;align-items:flex-end;justify-content:center">
+  <div style="position:absolute;bottom:8px;width:150px;height:30px;border:1px solid rgba(236,228,210,.35);transform:rotateX(65deg) rotate(45deg)"></div>
+  <div class="sprite x2"></div></div>
+ <div style="position:absolute;left:60px;bottom:40px;display:flex;gap:18px;align-items:center;width:330px">
+  <div class="lvl"><span>24</span></div>
+  <div style="flex:1"><b style="font-size:15px">Kaito</b> <span class="note" style="color:#a69e8d">Umbral Sword</span><div class="note" style="color:#a69e8d">EXP 26,279 / 28,100</div><div class="bar"><i style="width:82%"></i></div></div>
+  <div style="text-align:right"><div class="cap">POWER</div><div class="pow">1,284</div></div></div>
+ <div style="position:absolute;left:560px;top:110px;width:320px">
+  <div style="display:flex;justify-content:flex-end;gap:20px;margin-bottom:8px"><span class="gold">12,408</span></div>
+  <div class="ftabs"><span class="a">✦</span><span>⚔</span><span>⛨</span><span>◈</span><span>✧</span><span>⚗</span></div>
+  <div class="grid" style="grid-template-columns:repeat(7,44px)">
+   <div class="slot epic"><img src="../../assets/icons/items/core_nightglass.png"></div><div class="slot rare"><img src="../../assets/icons/items/rune_full_moon.png"></div>
+   <div class="slot"><img src="../../assets/icons/items/charm_wanderer.png"></div><div class="slot leg"><img src="../../assets/icons/items/relic_oath_mirror.png"></div>
+   <div class="slot rare"><img src="../../assets/icons/items/armor_pathfinder.png"></div><div class="slot"><img src="../../assets/icons/items/rune_second_wind.png"></div>
+   <div class="slot epic"><img src="../../assets/icons/items/relic_bloodletter.png"></div>
+   <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+   <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+   <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+   <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+  </div></div>
+ <div class="hint"><span><span class="k">T</span>Sort</span><span><span class="k">C</span>Switch Tab</span><span><span class="k">Enter</span>Equip</span><span><span class="k">Esc</span>Back</span></div>
+</div>
+<p><b>ข้อดี:</b> เหมือนต้นแบบที่สุด ตัวละครเป็นจุดเด่น กระเป๋าดูง่าย · <b>ข้อเสีย:</b> ค่าสเตตัสต้องย้ายไปแท็บ Stats แยก (หรือดูใน tooltip ตอนชี้)</p>
+</div>
+
+<!-- ============ PAGE 3: Layout B ============ -->
+<div class="page">
+<h2>LAYOUT B — "ตัวละครอยู่กลาง ช่องล้อมรอบ" + แผงสเตตัส</h2>
+<div class="scr"><div class="dim"></div>
+ <div class="topbar"><span>Social</span><span>Codex</span><span>Quests</span><span>World Map</span><span>Settings</span><span>Save</span></div>
+ <div class="tabs"><span class="a">Equipment</span><span>Skills</span><span>Class</span><span>Codex</span></div>
+ <div style="position:absolute;left:40px;top:100px;width:230px">
+  <div class="ttl" style="font-size:13px">FINAL STATS</div>
+  <div class="stat"><span>HP</span><span>1,820 <em>+140</em></span></div><div class="stat"><span>Attack</span><span>96 <em>+12</em></span></div>
+  <div class="stat"><span>Defense</span><span>34</span></div><div class="stat"><span>Crit</span><span>18% <em>+6%</em></span></div>
+  <div class="stat"><span>Crit Damage</span><span>165%</span></div><div class="stat"><span>Attack Speed</span><span>+8%</span></div>
+  <div class="stat"><span>Shadow Dmg</span><span>+15%</span></div><div class="stat"><span>CDR</span><span>10%</span></div>
+  <div class="ttl" style="font-size:13px;margin-top:14px">SET · ECLIPSE (2/3)</div>
+  <div style="font-size:11px;color:#9fe3b8">(2) +10% Shadow Damage</div><div style="font-size:11px;color:#777">(3) Marks full → next hit +50%</div>
+ </div>
+ <div style="position:absolute;left:330px;top:128px;width:300px;height:330px">
+  <div style="position:absolute;left:70px;top:20px;width:160px;height:280px;display:flex;align-items:flex-end;justify-content:center"><div class="sprite x2"></div></div>
+  <div class="slot leg" style="position:absolute;left:0;top:30px"><img src="../../assets/icons/items/core_shadow_fang.png"></div>
+  <div class="slot epic" style="position:absolute;left:0;top:110px"><img src="../../assets/icons/items/armor_duskweave.png"></div>
+  <div class="slot leg" style="position:absolute;right:0;top:30px"><img src="../../assets/icons/items/relic_heart_eclipse.png"></div>
+  <div class="slot rare" style="position:absolute;right:0;top:110px"><img src="../../assets/icons/items/charm_assassin.png"></div>
+  <div class="slot rare" style="position:absolute;left:76px;top:300px"><img src="../../assets/icons/items/rune_red_thirst.png"></div>
+  <div class="slot" style="position:absolute;left:128px;top:300px"><div class="ph">RUNE</div></div>
+  <div class="slot" style="position:absolute;left:180px;top:300px"><div class="ph">RUNE</div></div>
+  <div style="position:absolute;left:0;top:190px;font-size:10px;color:#a69e8d">WEAPON · ARMOR</div><div style="position:absolute;right:0;top:190px;font-size:10px;color:#a69e8d">RELIC · CHARM</div>
+ </div>
+ <div style="position:absolute;left:330px;top:92px;width:300px;display:flex;gap:12px;align-items:center;justify-content:center">
+  <div class="lvl" style="width:34px;height:34px"><span style="font-size:15px">24</span></div><b>Kaito</b><span class="cap">POWER</span><span class="pow" style="font-size:18px">1,284</span></div>
+ <div style="position:absolute;left:680px;top:100px;width:250px">
+  <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span class="cap">INVENTORY 7/40</span><span class="gold">12,408</span></div>
+  <div class="ftabs"><span class="a">✦</span><span>⚔</span><span>⛨</span><span>◈</span><span>✧</span></div>
+  <div class="grid" style="grid-template-columns:repeat(5,44px)">
+   <div class="slot epic"><img src="../../assets/icons/items/core_nightglass.png"></div><div class="slot rare"><img src="../../assets/icons/items/rune_full_moon.png"></div>
+   <div class="slot"><img src="../../assets/icons/items/charm_wanderer.png"></div><div class="slot leg"><img src="../../assets/icons/items/relic_oath_mirror.png"></div>
+   <div class="slot rare"><img src="../../assets/icons/items/armor_pathfinder.png"></div>
+   <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+   <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+   <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+   <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+  </div></div>
+ <div class="hint"><span><span class="k">T</span>Sort</span><span><span class="k">Enter</span>Equip</span><span><span class="k">Esc</span>Back</span></div>
+</div>
+<p><b>ข้อดี:</b> เห็นสเตตัส + เซ็ต + กระเป๋าในจอเดียว เหมาะกับระบบ loadout 7 ช่องและ set bonus ที่เรามี · <b>ข้อเสีย:</b> แน่นกว่า A เล็กน้อย</p>
+</div>
+
+<!-- ============ PAGE 4: Layout C ============ -->
+<div class="page">
+<h2>LAYOUT C — "แผงข้าง" (ฉากเกมยังเห็น ตัวละครจริงในฉาก)</h2>
+<div class="scr">
+ <div class="sprite" style="position:absolute;left:560px;top:230px"></div>
+ <div style="position:absolute;left:0;top:0;bottom:0;width:470px;background:linear-gradient(90deg,rgba(6,6,10,.94) 80%,rgba(6,6,10,0));padding:22px">
+  <div style="display:flex;gap:14px;align-items:center;border-bottom:1px solid rgba(236,228,210,.3);padding-bottom:10px">
+   <div class="lvl" style="width:36px;height:36px"><span style="font-size:16px">24</span></div>
+   <div style="flex:1"><b>Kaito</b> · <span style="color:#a69e8d;font-size:12px">Umbral Sword</span><div class="bar" style="margin-top:4px"><i style="width:82%"></i></div></div>
+   <div style="text-align:right"><div class="cap">POWER</div><div class="pow" style="font-size:18px">1,284</div></div></div>
+  <div style="display:flex;gap:18px;margin:10px 0;font-size:12.5px;color:#a69e8d"><span style="color:#fff;border-bottom:2px solid #e8d7a5">Equipment</span><span>Skills</span><span>Class</span><span>Codex</span></div>
+  <div style="display:flex;gap:14px">
+   <div style="width:110px;height:170px;display:flex;align-items:flex-end;justify-content:center;background:rgba(255,255,255,.03);overflow:hidden"><div class="sprite" style="transform:scale(1.5);transform-origin:center bottom"></div></div>
+   <div><div class="grid" style="grid-template-columns:repeat(4,44px)">
+    <div class="slot leg"><img src="../../assets/icons/items/core_shadow_fang.png"></div><div class="slot epic"><img src="../../assets/icons/items/armor_duskweave.png"></div>
+    <div class="slot leg"><img src="../../assets/icons/items/relic_heart_eclipse.png"></div><div class="slot rare"><img src="../../assets/icons/items/charm_assassin.png"></div>
+    <div class="slot rare"><img src="../../assets/icons/items/rune_red_thirst.png"></div><div class="slot"><div class="ph">RUNE</div></div><div class="slot"><div class="ph">RUNE</div></div></div>
+    <div style="margin-top:8px;font-size:11px;color:#a69e8d">HP 1,820 · ATK 96 · DEF 34 · Crit 18%</div></div></div>
+  <div style="display:flex;justify-content:space-between;margin:12px 0 6px"><span class="cap">INVENTORY</span><span class="gold">12,408</span></div>
+  <div class="grid" style="grid-template-columns:repeat(8,44px)">
+   <div class="slot epic"><img src="../../assets/icons/items/core_nightglass.png"></div><div class="slot rare"><img src="../../assets/icons/items/rune_full_moon.png"></div>
+   <div class="slot"><img src="../../assets/icons/items/charm_wanderer.png"></div><div class="slot leg"><img src="../../assets/icons/items/relic_oath_mirror.png"></div>
+   <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+   <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+   <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+  </div></div>
+ <div class="mini"></div>
+ <div class="hint"><span><span class="k">I</span>Close</span><span><span class="k">Esc</span>Back</span></div>
+</div>
+<p><b>ข้อดี:</b> เกมไม่ถูกบังทั้งจอ เข้ากับแผงร้าน NPC (หน้า 5) · <b>ข้อเสีย:</b> ตัวละครในหน้าต่างเล็ก (×1.5 จะเบลอนิดหน่อย ถ้าใช้ ×1 จะคม)</p>
+<p><b>คำแนะนำของผม:</b> ใช้ <b>B</b> เป็นหน้าต่างตัวละคร (ระบบเรามีสเตตัส / เซ็ตเยอะ) และใช้สไตล์ C กับหน้าต่าง NPC ทุกตัว</p>
+</div>
+
+<!-- ============ PAGE 5: NPC + HUD ============ -->
+<div class="page">
+<h2>หน้าต่าง NPC (ร้าน / ช่างตีเหล็ก) และ HUD ระหว่างเล่น</h2>
+<div class="scr" style="height:400px">
+ <div class="sprite" style="position:absolute;left:600px;top:150px"></div>
+ <div class="sprite ag" style="position:absolute;left:520px;top:120px;background-position:0 0"></div>
+ <div class="panelL">
+  <div class="ttl">⚒ Hilde's Forge <span class="gold" style="float:right;font-size:12px">12,408</span></div>
+  <div style="display:flex;gap:16px"><div class="menu" style="width:110px"><div class="a">Reinforce</div><div>Smelt</div><div>Repair</div></div>
+   <div><div class="cap">Oath Mirror</div>
+    <div style="display:flex;align-items:center;gap:6px;margin:6px 0"><span>‹</span><div class="slot leg" style="width:60px;height:60px"><img src="../../assets/icons/items/relic_oath_mirror.png" style="width:50px;height:50px"></div><span>›</span></div>
+    <div style="font-size:11px;color:#cfc7b4;width:180px">+1 → +2 · Counter Damage 20% → 24%</div>
+    <div class="cap" style="margin-top:10px">COST</div><div style="display:flex;gap:6px;margin-top:4px"><div class="slot"><img src="../../assets/icons/items/rune_iron_will.png"></div><span class="gold" style="align-self:center">450</span></div></div></div>
+ </div>
+ <div class="dlg" style="left:62%;width:330px;bottom:14px"><div class="n">Hilde</div>“Bring me ore and I'll make that steel sing.”</div>
+ <div class="hint" style="bottom:auto;top:12px"><span><span class="k">F</span>Reinforce</span><span><span class="k">Esc</span>Back</span></div>
+</div>
+<div class="scr" style="height:400px">
+ <div class="sprite" style="position:absolute;left:400px;top:150px"></div>
+ <div class="hud"><div class="lvl" style="width:38px;height:38px"><span style="font-size:15px">24</span></div>
+  <div class="hb"><b style="font-size:12px">Kaito</b><div class="bar hp"><i style="width:72%"></i></div><div class="bar st" style="height:5px"><i style="width:90%"></i></div><div class="bar rs" style="height:5px"><i style="width:40%"></i></div></div></div>
+ <div class="boss">MAGMA BEAST · AREA BOSS<div class="bar"><i style="width:63%"></i></div></div>
+ <div class="mini"></div>
+ <div class="quest"><div class="h">◆ The Burning Rift</div><div class="b">• Find the Magma Rift</div><div class="b">• Defeat the Magma Beast (0/1)</div>
+  <div class="h">◆ Untouched by Stone</div><div class="b">• Crag Rhinos 1/3</div></div>
+ <div class="skillbar">
+  <div class="slot"><img src="../../assets/icons/ub_sk1.png"><span class="kk">1</span></div><div class="slot"><img src="../../assets/icons/ub_sk2.png"><span class="kk">2</span></div>
+  <div class="slot"><img src="../../assets/icons/ub_sk3.png"><span class="kk">3</span></div><div class="slot"><img src="../../assets/icons/ub_sk4.png"><span class="kk">4</span></div>
+  <div class="slot leg"><img src="../../assets/icons/ub_ut.png"><span class="kk">5</span></div><div class="slot"><img src="../../assets/icons/ub_sk5.png"><span class="kk">Q</span></div></div>
+</div>
+</div>
+
+<!-- ============ PAGE 6: art requests ============ -->
+<div class="page">
+<h2>สิ่งที่ต้องการจากคุณ (รูป / ของที่ต้องหามา)</h2>
+<p class="note">สไตล์ใหม่ส่วนใหญ่วาดด้วยโค้ดได้เลย ด้านล่างคือรายการที่ถ้ามีรูปจะสวยขึ้นมาก เรียงตามความสำคัญ (<span class="p1">จำเป็น</span> · <span class="p2">ควรมี</span> · <span class="p3">ไม่บังคับ</span>) ทุกไฟล์ให้วางบน<b>พื้นดำสนิท</b> หรือ <b>PNG โปร่งใส</b> สไตล์พิกเซลอาร์ตแบบเดียวกับเกม และใส่ไว้ที่ <code>desgin/UI/v2/</code></p>
+<table class="req">
+<tr><th>#</th><th>สิ่งที่ต้องการ</th><th>รายละเอียด / ขนาด</th><th>ใช้ที่ไหน</th><th>ระดับ</th></tr>
+<tr><td>1</td><td><b>ไอคอนแท็บกระเป๋า</b> 6 อัน</td><td>ทั้งหมด / Weapon Core / Armor Core / Relic / Charm / Rune (+ วัสดุ / ของใช้) เส้นขาวเดียวแบบเรียบ ขนาด 32×32 (หรือวาดใหญ่ 256 ให้ผมย่อเอง) รวมไว้ในภาพเดียว เรียงแถวเดียว</td><td>แท็บกรองกระเป๋า</td><td class="p1">จำเป็น</td></tr>
+<tr><td>2</td><td><b>ไอคอนเมนูบน</b> 8 อัน</td><td>Equipment, Skills, Class, Codex, Quests, World Map, Settings, Save — เส้นขาวเรียบ 32×32 ภาพเดียว เรียงแถวเดียว</td><td>แถบเมนูบน + แท็บ</td><td class="p1">จำเป็น</td></tr>
+<tr><td>3</td><td><b>ไอคอนสเตตัส</b> ~14 อัน</td><td>HP, Attack, Defense, Speed, Crit, Crit Dmg, Attack Speed, CDR, Resource, Guard, Barrier, Counter, Magic, Damage Reduction — 24×24</td><td>แผง Final Stats / tooltip</td><td class="p2">ควรมี</td></tr>
+<tr><td>4</td><td><b>กรอบเลเวลทรงเพชร</b></td><td>สี่เหลี่ยมข้าวหลามตัด ขอบเงิน/ทอง ตรงกลางโปร่ง ~96×96 (เหมือนเลข 8 ในภาพต้นแบบ)</td><td>เลเวล ในหน้าต่าง + HUD</td><td class="p2">ควรมี</td></tr>
+<tr><td>5</td><td><b>แท่นยืนตัวละคร</b></td><td>แผ่นพื้นสี่เหลี่ยมมองเฉียง (isometric) เส้นบาง ๆ หรือวงเวทเบา ๆ กว้าง ~320 px</td><td>ใต้ตัวละครในหน้าต่าง Equipment</td><td class="p3">ไม่บังคับ</td></tr>
+<tr><td>6</td><td><b>ไอคอนสกุลเงิน</b></td><td>ทอง (เหรียญ/เพชร) 32×32 · ถ้ามีสกุลที่ 2 ในอนาคตก็ทำมาด้วย</td><td>ทุกหน้าต่างที่แสดงเงิน</td><td class="p2">ควรมี</td></tr>
+<tr><td>7</td><td><b>ไอคอนช่องว่าง</b> 4 อัน</td><td>รูปเงาจาง ๆ ของ Weapon / Armor / Relic / Charm / Rune สำหรับช่องที่ยังไม่ได้ใส่ (ในต้นแบบคือรูปหมวก แหวน สีจาง) 32×32</td><td>ช่อง loadout ว่าง</td><td class="p2">ควรมี</td></tr>
+<tr><td>8</td><td><b>ไอคอนบริการ NPC</b></td><td>ร้านค้า / ตีเหล็ก / เก็บของ / waystone / guild 32×32</td><td>หัวแผง NPC + แผนที่</td><td class="p3">ไม่บังคับ</td></tr>
+<tr><td>9</td><td><b>ฟอนต์</b> (หามา ไม่ต้องวาด)</td><td>ฟอนต์ไทย+อังกฤษฟรีที่อ่านง่าย เช่น <b>Kanit</b>, <b>Prompt</b> หรือ <b>Noto Sans Thai</b> (Google Fonts) — บอกแค่ชื่อที่ชอบ ผมใส่ให้เอง</td><td>ทั้งเกม</td><td class="p1">เลือก 1</td></tr>
+<tr><td>10</td><td><b>ไอคอนของที่ยังไม่มี</b></td><td>charm_swift, charm_focus (ขนาดและสไตล์เดียวกับชุด ITEM v1.0)</td><td>กระเป๋า</td><td class="p3">ไม่บังคับ</td></tr>
+</table>
+<h2 style="margin-top:12px">สิ่งที่<u>ไม่ต้อง</u>ทำ</h2>
+<ul>
+<li>รูปตัวละครตัวใหญ่ ไม่ต้องทำ ใช้ sprite เดิมขยาย ×2</li>
+<li>กรอบหน้าต่าง / ปุ่ม / แถบ HP ไม่ต้องทำ สไตล์โปร่งใช้ CSS วาดได้หมด</li>
+<li>ไอคอนสกิลและไอคอนไอเทมมีครบแล้ว</li>
+</ul>
+<h2>ขั้นตอนถัดไป</h2>
+<ol><li>คุณเลือก Layout (A / B / C หรือผสมกัน) และฟอนต์</li><li>ระหว่างที่คุณทำรูป ผมทำ UI ใหม่ด้วยโค้ดไปก่อน โดยใช้ไอคอนวาดด้วยโค้ดแทนไว้ พอได้รูปมาก็เปลี่ยนเป็นรูปจริงทันที</li>
+<li>ลำดับงาน: U-A ชุดสไตล์ CSS → U-B หน้าต่างตัวละคร → U-C แผง NPC → U-D HUD + quest tracker → U-E เมนู ESC / แผนที่ / ป๊อปอัป</li></ol>
+</div>
+</body></html>

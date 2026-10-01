@@ -982,6 +982,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `mini_relic` (one non-signature relic + 25% rune / charm). Tests itemI3.test.mjs (17); itemLoot / items tests now read pool sizes
   from data. `T.itemBuildCheck(g)` = real Guardian fight per build (`T.I3_BUILDS`: umbral_bleed / umbral_eclipse / astral_star /
   aegis_boss) — all WIN at LV 13 (70-145 s) and every item fires; buildFight now returns `fired` (per item / set) + `applied`.
+- **Current: UI v2 (owner, 2026-10-01)** — whole game moves to a minimal TRANSLUCENT style (reference: Drakantos), owner chose
+  LAYOUT C (side panel, world stays visible; character = real sprite ×1-2, no portrait art) from docs/ui/ECLIPSE_ONLINE_UI_Design.pdf
+  (mock-ups + the art list the owner is making: tab / menu / stat icons, level diamond, currency, empty-slot icons).
+  Phases: U-A theme + fonts · U-B character window (Layout C) · U-C NPC side panels · U-D HUD + quest tracker · U-E menus / map / pop-ups.
+  Done U-A: src/ui/theme.css (linked LAST, overrides base + uiKit.css; tokens --font-title / --font-body / --hl / --glass, rarity
+  colours, .keys + kbd hint bar); fonts served with the game in assets/fonts (Kanit 400-700 = titles / numbers, Noto Sans Thai =
+  Thai body, Latin body = Segoe UI; OFL licences kept); main.js waits for document.fonts before the canvas draws; hud.js FONT /
+  TITLE + vfx damage numbers use them. ui.test checks theme.css is linked last + its font files exist.
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

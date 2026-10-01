@@ -539,7 +539,7 @@ export class Panels {
     c.drawImage(hud.mini, 0, 0, cv.width, cv.height);
     // labels for discovered areas
     const seen = new Set();
-    c.font = `600 ${Math.max(10, scale * 4)}px Georgia`;
+    c.font = `600 ${Math.max(10, scale * 4)}px Kanit`;
     c.textAlign = 'center';
     for (let ty = 0; ty < map.h; ty += 2) for (let tx = 0; tx < map.w; tx += 2) {
       const i = map.idx(tx, ty), sa = map.subAreas[map.sub[i]];

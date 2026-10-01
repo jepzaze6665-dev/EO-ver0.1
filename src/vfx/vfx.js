@@ -309,20 +309,20 @@ export class VFX {
       const pop = t > 0.8 ? 1 + (t - 0.8) * 3 : 1;
       const size = (n.crit ? 17 : 12) * (n.big ? 1.5 : 1) * pop * scale / 3 * 2;
       ctx.globalAlpha = Math.min(1, t * 2.5);
-      ctx.font = `900 ${Math.round(size)}px "Trebuchet MS", sans-serif`;
+      ctx.font = `900 ${Math.round(size)}px Kanit, sans-serif`;
       ctx.lineWidth = Math.max(2, size / 5);
       ctx.strokeStyle = 'rgba(10,0,20,0.9)';
       ctx.strokeText(n.text, p.x, p.y);
       ctx.fillStyle = n.color;
       ctx.fillText(n.text, p.x, p.y);
-      if (n.crit) { ctx.font = `800 ${Math.round(size * 0.5)}px "Trebuchet MS", sans-serif`; ctx.fillStyle = '#ffd24a'; ctx.fillText('CRIT', p.x, p.y - size * 0.8); }
+      if (n.crit) { ctx.font = `800 ${Math.round(size * 0.5)}px Kanit, sans-serif`; ctx.fillStyle = '#ffd24a'; ctx.fillText('CRIT', p.x, p.y - size * 0.8); }
     });
     this.texts.forEach((t) => {
       const p = toScreen(t.x, t.y);
       const k = t.life / t.max;
       const size = t.size * scale / 3 * 2;
       ctx.globalAlpha = Math.min(1, k * 3);
-      ctx.font = `800 ${Math.round(size)}px "Trebuchet MS", sans-serif`;
+      ctx.font = `800 ${Math.round(size)}px Kanit, sans-serif`;
       ctx.lineWidth = 3;
       ctx.strokeStyle = 'rgba(5,0,15,0.9)';
       ctx.strokeText(t.text, p.x, p.y);

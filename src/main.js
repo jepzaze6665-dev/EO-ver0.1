@@ -7,6 +7,9 @@ async function main() {
   const label = document.querySelector('#loading .label');
   try {
     await loadAll((p) => { bar.style.width = Math.round(p * 80) + '%'; });
+    // canvas text (HUD, damage numbers) only uses a web font once it is loaded (theme.css @font-face)
+    await Promise.all(['400 16px Kanit', '600 16px Kanit', '700 16px Kanit', '400 16px "Noto Sans Thai"']
+      .map((f) => document.fonts.load(f, 'Aก1').catch(() => null)));
     label.textContent = 'Forging the world…';
     await new Promise((r) => setTimeout(r, 30));
     const game = new Game(document.getElementById('game'));

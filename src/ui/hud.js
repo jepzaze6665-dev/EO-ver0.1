@@ -16,8 +16,8 @@ import { REQUIREMENTS } from '../combat/skillSystem.js';
 import { ROUTES } from '../data/routes.js';
 import { MAP_MARKERS } from '../data/mapMarkers.js';
 
-const FONT = '"Trebuchet MS", "Segoe UI", sans-serif';
-const TITLE = 'Georgia, "Times New Roman", serif';
+const FONT = '"Segoe UI", "Noto Sans Thai", sans-serif'; // body text (theme.css --font-body)
+const TITLE = 'Kanit, "Segoe UI", sans-serif'; // titles / numbers (theme.css --font-title)
 
 const MINI_COLORS = {
   [T.GRASS]: '#3b6b33', [T.FLOWERS]: '#4a7a3a', [T.FOREST_FLOOR]: '#2a4a30', [T.DIRT]: '#6e5138', [T.COBBLE]: '#7c808a',
