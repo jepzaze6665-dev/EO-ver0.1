@@ -10,13 +10,15 @@ import { Equipment } from '../../src/equipment/equipment.js';
 import { EventBus } from '../../src/core/events.js';
 import { CLASSES } from '../../src/skills/classes.js';
 import { parseSave } from '../../src/save/saveData.js';
+import { ModifierSet } from '../../src/items/modifierSystem.js';
+import { MODIFIER_TYPES, GEAR_SLOTS } from '../../src/data/items/rules.js';
 
 let pass = 0, fail = 0;
 const test = (name, fn) => { try { fn(); pass++; console.log('  ✓', name); } catch (e) { fail++; console.log('  ✗', name, '\n     ', e.message); } };
 const eq = (a, b, msg = '') => { if (a !== b) throw new Error(`${msg} expected ${b}, got ${a}`); };
 const ok = (c, msg) => { if (!c) throw new Error(msg); };
 const game = () => {
-  const g = { events: new EventBus(), audio: { sfx() {} }, player: { recomputed: 0, recomputeStats() { this.recomputed++; } } };
+  const g = { events: new EventBus(), audio: { sfx() {} }, player: { cls: { id: 'aegis_guardian' }, recomputed: 0, recomputeStats() { this.recomputed++; } } };
   g.inventory = new Inventory(g); g.equipment = new Equipment(g);
   return g;
 };
@@ -139,22 +141,102 @@ test('equip moves the instance from the bag to the slot; the old item goes back 
   eq(eqp.slots.weapon, 'duskfang_blade'); eq(eqp.inst.weapon.instanceId, id); eq(inv.count('duskfang_blade'), 0);
   eq(inv.findItem('umbral_sword').instanceId, worn.instanceId); ok(g.player.recomputed > 0, 'stats recomputed');
 });
-test('unequip puts the instance back; runes / new cores are not equippable before G2', () => {
+test('unequip puts the instance back; the weapon core slot is never empty', () => {
   const g = game(), inv = g.inventory, eqp = g.equipment;
-  inv.add('umbral_band'); eqp.equip('umbral_band'); const id = eqp.inst.accessory.instanceId;
-  ok(eqp.unequip('accessory'), 'unequip'); eq(eqp.slots.accessory, null); eq(inv.findItem('umbral_band').instanceId, id);
-  inv.add('rune_iron_will'); ok(!eqp.equip('rune_iron_will'), 'rune'); inv.add('core_ironheart'); ok(!eqp.equip('core_ironheart'), 'core');
-  ok(!eqp.equip('shade_charm'), 'not owned');
+  inv.add('umbral_band'); ok(eqp.equip('umbral_band'), 'equip charm'); const id = eqp.inst.charm.instanceId;
+  ok(eqp.unequip('charm'), 'unequip'); eq(eqp.slots.charm, null); eq(inv.findItem('umbral_band').instanceId, id);
+  ok(!eqp.unequip('weapon'), 'weapon fixed'); eq(eqp.lastError, 'fixed');
+  ok(!eqp.equip('shade_charm'), 'not owned'); eq(eqp.lastError, 'notOwned');
 });
-test('equipment save / load keeps ids; bad slots repaired', () => {
+test('equipment save / load keeps ids; bad slots repaired; an old accessory moves to its type slot', () => {
   const g = game(); g.inventory.add('umbral_band'); g.equipment.equip('umbral_band');
   const inv = JSON.parse(JSON.stringify(g.inventory.serialize())), e = JSON.parse(JSON.stringify(g.equipment.serialize()));
   const g2 = game(); g2.inventory.load(inv); g2.equipment.load(e);
-  eq(g2.equipment.slots.accessory, 'umbral_band'); eq(g2.equipment.instanceFor('accessory').instanceId, g.equipment.inst.accessory.instanceId);
-  const g3 = game(); g3.equipment.load({ weapon: 'ghost', armor: 'hp_potion', accessory: 'umbral_sword' });
-  eq(g3.equipment.slots.weapon, 'umbral_sword'); eq(g3.equipment.slots.armor, null); eq(g3.equipment.slots.accessory, null);
-  const g4 = game(); g4.equipment.load({ weapon: 'umbral_sword', armor: 'umbral_cloak' }); // pre-v5: no inst
-  ok(g4.equipment.instanceFor('armor').instanceId.startsWith('item_'), 'made on demand');
+  eq(g2.equipment.slots.charm, 'umbral_band'); eq(g2.equipment.instanceFor('charm').instanceId, g.equipment.inst.charm.instanceId);
+  const g3 = game(); g3.equipment.load({ weapon: 'ghost', armor: 'hp_potion', relic: 'umbral_sword' });
+  eq(g3.equipment.slots.weapon, 'umbral_sword'); eq(g3.equipment.slots.armor, null); eq(g3.equipment.slots.relic, null);
+  const g4 = game(); g4.equipment.load({ weapon: 'umbral_sword', armor: 'umbral_cloak', accessory: 'eclipse_sigil' }); // pre-v5
+  ok(g4.equipment.instanceFor('armor').instanceId.startsWith('item_'), 'made on demand'); eq(g4.equipment.slots.relic, 'eclipse_sigil');
+  const g5 = game(); g5.equipment.load({ accessory: 'hunger_rune' }); eq(g5.equipment.slots.rune1, 'hunger_rune');
+  const g6 = game(); g6.equipment.load({ rune1: 'rune_iron_will', rune2: 'rune_iron_will' }); eq(g6.equipment.slots.rune2, null, 'edited duplicate');
+});
+
+console.log('gear loadout (7 slots)');
+test('7 slots: weapon core, armor core, relic, charm, rune 1-3; view() in loadout shape', () => {
+  eq(GEAR_SLOTS.length, 7); const g = game();
+  const v = g.equipment.view(); eq(v.weaponCore, 'umbral_sword'); eq(v.runes.length, 3); eq(v.relic, null);
+});
+test('every type goes to its own slot; runes fill rune 1, 2, 3 then swap rune 1', () => {
+  const g = game(), inv = g.inventory, eqp = g.equipment;
+  for (const id of ['core_ironheart', 'armor_guardian', 'relic_oath_mirror', 'charm_heavy', 'rune_guarding_soul', 'rune_iron_will', 'rune_retribution', 'rune_provocation']) inv.add(id);
+  for (const id of ['core_ironheart', 'armor_guardian', 'relic_oath_mirror', 'charm_heavy', 'rune_guarding_soul', 'rune_iron_will', 'rune_retribution']) ok(eqp.equip(id), id);
+  const v = eqp.view();
+  eq(v.weaponCore, 'core_ironheart'); eq(v.armorCore, 'armor_guardian'); eq(v.relic, 'relic_oath_mirror'); eq(v.charm, 'charm_heavy');
+  eq(v.runes.join(), 'rune_guarding_soul,rune_iron_will,rune_retribution');
+  ok(eqp.equip('rune_provocation'), 'full -> swap'); eq(eqp.slots.rune1, 'rune_provocation'); ok(inv.has('rune_guarding_soul'), 'swapped back to bag');
+  ok(eqp.equip('rune_guarding_soul', 'rune3'), 'chosen slot'); eq(eqp.slots.rune3, 'rune_guarding_soul');
+});
+test('type checks: wrong slot, not gear, unknown', () => {
+  const g = game(), eqp = g.equipment; g.inventory.add('relic_dawn_core'); g.inventory.add('hp_potion');
+  ok(!eqp.equip('relic_dawn_core', 'charm'), 'relic in charm slot'); eq(eqp.lastError, 'wrongSlot');
+  ok(!eqp.equip('hp_potion'), 'potion'); eq(eqp.lastError, 'notGear'); ok(!eqp.equip('ghost'), 'unknown'); eq(eqp.lastError, 'unknown');
+});
+test('no duplicates: two copies of one rune cannot fill two slots', () => {
+  const g = game(), eqp = g.equipment; g.inventory.add('rune_iron_will', 2);
+  ok(eqp.equip('rune_iron_will'), 'first'); ok(!eqp.equip('rune_iron_will'), 'second'); eq(eqp.lastError, 'duplicate');
+  ok(eqp.equip('rune_iron_will', 'rune1'), 'same slot = swap allowed');
+});
+test('class restriction from data (allowedClasses); class change takes off what the new class may not use', () => {
+  const g = game(), eqp = g.equipment;
+  ITEMS.__test_relic = { ...ITEMS.relic_dawn_core, id: '__test_relic', allowedClasses: ['umbral_sword'] };
+  try {
+    g.inventory.add('__test_relic'); ok(!eqp.equip('__test_relic'), 'aegis refused'); eq(eqp.lastError, 'class');
+    g.player.cls.id = 'umbral_sword'; ok(eqp.equip('__test_relic'), 'umbral ok');
+    eq(eqp.enforceClass('aegis_guardian'), 1); eq(eqp.slots.relic, null); ok(g.inventory.has('__test_relic'), 'back in bag');
+  } finally { delete ITEMS.__test_relic; }
+});
+test('bag full: a swap that cannot return the old item changes nothing', () => {
+  const g = game(), inv = g.inventory, eqp = g.equipment;
+  inv.add('umbral_sword', 9); inv.add('core_counter');
+  ok(!eqp.equip('core_counter'), 'refused'); eq(eqp.lastError, 'bagFull'); eq(eqp.slots.weapon, 'umbral_sword'); ok(inv.has('core_counter'), 'core kept');
+});
+
+console.log('modifier system');
+test('additive stacking: sum, then base × (1 + sum); base never edited', () => {
+  const m = new ModifierSet(); m.addModifier('a', { type: 'defense', value: 0.15 }); m.addModifier('b', { type: 'defense', value: 0.2 });
+  const base = { def: 20, hp: 300 }, out = m.calculateStats(base);
+  eq(+m.getModifierValue('defense').toFixed(3), 0.35); eq(+out.def.toFixed(3), 27); eq(base.def, 20, 'base untouched'); eq(out.hp, 300);
+});
+test('multiplicative stacking (movement speed) and add-type stats (cooldown reduction, barrier strength)', () => {
+  const m = new ModifierSet(); m.addModifier('a', { type: 'movementSpeed', value: -0.1 }); m.addModifier('b', { type: 'movementSpeed', value: -0.1 });
+  eq(+m.getModifierValue('movementSpeed').toFixed(3), -0.19);
+  m.addModifier('c', { type: 'cooldownReduction', value: 0.08 }); m.addModifier('d', { type: 'barrierStrength', value: 0.25 });
+  const out = m.calculateStats({ speed: 100, cdr: 0.1, barrierPower: 0.2 });
+  eq(+out.speed.toFixed(3), 81); eq(+out.cdr.toFixed(3), 0.18); eq(+out.barrierPower.toFixed(3), 0.45);
+});
+test('caps: totals never pass min / max (no infinite defense, no huge cooldown cut, damage reduction ≤ 40%)', () => {
+  const m = new ModifierSet();
+  for (let i = 0; i < 20; i++) { m.addModifier(i, { type: 'defense', value: 0.5 }); m.addModifier(i, { type: 'cooldownReduction', value: 0.2 }); m.addModifier(i, { type: 'damageReduction', value: 0.3 }); }
+  eq(m.getModifierValue('defense'), MODIFIER_TYPES.defense.max); eq(m.getModifierValue('cooldownReduction'), MODIFIER_TYPES.cooldownReduction.max);
+  eq(m.getModifierValue('damageReduction'), 0.4);
+  const neg = new ModifierSet(); for (let i = 0; i < 10; i++) neg.addModifier(i, { type: 'movementSpeed', value: -0.3 });
+  ok(neg.calculateStats({ speed: 100 }).speed >= 60 - 1e-9, 'speed floor');
+});
+test('remove / recalculate: removing a source brings the exact old value back; bad modifiers refused', () => {
+  const m = new ModifierSet(); m.addModifier('x', { type: 'maxHP', value: 0.12 }); m.addModifier('y', { type: 'maxHP', value: 0.08 });
+  eq(+m.calculateStats({ hp: 250 }).hp.toFixed(3), 300); eq(m.removeModifier('x'), 1); eq(+m.calculateStats({ hp: 250 }).hp.toFixed(3), 270);
+  m.removeModifier('y'); eq(m.calculateStats({ hp: 250 }).hp, 250); eq(m.active().length, 0);
+  ok(!m.addModifier('z', { type: 'luck', value: 1 }) && !m.addModifier('z', { type: 'defense', value: NaN }), 'refused');
+});
+test('equipment: final stats follow the worn items, back to exact base after unequip', () => {
+  const g = game(), inv = g.inventory, eqp = g.equipment, base = { def: 13, hp: 330, speed: 138, barrierPower: 0, atk: 20, cdr: 0 };
+  inv.add('core_ironheart'); inv.add('armor_guardian'); inv.add('charm_heavy');
+  eqp.equip('core_ironheart'); eq(+eqp.finalStats(base).def.toFixed(3), 14.95, 'Ironheart +15% DEF');
+  eqp.equip('armor_guardian'); eq(+eqp.finalStats(base).barrierPower.toFixed(3), 0.25, 'Guardian Armor barrier');
+  eq(+eqp.getModifierValue('guardGeneration').toFixed(3), 0.4, 'guard gen 0.25 + 0.15');
+  eqp.equip('charm_heavy'); eq(+eqp.finalStats(base).hp.toFixed(3), 356.4); eq(+eqp.finalStats(base).speed.toFixed(3), 131.1);
+  eqp.unequip('charm'); eqp.unequip('armor'); inv.add('umbral_sword'); eqp.equip('umbral_sword');
+  const back = eqp.finalStats(base); for (const k of Object.keys(base)) eq(back[k], base[k], k);
 });
 test('save v4 migrates to v5', () => {
   const r = parseSave(JSON.stringify({ v: 4, player: { classId: 'aegis_guardian', x: 1, y: 2 }, inventory: { items: { aegis_plate: 1 } } }));

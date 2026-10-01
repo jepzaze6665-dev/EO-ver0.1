@@ -79,14 +79,19 @@ export class Player extends Entity {
   }
 
   // ---------------- stats / progression
+  // total of one item modifier type from the gear loadout (data/items/rules.js MODIFIER_TYPES), 0 = none
+  gearMod(type) { const eq = this.game.equipment; return eq && eq.getModifierValue ? eq.getModifierValue(type) : 0; }
   recomputeStats() {
     const c = this.cls;
-    const s = { ...c.base }; // class base = level 1
+    let s = { ...c.base }; // class base = level 1
     for (const [k, v] of Object.entries(levelStats(c.perLevel, this.level))) s[k] = (s[k] || 0) + v;
     const mods = {};
     const eq = this.game.equipment;
     if (eq) eq.applyTo(s, mods);
     if (this.game.world && this.game.world.state.flags.moonBlessing) { s.crit += 0.05; s.shadowGain += 0.1; }
+    // ITEM MODIFIERS (gear loadout): a new stats object from the base above (base never edited); temporary buffs =
+    // statuses, applied where they are read
+    if (eq && eq.finalStats) s = eq.finalStats(s);
     // resource tiers (data/resources.js "tiers"): e.g. a high Nightfall Gauge adds shadow damage / crit
     if (this.resources) for (const [k, v] of Object.entries(this.resources.tierStats())) s[k] = (s[k] || 0) + v;
     this.resTier = this.resources ? this.resources.tier(this.primaryResource) : -1;

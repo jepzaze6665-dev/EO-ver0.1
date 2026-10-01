@@ -176,7 +176,7 @@ export class Game {
     const cls = CLASSES[classId];
     this.inventory = new Inventory(this);
     this.equipment = new Equipment(this);
-    if (cls.startingGear) this.equipment.slots = { accessory: null, ...cls.startingGear };
+    if (cls.startingGear) Object.assign(this.equipment.slots, cls.startingGear);
     this.knowledge = new Knowledge(this);
     // fresh event bus per session so listeners never accumulate
     this.events = new EventBus();

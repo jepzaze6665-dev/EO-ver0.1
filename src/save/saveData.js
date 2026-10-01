@@ -6,7 +6,8 @@
 //   inventory, equipment, quests, progression, world (flags, maps, hidden, ...), knowledge, stats }
 // v4 (Skill System S1): + classProgress { active, classes: { id: { level, exp, mastery, loadout, skills } } }
 // v5 (Item System G1): gear is kept as instances — inventory { items, storage, gear, storageGear, nextInstance },
-//   equipment { weapon, armor, accessory, inst }. Older gear counts become instances in Inventory.load.
+//   equipment { weapon, armor, relic, charm, rune1, rune2, rune3, inst } (G2 gear loadout; an old `accessory` moves to
+//   the slot of its type in Equipment.load). Older gear counts become instances in Inventory.load.
 export const SAVE_VERSION = 5;
 
 // older formats -> current. v1 (V1 / V2 saves): no map (the loader finds it from the position) + no hidden state.

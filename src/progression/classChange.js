@@ -44,6 +44,7 @@ export function changeClass(game, toId, opts = {}) {
   if (game.classProgress) { const saved = game.classProgress.switchTo(toId, old.loadout.serialize()); if (saved) p.loadout.load(saved); }
   p.x = old.x; p.y = old.y; p.facing = old.facing;
   p.level = old.level; p.exp = old.exp; p.gold = old.gold;
+  eq.enforceClass(toId); // gear the new class may not use goes back to the bag (item data allowedClasses)
   p.recomputeStats();
   p.hp = Math.max(1, Math.round(p.maxHp * (old.maxHp ? old.hp / old.maxHp : 1)));
   old.dispose();

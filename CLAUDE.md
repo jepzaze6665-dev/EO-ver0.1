@@ -16,7 +16,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (W2 Route A, 26 steps: A1 on foot, 2 optional mini-bosses, Guardian, north road into A2 on
   the other grid, secret city Valehaven, save/load),
-  `T.bossReset(__game)` (death mid-fight resets the boss)
+  `T.bossReset(__game)` (death mid-fight resets the boss), `T.loadoutCheck(__game, classId)` (gear loadout, 7 slots)
   `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` / `T.uiCheck(__game)` / `await T.partyCheck(__game)` / `T.tankCheck(__game)` (Combat 2.0),
   `T.gridCheck(__game)` (W1 multi-grid: lock/unlock, load/unload + cleanup, save/load + fog on another grid, no leaks, respawn),
   `T.cityCheck(__game)` (City 2: unlock, north road, services, quest, save/load), `T.a3BossCheck(__game, classId)`,
@@ -872,7 +872,19 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Inventory: gear = instances in `gear` / `storageGear`, `items` / `storage` still = counts of every id (old API unchanged)
   + addItem / removeItem / getItem / hasItem / findItem / instancesOf. Equipment keeps `slots` (ids) + `inst` per slot (made on
   demand by instanceFor when code sets slots directly); equip / unequip / class change move the SAME instance. SAVE v5
-  (pre-v5 gear counts -> instances in Inventory.load; a v5 save trusts its instances). tools/tests/items.test.mjs (19).
+  (pre-v5 gear counts -> instances in Inventory.load; a v5 save trusts its instances). tools/tests/items.test.mjs.
+  Done G2: GEAR LOADOUT = Equipment with 7 slots (rules GEAR_SLOTS: weapon (fixed, never empty) / armor / relic / charm /
+  rune1-3; ids 'weapon' / 'armor' kept for saves + class startingGear; an old save's `accessory` moves to the slot of its
+  type). equip(id, slot?) -> check(): unknown / notGear / wrongSlot / notOwned / class (allowedClasses) / duplicate
+  (LOADOUT_RULES.duplicates off) / bagFull -> false + `lastError` (EQUIP_FAIL text, UI toast). view() = { weaponCore, armorCore,
+  relic, charm, runes[3] }; enforceClass(classId) after a class change. MODIFIER LAYER `src/items/modifierSystem.js` (pure
+  ModifierSet: addModifier / removeModifier / getModifierValue / calculateStats / recalculate, cached totals, rules
+  MODIFIER_TYPES { stat, apply mult | add, stacking additive | multiplicative, min / max caps, label }). Equipment.itemModifiers()
+  rebuilds only when the slot contents change; Player.recomputeStats: base + level + older gear flat stats -> eq.finalStats(s)
+  (new object) -> resource tier stats. Non-stat types (guardGeneration, counterDamage, aggro, tauntPower, damageReduction,
+  resourceGeneration / Cost, magicDamage) are read with `p.gearMod(type)` — NOT used by combat yet (G3 / G4). Equipment tab:
+  7 slots + Item Modifiers totals; item detail = type, modifier lines, effect texts. `T.giveGear(g)` (every new gear item to the
+  bag) + `T.loadoutCheck(g, classId)` 9 steps (AG / UB / AW 9/9). items.test.mjs 30.
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

@@ -17,6 +17,11 @@ import { evolutionsOf, evolutionById } from '../progression/skillEvolution.js';
 import { SKILL_TREE } from '../data/skillTree.js';
 import { describe as describeMod } from '../progression/skillModifiers.js';
 import { expToNext } from '../progression/experience.js';
+import { GEAR_SLOTS, TYPE_LABEL, MODIFIER_TYPES } from '../data/items/rules.js';
+import { isGear } from '../items/itemDefs.js';
+
+// item modifier line: "+15% Defense" / "-8% Movement Speed"
+const modLine = (m) => `${m.value > 0 ? '+' : ''}${Math.round(m.value * 100)}% ${(MODIFIER_TYPES[m.type] || {}).label || m.type}`;
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
 const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>Passives</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">passive</span><div class="small">${esc(x.desc)}</div></div></div>`).join('')}` : '');
@@ -208,19 +213,24 @@ export class Panels {
     } else if (this.invTab === 'equipment') {
       const slot = (s, label) => {
         const id = eq.slots[s], def = id && ITEMS[id];
-        return `<div class="eq-slot"><div class="lbl">${label}</div>${def ? `<img src="${iconURL(def.icon, def.color)}"><div><div style="color:${RARITY_COLOR[def.rarity]}">${esc(def.name)}</div><div class="mod">${esc(def.modText || '')}</div></div>${s !== 'weapon' ? `<button data-unequip="${s}">Unequip</button>` : ''}` : '<div class="muted">— empty —</div>'}</div>`;
+        const fixed = GEAR_SLOTS.find((x) => x.id === s).fixed;
+        const text = def ? [def.modText, ...def.modifiers.map(modLine)].filter(Boolean).join(' · ') : '';
+        return `<div class="eq-slot"><div class="lbl">${label}</div>${def ? `<img src="${iconURL(def.icon, def.color)}"><div><div style="color:${RARITY_COLOR[def.rarity]}">${esc(def.name)}</div><div class="mod">${esc(text)}</div></div>${!fixed ? `<button data-unequip="${s}">Unequip</button>` : ''}` : '<div class="muted">— empty —</div>'}</div>`;
       };
       const st = p.stats;
       const pct = (v) => Math.round(v * 100) + '%';
+      const totals = eq.itemModifiers().totals();
       body = `
         <div class="eq-layout">
-          <div>${slot('weapon', 'WEAPON')}${slot('armor', 'ARMOR')}${slot('accessory', 'ACCESSORY')}
-            <p class="muted small">Equip items from the Inventory tab. Equipment changes stats <i>and</i> how skills behave.</p></div>
+          <div>${GEAR_SLOTS.map((x) => slot(x.id, x.label.toUpperCase())).join('')}
+            <p class="muted small">Equip items from the Inventory tab. Items change stats <i>and</i> how you fight — never how you look.</p></div>
           <div class="stats">
             <h3>${esc(p.cls.name)} — LV.${p.level}</h3>
             <div>Max HP <b>${p.maxHp}</b></div><div>Attack <b>${Math.round(st.atk)}</b></div><div>Defense <b>${Math.round(st.def)}</b></div>
-            <div>Critical <b>${pct(st.crit)}</b></div><div>Shadow Damage <b>+${pct(st.shadowDmg)}</b></div><div>Cooldown Reduction <b>${pct(st.cdr || 0)}</b></div>
-            <div>Shadow Gain <b>${pct(st.shadowGain)}</b></div><div>Armor Break <b>×${(st.armorBreak || 1).toFixed(1)}</b></div>
+            <div>Critical <b>${pct(st.crit)}</b></div>${st.shadowDmg != null ? `<div>Shadow Damage <b>+${pct(st.shadowDmg)}</b></div>` : ''}<div>Cooldown Reduction <b>${pct(st.cdr || 0)}</b></div>
+            ${st.shadowGain != null ? `<div>Shadow Gain <b>${pct(st.shadowGain)}</b></div>` : ''}<div>Armor Break <b>×${(st.armorBreak || 1).toFixed(1)}</b></div>
+            <div>Movement Speed <b>${Math.round(st.speed)}</b></div><div>Barrier Strength <b>+${pct(st.barrierPower || 0)}</b></div>
+            ${Object.keys(totals).length ? `<h3>Item Modifiers</h3>${Object.entries(totals).map(([type, value]) => `<div class="mod">${esc(modLine({ type, value }))}</div>`).join('')}` : ''}
             <div>EXP <b>${p.isMaxLevel ? 'MAX' : `${p.exp} / ${p.expToNext()}`}</b></div>
             <h3>Skill Modifiers</h3>
             ${Object.keys(p.mods).length ? Object.values(eq.slots).filter(Boolean).map((id) => ITEMS[id].modText ? `<div class="mod">◆ ${esc(ITEMS[id].modText)}</div>` : '').join('') : '<div class="muted">None — find or forge equipment to change your build.</div>'}
@@ -403,8 +413,8 @@ export class Panels {
       else if (t.dataset.cat) { this.invCat = t.dataset.cat; this.inventory(); }
       else if (t.dataset.item) { this.selected = t.dataset.item; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.use) { g.inventory.use(t.dataset.use); this.inventory(); }
-      else if (t.dataset.equip) { g.equipment.equip(t.dataset.equip); if (!g.inventory.has(this.selected)) this.selected = null; this.inventory(); }
-      else if (t.dataset.unequip) { g.equipment.unequip(t.dataset.unequip); this.inventory(); }
+      else if (t.dataset.equip) { if (!g.equipment.equip(t.dataset.equip)) g.ui.toast(g.equipment.lastErrorText(), 1.2); if (!g.inventory.has(this.selected)) this.selected = null; this.inventory(); }
+      else if (t.dataset.unequip) { if (!g.equipment.unequip(t.dataset.unequip)) g.ui.toast(g.equipment.lastErrorText(), 1.2); this.inventory(); }
       else if (t.dataset.evoOpen !== undefined) { this.evoSel = t.dataset.evoOpen || null; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.evolve) {
         const [sid, eid] = t.dataset.evolve.split(':'), r = g.player.evolveSkill(sid, eid);
@@ -425,9 +435,9 @@ export class Panels {
     const stats = Object.entries(d.stats || {}).filter(([, v]) => v).map(([k, v]) => `<div>${statLabel(k)} <b>${statVal(k, v)}</b></div>`).join('');
     return `<img src="${iconURL(d.icon, d.color)}" class="big-icon">
       <h3 style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</h3>
-      <div class="muted small">${d.cat}${d.slot ? ' · ' + d.slot : ''} · ${d.rarity}</div>
-      <p>${esc(d.desc)}</p>${stats}${d.modText ? `<div class="mod">◆ ${esc(d.modText)}</div>` : ''}
-      ${d.use ? `<button data-use="${id}">Use</button>` : ''}${d.slot ? `<button data-equip="${id}">Equip</button>` : ''}`;
+      <div class="muted small">${TYPE_LABEL[d.type] || d.cat} · ${d.rarity}</div>
+      <p>${esc(d.desc)}</p>${stats}${d.modifiers.map((m) => `<div class="mod">${esc(modLine(m))}</div>`).join('')}${d.modText ? `<div class="mod">◆ ${esc(d.modText)}</div>` : ''}${d.effects.map((e) => `<div class="mod">◆ ${esc(e.text)}</div>`).join('')}
+      ${d.use ? `<button data-use="${id}">Use</button>` : ''}${isGear(d) ? `<button data-equip="${id}">Equip</button>` : ''}`;
   }
 
   // ---------------- shop / smith / storage / teleport

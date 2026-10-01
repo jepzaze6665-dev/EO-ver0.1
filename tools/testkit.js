@@ -5,6 +5,7 @@ const TILE = 32;
 // checklist.js import this file, so loading any of the dev tools switches the unlock gate off for the session.
 import { SKILL_TREE } from '../src/data/skillTree.js';
 import { CLASS_TREE } from '../src/data/classTree.js';
+import { GEAR_ITEMS } from '../src/data/items/index.js';
 SKILL_TREE.unlockAll = true;
 
 export function bot(g, i, opts = {}) {
@@ -1708,5 +1709,47 @@ export function b3BossCheck(g, classId = 'umbral_sword', { god = true, level = 4
     for (let k = 0; k < 12 && w.mapId !== 'city2'; k++) walk(g, 'KeyW', 0.3);
     ok('North road from the summit -> Asteria City', w.mapId === 'city2', `map=${w.mapId}`);
   }
+  return R;
+}
+
+// ITEM SYSTEM G2 — the gear loadout on a real player (Aegis by default): equip / unequip / swap, final stats move with
+// the items and come back to the exact base, save / load keeps the loadout.
+//   T.giveGear(__game)               : one of every new gear item (data/items/*) into the bag (dev / manual testing)
+//   T.loadoutCheck(__game, classId)  : 9 steps
+export function giveGear(g) {
+  const ids = Object.keys(GEAR_ITEMS);
+  for (const id of ids) if (!g.inventory.has(id)) g.inventory.add(id, 1, true);
+  return ids;
+}
+export function loadoutCheck(g, classId = 'aegis_guardian') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId); releaseInput(g); g.simulate(0.2);
+  const p = () => g.player, eq = () => g.equipment;
+  const snap = () => ({ hp: p().maxHp, def: p().stats.def, atk: p().stats.atk, speed: p().stats.speed, cdr: p().stats.cdr || 0, barrier: p().stats.barrierPower || 0 });
+  const base = snap(), baseDef = p().cls.base.def, sig = p().cls.startingGear || {};
+  const given = giveGear(g);
+  ok('Gear items in the bag as instances', given.length >= 16 && given.every((id) => g.inventory.findItem(id)), `${given.length} items`);
+  eq().equip('core_ironheart');
+  ok('Ironheart Core: Defense up', p().stats.def > base.def, `${base.def.toFixed(1)} -> ${p().stats.def.toFixed(1)}`);
+  eq().equip('armor_guardian');
+  ok('Guardian Armor: Barrier Strength up', p().stats.barrierPower > base.barrier, `${base.barrier} -> ${p().stats.barrierPower}`);
+  eq().equip('charm_heavy');
+  ok('Heavy Charm: Max HP up, speed down', p().maxHp > base.hp && p().stats.speed < base.speed, `HP ${base.hp} -> ${p().maxHp} · speed ${base.speed} -> ${p().stats.speed.toFixed(1)}`);
+  for (const id of ['relic_oath_mirror', 'rune_guarding_soul', 'rune_retribution', 'rune_iron_will']) eq().equip(id);
+  const v = eq().view();
+  ok('All 7 slots filled + non-stat modifiers readable', v.weaponCore && v.armorCore && v.relic && v.charm && v.runes.every(Boolean)
+    && p().gearMod('guardGeneration') > 0 && p().gearMod('counterDamage') > 0, `guardGen ${p().gearMod('guardGeneration').toFixed(2)} · counter ${p().gearMod('counterDamage').toFixed(2)}`);
+  const full = snap();
+  eq().equip('armor_fortress'); eq().equip('charm_swift');
+  ok('Changing the loadout changes the final stats', JSON.stringify(snap()) !== JSON.stringify(full), `def ${full.def.toFixed(1)} -> ${p().stats.def.toFixed(1)} · speed ${full.speed.toFixed(1)} -> ${p().stats.speed.toFixed(1)}`);
+  g.saveGame(); const before = JSON.stringify({ s: eq().serialize(), st: snap() });
+  g.loadGame(); const after = JSON.stringify({ s: eq().serialize(), st: snap() });
+  ok('Save / load keeps the loadout + instance ids + stats', before === after);
+  for (const s of ['armor', 'relic', 'charm', 'rune1', 'rune2', 'rune3']) eq().unequip(s);
+  if (sig.armor) eq().equip(sig.armor);
+  if (sig.weapon) eq().equip(sig.weapon);
+  const back = snap();
+  ok('Back to the starting gear: stats = the exact base', Object.keys(base).every((k) => Math.abs(back[k] - base[k]) < 1e-9), JSON.stringify(back));
+  ok('Class base stats never edited', p().cls.base.def === baseDef);
   return R;
 }

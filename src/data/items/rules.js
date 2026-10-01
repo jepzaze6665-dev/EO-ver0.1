@@ -22,26 +22,49 @@ export const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 // allowedClasses: ['all'] or class ids (src/skills/classes.js). The core never names a class.
 export const ANY_CLASS = 'all';
 
-// MODIFIERS — stat changes while the item is equipped (applied in G2 through one modifier layer, base stats untouched).
-//  stat      : the player stat it changes (player.stats key); null = read by a system through getModifierValue (G2)
-//  unit      : 'percent' (0.1 = +10%) — every item modifier is a share, so items scale with the level
-//  stacking  : 'additive' (sum, then × (1 + sum)) | 'multiplicative' (× (1 + v) per item)
-//  min / max : cap on the SUMMED value of all items (no infinite defense / negative cooldowns)
+// MODIFIERS — stat changes while the item is equipped. items/modifierSystem.js sums them per type (stacking rule),
+// caps the total, then builds the FINAL stats from a copy of the base stats (base stats are never edited).
+//  stat      : the player stat it changes (player.stats key); null = read by a system through getModifierValue
+//  apply     : 'mult' = stat × (1 + total) (scales with the level) | 'add' = stat + total (stats that already are shares)
+//  stacking  : 'additive' (total = sum) | 'multiplicative' (total = (1 + a)(1 + b)... - 1: many small items add up slower)
+//  min / max : cap on the TOTAL of all items (no infinite defense / negative cooldowns / 100% damage reduction)
+//  label     : name shown in the UI
 export const MODIFIER_TYPES = {
-  maxHP:              { stat: 'hp',           unit: 'percent', stacking: 'additive',       min: -0.5, max: 1 },
-  defense:            { stat: 'def',          unit: 'percent', stacking: 'additive',       min: -0.6, max: 1 },
-  attack:             { stat: 'atk',          unit: 'percent', stacking: 'additive',       min: -0.5, max: 1 },
-  magicDamage:        { stat: null,           unit: 'percent', stacking: 'additive',       min: -0.5, max: 1 },
-  movementSpeed:      { stat: 'speed',        unit: 'percent', stacking: 'multiplicative', min: -0.4, max: 0.4 },
-  cooldownReduction:  { stat: 'cdr',          unit: 'percent', stacking: 'additive',       min: -0.3, max: 0.3 },
-  resourceGeneration: { stat: null,           unit: 'percent', stacking: 'additive',       min: -0.5, max: 1 },
-  resourceCost:       { stat: null,           unit: 'percent', stacking: 'additive',       min: -0.4, max: 1 },
-  barrierStrength:    { stat: 'barrierPower', unit: 'percent', stacking: 'additive',       min: -0.5, max: 1 },
-  guardGeneration:    { stat: null,           unit: 'percent', stacking: 'additive',       min: -0.5, max: 1.5 },
-  counterDamage:      { stat: null,           unit: 'percent', stacking: 'additive',       min: -0.5, max: 1 },
-  aggro:              { stat: null,           unit: 'percent', stacking: 'additive',       min: -0.9, max: 2 },
-  tauntPower:         { stat: null,           unit: 'percent', stacking: 'additive',       min: -0.5, max: 1 },
-  damageReduction:    { stat: null,           unit: 'percent', stacking: 'additive',       min: -0.5, max: 0.4 },
+  maxHP:              { stat: 'hp',           apply: 'mult', stacking: 'additive',       min: -0.5, max: 1,   label: 'Max HP' },
+  defense:            { stat: 'def',          apply: 'mult', stacking: 'additive',       min: -0.6, max: 1,   label: 'Defense' },
+  attack:             { stat: 'atk',          apply: 'mult', stacking: 'additive',       min: -0.5, max: 1,   label: 'Attack' },
+  magicDamage:        { stat: null,                          stacking: 'additive',       min: -0.5, max: 1,   label: 'Magic Damage' },
+  movementSpeed:      { stat: 'speed',        apply: 'mult', stacking: 'multiplicative', min: -0.4, max: 0.4, label: 'Movement Speed' },
+  cooldownReduction:  { stat: 'cdr',          apply: 'add',  stacking: 'additive',       min: -0.3, max: 0.3, label: 'Cooldown Reduction' },
+  resourceGeneration: { stat: null,                          stacking: 'additive',       min: -0.5, max: 1,   label: 'Resource Generation' },
+  resourceCost:       { stat: null,                          stacking: 'additive',       min: -0.4, max: 1,   label: 'Resource Cost' },
+  barrierStrength:    { stat: 'barrierPower', apply: 'add',  stacking: 'additive',       min: -0.5, max: 1,   label: 'Barrier Strength' },
+  guardGeneration:    { stat: null,                          stacking: 'additive',       min: -0.5, max: 1.5, label: 'Guard Generation' },
+  counterDamage:      { stat: null,                          stacking: 'additive',       min: -0.5, max: 1,   label: 'Counter Damage' },
+  aggro:              { stat: null,                          stacking: 'additive',       min: -0.9, max: 2,   label: 'Aggro' },
+  tauntPower:         { stat: null,                          stacking: 'additive',       min: -0.5, max: 1,   label: 'Taunt Power' },
+  damageReduction:    { stat: null,                          stacking: 'additive',       min: -0.5, max: 0.4, label: 'Damage Reduction' },
+};
+
+// GEAR LOADOUT — the 7 slots (G2). Slot ids 'weapon' / 'armor' are kept from the old 3-slot equipment (saves, class
+// starting gear). `fixed`: never empty (unequip refused; swap instead). A slot takes exactly its `type`.
+export const GEAR_SLOTS = [
+  { id: 'weapon', type: 'weapon_core', label: 'Weapon Core', fixed: true },
+  { id: 'armor', type: 'armor_core', label: 'Armor Core' },
+  { id: 'relic', type: 'relic', label: 'Relic' },
+  { id: 'charm', type: 'charm', label: 'Charm' },
+  { id: 'rune1', type: 'rune', label: 'Rune 1' },
+  { id: 'rune2', type: 'rune', label: 'Rune 2' },
+  { id: 'rune3', type: 'rune', label: 'Rune 3' },
+];
+export const LOADOUT_RULES = {
+  duplicates: false, // the same item id in two slots (two copies of one rune) — off: every slot must be a different item
+};
+// why an equip was refused -> text for the player
+export const EQUIP_FAIL = {
+  unknown: 'Unknown item', notGear: 'This item cannot be equipped', notOwned: 'You do not have this item',
+  wrongSlot: 'It does not fit that slot', class: 'Your class cannot use this item', duplicate: 'Already equipped in another slot',
+  fixed: 'This slot cannot be empty', bagFull: 'Your bag is full',
 };
 
 // TRIGGERS — when an item effect may fire (G3 maps each one to a game event). onLowHP fires once per dip below the line.
