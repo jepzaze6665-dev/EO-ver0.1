@@ -33,6 +33,13 @@ test('the character window only uses icons that exist', () => {
   for (const m of src.match(/STAT_ICON = \{[^}]+\}/)[0].matchAll(/: '([a-zA-Z]+)'/g)) ok(meta['stat_' + m[1]], 'no stat icon ' + m[1]);
 });
 
+test('NPC service panels only use icons that exist', () => {
+  const src = readFileSync(new URL('src/ui/panels.js', ROOT), 'utf8');
+  const used = [...src.matchAll(/icon: '([a-z_]+)'|UI_ICON('([a-z_]+)')/g)].map((m) => m[1] || m[2]);
+  ok(used.length >= 4, 'npc panels found: ' + used.length);
+  for (const n of used) ok(meta[n], 'missing icon ' + n);
+});
+
 test('POWER grows with every stat and is a whole number', () => {
   const base = { hp: 300, atk: 20, def: 5, crit: 0.05 };
   const p0 = powerOf(base, 300);

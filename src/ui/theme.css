@@ -149,3 +149,29 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 .cw-low { opacity: 0.45; }
 .cw-detail { margin-top: 10px; min-height: 0; }
 .cw .keys { padding: 10px 0 0; }
+
+/* ---------- NPC SERVICE PANEL (U-C: ui/npcPanel.js) — shop / forge / storage / waystone, left side ---------- */
+.panel.npc-panel { height: 100vh; max-height: none; width: min(560px, 96vw); min-width: 0; max-width: none; border-radius: 0; border-top: 0;
+  padding: 0; display: flex; flex-direction: column;
+  background: linear-gradient(90deg, rgba(6, 6, 10, 0.95) 0%, rgba(6, 6, 10, 0.92) 85%, rgba(6, 6, 10, 0.65)); box-shadow: 18px 0 40px rgba(0, 0, 0, 0.35); }
+.np-head { display: flex; align-items: center; gap: 12px; padding: 20px 22px 12px; margin-right: 34px; border-bottom: 1px solid var(--line-strong); }
+.np-ico { width: 34px; height: 34px; opacity: 0.9; }
+.np-title { flex: 1; } .np-title b { font: 600 18px var(--font-title); } .np-sub { font-size: 12px; color: var(--ink-dim); }
+.np-main { flex: 1; display: flex; gap: 14px; padding: 14px 22px; min-height: 0; }
+.np-menu { width: 108px; flex: none; display: flex; flex-direction: column; gap: 2px; }
+.np-menu button { text-align: left; border: 0; border-left: 2px solid transparent; border-radius: 0; background: transparent; color: var(--ink-dim); margin: 0; padding: 7px 10px; }
+.np-menu button.on { color: #fff; background: rgba(255, 255, 255, 0.06); border-left-color: var(--hl); }
+.np-menu button:hover:not(.on):not(:disabled) { background: rgba(255, 255, 255, 0.03); border-color: transparent; color: #fff; }
+.np-body { flex: 1; overflow-y: auto; padding-right: 4px; }
+.np-row { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-bottom: 1px solid rgba(236, 228, 210, 0.07); }
+.np-row:hover { background: rgba(255, 255, 255, 0.03); }
+.np-slot { width: 46px; height: 46px; flex: none; cursor: default; } .np-slot img { width: 36px; height: 36px; }
+.np-name { font: 500 14px var(--font-title); } .np-text { font-size: 12px; color: var(--ink-dim); margin-top: 2px; line-height: 1.45; }
+.np-text .ok { color: #8fe0a0; } .np-text .bad { color: #ff8a8a; }
+.np-right button { margin: 0; white-space: nowrap; padding: 5px 12px; }
+.np-price { display: inline-flex; align-items: center; gap: 4px; font: 500 13px var(--font-title); color: var(--gold); }
+.np-price img { width: 15px; height: 15px; } .np-price.bad { color: #ff8a8a; }
+.np-here .np-name { color: var(--hl); }
+.npc-panel .keys { border-top: 1px solid var(--line); padding: 10px 22px; }
+.npc-panel .np-close { position: absolute; top: 18px; right: 14px; display: block; margin: 0; padding: 4px 10px; }
+.np-row .grow { flex: 1; min-width: 0; } .np-right { margin-left: auto; }

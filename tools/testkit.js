@@ -1275,7 +1275,7 @@ export function cityCheck(g, classId = 'umbral_sword') {
   ok('Through the South Gate on foot to the Crystal Plaza', p.y <= 78 * TILE && w.state.flags.asteriaPlaza, `pos=${(p.x / TILE).toFixed(1)},${(p.y / TILE).toFixed(1)}`);
   // services
   use(g, 'npc_a_merchant'); g.ui.panels.dialogueAction('shop');
-  const shopEl = document.querySelector('.panel h2');
+  const shopEl = document.querySelector('.panel .np-title b, .panel h2');
   ok('Asterian Bazaar: the merchant opens the city shop', shopEl && /Asterian Bazaar/.test(shopEl.textContent), shopEl && shopEl.textContent);
   g.ui.panels.close(true);
   use(g, 'npc_a_smith'); g.ui.panels.dialogueAction('smith');

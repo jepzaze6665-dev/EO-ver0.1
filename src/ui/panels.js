@@ -19,7 +19,8 @@ import { describe as describeMod } from '../progression/skillModifiers.js';
 import { expToNext } from '../progression/experience.js';
 import { isGear } from '../items/itemDefs.js';
 import { itemTooltipHTML, swapPreview } from './itemTooltip.js';
-import { charHeaderHTML, charTabsHTML, equipmentTabHTML, startHeroPreview } from './charWindow.js';
+import { charHeaderHTML, charTabsHTML, equipmentTabHTML, startHeroPreview, UI_ICON } from './charWindow.js';
+import { npcPanelHTML, npcRow, goldTag } from './npcPanel.js';
 
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
@@ -429,22 +430,30 @@ export class Panels {
     el.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
   }
 
-  // ---------------- shop / smith / storage / teleport
+  // ---------------- shop / smith / storage / teleport — UI v2 side panels (ui/npcPanel.js)
+  npcTab(name, def) { this.npcTabs ||= {}; return this.npcTabs[name] || def; }
+  wireNpc(el, name, redraw, onClick) {
+    this.wireTooltip(el);
+    el.addEventListener('click', (e) => {
+      const t = e.target.closest('button,[data-npc-tab]');
+      if (!t) return;
+      if (t.classList.contains('close')) return this.close();
+      if (t.dataset.npcTab) { (this.npcTabs ||= {})[name] = t.dataset.npcTab; this.game.audio.sfx('ui'); return redraw(); }
+      onClick(t);
+    });
+  }
   shop() {
     const g = this.game, p = g.player;
     const sellable = g.inventory.list('Material').filter(({ def }) => !def.bound), shop = SHOPS[this.dialogueNpc] || SHOPS.merchant;
-    const el = this.show('shop', `
-      <div class="panel">
-        <h2>${esc(shop.title)} <span class="gold-inline">${p.gold} G</span></h2>
-        <h3>Buy</h3>
-        ${shop.stock.map((id) => { const d = ITEMS[id]; return `<div class="row"><img src="${itemIconURL(d)}"><div class="grow"><b style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</b><div class="muted small">${esc(d.modText || d.desc)}</div></div><button data-buy="${id}" ${!p.canAfford(d.price) ? 'disabled' : ''}>${d.price} G</button></div>`; }).join('')}
-        <h3>Sell materials</h3>
-        ${sellable.map(({ id, n, def }) => `<div class="row"><img src="${itemIconURL(def)}"><div class="grow">${esc(def.name)} ×${n}</div><button data-sell="${id}">+${def.sell} G</button></div>`).join('') || '<div class="muted">No materials to sell.</div>'}
-        <button class="close">Close</button>
-      </div>`);
-    el.addEventListener('click', (e) => {
-      const t = e.target;
-      if (t.classList.contains('close')) return this.close();
+    const tab = this.npcTab('shop', 'buy');
+    const body = tab === 'buy'
+      ? shop.stock.map((id) => { const d = ITEMS[id], ok = p.canAfford(d.price); return npcRow({ img: itemIconURL(d), color: RARITY_COLOR[d.rarity], name: d.name, nameColor: RARITY_COLOR[d.rarity], text: esc(d.modText || d.desc || ''), tip: id,
+        right: `<button data-buy="${id}" ${ok ? '' : 'disabled'}>${goldTag(d.price, ok)}</button>` }); }).join('')
+      : sellable.map(({ id, n, def }) => npcRow({ img: itemIconURL(def), color: RARITY_COLOR[def.rarity], name: `${def.name} ×${n}`, tip: id, right: `<button data-sell="${id}">+ ${goldTag(def.sell)}</button>` })).join('')
+        || '<div class="muted small">No materials to sell.</div>';
+    const el = this.show('shop', npcPanelHTML({ icon: 'npc_shop', title: shop.title, sub: tab === 'buy' ? 'Buy' : 'Sell materials', gold: p.gold,
+      menu: [{ id: 'buy', label: 'Buy' }, { id: 'sell', label: 'Sell' }], tab, body, keys: [['Click', tab === 'buy' ? 'Buy' : 'Sell']] }), 'side');
+    this.wireNpc(el, 'shop', () => this.shop(), (t) => {
       if (t.dataset.buy) { const d = ITEMS[t.dataset.buy]; if (!g.inventory.canAdd(t.dataset.buy)) g.ui.toast('Inventory full', 1); else if (p.removeGold(d.price)) { g.inventory.add(t.dataset.buy, 1); g.audio.sfx('chest'); } this.shop(); }
       if (t.dataset.sell) { const d = ITEMS[t.dataset.sell]; if (g.inventory.remove(t.dataset.sell, 1)) { p.addGold(d.sell); g.audio.sfx('gather'); } this.shop(); }
     });
@@ -453,46 +462,31 @@ export class Panels {
     const g = this.game, p = g.player, inv = g.inventory;
     const can = (r) => p.canAfford(r.gold) && inv.canAdd(r.out) && Object.entries(r.mats).every(([m, n]) => inv.has(m, n));
     const owned = (id) => inv.has(id) || Object.values(g.equipment.slots).includes(id);
-    const el = this.show('smith', `
-      <div class="panel">
-        <h2>Borin's Forge <span class="gold-inline">${p.gold} G</span></h2>
-        ${RECIPES.map((r, i) => { const d = ITEMS[r.out]; return `<div class="row recipe"><img src="${itemIconURL(d)}"><div class="grow"><b style="color:${RARITY_COLOR[d.rarity]}">${esc(d.name)}</b>
-          <div class="small">${Object.entries(d.stats).map(([k, v]) => `${statLabel(k)} ${statVal(k, v)}`).join(' · ')}</div>
-          <div class="mod small">◆ ${esc(d.modText)}</div>
-          <div class="small">${Object.entries(r.mats).map(([m, n]) => `<span class="${inv.has(m, n) ? 'ok' : 'bad'}">${ITEMS[m].name} ${inv.count(m)}/${n}</span>`).join(' · ')} · <span class="${p.gold >= r.gold ? 'ok' : 'bad'}">${r.gold} G</span></div></div>
-          <button data-craft="${i}" ${can(r) && !owned(r.out) ? '' : 'disabled'}>${owned(r.out) ? 'Owned' : 'Forge'}</button></div>`; }).join('')}
-        <p class="muted small">Materials drop from monsters and resource nodes. Hint: Crystal Beasts guard the Crystal Glade.</p>
-        <button class="close">Close</button>
-      </div>`);
-    el.addEventListener('click', (e) => {
-      const t = e.target;
-      if (t.classList.contains('close')) return this.close();
-      if (t.dataset.craft !== undefined) {
-        const r = RECIPES[+t.dataset.craft];
-        if (!can(r) || !p.removeGold(r.gold)) return;
-        for (const [m, n] of Object.entries(r.mats)) inv.remove(m, n);
-        inv.add(r.out, 1);
-        g.audio.sfx('levelup');
-        g.ui.banner('FORGED', ITEMS[r.out].name, '#ffd98a');
-        this.smith();
-      }
+    const body = RECIPES.map((r, i) => { const d = ITEMS[r.out]; return npcRow({ img: itemIconURL(d), color: RARITY_COLOR[d.rarity], name: d.name, nameColor: RARITY_COLOR[d.rarity], tip: r.out, cls: 'recipe',
+      text: `${Object.entries(d.stats || {}).map(([k, v]) => `${statLabel(k)} ${statVal(k, v)}`).join(' · ')}${d.modText ? `<div class="mod">◆ ${esc(d.modText)}</div>` : ''}
+        <div>${Object.entries(r.mats).map(([m, n]) => `<span class="${inv.has(m, n) ? 'ok' : 'bad'}">${esc(ITEMS[m].name)} ${inv.count(m)}/${n}</span>`).join(' · ')} · ${goldTag(r.gold, p.gold >= r.gold)}</div>`,
+      right: `<button data-craft="${i}" ${can(r) && !owned(r.out) ? '' : 'disabled'}>${owned(r.out) ? 'Owned' : 'Forge'}</button>` }); }).join('')
+      + '<p class="muted small">Materials drop from monsters and resource nodes.</p>';
+    const el = this.show('smith', npcPanelHTML({ icon: 'npc_smith', title: "Borin's Forge", sub: 'Forge', gold: p.gold, body, keys: [['Click', 'Forge']] }), 'side');
+    this.wireNpc(el, 'smith', () => this.smith(), (t) => {
+      if (t.dataset.craft === undefined) return;
+      const r = RECIPES[+t.dataset.craft];
+      if (!can(r) || !p.removeGold(r.gold)) return;
+      for (const [m, n] of Object.entries(r.mats)) inv.remove(m, n);
+      inv.add(r.out, 1);
+      g.audio.sfx('levelup');
+      g.ui.banner('FORGED', ITEMS[r.out].name, '#ffd98a');
+      this.smith();
     });
   }
   storage() {
-    const g = this.game, inv = g.inventory;
-    const col = (list, attr, label) => list.map(([id, n]) => { const d = ITEMS[id]; return `<div class="row"><img src="${itemIconURL(d)}"><div class="grow">${esc(d.name)} ×${n}</div><button data-${attr}="${id}">${label}</button></div>`; }).join('') || '<div class="muted">Empty</div>';
-    const el = this.show('storage', `
-      <div class="panel wide">
-        <h2>Storage</h2>
-        <div class="two">
-          <div><h3>Inventory</h3>${col(Object.entries(inv.items).filter(([id]) => ITEMS[id].cat !== 'Quest Item' && !ITEMS[id].bound), 'dep', 'Store →')}</div>
-          <div><h3>Storage Chest</h3>${col(Object.entries(inv.storage), 'wd', '← Take')}</div>
-        </div>
-        <button class="close">Close</button>
-      </div>`);
-    el.addEventListener('click', (e) => {
-      const t = e.target;
-      if (t.classList.contains('close')) return this.close();
+    const g = this.game, inv = g.inventory, tab = this.npcTab('storage', 'store');
+    const list = tab === 'store' ? Object.entries(inv.items).filter(([id]) => ITEMS[id].cat !== 'Quest Item' && !ITEMS[id].bound) : Object.entries(inv.storage);
+    const body = list.map(([id, n]) => { const d = ITEMS[id]; return npcRow({ img: itemIconURL(d), color: RARITY_COLOR[d.rarity], name: `${d.name} ×${n}`, tip: id,
+      right: tab === 'store' ? `<button data-dep="${id}">Store →</button>` : `<button data-wd="${id}">← Take</button>` }); }).join('') || '<div class="muted small">Empty</div>';
+    const el = this.show('storage', npcPanelHTML({ icon: 'npc_storage', title: 'Storage Chest', sub: tab === 'store' ? 'Your bag → chest' : 'Chest → your bag',
+      menu: [{ id: 'store', label: 'Store' }, { id: 'take', label: 'Take' }], tab, body, keys: [['Click', tab === 'store' ? 'Store one' : 'Take one']] }), 'side');
+    this.wireNpc(el, 'storage', () => this.storage(), (t) => {
       if (t.dataset.dep) { inv.deposit(t.dataset.dep, 1); this.storage(); }
       if (t.dataset.wd) { inv.withdraw(t.dataset.wd, 1); this.storage(); }
     });
@@ -500,19 +494,11 @@ export class Panels {
   teleport(fromId) {
     const g = this.game, w = g.world;
     const stones = w.interactables.filter((it) => it.kind === 'waystone');
-    const el = this.show('teleport', `
-      <div class="panel">
-        <h2>Waystone Network</h2>
-        <p class="muted small">Your wounds close in the waystone's light. Travel to any attuned waystone.</p>
-        ${stones.map((s) => `<div class="row"><div class="grow"><b>${esc(s.name)}</b>${s.id === fromId ? ' <span class="muted">(here)</span>' : ''}</div>
-          ${w.state.waystones[s.id] ? (s.id === fromId ? '' : `<button data-tp="${s.id}">Travel</button>`) : '<span class="muted">Not attuned</span>'}</div>`).join('')}
-        <button class="close">Close</button>
-      </div>`);
-    el.addEventListener('click', (e) => {
-      const t = e.target;
-      if (t.classList.contains('close')) return this.close();
-      if (t.dataset.tp) { this.close(); g.teleportTo(t.dataset.tp); }
-    });
+    const body = '<p class="muted small">Your wounds close in the waystone\'s light. Travel to any attuned waystone.</p>' + stones.map((s) => npcRow({ img: UI_ICON('npc_waystone'), name: s.name,
+      text: s.id === fromId ? 'You are here' : w.state.waystones[s.id] ? '' : 'Not attuned', cls: s.id === fromId ? 'np-here' : '',
+      right: w.state.waystones[s.id] && s.id !== fromId ? `<button data-tp="${s.id}">Travel</button>` : '' })).join('');
+    const el = this.show('teleport', npcPanelHTML({ icon: 'npc_waystone', title: 'Waystone Network', sub: 'Travel', body, keys: [['Click', 'Travel']] }), 'side');
+    this.wireNpc(el, 'teleport', () => this.teleport(fromId), (t) => { if (t.dataset.tp) { this.close(); g.teleportTo(t.dataset.tp); } });
   }
 
   // ---------------- world map

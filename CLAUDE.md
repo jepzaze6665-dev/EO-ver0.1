@@ -1002,6 +1002,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   "All stats · sets · item effects" fold, bag with 8 icon filters (BAG_FILTERS) + gold; clicking a slot filters the bag to
   that slot's items (data-equip-to) + Unequip / Cancel. Other tabs open the panel wide. Panels.show: a redraw of the open
   window skips the fade-in (no flicker). loadoutUI.js keeps finalStatRows / setsHTML (loadoutHTML unused). tools/tests/uiV2.test.mjs.
+  Done U-C: NPC SERVICE PANELS = shared left side panel src/ui/npcPanel.js (npcPanelHTML { icon, title, sub, gold, menu, tab, body,
+  keys } + npcRow + goldTag): shop (Buy / Sell menu, SHOPS per NPC), Borin's forge, storage (Store / Take), waystone network —
+  service icons npc_*, gold icon prices; Panels.npcTab / wireNpc (menu tab per service, clicks via closest(button)). cityCheck reads
+  the shop title from .np-title b.
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it
