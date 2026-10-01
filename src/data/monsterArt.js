@@ -271,18 +271,16 @@ export const MONSTER_ART = {
     },
     fps: { idle: 4, move: 5 },
   },
-  // A2 SECRET BOSS: Varkharon (4 forms). Base names = phase 1; 'p<n>_<name>' = that phase's form (AreaBoss.sheetFrame
-  // prefers it). p4_idle[0] / p4_special[0] are dirty cuts (two poses) and are skipped.
+  // A2 SECRET BOSS: Varkharon (owner's v2 sheet, one form at twice the size). The phases differ by colour / glow
+  // (bosses.js look.phaseStyle filter), the enrage row is its roar / transformation.
   varkharon: {
     sheet: 'varkharon', replaces: ['varkharon'],
     anims: {
-      idle: 'p1_idle', move: 'p1_move', windup: ['p1_attack', [0, 1, 2]], attack: ['p1_attack', [3, 4, 5, 6]], hurt: ['stagger', [0, 1, 2]], death: 'death',
-      breath_wind: ['p1_special', [0, 1, 2, 3, 4]], breath: ['p1_special', [5, 6]], roar: ['p1_special', [0, 1, 2]], stagger: 'stagger', p1_stagger: 'p1_stagger',
-      p2_idle: 'p2_idle', p2_move: 'p2_move', p2_windup: ['p2_attack', [0, 1, 2]], p2_attack: ['p2_attack', [3, 4, 5, 6]], p2_breath_wind: ['p2_special', [0, 1, 2, 3, 4]], p2_breath: ['p2_special', [5, 6]], p2_roar: 't12',
-      p3_idle: 'p3_idle', p3_move: 'p3_move', p3_windup: ['p3_attack', [0, 1, 2]], p3_attack: ['p3_attack', [3, 4, 5, 6]], p3_breath_wind: ['p3_special', [0, 1, 2, 3, 4]], p3_breath: ['p3_special', [5, 6]], p3_roar: 't23',
-      p4_idle: ['p4_idle', [1, 2, 3, 4, 5, 6]], p4_move: 'p4_move', p4_windup: ['p4_attack', [0, 1, 2]], p4_attack: ['p4_attack', [3, 4, 5, 6]], p4_breath_wind: ['p4_special', [1, 2, 3]], p4_breath: ['p4_special', [4, 5]], p4_roar: ['p4_attack', [0, 1, 2]],
+      idle: 'idle', move: 'walk', windup: ['claw', [0, 1, 2, 3]], attack: ['claw', [4, 5, 6, 7]], hurt: ['hurt', [0, 1, 2]], death: 'death',
+      breath_wind: ['breath', [0, 1, 2, 3, 4, 5]], breath: ['breath', [6, 7]], spit_wind: ['spit', [0, 1, 2, 3]], spit: ['spit', [4, 5, 6, 7]],
+      roar: 'enrage', burst: ['special', [0]], tail: ['special', [1, 2]], spikes: ['special', [3]], sweep: ['special', [4, 5]], stagger: ['hurt', [3, 4, 5, 6, 7]],
     },
-    fps: { idle: 6, move: 8, p2_roar: 5, p3_roar: 5 },
+    fps: { idle: 6, move: 8, roar: 7 },
   },
   // B2 BOSS: the Amethyst Colossus
   amethyst_colossus: {

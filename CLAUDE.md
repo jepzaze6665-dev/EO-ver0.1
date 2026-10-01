@@ -846,6 +846,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   AW 181 s · UB 185 s (UB also lost one run at 68 s) — a hard optional fight; human playtest needed.
   Polish (owner: white edge round the boss): build-monsters sheet option `defringe { passes, minLum, neutral, pure, minSize }`
   = peel light-grey / half-transparent pixels off the outline + drop PURE-grey checker pockets (flame cores are warm: kept).
+  Art v2 (owner: 'the boss looks broken'): the first sheet's bodies were ~85 px, upscaled ~1.4x with nearest-neighbour ->
+  blocky. The owner's v2 sheet (dragon/SP/image-cec8...png: ONE form, ~170 px bodies, 9 rows idle / walk / claw / breath / spit /
+  special / hurt / enrage / death) replaces it under the same atlas id 'varkharon': built at height 128, drawn at look.scale 1
+  (no upscaling). Phases = AreaBoss look.phaseStyle `filter` (NEW generic: a CSS filter per phase; 3 = hue-rotate violet).
+  RULE for boss art: build the atlas at the size it is drawn (scale ~1); never upscale small frames.
   A2 SECRET BOSS COMPLETE (D1-D4). Next: owner decides (secret class from Heart of Varkharon = data only until asked).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`

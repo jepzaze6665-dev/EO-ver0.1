@@ -572,7 +572,7 @@ AreaBoss.prototype.draw = function draw(ctx) {
   const x = Math.round(this.x), y = Math.round(this.y);
   const alpha = this.dead ? Math.max(0, 1 - Math.max(0, this.deathT - 1.2)) : 1;
   if (alpha <= 0) return;
-  // look.phaseStyle[phase] = { aura: 'r,g,b', glow: px, scale } — every phase reads differently at a glance
+  // look.phaseStyle[phase] = { aura: 'r,g,b', glow: px, scale, filter: CSS filter } — every phase reads differently at a glance
   const ps = (this.look.phaseStyle && this.look.phaseStyle[this.phase]) || {};
   const aura = ps.aura || this.look.aura || '255,120,120';
   // shadow + aura
@@ -595,8 +595,11 @@ AreaBoss.prototype.draw = function draw(ctx) {
   if (s && s.sheet) {
     const fr = this.sheetFrame(s);
     const sc = this.scale * (ps.scale || 1), w = s.w * sc, h = s.h * sc, ax = s.ax * sc, ay = s.ay * sc;
+    // phaseStyle.filter: a colour filter for that phase (one drawn form, a different fire per phase)
+    const pf = !this.dead && ps.filter ? ps.filter + ' ' : '';
     if (this.state === 'dormant') ctx.filter = 'brightness(0.75)';
-    else if (ps.glow && !this.dead) ctx.filter = `drop-shadow(0 0 ${ps.glow}px rgb(${aura}))`;
+    else if (ps.glow && !this.dead) ctx.filter = `${pf}drop-shadow(0 0 ${ps.glow}px rgb(${aura}))`;
+    else if (pf) ctx.filter = pf;
     ctx.drawImage(fr, -ax, -ay, w, h);
     ctx.filter = 'none';
     if (this.flash > 0 && !this.dead) { ctx.globalAlpha = Math.min(1, this.flash * 10); ctx.drawImage(flashOf(fr), -ax, -ay, w, h); }

@@ -268,7 +268,7 @@ export const BOSSES = {
   },
   // A2 SECRET BOSS: VARKHARON, the Sealed Cinder King, on the Cinder Throne behind the dragon door of the Quiet Hollow
   // (maps/cinderThrone.js). Reached only through the Ashen Pilgrim's three trials (data/wanderers.js, quests ember_*).
-  // Art = the owner's 4-phase dragon sheet ('varkharon', phase-prefixed anims), effects = its VFX sheet ('d_*').
+  // Art = the owner's v2 dragon sheet ('varkharon', one form; phases by colour filter), effects = its VFX sheet ('d_*').
   // Owner: "different from every boss" — SKY CHAINS (it flies; hold [E] at chain posts to drag it down) · RISING LAVA
   // (the throne shrinks every phase, for real) · EMBER DEBT (fire hits stack embers that IGNITE) · LAST BREATH at 10%.
   boss_varkharon: {
@@ -278,9 +278,10 @@ export const BOSSES = {
     teaches: 'Chain the dragon out of the sky · keep to the shrinking throne · pay your ember debt before it ignites',
     stats: { hp: 22000, def: 13, speed: 100, radius: 30, height: 80, mass: 9, weakness: ['shadow'], superArmor: true, poise: 1200 },
     look: {
-      sprite: 'varkharon', scale: 1.25, aura: '255,120,40',
+      sprite: 'varkharon', scale: 1, aura: '255,120,40', // drawn 1:1 (atlas built at the game size: no upscaling blur)
       anims: { roar: 'roar' },
-      phaseStyle: { 1: { aura: '255,120,40' }, 2: { aura: '255,160,60', glow: 5 }, 3: { aura: '180,90,255', glow: 7 }, 4: { aura: '255,70,40', glow: 10, scale: 1.08 } },
+      // one drawn form: each phase is its own colour (filter) + glow — 3 = the corrupted violet fire
+      phaseStyle: { 1: { aura: '255,120,40' }, 2: { aura: '255,160,60', glow: 5, filter: 'saturate(1.25) brightness(1.08)' }, 3: { aura: '180,90,255', glow: 7, filter: 'hue-rotate(235deg) saturate(1.3)' }, 4: { aura: '255,70,40', glow: 10, scale: 1.08, filter: 'saturate(1.5) contrast(1.1)' } },
       vfx: { charge: 'd_aura', slash: 'm_slash', impact: 'd_ground', bolt: 'd_bolt', eruption: 'd_explosion', nova: 'd_ground', phase: 'd_phase', pool: 'd_telegraph', spark: 'd_hit', weak: 'd_weak' },
       phaseAura: {
         2: { transition: ['d_phase', 'd_enrage'], step: 0.4, stepLife: 0.7, scale: 1.4 },
@@ -298,17 +299,17 @@ export const BOSSES = {
     ],
     moves: {
       claw: { kind: 'strike', range: 110, windup: 0.7, recover: 0.6, cd: 1.6, weight: 3.5, power: 40, knock: 220, shape: { shape: 'cone', r: 118, half: 0.9 } },
-      tail_sweep: { kind: 'strike', range: 150, windup: 0.95, recover: 0.7, cd: 4, weight: 2, power: 36, knock: 260, shape: { shape: 'ring', r0: 40, r: 150 }, opening: 1.0, anim: { windup: 'roar' } },
+      tail_sweep: { kind: 'strike', range: 150, windup: 0.95, recover: 0.7, cd: 4, weight: 2, power: 36, knock: 260, shape: { shape: 'ring', r0: 40, r: 150 }, opening: 1.0, anim: { windup: 'tail', attack: 'sweep' } },
       bite_combo: {
         kind: 'combo', range: 110, cd: 4.5, weight: 2.5, power: 34, knock: 200, recover: 0.8, opening: 1.4, shape: { shape: 'cone', r: 104, half: 0.8 },
         hits: [{ windup: 0.5 }, { windup: 0.45 }, { windup: 1.15, track: true, power: 55, shape: { shape: 'cone', r: 128, half: 1.1 } }],
       },
       breath: { kind: 'strike', range: 260, windup: 1.2, recover: 0.8, cd: 5, weight: 2.5, power: 38, knock: 160, dmg: 'magic', status: [{ id: 'burn', dur: 2.5 }], color: '255,110,30', shape: { shape: 'cone', r: 250, half: 0.42 }, anim: { windup: 'breath_wind', attack: 'breath' } },
-      fireball: { kind: 'volley', range: 380, min: 0, windup: 0.8, recover: 0.6, cd: 4, weight: 2.5, power: 28, count: 3, spread: 0.5, speed: 280, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '#ff8a30', anim: { windup: 'breath_wind', attack: 'breath' } },
+      fireball: { kind: 'volley', range: 380, min: 0, windup: 0.8, recover: 0.6, cd: 4, weight: 2.5, power: 28, count: 3, spread: 0.5, speed: 280, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '#ff8a30', anim: { windup: 'spit_wind', attack: 'spit' } },
       pounce: { kind: 'leap', guardBreak: true, range: 360, min: 120, windup: 1.0, recover: 0.9, cd: 6, weight: 2, power: 50, knock: 300, r: 86, track: 0.6, opening: 1.3 },
-      flame_cross: { kind: 'pattern', layout: 'cross', range: 400, windup: 0.9, recover: 0.6, cd: 6, weight: 2, power: 32, knock: 180, count: 4, r: 38, step: 60, delay: 0.12, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '190,90,255' },
+      flame_cross: { kind: 'pattern', layout: 'cross', range: 400, windup: 0.9, recover: 0.6, cd: 6, weight: 2, power: 32, knock: 180, count: 4, r: 38, step: 60, delay: 0.12, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '190,90,255', anim: { attack: 'spikes' } },
       ember_rain: { kind: 'pattern', layout: 'scatter', range: 999, windup: 1.0, recover: 0.8, cd: 7, weight: 2, power: 30, count: 10, r: 38, delay: 0.1, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '255,100,30', anim: { roar: 'roar' } },
-      cinder_nova: { kind: 'nova', range: 999, windup: 1.1, recover: 0.9, cd: 9, weight: 1.5, power: 30, rings: 3, width: 46, gap: 64, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '255,90,30', anim: { roar: 'roar' } },
+      cinder_nova: { kind: 'nova', range: 999, windup: 1.1, recover: 0.9, cd: 9, weight: 1.5, power: 30, rings: 3, width: 46, gap: 64, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '255,90,30', anim: { roar: 'burst' } },
     },
     // SIGNATURE (boss/mechanics.js). Order = priority for the next turn: the rising lava first, then the sky, then IGNITE
     mechanics: [

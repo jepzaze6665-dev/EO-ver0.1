@@ -25,7 +25,6 @@ const SRC = 'desgin/monster/';
 // `flip: true` on the sheet = every row faces left. Row opts.mirrorFrames: [i] = only those frames face the other way.
 // `height`   : game px of the neutral body (row 0 frame 0 measures it); `feet` = pivot row inside the output cell.
 // `anims`    : game animation -> [row name, frame indices?]; missing anims fall back in sheetSprites.js.
-const VK_BLOBS = { min: 2500, reach: 90, maxW: 360, edgeDrop: true, tight: 24 }; // Varkharon rows: fire / aura touch the next pose -> cut by shape
 const SHEETS = {
   // ---------------- A1 WHISPERING FOREST
   rabbit: {
@@ -165,27 +164,12 @@ const SHEETS = {
       ['p3', 0, { y: [628, 782], x: [118, 1990], blobs: { min: 2500 } }], ['death', 0, { y: [1780, 1935], x: [140, 1990], blobs: { min: 700 } }],
     ],
   },
-  // A2 SECRET BOSS: VARKHARON, the Sealed Cinder King — the owner's 4-phase dragon sheet (A/A2/SC/dragon/SP): four
-  // panels (phase 1 | 2 on top, 3 | 4 below), the three transformations and the common rows. Every row names its band.
+  // A2 SECRET BOSS VARKHARON v2 (owner 2026-10-01: the first 4-phase sheet was drawn too small and looked broken when scaled up): one form drawn at twice the size (~170 px bodies),
+  // 9 rows: idle · walk · claw · breath · fire spit · specials · hurt · enrage · death. Built at height 128 and drawn at
+  // look.scale 1 -> never upscaled in game.
   varkharon: {
-    file: 'A/A2/SC/dragon/SP/1.png', height: 96, bgTone: [185, 250], pocket: 20, defringe: { passes: 3, minLum: 130, neutral: 18, pure: 6, minSize: 3 }, // black headers sit on the sheet edge: give the checker tones
-    clear: [[0, 0, 2048, 34], [0, 684, 2048, 716], [1100, 716, 1960, 724], [0, 0, 106, 1500], [990, 0, 1106, 1500]], // header bars the horns touch + row labels
-    // rows whose fire / aura joins the poses into one shape (p3 / p4 hurt + stagger, enrage, p2 stagger, 3->4 transition, common hurt) are not cut: the common rows cover them
-    rows: [
-      ['p1_idle', 7, { y: [36, 124], x: [96, 960], blobs: VK_BLOBS }], ['p1_move', 7, { y: [132, 220], x: [96, 960], blobs: VK_BLOBS }],
-      ['p1_attack', 7, { y: [228, 318], x: [96, 960], blobs: VK_BLOBS }], ['p1_special', 7, { y: [326, 416], x: [96, 960], blobs: VK_BLOBS }],
-      ['p1_hurt', 7, { y: [426, 518], x: [96, 960], blobs: VK_BLOBS }], ['p1_stagger', 6, { y: [524, 632], x: [86, 960], blobs: VK_BLOBS }],
-      ['p2_idle', 7, { y: [36, 126], x: [1082, 1960], blobs: VK_BLOBS }], ['p2_move', 7, { y: [134, 222], x: [1082, 1960], blobs: VK_BLOBS }],
-      ['p2_attack', 7, { y: [232, 318], x: [1082, 1960], blobs: VK_BLOBS }], ['p2_special', 7, { y: [328, 420], x: [1082, 1960], blobs: VK_BLOBS }],
-      ['p2_hurt', 7, { y: [432, 518], x: [1082, 1960], blobs: VK_BLOBS }],
-      ['p3_idle', 7, { y: [716, 780], x: [96, 960], blobs: VK_BLOBS }], ['p3_move', 7, { y: [792, 882], x: [96, 960], blobs: VK_BLOBS }],
-      ['p3_attack', 7, { y: [894, 984], x: [96, 960], blobs: VK_BLOBS }], ['p3_special', 7, { y: [992, 1086], x: [96, 980], blobs: VK_BLOBS }],
-      ['p4_idle', 7, { y: [716, 780], x: [1082, 1960], blobs: VK_BLOBS }], ['p4_move', 7, { y: [780, 866], x: [1082, 1960], blobs: VK_BLOBS }],
-      ['p4_attack', 7, { y: [866, 954], x: [1082, 1960], blobs: VK_BLOBS }], ['p4_special', 7, { y: [956, 1056], x: [1082, 1960], blobs: VK_BLOBS }],
-      ['t12', 7, { y: [1590, 1735], x: [8, 650], blobs: VK_BLOBS }], ['t23', 7, { y: [1590, 1735], x: [662, 1320], blobs: VK_BLOBS }],
-      ['stagger', 5, { y: [1818, 1935], x: [540, 1150], blobs: VK_BLOBS }],
-      ['death', 6, { y: [1818, 1995], x: [1160, 2030], blobs: { min: 2500, reach: 120, maxW: 420, edgeDrop: true } }],
-    ],
+    file: 'A/A2/SC/dragon/SP/image-cec8b512-31ea-418a-8409-49e8c2896ac7-0.png', height: 128, pocket: 20, defringe: { passes: 3, minLum: 130, neutral: 18, pure: 6, minSize: 3 },
+    rows: [['idle', 8], ['walk', 8], ['claw', 8], ['breath', 8, { blobs: { min: 3000, reach: 120, edgeDrop: true } }], ['spit', 8], ['special', 6], ['hurt', 8], ['enrage', 7], ['death', 8]],
   },
   // B2 BOSS: the AMETHYST COLOSSUS (a giant crystal golem, faces right)
   amethyst_colossus: {

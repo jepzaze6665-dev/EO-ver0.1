@@ -1637,7 +1637,8 @@ export function varkharonCheck(g, classId = 'umbral_sword', { god = true, level 
   g.simulate(6);
   g.vfx.sprite = spawn0;
   for (const [n, f] of subs) g.events.off(n, f);
-  ok('Forms change with the phases (p1..p4 art)', ['p2_', 'p3_', 'p4_'].filter((pre) => [...anims].some((a) => a.startsWith(pre))).length >= 2, [...anims].join(','));
+  // v2 art: one drawn form, each phase its own colour filter; the sheet's breath / spit / enrage rows play
+  ok('Phase looks (colour per phase) · breath, fire spit and enrage rows play', [2, 3, 4].every((ph) => e.look.phaseStyle[ph].filter) && ['breath', 'roar', 'attack'].every((n) => anims.has(n)), [...anims].join(','));
   ok('RISING LAVA on the phase changes, down to the last ring (a fast burst may skip one)', st.rises.length >= 2 && st.rises.includes(8.4), st.rises.join(','));
   ok('SKY CHAINS: it flew, was chained and crashed (weak window)', sky.flights >= 2 && st.chained >= 2 && st.crashes.includes(false), `flights=${sky.flights} chained=${st.chained} crashes=${st.crashes}`);
   // a good player owes nothing when IGNITE is due (it waits); either it went off, or every ember was burned off first
