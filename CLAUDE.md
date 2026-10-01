@@ -851,6 +851,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   special / hurt / enrage / death) replaces it under the same atlas id 'varkharon': built at height 128, drawn at look.scale 1
   (no upscaling). Phases = AreaBoss look.phaseStyle `filter` (NEW generic: a CSS filter per phase; 3 = hue-rotate violet).
   RULE for boss art: build the atlas at the size it is drawn (scale ~1); never upscale small frames.
+  v2 facing: stand / walk / claw / hurt / enrage / death rows face LEFT (flip), breath / spit / special face RIGHT (row flip:false).
+  defringe.out { alpha, minLum, neutral } = extra edge peel on the SCALED frames (downscale makes pale half-alpha rims).
   A2 SECRET BOSS COMPLETE (D1-D4). Next: owner decides (secret class from Heart of Varkharon = data only until asked).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
