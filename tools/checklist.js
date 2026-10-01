@@ -61,10 +61,12 @@ export function runChecklist(g, classId = 'umbral_sword') {
   const skill = p.cls.skills.find((s) => (s.cooldown || 0) > 1 && !s.ultimate && !s.recast) || p.cls.skills[0];
   p.resources.set(p.primaryResource, p.resources.max(p.primaryResource));
   // monsters may still be mid-attack: each try starts from a free player (not hurt, no action / guard / stun)
-  const free = () => { p.hurtT = 0; p.endAction(true); p.setGuard(false); p.status.remove('guard_broken'); p.status.remove('stun'); p.status.remove('staggered'); };
+  // stamina too: the bot may have spent it on dodges, and skills cost stamina (Combat 2.0)
+  const free = () => { p.hurtT = 0; p.endAction(true); p.setGuard(false); p.status.remove('guard_broken'); p.status.remove('stun'); p.status.remove('staggered'); p.dodging = false; p.dodgeReadyAt = 0; p.resources.fill('stamina'); };
   p.skillSys.cooldowns.clear(skill.id); g.combat.lastCombatTime = g.time; free();
+  let why = ''; g.events.on('skillFailed', (e) => { if (e.caster === p) why = e.reason; });
   const used = p.trySkill(skill); g.simulate(0.1);
-  ok('Use a class skill', used && ev.skillUsed.some((e) => e.caster === p), skill.id);
+  ok('Use a class skill', used && ev.skillUsed.some((e) => e.caster === p), skill.id + (why ? ' failed: ' + why : ''));
   ok('Resource system works', ev.resourceChanged.some((e) => e.entity === p), `${p.primaryResource} changes: ${ev.resourceChanged.filter((e) => e.entity === p).length}`);
   g.simulate(1); // let the cast finish (a skill can't be used mid-action either)
   free(); const again = p.trySkill(skill);

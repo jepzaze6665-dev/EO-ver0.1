@@ -16,11 +16,12 @@
 //  lowHp      : a player under 35% HP
 //  ranged     : skirmishers (role) pressure ranged classes (class ratings.range >= 4)
 //  perPx      : distance penalty per pixel
+//  aggro      : × the player's aggro (item modifier: +0.5 aggro = +30 score — about the stickiness to the current target)
 export const ATTACK_SLOTS = {
   capacity: 3,
   cost: { normal: 1, heavy: 2 },
   releaseDelay: 0.25,
   waitRange: 1.7,
   retargetEvery: 1.5,
-  targeting: { taunt: 10000, current: 40, vulnerable: 60, lowHp: 40, ranged: 30, perPx: -0.25 },
+  targeting: { taunt: 10000, current: 40, vulnerable: 60, lowHp: 40, ranged: 30, perPx: -0.25, aggro: 60 },
 };

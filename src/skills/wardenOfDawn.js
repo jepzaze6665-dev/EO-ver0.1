@@ -386,7 +386,7 @@ export const WardenOfDawn = {
         g.audio.sfx('counter');
         g.vfx.sprite('dw_pillar', p.x, p.y - 30, 0, { scale: 0.6, life: 0.35, glow: 0.6 });
         g.combat.spawnHitbox({
-          owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 72, half: 1.0, power: 2.4, type: 'holy', forceCrit: true, knock: 240, stagger: 50, hitStop: 0.1, shake: 0.25,
+          owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 72, half: 1.0, power: 2.4, type: 'holy', forceCrit: true, counter: true, knock: 240, stagger: 50, hitStop: 0.1, shake: 0.25,
           onHit: (t) => { if (t.status && !t.isBreakable) t.status.add('stun', 0.8, { source: p }); cls.markTarget(p, g, t); },
         });
         cls.giveBarrier(p, g, p, 0.06);

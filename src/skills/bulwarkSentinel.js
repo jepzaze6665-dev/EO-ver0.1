@@ -341,7 +341,7 @@ export const BulwarkSentinel = {
         g.audio.sfx('counter');
         g.vfx.sprite('bs_crest', p.x + Math.cos(a) * 26, p.y - 18 + Math.sin(a) * 26, 0, { scale: 0.7, life: 0.3, glow: 0.6 });
         g.combat.spawnHitbox({
-          owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 72, half: 1.0, power: pw, type: 'physical', forceCrit: true, knock: 260, stagger: 60, hitStop: 0.1, shake: 0.3,
+          owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 72, half: 1.0, power: pw, type: 'physical', forceCrit: true, counter: true, knock: 260, stagger: 60, hitStop: 0.1, shake: 0.3,
           onHit: (t) => { if (t.status && !t.isBreakable) t.status.add('stun', 0.8, { source: p }); cls.markTarget(p, g, t); },
         });
       }]],

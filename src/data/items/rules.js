@@ -46,6 +46,12 @@ export const MODIFIER_TYPES = {
   damageReduction:    { stat: null,                          stacking: 'additive',       min: -0.5, max: 0.4, label: 'Damage Reduction' },
 };
 
+// damage types that count as MAGIC for the magicDamage modifier (physical never does)
+export const MAGIC_DAMAGE_TYPES = ['magic', 'holy', 'light', 'shadow', 'lightning', 'void', 'astral', 'fire', 'ice'];
+// COUNTER hits for the counterDamage modifier: a hit flagged `counter` (the strike that answers a Perfect Guard) or any
+// hit on a foe inside a Counter Window (combat/counterSystem.js status 'counter_window')
+export const COUNTER_STATUS = 'counter_window';
+
 // GEAR LOADOUT — the 7 slots (G2). Slot ids 'weapon' / 'armor' are kept from the old 3-slot equipment (saves, class
 // starting gear). `fixed`: never empty (unequip refused; swap instead). A slot takes exactly its `type`.
 export const GEAR_SLOTS = [

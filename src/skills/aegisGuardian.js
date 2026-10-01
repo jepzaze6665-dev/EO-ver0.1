@@ -192,10 +192,11 @@ export const AegisGuardian = {
             g.audio.sfx('shrine');
             g.vfx.sprite('ag_dome', p.x, p.y - 22, 0, { scale: 1.5, life: 0.6, glow: 0.5 });
             g.vfx.flash(HOLY, 0.2, 4);
-            p.status.add('shield', 6, { amount: Math.round(p.maxHp * 0.35), source: p, refresh: true });
+            const amount = Math.round(p.maxHp * 0.35 * (1 + (p.stats.barrierPower || 0))); // barrierPower: items, ...
+            p.status.add('shield', 6, { amount, source: p, refresh: true });
             p.heal(p.maxHp * 0.08, 'holy_barrier');
             g.vfx.text(p.x, p.y - 74, 'HOLY BARRIER', { color: '#fff0b0', size: 11 });
-            g.events.emit('barrierCreated', { owner: p, amount: Math.round(p.maxHp * 0.35) });
+            g.events.emit('barrierCreated', { owner: p, amount });
             g.combat.spawnHitbox({ owner: p, x: p.x, y: p.y - 8, shape: 'circle', r: 84, power: 0.6, type: 'holy', knock: 300, stagger: 30, hitStop: 0.04 });
           }]],
         };
@@ -248,7 +249,7 @@ export const AegisGuardian = {
         g.audio.sfx('counter');
         g.vfx.sprite('ag_flash', p.x + Math.cos(a) * 30, p.y - 16 + Math.sin(a) * 30, a, { scale: 1.1, life: 0.3, glow: 0.6 });
         g.combat.spawnHitbox({
-          owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 76, half: 1.0, power: 2.4, type: 'holy', forceCrit: true, knock: 260, stagger: 60, hitStop: 0.1, shake: 0.3,
+          owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 76, half: 1.0, power: 2.4, type: 'holy', forceCrit: true, counter: true, knock: 260, stagger: 60, hitStop: 0.1, shake: 0.3,
           onHit: (t) => { if (t.status && !t.isBreakable) t.status.add('stun', 1.0, { source: p }); cls.markTarget(p, g, t); },
         });
       }]],

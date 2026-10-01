@@ -22,6 +22,7 @@ import { ActionRecorder } from '../combat/actionRecorder.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
 import { LEVELS } from '../data/levels.js';
 import { STAMINA } from '../data/stamina.js';
+import { MAGIC_DAMAGE_TYPES, COUNTER_STATUS } from '../data/items/rules.js';
 import { expToNext, addExp, normalize as normalizeExp, levelStats } from '../progression/experience.js';
 
 const WALK_MUL = 1.08; // Combat 2.0: sprint removed, base walk a little faster to compensate
@@ -84,11 +85,31 @@ export class Player extends Entity {
   // GEAR hooks called by combat.dealDamage: damage taken × (1 - damageReduction); the pending next-hit bonus of an
   // item effect (nextHitBonus) is used up by the first real hit on a foe
   gearDamageTakenMult() { return 1 - this.gearMod('damageReduction'); }
+  // outgoing: magicDamage (magic damage types), counterDamage (counter strikes / foes in a Counter Window), next-hit bonus
   gearHitMult(target, opts) {
+    if (!target || target.team === this.team) return 1;
+    let m = 1;
+    if (MAGIC_DAMAGE_TYPES.includes(opts.type)) m *= 1 + this.gearMod('magicDamage');
+    if (opts.counter || (target.status && target.status.has(COUNTER_STATUS))) m *= 1 + this.gearMod('counterDamage');
     const b = this.itemNextHit;
-    if (!b || opts.itemEffect || !target || target.team === this.team) return 1;
-    this.itemNextHit = null;
-    return this.game.time <= b.until ? b.mult : 1;
+    if (b && !opts.itemEffect) { this.itemNextHit = null; if (this.game.time <= b.until) m *= b.mult; }
+    return m;
+  }
+  // enemy targeting reads it (combat/targeting.js)
+  get aggro() { return this.gearMod('aggro'); }
+  // item modifiers on resources: resourceGeneration (every class resource) + the resource's own gearGain type
+  // (data/resources.js, e.g. guardGeneration) -> gain; resourceCost -> cost. Stamina is never touched.
+  syncGearResources() {
+    if (!this.resources) return;
+    const gen = this.gearMod('resourceGeneration'), cost = this.gearMod('resourceCost');
+    for (const id of Object.keys(this.resources.defs)) {
+      if (id === STAMINA.resource) continue;
+      const d = this.resources.defs[id];
+      const gain = (1 + gen) * (1 + (d.gearGain ? this.gearMod(d.gearGain) : 0));
+      const set = (key, kind, v) => { const mid = 'gear_' + key + '_' + id; if (Math.abs(v - 1) < 1e-9) this.resources.removeModifier(mid); else this.resources.addModifier({ id: mid, resource: id, kind, value: v }); };
+      set('gain', 'gainMult', Math.max(0, gain));
+      set('cost', 'costMult', Math.max(0, 1 + cost));
+    }
   }
   recomputeStats() {
     const c = this.cls;
@@ -101,6 +122,7 @@ export class Player extends Entity {
     // ITEM MODIFIERS (gear loadout): a new stats object from the base above (base never edited); temporary buffs =
     // statuses, applied where they are read
     if (eq && eq.finalStats) s = eq.finalStats(s);
+    this.syncGearResources();
     // resource tiers (data/resources.js "tiers"): e.g. a high Nightfall Gauge adds shadow damage / crit
     if (this.resources) for (const [k, v] of Object.entries(this.resources.tierStats())) s[k] = (s[k] || 0) + v;
     this.resTier = this.resources ? this.resources.tier(this.primaryResource) : -1;

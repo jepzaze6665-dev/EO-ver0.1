@@ -135,6 +135,7 @@ export function releaseInput(g) {
   g.player.endAction(true); // a long skill (e.g. an ultimate) must not carry over into the next step
   g.input.down.clear();
   g.input.clearAll();
+  g.input.mouse.left = g.input.mouse.right = false; // a held guard (right button) would leak into the next step
   g.player.vx = g.player.vy = 0;
   g.player.kx = g.player.ky = 0; // leftover knockback would slide a teleported player off its mark
 }
@@ -1800,7 +1801,10 @@ export function effectCheck(g) {
   ok('Retribution: Perfect Guard arms the next-hit bonus', p.itemNextHit && p.itemNextHit.mult > 1);
   inp.mouse.right = false; g.simulate(0.6);
   g.combat.dealDamage(p, foe, { power: 1, knock: 0 });
-  ok('Retribution: the counter strike right after the parry deals x1.3, the next hit x1 (used once)', mults[0] === 1.3 && mults.slice(1).every((m) => m === 1) && !p.itemNextHit, `mults ${mults.join(', ')}`);
+  // Oath Mirror (worn) adds +15% counter damage to both hits (riposte + a hit in the Counter Window): the next-hit
+  // bonus is the ×1.3 between them
+  const cd = 1 + p.gearMod('counterDamage');
+  ok('Retribution: the counter strike right after the parry gets the ×1.3 bonus, the next hit not (used once)', Math.abs(mults[0] - 1.3 * cd) < 1e-9 && mults.slice(1).every((m) => Math.abs(m - cd) < 1e-9) && !p.itemNextHit, `mults ${mults.map((m) => m.toFixed(3)).join(', ')} (counter ×${cd})`);
   delete p.gearHitMult;
   // 5: Provocation on a real taunt (Guardian's Challenge)
   g.equipment.equip('rune_provocation', 'rune3');
@@ -1821,4 +1825,88 @@ export function effectCheck(g) {
   ok('Last Bastion: the buff ends after 6 s', p.gearMod('damageReduction') < dr, `DR ${p.gearMod('damageReduction')}`);
   releaseInput(g);
   return R;
+}
+
+// ITEM SYSTEM G4 — the item modifiers combat reads, on a real Aegis: guard generation on a real block, barrier
+// strength on a real Holy Barrier, counter damage on the real riposte, taunt power on a real taunt.
+//   T.gearCombatCheck(__game)  : 6 steps
+export function gearCombatCheck(g) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame('aegis_guardian'); releaseInput(g);
+  const p = g.player; goto(g, 38, 121); g.simulate(0.3);
+  const foe = g.world.monsters.filter((m) => !m.dead && g.world.onMap(m)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+  for (const m of g.world.monsters) if (m !== foe && g.world.onMap(m)) { m.dead = true; m.deathT = 99; }
+  foe.x = p.x + 40; foe.y = p.y; foe.hp = foe.maxHp = 99999; foe.update = () => {};
+  giveGear(g);
+  const inp = g.input, face = () => { const r = g.renderer, cam = g.camera; inp.mouse.x = ((foe.x - cam.left) * cam.zoom * r.scale) / r.dpr; inp.mouse.y = ((foe.y - 12 - cam.top) * cam.zoom * r.scale) / r.dpr; };
+  const reset = () => { inp.mouse.right = false; g.simulate(0.5, face); p.status.clear(); p.hp = p.maxHp; p.invulnT = 0; p.hurtT = 0; p.endAction(true); p.resources.fill('stamina'); foe.x = p.x + 40; foe.y = p.y; foe.hp = foe.maxHp; foe.status.clear(); g.marks.clearEntity(foe); }; // marked foes give Aegis extra gauge
+  const guardUp = (early) => { reset(); inp.mouse.right = true; g.simulate(early ? 0.03 : 0.5, face); };
+  const strike = (power = 40) => g.combat.enemyStrike(foe, { shape: 'circle', x: p.x, y: p.y, r: 40 }, power, {});
+  const G = p.primaryResource;
+  const sig = { ...p.cls.startingGear };
+  // 1: guard generation (Ironheart Core +25%) on a real block
+  const blockGain = () => { guardUp(false); p.resources.set(G, 0); strike(30); return p.resources.get(G); };
+  const g0 = blockGain(); g.equipment.equip('core_ironheart'); const g1 = blockGain();
+  ok('Guard Generation: a real block builds more Guard Gauge (Ironheart +25%)', g1 > g0 && Math.abs(g1 / g0 - 1.25) < 0.05, `${g0} -> ${g1}`);
+  // 2: barrier strength (Guardian Armor +25%) on a real Holy Barrier
+  const cast = (id) => { reset(); p.skillSys.cooldowns.clear(id); p.resources.set(G, 100); return p.trySkill(p.skillSys.get(id)); };
+  const shield = () => { p.status.remove('shield'); cast('holy_barrier'); g.simulate(0.5); const s = p.status.get('shield'); return s ? s.amount : 0; };
+  const s0 = shield(); g.equipment.equip('armor_guardian'); const s1 = shield();
+  ok('Barrier Strength: Holy Barrier absorbs more (Guardian Armor +25%)', s1 > s0 && Math.abs(s1 / s0 - 1.25) < 0.03, `${s0} -> ${s1}`);
+  // 3: counter damage on the real riposte after a parry (Counter Core +30%)
+  const mults = [], hook = p.gearHitMult.bind(p);
+  p.gearHitMult = (t, o) => { const m = hook(t, o); if (t === foe) mults.push({ m, counter: !!o.counter }); return m; };
+  g.equipment.equip('core_counter');
+  guardUp(true); strike(60); inp.mouse.right = false; g.simulate(0.6);
+  const rip = mults.find((x) => x.counter);
+  ok('Counter Damage: the riposte after a real Perfect Guard is a counter hit, ×1.3', rip && Math.abs(rip.m - 1.3) < 1e-9, JSON.stringify(mults));
+  mults.length = 0; g.combat.dealDamage(p, foe, { power: 1, knock: 0 });
+  ok('Counter Damage: a hit while the foe is still in the Counter Window counts too', mults[0] && mults[0].m === 1.3, JSON.stringify(mults));
+  foe.status.clear(); mults.length = 0; g.combat.dealDamage(p, foe, { power: 1, knock: 0 });
+  ok('Counter Damage: an ordinary hit (no window) gets nothing', mults.length === 1 && mults[0].m === 1, JSON.stringify(mults));
+  delete p.gearHitMult;
+  // 4: taunt power (Guardian Charm +20%) on a real Guardian's Challenge
+  const taunt = () => { foe.status.remove('taunted'); cast('guardian_challenge'); g.simulate(0.8); const s = foe.status.get('taunted'); return s ? s.total : 0; };
+  const t0 = taunt(); g.equipment.equip('charm_guardian'); const t1 = taunt();
+  ok('Taunt Power: a real taunt lasts longer (Guardian Charm +20%)', t1 > t0 && Math.abs(t1 / t0 - 1.2) < 0.02, `${t0.toFixed(2)} s -> ${t1.toFixed(2)} s`);
+  // 5: everything off -> the same numbers as before
+  for (const s of ['armor', 'charm']) g.equipment.unequip(s);
+  g.equipment.equip(sig.weapon); if (sig.armor) g.equipment.equip(sig.armor);
+  const back = blockGain();
+  ok('Items off: guard gain back to normal, no resource modifiers left', back === g0 && !p.resources.modifiers.some((m) => m.id.startsWith('gear_')), `${back} (was ${g0})`);
+  releaseInput(g);
+  return R;
+}
+
+// ITEM SYSTEM G4 — do two builds really play differently? The Aegis bot fights the A1 Guardian (no god mode) with each
+// gear build: time, damage taken, blocks / parries, guard gauge built, damage by counters.
+//   T.buildCompare(__game, { level: 13 })
+export const AEGIS_BUILDS = {
+  guard: ['core_ironheart', 'armor_guardian', 'relic_dawn_core', 'charm_heavy', 'rune_guarding_soul', 'rune_iron_will', 'rune_provocation'],
+  counter: ['core_counter', 'armor_risk', 'relic_oath_mirror', 'charm_swift', 'rune_retribution', 'rune_guarding_soul', 'rune_provocation'],
+};
+export function buildFight(g, build, { level = 13, classId = 'aegis_guardian', seconds = 300 } = {}) {
+  toBoss(g, classId);
+  const pl = g.player; pl.setLevel(level);
+  giveGear(g);
+  for (const id of build || []) g.equipment.equip(id);
+  pl.hp = pl.maxHp;
+  goto(g, 135, 37); g.simulate(3);
+  const gd = g.world.guardian;
+  const st = { dmgTaken: 0, blocked: 0, perfects: 0, gauge: 0, counterDmg: 0, reflect: 0, effects: 0 };
+  g.events.on('damageTaken', (e) => { if (e.target === pl) st.dmgTaken += e.amount; });
+  g.events.on('damageDealt', (e) => { if (e.source !== pl) return; if (e.opts && e.opts.itemEffect) st.reflect += e.amount; else if (e.opts && (e.opts.counter || (e.target.status && e.target.status.has('counter_window')))) st.counterDmg += e.amount; });
+  g.events.on('guardBlocked', () => st.blocked++); g.events.on('perfectGuard', () => st.perfects++);
+  g.events.on('resourceChanged', (e) => { if (e.entity === pl && e.resource === pl.primaryResource && e.value > e.before) st.gauge += e.value - e.before; });
+  g.events.on('itemEffect', () => st.effects++);
+  const pots0 = g.inventory.count('hp_potion');
+  let t = 0;
+  while (t < seconds && !gd.dead && !pl.dead) { g.simulate(5, (gg, i) => bot(gg, i, {})); t += 5; }
+  releaseInput(g);
+  return { result: gd.dead ? 'WIN' : pl.dead ? 'DIED' : 'TIMEOUT', time: t, maxHp: pl.maxHp, speed: Math.round(pl.stats.speed), ...Object.fromEntries(Object.entries(st).map(([k, v]) => [k, Math.round(v)])), potions: pots0 - g.inventory.count('hp_potion') };
+}
+export function buildCompare(g, opts = {}) {
+  const out = {};
+  for (const [name, build] of Object.entries({ starting: null, ...AEGIS_BUILDS })) out[name] = buildFight(g, build, opts);
+  return out;
 }

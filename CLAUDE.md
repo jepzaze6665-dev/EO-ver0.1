@@ -16,7 +16,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (W2 Route A, 26 steps: A1 on foot, 2 optional mini-bosses, Guardian, north road into A2 on
   the other grid, secret city Valehaven, save/load),
-  `T.bossReset(__game)` (death mid-fight resets the boss), `T.loadoutCheck(__game, classId)` (gear loadout, 7 slots), `T.effectCheck(__game)` (item effects, real Aegis fight)
+  `T.bossReset(__game)` (death mid-fight resets the boss), `T.loadoutCheck(__game, classId)` (gear loadout, 7 slots), `T.effectCheck(__game)` (item effects, real Aegis fight), `T.gearCombatCheck(__game)` + `T.buildCompare(__game)` (G4)
   `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` / `T.uiCheck(__game)` / `await T.partyCheck(__game)` / `T.tankCheck(__game)` (Combat 2.0),
   `T.gridCheck(__game)` (W1 multi-grid: lock/unlock, load/unload + cleanup, save/load + fog on another grid, no leaks, respawn),
   `T.cityCheck(__game)` (City 2: unlock, north road, services, quest, save/load), `T.a3BossCheck(__game, classId)`,
@@ -906,6 +906,20 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   + `T.effectCheck(g)` 9 steps (real Aegis: real parry -> Oath Mirror reflect + cooldown, real block -> Guarding Soul, riposte ×1.3,
   real taunt -> Provocation, real Holy Barrier -> Dawn Core, Last Bastion on / off). counter.test defenseMult test averaged
   (was flaky ~1/30).
+  Done G4: every item modifier now reaches combat, generically: guardGeneration / resourceGeneration / resourceCost ->
+  Player.syncGearResources (in recomputeStats) sets ResourcePool gainMult / costMult modifiers ('gear_gain_<id>' /
+  'gear_cost_<id>'; resource data `gearGain: 'guardGeneration'` on guard_gauge + bastion; stamina never) · counterDamage +
+  magicDamage -> Player.gearHitMult (counter = hit flagged `counter: true` — the Perfect-Guard ripostes of AG / Warden /
+  Bulwark / Oathbreaker / BE Crimson Counter — or any hit on a foe with 'counter_window'; magic = rules MAGIC_DAMAGE_TYPES) ·
+  aggro -> targeting score + rules.aggro (60) × player.aggro (getter; a taunt still wins; matters with 2+ players) ·
+  tauntPower -> status data `gearDuration: 'tauntPower'` (StatusSet.add lengthens a status by its SOURCE's gearMod) ·
+  barrierStrength -> stat barrierPower, now read by Aegis Holy Barrier too. Tests itemCombat.test.mjs (13) +
+  `T.gearCombatCheck(g)` 7 steps (real block 10 -> 12.5 gauge, Holy Barrier 115 -> 144, riposte ×1.3, taunt 8 -> 9.6 s, all off
+  = back) + `T.buildFight(g, build, { level })` / `T.buildCompare(g)` / `T.AEGIS_BUILDS` (guard / counter). Bot vs Guardian LV 13
+  (no god, 2 runs): starting gear WIN 130-140 s · GUARD build WIN 135-150 s (HP 429, slower) · COUNTER build WIN 110 s (counter
+  damage 7-9k vs 5-6.7k) — the bot parries almost every hit, so guard-side items show little: human playtest.
+  testkit releaseInput now also lets go of the mouse buttons (a held guard leaked into the next test -> Aegis bot "died").
+  checklist step 11 refills stamina / dodge in free() + shows the skill-fail reason (old flake).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

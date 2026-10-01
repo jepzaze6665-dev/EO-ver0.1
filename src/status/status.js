@@ -34,6 +34,8 @@ export class StatusSet {
     const { source = null, stacks = 1, refresh = false, ...rest } = data;
     // debuffImmune (e.g. a sanctuary): harmful statuses are resisted while it lasts
     if (IMMUNE_TO.includes(d.category) && this.flag('debuffImmune')) { this.emit('statusResisted', { id, source }); return null; }
+    // status data gearDuration: the SOURCE's item modifier lengthens it (e.g. taunted <- tauntPower)
+    if (d.gearDuration && source && source.gearMod) duration *= Math.max(0, 1 + source.gearMod(d.gearDuration));
     duration = Math.min(STATUS_RULES.maxDuration, duration);
     if (d.category === 'control') duration *= 1 - this.tenacity();
     const cur = this.map.get(id);

@@ -320,7 +320,7 @@ export const Oathbreaker = {
       events: [[0.12, () => {
         g.audio.sfx('counter');
         g.vfx.sprite('ok_flare', p.x + Math.cos(a) * 30, p.y - 14 + Math.sin(a) * 30, a, { scale: 0.7, life: 0.3, glow: 0.6 });
-        g.combat.spawnHitbox({ owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 70, half: 1.0, power: Math.min(cls.counter.hardCap, 2.0 * (p.maxHp && p.hp / p.maxHp < cls.forsaken.below ? cls.counter.forsakenMult : 1)), type: 'physical', forceCrit: true, knock: 220, stagger: 50, hitStop: 0.1, shake: 0.28,
+        g.combat.spawnHitbox({ owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 70, half: 1.0, power: Math.min(cls.counter.hardCap, 2.0 * (p.maxHp && p.hp / p.maxHp < cls.forsaken.below ? cls.counter.forsakenMult : 1)), type: 'physical', forceCrit: true, counter: true, knock: 220, stagger: 50, hitStop: 0.1, shake: 0.28,
           onHit: (t) => cls.brand(p, g, t) });
       }]],
     });

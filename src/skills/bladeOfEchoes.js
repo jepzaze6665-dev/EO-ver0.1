@@ -163,7 +163,7 @@ export const BladeOfEchoes = {
         g.vfx.sprite('be_slash', p.x + Math.cos(a) * 30, p.y - 14 + Math.sin(a) * 30, a, { scale: 1.0, life: 0.25, glow: 0.5 });
         g.vfx.flash(CR, 0.22, 5);
         g.combat.spawnHitbox({
-          owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 84, half: 1.1, power: pw, forceCrit: true, type: 'physical',
+          owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: 84, half: 1.1, power: pw, forceCrit: true, counter: true, type: 'physical',
           knock: 180, stagger: k.stagger, hitStop: 0.12, shake: 0.35, big: true,
           onHit: (t) => { if (t.status && !t.isBoss && !t.isBreakable) t.status.add('stun', k.stun, { source: p }); },
         });

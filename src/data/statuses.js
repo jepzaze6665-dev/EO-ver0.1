@@ -27,7 +27,7 @@ export const STATUSES = {
   slow: { id: 'slow', category: 'debuff', maxStacks: 1, stacking: 'longest', modifiers: { moveMult: 0.6 }, display: { label: 'SLOW', color: '#8ab8ff' } },
   // ---- debuffs
   // taunt: the monster must fight the taunter and hits 20% softer
-  taunted: { id: 'taunted', category: 'debuff', maxStacks: 1, stacking: 'refresh', flags: ['taunted'], modifiers: { damageMult: 0.8 }, display: { label: 'TAUNTED', color: '#ffd070' } },
+  taunted: { id: 'taunted', category: 'debuff', maxStacks: 1, stacking: 'refresh', flags: ['taunted'], gearDuration: 'tauntPower', modifiers: { damageMult: 0.8 }, display: { label: 'TAUNTED', color: '#ffd070' } },
   vulnerable: { id: 'vulnerable', category: 'debuff', maxStacks: 1, stacking: 'longest', vulnerable: true, display: { label: 'VULNERABLE', color: '#9af8ff' } },
   // Combat 2.0 Counter Window (combat/counterSystem.js, data/counter.js): the attacker was beaten — punish it now
   // Guard Break (data/stamina.js guardBreak): the guard was smashed open — no acting for a moment

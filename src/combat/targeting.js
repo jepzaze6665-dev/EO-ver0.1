@@ -9,6 +9,7 @@ export function scoreTarget(enemy, player, rules = ATTACK_SLOTS.targeting) {
   const taunter = enemy.status && enemy.status.get && enemy.status.get('taunted');
   if (taunter && taunter.source === player) s += rules.taunt;
   if (enemy.target === player) s += rules.current;
+  if (player.aggro) s += (rules.aggro || 0) * player.aggro; // item modifier aggro (Player getter)
   if (st && (st.has('guard_broken') || st.has('stun'))) s += rules.vulnerable;
   if (player.maxHp && player.hp / player.maxHp < 0.35) s += rules.lowHp;
   const ranged = player.cls && player.cls.ratings && player.cls.ratings.range >= 4;

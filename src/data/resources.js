@@ -6,6 +6,9 @@
 //  regen               : per second, { inCombat, outOfCombat, delay? } — delay = seconds after the last spend before it regens
 //  decay               : per second after `delay` seconds without gaining, { inCombat, outOfCombat, delay }
 //  gainStat            : character stat that multiplies normal (non-raw) gains, e.g. shadowGain
+//  gearGain            : item modifier type that ALSO multiplies every gain of this resource (data/items/rules.js), e.g.
+//                        'guardGeneration' for resources built by guarding. (resourceGeneration applies to every
+//                        class resource; stamina never takes item modifiers)
 //  tiers               : optional [{ at, label, stats }] — while the value is >= `at`, the holder gets `stats`
 //                        added to its stats (highest tier only). The Player re-computes stats when the tier changes.
 //  label / colors      : display only (UI reads them; gameplay never does)
@@ -34,6 +37,7 @@ export const RESOURCES = {
     regen: { inCombat: 0, outOfCombat: 0 },
     decay: { inCombat: 0, outOfCombat: 8, delay: 4 },
     gainStat: 'guardGain',
+    gearGain: 'guardGeneration',
     colors: ['#ffd070', '#8a6a20'],
   },
   // Nightfall Reaper: built by kills, shadow skills, combos and mark explosions; the higher it is, the
@@ -99,6 +103,7 @@ export const RESOURCES = {
   // ultimate. Fades slowly in a fight when nothing feeds it.
   bastion: {
     id: 'bastion', name: 'Bastion', label: 'BASTION',
+    gearGain: 'guardGeneration', // built by blocking / taking hits behind the shield
     max: 100, start: 0, respawn: 0,
     regen: { inCombat: 0, outOfCombat: 0 },
     decay: { inCombat: 2, outOfCombat: 10, delay: 5 },
