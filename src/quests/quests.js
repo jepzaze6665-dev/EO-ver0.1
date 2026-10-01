@@ -21,6 +21,18 @@ export class Quests {
     ev.on('flag', (f) => this.onEvent('flag', { flag: f }));
     ev.on('npcTalked', (e) => this.onEvent('talk', { npc: e.id }));
     ev.on('itemCollected', () => this.onEvent('collect', {}));
+    // kill objectives with `flawless`: a hit from that monster type restarts the count
+    ev.on('damageTaken', (e) => { if (e.target === game.player && e.amount > 0 && e.source && e.source.type) this.onHurt(e.source.type); });
+  }
+  onHurt(type) {
+    for (const [qid, st] of Object.entries(this.active)) for (const o of this.data[qid].objectives) {
+      if (o.type !== 'kill' || !o.flawless || st.done[o.id] || !st.progress[o.id] || (o.target !== 'any' && o.target !== type)) continue;
+      st.progress[o.id] = 0;
+      this.game.events.emit('questUpdated', { id: qid, objective: o.id, progress: 0, count: o.count, done: false, reset: true });
+      const p = this.game.player;
+      if (this.game.vfx && p) this.game.vfx.text(p.x, p.y - 50, `TRIAL BROKEN — 0/${o.count}`, { color: '#ff8a50', size: 10 });
+      this.game.save.dirty = true;
+    }
   }
   isActive(id) { return !!this.active[id]; }
   isDone(id) { return !!this.completed[id]; }

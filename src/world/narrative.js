@@ -1,6 +1,8 @@
 // Lore fragments and NPC dialogue. Dialogue is a function of world state, so NPCs
 // react to what the player has discovered and to the World State change.
 
+import { PILGRIM_TRIALS } from '../data/wanderers.js';
+
 export const LORE = {
   camp_journal: {
     title: 'Torn Journal — Abandoned Camp',
@@ -81,6 +83,39 @@ export function dialogueFor(id, g) {
   const f = g.world.state.flags, q = g.quests;
   const restored = f.guardianDefeated;
   switch (id) {
+    // the ASHEN PILGRIM (data/wanderers.js): a new spot on every visit; offers the trial of the map you meet him on
+    case 'ashen_pilgrim': {
+      const trial = PILGRIM_TRIALS[g.world.mapId];
+      const shards = g.inventory.count('cinder_shard'), trialsDone = Object.values(PILGRIM_TRIALS).filter((t) => q.isDone(t)).length;
+      const bye = { label: 'Leave him to the ash', action: 'close' };
+      if (trialsDone >= 3 || shards >= 3) return {
+        lines: [
+          'Three cinders. The King\'s crown, whole again in your pack. I can feel the heat of it from here.',
+          'In the Ancient Valley, east of the Valley Gate, the pines hide a cleft. Follow it until nothing green grows. A gargoyle waits there — it remembers how to make a seal.',
+          'Forge it. Open his door. And when he wakes… do not stand still. Fire finds the ones who stand still.',
+        ],
+        options: [{ label: 'I will wake the King', action: 'close' }],
+      };
+      if (trial && q.isActive(trial)) return {
+        lines: [q.current(trial) && q.current(trial).type === 'talk'
+          ? 'You did it. I felt it in the ash on the wind.'
+          : 'Still here? The trial does not finish itself. Go — and come back to me. I will not be where you left me.'],
+        options: [bye],
+      };
+      const intro = [
+        'Shh. Do you smell it? Ash. Even here. He is dreaming again.',
+        'Long ago the valley kings chained a dragon beneath their summer court — Varkharon, the Cinder King — and broke his crown into three cinders so no one could free him.',
+      ];
+      if (trial && q.canAccept(trial)) {
+        const ask = {
+          ember_trial_a1: 'One cinder sleeps in this forest, under three altars the fire-keepers let go cold. Wake the altars and the cinder will come to me.',
+          ember_trial_a2: 'This valley\'s cinder is guarded by stubborn beasts. Kill three of the great stone rhinos without letting one touch you. Ash remembers every bruise.',
+          ember_trial_a3: 'In the city of runes a stone dragon watches. Its runes burn, then cool, then burn. Touch it while they burn — never when they are cold.',
+        }[trial];
+        return { lines: [...(trialsDone ? ['You again. You carry ' + trialsDone + (trialsDone > 1 ? ' cinders.' : ' cinder.') + ' Good.'] : intro), ask], options: [{ label: 'I will do it', action: 'quest:' + trial }, { label: 'Not now', action: 'close' }] };
+      }
+      return { lines: [...intro.slice(trialsDone ? 1 : 0), trial && q.isDone(trial) ? 'This land has given its cinder. Look for me where the others still sleep.' : 'This land is not ready to give its cinder. Return when it has bled a little more.'], options: [bye] };
+    }
     case 'elder':
       if (!restored && !q.isActive('whispers') && !q.isDone('whispers')) return {
         lines: [

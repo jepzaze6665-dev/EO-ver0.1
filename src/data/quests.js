@@ -13,7 +13,7 @@ import { Z } from '../core/constants.js';
 //  objectives[]                 : { id, text, type, ...type fields, marker?: [tileX, tileY] (minimap / HUD arrow),
 //                                   markerMap?: map id the marker is on (default: a map of the start grid),
 //                                   finalizes?: completing it also completes every earlier objective }
-//    kill    { target: monster type | 'any', count }     ← 'enemyDefeated'
+//    kill    { target: monster type | 'any', count, flawless? }  ← 'enemyDefeated' (flawless: a hit from that type resets it)
 //    collect { item, count }                             ← inventory count ('itemCollected')
 //    talk    { npc }                                     ← 'npcTalked' (a last talk objective = turn-in)
 //    reach   { map } or { zone }                         ← 'mapEntered' / 'zoneEnter'
@@ -175,5 +175,38 @@ export const QUESTS = {
     ],
     rewards: {},
     requirements: [],
+  },
+  // ---------------- SECRET: the Ashen Pilgrim's trials (A2 secret boss Varkharon). The pilgrim appears at a random spot of
+  // each Route A field map (data/wanderers.js); each trial pays one Cinder Shard; three shards are forged into
+  // Varkharon's Seal at the gargoyle in the Quiet Hollow (A2). No markers: finding things is the point.
+  ember_trial_a1: {
+    id: 'ember_trial_a1', name: 'THE COLD ALTARS', giver: 'ashen_pilgrim', side: true, ordered: true,
+    description: 'Three altars of the old fire-keepers stand cold somewhere in the Whispering Forest. The pilgrim asks you to wake them.',
+    objectives: [
+      { id: 'altars', text: 'Rekindle the three cold altars of the forest', type: 'flag', flag: 'emberAltarsLit' },
+      { id: 'return', text: 'Return to the Ashen Pilgrim (wherever the ash leads)', type: 'talk', npc: 'ashen_pilgrim' },
+    ],
+    rewards: { exp: 250, items: { cinder_shard: 1 } },
+    requirements: [{ type: 'boss_defeated', boss: 'boss_a1', label: 'Defeat the Guardian of the Forest' }],
+  },
+  ember_trial_a2: {
+    id: 'ember_trial_a2', name: 'UNTOUCHED BY STONE', giver: 'ashen_pilgrim', side: true, ordered: true,
+    description: 'Slay three Crag Rhinos without letting one touch you. One hit from a rhino and the count starts again.',
+    objectives: [
+      { id: 'rhinos', text: 'Slay Crag Rhinos without being hit by one', type: 'kill', target: 'rock_rhino', count: 3, flawless: true },
+      { id: 'return', text: 'Return to the Ashen Pilgrim (wherever the ash leads)', type: 'talk', npc: 'ashen_pilgrim' },
+    ],
+    rewards: { exp: 700, items: { cinder_shard: 1 } },
+    requirements: [{ type: 'boss_defeated', boss: 'mini_sunken_horn', label: 'Defeat the Sunken Horn' }],
+  },
+  ember_trial_a3: {
+    id: 'ember_trial_a3', name: 'THE DRAGON THAT WATCHES', giver: 'ashen_pilgrim', side: true, ordered: true,
+    description: 'A stone dragon in the Rune Citadel only listens while its runes are burning. Touch it then — and only then.',
+    objectives: [
+      { id: 'statue', text: 'Wake the stone dragon of the Rune Citadel', type: 'flag', flag: 'runeDragonAwake' },
+      { id: 'return', text: 'Return to the Ashen Pilgrim (wherever the ash leads)', type: 'talk', npc: 'ashen_pilgrim' },
+    ],
+    rewards: { exp: 1200, items: { cinder_shard: 1 } },
+    requirements: [{ type: 'boss_defeated', boss: 'mini_archive_warden', label: 'Defeat the Archive Warden' }],
   },
 };

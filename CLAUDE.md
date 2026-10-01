@@ -20,6 +20,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` / `T.uiCheck(__game)` / `await T.partyCheck(__game)` / `T.tankCheck(__game)` (Combat 2.0),
   `T.gridCheck(__game)` (W1 multi-grid: lock/unlock, load/unload + cleanup, save/load + fog on another grid, no leaks, respawn),
   `T.cityCheck(__game)` (City 2: unlock, north road, services, quest, save/load), `T.a3BossCheck(__game, classId)`,
+  `await T.pilgrimCheck(__game)` (A2 secret boss chain: Ashen Pilgrim, 3 trials, forge, dragon door),
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
   each map spawn), `T.a1Loop(__game, classId)` (guide → A1 → fight → EXP/gold/loot → back to the guide).
   `game.simulate(sec, perStep)` drives the game deterministically even when the tab is hidden.
@@ -814,6 +815,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   hold E at 2 glowing chain posts -> crash = GROUNDED weak window; posts spent per flight) · RISING LAVA (each phase turns the
   outer floor ring into lava for the fight, restored on reset) · EMBER DEBT (fire hits stack EMBER on the player; IGNITE roar
   detonates stacks; perfect dodges / hits in weak windows burn stacks off) · P4 final: last chain + HP floor until LAST BREATH.
+  Hollow polish (owner: too visible, still green): cleft mouth = grass under a walk-through pine thicket, then dirt -> dead
+  trees -> ash; zone Z.EMBER 20 (part of map a2: ash tint, banner QUIET HOLLOW); CLIFF -> CAVE_WALL inside the hollow / throne
+  (valley skin CAVE_WALL + face:cave from the lair tileset = ash rock, no pines).
+  Done D3: WANDERERS (data/wanderers.js + world/wanderers.js, game.wanderers): an NPC that appears at ONE random spot of a map's
+  list on every map entry (removed on mapExited), gated per map by requirements, gone after doneFlag. ASHEN PILGRIM (look
+  'pilgrim'): a1 needs boss_a1, a2 needs mini_sunken_horn, a3 needs mini_archive_warden; spots = BFS-picked open ground
+  away from packs / boss arenas. Trials (data/quests.js, side, no markers): ember_trial_a1 THE COLD ALTARS (generic
+  interactable `questAltar` group emberAltar ×3 -> flag emberAltarsLit) · ember_trial_a2 UNTOUCHED BY STONE (kill objective
+  `flawless`: a hit from that monster type resets the count, 'TRIAL BROKEN') · ember_trial_a3 THE DRAGON THAT WATCHES (generic
+  `timedRune`: answers only while its runes burn (period / open), cold = burns you) -> each pays a cinder_shard (maxStack 3).
+  Forge = the hollow gargoyle (generic `forge` { needs, gives, flag sealForged }) -> varkharon_seal -> sealDoor. Pilgrim
+  dialogue (narrative.js) per map + after 3 cinders tells where the hollow is. `await T.pilgrimCheck(g)` 16/16.
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

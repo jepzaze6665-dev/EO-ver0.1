@@ -201,6 +201,79 @@ export function toBoss(g, classId) {
 // V2.1 maps: walk through every exit of every map (locks opened), check the arrival map, that the player
 // is not standing in an exit on arrival (no transition loop) and stays there, plus the mapExited/mapEntered events.
 // Returns [step, pass, detail] rows. Leaves the game in a fresh New Game afterwards.
+// SECRET BOSS CHAIN (Varkharon, D3): the Ashen Pilgrim (random spot per map entry, gated per map), his three trials
+// (altars · flawless rhino kills · timed rune statue), the gargoyle forge and the dragon door.
+//   const T = await import('/tools/testkit.js'); await T.pilgrimCheck(__game)
+export async function pilgrimCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  const I = await import('../src/exploration/interactables.js');
+  const { dialogueFor } = await import('../src/world/narrative.js');
+  const { WANDERERS } = await import('../src/data/wanderers.js');
+  g.newGame(classId);
+  const w = g.world, q = g.quests, inv = g.inventory, P = WANDERERS.ashen_pilgrim;
+  const enter = (map) => { const d = w.mapManager.get(map); w.changeMap(map, { entry: d.spawn, silent: true }); };
+  const pilgrim = () => w.npcs.find((n) => n.id === 'ashen_pilgrim');
+  const talk = () => { g.events.emit('npcTalked', { id: 'ashen_pilgrim' }); return dialogueFor('ashen_pilgrim', g); };
+  const it = (id) => w.interactables.find((x) => x.id === id);
+  const { BOSSES } = await import('../src/data/bosses.js');
+  const inArena = Object.entries(P.maps).flatMap(([map, e]) => e.spots.filter(([x, y]) => Object.values(BOSSES)
+    .some((b) => b.arena && b.arena.center && (w.mapManager.get(b.map) || {}).grid === w.mapManager.get(map).grid && Math.hypot(b.arena.center[0] - x, b.arena.center[1] - y) <= (b.arena.radius || 10) + 4)).map((s) => map + ':' + s));
+  ok('No pilgrim spot inside a boss arena', !inArena.length, inArena.join(' '));
+  g.worldProgress.defeatBoss('boss_a1');
+  enter('a2');
+  ok('No pilgrim in A2 before its requirement (Sunken Horn)', !pilgrim());
+  const seen = new Set();
+  for (let k = 0; k < 14; k++) { enter('a1'); const n = pilgrim(); if (n) seen.add(g.wanderers.spot.ashen_pilgrim.join(',')); }
+  ok('A1: the pilgrim appears on every entry, at different spots', seen.size >= 2 && [...seen].every((s) => P.maps.a1.spots.some((p) => p.join(',') === s)), [...seen].join(' | '));
+  ok('Only one pilgrim at a time', w.npcs.filter((n) => n.id === 'ashen_pilgrim').length === 1);
+  const d0 = talk();
+  ok('Dialogue offers the A1 trial', d0.options.some((o) => o.action === 'quest:ember_trial_a1'));
+  q.accept('ember_trial_a1', { npc: 'ashen_pilgrim' });
+  for (const k of [1, 2, 3]) I.interact(w, it('emberAltar_' + k));
+  ok('Three altars set the trial flag', w.state.flags.emberAltarsLit && q.current('ember_trial_a1').id === 'return');
+  talk();
+  ok('Trial 1 done -> 1 Cinder Shard', q.isDone('ember_trial_a1') && inv.count('cinder_shard') === 1);
+  // A2: flawless rhino kills
+  g.worldProgress.defeatBoss('mini_sunken_horn');
+  enter('a2');
+  ok('A2: the pilgrim appears once the Sunken Horn is down', !!pilgrim());
+  q.accept('ember_trial_a2', { npc: 'ashen_pilgrim' });
+  const kill = () => g.events.emit('enemyDefeated', { type: 'rock_rhino' });
+  kill(); kill();
+  g.events.emit('damageTaken', { target: g.player, source: { type: 'rock_rhino' }, amount: 20 });
+  const reset = q.active.ember_trial_a2.progress.rhinos;
+  g.events.emit('damageTaken', { target: g.player, source: { type: 'armadillo' }, amount: 20 }); // another type: no reset
+  kill(); kill(); const two = q.active.ember_trial_a2.progress.rhinos; kill();
+  ok('Rhino hit resets the count, other monsters do not', reset === 0 && two === 2 && q.current('ember_trial_a2').id === 'return', `reset=${reset} two=${two}`);
+  talk();
+  ok('Trial 2 done -> 2 Cinder Shards', inv.count('cinder_shard') === 2);
+  // A3: the timed rune statue
+  g.worldProgress.defeatBoss('mini_archive_warden');
+  enter('a3');
+  q.accept('ember_trial_a3', { npc: 'ashen_pilgrim' });
+  const st = it('a3_rune_dragon'), hp0 = g.player.hp = g.player.maxHp;
+  g.time = Math.ceil(g.time / st.period) * st.period + st.open + 1; // runes cold
+  I.interact(w, st);
+  const burned = g.player.hp < hp0 && !w.state.flags.runeDragonAwake;
+  g.time = Math.ceil(g.time / st.period) * st.period + 0.5; // runes burning
+  I.interact(w, st);
+  ok('Rune statue: cold = burns you, burning = wakes', burned && w.state.flags.runeDragonAwake);
+  talk();
+  ok('Trial 3 done -> 3 Cinder Shards', inv.count('cinder_shard') === 3);
+  ok('Pilgrim now tells where the hollow is', talk().lines.some((l) => l.includes('Valley Gate')));
+  // forge + door
+  enter('a2');
+  I.interact(w, it('a2_ember_rumour'));
+  ok('Gargoyle forges the seal (3 shards -> Varkharon\'s Seal)', inv.count('varkharon_seal') === 1 && inv.count('cinder_shard') === 0 && w.state.flags.sealForged);
+  enter('a1'); const gone = !pilgrim(); enter('a2');
+  ok('Pilgrim is gone once the seal is forged', gone && !pilgrim());
+  I.interact(w, it('a2_dragon_door'));
+  const ex = w.mapManager.get('a2').exits.find((e) => e.id === 'cinder_door');
+  ok('Dragon door opens (seal used, exit unlocked)', w.state.flags.cinderSealBroken && inv.count('varkharon_seal') === 0 && !w.transitions.lockReason(ex));
+  g.ui.close && g.ui.close();
+  return R;
+}
+
 export function mapTour(g, classId = 'umbral_sword') {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);

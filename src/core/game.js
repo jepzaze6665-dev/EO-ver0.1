@@ -32,6 +32,7 @@ import { CounterSystem } from '../combat/counterSystem.js';
 import { AttackSlots } from '../combat/attackSlots.js';
 import { LootSystem } from '../loot/lootSystem.js';
 import { HiddenSystem } from '../world/hiddenSystem.js';
+import { WandererSystem } from '../world/wanderers.js';
 import { WorldProgression } from '../world/worldProgression.js';
 import { WorldTriggerSystem, TRIGGER_ACTIONS } from '../world/worldTriggerSystem.js';
 import { BossSystem } from '../boss/bossSystem.js';
@@ -189,6 +190,8 @@ export class Game {
     this.loot = new LootSystem(this);
     // hidden areas / triggers / rare events (data/hidden.js)
     this.hidden = new HiddenSystem(this);
+    // NPCs that appear at a random spot on each map entry (data/wanderers.js: the Ashen Pilgrim)
+    this.wanderers = new WandererSystem(this);
     // current target (Tab = nearest / cycle, click an enemy, or hit one); the HUD reads targets.current
     this.targets = new TargetSystem({
       candidates: () => this.world.hostiles().filter((e) => !e.isBreakable),

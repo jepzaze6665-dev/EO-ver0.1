@@ -25,6 +25,12 @@ export const FIELD_A3 = {
     interactables: [
       { id: 'a3_gate_plaque', kind: 'sign', tx: 90, ty: 194, prompt: 'Read Plaque', title: 'Gate Ward', text: PLAQUE },
       { id: 'ws_a3_gate', kind: 'waystone', tx: 77, ty: 194, name: 'Gate Ward', prompt: 'Waystone' },
+      // the Ashen Pilgrim's third trial (quest ember_trial_a3): a stone dragon that listens only while its runes burn
+      {
+        id: 'a3_rune_dragon', kind: 'timedRune', tx: 52, ty: 118, prompt: 'Touch the Stone Dragon', quest: 'ember_trial_a3', flag: 'runeDragonAwake',
+        period: 7, open: 2, burn: 0.08, art: 'dr_statue_dragon', artScale: 0.8, fireY: 92, title: 'The Dragon That Watches',
+        wake: 'Your palm meets the stone while its runes are still burning. The eyes open — two coals in the dark — and a voice like a furnace door speaks inside your head:\n\n"You carry his ash. Take my cinder to the one who walks in grey. Tell him the King is restless."\n\nThe runes go dark. Somewhere far to the south, something answers.',
+      },
     ],
     // golems hold the ruins and the shrine; hoplites stand in pairs (phalanx) at the barracks and the plazas
     spawns: [

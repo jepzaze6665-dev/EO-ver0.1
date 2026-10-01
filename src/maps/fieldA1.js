@@ -56,6 +56,11 @@ export const FIELD_A1 = {
       { id: 'a1_glade_warning', kind: 'sign', tx: 62, ty: 121, prompt: 'Read Warning', title: 'Warning', text: GLADE_WARNING },
       { id: 'a1_glade_warning_east', kind: 'sign', tx: 74, ty: 130, prompt: 'Read Warning', title: 'Warning', text: GLADE_WARNING },
       { id: 'a2_crossroads', kind: 'sign', tx: 47, ty: 71, prompt: 'Read Signpost', title: 'Signpost', text: CROSSROADS },
+      // the Ashen Pilgrim's first trial (quest ember_trial_a1): three cold fire-keeper altars far apart in the forest
+      ...[[9, 101], [70, 66], [24, 136]].map(([tx, ty], k) => ({
+        id: `emberAltar_${k + 1}`, kind: 'questAltar', tx, ty, prompt: 'Rekindle the Altar', quest: 'ember_trial_a1', group: 'emberAltar', count: 3,
+        flag: 'emberAltarsLit', art: 'shrine_altar', artScale: 0.9,
+      })),
     ],
     spawns: [
       // Forest Entrance meadow: Whisper Hares (Lv. 1, the first thing to fight)

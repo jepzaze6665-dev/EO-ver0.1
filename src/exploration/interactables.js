@@ -20,6 +20,8 @@ export function isAvailable(w, it) {
     case 'push': return !f.logBridge;
     case 'lever': return !f.ruinsGate;
     case 'trigger': return false;
+    case 'questAltar': return w.game.quests.isActive(it.quest) && !f['lit_' + it.id];
+    case 'timedRune': return w.game.quests.isActive(it.quest) && !f[it.flag];
     case 'npc': return !(it.npc && it.npc.hidden);
   }
   return true;
@@ -153,6 +155,58 @@ export function interact(w, it) {
       }
       g.ui.showLore('The Sealed Depths', 'A colossal door of violet crystal, veined with the same corruption that poisoned the Guardian. Runes crawl across its surface, rearranging themselves as you watch.\n\nIt will not open. Not yet.', () => g.ui.showEnding());
       break;
+    // generic QUEST ALTAR (data: quest, group, count, flag): lights itself (flag lit_<id>); when every altar of its group
+    // is lit the group `flag` is set (a quest's flag objective)
+    case 'questAltar': {
+      w.setFlag('lit_' + it.id);
+      const n = Object.keys(f).filter((k) => k.startsWith('lit_' + it.group) && f[k]).length; // altar ids start with their group
+      g.audio.sfx('shrine');
+      g.vfx.burst(it.x, it.y - 24, '#ff8a30', 40, 160);
+      g.vfx.ring(it.x, it.y, 4, 70, { color: '255,140,60', life: 0.7 });
+      g.ui.banner('ALTAR REKINDLED', `${n} / ${it.count}`, '#ff9a50');
+      if (n >= it.count) w.setFlag(it.flag);
+      g.save.dirty = true;
+      break;
+    }
+    // generic TIMED RUNE (data: quest, flag, period, open, burn, title, wake / cold texts): only answers while its runes
+    // burn (the first `open` s of every `period` s); touched while cold it burns the player
+    case 'timedRune':
+      if ((g.time % it.period) < it.open) {
+        w.setFlag(it.flag);
+        g.audio.sfx('shrine');
+        g.camera.shake(0.4);
+        g.vfx.flash('255,120,40', 0.3, 2);
+        g.vfx.burst(it.x, it.y - 40, '#ff8a30', 60, 200);
+        g.ui.showLore(it.title, it.wake);
+      } else {
+        p.hp = Math.max(1, p.hp - Math.round(p.maxHp * (it.burn || 0.06)));
+        g.vfx.text(p.x, p.y - 40, 'THE STONE IS COLD — IT BURNS', { color: '#ff7040', size: 10 });
+        g.vfx.burst(p.x, p.y - 20, '#ff6020', 16, 100);
+        g.audio.sfx('hurt');
+      }
+      break;
+    // generic FORGE (data: needs { item: n }, gives { item: n }, flag, title, text, forge, done): turns the needed items
+    // into the given ones once; otherwise shows its text + how many of the needed items you carry
+    case 'forge': {
+      if (f[it.flag]) { g.ui.showLore(it.title, it.done); break; }
+      const need = Object.entries(it.needs);
+      if (need.every(([id, n]) => g.inventory.has(id, n))) {
+        for (const [id, n] of need) g.inventory.remove(id, n);
+        for (const [id, n] of Object.entries(it.gives)) g.inventory.add(id, n);
+        w.setFlag(it.flag);
+        g.audio.sfx('gate');
+        g.camera.shake(0.5);
+        g.vfx.flash('255,120,40', 0.4, 2);
+        g.vfx.burst(it.x, it.y - 30, '#ff8a30', 70, 220);
+        if (it.banner) g.ui.banner(...it.banner);
+        g.ui.showLore(it.title, it.forge);
+        g.save.dirty = true;
+      } else {
+        const have = need.map(([id, n]) => `${ITEMS[id] ? ITEMS[id].name : id}: ${Math.min(n, g.inventory.count(id))} / ${n}`).join('\n');
+        g.ui.showLore(it.title, `${it.text}\n\n${have}`);
+      }
+      break;
+    }
     // generic SEALED DOOR (data: flag, item, consume, title, locked / opening / open texts, banner): bringing the item
     // sets the flag (an exit / gate names it in its requirements); without it the door only describes itself
     case 'sealDoor':
@@ -224,6 +278,31 @@ export function drawInteractable(ctx, w, it, time) {
         for (let i = 0; i < 3; i++) { ctx.fillStyle = '#6a2a8a'; ctx.fillRect(x - 10 + i * 8, y - 2, 4, 2); }
       }
       break;
+    // quest altar / timed rune statue: drawn from a prop (data `art`, `artScale`) + their fire
+    case 'questAltar': case 'timedRune': {
+      const def = Assets.props[it.art];
+      const s = it.artScale || 1;
+      if (def) ctx.drawImage(def.img, def.x, def.y, def.w, def.h, x - (def.w * s) / 2, y - def.h * s + 4, def.w * s, def.h * s);
+      const burning = it.kind === 'questAltar' ? f['lit_' + it.id] : f[it.flag] || (w.game.quests.isActive(it.quest) && (w.game.time % it.period) < it.open);
+      if (!burning) break;
+      const fy = y - (it.fireY || (def ? def.h * s * 0.8 : 30));
+      ctx.globalCompositeOperation = 'lighter';
+      if (it.kind === 'timedRune') { // burning runes: a pulsing rune ring at its feet + ember eyes
+        const a = 0.35 + 0.25 * Math.sin(time * 8);
+        ctx.strokeStyle = `rgba(255,120,40,${a})`; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.ellipse(x, y - 2, 30, 11, 0, 0, TAU); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(x, y - 2, 22, 8, 0, 0, TAU); ctx.stroke();
+        ctx.lineWidth = 1;
+        ctx.fillStyle = `rgba(255,170,60,${0.5 + a})`;
+        ctx.beginPath(); ctx.arc(x - 5, fy, 3, 0, TAU); ctx.arc(x + 5, fy, 3, 0, TAU); ctx.fill();
+      } else for (let i = 0; i < 3; i++) {
+        const r = 12 - i * 4 + Math.sin(time * 9 + i) * 2;
+        ctx.fillStyle = `rgba(255,${110 + i * 50},40,${0.25 + i * 0.1})`;
+        ctx.beginPath(); ctx.arc(x, fy - i * 3, r, 0, TAU); ctx.fill();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+      break;
+    }
   }
 }
 

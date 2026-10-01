@@ -95,6 +95,7 @@ export function npcSprite(look) {
     child: { robe: '#8a5a3a', trim: '#e8d8a0', hair: '#e0b050', skin: '#f0c8a0', small: true },
     villager: { robe: '#7a5a6a', trim: '#e0d0c0', hair: '#5a3a2a', skin: '#e8b890' },
     wanderer: { robe: '#1a1428', trim: '#8a60c0', hair: '#1a1428', skin: '#3a3050', hood: true, glow: '#b080ff' },
+    pilgrim: { robe: '#2a2220', trim: '#c0562a', hair: '#2a2220', skin: '#3a2a26', hood: true, glow: '#ff7a30', extra: 'staff' }, // the Ashen Pilgrim
     scout: { robe: '#3a5a3a', trim: '#b0a060', hair: '#7a3a2a', skin: '#e0b090', extra: 'bow' },
     guildmaster: { robe: '#24346a', trim: '#e0c070', hair: '#d8d0c0', skin: '#e0b894', extra: 'staff' },
     knight: { robe: '#5a6478', trim: '#d8b060', hair: '#4a3a2a', skin: '#d8a880', extra: 'sword' },

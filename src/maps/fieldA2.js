@@ -36,7 +36,14 @@ export const FIELD_A2 = {
       { id: 'a2_gate_plaque', kind: 'sign', tx: 88, ty: 191, prompt: 'Read Plaque', title: 'Valley Gate', text: PLAQUE },
       { id: 'ws_a2_gate', kind: 'waystone', tx: 79, ty: 194, name: 'Valley Gate', prompt: 'Waystone' },
       // QUIET HOLLOW (secret lair): the rumour gargoyle + the sealed dragon door (generic `sealDoor`: item -> flag)
-      { id: 'a2_ember_rumour', kind: 'sign', tx: 141, ty: 180, prompt: 'Read the Inscription', title: 'The Gargoyle\'s Plinth', text: EMBER_RUMOUR },
+      // the gargoyle = rumour + the FORGE where three Cinder Shards become Varkharon's Seal (generic `forge`)
+      {
+        id: 'a2_ember_rumour', kind: 'forge', tx: 141, ty: 180, prompt: 'Read the Inscription', title: 'The Gargoyle\'s Plinth', text: EMBER_RUMOUR,
+        needs: { cinder_shard: 3 }, gives: { varkharon_seal: 1 }, flag: 'sealForged',
+        forge: 'The three cinders leap from your hands into the gargoyle\'s open jaws. Stone melts like wax; when the glow dies, a seal lies on its tongue — a dragon\'s head, still smoking.\n\n→ Obtained: Varkharon\'s Seal. The dragon door is waiting.',
+        done: 'The gargoyle\'s jaws are empty and cold. The door behind you is what matters now.',
+        banner: ['VARKHARON\'S SEAL', 'Three cinders made one', '#ff7a30'],
+      },
       {
         id: 'a2_dragon_door', kind: 'sealDoor', tx: 148, ty: 172, prompt: 'Touch the Dragon Door', flag: 'cinderSealBroken', item: 'varkharon_seal', consume: true,
         title: 'The Dragon Door',
