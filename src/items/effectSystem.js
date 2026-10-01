@@ -61,6 +61,23 @@ export const EFFECT_HANDLERS = {
     return true;
   },
   // the next hit within `duration` s deals +value (Player.gearHitMult uses it up)
+  // a status on the trigger's target (a foe): fx.status, entry duration (capped); fx.power = DoT per tick per stack
+  // as a share of the wearer's ATK (bleed, burn, poison ...)
+  applyStatus(fx, p, ctx, g, entry) {
+    const t = ctx.target;
+    if (!t || t.dead || t === p || t.team === p.team || !t.status || !t.status.add) return false;
+    const data = { source: p };
+    if (fx.power > 0) data.damage = Math.max(1, Math.round(((p.stats && p.stats.atk) || 0) * Math.min(fx.power, L.dotPowerMax)));
+    return !!t.status.add(fx.status, clamp(fx.duration || 3, 0.1, L.statusDurationMax), data);
+  },
+  // the class mark: a self mark (Umbral Shadow Mark) on the wearer, else the class's enemy mark on the target
+  addMark(fx, p, ctx, g) {
+    const n = Math.min(fx.value || 1, L.markMax);
+    if (p.markId) { const before = p.marks; p.addMark(n); return p.marks > before; }
+    const mark = p.cls && p.cls.enemyMark, t = ctx.target;
+    if (!mark || !t || t.dead || t.team === p.team || !g.marks) return false;
+    return g.marks.apply(t, mark, { source: p, stacks: n, sourceClass: p.cls.id }).added > 0;
+  },
   nextHitBonus(fx, p, ctx, g, entry) {
     p.itemNextHit = { mult: 1 + Math.min(fx.value, L.nextHitMax), until: g.time + clamp(entry.effect.duration || 3, 0.1, L.durationMax), itemId: entry.itemId };
     return true;

@@ -35,13 +35,13 @@ test('every item has the standard fields', () => {
     ok(Array.isArray(d.tags) && Array.isArray(d.allowedClasses) && Array.isArray(d.modifiers) && Array.isArray(d.effects), id);
   }
 });
-test('first item set: 3 weapon cores, 3 armor cores, 3 relics, 3+ charms, 4 runes', () => {
+test('first item set (G1) still there; I3 adds the Umbral / Astral / universal files', () => {
   const n = (t) => Object.values(GEAR_ITEMS).filter((d) => d.type === t).length;
-  eq(n('weapon_core'), 3); eq(n('armor_core'), 3); eq(n('relic'), 3); ok(n('charm') >= 3, 'charms'); eq(n('rune'), 4);
+  ok(n('weapon_core') >= 3 && n('armor_core') >= 3 && n('relic') >= 3 && n('charm') >= 3 && n('rune') >= 4, 'every type');
   for (const id of ['core_ironheart', 'core_counter', 'core_vanguard', 'armor_fortress', 'armor_guardian', 'armor_risk',
     'relic_oath_mirror', 'relic_last_bastion', 'relic_dawn_core', 'charm_heavy', 'charm_swift', 'charm_guardian',
     'rune_guarding_soul', 'rune_iron_will', 'rune_retribution', 'rune_provocation']) ok(ITEMS[id] && isGear(ITEMS[id]), id);
-  ok(Object.keys(GEAR_SOURCES).length === 5, 'five data files');
+  ok(Object.keys(GEAR_SOURCES).length === 8, 'eight data files');
 });
 test('older gear got a type; stack items are not gear', () => {
   eq(ITEMS.umbral_sword.type, 'weapon_core'); eq(ITEMS.aegis_plate.type, 'armor_core'); eq(ITEMS.eclipse_sigil.type, 'relic');

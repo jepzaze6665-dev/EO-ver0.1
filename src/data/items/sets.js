@@ -18,4 +18,30 @@ export const SETS = {
       },
     ],
   },
+  // Umbral line: crit + shadow, rewards filling the marks
+  eclipse: {
+    name: 'Eclipse', color: '#c080ff',
+    description: 'Pieces of the same dark sun. Worn together they turn every full mark into a faster cut.',
+    bonuses: [
+      { pieces: 2, modifiers: [{ type: 'shadowDamage', value: 0.08 }], text: '+8% Shadow Damage.' },
+      {
+        pieces: 3, text: 'Marks full: shadow skills recover 1.5 s (6 s cooldown).',
+        effects: [{ trigger: 'onMarksFull', effect: { type: 'reduceCooldown', tag: 'shadow', value: 1.5 }, cooldown: 6,
+          text: 'Marks full: shadow skills recover 1.5 s (6 s cooldown).' }],
+      },
+    ],
+  },
+  // Astral line: magic + a small shield every time a constellation breaks
+  constellation: {
+    name: 'Constellation', color: '#8ad8ff',
+    description: 'Three lights that belong in one sky.',
+    bonuses: [
+      { pieces: 2, modifiers: [{ type: 'magicDamage', value: 0.06 }], text: '+6% Magic Damage.' },
+      {
+        pieces: 3, text: 'Your mark detonates: barrier of 6% max HP for 4 s (8 s cooldown).',
+        effects: [{ trigger: 'onMarkTriggered', effect: { type: 'barrier', value: 0.06 }, duration: 4, cooldown: 8,
+          text: 'Your mark detonates: barrier of 6% max HP for 4 s (8 s cooldown).' }],
+      },
+    ],
+  },
 };

@@ -78,6 +78,13 @@ export const TRIGGER_EVENTS = {
   },
   // a boss the wearer is fighting enters a new phase (local game: the boss of the map you are on)
   onBossPhase: { event: 'bossPhaseChanged', who: (e, p) => p, ctx: (e) => ({ bossId: e.bossId, phase: e.phase }) },
+  // I3: the wearer's own class mark reaching its maximum (Umbral: 3 Shadow Marks)
+  onMarksFull: { event: 'marksFull', who: (e) => e.player, ctx: (e) => ({ markId: e.mark }) },
+  // a mark the wearer put on a foe goes off at max stacks (Astral: Constellation Break)
+  onMarkTriggered: {
+    event: 'markTriggered', who: (e) => e.source, skip: (e) => e.target === e.source,
+    ctx: (e) => ({ target: e.target, markId: e.markId }),
+  },
 };
 export const LOW_HP_DEFAULT = 0.3;
 
@@ -91,4 +98,7 @@ export const EFFECT_LIMITS = {
   cooldownCutMax: 10, // one cooldown cut <= 10 s
   nextHitMax: 1, // next-hit bonus <= +100%
   durationMax: 30, // temporary effects last <= 30 s
+  statusDurationMax: 8, // a status put on a foe by an item <= 8 s
+  dotPowerMax: 0.5, // item damage-over-time per tick per stack <= 50% of the wearer's ATK
+  markMax: 1, // one item effect adds <= 1 mark
 };

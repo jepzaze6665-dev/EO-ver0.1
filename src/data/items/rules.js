@@ -26,8 +26,11 @@ export const PERSISTENCE = { PERMANENT: 'permanent', NORMAL: 'normal', DUNGEON: 
 export const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
 export const UNIQUE_RARITIES = ['legendary', 'mythic'];
 
-// allowedClasses: ['all'] or class ids (src/skills/classes.js). The core never names a class.
+// allowedClasses: ['all'], class ids (src/skills/classes.js) and/or 'line:<tier-1 class id>' = that class and every class
+// that grows from it (data/classTree.js parent chain), e.g. 'line:umbral_sword' = Umbral, Reaper, Duskrunner, Echoes.
+// The core never names a class.
 export const ANY_CLASS = 'all';
+export const LINE_PREFIX = 'line:';
 
 // MODIFIERS — stat changes while the item is equipped. items/modifierSystem.js sums them per type (stacking rule),
 // caps the total, then builds the FINAL stats from a copy of the base stats (base stats are never edited).
@@ -99,12 +102,15 @@ export const TRIGGERS = [
   'onDodge', 'onDash', 'onTaunt', 'onBarrierCreated', 'onResourceGain', 'onResourceSpend', 'onLowHP',
   // I1
   'onCrit', 'onFullResource', 'onStatusApplied', 'onBossPhase',
+  // I3
+  'onMarksFull', 'onMarkTriggered',
 ];
 
 // CONDITIONS — extra checks on an effect: { type, value } (G3: items/conditionSystem.js, one function per type)
 export const CONDITIONS = ['hpBelow', 'hpAbove', 'resourceAbove', 'resourceBelow', 'targetHasMark', 'perfectGuard', 'inCombat',
-  'targetHasStatus', 'statusIs'];
+  'targetHasStatus', 'statusIs', 'marksAtLeast', 'skillIs'];
 
 // EFFECTS — what an effect does (G3: items/effectSystem.js, one handler per type). Every effect needs a cooldown or
 // a duration so nothing can chain forever; `maxPerSecond` in G3 is the last safety net.
-export const EFFECT_TYPES = ['modifyStat', 'gainResource', 'reflectDamage', 'reduceCooldown', 'heal', 'barrier', 'nextHitBonus'];
+export const EFFECT_TYPES = ['modifyStat', 'gainResource', 'reflectDamage', 'reduceCooldown', 'heal', 'barrier', 'nextHitBonus',
+  'applyStatus', 'addMark'];

@@ -967,6 +967,21 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   lost; tooltip SET block (pieces, worn lit, bonuses; option `worn`); Loadout window SETS section. Example set IRON VIGIL =
   core_ironheart + armor_fortress + charm_heavy: (2) +10% Guard Generation, (3) block -> -10% damage taken 3 s (cd 4).
   Tests tools/tests/itemSets.test.mjs (8).
+  Done I3: 23 new items in `src/data/items/{umbralItems,astralItems,universalItems}.js` (registered in index.js GEAR_SOURCES):
+  Umbral 9 (Shadow Fang, Nightglass Edge, Duskweave Coat, Heart of the Eclipse, Bloodletter's Hook, Red Thirst, Full Moon, Shadow
+  Hunger, Assassin's Charm), Astral 8 (Star Loom Core, Fallen Constellation = astral_weaver only + skillModifiers on
+  starfall_fate, Starveil Robe, Shattered Orrery, Weaver's Spindle, Comet Tail, Supernova, Starfocus Charm), universal 6
+  (Pathfinder Mail, Ember of War, Second Wind, Executioner's Rune, Hunter's Sigil, Wanderer's Charm). Sets ECLIPSE (Fang + Heart +
+  Assassin's Charm) and CONSTELLATION (Star Loom + Starveil + Supernova). Every non-rune item carries a minus modifier (test).
+  CLASS LINE restriction: allowedClasses 'line:<tier-1 id>' (itemDefs classLine via classTree parent; tooltip "X line").
+  New generic: status `bleed` (dot physical, 5 stacks); effects applyStatus { status, duration, power = DoT × ATK } (foe only) and
+  addMark (self class mark, else cls.enemyMark on the target; classes without a mark: nothing); triggers onMarksFull (marksFull)
+  / onMarkTriggered (markTriggered by you); conditions marksAtLeast / skillIs { skill | tag } (looks the skill up in skillSys).
+  LOOT per source: elite pool + runes / charms; A1 Hollow Fang + B1 Hoarfang core pool + Shadow Fang / Star Loom; Thornbound Elder
+  armor pool + 3 armors; Magma Beast + Amethyst Colossus = Nightglass / Fallen Constellation; the 5 A2+ mini-bosses use new table
+  `mini_relic` (one non-signature relic + 25% rune / charm). Tests itemI3.test.mjs (17); itemLoot / items tests now read pool sizes
+  from data. `T.itemBuildCheck(g)` = real Guardian fight per build (`T.I3_BUILDS`: umbral_bleed / umbral_eclipse / astral_star /
+  aegis_boss) — all WIN at LV 13 (70-145 s) and every item fires; buildFight now returns `fired` (per item / set) + `applied`.
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

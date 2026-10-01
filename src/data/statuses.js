@@ -39,6 +39,8 @@ export const STATUSES = {
   curse: { id: 'curse', category: 'debuff', maxStacks: 3, stacking: 'stack', perStack: true, modifiers: { damageTakenMult: 1.06 }, display: { label: 'CURSE', color: '#d070ff' } },
   // ---- damage over time
   burn: { id: 'burn', category: 'dot', maxStacks: 3, stacking: 'stack', dot: { interval: 0.5, damage: 3, type: 'fire' }, display: { label: 'BURN', color: '#ff9a40' } },
+  // bleed: physical damage over time (items: Bloodletter's Hook); data.damage = per tick per stack
+  bleed: { id: 'bleed', category: 'dot', maxStacks: 5, stacking: 'stack', dot: { interval: 1, damage: 3, type: 'physical' }, display: { label: 'BLEED', color: '#e04050' } },
   poison: { id: 'poison', category: 'dot', maxStacks: 5, stacking: 'stack', dot: { interval: 1, damage: 4, type: 'poison' }, display: { label: 'POISON', color: '#90e050' } },
   // ---- buffs
   haste: { id: 'haste', category: 'buff', maxStacks: 1, stacking: 'longest', modifiers: { moveMult: 1.25 }, display: { label: 'HASTE', color: '#9af8ff' } },

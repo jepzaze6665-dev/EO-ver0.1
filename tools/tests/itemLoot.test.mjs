@@ -30,7 +30,8 @@ test('oneOf gives exactly ONE item of the group, picked by weight (deterministic
   // gold roll, 2 drops, group chance roll, weight pick
   const lo = rollLoot('hollow_fang', seq(0, 0, 0, 0, 0)), hi = rollLoot('hollow_fang', seq(0, 0, 0, 0, 0.99));
   const cores = (r) => r.items.filter((x) => isGear(ITEMS[x.item]));
-  eq(cores(lo).length, 1); eq(cores(lo)[0].item, 'core_ironheart'); eq(cores(hi)[0].item, 'core_vanguard');
+  const pool = getLootTable('hollow_fang').oneOf[0].items;
+  eq(cores(lo).length, 1); eq(cores(lo)[0].item, pool[0].item); eq(cores(hi)[0].item, pool[pool.length - 1].item);
 });
 test('a group whose chance misses gives nothing from it', () => {
   const r = rollLoot('elite', seq(0, 0.99, 0.99, 0.99));
@@ -46,8 +47,9 @@ test('the weights hold over many rolls (elite: about 25% any gear)', () => {
 console.log('drop chance + sources');
 test('calculateDropChance: drops, oneOf share, nothing', () => {
   eq(calculateDropChance('guardian', 'relic_oath_mirror'), 1);
-  near(calculateDropChance('hollow_fang', 'core_counter'), 1 / 3);
-  near(calculateDropChance('elite', 'rune_guarding_soul'), 0.25 * 3 / 20);
+  const share = (table, item) => { const g = getLootTable(table).oneOf[0]; const w = g.items.reduce((s, x) => s + x.weight, 0); return g.chance * g.items.find((x) => x.item === item).weight / w; };
+  near(calculateDropChance('hollow_fang', 'core_counter'), share('hollow_fang', 'core_counter'));
+  near(calculateDropChance('elite', 'rune_guarding_soul'), share('elite', 'rune_guarding_soul'));
   eq(calculateDropChance('wolf', 'relic_oath_mirror'), 0); eq(calculateDropChance('nope', 'x'), 0);
 });
 test('BOSS SIGNATURE: every item with a dropSource drops from that boss\'s reward table at 100% (bosses pay once)', () => {

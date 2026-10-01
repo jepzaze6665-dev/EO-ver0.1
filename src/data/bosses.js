@@ -108,7 +108,7 @@ export const BOSSES = {
       stomp: { kind: 'strike', range: 140, windup: 1.0, recover: 0.8, cd: 7, weight: 2, power: 26, knock: 220, shape: { shape: 'circle', r: 120 }, status: [{ id: 'slow', dur: 2 }], opening: 1.2 },
       rubble: { kind: 'pattern', layout: 'ring', range: 400, windup: 1.1, recover: 0.7, cd: 9, weight: 2, power: 24, knock: 180, count: 9, r: 32, dist: 120 },
     },
-    rewards: { exp: 700, loot: 'elite' },
+    rewards: { exp: 700, loot: 'mini_relic' },
     unlocks: [],
   },
   mini_archive_warden: {
@@ -129,7 +129,7 @@ export const BOSSES = {
       volley: { kind: 'volley', range: 380, min: 90, windup: 0.8, recover: 0.6, cd: 5, weight: 2, power: 20, count: 6, spread: 0.9, speed: 280, dmg: 'magic', color: '#80c8ff' },
       swarm: { kind: 'summon', range: 999, windup: 1.0, recover: 0.6, cd: 16, weight: 1.5, monster: 'void_scarab', count: 3, max: 3 },
     },
-    rewards: { exp: 1200, loot: 'elite' },
+    rewards: { exp: 1200, loot: 'mini_relic' },
     unlocks: [],
   },
   mini_old_scarclaw: {
@@ -155,7 +155,7 @@ export const BOSSES = {
       eruption: { kind: 'strike', range: 150, windup: 1.1, recover: 0.8, cd: 7, weight: 2, power: 26, knock: 200, dmg: 'magic', shape: { shape: 'cone', r: 170, half: 0.5 }, status: [{ id: 'slow', dur: 2 }], opening: 1.4 },
       frost_ring: { kind: 'pattern', layout: 'ring', range: 400, windup: 1.2, recover: 0.8, cd: 9, weight: 2, power: 22, knock: 180, count: 10, r: 32, dist: 115, dmg: 'magic', status: [{ id: 'root', dur: 0.8 }], color: '160,220,255' },
     },
-    rewards: { exp: 450, loot: 'elite' },
+    rewards: { exp: 450, loot: 'mini_relic' },
     unlocks: [],
   },
   mini_broodmother: {
@@ -177,7 +177,7 @@ export const BOSSES = {
       pounce: { kind: 'leap', guardBreak: true, range: 320, min: 110, windup: 1.0, recover: 0.7, cd: 5, weight: 3, power: 31, knock: 260, r: 80, track: 0.6, opening: 1.6 },
       brood: { kind: 'summon', range: 999, windup: 1.0, recover: 0.6, cd: 15, weight: 1.5, monster: 'cave_spider', count: 2, max: 3 },
     },
-    rewards: { exp: 900, loot: 'elite' },
+    rewards: { exp: 900, loot: 'mini_relic' },
     unlocks: [],
   },
   mini_icebound_king: {
@@ -199,7 +199,7 @@ export const BOSSES = {
       hurl: { kind: 'volley', range: 400, min: 100, windup: 0.9, recover: 0.6, cd: 5, weight: 2, power: 29, count: 3, spread: 0.5, speed: 300, color: '#c8f0ff' },
       icefall: { kind: 'pattern', layout: 'cross', range: 420, windup: 1.0, recover: 0.6, cd: 8, weight: 2, power: 31, knock: 180, count: 5, r: 34, step: 60, delay: 0.14, dmg: 'magic', status: [{ id: 'slow', dur: 2 }], color: '170,220,255' },
     },
-    rewards: { exp: 1500, loot: 'elite' },
+    rewards: { exp: 1500, loot: 'mini_relic' },
     unlocks: [],
   },
 

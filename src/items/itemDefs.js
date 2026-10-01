@@ -1,7 +1,9 @@
 // ITEM DEFINITIONS (pure) — fills the standard item fields and checks item data. No game, no DOM.
 // Every item ends up with: id, name, type, rarity, description, tags, allowedClasses, modifiers, effects
 // (+ the older display fields cat / desc / icon / color / slot that the UI and equipment still read).
-import { GEAR_TYPES, RARITIES, UNIQUE_RARITIES, ANY_CLASS, MODIFIER_TYPES, TRIGGERS, CONDITIONS, EFFECT_TYPES, PERSISTENCE } from '../data/items/rules.js';
+import { CLASS_TREE } from '../data/classTree.js';
+import { STATUSES } from '../data/statuses.js';
+import { GEAR_TYPES, RARITIES, UNIQUE_RARITIES, ANY_CLASS, LINE_PREFIX, MODIFIER_TYPES, TRIGGERS, CONDITIONS, EFFECT_TYPES, PERSISTENCE } from '../data/items/rules.js';
 
 // older gear (written before the item system) -> its type, from its slot. Accessories name their own type.
 const TYPE_FROM_SLOT = { weapon: 'weapon_core', armor: 'armor_core' };
@@ -34,7 +36,14 @@ export function normalizeItem(id, def) {
 export const lostOnDeath = (def) => !!def && def.persistence === PERSISTENCE.DUNGEON;
 
 // may this class equip it? (the core never names a class: it only compares ids from the data)
-export const canClassUse = (def, classId) => !!def && (def.allowedClasses.includes(ANY_CLASS) || def.allowedClasses.includes(classId));
+// tier-1 class a class grows from (classTree parent chain; itself for a tier-1 class)
+export function classLine(classId) {
+  let id = classId;
+  for (let i = 0; i < 8 && CLASS_TREE[id] && CLASS_TREE[id].parent; i++) id = CLASS_TREE[id].parent;
+  return id;
+}
+export const canClassUse = (def, classId) => !!def && (def.allowedClasses.includes(ANY_CLASS) || def.allowedClasses.includes(classId)
+  || def.allowedClasses.includes(LINE_PREFIX + classLine(classId)));
 // is the character level high enough?
 export const meetsLevel = (def, level) => !!def && (level || 0) >= (def.levelRequirement || 0);
 
@@ -46,6 +55,7 @@ export function effectProblems(e) {
   if (!e.effect || !EFFECT_TYPES.includes(e.effect.type)) out.push(`effect "${e.effect && e.effect.type}"`);
   if (!(e.cooldown > 0) && !(e.duration > 0)) out.push(`effect ${e.effect && e.effect.type} needs a cooldown or duration (no endless trigger)`);
   if (!e.text) out.push('effect without text (tooltip)');
+  if (e.effect && e.effect.type === 'applyStatus' && !STATUSES[e.effect.status]) out.push(`unknown status "${e.effect.status}"`);
   return out;
 }
 
@@ -59,7 +69,7 @@ export function itemProblems(def, classIds = null) {
   if (!def.description) bad('no description');
   if (!Array.isArray(def.tags)) bad('tags must be a list');
   if (!Array.isArray(def.allowedClasses) || !def.allowedClasses.length) bad('allowedClasses empty');
-  else if (classIds) for (const c of def.allowedClasses) if (c !== ANY_CLASS && !classIds.includes(c)) bad(`unknown class "${c}"`);
+  else if (classIds) for (const c of def.allowedClasses) if (c !== ANY_CLASS && !classIds.includes(c.startsWith(LINE_PREFIX) ? c.slice(LINE_PREFIX.length) : c)) bad(`unknown class "${c}"`);
   if (def.levelRequirement != null && (!Number.isInteger(def.levelRequirement) || def.levelRequirement < 0)) bad(`levelRequirement ${def.levelRequirement}`);
   for (const m of def.modifiers) {
     const rule = MODIFIER_TYPES[m.type];

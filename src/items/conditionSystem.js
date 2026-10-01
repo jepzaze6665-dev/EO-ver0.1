@@ -25,6 +25,14 @@ export const CONDITION_CHECKS = {
   targetHasStatus: (c, p, ctx) => !!(ctx.target && ctx.target.status && ctx.target.status.has && ctx.target.status.has(c.status)),
   // onStatusApplied: only this status id (c.status, or a list)
   statusIs: (c, p, ctx) => [].concat(c.status).includes(ctx.statusId),
+  // the wearer's own class marks (Umbral Shadow Marks) >= value
+  marksAtLeast: (c, p) => (p.marks || 0) >= c.value,
+  // the trigger's skill: c.skill = skill id, c.tag = a tag in its data (e.g. 'thread', 'consumes-marks')
+  skillIs: (c, p, ctx) => {
+    const sk = ctx.skill || (p.skillSys && p.skillSys.skills[ctx.skillId]);
+    if (c.skill) return (ctx.skillId || (sk && sk.id)) === c.skill;
+    return !!(c.tag && sk && (sk.tags || []).includes(c.tag));
+  },
 };
 
 // no condition = always true; an unknown condition type = false (bad data never fires)

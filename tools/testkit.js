@@ -1898,12 +1898,36 @@ export function buildFight(g, build, { level = 13, classId = 'aegis_guardian', s
   g.events.on('damageDealt', (e) => { if (e.source !== pl) return; if (e.opts && e.opts.itemEffect) st.reflect += e.amount; else if (e.opts && (e.opts.counter || (e.target.status && e.target.status.has('counter_window')))) st.counterDmg += e.amount; });
   g.events.on('guardBlocked', () => st.blocked++); g.events.on('perfectGuard', () => st.perfects++);
   g.events.on('resourceChanged', (e) => { if (e.entity === pl && e.resource === pl.primaryResource && e.value > e.before) st.gauge += e.value - e.before; });
-  g.events.on('itemEffect', () => st.effects++);
+  const fired = {}, applied = {}; // per item / set: effects fired · per status: applied by the player
+  g.events.on('itemEffect', (e) => { st.effects++; const k = e.itemId || e.setId; fired[k] = (fired[k] || 0) + 1; });
+  g.events.on('statusApplied', (e) => { if (e.source === pl && e.target !== pl) applied[e.id] = (applied[e.id] || 0) + 1; });
   const pots0 = g.inventory.count('hp_potion');
   let t = 0;
   while (t < seconds && !gd.dead && !pl.dead) { g.simulate(5, (gg, i) => bot(gg, i, {})); t += 5; }
   releaseInput(g);
-  return { result: gd.dead ? 'WIN' : pl.dead ? 'DIED' : 'TIMEOUT', time: t, maxHp: pl.maxHp, speed: Math.round(pl.stats.speed), ...Object.fromEntries(Object.entries(st).map(([k, v]) => [k, Math.round(v)])), potions: pots0 - g.inventory.count('hp_potion') };
+  return { result: gd.dead ? 'WIN' : pl.dead ? 'DIED' : 'TIMEOUT', time: t, maxHp: pl.maxHp, speed: Math.round(pl.stats.speed), ...Object.fromEntries(Object.entries(st).map(([k, v]) => [k, Math.round(v)])), potions: pots0 - g.inventory.count('hp_potion'), fired, applied };
+}
+// ITEM BUILD I3 — one real Guardian fight per new build; checks that the build's items actually fire in combat.
+//   T.itemBuildCheck(__game)  -> [step, pass, detail] rows
+export const I3_BUILDS = {
+  umbral_bleed: { classId: 'umbral_sword', items: ['core_nightglass', 'armor_duskweave', 'relic_bloodletter', 'charm_wanderer', 'rune_red_thirst', 'rune_full_moon', 'rune_shadow_hunger'] },
+  umbral_eclipse: { classId: 'umbral_sword', items: ['core_shadow_fang', 'armor_pathfinder', 'relic_heart_eclipse', 'charm_assassin', 'rune_full_moon', 'rune_executioner', 'rune_hunters_sigil'] },
+  astral_star: { classId: 'astral_weaver', items: ['core_star_loom', 'armor_starveil', 'relic_orrery', 'charm_starfocus', 'rune_supernova', 'rune_comet_tail', 'rune_hunters_sigil'] },
+  aegis_boss: { classId: 'aegis_guardian', items: ['core_ironheart', 'armor_fortress', 'relic_ember_war', 'charm_heavy', 'rune_second_wind', 'rune_guarding_soul', 'rune_iron_will'] },
+};
+export function itemBuildCheck(g, { level = 13, seconds = 200 } = {}) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  for (const [name, b] of Object.entries(I3_BUILDS)) {
+    const r = buildFight(g, b.items, { level, classId: b.classId, seconds }), fired = r.fired, bleeds = { n: r.applied.bleed || 0 };
+    const worn = g.equipment.wornIds();
+    ok(`${name}: whole build worn (${b.classId})`, b.items.every((id) => worn.includes(id)), worn.join(', '));
+    ok(`${name}: fight ${r.result}`, r.result === 'WIN', `${r.time} s, dmg taken ${r.dmgTaken}, potions ${r.potions}`);
+    ok(`${name}: item effects fired in combat`, r.effects > 0, Object.entries(fired).map(([k, v]) => `${k} ×${v}`).join(' · '));
+    if (name === 'umbral_bleed') ok('umbral_bleed: BLEED applied by the hook', bleeds.n > 0, `${bleeds.n} bleeds`);
+    if (name === 'astral_star') ok('astral_star: Constellation Break fed the Orrery / set', (fired.relic_orrery || 0) + (fired.constellation || 0) > 0, JSON.stringify(fired));
+    if (name === 'aegis_boss') ok('aegis_boss: Ember of War on a boss phase', (fired.relic_ember_war || 0) > 0, JSON.stringify(fired));
+  }
+  return R;
 }
 export function buildCompare(g, opts = {}) {
   const out = {};

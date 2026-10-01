@@ -39,18 +39,30 @@ export const LOOT_TABLES = {
     oneOf: [{ chance: 0.25, items: [ // gear: a rune or a charm
       { item: 'rune_guarding_soul', weight: 3 }, { item: 'rune_iron_will', weight: 3 }, { item: 'rune_retribution', weight: 2 }, { item: 'rune_provocation', weight: 2 },
       { item: 'charm_heavy', weight: 3 }, { item: 'charm_swift', weight: 3 }, { item: 'charm_focus', weight: 2 }, { item: 'charm_guardian', weight: 2 },
+      // I3: Umbral / Astral / universal runes + charms (any class can find them: a class change may use them later)
+      { item: 'rune_red_thirst', weight: 2 }, { item: 'rune_full_moon', weight: 2 }, { item: 'rune_shadow_hunger', weight: 2 }, { item: 'charm_assassin', weight: 2 },
+      { item: 'rune_comet_tail', weight: 2 }, { item: 'rune_supernova', weight: 2 }, { item: 'charm_starfocus', weight: 2 },
+      { item: 'rune_second_wind', weight: 3 }, { item: 'rune_executioner', weight: 2 }, { item: 'rune_hunters_sigil', weight: 2 }, { item: 'charm_wanderer', weight: 3 },
     ] }] },
+  // A2+ mini-bosses (data/bosses.js): the elite roll + one non-signature relic (paid once, on the first kill)
+  mini_relic: { gold: [40, 60], drops: [{ item: 'hp_potion', chance: 1 }, { item: 'shadow_tonic', chance: 0.5 }],
+    oneOf: [
+      { chance: 1, items: [{ item: 'relic_heart_eclipse', weight: 1 }, { item: 'relic_bloodletter', weight: 1 }, { item: 'relic_orrery', weight: 1 }, { item: 'relic_spindle', weight: 1 }, { item: 'relic_ember_war', weight: 1 }] },
+      { chance: 0.25, items: [{ item: 'rune_second_wind', weight: 1 }, { item: 'rune_executioner', weight: 1 }, { item: 'charm_wanderer', weight: 1 }, { item: 'rune_full_moon', weight: 1 }, { item: 'rune_supernova', weight: 1 }] },
+    ] },
   // area bosses (data/bosses.js rewards.loot) — rolled once, on the first kill
   crystal_warden: { gold: [200, 200], drops: [{ item: 'moon_crystal', chance: 1, count: 4 }, { item: 'frost_pelt', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 4 }] },
-  amethyst_colossus: { gold: [170, 170], drops: [{ item: 'moon_crystal', chance: 1, count: 3 }, { item: 'crystal_shard', chance: 1, count: 5 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }] },
+  amethyst_colossus: { gold: [170, 170], drops: [{ item: 'moon_crystal', chance: 1, count: 3 }, { item: 'crystal_shard', chance: 1, count: 5 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }],
+    oneOf: [{ chance: 1, items: [{ item: 'core_nightglass', weight: 1 }, { item: 'core_fallen_constellation', weight: 1 }] }] },
   hoarfang: { gold: [140, 140], drops: [{ item: 'frost_pelt', chance: 1, count: 4 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }, { item: 'relic_last_bastion', chance: 1 }],
-    oneOf: [{ chance: 1, items: [{ item: 'core_ironheart', weight: 1 }, { item: 'core_counter', weight: 1 }, { item: 'core_vanguard', weight: 1 }] }] },
+    oneOf: [{ chance: 1, items: [{ item: 'core_ironheart', weight: 1 }, { item: 'core_counter', weight: 1 }, { item: 'core_vanguard', weight: 1 }, { item: 'core_shadow_fang', weight: 1 }, { item: 'core_star_loom', weight: 1 }] }] },
   rune_knight: { gold: [200, 200], drops: [{ item: 'rune_crystal', chance: 1, count: 4 }, { item: 'bronze_plate', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 4 }] },
   varkharon: { gold: [200, 200], drops: [{ item: 'ember_core', chance: 1, count: 5 }, { item: 'hp_potion', chance: 1, count: 4 }, { item: 'shadow_tonic', chance: 1, count: 3 }] },
-  magma_beast: { gold: [120, 120], drops: [{ item: 'ember_core', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }, { item: 'relic_dawn_core', chance: 1 }] },
+  magma_beast: { gold: [120, 120], drops: [{ item: 'ember_core', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }, { item: 'relic_dawn_core', chance: 1 }],
+    oneOf: [{ chance: 1, items: [{ item: 'core_nightglass', weight: 1 }, { item: 'core_fallen_constellation', weight: 1 }] }] },
   hollow_fang: { gold: [80, 80], drops: [{ item: 'wolf_fang', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 2 }],
-    oneOf: [{ chance: 1, items: [{ item: 'core_ironheart', weight: 1 }, { item: 'core_counter', weight: 1 }, { item: 'core_vanguard', weight: 1 }] }] },
+    oneOf: [{ chance: 1, items: [{ item: 'core_ironheart', weight: 1 }, { item: 'core_counter', weight: 1 }, { item: 'core_vanguard', weight: 1 }, { item: 'core_shadow_fang', weight: 1 }, { item: 'core_star_loom', weight: 1 }] }] },
   grukk: { gold: [150, 150], drops: [{ item: 'goblin_iron', chance: 1, count: 4 }, { item: 'shadow_tonic', chance: 1 }, { item: 'hp_potion', chance: 1, count: 2 }],
-    oneOf: [{ chance: 1, items: [{ item: 'armor_fortress', weight: 1 }, { item: 'armor_guardian', weight: 1 }, { item: 'armor_risk', weight: 1 }] }] },
+    oneOf: [{ chance: 1, items: [{ item: 'armor_fortress', weight: 1 }, { item: 'armor_guardian', weight: 1 }, { item: 'armor_risk', weight: 1 }, { item: 'armor_duskweave', weight: 1 }, { item: 'armor_starveil', weight: 1 }, { item: 'armor_pathfinder', weight: 1 }] }] },
   guardian: { gold: [300, 300], drops: [{ item: 'guardian_heart', chance: 1 }, { item: 'guardian_heartwood', chance: 1 }, { item: 'relic_oath_mirror', chance: 1 }] },
 };
