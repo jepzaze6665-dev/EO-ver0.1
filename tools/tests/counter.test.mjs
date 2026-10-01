@@ -29,7 +29,9 @@ test('counterDuration: bosses / elites shorter, dead or status-less targets none
 test('defenseMult lowers the DEF a hit is reduced by', () => {
   const hit = { power: 2, noCrit: true };
   const atk = { stats: { atk: 20, crit: 0 } };
-  const a = computeDamage(atk, { defense: 20 }, hit).amount, b = computeDamage(atk, { defense: 20, defenseMult: 0.5 }, hit).amount;
+  // damage has a small random spread: compare the totals of many hits (one pair could overlap)
+  const sum = (t) => { let s = 0; for (let i = 0; i < 50; i++) s += computeDamage(atk, t, hit).amount; return s; };
+  const a = sum({ defense: 20 }), b = sum({ defense: 20, defenseMult: 0.5 });
   ok(b > a, `${a} -> ${b}`);
 });
 test('every class has a small counterBonus', () => {

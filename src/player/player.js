@@ -81,6 +81,15 @@ export class Player extends Entity {
   // ---------------- stats / progression
   // total of one item modifier type from the gear loadout (data/items/rules.js MODIFIER_TYPES), 0 = none
   gearMod(type) { const eq = this.game.equipment; return eq && eq.getModifierValue ? eq.getModifierValue(type) : 0; }
+  // GEAR hooks called by combat.dealDamage: damage taken × (1 - damageReduction); the pending next-hit bonus of an
+  // item effect (nextHitBonus) is used up by the first real hit on a foe
+  gearDamageTakenMult() { return 1 - this.gearMod('damageReduction'); }
+  gearHitMult(target, opts) {
+    const b = this.itemNextHit;
+    if (!b || opts.itemEffect || !target || target.team === this.team) return 1;
+    this.itemNextHit = null;
+    return this.game.time <= b.until ? b.mult : 1;
+  }
   recomputeStats() {
     const c = this.cls;
     let s = { ...c.base }; // class base = level 1
@@ -380,7 +389,7 @@ export class Player extends Entity {
     const g = this.game, fx = this.x + Math.cos(this.aim) * 16, fy = this.y - 16 + Math.sin(this.aim) * 16;
     if (res.perfect) {
       this.resources.gain(STAMINA.resource, STAMINA.parryRefund, { raw: true, reason: 'parry' });
-      g.events.emit('perfectGuard', { player: this, source: src });
+      g.events.emit('perfectGuard', { player: this, source: src, blocked: raw });
       g.vfx.text(this.x, this.y - 72, this.cls.perfectGuardText || 'PERFECT GUARD', { color: '#fff0b0', size: 13, life: 1.2 });
       g.audio.sfx('perfect_guard');
       g.slowMo(0.25, 0.4);
@@ -388,7 +397,7 @@ export class Player extends Entity {
       this.setGuard(false);
       if (this.cls.onPerfectGuard) this.cls.onPerfectGuard(this, g, src);
     } else {
-      g.events.emit('guardBlocked', { player: this, source: src });
+      g.events.emit('guardBlocked', { player: this, source: src, blocked: Math.max(0, raw * (1 - res.mult)) });
       g.audio.sfx('block');
       g.vfx.text(fx, fy - 20, 'BLOCK', { color: '#ffe8a0', size: 9 });
       g.camera.shake(0.12);
@@ -567,6 +576,7 @@ export class Player extends Entity {
     this.combo = (step + 1) % 3;
     this.comboTimer = 0.55;
     this.startAction(this.cls.basic(this, this.game, this.aim, step));
+    this.game.events.emit('basicAttack', { player: this, step });
     return true;
   }
 

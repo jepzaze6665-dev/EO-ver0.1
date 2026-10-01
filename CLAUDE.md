@@ -16,7 +16,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (W2 Route A, 26 steps: A1 on foot, 2 optional mini-bosses, Guardian, north road into A2 on
   the other grid, secret city Valehaven, save/load),
-  `T.bossReset(__game)` (death mid-fight resets the boss), `T.loadoutCheck(__game, classId)` (gear loadout, 7 slots)
+  `T.bossReset(__game)` (death mid-fight resets the boss), `T.loadoutCheck(__game, classId)` (gear loadout, 7 slots), `T.effectCheck(__game)` (item effects, real Aegis fight)
   `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` / `T.uiCheck(__game)` / `await T.partyCheck(__game)` / `T.tankCheck(__game)` (Combat 2.0),
   `T.gridCheck(__game)` (W1 multi-grid: lock/unlock, load/unload + cleanup, save/load + fog on another grid, no leaks, respawn),
   `T.cityCheck(__game)` (City 2: unlock, north road, services, quest, save/load), `T.a3BossCheck(__game, classId)`,
@@ -885,6 +885,27 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   resourceGeneration / Cost, magicDamage) are read with `p.gearMod(type)` — NOT used by combat yet (G3 / G4). Equipment tab:
   7 slots + Item Modifiers totals; item detail = type, modifier lines, effect texts. `T.giveGear(g)` (every new gear item to the
   bag) + `T.loadoutCheck(g, classId)` 9 steps (AG / UB / AW 9/9). items.test.mjs 30.
+  Done G3: ITEM EFFECTS = trigger -> condition -> effect, all data. `src/data/items/triggers.js` TRIGGER_EVENTS: each of the 15
+  triggers names its game event(s) + who(e) (the wearer) + ctx(e) + skip(e) (onAttack 'basicAttack' (new, Player.tryAttack) ·
+  onHit damageDealt · onDamageTaken · onBlock guardBlocked · onPerfectGuard perfectGuard (both now carry `blocked` = damage the
+  guard stopped) · onSkillCast / onSkillHit · onKill enemyKilled · onDodge playerDodged · onDash = skillUsed of a 'dash' /
+  'mobility' tagged skill · onTaunt = status 'taunted' applied OR renewed (new StatusSet event 'statusRefreshed') ·
+  onBarrierCreated · onResourceGain / Spend (resourceChanged, stamina + reason 'item' ignored) · onLowHP = a hit that crosses
+  the hpBelow line (default 30%), once per fall) + EFFECT_LIMITS (rate 8/s per effect, reflect <= 50% max HP, heal 30%, barrier
+  50%, resource 50, cooldown cut 10 s, next hit +100%, duration 30 s). `src/items/conditionSystem.js` (pure CONDITION_CHECKS:
+  hpBelow / hpAbove / resourceAbove / resourceBelow / targetHasMark / perfectGuard / inCombat). `src/items/effectSystem.js`
+  EFFECT_HANDLERS (modifyStat = timed buff through Equipment.addTemp/removeTemp -> same ModifierSet, so caps cover gear + buffs ·
+  gainResource · reflectDamage (flat, opts.itemEffect) · reduceCooldown (skillId or skill tag) · heal · barrier (shield) ·
+  nextHitBonus (p.itemNextHit)) + ItemEffectSystem (game.itemEffects): one listener per event name, index rebuilt only when
+  the worn items change, cooldown per item effect kept when the item is taken off, RE-ENTRY GUARD (no effect fires inside
+  another: no infinite chains), item damage never re-triggers items, 'itemEffect' event + item name popup (cooldown >= 3 s),
+  update() only while a timed buff runs. COMBAT HOOKS (generic, combat.dealDamage): src.gearHitMult(target, opts) (the pending
+  next-hit bonus; for Aegis the riposte after a parry uses Retribution = "next counter") and target.gearDamageTakenMult()
+  (1 - damageReduction: Guardian Armor 5%, Last Bastion 25%). Still NOT used by combat (G4): guardGeneration, counterDamage,
+  aggro, tauntPower, resourceGeneration / Cost, magicDamage, barrierStrength in Holy Barrier. Tests itemEffects.test.mjs (15)
+  + `T.effectCheck(g)` 9 steps (real Aegis: real parry -> Oath Mirror reflect + cooldown, real block -> Guarding Soul, riposte ×1.3,
+  real taunt -> Provocation, real Holy Barrier -> Dawn Core, Last Bastion on / off). counter.test defenseMult test averaged
+  (was flaky ~1/30).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

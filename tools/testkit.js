@@ -1753,3 +1753,72 @@ export function loadoutCheck(g, classId = 'aegis_guardian') {
   ok('Class base stats never edited', p().cls.base.def === baseDef);
   return R;
 }
+
+// ITEM SYSTEM G3 — item effects in a REAL fight (Aegis): a real monster strikes, the guard really blocks / parries,
+// skills are really cast. Spec test scenario: equip -> stats -> skill -> item effect -> resource -> combat effect.
+//   T.effectCheck(__game)  : 9 steps
+export function effectCheck(g) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame('aegis_guardian'); releaseInput(g);
+  const p = g.player; goto(g, 38, 121); g.simulate(0.3);
+  const foe = g.world.monsters.filter((m) => !m.dead && g.world.onMap(m)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+  for (const m of g.world.monsters) if (m !== foe && g.world.onMap(m)) { m.dead = true; m.deathT = 99; }
+  foe.x = p.x + 40; foe.y = p.y; foe.hp = foe.maxHp = 99999;
+  foe.update = () => {}; // a scripted target: its own AI (a wolf lunges at a player standing still) would spoil the timing
+  const fired = []; g.events.on('itemEffect', (e) => fired.push(e.itemId));
+  giveGear(g);
+  const inp = g.input, face = () => { const r = g.renderer, cam = g.camera; inp.mouse.x = ((foe.x - cam.left) * cam.zoom * r.scale) / r.dpr; inp.mouse.y = ((foe.y - 12 - cam.top) * cam.zoom * r.scale) / r.dpr; };
+  const guardUp = (early) => {
+    inp.mouse.right = false; g.simulate(0.4, face);
+    p.status.clear(); p.hp = p.maxHp; p.invulnT = 0; p.hurtT = 0; p.endAction(true); p.resources.fill('stamina');
+    foe.x = p.x + 40; foe.y = p.y; foe.hp = foe.maxHp;
+    inp.mouse.right = true; g.simulate(early ? 0.03 : 0.5, face);
+  };
+  const strike = (power = 40) => g.combat.enemyStrike(foe, { shape: 'circle', x: p.x, y: p.y, r: 40 }, power, {});
+  const G = p.primaryResource;
+  // 1-2: Oath Mirror on a real Perfect Guard
+  g.equipment.equip('relic_oath_mirror');
+  guardUp(true); let hp0 = foe.hp; strike(60);
+  ok('Oath Mirror: real Perfect Guard reflects damage to the attacker', fired.includes('relic_oath_mirror') && foe.hp < hp0, `foe -${hp0 - foe.hp}`);
+  guardUp(true); hp0 = foe.hp; strike(60);
+  ok('Oath Mirror cooldown: a second parry right after does not reflect', foe.hp === hp0 && fired.filter((x) => x === 'relic_oath_mirror').length === 1);
+  // 3: Guarding Soul on a real block (compare with the rune off)
+  inp.mouse.right = false; g.simulate(0.4);
+  const blockGain = (withRune) => {
+    if (withRune) g.equipment.equip('rune_guarding_soul'); else g.equipment.unequip('rune1');
+    guardUp(false); p.resources.set(G, 0); g.simulate(0.6, face); strike(30); return p.resources.get(G);
+  };
+  const off = blockGain(false), on = blockGain(true);
+  ok('Guarding Soul: a real block gives more Guard Gauge (+4)', on - off >= 3.9, `${off} -> ${on}`);
+  inp.mouse.right = false; g.simulate(0.4);
+  // 4: Retribution -> next real hit stronger
+  g.equipment.equip('rune_retribution', 'rune2');
+  // record the multiplier every player hit gets from the gear hook (the riposte = Aegis's counter strike after a parry)
+  const mults = [], hook = p.gearHitMult.bind(p);
+  p.gearHitMult = (t, o) => { const m = hook(t, o); if (t === foe) mults.push(m); return m; };
+  guardUp(true); strike(60);
+  ok('Retribution: Perfect Guard arms the next-hit bonus', p.itemNextHit && p.itemNextHit.mult > 1);
+  inp.mouse.right = false; g.simulate(0.6);
+  g.combat.dealDamage(p, foe, { power: 1, knock: 0 });
+  ok('Retribution: the counter strike right after the parry deals x1.3, the next hit x1 (used once)', mults[0] === 1.3 && mults.slice(1).every((m) => m === 1) && !p.itemNextHit, `mults ${mults.join(', ')}`);
+  delete p.gearHitMult;
+  // 5: Provocation on a real taunt (Guardian's Challenge)
+  g.equipment.equip('rune_provocation', 'rune3');
+  p.skillSys.cooldowns.start('holy_barrier', 10); p.resources.set(G, 100); p.endAction(true);
+  const cast = (id) => { p.endAction(true); p.invulnT = 0; p.skillSys.cooldowns.clear(id); p.resources.set(G, 100); p.resources.fill('stamina'); return p.trySkill(p.skillSys.get(id)); };
+  const before = p.skillSys.cooldowns.remaining('holy_barrier'); foe.x = p.x + 40; foe.y = p.y; cast('guardian_challenge'); g.simulate(0.8);
+  ok('Provocation: a real taunt cuts Holy Barrier (defense) cooldown', fired.includes('rune_provocation') && p.skillSys.cooldowns.remaining('holy_barrier') < before - 1.5, `${before.toFixed(1)} -> ${p.skillSys.cooldowns.remaining('holy_barrier').toFixed(1)}`);
+  // 6: Dawn Core on a real Holy Barrier
+  g.equipment.equip('relic_dawn_core');
+  p.resources.set(G, 100); cast('holy_barrier'); const gAfterCost = p.resources.get(G); g.simulate(0.8);
+  ok('Dawn Core: real Holy Barrier -> +10 Guard Gauge', fired.includes('relic_dawn_core'), `gauge ${gAfterCost} -> ${p.resources.get(G)}`);
+  // 7: Last Bastion + damage reduction on real hits
+  g.equipment.equip('relic_last_bastion'); p.status.clear(); p.invulnT = 0; p.endAction(true); inp.mouse.right = false; g.simulate(0.5);
+  p.hp = Math.round(p.maxHp * 0.32); strike(Math.round(p.maxHp * 0.06));
+  const dr = p.gearMod('damageReduction');
+  ok('Last Bastion: falling below 30% HP turns on damage reduction', fired.includes('relic_last_bastion') && dr >= 0.25, `DR ${dr} hp ${p.hp}/${p.maxHp}`);
+  g.simulate(6.5);
+  ok('Last Bastion: the buff ends after 6 s', p.gearMod('damageReduction') < dr, `DR ${p.gearMod('damageReduction')}`);
+  releaseInput(g);
+  return R;
+}

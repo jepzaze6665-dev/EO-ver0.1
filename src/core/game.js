@@ -27,6 +27,7 @@ import { Progression } from '../progression/progression.js';
 import { ClassProgress } from '../progression/classProgress.js';
 import { MasterySystem } from '../progression/masterySystem.js';
 import { installSkillTraits } from '../progression/skillTraits.js';
+import { ItemEffectSystem } from '../items/effectSystem.js';
 import { ExperienceSystem } from '../progression/experienceSystem.js';
 import { CounterSystem } from '../combat/counterSystem.js';
 import { AttackSlots } from '../combat/attackSlots.js';
@@ -205,6 +206,8 @@ export class Game {
     // skill mastery XP from real use (progression/masterySystem.js, rules data/skillMastery.js)
     this.mastery = new MasterySystem(this);
     installSkillTraits(this); // generic level / evolution behaviours (echo, lifesteal, refund, reset, haste)
+    // gear effects (relics / runes: trigger -> condition -> effect, items/effectSystem.js)
+    this.itemEffects = new ItemEffectSystem(this);
     // gear 'resourceGain' skill modifier: + class resource the first time each cast hits (progression/skillModifiers.js)
     const gearPaid = {};
     this.events.on('skillUsed', (e) => { if (e.caster === this.player) gearPaid[e.skillId] = false; });
@@ -586,6 +589,7 @@ export class Game {
     this.camera.update(dt, this.cameraTarget(), this.player.dead ? null : this.mouseWorld());
     this.ui.update(dt);
     this.inventory.update(dt);
+    this.itemEffects.update();
     this.save.update(dt);
   }
 

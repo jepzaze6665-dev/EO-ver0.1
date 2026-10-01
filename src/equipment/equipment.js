@@ -20,7 +20,13 @@ export class Equipment {
     this.modifiers = new ModifierSet();
     this.modKey = null; // which slot contents the modifier set was built from
     this.lastError = null; // EQUIP_FAIL key of the last refused equip / unequip
+    this.temp = new Map(); // TEMPORARY item-effect buffs: source -> { type, value } (items/effectSystem.js modifyStat)
+    this.tempVersion = 0;
   }
+  // a temporary modifier (an item effect's buff) joins the same set as the worn items, so the caps cover both
+  addTemp(source, mod) { this.temp.set(source, { type: mod.type, value: mod.value }); this.tempVersion++; this.changed(); }
+  removeTemp(source) { if (this.temp.delete(source)) { this.tempVersion++; this.changed(); return true; } return false; }
+  clearTemp() { if (this.temp.size) { this.temp.clear(); this.tempVersion++; this.changed(); } }
   // the instance worn in a slot (made when the slot was filled without one, or holds a different item)
   instanceFor(slot) {
     const id = this.slots[slot];
@@ -97,13 +103,14 @@ export class Equipment {
   }
   // the ModifierSet of the worn items, rebuilt only when the slot contents changed (also after direct `slots` writes)
   itemModifiers() {
-    const key = GEAR_SLOTS.map((s) => this.slots[s.id] || '').join('|');
+    const key = GEAR_SLOTS.map((s) => this.slots[s.id] || '').join('|') + '#' + this.tempVersion;
     if (key !== this.modKey) {
       this.modifiers.clear();
       for (const s of GEAR_SLOTS) {
         const def = ITEMS[this.slots[s.id]];
         if (def) for (const m of def.modifiers) this.modifiers.addModifier(s.id, m);
       }
+      for (const [source, m] of this.temp) this.modifiers.addModifier(source, m);
       this.modKey = key;
     }
     return this.modifiers;

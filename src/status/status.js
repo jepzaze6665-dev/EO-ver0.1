@@ -6,7 +6,7 @@ const IMMUNE_TO = ['debuff', 'control', 'dot'];
 // Rules come from data/statuses.js; this file never names a class or a skill.
 // It is a pure data structure: it never deals damage or touches the game. Instead it queues
 //   - ticks  (damage-over-time)  -> drained by combat/combat.js, which deals the damage
-//   - events (statusApplied / statusStacked / statusExpired / statusRemoved / shieldBroken)
+//   - events (statusApplied / statusStacked / statusRefreshed / statusExpired / statusRemoved / shieldBroken)
 // so the same code runs in unit tests (tools/tests/status.test.mjs) and, later, on a server.
 //
 // State per status: { id, t, total, stacks, maxStacks, sourceId, source, tickT, ...data }
@@ -46,6 +46,7 @@ export class StatusSet {
       Object.assign(cur, rest);
       if (source) { cur.source = source; cur.sourceId = source.id ?? null; }
       if (cur.stacks > before) this.emit('statusStacked', { id, stacks: cur.stacks, source });
+      else this.emit('statusRefreshed', { id, stacks: cur.stacks, source }); // re-applied while it lasts (e.g. a taunt renewed)
       return cur;
     }
     const s = {

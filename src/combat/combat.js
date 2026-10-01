@@ -167,6 +167,10 @@ export class Combat {
       hpRatio: target.maxHp ? target.hp / target.maxHp : 1,
     }, { ...opts, weakPoint: behind });
     const { crit, tags } = res;
+    // GEAR (items/effectSystem.js, Player): a next-hit bonus of the attacker, the target's damage reduction. Hooks only:
+    // combat never knows which item asked for it.
+    if (!opts.dot && src && src.gearHitMult) res.amount = Math.round(res.amount * src.gearHitMult(target, opts));
+    if (target.gearDamageTakenMult) res.amount = Math.max(0, Math.round(res.amount * target.gearDamageTakenMult(opts)));
     // GUARD (combat/guardSystem.js): a blocking target reduces or negates the hit
     const block = !opts.dot && src && target.tryBlock ? target.tryBlock(src, opts) : null;
     if (block) {
