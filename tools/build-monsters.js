@@ -168,7 +168,7 @@ const SHEETS = {
   // A2 SECRET BOSS: VARKHARON, the Sealed Cinder King — the owner's 4-phase dragon sheet (A/A2/SC/dragon/SP): four
   // panels (phase 1 | 2 on top, 3 | 4 below), the three transformations and the common rows. Every row names its band.
   varkharon: {
-    file: 'A/A2/SC/dragon/SP/1.png', height: 96, bgTone: [185, 250], // black headers sit on the sheet edge: give the checker tones
+    file: 'A/A2/SC/dragon/SP/1.png', height: 96, bgTone: [185, 250], pocket: 20, defringe: { passes: 3, minLum: 130, neutral: 18, pure: 6, minSize: 3 }, // black headers sit on the sheet edge: give the checker tones
     clear: [[0, 0, 2048, 34], [0, 684, 2048, 716], [1100, 716, 1960, 724], [0, 0, 106, 1500], [990, 0, 1106, 1500]], // header bars the horns touch + row labels
     // rows whose fire / aura joins the poses into one shape (p3 / p4 hurt + stagger, enrage, p2 stagger, 3->4 transition, common hurt) are not cut: the common rows cover them
     rows: [
@@ -497,6 +497,35 @@ function buildMonster(id, def, probe) {
         for (const r of [x > 0 ? q - 1 : -1, x < W - 1 ? q + 1 : -1, q - W, q + W]) if (r >= 0 && r < W * H && !seen[r] && bgLike(r)) { seen[r] = 1; comp.push(r); }
       }
       if (comp.length >= (o.region || 3000)) for (const q of comp) d[q * 4 + 3] = 0;
+    }
+  }
+  if (def.defringe) {
+    // sheet `defringe: { passes, minLum, neutral }`: the checker's light grey survives as a halo along the outline (and
+    // the soft half-transparent edge the flood leaves). Peel it: every pass drops pixels that touch transparency and are
+    // grey (max-min <= neutral) and light (lum >= minLum). Real colour (fire, horns) is never grey, so it stays.
+    const d = img.data, W = img.width, H = img.height, o = def.defringe;
+    const grey = (i) => Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]) <= (o.neutral ?? 16) && (d[i] + d[i + 1] + d[i + 2]) / 3 >= (o.minLum ?? 140);
+    for (let pass = 0; pass < (o.passes || 3); pass++) {
+      const drop = [];
+      for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+        const p = y * W + x, i = p * 4;
+        if (!d[i + 3]) continue;
+        const edge = !d[(p - 1) * 4 + 3] || !d[(p + 1) * 4 + 3] || !d[(p - W) * 4 + 3] || !d[(p + W) * 4 + 3];
+        if (edge && (grey(i) || d[i + 3] < 200)) drop.push(i);
+      }
+      for (const i of drop) d[i + 3] = 0;
+    }
+    // `pure`: leftover checker pockets inside the shape (between legs / wings) are PURE grey and light; a flame's white
+    // core is warm-tinted, so it is never taken. Any such patch of `minSize`+ px goes.
+    if (o.pure != null) {
+      const pureGrey = (p) => { const i = p * 4; return d[i + 3] && Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]) <= o.pure && (d[i] + d[i + 1] + d[i + 2]) / 3 >= (o.pureLum ?? 180); };
+      const seen = new Uint8Array(W * H);
+      for (let p = 0; p < W * H; p++) {
+        if (seen[p] || !pureGrey(p)) continue;
+        const comp = [p]; seen[p] = 1;
+        for (let k = 0; k < comp.length; k++) { const q = comp[k], x = q % W; for (const r of [x > 0 ? q - 1 : -1, x < W - 1 ? q + 1 : -1, q - W, q + W]) if (r >= 0 && r < W * H && !seen[r] && pureGrey(r)) { seen[r] = 1; comp.push(r); } }
+        if (comp.length >= (o.minSize || 3)) for (const q of comp) d[q * 4 + 3] = 0;
+      }
     }
   }
   if (def.clearLight) { // blurry sheets: light grey-white gaps between limbs (never real colour) become transparent
