@@ -65,7 +65,7 @@ export const Oathbreaker = {
   perLevel: { hp: 15, atk: 1.4, def: 0.6 },
   defaultLoadout: ['oath_brand', 'sinful_counter', 'ruin_chain', 'oath_of_ruin'],
   // DEFIANT GUARD: weaker than the Aegis guard (65%), slower while held
-  guard: { arc: 1.2, reduction: 0.65, perfectWindow: 0.2, moveMul: 0.3, recover: 0.3, fx: 'ok_brand' },
+  guard: { arc: 1.2, reduction: 0.65, perfectWindow: 0.2, moveMul: 0.3, recover: 0.3, fx: 'ok_brand', hold: { scale: 0.95 } },
 
   // ---- BROKEN OATH rules (data). Per-source caps: no event pays twice, no runaway gains.
   charge: {
