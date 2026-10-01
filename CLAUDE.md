@@ -16,7 +16,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `const T = await import('/tools/testkit.js'); T.playthrough(__game, 'nightfall_reaper')` (17-step full-game regression, any class)
   `T.routeA(__game, classId)` (W2 Route A, 26 steps: A1 on foot, 2 optional mini-bosses, Guardian, north road into A2 on
   the other grid, secret city Valehaven, save/load),
-  `T.bossReset(__game)` (death mid-fight resets the boss), `T.loadoutCheck(__game, classId)` (gear loadout, 7 slots), `T.effectCheck(__game)` (item effects, real Aegis fight), `T.gearCombatCheck(__game)` + `T.buildCompare(__game)` (G4)
+  `T.bossReset(__game)` (death mid-fight resets the boss), `T.loadoutCheck(__game, classId)` (gear loadout, 7 slots), `T.effectCheck(__game)` (item effects, real Aegis fight), `T.gearCombatCheck(__game)` + `T.buildCompare(__game)` (G4), `T.gearCheck(__game)` (whole item system, 30 steps)
   `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` / `T.uiCheck(__game)` / `await T.partyCheck(__game)` / `T.tankCheck(__game)` (Combat 2.0),
   `T.gridCheck(__game)` (W1 multi-grid: lock/unlock, load/unload + cleanup, save/load + fog on another grid, no leaks, respawn),
   `T.cityCheck(__game)` (City 2: unlock, north road, services, quest, save/load), `T.a3BossCheck(__game, classId)`,
@@ -932,6 +932,20 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   gearDebugInfo / drawGear: class, loadout, final stats, active modifiers per source incl. "(buff)", effects + cooldowns;
   console: __game.debugInfo().gear), left of the sprite-validation box. CSS in index.html (.item-tip, .tt-*, .lo-*).
   tools/tests/itemUI.test.mjs (8).
+  Done G6 (loot + full test): loot tables may carry `oneOf: [{ chance, items: [{ item, weight }] }]` (exactly one item per
+  group); lootSystem getLootTable / rollLoot (oneOf) / calculateDropChance(table, item) / itemSources(item); lootDropped
+  carries bossId. Bosses pay rewards ONCE (first kill) -> a boss SIGNATURE item (item dropSource = boss id, `signature`)
+  drops at chance 1: Guardian (boss_a1) Oath Mirror · Magma Beast (boss_a2) Dawn Core · Hoarfang (boss_b1) Last Bastion
+  (+ a random Weapon Core). A1 minis: Hollow Fang = random Weapon Core, Thornbound Elder (grukk) = random Armor Core.
+  'elite' table (respawning elites + A2+ mini-bosses) = 25% one rune / charm. Tooltip shows "Drops: <table> n%" for
+  non-signature gear. DEATH RULE foundation: item `persistence` (rules PERSISTENCE): gear + quest items 'permanent',
+  stacks 'normal', 'dungeon' = future dungeon loot (none yet); itemDefs lostOnDeath(def). game.respawn() resets
+  itemEffects (timed buffs end; gear kept). Tests itemLoot.test.mjs (11) + `T.gearCheck(g)` 30 steps (real Guardian kill
+  -> Oath Mirror instance -> equip; death + respawn keeps loadout / bag, buffs cleaned; + loadoutCheck, effectCheck,
+  gearCombatCheck). Checked in game: b1BossCheck -> Last Bastion + a core, a2BossCheck -> Dawn Core, routeA 26/26,
+  playthrough 17/17. (b1BossCheck can lose the bot once: god mode only keeps 50% HP and Hoarfang hits up to 54%;
+  a2BossCheck "every move used" depends on the boss's random move picks — both old, rerun.)
+  ITEM + COMBAT LOADOUT SYSTEM COMPLETE (G1-G6). Next: owner decides (more items for other classes, shops, human playtest).
 - Sprite fix (owner: "the B1 bear has holes"): WHITE fur = the light checkerboard's tone, so build-monsters' enclosed-pocket
   step erased big fur areas as "gaps". Sheet options: `pocket: 1e9` (no pockets: the outline is complete) + new `bgErode: r`
   (removeBackground floods only through "core" background — every pixel within r is background — then widens back r px, so it

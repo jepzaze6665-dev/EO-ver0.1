@@ -1,12 +1,11 @@
 // ITEM DEFINITIONS (pure) — fills the standard item fields and checks item data. No game, no DOM.
 // Every item ends up with: id, name, type, rarity, description, tags, allowedClasses, modifiers, effects
 // (+ the older display fields cat / desc / icon / color / slot that the UI and equipment still read).
-import { GEAR_TYPES, RARITIES, ANY_CLASS, MODIFIER_TYPES, TRIGGERS, CONDITIONS, EFFECT_TYPES } from '../data/items/rules.js';
+import { GEAR_TYPES, RARITIES, ANY_CLASS, MODIFIER_TYPES, TRIGGERS, CONDITIONS, EFFECT_TYPES, PERSISTENCE } from '../data/items/rules.js';
 
 // older gear (written before the item system) -> its type, from its slot. Accessories name their own type.
 const TYPE_FROM_SLOT = { weapon: 'weapon_core', armor: 'armor_core' };
-// type -> inventory category / equipment slot used until the 7-slot combat loadout (G2) takes over.
-// Runes have no slot yet: they can be owned but not equipped before G2.
+// type -> inventory category tab (Inventory window). Which loadout slot an item takes = its type (rules GEAR_SLOTS).
 const CAT_OF_TYPE = { weapon_core: 'Weapon', armor_core: 'Armor', relic: 'Armor', charm: 'Armor', rune: 'Armor' };
 
 export const isGearType = (type) => GEAR_TYPES.includes(type);
@@ -25,8 +24,12 @@ export function normalizeItem(id, def) {
   if (!def.modifiers) def.modifiers = [];
   if (!def.effects) def.effects = [];
   if (def.dropSource == null) def.dropSource = null;
+  if (!def.persistence) def.persistence = isGear(def) || def.type === 'quest_item' ? PERSISTENCE.PERMANENT : PERSISTENCE.NORMAL;
   return def;
 }
+
+// soul-like death rule (future dungeons): only DUNGEON LOOT may be lost; equipment never
+export const lostOnDeath = (def) => !!def && def.persistence === PERSISTENCE.DUNGEON;
 
 // may this class equip it? (the core never names a class: it only compares ids from the data)
 export const canClassUse = (def, classId) => !!def && (def.allowedClasses.includes(ANY_CLASS) || def.allowedClasses.includes(classId));

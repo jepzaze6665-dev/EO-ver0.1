@@ -16,7 +16,7 @@ export const RELICS = {
   relic_last_bastion: {
     name: 'Last Bastion', type: 'relic', rarity: 'epic', icon: 'heart', color: '#e0e8ff',
     description: 'When you are nearly broken, the stone holds.',
-    tags: ['defense', 'survival'], allowedClasses: ['all'],
+    tags: ['defense', 'survival'], allowedClasses: ['all'], dropSource: 'boss_b1', signature: true,
     modifiers: [],
     effects: [
       { trigger: 'onLowHP', condition: { type: 'hpBelow', value: 0.3 }, effect: { type: 'modifyStat', stat: 'damageReduction', value: 0.25 },
@@ -26,7 +26,7 @@ export const RELICS = {
   relic_dawn_core: {
     name: 'Dawn Core', type: 'relic', rarity: 'epic', icon: 'heart', color: '#ffe08a',
     description: 'Each shield you raise for others warms your own guard.',
-    tags: ['barrier', 'support', 'guard'], allowedClasses: ['all'], dropSource: 'boss_a2',
+    tags: ['barrier', 'support', 'guard'], allowedClasses: ['all'], dropSource: 'boss_a2', signature: true,
     modifiers: [{ type: 'barrierStrength', value: 0.1 }],
     effects: [
       { trigger: 'onBarrierCreated', effect: { type: 'gainResource', resource: 'primary', value: 10 }, cooldown: 4,

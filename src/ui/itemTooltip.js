@@ -6,6 +6,7 @@ import { TYPE_LABEL, MODIFIER_TYPES, GEAR_SLOTS, ANY_CLASS } from '../data/items
 import { ModifierSet } from '../items/modifierSystem.js';
 import { canClassUse, isGear } from '../items/itemDefs.js';
 import { CLASSES } from '../skills/classes.js';
+import { itemSources } from '../loot/lootSystem.js';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pct = (v) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}%`;
@@ -17,6 +18,7 @@ const TRIGGER_TEXT = {
   onSkillCast: 'On skill cast', onSkillHit: 'On skill hit', onKill: 'On kill', onDodge: 'On dodge', onDash: 'On dash skill',
   onTaunt: 'On taunt', onBarrierCreated: 'On barrier', onResourceGain: 'On resource gain', onResourceSpend: 'On resource spend', onLowHP: 'At low HP',
 };
+const TABLE_TEXT = { elite: 'Elites / mini-bosses', hollow_fang: 'Hollow Fang', grukk: 'Thornbound Elder', hoarfang: 'Hoarfang', guardian: 'Guardian', magma_beast: 'Magma Beast' };
 const sourceText = (id) => (id ? id.replace(/^boss_/, 'Boss ').replace(/^mini_/, 'Mini-boss ').replace(/_/g, ' ').toUpperCase() : '');
 
 // what changes if this item goes on: { slot, replaces, changes: [{ type, before, after }] } (null = not gear)
@@ -55,6 +57,10 @@ export function itemTooltipHTML(def, { classId = null, swap = null, equipped = f
     rows.push(`<div class="tt-class ${ok ? '' : 'bad'}">Only: ${esc(def.allowedClasses.map((c) => (CLASSES[c] ? CLASSES[c].name : c)).join(', '))}</div>`);
   }
   if (def.dropSource) rows.push(`<div class="tt-src">Source: ${esc(sourceText(def.dropSource))}</div>`);
+  else if (isGear(def)) { // other gear: every loot table that can give it, with its chance per roll
+    const src = itemSources(def.id);
+    if (src.length) rows.push(`<div class="tt-src">Drops: ${src.map((x) => `${esc(TABLE_TEXT[x.table] || x.table.replace(/_/g, ' '))} ${Math.round(x.chance * 1000) / 10}%`).join(' · ')}</div>`);
+  }
   if (swap && !equipped) {
     const slotLabel = (GEAR_SLOTS.find((s) => s.id === swap.slot) || {}).label || swap.slot;
     rows.push(`<div class="tt-head">IF EQUIPPED (${esc(slotLabel.toUpperCase())})</div>`);

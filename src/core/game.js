@@ -416,6 +416,7 @@ export class Game {
     if (this.bosses.engaged) this.bosses.resetEngaged(); // any boss: heals + waits in its arena again
     else if (w.bossActive) w.resetBoss();
     this.combat.clear();
+    if (this.itemEffects) this.itemEffects.reset(); // item effects: timed buffs end, cooldowns start fresh (gear itself is kept)
     const pos = w.checkpoint(); // last waystone (loads its grid) or Lumina
     p.dead = false; p.hp = p.maxHp; p.marks = 0; if (p.poise) p.poise.reset();
     for (const rid in p.resources.defs) p.resources.set(rid, p.resources.defs[rid].respawn ?? p.resources.defs[rid].start, 'respawn');

@@ -3,6 +3,11 @@
 //
 //  gold  : [min, max] (inclusive)
 //  drops : [{ item, chance 0..1, count? (default 1) }] — each rolled independently
+//  oneOf : [{ chance, items: [{ item, weight }] }] — each group: with `chance`, exactly ONE item picked by weight
+//          (e.g. "a random Weapon Core")
+// GEAR (Item System G6): bosses pay their rewards ONCE (first kill: boss/bossSystem.js), so a boss SIGNATURE item
+// (item dropSource = that boss) drops at chance 1 — a 5% roll you can never retry would lock it away. Farmable
+// sources (elites, which respawn) carry the random gear chances.
 export const LOOT_TABLES = {
   rabbit: { gold: [1, 3], drops: [{ item: 'hare_pelt', chance: 0.5 }] },
   crystal_golem: { gold: [30, 50], drops: [{ item: 'rune_crystal', chance: 0.55 }, { item: 'hp_potion', chance: 0.12 }] },
@@ -30,15 +35,22 @@ export const LOOT_TABLES = {
   rime_wolf: { gold: [3, 8], drops: [{ item: 'wolf_fang', chance: 0.6 }, { item: 'frost_pelt', chance: 0.2 }] },
   frost_harrier: { gold: [5, 12], drops: [{ item: 'crystal_shard', chance: 0.5 }, { item: 'hp_potion', chance: 0.08 }] },
   frost_bear: { gold: [10, 22], drops: [{ item: 'frost_pelt', chance: 0.7 }, { item: 'hp_potion', chance: 0.15 }] },
-  elite: { gold: [20, 40], drops: [{ item: 'hp_potion', chance: 0.5 }, { item: 'shadow_tonic', chance: 0.25 }] }, // extra roll for elites
+  elite: { gold: [20, 40], drops: [{ item: 'hp_potion', chance: 0.5 }, { item: 'shadow_tonic', chance: 0.25 }], // extra roll for elites (+ mini-bosses A2+)
+    oneOf: [{ chance: 0.25, items: [ // gear: a rune or a charm
+      { item: 'rune_guarding_soul', weight: 3 }, { item: 'rune_iron_will', weight: 3 }, { item: 'rune_retribution', weight: 2 }, { item: 'rune_provocation', weight: 2 },
+      { item: 'charm_heavy', weight: 3 }, { item: 'charm_swift', weight: 3 }, { item: 'charm_focus', weight: 2 }, { item: 'charm_guardian', weight: 2 },
+    ] }] },
   // area bosses (data/bosses.js rewards.loot) — rolled once, on the first kill
   crystal_warden: { gold: [200, 200], drops: [{ item: 'moon_crystal', chance: 1, count: 4 }, { item: 'frost_pelt', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 4 }] },
   amethyst_colossus: { gold: [170, 170], drops: [{ item: 'moon_crystal', chance: 1, count: 3 }, { item: 'crystal_shard', chance: 1, count: 5 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }] },
-  hoarfang: { gold: [140, 140], drops: [{ item: 'frost_pelt', chance: 1, count: 4 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }] },
+  hoarfang: { gold: [140, 140], drops: [{ item: 'frost_pelt', chance: 1, count: 4 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }, { item: 'relic_last_bastion', chance: 1 }],
+    oneOf: [{ chance: 1, items: [{ item: 'core_ironheart', weight: 1 }, { item: 'core_counter', weight: 1 }, { item: 'core_vanguard', weight: 1 }] }] },
   rune_knight: { gold: [200, 200], drops: [{ item: 'rune_crystal', chance: 1, count: 4 }, { item: 'bronze_plate', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 4 }] },
   varkharon: { gold: [200, 200], drops: [{ item: 'ember_core', chance: 1, count: 5 }, { item: 'hp_potion', chance: 1, count: 4 }, { item: 'shadow_tonic', chance: 1, count: 3 }] },
-  magma_beast: { gold: [120, 120], drops: [{ item: 'ember_core', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }] },
-  hollow_fang: { gold: [80, 80], drops: [{ item: 'wolf_fang', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 2 }] },
-  grukk: { gold: [150, 150], drops: [{ item: 'goblin_iron', chance: 1, count: 4 }, { item: 'shadow_tonic', chance: 1 }, { item: 'hp_potion', chance: 1, count: 2 }] },
-  guardian: { gold: [300, 300], drops: [{ item: 'guardian_heart', chance: 1 }, { item: 'guardian_heartwood', chance: 1 }] },
+  magma_beast: { gold: [120, 120], drops: [{ item: 'ember_core', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 3 }, { item: 'shadow_tonic', chance: 1, count: 2 }, { item: 'relic_dawn_core', chance: 1 }] },
+  hollow_fang: { gold: [80, 80], drops: [{ item: 'wolf_fang', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 2 }],
+    oneOf: [{ chance: 1, items: [{ item: 'core_ironheart', weight: 1 }, { item: 'core_counter', weight: 1 }, { item: 'core_vanguard', weight: 1 }] }] },
+  grukk: { gold: [150, 150], drops: [{ item: 'goblin_iron', chance: 1, count: 4 }, { item: 'shadow_tonic', chance: 1 }, { item: 'hp_potion', chance: 1, count: 2 }],
+    oneOf: [{ chance: 1, items: [{ item: 'armor_fortress', weight: 1 }, { item: 'armor_guardian', weight: 1 }, { item: 'armor_risk', weight: 1 }] }] },
+  guardian: { gold: [300, 300], drops: [{ item: 'guardian_heart', chance: 1 }, { item: 'guardian_heartwood', chance: 1 }, { item: 'relic_oath_mirror', chance: 1 }] },
 };

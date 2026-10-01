@@ -1910,3 +1910,38 @@ export function buildCompare(g, opts = {}) {
   for (const [name, build] of Object.entries({ starting: null, ...AEGIS_BUILDS })) out[name] = buildFight(g, build, opts);
   return out;
 }
+
+// ITEM SYSTEM G6 — the whole item system in one run (spec §39 test scenario + §48 test list), on a real Aegis:
+// boss loot -> instance -> equip -> stats / effects / combat -> death keeps the gear -> save / load. Includes the
+// G2-G4 checks (loadoutCheck, effectCheck, gearCombatCheck). Returns [step, pass, detail] rows.
+//   T.gearCheck(__game)
+export function gearCheck(g) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  // 1. a real boss kill pays its signature item
+  toBoss(g, 'aegis_guardian');
+  const p0 = g.player; p0.setLevel(13); p0.hp = p0.maxHp;
+  goto(g, 135, 37); g.simulate(3);
+  const drops = []; g.events.on('lootDropped', (e) => drops.push(e));
+  const fight = bossFight(g, 'boss_a1', { god: true, seconds: 240 });
+  const mirror = g.inventory.findItem('relic_oath_mirror');
+  ok('Boss A1 (Guardian) killed -> Oath Mirror drops (signature, 100% on the first kill)', fight.state === 'defeated' && mirror && drops.some((d) => d.bossId === 'boss_a1' && d.items.some((x) => x.item === 'relic_oath_mirror')), `${fight.state} ${fight.time}s · ${mirror ? mirror.instanceId : 'no mirror'}`);
+  ok('The drop is a real item instance (item_000000 id)', mirror && /^item_\d{6}$/.test(mirror.instanceId));
+  ok('Equip the dropped Oath Mirror', g.equipment.equip('relic_oath_mirror') && g.equipment.inst.relic.instanceId === mirror.instanceId);
+  // 2. death keeps the permanent equipment, ends the timed buffs
+  giveGear(g);
+  for (const id of AEGIS_BUILDS.guard.filter((x) => x !== 'relic_dawn_core')) g.equipment.equip(id);
+  const p = g.player, before = JSON.stringify({ eq: g.equipment.serialize(), gear: g.inventory.gear });
+  p.hp = Math.round(p.maxHp * 0.3); g.events.emit('damageTaken', { source: null, target: p, amount: 5, opts: {} }); // Iron Will buff on
+  const buffOn = g.itemEffects.timed.size > 0;
+  p.hp = 0; p.onDeath && p.onDeath(null, {}); g.simulate(1); g.respawn(); g.simulate(0.5);
+  const after = JSON.stringify({ eq: g.equipment.serialize(), gear: g.inventory.gear });
+  ok('Death + respawn: the whole loadout and the bag are kept (permanent equipment)', before === after);
+  ok('Death + respawn: timed item buffs are cleaned up', buffOn && g.itemEffects.timed.size === 0 && g.player.gearMod('defense') === 0.15, `buff before ${buffOn} · def mod ${g.player.gearMod('defense')}`);
+  // 3. the G2-G4 checks
+  for (const [name, fn] of [['loadout', loadoutCheck], ['effects', effectCheck], ['combat', gearCombatCheck]]) {
+    const rows = fn(g);
+    for (const [step, pass, detail] of rows) ok(`[${name}] ${step}`, pass, detail);
+  }
+  releaseInput(g);
+  return R;
+}

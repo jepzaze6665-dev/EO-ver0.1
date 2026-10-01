@@ -16,6 +16,12 @@ export const ITEM_TYPE = {
 export const GEAR_TYPES = Object.values(ITEM_TYPE);
 export const TYPE_LABEL = { weapon_core: 'Weapon Core', armor_core: 'Armor Core', relic: 'Relic', charm: 'Charm', rune: 'Rune' };
 
+// PERSISTENCE (soul-like death rule, foundation only — no death item loss is built yet):
+//  permanent : never lost on death (all gear: weapon / armor cores, relics, charms, runes; quest items)
+//  normal    : ordinary stacks (potions, materials) — kept, as today
+//  dungeon   : DUNGEON LOOT, may be dropped on death by the future dungeon system (no item uses it yet)
+export const PERSISTENCE = { PERMANENT: 'permanent', NORMAL: 'normal', DUNGEON: 'dungeon' };
+
 // rarity = how rare, NOT "bigger numbers": a legendary carries a unique effect (validated: legendary gear needs effects)
 export const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
