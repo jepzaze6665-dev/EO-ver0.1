@@ -110,18 +110,13 @@ function effectsHTML(g) {
     <b class="${x.running ? 'run' : x.cooldownLeft > 0 ? 'cd' : 'ready'}">${x.running ? 'ACTIVE' : x.cooldownLeft > 0 ? x.cooldownLeft.toFixed(1) + 's' : 'READY'}</b></div>`).join('')}`;
 }
 
-// the turning hero: walks in place, front -> right -> back -> left every 1.6 s; stops when the window closes
+// the hero on the pedestal: standing still, facing the viewer (owner: no walking). Feet (sprite pivot 80,140) land on the
+// centre of the pedestal's top face (theme.css .cw-hero / .cw-pedestal)
 export function startHeroPreview(el, g) {
   const cv = el.querySelector('.cw-hero');
   if (!cv) return;
-  const ctx = cv.getContext('2d'), sprites = g.player.sprites, DIRS = [0, 2, 1, 3], t0 = performance.now();
+  const ctx = cv.getContext('2d');
   ctx.imageSmoothingEnabled = false;
-  const step = (now) => {
-    if (!cv.isConnected) return;
-    const t = (now - t0) / 1000, f = sprites.frame('walk', t, DIRS[Math.floor(t / 1.6) % 4]);
-    ctx.clearRect(0, 0, 160, 160);
-    sprites.draw(ctx, f, 80, 140);
-    requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
+  ctx.clearRect(0, 0, 160, 160);
+  g.player.sprites.draw(ctx, g.player.sprites.frame('idle', 0, 0), 80, 140);
 }

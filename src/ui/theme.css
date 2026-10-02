@@ -122,7 +122,7 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 .cw-top { display: flex; gap: 14px; align-items: stretch; }
 .cw-stage { position: relative; width: 170px; height: 206px; flex: none; overflow: hidden; }
 .cw-pedestal { position: absolute; left: 5px; bottom: 2px; width: 160px; opacity: 0.9; }
-.cw-hero { position: absolute; left: -75px; bottom: -40px; width: 320px; height: 320px; image-rendering: pixelated; }
+.cw-hero { position: absolute; left: -75px; bottom: 25px; width: 320px; height: 320px; image-rendering: pixelated; }
 .cw-side { flex: 1; display: flex; flex-direction: column; gap: 6px; }
 .cw-gearrow { display: flex; gap: 6px; }
 .cw-gear { width: 54px; height: 54px; }

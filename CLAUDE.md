@@ -998,7 +998,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Done U-B: CHARACTER WINDOW = Layout C, src/ui/charWindow.js (built by panels.inventory, overlay class 'side' = left panel,
   world visible): header (level diamond, class, EXP, POWER = pure src/progression/power.js), icon tabs Equipment / Skills /
   Class / Codex / Quests (bag + loadout merged into Equipment; 'inventory' tab id maps to it), Equipment tab = real class sprite
-  walking in place and turning (canvas ×2 pixelated) on the pedestal, 7 gear slots (empty-slot icons), key stats with stat icons,
+  standing still facing the viewer (idle front frame, canvas ×2 pixelated; owner: no walking), feet on the pedestal top centre, 7 gear slots (empty-slot icons), key stats with stat icons,
   "All stats · sets · item effects" fold, bag with 8 icon filters (BAG_FILTERS) + gold; clicking a slot filters the bag to
   that slot's items (data-equip-to) + Unequip / Cancel. Other tabs open the panel wide. Panels.show: a redraw of the open
   window skips the fade-in (no flicker). loadoutUI.js keeps finalStatRows / setsHTML (loadoutHTML unused). tools/tests/uiV2.test.mjs.
