@@ -239,3 +239,11 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 @keyframes ts-flicker { 0%, 100% { opacity: 0.85; } 45% { opacity: 1; } 60% { opacity: 0.7; } }
 @keyframes ts-breathe { 50% { opacity: 0.6; } }
 @keyframes ts-spin { to { transform: rotate(360deg); } }
+/* title art (owner, assets/ui/title): painted background + logo image; drawn rune layers above stay as the fallback style */
+.ts-art { background: #06040a url("../../assets/ui/title/bg.png") center 30% / cover no-repeat; }
+.ts-shade { position: absolute; inset: 0; background:
+  radial-gradient(ellipse 34% 30% at 50% 82%, rgba(4, 3, 8, 0.72), transparent 75%),
+  linear-gradient(180deg, rgba(4, 3, 8, 0.25) 0%, transparent 25%, transparent 60%, rgba(4, 3, 8, 0.75) 100%); }
+.ts-logo-img { width: min(46vw, 760px); height: auto; margin-top: -4vh; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.85)); animation: ts-rise 1.4s ease-out; }
+@keyframes ts-rise { from { opacity: 0; transform: translateY(12px); } }
+.ts-art ~ .ts-wrap { justify-content: flex-start; } .ts-art ~ .ts-wrap .ts-menu { margin-top: auto; margin-bottom: 4vh; }

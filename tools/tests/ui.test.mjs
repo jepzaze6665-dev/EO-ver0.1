@@ -63,3 +63,11 @@ test('theme.css (UI v2) is linked last and its fonts exist', () => {
   for (const m of css.matchAll(/url\("([^"]+)"\)/g)) ok(existsSync(new URL(m[1].replace('../../', ''), ROOT)), 'missing ' + m[1]);
   ok(existsSync(new URL('assets/fonts/OFL-Kanit.txt', ROOT)) && existsSync(new URL('assets/fonts/OFL-NotoSansThai.txt', ROOT)), 'font licences');
 });
+
+test('title art (tools/build-title.js) exists and the title screen / favicon use it', () => {
+  for (const n of ['bg', 'logo', 'emblem', 'icon']) ok(existsSync(new URL(`assets/ui/title/${n}.png`, ROOT)), 'missing title ' + n);
+  const logo = png.read(new URL('assets/ui/title/logo.png', ROOT));
+  ok(logo.data[3] === 0, 'logo corner should be transparent');
+  ok(readFileSync(new URL('index.html', ROOT), 'utf8').includes('assets/ui/title/icon.png'), 'favicon');
+  ok(readFileSync(new URL('src/ui/panels.js', ROOT), 'utf8').includes('assets/ui/title/logo.png'), 'title screen logo');
+});

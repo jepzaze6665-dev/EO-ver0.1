@@ -1,0 +1,22 @@
+{
+ "bg": {
+  "file": "assets/ui/title/bg.png",
+  "w": 1536,
+  "h": 864
+ },
+ "logo": {
+  "file": "assets/ui/title/logo.png",
+  "w": 1427,
+  "h": 510
+ },
+ "emblem": {
+  "file": "assets/ui/title/emblem.png",
+  "w": 878,
+  "h": 908
+ },
+ "icon": {
+  "file": "assets/ui/title/icon.png",
+  "w": 62,
+  "h": 64
+ }
+}

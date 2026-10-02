@@ -1022,7 +1022,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 - TITLE SCREEN v2 (owner reference: Blades or Bets): panels.title = overlay 'title ts' — CSS backdrop layers (theme.css .ts-bg:
   dark pillars, light shaft, two burning rune circles, floor glow) + startEmbers canvas (sparks, stops when removed), metal
   gradient logo ECLIPSE / eclipse seal / ONLINE (Georgia small caps), text-only small-caps menu (hover glow + diamonds).
-  A painted backdrop / logo image can replace the drawn layers later. Preview docs/ui/title_screen.png.
+  TITLE ART (owner, desgin/UI/title/: background A = eclipse over the valley + 3 heroes, logo = ECLIPSE ONLINE metal with the eclipse
+  emblem as the C, emblem alone): node tools/build-title.js -> assets/ui/title/{bg,logo,emblem,icon}.png + title.json (black bg
+  connected to the edge removed + soft glow edge, cropped; icon = 64 px emblem = favicon in index.html). Title screen = .ts-art
+  background + .ts-shade + logo image + embers + text menu at the bottom (the drawn rune layers remain only as CSS, unused).
+  Preview docs/ui/title_screen.png.
 - GUARD HOLD VFX (owner): Player.drawGuardFx — every class with guard data shows its guard.fx strip (AG ag_emblem, Warden
   dw_shield, Bulwark bs_aegis, Oathbreaker ok_brand) in front of the body toward the aim WHILE the guard is held (intro frames
   0-3, glow loop 1-2, fade 4-5 after release; behind the body when aiming up). Data guard.hold { intro, loop, out, fps, scale,

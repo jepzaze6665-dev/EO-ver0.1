@@ -106,13 +106,12 @@ export class Panels {
 
   // ---------------- title
   title(hasSave) {
-    // UI v2 TITLE SCREEN (owner's reference: dark shrine, glowing runes, metal logo, text-only menu). Backdrop layers are
-    // CSS (theme.css .ts-*); embers = a small canvas loop that stops when the screen closes. Art can replace the drawn
-    // backdrop later (one image) without touching this code.
+    // TITLE SCREEN: the owner's art (tools/build-title.js -> assets/ui/title: bg.png = eclipse over the valley, logo.png =
+    // ECLIPSE ONLINE metal logo) + a dark shade for the menu + embers (a small canvas loop that stops when the screen closes).
     const el = this.show('title', `
-      <div class="ts-bg"><div class="ts-shaft"></div><div class="ts-rune l"></div><div class="ts-rune r"></div><div class="ts-floor"></div><canvas class="ts-embers"></canvas></div>
+      <div class="ts-bg ts-art"><div class="ts-shade"></div><canvas class="ts-embers"></canvas></div>
       <div class="ts-wrap">
-        <div class="ts-logo"><span class="ts-word">Eclipse</span><span class="ts-seal"><span class="eclipse"></span></span><span class="ts-word ts-sub">Online</span></div>
+        <img class="ts-logo-img" src="assets/ui/title/logo.png" alt="Eclipse Online">
         <nav class="ts-menu">
           ${hasSave ? '<button data-a="continue">Continue</button>' : ''}
           <button data-a="new">New Game</button>
