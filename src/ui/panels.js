@@ -26,6 +26,34 @@ import { npcPanelHTML, npcRow, goldTag } from './npcPanel.js';
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
 const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>Passives</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">passive</span><div class="small">${esc(x.desc)}</div></div></div>`).join('')}` : '');
 
+// title screen embers: sparks rising from the rune circles (canvas, stops itself once removed from the page)
+function startEmbers(cv) {
+  if (!cv) return;
+  const ctx = cv.getContext('2d'), sparks = [];
+  const fit = () => { cv.width = cv.clientWidth; cv.height = cv.clientHeight; };
+  fit();
+  const step = () => {
+    if (!cv.isConnected) return;
+    if (cv.width !== cv.clientWidth) fit();
+    const W = cv.width, H = cv.height;
+    if (sparks.length < 70 && Math.random() < 0.5) {
+      const side = Math.random() < 0.5 ? 0.12 : 0.88;
+      sparks.push({ x: W * (side + (Math.random() - 0.5) * 0.12), y: H * (0.55 + Math.random() * 0.4), vy: -(0.3 + Math.random() * 0.8), vx: (Math.random() - 0.5) * 0.3, life: 1, r: 0.6 + Math.random() * 1.6 });
+    }
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const p = sparks[i];
+      p.x += p.vx + Math.sin(p.y * 0.02) * 0.2; p.y += p.vy; p.life -= 0.004;
+      if (p.life <= 0) { sparks.splice(i, 1); continue; }
+      ctx.fillStyle = `rgba(255,${120 + Math.round(80 * p.life)},40,${p.life * 0.9})`;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    }
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
 // DOM overlays. They only exist while open (no DOM churn during combat) and pause the game.
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -78,19 +106,24 @@ export class Panels {
 
   // ---------------- title
   title(hasSave) {
+    // UI v2 TITLE SCREEN (owner's reference: dark shrine, glowing runes, metal logo, text-only menu). Backdrop layers are
+    // CSS (theme.css .ts-*); embers = a small canvas loop that stops when the screen closes. Art can replace the drawn
+    // backdrop later (one image) without touching this code.
     const el = this.show('title', `
-      <div class="title-wrap">
-        <div class="logo"><span class="eclipse"></span>ECLIPSE<small>ONLINE</small></div>
-        <div class="tag">Dark Fantasy Action RPG — Prototype Vertical Slice</div>
-        <div class="menu-buttons">
-          ${hasSave ? '<button data-a="continue" class="primary">Continue</button>' : ''}
-          <button data-a="new" class="${hasSave ? '' : 'primary'}">New Game</button>
+      <div class="ts-bg"><div class="ts-shaft"></div><div class="ts-rune l"></div><div class="ts-rune r"></div><div class="ts-floor"></div><canvas class="ts-embers"></canvas></div>
+      <div class="ts-wrap">
+        <div class="ts-logo"><span class="ts-word">Eclipse</span><span class="ts-seal"><span class="eclipse"></span></span><span class="ts-word ts-sub">Online</span></div>
+        <nav class="ts-menu">
+          ${hasSave ? '<button data-a="continue">Continue</button>' : ''}
+          <button data-a="new">New Game</button>
           <button data-a="controls">Controls</button>
-        </div>
-        <div class="foot">Choose a class · Explore → Discover → Fight → Build → Boss → World State Change</div>
-      </div>`, 'title');
+        </nav>
+        <div class="ts-foot">Dark Fantasy Action RPG · Prototype</div>
+      </div>`, 'title ts');
+    startEmbers(el.querySelector('.ts-embers'));
     el.addEventListener('click', (e) => {
-      const a = e.target.dataset.a;
+      const t = e.target.closest('[data-a]');
+      const a = t && t.dataset.a;
       if (a === 'new') this.classSelect(hasSave);
       if (a === 'continue') this.game.continueGame();
       if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.title(hasSave), true);

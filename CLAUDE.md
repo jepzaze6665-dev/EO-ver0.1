@@ -1019,6 +1019,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   focus / classic, storageKey } — focus = class resource bar (tier ticks + tier name) + class counter diamonds + READY text centred
   above the skill bar (hud.drawFocusBlock), the top-left frame keeps HP / STA / EXP / gold; classic = the old top-left placement.
   Shared hud.resourceBar / counterRow; hud.layout() / setLayout() (localStorage, per player); ESC menu button HUD: Focus / Classic.
+- TITLE SCREEN v2 (owner reference: Blades or Bets): panels.title = overlay 'title ts' — CSS backdrop layers (theme.css .ts-bg:
+  dark pillars, light shaft, two burning rune circles, floor glow) + startEmbers canvas (sparks, stops when removed), metal
+  gradient logo ECLIPSE / eclipse seal / ONLINE (Georgia small caps), text-only small-caps menu (hover glow + diamonds).
+  A painted backdrop / logo image can replace the drawn layers later. Preview docs/ui/title_screen.png.
 - GUARD HOLD VFX (owner): Player.drawGuardFx — every class with guard data shows its guard.fx strip (AG ag_emblem, Warden
   dw_shield, Bulwark bs_aegis, Oathbreaker ok_brand) in front of the body toward the aim WHILE the guard is held (intro frames
   0-3, glow loop 1-2, fade 4-5 after release; behind the body when aiming up). Data guard.hold { intro, loop, out, fps, scale,
