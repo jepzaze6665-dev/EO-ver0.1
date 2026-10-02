@@ -89,6 +89,25 @@ await test('the host leaves the map -> a new host is named (the party leader fir
   ok(!S.city.hosts.size, 'no hosts left behind');
 });
 
+await test('N7b mobAct: only the host\'s monster actions reach the guests; junk data is refused; HP share travels in presence', async () => {
+  const acts = new Map(), errs = new Map();
+  const a = await player('Jory'), b = await player('Kade');
+  for (const P of [a, b]) { P.c.on('mobAct', (m) => acts.set(P.id, (acts.get(P.id) || []).concat([m]))); P.c.on('error', (m) => errs.set(P.id, (errs.get(P.id) || 0) + 1)); }
+  await partyRun([a, b]);
+  await a.at('a1'); await b.at('a1');
+  const tel = { shape: { shape: 'cone', x: 100, y: 200, r: 60, ang: 0.5, half: 0.6 }, total: 0.7, kind: 'strike', power: 12.5, knock: 120, guardBreak: false, unblockable: false, status: [{ id: 'slow', dur: 2 }] };
+  a.send('mobAct', { id: 'm1', k: 'tel', d: tel });
+  await until(() => (acts.get(b.id) || []).length, 2000, 'relayed');
+  ok(JSON.stringify(acts.get(b.id)[0].d) === JSON.stringify(tel) && !acts.get(a.id), 'guest got it as sent, host not echoed');
+  b.send('mobAct', { id: 'm1', k: 'tel', d: tel }); await wait(150);
+  ok(!acts.get(a.id), 'a guest cannot send monster actions');
+  b.send('mobAct', { id: 'm1', k: 'nuke', d: {} }); b.send('mobAct', { id: 'm1', k: 'tel', d: { a: { b: { c: { d: { e: 1 } } } } } }); b.send('mobAct', { id: 'm1', k: 'proj', d: { list: Array(30).fill(1) } });
+  await until(() => (errs.get(b.id) || 0) >= 3, 2000, 'refused');
+  b.send('pos', { m: 'a1', x: 120, y: 100, d: 0, a: 'idle', h: 0.25 });
+  await until(() => S.sessions.get(b.id).presence.h === 0.25, 2000, 'HP share stored');
+  for (const p of all.splice(0)) p.c.stop(); await until(() => !S.sessions.size);
+});
+
 await srv.close();
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 8;
+export const PROTOCOL_VERSION = 9;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -39,6 +39,8 @@ const FIELD = {
   save: (v) => typeof v === 'string' && v.length <= NET_LIMITS.maxSaveBytes,
   dmg: (v) => Number.isInteger(v) && v >= 0 && v <= 1000000,
   mobRows: (v) => Array.isArray(v) && v.length <= NET_LIMITS.maxMobRows && v.every(validMobRow),
+  mobActKind: (v) => v === 'tel' || v === 'proj',
+  actData: (v) => validActData(v),
 };
 
 // N7a mob snapshot row (host -> others): [netId, type, x, y, hp, maxHp, facing×100, state, attack index (-1 none),
@@ -46,6 +48,18 @@ const FIELD = {
 export const MOB_STATES = ['idle', 'patrol', 'aggro', 'chase', 'attack', 'hit', 'return', 'dead'];
 export const MOB_PHASES = ['windup', 'active', 'recover'];
 const num = (v) => typeof v === 'number' && Number.isFinite(v);
+// N7b monster action (host -> guests): 'tel' = a telegraphed attack started { shape, total, power, kind, knock, guardBreak,
+// unblockable, status } · 'proj' = shots fired { power, list: [{ x, y, vx, vy, r, life, kind, homing, color }] }. Plain data
+// only (numbers, short strings, booleans, small arrays / objects, 3 levels deep); guests clamp every value again.
+export function validActData(v, depth = 0) {
+  if (depth > 3) return false;
+  if (v === null || typeof v === 'boolean') return true;
+  if (typeof v === 'number') return Number.isFinite(v);
+  if (typeof v === 'string') return v.length <= 32;
+  if (Array.isArray(v)) return v.length <= 24 && v.every((x) => validActData(x, depth + 1));
+  if (typeof v === 'object') { const k = Object.keys(v); return k.length <= 20 && k.every((x) => x.length <= 16 && validActData(v[x], depth + 1)); }
+  return false;
+}
 export function validMobRow(r) {
   return Array.isArray(r) && r.length === 14 && typeof r[0] === 'string' && /^[a-z0-9]{1,16}$/.test(r[0]) && typeof r[1] === 'string' && /^[A-Za-z0-9_]{1,32}$/.test(r[1])
     && r.slice(2, 14).every(num) && r[7] >= 0 && r[7] < MOB_STATES.length && r[9] >= 0 && r[9] < MOB_PHASES.length;
@@ -57,7 +71,7 @@ export const CLIENT_MESSAGES = {
   ping: { n: 'int?' },                                   // keep-alive / latency probe (server answers 'pong')
   // N2 presence (src/net/onlineSession.js): where I am + what I look like. Shared-city positions are NOT authoritative
   // (no combat there); dungeon movement gets server checks in N7.
-  pos: { m: 'slug', x: 'coord', y: 'coord', d: 'dir', a: 'slug', k: 'unit?' },  // map, position, facing, anim, anim progress
+  pos: { m: 'slug', x: 'coord', y: 'coord', d: 'dir', a: 'slug', k: 'unit?', h: 'unit?' },  // map, position, facing, anim, anim progress, HP share (0 = down)
   look: { c: 'slug', l: 'level' },                       // class id + level (sent on change)
   leave: {},                                             // left the world (title screen)
   // N3 save on the server (src/net/serverSave.js): the client sends the whole save text; the server keeps the previous
@@ -77,6 +91,7 @@ export const CLIENT_MESSAGES = {
   // report their hits to the host (relayed by the server). Not authoritative yet: N8 checks kills on the server.
   mobs: { ps: 'mobRows', full: 'bool' },                 // host only: changed monsters (full = every monster near the party)
   mobHit: { id: 'slug', dmg: 'dmg', st: 'number?', kb: 'number?', ang: 'number?', crit: 'bool?' }, // my hit on the host's monster
+  mobAct: { id: 'slug', k: 'mobActKind', d: 'actData' },  // N7b host only: a monster started an attack / fired shots
   // N5 dungeon gate (server/dungeons.js)
   dungeonEnter: { area: 'slug' },                        // solo entry
   dungeonPropose: { area: 'slug' },                      // party leader: ask every member to enter together
@@ -114,7 +129,8 @@ export const SERVER_MESSAGES = {
   instanceState: { instance: 'object|null' },            // { id, area, mode, city, members: [names], maps: [ids] }
   dungeonLeft: { city: 'string' },                       // answer to dungeonLeave: go to this city's gate
   roomHost: { room: 'string', host: 'string' },          // N7a: who simulates the monsters of this run map
-  // mobs (relayed as sent) · mobHit (relayed to the host, + from: player id)
+  // mobs / mobAct (relayed as sent) · mobHit (relayed to the host, + from: player id)
+  // N7b: room rows / moves carry the HP share h (0 = down): entry [id, name, x, y, d, a, k, c, l, h], move [id, x, y, d, a, k, snap, h]
 };
 
 export const NET_ERROR = {

@@ -11,7 +11,7 @@
 import { ONLINE, isSharedMap } from '../src/data/online.js';
 import { NET_ERROR } from '../src/net/protocol.js';
 
-const entry = (s) => { const p = s.presence; return [s.id, s.name, p.x, p.y, p.d, p.a, p.k, p.c, p.l]; };
+const entry = (s) => { const p = s.presence; return [s.id, s.name, p.x, p.y, p.d, p.a, p.k, p.c, p.l, p.h]; };
 
 export class CityRooms {
   constructor(server) {
@@ -21,6 +21,7 @@ export class CityRooms {
     server.handle('pos', (s, m) => this.onPos(s, m));
     server.handle('look', (s, m) => this.onLook(s, m));
     server.handle('leave', (s) => this.leave(s, 'left'));
+    server.handle('mobAct', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'mobAct', { id: m.id, k: m.k, d: m.d }, s); });
     server.handle('mobs', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'mobs', { ps: m.ps, full: m.full }, s); });
     server.handle('mobHit', (s, m) => {
       const r = s.presence?.room, h = r && this.hosts.get(r);
@@ -33,7 +34,7 @@ export class CityRooms {
   }
 
   presence(s) {
-    if (!s.presence) s.presence = { room: null, m: null, x: 0, y: 0, d: 0, a: 'idle', k: 0, c: null, l: 1, t: 0, dirty: false, snap: false };
+    if (!s.presence) s.presence = { room: null, m: null, x: 0, y: 0, d: 0, a: 'idle', k: 0, c: null, l: 1, h: 1, t: 0, dirty: false, snap: false };
     return s.presence;
   }
 
@@ -48,7 +49,7 @@ export class CityRooms {
       const dt = Math.max(0.05, (now - p.t) / 1000);
       if (Math.hypot(msg.x - p.x, msg.y - p.y) > ONLINE.maxSpeed * dt * 1.5 + 48) p.snap = true;
     }
-    p.m = msg.m; p.x = Math.round(msg.x); p.y = Math.round(msg.y); p.d = msg.d; p.a = msg.a; p.k = Math.round((msg.k || 0) * 100) / 100;
+    p.m = msg.m; p.x = Math.round(msg.x); p.y = Math.round(msg.y); p.d = msg.d; p.a = msg.a; p.k = Math.round((msg.k || 0) * 100) / 100; p.h = msg.h === undefined ? 1 : Math.round(msg.h * 100) / 100;
     p.t = now;
     if (!sameRoom) {
       if (p.room) this.leave(s, 'left');
@@ -115,7 +116,7 @@ export class CityRooms {
     for (const set of this.rooms.values()) {
       const moved = [...set].filter((s) => s.presence.dirty);
       if (!moved.length) continue;
-      const rows = moved.map((s) => { const p = s.presence, r = [s.id, p.x, p.y, p.d, p.a, p.k, p.snap ? 1 : 0]; p.dirty = false; p.snap = false; return r; });
+      const rows = moved.map((s) => { const p = s.presence, r = [s.id, p.x, p.y, p.d, p.a, p.k, p.snap ? 1 : 0, p.h]; p.dirty = false; p.snap = false; return r; });
       for (const x of set) {
         const ps = rows.filter((r) => r[0] !== x.id);
         if (ps.length) x.send('moves', { ps });

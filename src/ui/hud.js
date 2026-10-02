@@ -908,6 +908,11 @@ export class HUD {
       const s = this.toScreen(r.x, r.y - 66), c = CLASSES[r.cls];
       this.text(ctx, r.name, s.x, s.y - 11 * u, 11 * u, '#ffffff', { align: 'center' });
       this.text(ctx, `Lv.${r.level}${c ? '  ' + c.name : ''}`, s.x, s.y, 8.5 * u, (c && c.theme && c.theme.color) || '#c8c0d8', { align: 'center' });
+      // in a run (N7b): their HP share — DOWN when 0
+      if (g.online.instance) {
+        if ((r.h ?? 1) <= 0) this.text(ctx, 'DOWN', s.x, s.y + 12 * u, 9 * u, '#ff8a7a', { align: 'center' });
+        else this.bar(ctx, s.x - 26 * u, s.y + 4 * u, 52 * u, 4 * u, r.h ?? 1, '#7dff9a', '#1f5a2c');
+      }
     }
     for (const n of g.world.npcs) {
       if (n.secret && !g.world.map.secretsFound.has(n.secret)) continue;

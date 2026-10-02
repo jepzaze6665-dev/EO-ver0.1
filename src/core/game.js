@@ -425,6 +425,9 @@ export class Game {
   // every player in this world (solo today; a party of up to 4 later) — enemies and enemy strikes use this list
   // (downed / defeated members are left out: enemies ignore them)
   players() { return this.party ? this.party.members.filter((m) => !m.dead && !m.downed) : this.player ? [this.player] : []; }
+  // who monsters may target: the players of this world + (ONLINE N7b, host of a run map) the guests as ally proxies —
+  // a proxy is never hit here: each guest resolves our monsters' attacks on itself (net/mobSync.js)
+  combatants() { const a = this.online ? this.online.mobs.allyList() : []; return a.length ? this.players().concat(a.filter((x) => !x.dead)) : this.players(); }
   slowMo(scale, dur) { this.timeScale = Math.min(this.timeScale, scale); this.slowT = Math.max(this.slowT, dur); }
 
   // a player reached 0 HP: the party decides — DOWNED (teammates can revive) or ENCOUNTER FAILED (nobody standing)

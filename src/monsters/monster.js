@@ -183,6 +183,7 @@ export class Monster extends Entity {
     }
     if (t < s[0].t) { x = s[0].x; y = s[0].y; }
     this.x = x; this.y = y;
+    if (this.state === S.ATTACK && this.phase === 'active' && this.cur && this.cur.kind === 'dash' && this.game.online) this.game.online.mobs.puppetDash(this);
   }
 
   update(dt) {
@@ -190,7 +191,7 @@ export class Monster extends Entity {
     const g = this.game, map = g.world.map;
     // TARGET (combat/targeting.js): who to fight among the players (solo = the one player; party-ready)
     this.retargetT = (this.retargetT || 0) - dt;
-    if (!this.target || this.target.dead || this.retargetT <= 0) { this.target = pickTarget(this, g.players()) || g.player; this.retargetT = ATTACK_SLOTS.retargetEvery; }
+    if (!this.target || this.target.dead || this.retargetT <= 0) { this.target = pickTarget(this, g.combatants()) || g.player; this.retargetT = ATTACK_SLOTS.retargetEvery; } // ONLINE N7b: + guests (ally proxies)
     const p = this.target;
     this.animT += dt;
     if (this.enrageT > 0) this.enrageT -= dt;
@@ -389,6 +390,8 @@ export class Monster extends Entity {
     if (s.shape === 'line') { tel.len = s.len; tel.width = s.width; }
     this.curShape = tel;
     this.telegraph = g.combat.telegraphs.add({ ...tel, onResolve: () => this.resolveAttack() });
+    // ONLINE N7b: the room's guests play this attack on their puppet and resolve it against themselves (net/mobSync.js)
+    if (g.online) { const { owner, ...shape } = tel; g.online.mobs.hostAct(this, 'tel', { shape, total: atk.windup, kind: atk.kind, power: atk.power * this.mod.power * this.status.damageMult(), knock: atk.knock, guardBreak: !!(atk.guardBreak ?? atk.heavy), unblockable: !!atk.unblockable, status: atk.status || null }); }
     if (atk.heavy) g.vfx.text(this.x, this.y - this.height - 12, '⚠', { color: '#ffb040', size: 14, life: atk.windup });
     g.audio.sfx(atk.kind === 'volley' ? 'cast' : 'windup');
   }
@@ -398,7 +401,8 @@ export class Monster extends Entity {
     if (!atk || this.dead) return;
     const power = atk.power * this.mod.power;
     if (atk.kind === 'strike') {
-      if (!g.combat.enemyStrike(this, this.curShape, power, { knock: atk.knock, guardBreak: atk.guardBreak ?? atk.heavy, unblockable: atk.unblockable, status: atk.status })) this.onMiss(atk);
+      // ONLINE N7b: aimed at a guest (ally proxy) = the guest resolves it on its side — not a miss here
+      if (!g.combat.enemyStrike(this, this.curShape, power, { knock: atk.knock, guardBreak: atk.guardBreak ?? atk.heavy, unblockable: atk.unblockable, status: atk.status }) && !(this.target && this.target.isAlly)) this.onMiss(atk);
       this.phase = 'recover';
       this.stateT = 0;
       if (atk.shape.shape === 'circle' || atk.shape.shape === 'ring') {
@@ -417,11 +421,14 @@ export class Monster extends Entity {
       this.dashHit = false;
       g.audio.sfx('dash_enemy');
     } else if (atk.kind === 'volley') {
-      const n = atk.count;
+      const n = atk.count, shots = [];
       for (let i = 0; i < n; i++) {
         const a = this.facing + (n > 1 ? (i / (n - 1) - 0.5) * atk.spread : 0);
-        g.combat.projectiles.fire({ x: this.x + Math.cos(a) * 16, y: this.y - this.height * 0.5, vx: Math.cos(a) * atk.speed, vy: Math.sin(a) * atk.speed, r: 5, life: 2.2, owner: this, power, kind: atk.projKind || 'shard', homing: atk.homing || 0, color: atk.projColor || (atk.projKind === 'orb' ? '#c080ff' : '#5af0ff') });
+        const shot = { x: this.x + Math.cos(a) * 16, y: this.y - this.height * 0.5, vx: Math.cos(a) * atk.speed, vy: Math.sin(a) * atk.speed, r: 5, life: 2.2, kind: atk.projKind || 'shard', homing: atk.homing || 0, color: atk.projColor || (atk.projKind === 'orb' ? '#c080ff' : '#5af0ff') };
+        g.combat.projectiles.fire({ ...shot, owner: this, power });
+        shots.push(shot);
       }
+      if (g.online) g.online.mobs.hostAct(this, 'proj', { power: power * this.status.damageMult(), list: shots });
       this.phase = 'recover';
       this.stateT = 0;
     }
@@ -470,7 +477,7 @@ export class Monster extends Entity {
       if (Math.random() < 0.6) g.vfx.particle(this.x, this.y, { color: 'rgba(140,130,120,0.6)', life: 0.3, size: 3, vy: -10 });
       if (this.stateT >= atk.dashTime) {
         this.phase = 'recover'; this.stateT = 0;
-        if (!this.dashHit) this.onMiss(atk);
+        if (!this.dashHit && !(this.target && this.target.isAlly)) this.onMiss(atk);
         // exposes: a vulnerable window after the dash (weak-point monsters also turn their back core to you)
         if (atk.exposes) { this.status.add('vulnerable', atk.exposes); if (this.def.weakPoint) this.facing += Math.PI * 0.6; g.vfx.text(this.x, this.y - this.height - 8, atk.exposeText || 'CORE EXPOSED!', { color: '#ff9ad8', size: 10 }); }
       }

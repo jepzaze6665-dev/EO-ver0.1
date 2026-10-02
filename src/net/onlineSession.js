@@ -139,9 +139,9 @@ export class OnlineSession {
     const t = now(), m = g.world.mapId;
     if (!m) return;
     const ad = p.sprites && p.sprites.anims[p.anim];
-    const pos = { m, x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10, d: dir4(p.facing), a: (p.anim || 'idle').slice(0, 24), k: ad && !ad.loop ? Math.round(Math.min(1, Math.max(0, p.animProgress || 0)) * 100) / 100 : 0 };
+    const pos = { m, x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10, d: dir4(p.facing), a: (p.anim || 'idle').slice(0, 24), k: ad && !ad.loop ? Math.round(Math.min(1, Math.max(0, p.animProgress || 0)) * 100) / 100 : 0, h: p.dead || p.downed ? 0 : Math.round(Math.max(0, Math.min(1, p.hp / p.maxHp)) * 100) / 100 };
     const s = this.sent;
-    const changed = !s || s.m !== pos.m || s.x !== pos.x || s.y !== pos.y || s.d !== pos.d || s.a !== pos.a || s.k !== pos.k;
+    const changed = !s || s.m !== pos.m || s.x !== pos.x || s.y !== pos.y || s.d !== pos.d || s.a !== pos.a || s.k !== pos.k || s.h !== pos.h;
     if (s && t - s.at < 1 / ONLINE.sendRate) return;
     if (!changed && s && t - s.at < ONLINE.idleResend) return;
     if (s && s.m !== pos.m) this.remotes.clear(); // left the room: the server sends the new room's roomState

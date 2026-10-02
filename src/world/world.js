@@ -562,9 +562,10 @@ export class World {
     for (const d of this.dummies) d.update(dt);
     // monsters: simulate near the player (or anything in a fight)
     // monsters: only the current map is simulated (other maps are frozen), and only near the player / in a fight
+    const near = g.combatants(); // ONLINE N7b: monsters wake near any member of the run, not only near the host
     for (const m of this.monsters) {
       if (m.dead) { m.deathT += dt; continue; }
-      if (this.onMap(m) && (m.aggro || dist(m.x, m.y, p.x, p.y) < 900)) m.update(dt);
+      if (this.onMap(m) && (m.aggro || m.puppet || near.some((q) => dist(m.x, m.y, q.x, q.y) < 900))) m.update(dt);
     }
     this.monsters = this.monsters.filter((m) => !(m.dead && m.deathT > 0.8));
     if (this.guardian) this.guardian.update(dt);

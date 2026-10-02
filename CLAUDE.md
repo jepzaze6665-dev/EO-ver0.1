@@ -1219,3 +1219,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   hitting guests, telegraphs on guests, bosses, remote attack / skill VFX. Tests tools/tests/mobSync.test.mjs (4, server);
   checked in 2 tabs: same wolf position / state on both, guest hits 22 + 23 -> host HP 140 -> 95, guest's kill waits for the
   host then pays EXP + loot, host leaves -> guest hosts with its own 49 monsters; playthrough 17/17 + a1Loop 5/5 online.
+  Done N7b (monsters fight everyone): PROTOCOL_VERSION 9: pos carries `h` (HP share, 0 = down) -> room entry rows
+  [.., h] / move rows [.., h]; client mobAct { id, k: 'tel' | 'proj', d } (host only, relayed; validActData = plain data,
+  3 levels, guests clamp again). HOST: Game.combatants() = players() + MobSync.allyList() (ALLY PROXIES of the guests on this
+  run map: position from presence, hp from h, dead at 0, isAlly, a real StatusSet) — Monster targeting + World.update wake-up
+  use it; a proxy is never hit on the host (players() only), and a strike / dash aimed at an ally is NOT a miss (no MISS /
+  whiff window). Monster.startAttack sends 'tel' (shape, windup, final power = power × mod × status mult, knock /
+  guardBreak / unblockable / status, kind); volleys send 'proj' (shots + power). GUEST: MobSync.onMobAct plays a 'tel' as a
+  telegraph owned by the puppet — strike kind resolves combat.enemyStrike(puppet, shape, power, extra) against OUR player at
+  its end (dodge / guard / parry / perfect dodge are local); 'dash' stores netAtk and Monster.puppetUpdate -> mobs.puppetDash
+  hits on touch once per charge (dashHit reset when the phase turns active); 'proj' fires local projectiles owned by the
+  puppet. HUD: in a run, remote names show an HP bar (DOWN at 0). Tests mobSync.test +1 (mobAct relay / junk / h).
+  Checked in 2 tabs: host's wolves pick the guest, the guest sees their red cones and takes the hits locally, the host's
+  proxy follows the guest's HP; solo suites in ?offline: enemy 5 · slot 5 · dodge 8 · counter 7 · poise 8 · tank 6 ·
+  checklist 31 (AG) · playthrough 17 · party 8. Debug note: never stack wrappers on telegraphs.add / enemyStrike across
+  console calls (they compound and look like duplicated attacks). NOT yet: bosses (N7c), remote skill VFX.
