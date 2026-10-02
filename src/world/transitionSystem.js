@@ -22,6 +22,9 @@ export class TransitionSystem {
   lockReason(exit) {
     const w = this.world, wp = w.game.worldProgress, r = exit.requires;
     if (w.inBossFight()) return 'The arena is sealed until the fight is over';
+    // a road out of a boss's map waits for that boss when it rose again for this run (boss/bossSystem.js roadBlocked)
+    const B = w.game.bosses, back = B && (B.roadBlocked(Array.isArray(r) ? r : [], w.mapId) || (wp && wp.mapById[exit.to] && B.roadBlocked(wp.mapById[exit.to].requires, w.mapId)));
+    if (back) return `${back.def.name} rose again for this run — defeat it first`;
     if (r && !Array.isArray(r) && r.flag && !w.state.flags[r.flag]) return r.label || 'Sealed';
     if (Array.isArray(r) && wp && !wp.meets(r)) { const miss = r.find((x) => !wp.meets([x])); return (miss && miss.label) || 'Locked'; }
     if (wp && !wp.isMapUnlocked(exit.to)) return wp.lockReason(exit.to) || 'Locked';

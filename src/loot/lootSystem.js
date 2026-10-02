@@ -1,4 +1,12 @@
-import { LOOT_TABLES } from '../data/lootTables.js';
+import { LOOT_TABLES, REPEAT_KILL } from '../data/lootTables.js';
+import { GEAR_ITEMS } from '../data/items/index.js';
+
+// a repeat boss kill: a signature item drops by REPEAT_KILL chance (by its rarity) instead of the table's own chance
+export function repeatChance(itemId, chance) {
+  const d = GEAR_ITEMS[itemId];
+  if (!d || !d.signature) return chance;
+  return Math.min(chance, REPEAT_KILL.signatureChance[d.rarity] ?? REPEAT_KILL.defaultChance);
+}
 
 // LOOT: rolls a loot table when an enemy is defeated. rollLoot is pure (pass your own rng in tests / on a server);
 // LootSystem only listens to 'enemyDefeated' and hands the result to the player / inventory, then reports
@@ -16,13 +24,13 @@ function pickOne(items, rng) {
   return items[items.length - 1];
 }
 
-export function rollLoot(tableId, rng = Math.random) {
+export function rollLoot(tableId, rng = Math.random, opts = {}) {
   const t = LOOT_TABLES[tableId];
   if (!t) return { gold: 0, items: [] };
   const [lo, hi] = t.gold || [0, 0];
   const gold = Math.max(0, lo + Math.floor(rng() * (hi - lo + 1)));
   const items = [];
-  for (const d of t.drops || []) if (rng() < d.chance) items.push({ item: d.item, count: Math.max(1, d.count || 1) });
+  for (const d of t.drops || []) if (rng() < (opts.repeat ? repeatChance(d.item, d.chance) : d.chance)) items.push({ item: d.item, count: Math.max(1, d.count || 1) });
   for (const grp of t.oneOf || []) {
     if (!(rng() < grp.chance)) continue;
     const x = pickOne(grp.items || [], rng);
@@ -68,7 +76,7 @@ export class LootSystem {
   onDefeated(e) {
     if (e.summoned || !e.loot) return; // summoned adds (boss roots, ...) give nothing
     const g = this.game, r = { gold: 0, items: [] };
-    for (const id of [].concat(e.loot)) { const x = rollLoot(id, this.rng); r.gold += x.gold; r.items.push(...x.items); } // elites roll 2 tables
+    for (const id of [].concat(e.loot)) { const x = rollLoot(id, this.rng, { repeat: !!e.repeat }); r.gold += x.gold; r.items.push(...x.items); } // elites roll 2 tables
     if (r.gold) g.player.addGold(r.gold);
     for (const it of r.items) g.inventory.add(it.item, it.count);
     g.events.emit('lootDropped', { x: e.x, y: e.y, source: e.type, bossId: e.bossId || null, gold: r.gold, items: r.items });

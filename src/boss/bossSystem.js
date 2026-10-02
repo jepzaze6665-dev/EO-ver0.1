@@ -16,6 +16,11 @@ import { bossScale } from '../progression/levelScaling.js';
 // Which code fights is chosen by the boss's `impl` (IMPLS below): the generic data-driven AreaBoss, or the V2
 // Guardian of the Forest (its own class + World.startBoss / resetBoss). A new impl = one more entry, no core changes.
 // Events: bossRevealed · bossEngaged · bossPhaseChanged · bossReset · bossDefeated · bossRewarded
+// RUNS (owner 2026-10-02): a boss killed in this dungeon RUN stays down (runKills, saved with the world progression); going
+// back into a city starts a new run — every defeated boss is back (newRun). The first kill pays everything (EXP, gold,
+// trophy items, lore, unlocks: worldProgress.defeatBoss); a repeat kill pays EXP + its loot table again with the signature
+// item only by REPEAT_KILL chance (data/lootTables.js). A road out of a boss's map (gate / exit requiring that boss) is
+// closed while the boss is alive in this run (roadBlocked): kill it again, or enter the next map from a Dungeon Gate.
 export const IMPLS = {
   area: {
     create: (g, def) => new AreaBoss(g, def),
@@ -39,6 +44,28 @@ export class BossSystem {
     this.list = liveBosses(data).map((def) => ({ id: def.id, def, state: S.HIDDEN, entity: null, phase: 1, leaveT: 0 }));
     this.byId = Object.fromEntries(this.list.map((e) => [e.id, e]));
     this.engaged = null;       // the encounter being fought (one at a time)
+    this.runKills = new Set();  // bosses down in this dungeon run
+    game.events.on('mapEntered', (e) => { const m = game.world && game.world.mapManager.get(e.id); if (m && m.type === 'city') this.newRun(); });
+  }
+  // back in a city: every boss defeated before is alive again for the next run
+  newRun() {
+    if (!this.runKills.size && !this.list.some((e) => e.state === S.DEFEATED)) return;
+    this.runKills.clear();
+    for (const enc of this.list) {
+      if (enc.state !== S.DEFEATED) continue;
+      enc.state = S.HIDDEN; enc.phase = 1; enc.leaveT = 0;
+      if (enc.entity) { if (enc.def.impl === 'guardian') this.game.world.resetBoss(); else enc.entity.reset(); }
+    }
+    this.game.save.dirty = true;
+  }
+  load(ids) { this.runKills = new Set(Array.isArray(ids) ? ids : []); }
+  // a road out of this map waits for a boss that is alive in this run (gate / exit requirement boss_defeated)
+  roadBlocked(reqs, mapId) {
+    for (const r of reqs || []) {
+      const enc = r && r.type === 'boss_defeated' && this.get(r.boss || r.requiredBossId);
+      if (enc && enc.def.map === mapId && !this.runKills.has(enc.id) && this.game.worldProgress.isBossDefeated(enc.id)) return enc;
+    }
+    return null;
   }
   get(id) { return this.byId[id] || null; }
   impl(enc) { return IMPLS[enc.def.impl] || IMPLS.area; }
@@ -78,7 +105,7 @@ export class BossSystem {
       const gone = !this.onMap(enc) || (!this.impl(enc).ownsArena && inside > a.r + 3 * TILE);
       if (isFighting(enc.state)) enc.leaveT = gone ? enc.leaveT + dt : 0;
       const next = nextBossState(enc.state, {
-        alreadyDefeated: prog.isBossDefeated(enc.id),
+        alreadyDefeated: this.runKills.has(enc.id), // down in THIS run (a new run brings it back)
         canAppear: prog.meets(enc.def.appear),
         playerInTrigger: this.onMap(enc) && inside < a.trigger,
         playerAlive: !p.dead,
@@ -187,12 +214,16 @@ export class BossSystem {
     const def = enc.def, e = entity || enc.entity || g.player;
     if (this.engaged === enc) this.engaged = null;
     enc.state = S.DEFEATED;
+    this.runKills.add(id);
     const first = g.worldProgress.defeatBoss(id);
     const r = def.rewards || {};
     if (first) {
       // EXP + loot table go through the normal 'enemyDefeated' listeners (ExperienceSystem, LootSystem)
       g.events.emit('enemyDefeated', { entity: e, type: def.monster || id, bossId: id, name: def.name, source: g.player, x: e.x, y: e.y, summoned: false, boss: true, exp: Math.round((r.exp || 0) * bossScale(def).exp), loot: r.loot || null });
       g.events.emit('bossRewarded', { bossId: id, reward: { gold: r.gold || 0, items: r.items || {}, lore: r.lore || null } });
+    } else {
+      // a repeat kill (a new run): EXP + the table again, the signature item only by chance (data/lootTables.js REPEAT_KILL)
+      g.events.emit('enemyDefeated', { entity: e, type: def.monster || id, bossId: id, name: def.name, source: g.player, x: e.x, y: e.y, summoned: false, boss: true, repeat: true, exp: Math.round((r.exp || 0) * bossScale(def).exp), loot: r.loot || null });
     }
     g.events.emit('bossDefeated', { bossId: id, type: def.monster || id, boss: def, first, major: def.type === 'major', entity: e });
     g.save.dirty = true;

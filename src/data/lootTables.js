@@ -5,6 +5,14 @@
 //  drops : [{ item, chance 0..1, count? (default 1) }] — each rolled independently
 //  oneOf : [{ chance, items: [{ item, weight }] }] — each group: with `chance`, exactly ONE item picked by weight
 //          (e.g. "a random Weapon Core")
+// REPEAT KILLS (owner 2026-10-02): every new dungeon run brings a defeated boss back (boss/bossSystem.js runKills). A
+// repeat kill rolls the boss's table again (EXP + normal drops; no gold bonus / lore / trophy items — those are the first
+// kill's bossRewarded), but its SIGNATURE item (item data `signature`) only drops by this chance — players come back for it.
+export const REPEAT_KILL = {
+  signatureChance: { common: 0.3, uncommon: 0.25, rare: 0.2, epic: 0.15, legendary: 0.08, mythic: 0.04 },
+  defaultChance: 0.15,
+};
+
 // GEAR (Item System G6): bosses pay their rewards ONCE (first kill: boss/bossSystem.js), so a boss SIGNATURE item
 // (item dropSource = that boss) drops at chance 1 — a 5% roll you can never retry would lock it away. Farmable
 // sources (elites, which respawn) carry the random gear chances.

@@ -540,6 +540,7 @@ export class World {
 
   onGuardianDefeated() {
     const g = this.game;
+    if (this.state.flags.guardianDefeated) { this.endBoss(); this.setArenaPhase(0); this.monsters = this.monsters.filter((m) => !m.summoned); return; } // a repeat kill (new run): the forest was restored the first time
     this.state.killed.guardian = true;
     this.setFlag('guardianDefeated');
     this.endBoss();

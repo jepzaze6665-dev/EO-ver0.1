@@ -14,7 +14,11 @@ export class GateSystem {
     this.checkT = 0;
     this.warnT = 0;
   }
-  isOpen(gate) { const wp = this.world.game.worldProgress; return wp ? wp.meets(gate.requires) : true; }
+  isOpen(gate) {
+    const g = this.world.game, wp = g.worldProgress;
+    if (g.bosses && g.bosses.roadBlocked(gate.requires, this.world.mapId)) return false; // its boss is alive again this run
+    return wp ? wp.meets(gate.requires) : true;
+  }
   get(id) { return this.list.find((g) => g.id === id) || null; }
   // walkable terrain tiles inside the rect (computed once — the gate only ever blocks what was open ground)
   tilesOf(gate) {
@@ -69,7 +73,8 @@ export class GateSystem {
   }
   blocked(gate) {
     const g = this.world.game, miss = (gate.requires || []).find((r) => !g.worldProgress.meets([r]));
-    g.ui.notify('THE WAY IS BLOCKED', miss ? miss.label || 'Locked' : gate.label || 'Locked', '#ff9a80');
+    const back = g.bosses && g.bosses.roadBlocked(gate.requires, this.world.mapId);
+    g.ui.notify('THE WAY IS BLOCKED', back ? `${back.def.name} rose again for this run — defeat it to open the road` : miss ? miss.label || 'Locked' : gate.label || 'Locked', '#ff9a80');
     g.audio.sfx('deny');
     g.events.emit('gateBlocked', { id: gate.id, gate });
   }

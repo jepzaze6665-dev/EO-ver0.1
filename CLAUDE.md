@@ -1309,3 +1309,12 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   a stale owner (> 1.5 s) is dropped. Presentation only: a summon's hits are the owner's (they reach the host as mobHit).
   Checked in 2 tabs: Reaper Shadow Doppel + Astral Weaver Astral Thread show on the other screen; reaperChecks 10,
   playthrough 17.
+  Done LESS DELAY (1f5d6b0): sendRate / serverTick 15, interpDelay 0.09, puppetDelay 0.07, bossRate 20, src/net/interp.js
+  sampleSnaps (blend; a late packet keeps the puppet going ≤ 0.1 s, then holds).
+  Done BOSS RUNS (owner 2026-10-02): BossSystem.runKills = bosses down in THIS dungeon run (saved in worldProgress.runKills);
+  entering a city map = newRun() -> every defeated boss is alive again. First kill = everything (EXP, gold, trophy items, lore,
+  unlocks, signature 100%); repeat kill = enemyDefeated `repeat: true` (EXP + loot table again; signature item only by
+  data/lootTables.js REPEAT_KILL.signatureChance per rarity, lootSystem repeatChance). Road gates / exits needing that boss are
+  closed while it is alive this run (BossSystem.roadBlocked -> gateSystem.isOpen / transitionSystem.lockReason, "rose again").
+  Guardian repeat kill only ends the fight (forest stays restored). Tests: bossRuns.test.mjs; testkit `downBoss(g, id)` = first
+  kill + run kill, kept through city visits for that test (mapTour walks through Lumina with every road open).

@@ -129,7 +129,8 @@ export class WorldProgression {
     };
   }
   serialize() {
-    return { v: 1, defeatedBosses: { ...this.defeatedBosses }, unlockedMaps: { ...this.unlockedMaps }, triggeredEvents: { ...this.triggeredEvents }, currentRoute: this.currentRoute };
+    return { v: 1, defeatedBosses: { ...this.defeatedBosses }, unlockedMaps: { ...this.unlockedMaps }, triggeredEvents: { ...this.triggeredEvents }, currentRoute: this.currentRoute,
+      runKills: this.game.bosses ? [...this.game.bosses.runKills] : [] }; // bosses down in the current dungeon run (boss/bossSystem.js)
   }
   // d: saved data or undefined (saves from before V2.2 -> rebuilt from the old world state so nobody gets locked out)
   load(d, legacyWorld) {

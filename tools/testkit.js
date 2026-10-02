@@ -8,6 +8,20 @@ import { CLASS_TREE } from '../src/data/classTree.js';
 import { GEAR_ITEMS } from '../src/data/items/index.js';
 SKILL_TREE.unlockAll = true;
 
+// BOSS RUNS (boss/bossSystem.js): a test that marks a boss "down" means down for the whole test — first kill recorded AND
+// counted in the current run (its roads open). Walking through a city starts a new run; for a test-downed boss the run
+// kill is put back right after (the regression tours walk through Lumina / City 2 with every road open).
+export function downBoss(g, id) {
+  const first = g.worldProgress.defeatBoss(id);
+  g.bosses.runKills.add(id);
+  if (!g._testDownBosses) {
+    g._testDownBosses = new Set();
+    g.events.on('mapEntered', () => { for (const b of g._testDownBosses) if (g.worldProgress.isBossDefeated(b)) g.bosses.runKills.add(b); });
+  }
+  g._testDownBosses.add(id);
+  return first;
+}
+
 export function bot(g, i, opts = {}) {
   const p = g.player, inp = g.input;
   ['KeyA', 'KeyD', 'KeyW', 'KeyS', 'KeyQ'].forEach((k) => inp.down.delete(k));
@@ -221,7 +235,7 @@ export async function pilgrimCheck(g, classId = 'umbral_sword') {
   const inArena = Object.entries(P.maps).flatMap(([map, e]) => e.spots.filter(([x, y]) => Object.values(BOSSES)
     .some((b) => b.arena && b.arena.center && (w.mapManager.get(b.map) || {}).grid === w.mapManager.get(map).grid && Math.hypot(b.arena.center[0] - x, b.arena.center[1] - y) <= (b.arena.radius || 10) + 4)).map((s) => map + ':' + s));
   ok('No pilgrim spot inside a boss arena', !inArena.length, inArena.join(' '));
-  g.worldProgress.defeatBoss('boss_a1');
+  downBoss(g, 'boss_a1');
   enter('a2');
   ok('No pilgrim in A2 before its requirement (Sunken Horn)', !pilgrim());
   const seen = new Set();
@@ -236,7 +250,7 @@ export async function pilgrimCheck(g, classId = 'umbral_sword') {
   talk();
   ok('Trial 1 done -> 1 Cinder Shard', q.isDone('ember_trial_a1') && inv.count('cinder_shard') === 1);
   // A2: flawless rhino kills
-  g.worldProgress.defeatBoss('mini_sunken_horn');
+  downBoss(g, 'mini_sunken_horn');
   enter('a2');
   ok('A2: the pilgrim appears once the Sunken Horn is down', !!pilgrim());
   q.accept('ember_trial_a2', { npc: 'ashen_pilgrim' });
@@ -250,7 +264,7 @@ export async function pilgrimCheck(g, classId = 'umbral_sword') {
   talk();
   ok('Trial 2 done -> 2 Cinder Shards', inv.count('cinder_shard') === 2);
   // A3: the timed rune statue
-  g.worldProgress.defeatBoss('mini_archive_warden');
+  downBoss(g, 'mini_archive_warden');
   enter('a3');
   q.accept('ember_trial_a3', { npc: 'ashen_pilgrim' });
   const st = it('a3_rune_dragon'), hp0 = g.player.hp = g.player.maxHp;
@@ -283,7 +297,7 @@ export function mapTour(g, classId = 'umbral_sword') {
   w.transitions.autoConfirm = true; // boss gate asks first — the tour just walks through
   ok('New Game starts on Lumina', w.mapId === 'lumina');
   for (const f of ['ruinsGate', 'logBridge', 'bramble', 'gateOpened', 'guardianDefeated']) w.setFlag(f);
-  for (const b of g.bosses.list) g.worldProgress.defeatBoss(b.id); // V2.2 boss gates: every road open for the tour
+  for (const b of g.bosses.list) downBoss(g, b.id); // V2.2 boss gates: every road open for the tour
   // exits sealed by a flag (the A2 dragon door: cinderSealBroken) open too
   for (const def of mm.list) for (const e of def.exits) for (const r of Array.isArray(e.requires) ? e.requires : []) if (r.type === 'flag') w.setFlag(r.flag);
   w.applyState();
@@ -953,7 +967,7 @@ export function gridCheck(g, classId = 'umbral_sword') {
   w.transitions.cooldown = 0; w.transitions.update(0.02, p);
   ok('Locked exit: the player stays on the arena map', w.mapId === 'arena' && w.gridId === 'whispering', w.mapId);
   p.y = (portal.rect[1] + 4) * TILE; // step out of the exit before it opens
-  wp.defeatBoss('boss_a1'); w.setFlag('guardianDefeated'); w.applyState(); g.simulate(0.3);
+  downBoss(g, 'boss_a1'); w.setFlag('guardianDefeated'); w.applyState(); g.simulate(0.3);
   ok('A2 UNLOCKED after the Guardian', wp.isMapUnlocked('a2') && w.transitions.isOpen(portal));
   // put something temporary in the world, then walk through the portal
   const forestMons = w.monsters.length;
@@ -1015,7 +1029,7 @@ export function a2MonsterCheck(g, classId = 'umbral_sword') {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player;
-  g.worldProgress.defeatBoss('boss_a1'); w.setFlag('guardianDefeated'); w.applyState();
+  downBoss(g, 'boss_a1'); w.setFlag('guardianDefeated'); w.applyState();
   w.changeMap('a2', { entry: [84.5, 190] }); g.simulate(0.3);
   p.setLevel(20); p.hp = p.maxHp;
   ok('A2 spawns its monsters (armadillo + rhino) with sheet art', ['armadillo', 'rock_rhino'].every((t) => w.monsters.some((m) => m.type === t && m.sprites.sheet)), w.monsters.map((m) => m.type).join(','));
@@ -1085,7 +1099,7 @@ export function a2BossCheck(g, classId = 'umbral_sword', { god = true, level = 2
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
-  wp.defeatBoss('boss_a1'); w.setFlag('guardianDefeated'); w.applyState();
+  downBoss(g, 'boss_a1'); w.setFlag('guardianDefeated'); w.applyState();
   const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
   w.changeMap('a2', { entry: [84.5, 190] }); g.simulate(0.5);
   ok('A2 first visit starts THE BURNING RIFT', q.isActive('burning_rift'), Object.keys(q.active).join(','));
@@ -1136,7 +1150,7 @@ export function a3MonsterCheck(g, classId = 'umbral_sword') {
   g.newGame(classId);
   let w = g.world;
   const p = g.player;
-  for (const b of ['boss_a1', 'boss_a2']) g.worldProgress.defeatBoss(b);
+  for (const b of ['boss_a1', 'boss_a2']) downBoss(g, b);
   w.setFlag('guardianDefeated'); w.applyState();
   w.changeMap('a3', { entry: [84, 196] }); g.simulate(0.3);
   p.setLevel(30); p.hp = p.maxHp;
@@ -1207,7 +1221,7 @@ export function a3BossCheck(g, classId = 'umbral_sword', { god = true, level = 3
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
-  for (const b of ['boss_a1', 'boss_a2']) wp.defeatBoss(b);
+  for (const b of ['boss_a1', 'boss_a2']) downBoss(g, b);
   w.setFlag('guardianDefeated'); w.applyState();
   const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
   w.changeMap('a3', { entry: [84, 58] }); g.simulate(0.5);
@@ -1258,10 +1272,10 @@ export function cityCheck(g, classId = 'umbral_sword') {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
-  for (const b of ['boss_a1', 'boss_a2']) wp.defeatBoss(b);
+  for (const b of ['boss_a1', 'boss_a2']) downBoss(g, b);
   w.setFlag('guardianDefeated'); w.applyState();
   ok('Before the Rune Knight: City 2 locked (road gate shut)', !wp.isMapUnlocked('city2') && !!wp.lockReason('city2'), wp.lockReason('city2'));
-  wp.defeatBoss('boss_a3');
+  downBoss(g, 'boss_a3');
   const st = wp.routeStatus('A');
   ok('Rune Knight down: City 2 unlocked · Route A complete', wp.isMapUnlocked('city2') && st.complete && st.city && st.city.unlocked);
   w.changeMap('sanctum', { entry: [84, 12] }); g.simulate(0.3);
@@ -1306,7 +1320,7 @@ export function spriteMonsterCheck(g, classId = 'umbral_sword') {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress;
-  for (const b of g.bosses.list) wp.defeatBoss(b.id);
+  for (const b of g.bosses.list) downBoss(g, b.id);
   w.setFlag('guardianDefeated'); w.applyState();
   // every map: all monsters it spawns draw a sheet
   const noArt = new Set(), seen = new Set();
@@ -1446,7 +1460,7 @@ export function b2Check(g, classId = 'umbral_sword') {
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
   ok('Before Hoarfang: B2 locked (the south road gate stays shut)', !wp.isMapUnlocked('b2') && /Hoarfang/.test(wp.lockReason('b2') || ''), wp.lockReason('b2'));
-  wp.defeatBoss('boss_b1');
+  downBoss(g, 'boss_b1');
   w.changeMap('frost_arena', { entry: [142, 158] }); g.simulate(0.3);
   goto(g, 142, 162);
   for (let k = 0; k < 12 && w.mapId !== 'b2'; k++) walk(g, 'KeyS', 0.3);
@@ -1480,7 +1494,7 @@ export function b2BossCheck(g, classId = 'umbral_sword', { god = true, level = 3
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
-  wp.defeatBoss('boss_b1');
+  downBoss(g, 'boss_b1');
   const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
   w.changeMap('b2', { entry: [7, 12] }); g.simulate(0.5);
   for (const [x, y] of [[92, 98], [143, 78], [74, 28]]) { goto(g, x, y); g.simulate(0.5); }
@@ -1533,9 +1547,9 @@ export function b3Check(g, classId = 'umbral_sword') {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
-  wp.defeatBoss('boss_b1');
+  downBoss(g, 'boss_b1');
   ok('Before the Colossus: B3 locked', !wp.isMapUnlocked('b3') && /Colossus/.test(wp.lockReason('b3') || ''), wp.lockReason('b3'));
-  wp.defeatBoss('boss_b2');
+  downBoss(g, 'boss_b2');
   w.changeMap('b2', { entry: [148, 180] }); g.simulate(0.3);
   goto(g, 148, 176);
   for (let k = 0; k < 12 && w.mapId !== 'b3'; k++) walk(g, 'KeyW', 0.3);
@@ -1573,7 +1587,7 @@ export function varkharonCheck(g, classId = 'umbral_sword', { god = true, level 
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress;
-  wp.defeatBoss('boss_a1');
+  downBoss(g, 'boss_a1');
   w.setFlag('cinderSealBroken');
   w.transitions.autoConfirm = true;
   w.changeMap('a2', { entry: [148, 174] }); g.simulate(0.3);
@@ -1659,7 +1673,7 @@ export function b3BossCheck(g, classId = 'umbral_sword', { god = true, level = 4
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
-  for (const b of ['boss_b1', 'boss_b2']) wp.defeatBoss(b);
+  for (const b of ['boss_b1', 'boss_b2']) downBoss(g, b);
   const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
   w.changeMap('b3', { entry: [81.5, 196] }); g.simulate(0.5);
   for (const [x, y] of [[66, 150], [82, 108], [84, 76]]) { goto(g, x, y); g.simulate(0.5); }

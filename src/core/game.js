@@ -320,6 +320,7 @@ export class Game {
     if (!this.progression.startingClass) this.progression.startingClass = this.player.cls.id; // saves before Phase 13
     this.knowledge.load(d.knowledge);
     this.worldProgress.load(d.worldProgress, d.world); // saves from before V2.2: rebuilt from where the player has been
+    this.bosses.load(d.worldProgress && d.worldProgress.runKills); // bosses down in the current run stay down
     this.stats = { kills: 0, chests: 0, deaths: 0, ...(d.stats || {}) };
     this.playTime = d.playTime || 0;
     const p = this.player;
