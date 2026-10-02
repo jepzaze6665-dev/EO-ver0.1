@@ -53,6 +53,21 @@ function cutBlack(img, o = {}) {
     const x = i % W, y = (i / W) | 0;
     if (x > 0) st.push(i - 1); if (x < W - 1) st.push(i + 1); if (y > 0) st.push(i - W); if (y < H - 1) st.push(i + W);
   }
+  // GAPS (option gap = share 0..1): enclosed core-dark regions (between the arms, beside a blade) that are mostly PURE black
+  // (max channel 0, the painted background) are background too; a black costume has texture (values 1-11), so it stays
+  if (o.gap) {
+    const seenG = new Uint8Array(N);
+    for (let s = 0; s < N; s++) {
+      if (bg[s] || seenG[s] || !pass[s]) continue;
+      const reg = [s], q = [s]; seenG[s] = 1; let zero = 0;
+      while (q.length) {
+        const i = q.pop(), x = i % W;
+        if (mx(i) === 0) zero++;
+        for (const j of [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, i >= W ? i - W : -1, i < N - W ? i + W : -1]) if (j >= 0 && !seenG[j] && !bg[j] && pass[j]) { seenG[j] = 1; q.push(j); reg.push(j); }
+      }
+      if (reg.length >= (o.gapMin || 20) && zero / reg.length >= o.gap) for (const i of reg) bg[i] = 1;
+    }
+  }
   for (let k = 0; k < R; k++) { // widen back into dark pixels touching the background
     const add = [];
     for (let i = 0; i < N; i++) if (!bg[i] && dark[i]) { const x = i % W; if ((x > 0 && bg[i - 1]) || (x < W - 1 && bg[i + 1]) || (i >= W && bg[i - W]) || (i < N - W && bg[i + W])) add.push(i); }

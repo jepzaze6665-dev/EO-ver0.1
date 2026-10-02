@@ -1,73 +1,73 @@
 {
  "umbral_sword": {
   "splash": "assets/ui/class/umbral_sword_splash.png",
-  "sw": 605,
+  "sw": 630,
   "sh": 900,
   "emblem": "assets/ui/class/umbral_sword_emblem.png"
  },
  "nightfall_reaper": {
   "splash": "assets/ui/class/nightfall_reaper_splash.png",
-  "sw": 584,
+  "sw": 605,
   "sh": 900,
   "emblem": "assets/ui/class/nightfall_reaper_emblem.png"
  },
  "duskrunner": {
   "splash": "assets/ui/class/duskrunner_splash.png",
-  "sw": 655,
+  "sw": 653,
   "sh": 900,
   "emblem": "assets/ui/class/duskrunner_emblem.png"
  },
  "blade_of_echoes": {
   "splash": "assets/ui/class/blade_of_echoes_splash.png",
-  "sw": 622,
+  "sw": 677,
   "sh": 900,
   "emblem": "assets/ui/class/blade_of_echoes_emblem.png"
  },
  "astral_weaver": {
   "splash": "assets/ui/class/astral_weaver_splash.png",
-  "sw": 587,
+  "sw": 589,
   "sh": 900,
   "emblem": "assets/ui/class/astral_weaver_emblem.png"
  },
  "stormcaller": {
   "splash": "assets/ui/class/stormcaller_splash.png",
-  "sw": 596,
+  "sw": 600,
   "sh": 900,
   "emblem": "assets/ui/class/stormcaller_emblem.png"
  },
  "void_scribe": {
   "splash": "assets/ui/class/void_scribe_splash.png",
-  "sw": 595,
+  "sw": 621,
   "sh": 900,
   "emblem": "assets/ui/class/void_scribe_emblem.png"
  },
  "lumen_oracle": {
   "splash": "assets/ui/class/lumen_oracle_splash.png",
-  "sw": 600,
+  "sw": 598,
   "sh": 900,
   "emblem": "assets/ui/class/lumen_oracle_emblem.png"
  },
  "aegis_guardian": {
   "splash": "assets/ui/class/aegis_guardian_splash.png",
-  "sw": 610,
+  "sw": 643,
   "sh": 900,
   "emblem": "assets/ui/class/aegis_guardian_emblem.png"
  },
  "warden_of_dawn": {
   "splash": "assets/ui/class/warden_of_dawn_splash.png",
-  "sw": 583,
+  "sw": 606,
   "sh": 900,
   "emblem": "assets/ui/class/warden_of_dawn_emblem.png"
  },
  "bulwark_sentinel": {
   "splash": "assets/ui/class/bulwark_sentinel_splash.png",
-  "sw": 610,
+  "sw": 643,
   "sh": 900,
   "emblem": "assets/ui/class/bulwark_sentinel_emblem.png"
  },
  "oathbreaker": {
   "splash": "assets/ui/class/oathbreaker_splash.png",
-  "sw": 606,
+  "sw": 625,
   "sh": 900,
   "emblem": "assets/ui/class/oathbreaker_emblem.png"
  }

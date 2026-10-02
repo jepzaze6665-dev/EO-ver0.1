@@ -1037,6 +1037,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   eye in EMBLEMS) -> node tools/build-class-art.js [--preview] -> assets/ui/class/<id>_splash.png (900 px high) / _emblem.png
   (160) + class.json. build-title cutBlack now takes options { bg, soft, softLum, hole, erode } — erode R = flood only through
   core background (all pixels within R dark) then widen back: dark costumes no longer leak (Reaper robe). Preview on MAGENTA.
+  Clean-up pass (owner: black showing between limbs / beside blades): cutBlack option gap (enclosed core-dark regions whose
+  share of PURE black (0) >= gap and size >= gapMin are background; costumes are textured, ~20% pure 0) + build-class-art
+  dropSpecks (small dark islands floating in the background). Splash cut = bg 12, erode 5, gap 0.5, gapMin 400.
+  Check images docs/ui/class_art_check_1.png / _2.png (on magenta).
   Prompts for the art: docs/ui/class_art_prompts.md. tools/tests/classArt.test.mjs.
 - SKILL TREE VIEW (owner reference, made to fit the game): Skills tab = src/ui/skillTreeUI.js — pure layoutTree(cls): special (Q) =
   root at the bottom, branches = unlock.requires chains (rows = depth in the branch, columns = leaves spread, parents over
