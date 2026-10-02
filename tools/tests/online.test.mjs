@@ -37,6 +37,16 @@ await test('interpolation: drawn between two snapshots, a snap (teleport) is nev
   ok(R.visible(1.1).length === 1 && R.visible(1 + ONLINE.leaveFade + 0.01).length === 0, 'fades out, then removed');
 });
 
+await test('puppet snapshots: between two = blend; late = keeps going for a moment (capped), then holds; before the first = first', async () => {
+  const { sampleSnaps } = await import('../../src/net/interp.js');
+  const s = [{ t: 0, x: 0, y: 0 }, { t: 0.1, x: 10, y: 0 }];
+  ok(Math.abs(sampleSnaps(s, 0.05).x - 5) < 1e-6, 'blend');
+  ok(Math.abs(sampleSnaps(s, 0.15).x - 15) < 1e-6, 'extrapolated 0.05 s');
+  ok(Math.abs(sampleSnaps(s, 0.2).x - 20) < 1e-6, 'capped at 0.1 s ahead');
+  ok(sampleSnaps(s, 0.5).x === 10, 'very late: holds the last spot');
+  ok(sampleSnaps(s, -1).x === 0 && sampleSnaps([], 0) === null, 'edges');
+});
+
 const srv = await startServer({ port: 0, dataDir: null, quiet: true });
 const url = `ws://localhost:${srv.port}/ws`;
 const player = async (name) => {

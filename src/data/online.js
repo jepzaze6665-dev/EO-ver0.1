@@ -7,10 +7,12 @@ import { PARTY } from './party.js';
 
 export const ONLINE = {
   sharedMaps: ['lumina', 'city2'],
-  sendRate: 10,            // position updates per second (only when something changed)
+  sendRate: 15,            // position updates per second (only when something changed)
   idleResend: 2,           // s: resend an unchanged position this often (late joiners / lost packets)
-  serverTick: 10,          // server batches room movement this many times per second
-  interpDelay: 0.12,       // s: remote players are drawn this far in the past, between two snapshots
+  serverTick: 15,          // server batches room movement this many times per second
+  interpDelay: 0.09,       // s: remote players are drawn this far in the past, between two snapshots
+  puppetDelay: 0.07,       // s: the host's monsters / bosses on a guest (sent more often; short extrapolation covers a late one)
+  bossRate: 20,            // boss snapshots per second while it fights
   maxSpeed: 340,           // px/s a player can move in a city (walk ×1.08 + dash); faster = treated as a teleport (snap)
   leaveFade: 0.6,          // s: a player who leaves / goes offline fades out
   nameRange: 260,          // px: remote player names are shown within this distance
@@ -25,7 +27,7 @@ export const ONLINE = {
   },
   // N7a SHARED MONSTERS (src/net/mobSync.js): the run-map host sends snapshots of monsters near any member
   mobs: {
-    rate: 10,                 // snapshots per second (only changed monsters)
+    rate: 15,                 // snapshots per second (only changed monsters)
     fullEvery: 2,             // s: every nearby monster again (late joiners, despawns)
     range: 1100,              // px from any member: monsters further away are not sent (unless in a fight)
     maxRows: 120,             // = NET_LIMITS.maxMobRows

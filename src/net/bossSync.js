@@ -25,6 +25,8 @@
 //   its damage-taken statuses; a hit while it is weak counts for Ember Debt (damageDealt with the guest's proxy).
 import { BOSS_STATE, isFighting } from '../boss/bossState.js';
 import { TEAM } from '../core/constants.js';
+import { ONLINE } from '../data/online.js';
+import { sampleSnaps } from './interp.js';
 
 const SHAPES = new Set(['circle', 'ring', 'cone', 'line']);
 const STATES = new Set(Object.values(BOSS_STATE));
@@ -99,7 +101,7 @@ export class BossSync {
     if (!this.hosting()) { this.shots.clear(); return; }
     for (const [id, list] of this.shots) { const enc = this.game.bosses.get(id); if (enc && list.length) this.send(enc, 'bproj', { list }); }
     this.shots.clear();
-    const t = now(), tick = t - this.lastSend >= 0.1;
+    const t = now(), tick = t - this.lastSend >= 1 / ONLINE.bossRate;
     if (tick) this.lastSend = t;
     for (const enc of this.encountersHere()) {
       const e = enc.entity;
@@ -299,14 +301,10 @@ export class BossSync {
     e.flash = Math.max(0, (e.flash || 0) - dt);
     if (e.dead) { e.deathT = (e.deathT || 0) + dt; return; }
     if (e.status) e.status.update(dt);
-    const s = e.snaps;
-    if (!s || !s.length) return;
-    const t = now() - 0.12;
-    let x = s[s.length - 1].x, y = s[s.length - 1].y;
-    for (let i = s.length - 1; i > 0; i--) if (t >= s[i - 1].t) { const a = s[i - 1], b = s[i], f = Math.min(1, (t - a.t) / Math.max(1e-3, b.t - a.t)); x = a.x + (b.x - a.x) * f; y = a.y + (b.y - a.y) * f; break; }
-    if (t < s[0].t) { x = s[0].x; y = s[0].y; }
-    e.moving = Math.hypot(x - e.x, y - e.y) > 0.3;
-    e.x = x; e.y = y;
+    const at = sampleSnaps(e.snaps, now() - ONLINE.puppetDelay);
+    if (!at) return;
+    e.moving = Math.hypot(at.x - e.x, at.y - e.y) > 0.3;
+    e.x = at.x; e.y = at.y;
   }
 
   // a boss act from the host, played on our puppet

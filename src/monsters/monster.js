@@ -11,6 +11,8 @@ import { frameAt } from './sheetSprites.js';
 import { angleTo, wrapAngle, rand, TAU, dist, clamp, pick } from '../core/math.js';
 import { remapLevel, scaleFor } from '../progression/levelScaling.js';
 import { DIFFICULTY } from '../data/difficulty.js';
+import { ONLINE } from '../data/online.js';
+import { sampleSnaps } from '../net/interp.js';
 
 // Generic monster with a data-driven attack list and the state machine (names in MONSTER_STATE):
 // IDLE -> PATROL -> AGGRO -> CHASE -> ATTACK -> (HIT) -> DEAD, plus RETURN when leashed / lost / stuck.
@@ -175,14 +177,9 @@ export class Monster extends Entity {
     this.showBar = Math.max(0, this.showBar - dt);
     if (this.dead) { this.deathT += dt; return; }
     this.status.update(dt);
-    const s = this.snaps, t = performance.now() / 1000 - 0.12;
-    if (!s || !s.length) return;
-    let x = s[s.length - 1].x, y = s[s.length - 1].y;
-    for (let i = s.length - 1; i > 0; i--) {
-      if (t >= s[i - 1].t) { const a = s[i - 1], b = s[i], f = Math.min(1, (t - a.t) / Math.max(1e-3, b.t - a.t)); x = a.x + (b.x - a.x) * f; y = a.y + (b.y - a.y) * f; break; }
-    }
-    if (t < s[0].t) { x = s[0].x; y = s[0].y; }
-    this.x = x; this.y = y;
+    const at = sampleSnaps(this.snaps, performance.now() / 1000 - ONLINE.puppetDelay);
+    if (!at) return;
+    this.x = at.x; this.y = at.y;
     if (this.state === S.ATTACK && this.phase === 'active' && this.cur && this.cur.kind === 'dash' && this.game.online) this.game.online.mobs.puppetDash(this);
   }
 
