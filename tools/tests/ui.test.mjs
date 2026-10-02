@@ -71,3 +71,9 @@ test('title art (tools/build-title.js) exists and the title screen / favicon use
   ok(readFileSync(new URL('index.html', ROOT), 'utf8').includes('assets/ui/title/icon.png'), 'favicon');
   ok(readFileSync(new URL('src/ui/panels.js', ROOT), 'utf8').includes('assets/ui/title/logo.png'), 'title screen logo');
 });
+
+test('title logo: letter holes are see-through, the eclipse disc stays solid', () => {
+  const im = png.read(new URL('assets/ui/title/logo.png', ROOT)), a = (x, y) => im.data[(y * im.width + x) * 4 + 3];
+  ok(a(330, 465) === 0, 'the hole of the O in ONLINE should be transparent');
+  ok(a(405, 225) === 255, 'the eclipse disc should be solid');
+});

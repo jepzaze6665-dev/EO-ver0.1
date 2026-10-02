@@ -21,6 +21,7 @@ const FILES = {
   emblem: ['emblem.png', 'image-4bc1099c-2cf9-4bdf-96b7-b0b7998c3ded-0.png'],
 };
 const BG = 26, SOFT = 6, SOFT_LUM = 90; // background threshold (max channel), soft edge reach (px) and brightness scale
+const HOLE = 0.01; // enclosed dark regions smaller than 1% of the image = letter holes -> background
 
 const find = (names) => names.map((n) => path.join(SRC, n)).find((f) => fs.existsSync(f));
 
@@ -35,6 +36,32 @@ function cutBlack(img) {
     bg[i] = 1;
     const x = i % W, y = (i / W) | 0;
     if (x > 0) st.push(i - 1); if (x < W - 1) st.push(i + 1); if (y > 0) st.push(i - W); if (y < H - 1) st.push(i + W);
+  }
+  // enclosed dark holes (the inside of "O", "P"...) are background too when SMALL; the eclipse disc is a big dark region
+  // (several % of the image) and stays solid
+  // (small dark specks INSIDE the disc's box are its texture, not holes: kept)
+  const seen = new Uint8Array(N), maxHole = N * HOLE, regions = [];
+  for (let s = 0; s < N; s++) {
+    if (bg[s] || seen[s] || mx(s) > BG) continue;
+    const reg = [s], q = [s]; seen[s] = 1;
+    let x0 = W, y0 = H, x1 = 0, y1 = 0;
+    while (q.length) {
+      const i = q.pop(), x = i % W, y = (i / W) | 0;
+      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+      for (const j of [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, y > 0 ? i - W : -1, y < H - 1 ? i + W : -1]) {
+        if (j >= 0 && !seen[j] && !bg[j] && mx(j) <= BG) { seen[j] = 1; q.push(j); reg.push(j); }
+      }
+    }
+    regions.push({ reg, x0, y0, x1, y1 });
+  }
+  const big = regions.filter((r) => r.reg.length >= maxHole).map((r) => {
+    const m = (r.x1 - r.x0) * 0.15; return { x0: r.x0 - m, y0: r.y0 - m, x1: r.x1 + m, y1: r.y1 + m };
+  });
+  for (const r of regions) {
+    if (r.reg.length >= maxHole) continue;
+    const cx = (r.x0 + r.x1) / 2, cy = (r.y0 + r.y1) / 2;
+    if (big.some((b) => cx >= b.x0 && cx <= b.x1 && cy >= b.y0 && cy <= b.y1)) continue;
+    for (const i of r.reg) bg[i] = 1;
   }
   // distance (in px, up to SOFT) from the background, for the soft edge
   const dist = new Uint8Array(N).fill(255);
