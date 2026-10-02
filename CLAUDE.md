@@ -7,6 +7,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
 
 ## Run / test
 - `node server.js` → http://localhost:5173 (Claude preview config name: `eclipse-online`, `autoPort` on, see `.claude/launch.json`).
+  The same process is the online game server (WebSocket `/ws`); player data in `server/data/` (gitignored, never served).
 - Unit tests: `node tools/tests/run.mjs` (must print `ALL TEST FILES PASSED`).
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
   (combat / mechanics / Reaper / Duskrunner / Echoes / Warden / Bulwark / Oath / Storm / Void / Lumen / class-change checks; `C.duskChecks(__game)` /
@@ -57,7 +58,12 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   grid (`idAt(x, y, gridId?)`); quest tile markers are on START_GRID unless they name `map`. Secrets are world-wide
   (`world.secretsFound`); fog per grid (`revealed` + `revealedGrids` in the save); respawn = `world.checkpoint()`.
   Grids: `whispering` (A1 + Lumina + Valehaven), `ancient_valley` (A2 + Magma Rift), `citadel` (A3 + Sanctum), `asteria` (City 2), `frostwind` (B1 + Frost Arena), `caverns` (B2 + Heart), `frostpeak` (B3).
-- Don't build yet (spec): multiplayer/network, accounts/DB, guild, trading, PvP, real secret classes / secret bosses, world events.
+- Don't build yet (spec): guild, trading, PvP, real secret classes / secret bosses, world events.
+- ONLINE (owner 2026-10-02): the game is ONLINE-ONLY (no offline mode for players). Shared cities, dungeon instances
+  (enter at an unlocked map, continue through its exits after the boss, return to the city from the map's start point),
+  parties. Death in a dungeon = 50% of the EXP earned from monsters in that run lost + ALL items gained in the run dropped as
+  an owner-recoverable pile (party can help); returning to the city banks the run (owner: going home must matter). Authority: host-authoritative first (server
+  owns progression / loot / boss kills), headless server simulation later. Keep a dev/test local mode for the bots + tools.
 - If a request would break the architecture: explain the problem, propose a better way, then implement.
 
 ## Assets (never reference a path without a real file)
@@ -1108,3 +1114,17 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   The full PDF is kept at its first version (I3, 75 items); _I4 = the 4 boss items + the dragon key; _v2 = full catalogue after K1
   (55 gear items, no class kit pieces; `--name v2` without --only = a full catalogue under another name). Reads the live item data;
   Thai art briefs per item in tools/itemCatalog/briefs.mjs (items without one get an automatic brief). Rebuild after item changes.
+- **Current: ONLINE** (owner's "Shared City / Dungeon / Online" prompt + answers, see ONLINE rule above). Phases: N1 server +
+  protocol + dev identity · N2 Lumina shared city (see others move) · N3 save on the server · N4 party · N5 dungeon entrance UI
+  · N6 instances (continue through exits, return to the city) · N7 host-authoritative combat sync · N8 server boss kills ->
+  unlocks · N9 run loot + death pile / recovery · N10 reconnect + multi-client test list + headless-server plan.
+  Done N1: zero-dependency WebSocket in `server/ws.js` (RFC 6455, masked text frames, ping / pong / close, fragments, size cap);
+  `server.js` is now an ES module exporting `startServer({ port, dataDir, quiet, limits })` (dataDir null = memory store) —
+  static files as before + `/ws`; `/server/`, `/.git/`, `/.claude/` are never served. `server/gameServer.js` = sessions: every
+  client frame validated by `src/net/protocol.js` (shared, pure: PROTOCOL_VERSION, CLIENT_MESSAGES schemas, NET_LIMITS,
+  NET_ERROR, validName), hello within 5 s, rate limit, heartbeat + 30 s timeout, one session per player (a 2nd login kicks the
+  old one: 'replaced'), errors never crash it; `handle(type, fn)` + events sessionOpened / sessionClosed for later phases.
+  `server/accounts.js` = DEV identity only (name + random token, token stored hashed; no password / security). `server/store.js`
+  = MemoryStore / JsonFileStore (atomic rename, damaged file moved aside). Browser `src/net/client.js` NetClient (states
+  offline / connecting / online / reconnecting with backoff, token per name in localStorage, latency). Not wired into the
+  game UI yet (N2). Tests tools/tests/net.test.mjs (13, real server on a free port + real WebSocket clients).
