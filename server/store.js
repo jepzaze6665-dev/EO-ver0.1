@@ -12,6 +12,33 @@ export class MemoryStore {
   flush() {}
 }
 
+// one JSON file per key (player saves: a write touches only that player's file). Keys must be safe file names.
+export class JsonDirStore {
+  constructor(dir) { this.dir = dir; mkdirSync(dir, { recursive: true }); this.cache = new Map(); }
+  file(key) { if (!/^[A-Za-z0-9_-]{1,64}$/.test(key)) throw new Error('bad store key'); return join(this.dir, key + '.json'); }
+  get(key) {
+    if (this.cache.has(key)) return this.cache.get(key);
+    const f = this.file(key);
+    let v;
+    if (existsSync(f)) {
+      try { v = JSON.parse(readFileSync(f, 'utf8')); } catch (e) {
+        renameSync(f, f + '.damaged-' + Date.now());
+        console.error(`[store] ${f} was damaged (${e.message}) — moved aside`);
+      }
+    }
+    this.cache.set(key, v);
+    return v;
+  }
+  set(key, value) {
+    const f = this.file(key), tmp = f + '.tmp';
+    this.cache.set(key, value);
+    writeFileSync(tmp, JSON.stringify(value));
+    renameSync(tmp, f);
+  }
+  all() { return [...this.cache.values()].filter(Boolean); }
+  flush() {}
+}
+
 export class JsonFileStore extends MemoryStore {
   constructor(dir, name) {
     super();

@@ -10,8 +10,10 @@ import { SAVE_VERSION, parseSave } from './saveData.js';
 // hidden content, minimap reveal), world progression (V2.2: defeated bosses, unlocked maps, world events, route),
 // monster knowledge, current map + position.
 // Safety: the previous save is kept as a backup; a corrupt / unreadable main save falls back to it.
-const KEY = 'eclipse_online_save_v1'; // storage key (kept from V1 so old saves still load)
-const BACKUP = KEY + '_backup';
+export const SAVE_KEY = 'eclipse_online_save_v1';
+const KEY = SAVE_KEY; // storage key (kept from V1 so old saves still load)
+export const BACKUP_KEY = KEY + '_backup';
+const BACKUP = BACKUP_KEY;
 
 export class SaveSystem {
   constructor(game, storage = new LocalStorageAdapter()) {

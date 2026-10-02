@@ -115,7 +115,7 @@ await test('no hello in time = dropped; flood = dropped; oversized frame = dropp
   await until(() => flood.closed(), 3000, 'flood');
   ok(flood.got.some((m) => m.code === NET_ERROR.rate), 'rate errors');
   const big = await raw();
-  big.ws.send('x'.repeat(10000));
+  big.ws.send('x'.repeat(300000)); // bigger than even a save may be
   await until(() => big.closed(), 3000, 'oversized');
   ok(srv.game.conns.size === 0, 'no leaked connections: ' + srv.game.conns.size);
 });

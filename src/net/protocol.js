@@ -6,10 +6,12 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 2;
+export const PROTOCOL_VERSION = 3;
 
 export const NET_LIMITS = {
-  maxMessageBytes: 4096,     // a client frame larger than this closes the connection
+  maxMessageBytes: 4096,     // largest ordinary client message
+  maxSaveBytes: 262144,      // largest 'saveWrite' (the whole save as JSON text); the socket allows this much
+  saveInterval: 1,           // s: at most one save write per second per player (autosave is every 4 s)
   helloTimeout: 5,           // s: a socket that does not say 'hello' in time is dropped
   heartbeat: 10,             // s between server pings
   timeout: 30,               // s without any message from the client = stale, dropped
@@ -31,6 +33,7 @@ const FIELD = {
   dir: (v) => v === 0 || v === 1 || v === 2 || v === 3,                   // dir4: down, up, right, left
   unit: (v) => typeof v === 'number' && v >= 0 && v <= 1,
   level: (v) => Number.isInteger(v) && v >= 1 && v <= 99,
+  save: (v) => typeof v === 'string' && v.length <= NET_LIMITS.maxSaveBytes,
 };
 
 // client -> server
@@ -42,6 +45,10 @@ export const CLIENT_MESSAGES = {
   pos: { m: 'slug', x: 'coord', y: 'coord', d: 'dir', a: 'slug', k: 'unit?' },  // map, position, facing, anim, anim progress
   look: { c: 'slug', l: 'level' },                       // class id + level (sent on change)
   leave: {},                                             // left the world (title screen)
+  // N3 save on the server (src/net/serverSave.js): the client sends the whole save text; the server keeps the previous
+  // one as the backup. NOT authoritative yet: boss kills / unlocks / loot move to the server in N8 / N9.
+  saveWrite: { s: 'save' },
+  saveRemove: {},                                        // New Game / reset
 };
 
 // server -> client (documented here, the client does not validate them strictly)
@@ -56,6 +63,9 @@ export const SERVER_MESSAGES = {
   pLeave: { id: 'string', why: 'string' },               // 'left' (another map) | 'offline' (disconnected)
   moves: { ps: 'array' },                                // batched movement: [id, x, y, d, a, k, snap]
   pLook: { id: 'string', c: 'string', l: 'int' },
+  // N3: your saves, right after 'welcome' (null = none)
+  saveData: { main: 'string|null', backup: 'string|null' },
+  saveOk: { at: 'number' },                              // a saveWrite is stored (savedAt of that save)
 };
 
 export const NET_ERROR = {
@@ -85,7 +95,7 @@ export function validName(name) {
 // one text frame -> { ok: true, msg } | { ok: false, code, text }
 export function validateClientMessage(raw) {
   if (typeof raw !== 'string') return fail('not text');
-  if (raw.length > NET_LIMITS.maxMessageBytes) return fail('too large');
+  if (raw.length > NET_LIMITS.maxSaveBytes) return fail('too large');
   let msg;
   try { msg = JSON.parse(raw); } catch { return fail('not JSON'); }
   if (!msg || typeof msg !== 'object' || Array.isArray(msg)) return fail('not an object');
@@ -98,6 +108,7 @@ export function validateClientMessage(raw) {
     if (msg[k] === undefined) { if (optional) continue; return fail(`missing "${k}"`); }
     if (!check(msg[k])) return fail(`bad "${k}"`);
   }
+  if (msg.t !== 'saveWrite' && raw.length > NET_LIMITS.maxMessageBytes) return fail('too large');
   return { ok: true, msg };
 }
 

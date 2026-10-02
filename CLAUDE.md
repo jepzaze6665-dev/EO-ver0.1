@@ -1142,3 +1142,16 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   localStorage (save + tokens): the 2nd tab logging in with the same name kicks the 1st ('replaced').
   Tests tools/tests/online.test.mjs (8: two clients see each other, movement, left / offline, separate rooms, relogin,
   bad data). Checked in 2 browser tabs: names + class sprites, walking, disconnect removes the player; mapTour 9/9 online.
+  Done N3 (saves on the server): PROTOCOL_VERSION 3; client saveWrite { s: whole save text } (≤ NET_LIMITS.maxSaveBytes
+  256 KB, other messages stay ≤ 4 KB, ≤ 1 per saveInterval s) / saveRemove (New Game); server saveData { main, backup }
+  right after welcome + saveOk. `server/saves.js` SaveService: the previous readable main becomes the backup, saveRemove
+  keeps the old main as `deleted` (undo, never sent); only checks "JSON object with numeric v" — NOT authoritative yet
+  (N8 / N9). `server/store.js` JsonDirStore = one file per player in server/data/saves/. Browser `src/net/serverSave.js`
+  ServerSaveAdapter (same read / write / remove API as save/storage.js -> SaveSystem unchanged; `SAVE_KEY` / `BACKUP_KEY`
+  now exported from save.js): instant local copy, throttled send, newest-wins after a reconnect (savedAt). OnlineSession
+  makes it game.save.storage on 'saveData' and sets saveReady (title: Continue / New Game wait for it); a pre-online
+  browser save is uploaded ONCE to the first player with no server save (flag eclipse_online_local_save_moved).
+  `?offline` still uses localStorage. GOTCHA: the dev token lives in the browser storage of that ORIGIN — a preview server
+  on another port (autoPort) is a new origin, so an existing name answers "belongs to another player": use a new name
+  (or delete server/data/). Tests tools/tests/serverSave.test.mjs (9, incl. a server restart from the data folder);
+  checked in 2 tabs (separate saves per player), playthrough 17/17 online.

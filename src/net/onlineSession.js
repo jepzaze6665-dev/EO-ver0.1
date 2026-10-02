@@ -2,14 +2,20 @@
 //   - sends the local player's presence: 'pos' (map, x, y, facing, animation) at most ONLINE.sendRate a second and only
 //     when it changed (+ a resend every ONLINE.idleResend s), 'look' (class, level) when it changes, 'leave' on the title
 //   - keeps the other players of the shared city room (RemotePlayers) and draws them (renderer y-sort list + HUD names)
+//   - N3: keeps the player's saves on the server (ServerSaveAdapter becomes game.save.storage once 'saveData' arrives;
+//     saveReady = the title may offer Continue / New Game). A save left in this browser from before online play is
+//     uploaded once, to the first player who logs in with no server save.
 // Nothing here changes the local simulation: remote players are pictures with names.
 import { NetClient, NET_STATE } from './client.js';
 import { RemotePlayers } from './remotePlayers.js';
 import { ONLINE } from '../data/online.js';
 import { CLASSES, DEFAULT_CLASS } from '../skills/classes.js';
 import { dir4, TAU } from '../core/math.js';
+import { ServerSaveAdapter } from './serverSave.js';
+import { SAVE_KEY, BACKUP_KEY } from '../save/save.js';
 
 const NAME_KEY = 'eclipse_online_last_name';
+const CLAIM_KEY = 'eclipse_online_local_save_moved'; // the pre-online browser save was moved to this player
 const now = () => performance.now() / 1000;
 
 export class OnlineSession {
@@ -20,7 +26,12 @@ export class OnlineSession {
     this.sent = null;          // last 'pos' sent { m, x, y, d, a, k, at }
     this.sentLook = '';
     this.inWorld = false;
+    this.saves = new ServerSaveAdapter(this.net, { mainKey: SAVE_KEY, backupKey: BACKUP_KEY });
+    this.saveReady = false;
+    this.playerId = null;
     const n = this.net;
+    n.on('welcome', (m) => { if (m.id !== this.playerId) { this.saves.reset(); this.playerId = m.id; } });
+    n.on('saveData', (m) => this.onSaveData(m));
     n.on('roomState', (m) => this.remotes.setRoom(m.room, m.players, now()));
     n.on('pJoin', (m) => this.remotes.join(m.p, now()));
     n.on('pLeave', (m) => this.remotes.leave(m.id, m.why, now()));
@@ -29,10 +40,27 @@ export class OnlineSession {
     n.on('error', (m) => { if (m.code === 'roomFull') game.ui.toast(m.text, 3); });
     n.onState((s) => {
       // anything we knew about other players is stale once the line drops; after a reconnect send everything again
-      if (s !== NET_STATE.online) this.remotes.clear();
+      if (s !== NET_STATE.online) { this.remotes.clear(); this.saveReady = false; }
       this.sent = null; this.sentLook = '';
       game.ui.panels.onNetState?.(s);
     });
+  }
+
+  onSaveData(m) {
+    const won = this.saves.load(m);
+    if (!m.main && !m.backup && won === 'server') this.moveLocalSave();
+    this.game.save.storage = this.saves;
+    this.saveReady = true;
+    this.game.ui.panels.onNetState?.('saveReady');
+  }
+
+  moveLocalSave() {
+    let text = null;
+    try { if (!localStorage.getItem(CLAIM_KEY)) text = localStorage.getItem(SAVE_KEY); } catch { return; }
+    if (!text) return;
+    this.saves.write(SAVE_KEY, text);
+    try { localStorage.setItem(CLAIM_KEY, this.playerName || '?'); } catch { /* ignore */ }
+    this.game.ui.toast('Your save from this browser now lives on the server', 3);
   }
 
   get online() { return this.net.online; }

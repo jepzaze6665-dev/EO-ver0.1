@@ -7,10 +7,12 @@ import { EventEmitter } from 'events';
 import { acceptUpgrade } from './ws.js';
 import { DevAccounts } from './accounts.js';
 import { CityRooms } from './cityRooms.js';
+import { SaveService } from './saves.js';
+import { MemoryStore } from './store.js';
 import { PROTOCOL_VERSION, NET_LIMITS, NET_ERROR, validateClientMessage, encode } from '../src/net/protocol.js';
 
 export class GameServer extends EventEmitter {
-  constructor({ store, limits = {}, log = console } = {}) {
+  constructor({ store, saveStore = new MemoryStore(), limits = {}, log = console } = {}) {
     super();
     this.limits = { ...NET_LIMITS, ...limits };
     this.accounts = new DevAccounts(store);
@@ -24,6 +26,7 @@ export class GameServer extends EventEmitter {
     this.timer.unref?.();
     this.handle('ping', (s, m) => s.send('pong', { n: m.n, time: Date.now() }));
     this.city = new CityRooms(this);   // N2 shared cities
+    this.saves = new SaveService(this, saveStore);   // N3 saves
   }
 
   handle(type, fn) { this.handlers.set(type, fn); }
@@ -31,7 +34,7 @@ export class GameServer extends EventEmitter {
   // http server 'upgrade' event
   upgrade(req, socket) {
     if (!req.url.startsWith('/ws')) { socket.destroy(); return; }
-    const ws = acceptUpgrade(req, socket, { maxBytes: this.limits.maxMessageBytes });
+    const ws = acceptUpgrade(req, socket, { maxBytes: this.limits.maxSaveBytes + 1024 }); // per-type sizes: protocol.js
     if (!ws) return;
     const c = { ws, session: null, opened: Date.now(), lastSeen: Date.now(), lastPing: Date.now(), tokens: this.limits.ratePerSecond, warned: 0 };
     this.conns.add(c);

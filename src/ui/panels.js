@@ -109,7 +109,7 @@ export class Panels {
   // connection state changed (net/onlineSession.js): redraw the title's online box; in game, say why the line dropped
   onNetState(state) {
     const on = this.game.online;
-    if (this.current && this.current.name === 'title' && this.current.el.classList.contains('ts')) this.title(this.titleHasSave);
+    if (this.current && this.current.name === 'title' && this.current.el.classList.contains('ts')) this.title(on.saveReady ? this.game.save.exists() : this.titleHasSave);
     else if (this.game.state === 'play' && state === 'offline' && on.net.lastError) this.game.ui.toast('Offline: ' + on.net.lastError.text, 4);
   }
 
@@ -127,7 +127,7 @@ export class Panels {
       const n = on.lastName();
       if (n && on.net.tokens()[n.toLowerCase()]) return on.connect(n); // onNetState redraws the title
     }
-    const ready = devOffline || (on && on.online);
+    const ready = devOffline || (on && on.online && on.saveReady); // N3: saves come from the server after login
     const st = on ? on.state : 'offline', err = on && on.net.lastError;
     const netBox = devOffline ? '<div class="ts-net dev">DEV OFFLINE MODE (?offline)</div>'
       : on && on.online ? `<div class="ts-net ok">● Online as <b>${esc(on.playerName)}</b> <button data-a="logout">Change name</button></div>`
