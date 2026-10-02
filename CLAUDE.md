@@ -1043,6 +1043,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   SPLASH_CUT_BY per class (Aegis bg 12 for the grey AI noise by the head, Warden / Lumen 10, Oathbreaker bg 6 gap 0.4).
   Check images docs/ui/class_art_check_1.png / _2.png (on magenta).
   Prompts for the art: docs/ui/class_art_prompts.md. tools/tests/classArt.test.mjs.
+- CLASS TAB v2 = layout A (owner chose it from docs/ui/ECLIPSE_ONLINE_Class_Tab_Layouts.pdf): panels.inventory 'class' —
+  left = lineage (progression.lineage) as an emblem tree (gold BASE CLASS banner + CLASS n children; badges CURRENT / UNLOCKED /
+  TRIAL READY / LOCKED; requirement progress bar = met reqs + passed trial / total from progression.paths) + action card (Change to
+  X for an owned class via classChangeCheck, else PATH TO X = requirements + trial box, else a note); middle = class info (role,
+  identity, description, ratings in the class colour, resource, weapon, skill icons, strengths / weaknesses); right = the class
+  splash; bottom = class records as chips. Clicks: data-node / data-trial / data-abandon / data-change (unchanged handlers).
+  Preview docs/ui/class_tab.png.
 - SKILL TREE VIEW (owner reference, made to fit the game): Skills tab = src/ui/skillTreeUI.js — pure layoutTree(cls): special (Q) =
   root at the bottom, branches = unlock.requires chains (rows = depth in the branch, columns = leaves spread, parents over
   their children), ultimate = big gold diamond crowning every branch top; treeHTML = SVG curves (lit gold when both ends are

@@ -354,51 +354,56 @@ export class Panels {
         return `<div class="trial"><b>${esc(t.def.title)}</b>${t.def.objectives.map((o) => `<div class="muted small">• ${CLASS_COUNTERS[o.counter].label} ×${o.count}</div>`).join('')}<button data-trial="${x.node.id}" ${x.ready ? '' : 'disabled'}>${x.ready ? 'Begin trial' : 'Requirements not met'}</button></div>`;
       };
 
-      // ---- tree (SVG): one column per tier, children fanned out beside their parent
-      const STATE_LABEL = { current: 'CURRENT', owned: 'OWNED', unlocked: 'UNLOCKED', ready: 'TRIAL READY', locked: 'LOCKED', future: '—' };
-      const cols = {}; for (const t of tree) (cols[t.depth] ||= []).push(t);
-      const NW = 168, NH = 44, GX = 70, H = Math.max(...Object.values(cols).map((c) => c.length)) * (NH + 12) + 12;
-      const pos = {};
-      for (const [d, list] of Object.entries(cols)) list.forEach((t, i) => { pos[t.node.id] = { x: 10 + d * (NW + GX), y: 6 + (i + 0.5) * (H / list.length) - NH / 2 }; });
-      const W = 20 + (Object.keys(cols).length) * (NW + GX) - GX;
-      const lines = tree.filter((t) => t.node.parent && pos[t.node.parent]).map((t) => {
-        const a = pos[t.node.parent], b = pos[t.node.id], x1 = a.x + NW, y1 = a.y + NH / 2, x2 = b.x, y2 = b.y + NH / 2, mx = (x1 + x2) / 2;
-        return `<path class="edge ${t.state}" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}"/>`;
-      }).join('');
-      const nodes = tree.map((t) => { const q = pos[t.node.id]; return `<g class="tnode ${t.state} ${t.node.id === selId ? 'sel' : ''}" data-node="${t.node.id}" transform="translate(${q.x},${q.y})">
-          <rect width="${NW}" height="${NH}" rx="6"/><text x="10" y="18" class="tn">${esc(t.node.name)}</text>
-          <text x="10" y="34" class="ts">Tier ${t.node.tier} · ${STATE_LABEL[t.state]}</text></g>`; }).join('');
-      const treeSvg = `<svg class="class-tree" viewBox="0 0 ${W} ${H + 12}" width="${W}" height="${H + 12}">${lines}${nodes}</svg>`;
-
-      // ---- codex of the selected class
-      const src = selCls || selNode;
-      const ratings = selCls ? `<div class="ratings">${Object.entries({ Difficulty: selCls.difficulty, ...Object.fromEntries(Object.entries(selCls.ratings || {}).map(([k, v]) => [k[0].toUpperCase() + k.slice(1), v])) }).filter(([, v]) => v).map(([k, v]) => `<div><span>${k}</span><i class="pips">${'<b></b>'.repeat(v)}${'<u></u>'.repeat(5 - v)}</i></div>`).join('')}</div>` : '';
-      const sw = selCls && selCls.strengths ? `<div class="sw"><div><h4>Strengths</h4>${selCls.strengths.map((x) => `<div class="small">+ ${esc(x)}</div>`).join('')}</div><div><h4>Weaknesses</h4>${(selCls.weaknesses || []).map((x) => `<div class="small">− ${esc(x)}</div>`).join('')}</div></div>` : '';
-      const skillRow = (s, key) => `<div class="cx-skill"><img src="${skillIconURL(s)}"><div><b>${esc(s.name)}</b> <span class="muted small">${key ? '[' + key + '] · ' : ''}${s.type}${s.cooldown ? ' · CD ' + s.cooldown + 's' : ''}${s.cost ? ' · ' + s.cost + ' ' + RESOURCES[s.costResource || selCls.resource].label : ''}</span><div class="small">${esc(s.desc || '')}</div></div></div>`;
-      const skills = selCls ? `<h4>Skills</h4>${selCls.skills.map((s) => skillRow(s, s.ultimate ? '5' : '')).join('')}${selCls.special ? skillRow(selCls.special, 'Q') : ''}${passiveRows(selCls)}` : `<p class="muted small">Skills are revealed when this class arrives (Class 2 content).</p>`;
-      const res = selCls ? RESOURCES[selCls.resource].name : selNode.resource || '—';
-      const codex = `<div class="codex"><h3>${esc(src.name)} <span class="muted small">Tier ${selNode.tier} · ${esc(src.role || '')}</span></h3>
-          ${selCls && selCls.identity ? `<p class="identity">“${esc(selCls.identity)}”</p>` : ''}
-          <div class="small">${esc(src.description || '')}</div>
-          <div class="muted small">Resource: <b>${esc(res)}</b>${selCls && selCls.signatureWeapon ? ` · Signature weapon: <b>${esc(selCls.signatureWeapon)}</b>` : ''}</div>
-          ${selCls && selCls.loop ? `<div class="muted small">Gameplay loop: <b>${selCls.loop.map(esc).join(' → ')}</b></div>` : ''}
-          ${ratings}${sw}${skills}</div>`;
-
-      // ---- right side: path card for a reachable class, otherwise your classes + records
-      const path = prog.paths().find((x) => x.node.id === selId);
-      const card = path ? `<div class="path-card ${path.unlocked ? 'unlocked' : ''}"><div class="path-head"><b>Path to ${esc(path.node.name)}</b></div>
-          ${path.unlocked ? `<div class="req ok">✦ UNLOCKED — ${path.node.playable ? 'change to it under Your Classes' : 'playable when its Class 2 content arrives'}</div>` : path.reqs.map(reqRow).join('')}
-          ${trialBox(path)}</div>` : '';
-      const owned = [prog.startingClass, ...prog.unlocked].filter(Boolean).map((id) => {
-        const node = CLASS_TREE[id], chk = classChangeCheck(g, id), cur = id === p.cls.id;
-        const why = { not_playable: 'arrives with Class 2 content', combat: 'leave combat first', boss: 'not during a boss fight', dead: '' }[chk.reason] || '';
-        return `<div class="owned ${cur ? 'cur' : ''}"><b>${esc(node.name)}</b> <span class="muted small">Tier ${node.tier}</span>
-          ${cur ? '<span class="tag-cur">CURRENT</span>' : chk.ok ? `<button data-change="${id}">Change class</button>` : `<span class="muted small">${why}</span>`}</div>`;
-      }).join('');
-      const recs = Object.entries(rec).filter(([, v]) => v > 0).map(([k, v]) => `<div>${esc(CLASS_COUNTERS[k] ? CLASS_COUNTERS[k].label : k)} <b>${Math.floor(v)}</b></div>`).join('') || '<div class="muted">Nothing yet — fight!</div>';
-      body = `<div class="tree-wrap">${treeSvg}<div class="muted small">Click a class to read about it. Meet a path's requirements, then pass its trial to unlock it.</div></div>
-        <div class="class-layout">${codex}
-          <div>${card}<h3>Your Classes</h3>${owned}<h3>Class Records <span class="muted small">(${esc(p.cls.name)})</span></h3><div class="records">${recs}</div></div>
+      // ---- LAYOUT A (owner's choice, docs/ui/ECLIPSE_ONLINE_Class_Tab_Layouts.pdf): vertical lineage tree with emblems +
+      // path card on the left, class info in the middle, the class splash on the right, class records as chips at the bottom
+      const BADGE = { current: ['CURRENT', 'cur'], owned: ['UNLOCKED', 'open'], unlocked: ['UNLOCKED', 'open'], ready: ['TRIAL READY', 'ready'], locked: ['🔒 LOCKED', 'lock'], future: ['🔒 LOCKED', 'lock'] };
+      const badge = (st) => `<span class="ct-badge b-${BADGE[st][1]}">${BADGE[st][0]}</span>`;
+      const colorOf = (id) => (CLASSES[id] && CLASSES[id].theme && CLASSES[id].theme.color) || '#e8d7a5';
+      const paths = prog.paths();
+      const progressOf = (id, st) => {
+        if (st === 'current' || st === 'owned' || st === 'unlocked') return 1;
+        const x = paths.find((q) => q.node.id === id);
+        if (!x) return null;
+        const total = x.reqs.length + (x.trial ? 1 : 0), met = x.reqs.filter((r) => r.met).length + (x.trial && x.trial.state === 'passed' ? 1 : 0);
+        return total ? met / total : 0;
+      };
+      const root = tree.find((t) => t.depth === 0) || tree[0], kids = tree.filter((t) => t.depth > 0);
+      const node = (t, kind) => {
+        const id = t.node.id, pr = progressOf(id, t.state), dim = t.state === 'locked' || t.state === 'future';
+        return `<button class="ct-node ${kind}${id === selId ? ' sel' : ''}${dim ? ' dim' : ''}" data-node="${id}" style="--cc:${colorOf(id)};${t.depth > 1 ? `margin-left:${(t.depth - 1) * 26}px` : ''}">
+          <img class="ct-emb" src="assets/ui/class/${id}_emblem.png" alt="">
+          <span class="ct-txt"><small>${kind === 'base' ? 'BASE CLASS' : `CLASS ${t.node.tier}`}</small><b>${esc(t.node.name)}</b> ${badge(t.state)}
+          ${kind !== 'base' && pr !== null && pr < 1 ? `<span class="ct-prog"><i style="width:${Math.round(pr * 100)}%"></i></span>` : ''}</span></button>`;
+      };
+      const path = paths.find((x) => x.node.id === selId);
+      const selState = (tree.find((t) => t.node.id === selId) || {}).state;
+      const chk = (selState === 'owned' || selState === 'unlocked') && selId !== p.cls.id ? classChangeCheck(g, selId) : null;
+      const why = chk && !chk.ok ? ({ not_playable: 'arrives with Class 2 content', combat: 'leave combat first', boss: 'not during a boss fight' }[chk.reason] || '') : '';
+      const action = selId === p.cls.id ? `<div class="ct-note">You are playing this class.</div>`
+        : chk ? (chk.ok ? `<button class="ct-go" data-change="${selId}" style="--cc:${colorOf(selId)}">Change to ${esc(selNode.name)}</button>` : `<div class="ct-note">${esc(why)}</div>`)
+        : path ? `<div class="k" style="color:${colorOf(selId)}">PATH TO ${esc(path.node.name.toUpperCase())}</div>
+            ${path.unlocked ? `<div class="req ok">✦ UNLOCKED</div>` : path.reqs.map(reqRow).join('')}${trialBox(path)}`
+        : `<div class="ct-note">🔒 Reach this class through its parent class first.</div>`;
+      const rate = (label, v) => `<div><span>${label}</span><i>${[1, 2, 3, 4, 5].map((k) => `<b class="${k <= (v || 0) ? 'on' : ''}"></b>`).join('')}</i></div>`;
+      const sr = (selCls && selCls.ratings) || {};
+      const info = selCls ? `<div class="ct-role">${esc(selCls.role || '')}</div>
+          ${selCls.identity ? `<div class="ct-quote">“${esc(selCls.identity)}”</div>` : ''}
+          <div class="ct-desc">${esc(selCls.description || selNode.description || '')}</div>
+          <div class="ct-rates">${rate('Difficulty', selCls.difficulty)}${rate('Damage', sr.damage)}${rate('Defense', sr.defense)}${rate('Range', sr.range)}${rate('Mobility', sr.mobility)}${sr.support ? rate('Support', sr.support) : ''}</div>
+          <div class="ct-res">Resource <b>${esc(RESOURCES[selCls.resource].name)}</b>${selCls.signatureWeapon ? ` · Weapon <b>${esc(selCls.signatureWeapon)}</b>` : ''}</div>
+          <div class="ct-skills">${[...selCls.skills, selCls.special].filter(Boolean).map((s) => `<img src="${skillIconURL(s)}" title="${esc(s.name)}" alt="">`).join('')}</div>
+          ${selCls.strengths ? `<div class="ct-sw"><div><b class="good">STRENGTHS</b>${selCls.strengths.map((x) => `<div>+ ${esc(x)}</div>`).join('')}</div><div><b class="bad">WEAKNESSES</b>${(selCls.weaknesses || []).map((x) => `<div>− ${esc(x)}</div>`).join('')}</div></div>` : ''}`
+        : `<div class="ct-desc">${esc(selNode.description || '')}</div><p class="muted small">Skills are revealed when this class arrives.</p>`;
+      const chips = Object.entries(rec).filter(([, v]) => v > 0).map(([k, v]) => `<span>${esc(CLASS_COUNTERS[k] ? CLASS_COUNTERS[k].label : k)} <b>${Math.floor(v)}</b></span>`).join('') || '<span class="muted">Nothing yet — fight!</span>';
+      body = `<div class="ct-layout" style="--cc:${colorOf(selId)}">
+          <img class="ct-splash" src="assets/ui/class/${selId}_splash.png" alt="">
+          <div class="ct-left">
+            ${node(root, 'base')}
+            <div class="ct-kids">${kids.map((t) => node(t, 'mastery')).join('')}</div>
+            <div class="ct-path">${action}</div>
+          </div>
+          <div class="ct-info">${info}</div>
+          <div class="ct-records"><div class="k">CLASS RECORDS · ${esc(p.cls.name.toUpperCase())}</div><div class="ct-chips">${chips}</div></div>
         </div>`;
     } else if (this.invTab === 'knowledge') {
       const list = g.knowledge.view();
