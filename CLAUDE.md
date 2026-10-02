@@ -1027,6 +1027,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   connected to the edge removed + soft glow edge, cropped; icon = 64 px emblem = favicon in index.html). Title screen = .ts-art
   background + .ts-shade + logo image + embers + text menu at the bottom (the drawn rune layers remain only as CSS, unused).
   Preview docs/ui/title_screen.png.
+  LOADING SCREEN (index.html #loading + main.js): blurred dimmed title bg, eclipse emblem turning (24 s) with a breathing glow, logo,
+  gold progress bar with a diamond tip + %, status label, TIPS (gameplay / lore, main.js TIPS) every 4.5 s; .done = fade out 0.6 s
+  then removed. Preview docs/ui/loading_screen.png.
 - GUARD HOLD VFX (owner): Player.drawGuardFx — every class with guard data shows its guard.fx strip (AG ag_emblem, Warden
   dw_shield, Bulwark bs_aegis, Oathbreaker ok_brand) in front of the body toward the aim WHILE the guard is held (intro frames
   0-3, glow loop 1-2, fade 4-5 after release; behind the body when aiming up). Data guard.hold { intro, loop, out, fps, scale,

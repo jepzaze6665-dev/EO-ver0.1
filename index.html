@@ -210,7 +210,15 @@
 <body>
   <canvas id="game"></canvas>
   <div id="ui"></div>
-  <div id="loading"><div class="t">ECLIPSE ONLINE</div><div class="bar"><i></i></div><div class="label">Loading sprite sheets…</div></div>
+  <div id="loading">
+    <div class="ld-bg"></div>
+    <div class="ld-center"><div class="ld-seal"><img src="assets/ui/title/emblem.png" alt=""></div><img class="ld-logo" src="assets/ui/title/logo.png" alt="ECLIPSE ONLINE"></div>
+    <div class="ld-bottom">
+      <div class="ld-row"><span class="label">Loading sprite sheets…</span><span class="ld-pct">0%</span></div>
+      <div class="bar"><i></i></div>
+      <div class="ld-tip"></div>
+    </div>
+  </div>
   <script type="module" src="src/main.js"></script>
 </body>
 </html>
