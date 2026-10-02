@@ -68,6 +68,8 @@ export class BossSystem {
       if (!this.onMap(enc) && !isFighting(enc.state)) continue;
       const e = this.entityOf(enc);
       if (!e) continue;
+      // ONLINE N7c: a guest of a run map does not run this fight — the host does (net/bossSync.js mirrors its state)
+      if (e.netPuppet || (g.online && g.online.mobs.isPaused(enc.def.map))) { if (enc.def.impl === 'area') e.update(dt); continue; }
       if (enc.def.impl === 'area') e.update(dt);
       const a = this.arenaPx(enc);
       const inside = dist(p.x, p.y, a.x, a.y);

@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 11;
+export const PROTOCOL_VERSION = 12;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -39,7 +39,7 @@ const FIELD = {
   save: (v) => typeof v === 'string' && v.length <= NET_LIMITS.maxSaveBytes,
   dmg: (v) => Number.isInteger(v) && v >= 0 && v <= 1000000,
   mobRows: (v) => Array.isArray(v) && v.length <= NET_LIMITS.maxMobRows && v.every(validMobRow),
-  mobActKind: (v) => v === 'tel' || v === 'proj',
+  mobActKind: (v) => ['tel', 'proj', 'btel', 'bhit', 'bproj'].includes(v), // b* = N7c boss: telegraph (visual) / strike / shots
   fxCalls: (v) => Array.isArray(v) && v.length <= 60 && v.every((c) => Array.isArray(c) && c.length <= 10 && FX_METHODS.includes(c[0]) && c.slice(1).every((a) => validActData(a, 1))),
   fxShots: (v) => Array.isArray(v) && v.length <= 16 && v.every((s) => s && typeof s === 'object' && !Array.isArray(s) && validActData(s, 1)),
   actData: (v) => validActData(v),
@@ -97,7 +97,8 @@ export const CLIENT_MESSAGES = {
   mobHit: { id: 'slug', dmg: 'dmg', st: 'number?', kb: 'number?', ang: 'number?', crit: 'bool?' }, // my hit on the host's monster
   mobAct: { id: 'slug', k: 'mobActKind', d: 'actData' },
   revive: { to: 'slug' },
-  fx: { c: 'fxCalls', s: 'fxShots' },                    // my skill effects (presentation only), relayed to my room                                // I held [E] long enough next to this downed teammate  // N7b host only: a monster started an attack / fired shots
+  fx: { c: 'fxCalls', s: 'fxShots' },
+  boss: { b: 'actData' },                                // N7c host only: boss snapshot { id, st, x, y, f, pose, state, phase, hp, max, dead, air, hurt, vul, move, tags }                    // my skill effects (presentation only), relayed to my room                                // I held [E] long enough next to this downed teammate  // N7b host only: a monster started an attack / fired shots
   // N5 dungeon gate (server/dungeons.js)
   dungeonEnter: { area: 'slug' },                        // solo entry
   dungeonPropose: { area: 'slug' },                      // party leader: ask every member to enter together
@@ -138,7 +139,7 @@ export const SERVER_MESSAGES = {
   // mobs / mobAct (relayed as sent) · mobHit (relayed to the host, + from: player id)
   // N7b: room rows / moves carry the HP share h (0 = down): entry [id, name, x, y, d, a, k, c, l, h, dn], move [id, x, y, d, a, k, snap, h, dn]
   revived: { by: 'string' },
-  // fx (relayed + from: player id)                             // a teammate revived you (server checked it)
+  // fx (relayed + from: player id) · boss (relayed as sent)                             // a teammate revived you (server checked it)
 };
 
 export const NET_ERROR = {

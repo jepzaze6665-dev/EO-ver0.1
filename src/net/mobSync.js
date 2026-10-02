@@ -12,13 +12,14 @@
 // when a monster STARTS an attack it sends 'mobAct' — 'tel' (the telegraph shape, timing, final power, knock / guard break /
 // status) or 'proj' (the shots it fired) — and each guest plays it on its own puppet and resolves it against ITSELF
 // (telegraph end -> combat.enemyStrike; dash = touching the puppet while its charge is active; shots = local projectiles),
-// so dodge / guard / parry timing is always the guest's own. Bosses are not synced yet (N7c).
+// so dodge / guard / parry timing is always the guest's own. N7c BOSSES: net/bossSync.js (this.bosses).
 import { ONLINE } from '../data/online.js';
 import { MOB_STATES, MOB_PHASES } from './protocol.js';
 import { TEAM } from '../core/constants.js';
 import { Monster } from '../monsters/monster.js';
 import { StatusSet } from '../status/status.js';
 import { CLASSES } from '../skills/classes.js';
+import { BossSync } from './bossSync.js';
 
 const SHAPES = new Set(['circle', 'ring', 'cone', 'line']);
 const clampN = (v, lo, hi, d = 0) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : d);
@@ -39,8 +40,9 @@ export class MobSync {
     this.counter = 0;
     this.lastSend = 0; this.lastFull = 0;
     this.allies = new Map();     // host: player id -> ally proxy (a guest in this room)
+    this.bosses = new BossSync(this); // N7c
     const n = session.net;
-    n.on('mobAct', (m) => this.onMobAct(m));
+    n.on('mobAct', (m) => (m.k && m.k[0] === 'b' ? !this.host && this.bosses.onAct(m.id, m.k, m.d) : this.onMobAct(m)));
     n.on('roomHost', (m) => this.setHost(m));
     n.on('mobs', (m) => this.onMobs(m));
     n.on('mobHit', (m) => this.onRemoteHit(m));
@@ -79,10 +81,12 @@ export class MobSync {
       this.game.combat.telegraphs.clear();
     }
     this.host = false;
+    this.bosses.setPuppets(true);
   }
 
   becomeHost() {
     this.clearPuppets();
+    this.bosses.setPuppets(false);
     if (!this.host || this.paused.size) this.restore(this.mapId);
     this.host = true;
     this.lastFull = 0; this.sent.clear();
@@ -99,7 +103,7 @@ export class MobSync {
     }
   }
 
-  reset() { this.clearPuppets(); this.restore(null); this.room = null; this.host = true; this.sent.clear(); this.dropAllies(); }
+  reset() { this.clearPuppets(); this.bosses.setPuppets(false); this.restore(null); this.room = null; this.host = true; this.sent.clear(); this.dropAllies(); }
 
   clearPuppets() {
     if (!this.puppets.size) return;
@@ -147,6 +151,7 @@ export class MobSync {
 
   update() {
     const s = this.session, g = this.game;
+    if (this.host && g.state === 'play') this.bosses.update(); // N7c: every frame (shots are batched per frame)
     if (!this.host || !this.room || !this.room.includes(':') || !s.online || g.state !== 'play') return;
     if (!s.remotes.list.some((r) => !r.leaving)) return; // alone in the room: nothing to send
     const t = now();
@@ -179,6 +184,7 @@ export class MobSync {
   // a guest's hit on one of our monsters (relayed by the server)
   onRemoteHit(msg) {
     if (!this.host) return;
+    if (msg.id.startsWith('b_')) return this.bosses.applyHit(msg); // N7c: a hit on our boss
     const m = this.world.monsters.find((x) => x.netId === msg.id && !x.puppet);
     if (!m || m.dead) return;
     const r = this.session.remotes.get(msg.from);

@@ -241,6 +241,7 @@ export class Guardian extends Entity {
 
   // ---------------- update
   update(dt) {
+    if (this.netPuppet) return this.game.online.mobs.bosses.puppetUpdate(this, dt); // ONLINE N7c: the host's boss on a guest
     const g = this.game;
     this.animT += dt;
     if (this.state === 'fight') this.poise.update(dt);

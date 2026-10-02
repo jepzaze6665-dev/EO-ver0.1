@@ -33,6 +33,7 @@ export class CityRooms {
     });
     // friends' skill effects: anyone in a room, to the others there (presentation only)
     server.handle('fx', (s, m) => { const r = s.presence?.room; if (r) this.send(r, 'fx', { c: m.c, s: m.s, from: s.id }, s); });
+    server.handle('boss', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'boss', { b: m.b }, s); });
     server.handle('mobAct', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'mobAct', { id: m.id, k: m.k, d: m.d }, s); });
     server.handle('mobs', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'mobs', { ps: m.ps, full: m.full }, s); });
     server.handle('mobHit', (s, m) => {

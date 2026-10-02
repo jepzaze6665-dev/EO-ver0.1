@@ -1258,3 +1258,22 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   systems, damage numbers of friends' hits. GOTCHA for tests: call skills through the input inside a step (as the key press
   does) — a trySkill() from the console runs outside the recording. Checked in 2 tabs: all 6 Astral Weaver skills replay
   (sprites 24, afterimages 14, bursts, rings, lights, shots), the ult circle shows on the other screen.
+  Done N7c (bosses in party runs, src/net/bossSync.js = game.online.mobs.bosses): PROTOCOL_VERSION 12: client boss { b }
+  (host only, relayed) + mobAct kinds btel / bhit / bproj (id 'b_<boss id>'). HOST: BossSync.install wraps
+  combat.enemyStrike (a boss / its mechanic's strike -> 'bhit' with shape + RAW power + knock / type / guardBreak /
+  unblockable / status), telegraphs.add (boss-owned -> 'btel', visual) and projectiles.fire (boss shots batched per frame
+  -> 'bproj'); BossSync.update (from MobSync.update every frame while hosting) sends snapshots { id, st (encounter state),
+  x, y, f, pose, state, phase, hp, max, dead, air, hurt, vul, move, tags } 10 / s while fighting + on every change. A guest's
+  hit 'mobHit' id 'b_..' -> applyHit (× the host boss's damageTakenMult, e.g. Heartwood Ward; onHurt floors / phases; death on
+  the host only). GUEST: becomeGuest -> setPuppets(true): the map's boss entities get netPuppet + puppet + netDamage;
+  AreaBoss.update / Guardian.update -> BossSync.puppetUpdate (interpolated position, timers); BossSystem.update skips
+  encounters that are puppets / on a paused map; onBoss mirrors the encounter state (engage = boss bar or world.bossActive
+  for the Guardian, camera lock, boss music, title; phase callouts; vulnerable status; HUD tags via a hudState override) and
+  plays the defeat (BossSystem.onEntityDeath / Game.onBossDefeated -> complete -> rewards + unlock for this member).
+  Guest strikes resolve against OUR player with the puppet as attacker (same levelPowerMult as the host's boss). Puppet
+  strikes / telegraphs / shots are never re-sent (netPuppet / netCopy guards). setPuppets(false) on becoming host / run end
+  (a puppet that was fighting resets: its fight was the host's). NOT yet: bosses choose moves around the host only; mechanic
+  damage outside enemyStrike / projectiles and mechanic world objects (pylons, clusters, chain posts, lava tiles) are not
+  mirrored. Checked in 2 tabs on Hollow Fang (A1 mini): guest sees the puppet + bar, its hits 70 + 47 move the host's HP,
+  boss strikes hurt the guest like the host (50 vs 51), guest's final blow -> host decides -> both defeated + same rewards
+  (144 EXP, 200 G); solo in ?offline: bossReset 4 · b1BossCheck 11 · bossArena 6 · routeA 26.

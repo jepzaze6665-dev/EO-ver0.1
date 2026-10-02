@@ -41,6 +41,7 @@ export class OnlineSession {
     this.revive = new NetRevive(this); // revive teammates on other clients
     this.fx = new NetFx(this);         // friends' skill effects
     this.fx.install();
+    this.mobs.bosses.install(); // N7c: host boss telegraphs / strikes / shots go to the guests
     this.saveReady = false;
     this.playerId = null;
     const n = this.net;
