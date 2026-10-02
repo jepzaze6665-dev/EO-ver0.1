@@ -153,6 +153,7 @@ export class Renderer {
     if (game.bosses) for (const b of game.bosses.entities()) if (cam.visible(b.x, b.y, 160)) list.push({ y: b.y, e: b });
     for (const s of world.rootSpikes) list.push({ y: s.y, spike: s });
     if (game.summons) for (const s of game.summons.list) if (cam.visible(s.x, s.y, 60)) list.push({ y: s.y, summon: s });
+    if (game.online) for (const r of game.online.drawables()) if (cam.visible(r.x, r.y, 60)) list.push({ y: r.y, e: r }); // other players (shared city)
     const pl = game.player;
     list.push({ y: pl.y, e: pl, isPlayer: true });
     list.sort((a, b) => a.y - b.y);

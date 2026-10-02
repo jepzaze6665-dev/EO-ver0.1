@@ -52,6 +52,7 @@ import { MARKS } from '../data/marks.js';
 import { STATUSES } from '../data/statuses.js';
 import { ITEMS } from '../items/items.js';
 import { drawDebug, debugInfo } from '../ui/debugOverlay.js';
+import { OnlineSession } from '../net/onlineSession.js';
 
 const STEP = 1 / 60;
 
@@ -84,6 +85,8 @@ export class Game {
     this.acc = 0; this.last = 0;
     this.timers = [];
     this.debug = false;
+    // ONLINE (src/net/onlineSession.js): connection + other players in shared cities; lives for the whole page
+    this.online = new OnlineSession(this);
     this.fps = 60; this.fpsAcc = 0; this.fpsN = 0;
     const unlock = () => { this.audio.init(); };
     window.addEventListener('pointerdown', unlock);
@@ -515,6 +518,7 @@ export class Game {
       this.ui.update(dt);
       this.input.endFrame();
     }
+    this.online.update();
     this.renderer.render(this);
     const c = this.renderer.ctx;
     if (this.state === 'play') this.ui.draw(c, this.canvas.width, this.canvas.height);
@@ -537,6 +541,7 @@ export class Game {
       if (perStep) perStep(this, i);
       if (this.state === 'play' && !this.ui.panelOpen) this.update(STEP);
       this.input.endFrame();
+      this.online.update(); // throttled by real time (ONLINE.sendRate)
     }
     this.renderer.render(this);
     if (this.state === 'play') this.ui.draw(this.renderer.ctx, this.canvas.width, this.canvas.height);

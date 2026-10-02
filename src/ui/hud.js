@@ -15,6 +15,8 @@ import { STATUSES } from '../data/statuses.js';
 import { REQUIREMENTS } from '../combat/skillSystem.js';
 import { ROUTES } from '../data/routes.js';
 import { MAP_MARKERS } from '../data/mapMarkers.js';
+import { ONLINE } from '../data/online.js';
+import { CLASSES } from '../skills/classes.js';
 
 const FONT = '"Segoe UI", "Noto Sans Thai", sans-serif'; // body text (theme.css --font-body)
 const TITLE = 'Kanit, "Segoe UI", sans-serif'; // titles / numbers (theme.css --font-title)
@@ -119,6 +121,7 @@ export class HUD {
     this.drawPlayerFrame(ctx, u);
     this.drawSkillBar(ctx, W, H, u);
     this.drawMinimap(ctx, W, u);
+    this.drawNet(ctx, W, u);
     this.drawQuests(ctx, W, u);
     ctx.globalAlpha = this.questA ?? 1; this.drawRoute(ctx, u); ctx.globalAlpha = 1; // fades with the quest tracker
     this.drawBoss(ctx, W, u);
@@ -552,6 +555,20 @@ export class HUD {
     return pos;
   }
 
+  // connection chip on the minimap: ● ONLINE n ms / RECONNECTING / OFFLINE (+ players here)
+  drawNet(ctx, W, u) {
+    const o = this.game.online;
+    if (!o || (o.state === 'offline' && !o.net.name && !o.wasOnline)) return;
+    if (o.online) o.wasOnline = true;
+    const st = o.state, col = st === 'online' ? '#7dffa0' : st === 'offline' ? '#ff7070' : '#ffd060';
+    const here = o.remotes.room === this.game.world.mapId ? o.remotes.list.filter((r) => !r.leaving).length : 0;
+    const label = st === 'online' ? `ONLINE${o.net.latency != null ? '  ' + o.net.latency + ' ms' : ''}${here ? '  ·  ' + here + ' here' : ''}`
+      : st === 'offline' ? 'CONNECTION LOST' : 'RECONNECTING…';
+    const x = W - 18 * u - 190 * u + 6 * u, y = 18 * u + 13 * u; // inside the minimap's top-left corner
+    this.text(ctx, '●', x, y, 8 * u, col);
+    this.text(ctx, label, x + 10 * u, y, 7.5 * u, col);
+  }
+
   drawMinimap(ctx, W, u) {
     const g = this.game, p = g.player, map = g.world.map;
     this.miniT -= 1 / 60;
@@ -866,6 +883,13 @@ export class HUD {
       if (m.status.has('vulnerable')) this.text(ctx, 'VULNERABLE', s.x, s.y - 22 * u, 9 * u, '#9af8ff', { align: 'center' });
       this.drawMarks(ctx, u, m, s.x, s.y + 14 * u);
       this.drawStatuses(ctx, u, m, s.x, s.y - 34 * u);
+    }
+    // other players in a shared city (net/onlineSession.js): name + level, class colour tick
+    if (g.online) for (const r of g.online.remotes.list) {
+      if (r.leaving || g.online.remotes.room !== g.world.mapId || Math.hypot(r.x - p.x, r.y - p.y) > ONLINE.nameRange) continue;
+      const s = this.toScreen(r.x, r.y - 66), c = CLASSES[r.cls];
+      this.text(ctx, r.name, s.x, s.y - 11 * u, 11 * u, '#ffffff', { align: 'center' });
+      this.text(ctx, `Lv.${r.level}${c ? '  ' + c.name : ''}`, s.x, s.y, 8.5 * u, (c && c.theme && c.theme.color) || '#c8c0d8', { align: 'center' });
     }
     for (const n of g.world.npcs) {
       if (n.secret && !g.world.map.secretsFound.has(n.secret)) continue;

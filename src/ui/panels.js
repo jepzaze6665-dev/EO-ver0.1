@@ -22,6 +22,7 @@ import { itemTooltipHTML, swapPreview } from './itemTooltip.js';
 import { charHeaderHTML, charTabsHTML, equipmentTabHTML, startHeroPreview, UI_ICON } from './charWindow.js';
 import { treeHTML, nodeState } from './skillTreeUI.js';
 import { npcPanelHTML, npcRow, goldTag } from './npcPanel.js';
+import { validName } from '../net/protocol.js';
 
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
@@ -105,25 +106,65 @@ export class Panels {
     this.game.input.clearAll();
   }
 
+  // connection state changed (net/onlineSession.js): redraw the title's online box; in game, say why the line dropped
+  onNetState(state) {
+    const on = this.game.online;
+    if (this.current && this.current.name === 'title' && this.current.el.classList.contains('ts')) this.title(this.titleHasSave);
+    else if (this.game.state === 'play' && state === 'offline' && on.net.lastError) this.game.ui.toast('Offline: ' + on.net.lastError.text, 4);
+  }
+
   // ---------------- title
   title(hasSave) {
     // TITLE SCREEN: the owner's art (tools/build-title.js -> assets/ui/title: bg.png = eclipse over the valley, logo.png =
     // ECLIPSE ONLINE metal logo) + a dark shade for the menu + embers (a small canvas loop that stops when the screen closes).
+    // ONLINE (N2): the game is online-only -> Continue / New Game wait for a connection. The name box is the DEV identity
+    // (server/accounts.js: name + a token kept in this browser). DEV ONLY: ?offline in the URL skips the connection.
+    const on = this.game.online, devOffline = /[?&]offline\b/.test(location.search);
+    // a reload: this browser already owns the last name (token kept) -> log straight back in, once per page
+    this.titleHasSave = hasSave;
+    if (on && !devOffline && !on.autoTried && on.state === 'offline') {
+      on.autoTried = true;
+      const n = on.lastName();
+      if (n && on.net.tokens()[n.toLowerCase()]) return on.connect(n); // onNetState redraws the title
+    }
+    const ready = devOffline || (on && on.online);
+    const st = on ? on.state : 'offline', err = on && on.net.lastError;
+    const netBox = devOffline ? '<div class="ts-net dev">DEV OFFLINE MODE (?offline)</div>'
+      : on && on.online ? `<div class="ts-net ok">● Online as <b>${esc(on.playerName)}</b> <button data-a="logout">Change name</button></div>`
+      : `<form class="ts-net" data-a="login"><input name="nm" maxlength="16" placeholder="Character name" value="${esc((on && on.lastName()) || '')}" autocomplete="off" spellcheck="false">
+          <button type="submit" ${st === 'connecting' || st === 'reconnecting' ? 'disabled' : ''}>${st === 'connecting' ? 'Connecting…' : st === 'reconnecting' ? 'Reconnecting…' : 'Connect'}</button>
+          ${err ? `<div class="ts-net-err">${esc(err.text)}</div>` : ''}</form>`;
     const el = this.show('title', `
       <div class="ts-bg ts-art"><div class="ts-shade"></div><canvas class="ts-embers"></canvas></div>
       <div class="ts-wrap">
         <img class="ts-logo-img" src="assets/ui/title/logo.png" alt="Eclipse Online">
+        ${netBox}
         <nav class="ts-menu">
-          ${hasSave ? '<button data-a="continue">Continue</button>' : ''}
-          <button data-a="new">New Game</button>
+          ${hasSave ? `<button data-a="continue" ${ready ? '' : 'disabled'}>Continue</button>` : ''}
+          <button data-a="new" ${ready ? '' : 'disabled'}>New Game</button>
           <button data-a="controls">Controls</button>
         </nav>
         <div class="ts-foot">Dark Fantasy Action RPG · Prototype</div>
       </div>`, 'title ts');
+    this.titleHasSave = hasSave;
     startEmbers(el.querySelector('.ts-embers'));
+    const form = el.querySelector('form.ts-net');
+    if (form) {
+      const inp = form.querySelector('input');
+      if (st === 'offline') setTimeout(() => inp.focus(), 50);
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const n = inp.value.trim().replace(/\s+/g, ' '), bad = validName(n);
+        if (bad) { this.game.ui.toast('Name: ' + bad, 2); return; }
+        on.connect(n);
+        this.title(hasSave);
+      });
+    }
     el.addEventListener('click', (e) => {
       const t = e.target.closest('[data-a]');
       const a = t && t.dataset.a;
+      if (t && t.disabled) return;
+      if (a === 'logout') { on.logout(); this.title(hasSave); }
       if (a === 'new') this.classSelect(hasSave);
       if (a === 'continue') this.game.continueGame();
       if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.title(hasSave), true);

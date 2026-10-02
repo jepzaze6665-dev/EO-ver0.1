@@ -235,6 +235,17 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 .ts-menu button:hover:not(:disabled) { background: none; border: 0; color: #fff4e0; text-shadow: 0 0 14px rgba(255, 150, 70, 0.75), 0 2px 6px #000; }
 .ts-menu button:hover::before, .ts-menu button:hover::after { content: "◆"; position: absolute; top: 50%; transform: translateY(-50%); font-size: 0.45em; color: #ff9a50; }
 .ts-menu button:hover::before { left: 4px; } .ts-menu button:hover::after { right: 4px; }
+.ts-menu button:disabled { opacity: 0.35; cursor: default; }
+/* ONLINE (N2): name box / connection line on the title screen */
+.ts-net { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin: 0.4vh 0 1vh;
+  font: 400 14px var(--font-body); color: #d8d0c4; text-shadow: 0 2px 6px #000; }
+.ts-net input { width: 210px; padding: 7px 12px; background: rgba(8, 6, 14, 0.72); border: 1px solid rgba(240, 225, 200, 0.35); border-radius: 3px;
+  color: #fff4e0; font: 500 15px var(--font-body); letter-spacing: 0.5px; outline: none; }
+.ts-net input:focus { border-color: rgba(255, 170, 90, 0.8); box-shadow: 0 0 10px rgba(255, 140, 60, 0.35); }
+.ts-net button { padding: 7px 16px; font-size: 13px; }
+.ts-net.ok b { color: #fff4e0; } .ts-net.ok { color: #9dffb4; }
+.ts-net.dev { color: #ffcf70; letter-spacing: 2px; font-size: 12px; }
+.ts-net-err { flex-basis: 100%; text-align: center; color: #ff9a8a; font-size: 13px; }
 .ts-foot { font-size: 11px; letter-spacing: 3px; color: rgba(190, 180, 165, 0.4); text-transform: uppercase; }
 @keyframes ts-flicker { 0%, 100% { opacity: 0.85; } 45% { opacity: 1; } 60% { opacity: 0.7; } }
 @keyframes ts-breathe { 50% { opacity: 0.6; } }

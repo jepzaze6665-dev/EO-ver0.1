@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // a client frame larger than this closes the connection
@@ -26,12 +26,22 @@ const FIELD = {
   bool: (v) => typeof v === 'boolean',
   name: (v) => typeof v === 'string' && validName(v) === null,
   token: (v) => typeof v === 'string' && /^[a-f0-9]{32,64}$/.test(v),
+  slug: (v) => typeof v === 'string' && /^[A-Za-z0-9_]{1,24}$/.test(v),   // map / class / animation ids
+  coord: (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100000,
+  dir: (v) => v === 0 || v === 1 || v === 2 || v === 3,                   // dir4: down, up, right, left
+  unit: (v) => typeof v === 'number' && v >= 0 && v <= 1,
+  level: (v) => Number.isInteger(v) && v >= 1 && v <= 99,
 };
 
 // client -> server
 export const CLIENT_MESSAGES = {
   hello: { v: 'int', name: 'name', token: 'token?' },   // log in (DEV identity: name + token, server/accounts.js)
   ping: { n: 'int?' },                                   // keep-alive / latency probe (server answers 'pong')
+  // N2 presence (src/net/onlineSession.js): where I am + what I look like. Shared-city positions are NOT authoritative
+  // (no combat there); dungeon movement gets server checks in N7.
+  pos: { m: 'slug', x: 'coord', y: 'coord', d: 'dir', a: 'slug', k: 'unit?' },  // map, position, facing, anim, anim progress
+  look: { c: 'slug', l: 'level' },                       // class id + level (sent on change)
+  leave: {},                                             // left the world (title screen)
 };
 
 // server -> client (documented here, the client does not validate them strictly)
@@ -40,6 +50,12 @@ export const SERVER_MESSAGES = {
   pong: { n: 'int?', time: 'number' },
   error: { code: 'string', text: 'string' },
   kicked: { code: 'string', text: 'string' },          // the server is closing this connection on purpose
+  // N2 shared city rooms (server/cityRooms.js). A player entry = [id, name, x, y, d, a, k, c, l]
+  roomState: { room: 'string', players: 'array' },      // you joined a room: everyone already there
+  pJoin: { p: 'array' },                                 // someone entered your room
+  pLeave: { id: 'string', why: 'string' },               // 'left' (another map) | 'offline' (disconnected)
+  moves: { ps: 'array' },                                // batched movement: [id, x, y, d, a, k, snap]
+  pLook: { id: 'string', c: 'string', l: 'int' },
 };
 
 export const NET_ERROR = {
@@ -53,6 +69,7 @@ export const NET_ERROR = {
   replaced: 'replaced',   // the same player logged in somewhere else
   timeout: 'timeout',
   server: 'server',       // unexpected server error (the server keeps running)
+  roomFull: 'roomFull',   // the shared city room is full: you still play, alone
 };
 
 // null = ok, else a short reason

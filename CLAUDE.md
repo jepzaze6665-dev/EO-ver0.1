@@ -1128,3 +1128,17 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   = MemoryStore / JsonFileStore (atomic rename, damaged file moved aside). Browser `src/net/client.js` NetClient (states
   offline / connecting / online / reconnecting with backoff, token per name in localStorage, latency). Not wired into the
   game UI yet (N2). Tests tools/tests/net.test.mjs (13, real server on a free port + real WebSocket clients).
+  Done N2 (shared cities): rules `src/data/online.js` (ONLINE: sharedMaps lumina + city2 = non-secret 'city' maps — Valehaven
+  stays in the dungeon; sendRate 10, serverTick 10, interpDelay 0.12 s, maxSpeed, nameRange, room cap). PROTOCOL_VERSION 2:
+  client pos { m, x, y, d (dir4), a (anim), k (one-shot progress) } / look { c, l } / leave; server roomState / pJoin /
+  pLeave (why left | offline) / moves (batched, movers only, `snap` = faster than maxSpeed = teleport) / pLook.
+  `server/cityRooms.js` (game.city on the GameServer): a session's last pos on a shared map = in that room; city positions
+  are NOT authoritative (no combat there). Browser: `src/net/remotePlayers.js` (snapshot buffer, drawn interpDelay in the
+  past, snaps never smeared, fade-out on leave) + `src/net/onlineSession.js` = `game.online` (lives for the page, made in
+  the Game constructor; update() every frame + in simulate(); sends only on change, resend every 2 s; drawables() go into
+  the renderer y-sort; HUD shows remote name + Lv + class and a connection chip on the minimap). Title: name box -> Connect,
+  Continue / New Game disabled until online (DEV ONLY: `?offline` in the URL skips it); a reload logs back in by itself
+  when this browser holds the last name's token. Input ignores keys typed into text fields. Same-origin tabs share
+  localStorage (save + tokens): the 2nd tab logging in with the same name kicks the 1st ('replaced').
+  Tests tools/tests/online.test.mjs (8: two clients see each other, movement, left / offline, separate rooms, relogin,
+  bad data). Checked in 2 browser tabs: names + class sprites, walking, disconnect removes the player; mapTour 9/9 online.

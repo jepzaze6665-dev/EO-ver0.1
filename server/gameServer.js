@@ -6,6 +6,7 @@
 import { EventEmitter } from 'events';
 import { acceptUpgrade } from './ws.js';
 import { DevAccounts } from './accounts.js';
+import { CityRooms } from './cityRooms.js';
 import { PROTOCOL_VERSION, NET_LIMITS, NET_ERROR, validateClientMessage, encode } from '../src/net/protocol.js';
 
 export class GameServer extends EventEmitter {
@@ -22,6 +23,7 @@ export class GameServer extends EventEmitter {
     this.timer = setInterval(() => this.tick(), 1000);
     this.timer.unref?.();
     this.handle('ping', (s, m) => s.send('pong', { n: m.n, time: Date.now() }));
+    this.city = new CityRooms(this);   // N2 shared cities
   }
 
   handle(type, fn) { this.handlers.set(type, fn); }
@@ -109,6 +111,7 @@ export class GameServer extends EventEmitter {
 
   close() {
     clearInterval(this.timer);
+    this.city.close();
     for (const c of [...this.conns]) c.ws.close(1001, 'server shutting down');
     this.store.flush();
   }

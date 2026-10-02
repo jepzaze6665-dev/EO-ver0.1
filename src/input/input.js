@@ -12,6 +12,9 @@ export class Input {
     this.lastKey = null;
 
     window.addEventListener('keydown', (e) => {
+      // typing in a text field (online name on the title screen) is not game input
+      const el = e.target;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
       const k = normKey(e);
       if (['Space', 'Tab', 'F1'].includes(k) || (e.ctrlKey && k === 'KeyS')) e.preventDefault();
       if (!this.down.has(k)) this.pressedKeys.add(k);
