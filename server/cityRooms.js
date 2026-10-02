@@ -32,6 +32,7 @@ export class CityRooms {
       t.send('revived', { by: s.name });
     });
     // friends' skill effects: anyone in a room, to the others there (presentation only)
+    server.handle('sum', (s, m) => { const r = s.presence?.room; if (r) this.send(r, 'sum', { s: m.s, th: m.th, from: s.id }, s); });
     server.handle('fx', (s, m) => { const r = s.presence?.room; if (r) this.send(r, 'fx', { c: m.c, s: m.s, b: m.b, from: s.id }, s); });
     server.handle('bossEvt', (s, m) => { const r = s.presence?.room, h = r && this.hosts.get(r); if (h && h !== s.id) this.server.sessions.get(h)?.send('bossEvt', { ...m, from: s.id }); });
     server.handle('boss', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'boss', { b: m.b }, s); });

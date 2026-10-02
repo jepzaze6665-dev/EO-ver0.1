@@ -153,6 +153,7 @@ export class Renderer {
     if (game.bosses) for (const b of game.bosses.entities()) if (cam.visible(b.x, b.y, 160)) list.push({ y: b.y, e: b });
     for (const s of world.rootSpikes) list.push({ y: s.y, spike: s });
     if (game.summons) for (const s of game.summons.list) if (cam.visible(s.x, s.y, 60)) list.push({ y: s.y, summon: s });
+    if (game.online) for (const s of game.online.summons.summons()) if (cam.visible(s.x, s.y, 60)) list.push({ y: s.y, summon: s }); // friends' summons / clones
     if (game.online) for (const r of game.online.drawables()) if (cam.visible(r.x, r.y, 60)) list.push({ y: r.y, e: r }); // other players (shared city)
     const pl = game.player;
     list.push({ y: pl.y, e: pl, isPlayer: true });
@@ -295,36 +296,38 @@ export class Renderer {
   }
 
   // Threads (ThreadSystem): a shimmering line between the two anchors + star nodes.
-  // Fades in, fades out over its last second; colours come from data/threads.js.
+  // Fades in, fades out over its last second; colours come from data/threads.js. Friends' threads (net/netSummons.js)
+  // are drawn by the same code from their end points.
   drawThreads(ctx, game, t) {
-    const sys = game.threads;
-    if (!sys || !sys.list.length) return;
+    const sys = game.threads, remote = game.online ? game.online.summons.threads() : [];
+    if ((!sys || !sys.list.length) && !remote.length) return;
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    for (const th of sys.list) {
-      const v = sys.defs[th.type].visual, [a, b] = sys.ends(th);
-      const fade = Math.min(1, th.t * 6, (th.duration - th.t) / 1);
-      const ay = a.y - 8, by = b.y - (a === b ? 8 : b.entity ? 14 : 8);
-      const wob = Math.sin(t * 9 + th.id) * 1.5;
-      const mx = (a.x + b.x) / 2 + wob, my = (ay + by) / 2 + wob;
-      if (v.style === 'lightning') { this.drawLightningThread(ctx, th, a.x, ay, b.x, by, v, fade, t); continue; }
-      ctx.strokeStyle = `rgba(${v.glow},${0.28 * fade})`; ctx.lineWidth = 5;
-      ctx.beginPath(); ctx.moveTo(a.x, ay); ctx.quadraticCurveTo(mx, my, b.x, by); ctx.stroke();
-      ctx.strokeStyle = v.core; ctx.globalAlpha = 0.85 * fade; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(a.x, ay); ctx.quadraticCurveTo(mx, my, b.x, by); ctx.stroke();
-      // travelling sparkles
-      for (let i = 0; i < 3; i++) {
-        const k = (t * 0.7 + i / 3 + th.id * 0.13) % 1;
-        const x = (1 - k) * (1 - k) * a.x + 2 * (1 - k) * k * mx + k * k * b.x, y = (1 - k) * (1 - k) * ay + 2 * (1 - k) * k * my + k * k * by;
-        ctx.fillStyle = v.core; ctx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 2, 2);
-      }
-      for (const [x, y] of [[a.x, ay], [b.x, by]]) {
-        ctx.fillStyle = v.color; ctx.globalAlpha = 0.9 * fade;
-        ctx.beginPath(); ctx.moveTo(x, y - 4); ctx.lineTo(x + 3, y); ctx.lineTo(x, y + 4); ctx.lineTo(x - 3, y); ctx.closePath(); ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-    }
+    if (sys) for (const th of sys.list) { const [a, b] = sys.ends(th); this.drawThread(ctx, th, a, b, sys.defs[th.type].visual, t); }
+    for (const r of remote) if (sys && sys.defs[r.th.type]) this.drawThread(ctx, r.th, r.a, r.b, sys.defs[r.th.type].visual, t);
     ctx.restore();
+  }
+  drawThread(ctx, th, a, b, v, t) {
+    const fade = Math.min(1, th.t * 6, (th.duration - th.t) / 1);
+    const ay = a.y - 8, by = b.y - (a === b ? 8 : b.entity ? 14 : 8);
+    const wob = Math.sin(t * 9 + th.id) * 1.5;
+    const mx = (a.x + b.x) / 2 + wob, my = (ay + by) / 2 + wob;
+    if (v.style === 'lightning') { this.drawLightningThread(ctx, th, a.x, ay, b.x, by, v, fade, t); return; }
+    ctx.strokeStyle = `rgba(${v.glow},${0.28 * fade})`; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(a.x, ay); ctx.quadraticCurveTo(mx, my, b.x, by); ctx.stroke();
+    ctx.strokeStyle = v.core; ctx.globalAlpha = 0.85 * fade; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(a.x, ay); ctx.quadraticCurveTo(mx, my, b.x, by); ctx.stroke();
+    // travelling sparkles
+    for (let i = 0; i < 3; i++) {
+      const k = (t * 0.7 + i / 3 + th.id * 0.13) % 1;
+      const x = (1 - k) * (1 - k) * a.x + 2 * (1 - k) * k * mx + k * k * b.x, y = (1 - k) * (1 - k) * ay + 2 * (1 - k) * k * my + k * k * by;
+      ctx.fillStyle = v.core; ctx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 2, 2);
+    }
+    for (const [x, y] of [[a.x, ay], [b.x, by]]) {
+      ctx.fillStyle = v.color; ctx.globalAlpha = 0.9 * fade;
+      ctx.beginPath(); ctx.moveTo(x, y - 4); ctx.lineTo(x + 3, y); ctx.lineTo(x, y + 4); ctx.lineTo(x - 3, y); ctx.closePath(); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
   }
 
   // a live wire (thread visual.style 'lightning'): a zig-zag re-drawn ~12 times a second, bright ends

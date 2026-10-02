@@ -19,6 +19,7 @@ import { ServerSaveAdapter } from './serverSave.js';
 import { MobSync } from './mobSync.js';
 import { NetRevive } from './netRevive.js';
 import { NetFx } from './netFx.js';
+import { NetSummons } from './netSummons.js';
 import { SAVE_KEY, BACKUP_KEY } from '../save/save.js';
 
 const NAME_KEY = 'eclipse_online_last_name';
@@ -40,6 +41,7 @@ export class OnlineSession {
     this.mobs = new MobSync(this); // N7a shared monsters in a run map
     this.revive = new NetRevive(this); // revive teammates on other clients
     this.fx = new NetFx(this);         // friends' skill effects
+    this.summons = new NetSummons(this); // friends' summons / clones / threads
     this.fx.install();
     this.mobs.bosses.install(); // N7c: host boss telegraphs / strikes / shots go to the guests
     this.saveReady = false;
@@ -89,7 +91,7 @@ export class OnlineSession {
     n.on('error', (m) => { if (m.code === 'roomFull' || m.code === 'party' || m.code === 'dungeon') { game.ui.toast(m.text, m.code === 'dungeon' ? 4.5 : 3); if (m.code !== 'roomFull') game.audio.sfx('deny'); } });
     n.onState((s) => {
       // anything we knew about other players is stale once the line drops; after a reconnect send everything again
-      if (s !== NET_STATE.online) { this.remotes.clear(); this.saveReady = false; if (this.mobs) this.mobs.reset(); }
+      if (s !== NET_STATE.online) { this.remotes.clear(); this.saveReady = false; if (this.mobs) this.mobs.reset(); if (this.summons) this.summons.clear(); }
       this.sent = null; this.sentLook = '';
       game.ui.panels.onNetState?.(s);
     });
@@ -158,6 +160,7 @@ export class OnlineSession {
     this.inWorld = true;
     this.mobs.update(); // N7a: host snapshots (own throttle)
     this.fx.flush();
+    this.summons.update();
     const look = `${p.cls.id}:${p.level}`;
     if (look !== this.sentLook && this.net.send('look', { c: p.cls.id, l: p.level })) this.sentLook = look;
     const t = now(), m = g.world.mapId;

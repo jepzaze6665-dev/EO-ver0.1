@@ -1300,3 +1300,12 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   guest's ember on its client (17 magic unblockable, stack 0); Amethyst Colossus: guest hits break the host's armour, the
   4 clusters appear on the guest, guest smashes #1 -> host removes it -> gone on the guest; host callouts (RESONANCE) show
   on the guest. Solo (?offline, god): b1 11 · a2 12 · b2 10 · a3 12 · b3 12 · Varkharon 13.
+  Done FRIENDS' SUMMONS / CLONES / THREADS (src/net/netSummons.js = game.online.summons): PROTOCOL_VERSION 15: client sum
+  { s: summon rows [id, type, x, y, facing, t, duration, anim, animT, animDur], th: thread rows [id, type, ax, ay, bx, by,
+  bEntity, t, duration] } (≤ 16 each, relayed to the room + from) — 10 / s while someone shares the map (online.sharedPlay),
+  one empty message when the last one is gone. Others draw them with the normal code: Renderer y-sort list gets
+  online.summons.summons() (drawSummon; owner = { sprites: the friend's class sprites }), drawThreads draws local threads +
+  online.summons.threads() through the new per-thread Renderer.drawThread. Positions smoothed, timers run between snapshots,
+  a stale owner (> 1.5 s) is dropped. Presentation only: a summon's hits are the owner's (they reach the host as mobHit).
+  Checked in 2 tabs: Reaper Shadow Doppel + Astral Weaver Astral Thread show on the other screen; reaperChecks 10,
+  playthrough 17.
