@@ -38,7 +38,7 @@ export class GameServer extends EventEmitter {
   // http server 'upgrade' event
   upgrade(req, socket) {
     if (!req.url.startsWith('/ws')) { socket.destroy(); return; }
-    const ws = acceptUpgrade(req, socket, { maxBytes: this.limits.maxSaveBytes + 1024 }); // per-type sizes: protocol.js
+    const ws = acceptUpgrade(req, socket, { maxBytes: Math.max(...Object.values(this.limits.typeBytes)) + 1024 }); // per-type sizes: protocol.js
     if (!ws) return;
     const c = { ws, session: null, opened: Date.now(), lastSeen: Date.now(), lastPing: Date.now(), tokens: this.limits.ratePerSecond, warned: 0 };
     this.conns.add(c);

@@ -167,7 +167,26 @@ export class Monster extends Entity {
   }
 
   // ---------------- update
+  // ONLINE N7a PUPPET (net/mobSync.js): the room host's monster on a guest — drawn ONLINE.interpDelay s in the past
+  // between two snapshots; timers run for the animations; no AI, no attacks, no separation
+  puppetUpdate(dt) {
+    this.animT += dt; this.stateT += dt;
+    this.flash = Math.max(0, this.flash - dt);
+    this.showBar = Math.max(0, this.showBar - dt);
+    if (this.dead) { this.deathT += dt; return; }
+    this.status.update(dt);
+    const s = this.snaps, t = performance.now() / 1000 - 0.12;
+    if (!s || !s.length) return;
+    let x = s[s.length - 1].x, y = s[s.length - 1].y;
+    for (let i = s.length - 1; i > 0; i--) {
+      if (t >= s[i - 1].t) { const a = s[i - 1], b = s[i], f = Math.min(1, (t - a.t) / Math.max(1e-3, b.t - a.t)); x = a.x + (b.x - a.x) * f; y = a.y + (b.y - a.y) * f; break; }
+    }
+    if (t < s[0].t) { x = s[0].x; y = s[0].y; }
+    this.x = x; this.y = y;
+  }
+
   update(dt) {
+    if (this.puppet) return this.puppetUpdate(dt);
     const g = this.game, map = g.world.map;
     // TARGET (combat/targeting.js): who to fight among the players (solo = the one player; party-ready)
     this.retargetT = (this.retargetT || 0) - dt;

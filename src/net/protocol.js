@@ -6,12 +6,15 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 7;
+export const PROTOCOL_VERSION = 8;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
   maxSaveBytes: 262144,      // largest 'saveWrite' (the whole save as JSON text); the socket allows this much
   saveInterval: 1,           // s: at most one save write per second per player (autosave is every 4 s)
+  // larger messages allowed per type (everything else: maxMessageBytes)
+  typeBytes: { saveWrite: 262144, mobs: 32768 },
+  maxMobRows: 120,           // monsters in one 'mobs' message
   helloTimeout: 5,           // s: a socket that does not say 'hello' in time is dropped
   heartbeat: 10,             // s between server pings
   timeout: 30,               // s without any message from the client = stale, dropped
@@ -34,7 +37,19 @@ const FIELD = {
   unit: (v) => typeof v === 'number' && v >= 0 && v <= 1,
   level: (v) => Number.isInteger(v) && v >= 1 && v <= 99,
   save: (v) => typeof v === 'string' && v.length <= NET_LIMITS.maxSaveBytes,
+  dmg: (v) => Number.isInteger(v) && v >= 0 && v <= 1000000,
+  mobRows: (v) => Array.isArray(v) && v.length <= NET_LIMITS.maxMobRows && v.every(validMobRow),
 };
+
+// N7a mob snapshot row (host -> others): [netId, type, x, y, hp, maxHp, facing×100, state, attack index (-1 none),
+// phase (0 windup 1 active 2 recover), dead 0|1, flags (1 elite, 2 corrupted, 4 moving), level, armor]
+export const MOB_STATES = ['idle', 'patrol', 'aggro', 'chase', 'attack', 'hit', 'return', 'dead'];
+export const MOB_PHASES = ['windup', 'active', 'recover'];
+const num = (v) => typeof v === 'number' && Number.isFinite(v);
+export function validMobRow(r) {
+  return Array.isArray(r) && r.length === 14 && typeof r[0] === 'string' && /^[a-z0-9]{1,16}$/.test(r[0]) && typeof r[1] === 'string' && /^[A-Za-z0-9_]{1,32}$/.test(r[1])
+    && r.slice(2, 14).every(num) && r[7] >= 0 && r[7] < MOB_STATES.length && r[9] >= 0 && r[9] < MOB_PHASES.length;
+}
 
 // client -> server
 export const CLIENT_MESSAGES = {
@@ -58,6 +73,10 @@ export const CLIENT_MESSAGES = {
   partyLead: { id: 'slug' },                             // leader only: make someone else the leader
   partyList: {},                                         // open parties at this city's gate
   partyJoin: { party: 'slug' },                          // join an open party at the gate (no invite needed)
+  // N7a shared monsters in a run map (src/net/mobSync.js): the room HOST simulates them and sends snapshots; the others
+  // report their hits to the host (relayed by the server). Not authoritative yet: N8 checks kills on the server.
+  mobs: { ps: 'mobRows', full: 'bool' },                 // host only: changed monsters (full = every monster near the party)
+  mobHit: { id: 'slug', dmg: 'dmg', st: 'number?', kb: 'number?', ang: 'number?', crit: 'bool?' }, // my hit on the host's monster
   // N5 dungeon gate (server/dungeons.js)
   dungeonEnter: { area: 'slug' },                        // solo entry
   dungeonPropose: { area: 'slug' },                      // party leader: ask every member to enter together
@@ -94,6 +113,8 @@ export const SERVER_MESSAGES = {
   // N6: which run you are in (null = none: in a city). Sent when it changes (gate entry, walking out on foot, leaving)
   instanceState: { instance: 'object|null' },            // { id, area, mode, city, members: [names], maps: [ids] }
   dungeonLeft: { city: 'string' },                       // answer to dungeonLeave: go to this city's gate
+  roomHost: { room: 'string', host: 'string' },          // N7a: who simulates the monsters of this run map
+  // mobs (relayed as sent) · mobHit (relayed to the host, + from: player id)
 };
 
 export const NET_ERROR = {
@@ -125,7 +146,7 @@ export function validName(name) {
 // one text frame -> { ok: true, msg } | { ok: false, code, text }
 export function validateClientMessage(raw) {
   if (typeof raw !== 'string') return fail('not text');
-  if (raw.length > NET_LIMITS.maxSaveBytes) return fail('too large');
+  if (raw.length > Math.max(...Object.values(NET_LIMITS.typeBytes))) return fail('too large');
   let msg;
   try { msg = JSON.parse(raw); } catch { return fail('not JSON'); }
   if (!msg || typeof msg !== 'object' || Array.isArray(msg)) return fail('not an object');
@@ -138,7 +159,7 @@ export function validateClientMessage(raw) {
     if (msg[k] === undefined) { if (optional) continue; return fail(`missing "${k}"`); }
     if (!check(msg[k])) return fail(`bad "${k}"`);
   }
-  if (msg.t !== 'saveWrite' && raw.length > NET_LIMITS.maxMessageBytes) return fail('too large');
+  if (raw.length > (NET_LIMITS.typeBytes[msg.t] || NET_LIMITS.maxMessageBytes)) return fail('too large');
   return { ok: true, msg };
 }
 

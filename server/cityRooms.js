@@ -1,7 +1,10 @@
 // ONLINE N2 — shared city rooms (rules: src/data/online.js). A player whose last 'pos' is on a shared map (Lumina,
 // City 2) is in that map's room: everyone in it sees everyone else.
 // N6: rooms are also INSTANCE MAP rooms — `<instance id>:<map>` (server/dungeons.js roomFor decides the key): members of
-// the same run on the same map see each other, nobody else does. Movement is batched per room ONLINE.serverTick times
+// the same run on the same map see each other, nobody else does.
+// N7a ROOM HOST: every run-map room has one host (the first in; when the host leaves: the party leader if present, else
+// the longest present) — the client that simulates that map's monsters ('roomHost'). The server relays the host's
+// 'mobs' snapshots to the others and everyone else's 'mobHit' to the host (from = who hit). Not authoritative yet (N8). Movement is batched per room ONLINE.serverTick times
 // a second, and only for players who moved. A move faster than ONLINE.maxSpeed is passed on as a SNAP (teleport:
 // waystone, map entry) instead of being refused — cities have no combat, positions there are not authoritative (N7
 // adds server checks for dungeon movement). Only presence travels: name, class, level, position, facing, animation.
@@ -13,10 +16,17 @@ const entry = (s) => { const p = s.presence; return [s.id, s.name, p.x, p.y, p.d
 export class CityRooms {
   constructor(server) {
     this.server = server;
-    this.rooms = new Map();   // map id -> Set of sessions
+    this.rooms = new Map();   // room key -> Set of sessions (insertion order = who came first)
+    this.hosts = new Map();   // run-map room key -> host player id
     server.handle('pos', (s, m) => this.onPos(s, m));
     server.handle('look', (s, m) => this.onLook(s, m));
     server.handle('leave', (s) => this.leave(s, 'left'));
+    server.handle('mobs', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'mobs', { ps: m.ps, full: m.full }, s); });
+    server.handle('mobHit', (s, m) => {
+      const r = s.presence?.room, h = r && this.hosts.get(r);
+      if (!h || h === s.id) return;
+      this.server.sessions.get(h)?.send('mobHit', { ...m, from: s.id });
+    });
     server.on('sessionClosed', (s) => this.leave(s, 'offline'));
     this.timer = setInterval(() => this.tick(), 1000 / ONLINE.serverTick);
     this.timer.unref?.();
@@ -63,6 +73,10 @@ export class CityRooms {
     s.send('roomState', { room, map: p.m, players: [...set].map(entry) });
     this.send(room, 'pJoin', { p: entry(s) }, s);
     set.add(s);
+    if (!isSharedMap(room)) {
+      if (!this.hosts.has(room)) this.hosts.set(room, s.id);
+      s.send('roomHost', { room, host: this.hosts.get(room) });
+    }
   }
 
   // move a player out of their room now (left the run, instance closed): the next 'pos' puts them where they are
@@ -74,11 +88,23 @@ export class CityRooms {
     const set = this.rooms.get(p.room);
     if (set) {
       set.delete(s);
-      if (!set.size) this.rooms.delete(p.room);
-      else this.send(p.room, 'pLeave', { id: s.id, why });
+      if (!set.size) { this.rooms.delete(p.room); this.hosts.delete(p.room); }
+      else {
+        this.send(p.room, 'pLeave', { id: s.id, why });
+        if (this.hosts.get(p.room) === s.id) this.pickHost(p.room, set);
+      }
     }
     p.room = null;
   }
+
+  // the host left: the party leader if present, else whoever came first
+  pickHost(room, set) {
+    const ids = [...set].map((x) => x.id), lead = this.server.parties?.partyOf(ids[0])?.leader;
+    const host = ids.includes(lead) ? lead : ids[0];
+    this.hosts.set(room, host);
+    this.send(room, 'roomHost', { room, host });
+  }
+  hostOf(room) { return this.hosts.get(room) || null; }
 
   send(room, t, fields, except) {
     const set = this.rooms.get(room);

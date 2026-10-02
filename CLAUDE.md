@@ -1203,3 +1203,19 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   party = Create Party + open parties here (Join; list re-asked every 2 s while shown); in a party = members, Leave, leader
   area list + "Ask the party to enter". The [P] panel keeps members / leader actions / Leave, no invite box (partyInvite
   still exists in the protocol). onlineParty.test +1 (gate list / join rules).
+  Done N7a (shared monsters, host-authoritative): every run-map room has a HOST (server/cityRooms.js hosts: first one in;
+  host leaves -> party leader if present, else first present; 'roomHost' to everyone). PROTOCOL_VERSION 8: NET_LIMITS
+  typeBytes (saveWrite 256 KB, mobs 32 KB) + maxMobRows 120; client mobs { ps: rows, full } (host only, server relays to the
+  others) / mobHit { id, dmg, st, kb, ang, crit } (server relays to the host + from); row = [netId, type, x, y, hp, maxHp,
+  facing×100, state, attack index, phase, dead, flags (elite / corrupted / moving), level, armor], validMobRow checks it.
+  Rules ONLINE.mobs { rate 10, fullEvery 2 s, range 1100 px, maxRows }. Browser `src/net/mobSync.js` MobSync (game.online.mobs):
+  HOST = plays exactly like solo, sends changed rows of monsters near any member (+ all every 2 s), applies guests' mobHit
+  (hp, knockback, onHurt, onDeath with a remote source stub); GUEST = its own monsters of that map go to `stash`, its spawn
+  points pause (World.populate asks mobs.isPaused), PUPPETS (real Monster objects, `puppet` + `netId` + snapshot buffer)
+  are drawn / targeted / hit normally: Monster.puppetUpdate interpolates (0.12 s), no AI; combat.dealDamage on a puppet calls
+  its netDamage hook (-> mobHit) and floors its local HP at 1 (only the host decides a death); a snapshot death = puppetDied
+  -> World.onMonsterKilled (EXP / quest / personal loot for the guest — N8 / N9 move kills + loot to the server). New host
+  -> puppets dropped, stash restored; run over / offline -> mobs.reset() restores everything. NOT yet (N7b): monsters
+  hitting guests, telegraphs on guests, bosses, remote attack / skill VFX. Tests tools/tests/mobSync.test.mjs (4, server);
+  checked in 2 tabs: same wolf position / state on both, guest hits 22 + 23 -> host HP 140 -> 95, guest's kill waits for the
+  host then pays EXP + loot, host leaves -> guest hosts with its own 49 monsters; playthrough 17/17 + a1Loop 5/5 online.

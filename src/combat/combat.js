@@ -192,6 +192,8 @@ export class Combat {
       if (target.armor <= 0 && target.onArmorBreak) target.onArmorBreak();
     }
     target.hp -= target.endure ? target.endure(amount) : amount; // ENDURE (players): no one-shot from healthy
+    // ONLINE N7a: a puppet is the room host's monster — the host applies the hit (net/mobSync.js); only it decides death
+    if (target.puppet) { if (target.netDamage) target.netDamage(amount, opts, src, ang, crit); if (target.hp <= 0) target.hp = 1; }
     target.flash = 0.12;
     this.lastCombatTime = g.time;
 

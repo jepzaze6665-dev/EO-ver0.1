@@ -270,6 +270,7 @@ export class World {
   }
   populate(sp) {
     const d = sp.def, g = this.game;
+    if (g.online && g.online.mobs && g.online.mobs.isPaused(this.mapManager.idAt(d.x, d.y))) return; // ONLINE N7a: the room host owns this map's monsters
     sp.alive = [];
     if (d.type === 'guardian') {
       if (!this.guardian) this.guardian = new Guardian(g, d.x, d.y);

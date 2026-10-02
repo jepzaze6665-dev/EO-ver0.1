@@ -23,6 +23,13 @@ export const ONLINE = {
     offlineGrace: 120,        // s a disconnected member keeps its place (reconnect window), then it is removed
     leaderInvitesOnly: true,  // only the leader invites (inviting while not in a party creates one)
   },
+  // N7a SHARED MONSTERS (src/net/mobSync.js): the run-map host sends snapshots of monsters near any member
+  mobs: {
+    rate: 10,                 // snapshots per second (only changed monsters)
+    fullEvery: 2,             // s: every nearby monster again (late joiners, despawns)
+    range: 1100,              // px from any member: monsters further away are not sent (unless in a fight)
+    maxRows: 120,             // = NET_LIMITS.maxMobRows
+  },
   // N5 DUNGEON GATE (server/dungeons.js, panels.dungeonGate). The areas the gate can send you to = the route field maps
   // (tools/tests/dungeonGate.test.mjs checks the list against maps/mapRegistry.js: every non-secret 'field' map, `free`
   // exactly when the map has no requirement). A locked area cannot be entered; the server checks every member.

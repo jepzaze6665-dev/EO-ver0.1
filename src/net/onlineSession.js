@@ -16,6 +16,7 @@ import { ONLINE } from '../data/online.js';
 import { CLASSES, DEFAULT_CLASS } from '../skills/classes.js';
 import { dir4, TAU } from '../core/math.js';
 import { ServerSaveAdapter } from './serverSave.js';
+import { MobSync } from './mobSync.js';
 import { SAVE_KEY, BACKUP_KEY } from '../save/save.js';
 
 const NAME_KEY = 'eclipse_online_last_name';
@@ -31,6 +32,7 @@ export class OnlineSession {
     this.sentLook = '';
     this.inWorld = false;
     this.saves = new ServerSaveAdapter(this.net, { mainKey: SAVE_KEY, backupKey: BACKUP_KEY });
+    this.mobs = new MobSync(this); // N7a shared monsters in a run map
     this.saveReady = false;
     this.playerId = null;
     const n = this.net;
@@ -62,7 +64,7 @@ export class OnlineSession {
       if (pn.current && pn.current.name === 'dungeonReady') pn.close(true);
     });
     // N6: the run the server has us in (gate entry, walking out on foot, leaving) — null in a city
-    n.on('instanceState', (m) => { this.instance = m.instance; });
+    n.on('instanceState', (m) => { this.instance = m.instance; if (!m.instance) this.mobs.reset(); });
     n.on('dungeonLeft', (m) => { this.instance = null; game.returnToCity(m.city); });
     n.on('dungeonGo', (m) => {
       this.check = null;
@@ -70,7 +72,7 @@ export class OnlineSession {
       game.enterDungeon(m.area, m);
     });
     n.on('saveData', (m) => this.onSaveData(m));
-    n.on('roomState', (m) => this.remotes.setRoom(m.room, m.players, now(), m.map || m.room));
+    n.on('roomState', (m) => { this.remotes.setRoom(m.room, m.players, now(), m.map || m.room); this.mobs.onRoom(m.room, m.map || m.room); });
     n.on('pJoin', (m) => this.remotes.join(m.p, now()));
     n.on('pLeave', (m) => this.remotes.leave(m.id, m.why, now()));
     n.on('moves', (m) => this.remotes.moves(m.ps, now()));
@@ -78,7 +80,7 @@ export class OnlineSession {
     n.on('error', (m) => { if (m.code === 'roomFull' || m.code === 'party' || m.code === 'dungeon') { game.ui.toast(m.text, m.code === 'dungeon' ? 4.5 : 3); if (m.code !== 'roomFull') game.audio.sfx('deny'); } });
     n.onState((s) => {
       // anything we knew about other players is stale once the line drops; after a reconnect send everything again
-      if (s !== NET_STATE.online) { this.remotes.clear(); this.saveReady = false; }
+      if (s !== NET_STATE.online) { this.remotes.clear(); this.saveReady = false; if (this.mobs) this.mobs.reset(); }
       this.sent = null; this.sentLook = '';
       game.ui.panels.onNetState?.(s);
     });
@@ -131,6 +133,7 @@ export class OnlineSession {
       return;
     }
     this.inWorld = true;
+    this.mobs.update(); // N7a: host snapshots (own throttle)
     const look = `${p.cls.id}:${p.level}`;
     if (look !== this.sentLook && this.net.send('look', { c: p.cls.id, l: p.level })) this.sentLook = look;
     const t = now(), m = g.world.mapId;
