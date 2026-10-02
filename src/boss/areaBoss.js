@@ -1,5 +1,6 @@
 import { ENEMY_COMBAT } from '../data/enemyCombat.js';
 import { Poise } from '../combat/poiseSystem.js';
+import { pickTarget } from '../combat/targeting.js';
 import { POISE } from '../data/poise.js';
 import { Entity } from '../core/entity.js';
 import { TEAM, TILE } from '../core/constants.js';
@@ -62,6 +63,17 @@ export class AreaBoss extends Entity {
     // signature mechanics (boss/mechanics.js): heat, lava pools, ... — what makes this fight its own
     this.mech = (def.mechanics || []).filter((m) => MECHANICS[m.type]).map((m) => new MECHANICS[m.type](this, m));
     this.reset();
+  }
+  // ONLINE (party runs): the player this boss fights — the best target among every player of the run (this client's +
+  // the guests as ally proxies, game.combatants()), re-picked every 2 s or when it falls (combat/targeting.js rules:
+  // taunt, low HP, current target...). Solo = the one player. Moves and mechanics aim at this, never at "the host".
+  get foe() {
+    const g = this.game, t = g.time;
+    if (!this._foe || this._foe.dead || this._foe.downed || t >= (this._foeT || 0)) {
+      this._foe = pickTarget(this, g.combatants ? g.combatants() : [g.player]) || g.player;
+      this.target = this._foe; this._foeT = t + 2;
+    }
+    return this._foe;
   }
   get name() { return this.def.name; }
   get phaseDef() { return this.def.phases[this.phase - 1]; }
@@ -133,7 +145,7 @@ export class AreaBoss extends Entity {
   }
   wind(t) { return t * ((this.phaseDef && this.phaseDef.windup) || 1) * ((this.levelScale && this.levelScale.windup) || 1); }
   speed() { return this.def.stats.speed * ((this.phaseDef && this.phaseDef.speed) || 1) * this.status.moveMult(); }
-  facePlayer() { const p = this.game.player; this.facing = angleTo(this.x, this.y, p.x, p.y); }
+  facePlayer() { const p = this.foe; this.facing = angleTo(this.x, this.y, p.x, p.y); }
   inArena(x, y, pad = 0) { return dist(x, y, this.center.x, this.center.y) < this.arenaR - pad; }
   clampToArena(x, y, pad) {
     if (this.inArena(x, y, pad)) return { x, y };
@@ -156,7 +168,8 @@ export class AreaBoss extends Entity {
   }
   // after a move: did it land? a miss = 'attackMissed' (Counter Window) + longer recovery (data/enemyCombat.js)
   missed(landed, m) {
-    if (landed) return 1;
+    if (landed || (this._foe && this._foe.isAlly)) return 1; // aimed at a guest: it resolves the hit on its side
+
     const g = this.game;
     g.vfx.text(this.x, this.y - this.height - 12, 'MISS', { color: '#c8c8d8', size: 11, life: 0.7 });
     g.events.emit('attackMissed', { attacker: this, player: g.player, attack: m.id || m.kind });
@@ -308,7 +321,7 @@ export class AreaBoss extends Entity {
 
   // pick the next move from the current phase (cooldowns, range weights, never the same move twice in a row)
   think() {
-    const g = this.game, p = g.player;
+    const g = this.game, p = this.foe;
     if (p.dead) { this.pose = 'idle'; return; }
     for (const x of this.mech) { const turn = x.wantsTurn && x.wantsTurn(); if (turn) { this.run(turn); return; } }
     const d = dist(this.x, this.y, p.x, p.y);
@@ -331,13 +344,13 @@ export class AreaBoss extends Entity {
     this.run(this.execMove(m));
   }
   *approach(range, maxT = 1.6) {
-    const p = this.game.player;
+    const p = this.foe;
     let t = 0;
     yield (dt) => { t += dt; this.pose = 'walk'; return this.stepToward(p.x, p.y, this.speed(), dt) < range || t > maxT; };
     this.pose = 'idle';
   }
   *execMove(m) {
-    const p = this.game.player;
+    const p = this.foe;
     if (m.range && m.range < 999 && dist(this.x, this.y, p.x, p.y) > m.range * 0.9) yield* this.approach(m.range * 0.8);
     const kind = KINDS[m.kind];
     this.curMove = m; // sheet art: the move may name its own animations (m.anim)
@@ -430,7 +443,7 @@ const KINDS = {
     if (m.opening) this.enterWeak(m.opening, 'OPENING');
   },
   *leap(m) {
-    const g = this.game, p = g.player;
+    const g = this.game, p = this.foe;
     this.pose = 'windup';
     const tel = this.tele({ shape: 'circle', x: p.x, y: p.y, r: m.r, total: this.wind(m.windup) }, m);
     const trackUntil = tel.total * (m.track ?? 0.5);
@@ -488,7 +501,7 @@ const KINDS = {
     yield this.wind(m.recover || 0.5);
   },
   *pattern(m) {
-    const g = this.game, p = g.player;
+    const g = this.game, p = this.foe;
     this.pose = 'roar';
     g.audio.sfx('roar_small');
     const spots = [];

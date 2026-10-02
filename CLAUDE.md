@@ -1277,3 +1277,26 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   mirrored. Checked in 2 tabs on Hollow Fang (A1 mini): guest sees the puppet + bar, its hits 70 + 47 move the host's HP,
   boss strikes hurt the guest like the host (50 vs 51), guest's final blow -> host decides -> both defeated + same rewards
   (144 EXP, 200 G); solo in ?offline: bossReset 4 · b1BossCheck 11 · bossArena 6 · routeA 26.
+  Done BOSSES FIGHT THE WHOLE PARTY + MECHANICS FOR GUESTS: AreaBoss / Guardian `get foe()` = pickTarget over
+  game.combatants() (players + ally proxies), re-picked every 2 s / when it falls; every move / mechanic aim uses it (boss
+  `missed()` is not a miss when the foe is an ally). boss/mechanics.js: PLAYERS(g) = combatants for every player loop,
+  Frostbite per player (Map), clusters / pylons get a netId; ONLINE section at the end = netState / netApply (+ netClear)
+  per mechanic: Overheat heat · LavaPools pools · Stance stance + guard · Echoes soldiers · Frostbite / EmberDebt own stacks
+  (per-player values keyed by player id) · Glacier pillars (guest blocks the same tiles) · RisingLava ring (guest turns the
+  same tiles to lava + pushes itself in; restore on reset) · SkyChains lit / chained / progress · CrystalArmor / Pylons =
+  PUPPET BREAKABLES on the guest (a hit -> 'bossEvt' obj -> host netHit). PROTOCOL_VERSION 14: mobAct bdmg / bstat (host ->
+  one guest: mechanic damage / status given to its ALLY PROXY — combat.dealDamage on target.isAlly forwards; proxy.status
+  forwards add(); proxy.invulnerable() = false, the guest checks its own i-frames), bossEvt { id, k: obj | hold | ember, d }
+  (guest -> host, relayed with from: smash an object, hold [E] at a chain post -> proxy.chainHold, ember stacks earned from
+  boss strikes / burned by perfect dodges; forwarded damage carries netMech and never earns one), mobHit `ad` (armour
+  damage), boss snapshot + arm / marm / ar / mech (bossData = 6 levels). applyHit honours tryBlock (stance shield), armour
+  (onArmorBreak), damageTakenMult, and emits damageDealt with the proxy (Ember Debt burn-off). BOSS EFFECTS CHANNEL
+  (net/netFx.js): run(fn, 'b_<id>') around the host boss's update (BossSystem / World for the Guardian) and its onHurt /
+  onDeath / enterWeak (wrapEntity) records its vfx + screen flash + callout + camera shake (BOSS_FX_EXTRA) -> 'fx' { b } ->
+  replayed on guests (only from the room host, MobSync.hostId; follow 'boss' = the puppet). Game.after keeps the channel.
+  Game.worldRuns(): an open window no longer pauses the world while others share the map (online.sharedPlay()) — the host's
+  death screen froze the boss for everyone. Checked in 2 tabs: Varkharon picks the guest as foe; the guest's map gets the
+  same lava tiles + arena radius; guest chains post 1 + host post 2 -> CRASH, guest sees it weak; IGNITE explodes the
+  guest's ember on its client (17 magic unblockable, stack 0); Amethyst Colossus: guest hits break the host's armour, the
+  4 clusters appear on the guest, guest smashes #1 -> host removes it -> gone on the guest; host callouts (RESONANCE) show
+  on the guest. Solo (?offline, god): b1 11 · a2 12 · b2 10 · a3 12 · b3 12 · Varkharon 13.

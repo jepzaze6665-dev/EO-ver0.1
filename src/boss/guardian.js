@@ -1,4 +1,5 @@
 import { Poise } from '../combat/poiseSystem.js';
+import { pickTarget } from '../combat/targeting.js';
 import { POISE } from '../data/poise.js';
 import { Entity } from '../core/entity.js';
 import { TEAM } from '../core/constants.js';
@@ -61,6 +62,17 @@ export class Guardian extends Entity {
   wind(t) { return t * (this.phase === 3 ? 0.72 : this.phase === 2 ? 0.9 : 1); }
 
   // ---------------- fight lifecycle
+  // ONLINE (party runs): the player this boss fights — the best target among every player of the run (this client's +
+  // the guests as ally proxies, game.combatants()), re-picked every 2 s or when it falls (combat/targeting.js rules:
+  // taunt, low HP, current target...). Solo = the one player. Moves and mechanics aim at this, never at "the host".
+  get foe() {
+    const g = this.game, t = g.time;
+    if (!this._foe || this._foe.dead || this._foe.downed || t >= (this._foeT || 0)) {
+      this._foe = pickTarget(this, g.combatants ? g.combatants() : [g.player]) || g.player;
+      this.target = this._foe; this._foeT = t + 2;
+    }
+    return this._foe;
+  }
   wake() {
     const g = this.game;
     this.state = 'intro';
@@ -225,7 +237,7 @@ export class Guardian extends Entity {
   // ---------------- helpers
   tele(def) { return this.game.combat.telegraphs.add({ owner: this, color: this.phase === 3 ? '220,70,255' : '255,60,60', ...def }); }
   strike(shape, power, knock = 180, extra = {}) { return this.game.combat.enemyStrike(this, shape, power * (this.phase === 3 ? 1.1 : 1), { knock, ...extra }); }
-  facePlayer() { this.facing = angleTo(this.x, this.y, this.game.player.x, this.game.player.y); }
+  facePlayer() { const p = this.foe; this.facing = angleTo(this.x, this.y, p.x, p.y); }
   stepToward(x, y, speed, dt) {
     const d = dist(this.x, this.y, x, y);
     if (d > 2) {
@@ -285,7 +297,7 @@ export class Guardian extends Entity {
   }
 
   think() {
-    const g = this.game, p = g.player;
+    const g = this.game, p = this.foe;
     if (p.dead) { this.pose = 'idle'; return; }
     const d = dist(this.x, this.y, p.x, p.y);
     // final attack: once, when the enraged Guardian is almost down
@@ -318,7 +330,7 @@ export class Guardian extends Entity {
 
   // ---------------- moves
   *approach(range, maxT = 1.6) {
-    const p = this.game.player;
+    const p = this.foe;
     let t = 0;
     const sp = this.phase === 3 ? 125 : 95;
     yield (dt) => { t += dt; this.pose = 'walk'; return this.stepToward(p.x, p.y, sp, dt) < range || t > maxT; };
@@ -363,7 +375,7 @@ export class Guardian extends Entity {
   }
 
   *mCharge(chain = false) {
-    const g = this.game, p = g.player;
+    const g = this.game, p = this.foe;
     this.facePlayer();
     this.pose = 'chargeWind'; this.poseT = 0;
     const ang = this.facing;
@@ -400,7 +412,7 @@ export class Guardian extends Entity {
   }
 
   *mJump() {
-    const g = this.game, p = g.player;
+    const g = this.game, p = this.foe;
     this.pose = 'crouch'; this.poseT = 0;
     const tel = this.tele({ shape: 'circle', x: p.x, y: p.y, r: 92, total: this.wind(1.15) });
     const trackUntil = tel.total * 0.6;
@@ -440,7 +452,7 @@ export class Guardian extends Entity {
   }
 
   *mRoots() {
-    const g = this.game, p = g.player;
+    const g = this.game, p = this.foe;
     this.facePlayer();
     this.pose = 'roar'; this.poseT = 0;
     const lines = this.phase === 3 ? [-0.5, 0, 0.5] : [0];
@@ -467,7 +479,7 @@ export class Guardian extends Entity {
   }
 
   *mCrystals() {
-    const g = this.game, p = g.player;
+    const g = this.game, p = this.foe;
     const volleys = this.phase === 3 ? 4 : 3;
     for (let v = 0; v < volleys; v++) {
       this.facePlayer();
@@ -491,7 +503,7 @@ export class Guardian extends Entity {
   }
 
   *mRain() {
-    const g = this.game, p = g.player;
+    const g = this.game, p = this.foe;
     this.pose = 'roar'; this.poseT = 0;
     g.audio.sfx('roar_small');
     const n = this.phase === 3 ? 10 : 7;

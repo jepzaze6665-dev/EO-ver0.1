@@ -416,6 +416,9 @@ export class Game {
 
   // ---------------- helpers used by systems
   controlsEnabled() { return this.state === 'play' && !this.ui.panelOpen && !this.player.dead && !this.player.downed; }
+  // the world runs on: playing, and no window open — or a window open while others share this map (ONLINE: you cannot
+  // pause a world other players are in; the host's open panel / death screen must not freeze their monsters and boss)
+  worldRuns() { return this.state === 'play' && (!this.ui.panelOpen || !!(this.online && this.online.sharedPlay())); }
   mouseWorld() {
     const r = this.renderer, m = this.input.mouse;
     return this.camera.toWorld((m.x * r.dpr) / r.scale, (m.y * r.dpr) / r.scale);
@@ -423,7 +426,7 @@ export class Game {
   // Game-time scheduler (pauses with the game, respects hit stop unless realTime).
   after(sec, fn, realTime = false) {
     // ONLINE: a timer made while our player's effects are recorded keeps recording when it fires (skills schedule hits)
-    if (this.online && this.online.fx.isRecording()) { const f = fn, fx = this.online.fx; fn = () => fx.run(f); }
+    if (this.online && this.online.fx.isRecording()) { const f = fn, fx = this.online.fx, ch = fx.channel(); fn = () => fx.run(f, ch); }
     this.timers.push({ t: sec, fn, realTime });
   }
   tickTimers(dt, sdt) {
@@ -536,7 +539,7 @@ export class Game {
     if (this.fpsAcc > 0.5) { this.fps = Math.round(this.fpsN / this.fpsAcc); this.fpsAcc = 0; this.fpsN = 0; }
 
     this.handleGlobalKeys();
-    if (this.state === 'play' && !this.ui.panelOpen) {
+    if (this.worldRuns()) {
       this.acc += dt;
       let steps = 0;
       while (this.acc >= STEP && steps < 5) {
@@ -579,7 +582,7 @@ export class Game {
     const n = Math.round(seconds / STEP);
     for (let i = 0; i < n; i++) {
       if (perStep) perStep(this, i);
-      if (this.state === 'play' && !this.ui.panelOpen) this.update(STEP);
+      if (this.worldRuns()) this.update(STEP);
       this.input.endFrame();
       this.online.update(); // throttled by real time (ONLINE.sendRate)
     }

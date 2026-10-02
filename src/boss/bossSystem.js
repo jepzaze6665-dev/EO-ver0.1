@@ -70,7 +70,7 @@ export class BossSystem {
       if (!e) continue;
       // ONLINE N7c: a guest of a run map does not run this fight — the host does (net/bossSync.js mirrors its state)
       if (e.netPuppet || (g.online && g.online.mobs.isPaused(enc.def.map))) { if (enc.def.impl === 'area') e.update(dt); continue; }
-      if (enc.def.impl === 'area') e.update(dt);
+      if (enc.def.impl === 'area') { if (g.online) g.online.fx.run(() => e.update(dt), 'b_' + enc.id); else e.update(dt); } // ONLINE: its effects reach the party
       const a = this.arenaPx(enc);
       const inside = dist(p.x, p.y, a.x, a.y);
       // leaving the arena some other way (teleport, respawn elsewhere) resets the fight after a moment.

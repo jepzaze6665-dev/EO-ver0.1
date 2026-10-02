@@ -17,7 +17,6 @@ import { ONLINE } from '../data/online.js';
 import { MOB_STATES, MOB_PHASES } from './protocol.js';
 import { TEAM } from '../core/constants.js';
 import { Monster } from '../monsters/monster.js';
-import { StatusSet } from '../status/status.js';
 import { CLASSES } from '../skills/classes.js';
 import { BossSync } from './bossSync.js';
 
@@ -64,6 +63,7 @@ export class MobSync {
 
   setHost({ room, host }) {
     if (room !== this.room) return;
+    this.hostId = host;
     if (host === this.session.playerId) this.becomeHost();
     else this.becomeGuest();
   }
@@ -134,9 +134,12 @@ export class MobSync {
   }
   makeAlly(r) {
     const a = { id: 'ally_' + r.id, netPlayer: r.id, name: r.name, isAlly: true, team: TEAM.PLAYER, x: r.x, y: r.y, radius: 10, hurtRadius: 12,
-      hp: 100, maxHp: 100, dead: false, downed: false, facing: 0, idleT: 0, aggro: 0, hurtable: false,
-      invulnerable: () => true, canPerfect: () => false };
-    a.status = new StatusSet(a);
+      hp: 100, maxHp: 100, dead: false, downed: false, facing: 0, idleT: 0, aggro: 0, hurtable: false, chainHold: false,
+      // mechanics check this before they hurt someone: a proxy says no — the guest's own client checks its i-frames
+      invulnerable: () => false, canPerfect: () => false };
+    // statuses given to a proxy (burn, stun, slow...) go to that guest; it carries none here
+    const fwd = (id, dur, o) => this.bosses.forwardStatus(a, id, dur, o);
+    a.status = { add: fwd, has: () => false, flag: () => false, get: () => null, remove() {}, list: () => [], cleanse() {}, isVulnerable: () => false, damageTakenMult: () => 1, damageMult: () => 1, modifier: () => 1, canAct: () => true, canMove: () => true, moveMult: () => 1, absorb: (n) => n, update() {} };
     return a;
   }
   dropAllies() { for (const a of this.allies.values()) a.dead = true; this.allies.clear(); }
@@ -152,6 +155,7 @@ export class MobSync {
   update() {
     const s = this.session, g = this.game;
     if (this.host && g.state === 'play') this.bosses.update(); // N7c: every frame (shots are batched per frame)
+    else if (g.state === 'play') this.bosses.guestUpdate();      // a guest holding [E] at a chain post
     if (!this.host || !this.room || !this.room.includes(':') || !s.online || g.state !== 'play') return;
     if (!s.remotes.list.some((r) => !r.leaving)) return; // alone in the room: nothing to send
     const t = now();

@@ -568,7 +568,10 @@ export class World {
       if (this.onMap(m) && (m.aggro || m.puppet || near.some((q) => dist(m.x, m.y, q.x, q.y) < 900))) m.update(dt);
     }
     this.monsters = this.monsters.filter((m) => !(m.dead && m.deathT > 0.8));
-    if (this.guardian) this.guardian.update(dt);
+    if (this.guardian) { // ONLINE: the Guardian's effects reach the party (its encounter's effects channel)
+      const enc = g.online && g.bosses && g.bosses.list.find((x) => x.entity === this.guardian);
+      if (enc) g.online.fx.run(() => this.guardian.update(dt), 'b_' + enc.id); else this.guardian.update(dt);
+    }
     // every boss encounter (engage / arena lock / phases / defeat): boss/bossSystem.js + data/bosses.js
     if (g.bosses) { g.bosses.update(dt); g.bosses.ambient(); }
     this.gates.update(dt);

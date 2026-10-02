@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 12;
+export const PROTOCOL_VERSION = 14;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -39,8 +39,10 @@ const FIELD = {
   save: (v) => typeof v === 'string' && v.length <= NET_LIMITS.maxSaveBytes,
   dmg: (v) => Number.isInteger(v) && v >= 0 && v <= 1000000,
   mobRows: (v) => Array.isArray(v) && v.length <= NET_LIMITS.maxMobRows && v.every(validMobRow),
-  mobActKind: (v) => ['tel', 'proj', 'btel', 'bhit', 'bproj'].includes(v), // b* = N7c boss: telegraph (visual) / strike / shots
-  fxCalls: (v) => Array.isArray(v) && v.length <= 60 && v.every((c) => Array.isArray(c) && c.length <= 10 && FX_METHODS.includes(c[0]) && c.slice(1).every((a) => validActData(a, 1))),
+  mobActKind: (v) => ['tel', 'proj', 'btel', 'bhit', 'bproj', 'bdmg', 'bstat'].includes(v), // b* = boss: telegraph (visual) / strike / shots / forwarded mechanic damage / status
+  bossData: (v) => validActData(v, -3),                 // boss snapshot: mechanic states nest deeper (6 levels)
+  bossEvtKind: (v) => v === 'obj' || v === 'hold' || v === 'ember',
+  fxCalls: (v) => Array.isArray(v) && v.length <= 60 && v.every((c) => Array.isArray(c) && c.length <= 10 && (FX_METHODS.includes(c[0]) || BOSS_FX_EXTRA.includes(c[0])) && c.slice(1).every((a) => validActData(a, 1))),
   fxShots: (v) => Array.isArray(v) && v.length <= 16 && v.every((s) => s && typeof s === 'object' && !Array.isArray(s) && validActData(s, 1)),
   actData: (v) => validActData(v),
 };
@@ -49,6 +51,8 @@ const FIELD = {
 // phase (0 windup 1 active 2 recover), dead 0|1, flags (1 elite, 2 corrupted, 4 moving), level, armor]
 // friends' skill effects (src/net/netFx.js): the vfx methods a client may ask the others to replay
 export const FX_METHODS = ['particle', 'burst', 'spark', 'shadowSmoke', 'shards', 'slash', 'ring', 'beam', 'bolt', 'sprite', 'text', 'light', 'ghost'];
+// boss channel only (a host's boss): screen flash, callout banner, camera shake
+export const BOSS_FX_EXTRA = ['flash', 'callout', 'shake'];
 export const MOB_STATES = ['idle', 'patrol', 'aggro', 'chase', 'attack', 'hit', 'return', 'dead'];
 export const MOB_PHASES = ['windup', 'active', 'recover'];
 const num = (v) => typeof v === 'number' && Number.isFinite(v);
@@ -94,11 +98,12 @@ export const CLIENT_MESSAGES = {
   // N7a shared monsters in a run map (src/net/mobSync.js): the room HOST simulates them and sends snapshots; the others
   // report their hits to the host (relayed by the server). Not authoritative yet: N8 checks kills on the server.
   mobs: { ps: 'mobRows', full: 'bool' },                 // host only: changed monsters (full = every monster near the party)
-  mobHit: { id: 'slug', dmg: 'dmg', st: 'number?', kb: 'number?', ang: 'number?', crit: 'bool?' }, // my hit on the host's monster
+  mobHit: { id: 'slug', dmg: 'dmg', st: 'number?', kb: 'number?', ang: 'number?', crit: 'bool?', ad: 'number?' }, // my hit on the host's monster / boss (ad = armour damage)
+  bossEvt: { id: 'slug', k: 'bossEvtKind', d: 'actData' }, // guest -> host: hit on a cluster / pylon, holding [E] at a chain post, ember stacks
   mobAct: { id: 'slug', k: 'mobActKind', d: 'actData' },
   revive: { to: 'slug' },
-  fx: { c: 'fxCalls', s: 'fxShots' },
-  boss: { b: 'actData' },                                // N7c host only: boss snapshot { id, st, x, y, f, pose, state, phase, hp, max, dead, air, hurt, vul, move, tags }                    // my skill effects (presentation only), relayed to my room                                // I held [E] long enough next to this downed teammate  // N7b host only: a monster started an attack / fired shots
+  fx: { c: 'fxCalls', s: 'fxShots', b: 'slug?' },        // b = a boss id: that boss's effects (host only — the clients check)
+  boss: { b: 'bossData' },                                // N7c host only: boss snapshot { id, st, x, y, f, pose, state, phase, hp, max, dead, air, hurt, vul, move, tags }                    // my skill effects (presentation only), relayed to my room                                // I held [E] long enough next to this downed teammate  // N7b host only: a monster started an attack / fired shots
   // N5 dungeon gate (server/dungeons.js)
   dungeonEnter: { area: 'slug' },                        // solo entry
   dungeonPropose: { area: 'slug' },                      // party leader: ask every member to enter together

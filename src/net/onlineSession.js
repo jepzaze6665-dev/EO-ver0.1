@@ -113,6 +113,8 @@ export class OnlineSession {
   }
 
   get online() { return this.net.online; }
+  // someone else is on our map (a city or a run): the world must keep running for them
+  sharedPlay() { return this.online && !!this.remotes.room && this.remotes.list.some((r) => !r.leaving); }
   get state() { return this.net.state; }
   get playerName() { return this.net.player ? this.net.player.name : null; }
 

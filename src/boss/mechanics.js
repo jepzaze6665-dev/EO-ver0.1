@@ -2,6 +2,13 @@ import { dist, TAU, angleTo, wrapAngle } from '../core/math.js';
 import { TILE as TILE_PX } from '../core/constants.js';
 import { Breakable } from '../exploration/breakable.js';
 
+// ONLINE (party runs): the players a mechanic acts on = this client's players + (host of a run map) the guests as ally
+// proxies (game.combatants()); damage / statuses on a proxy are forwarded to that player's client (net/bossSync.js).
+const PLAYERS = (g) => (g.combatants ? g.combatants() : PLAYERS(g));
+// per-player values in net states are keyed by player id (our player = the session's id, a proxy = its netPlayer)
+const pid = (g, p) => (p && p.isAlly ? p.netPlayer : (g.online && g.online.playerId) || 'me');
+let NET_ID = 0; // ids of mechanic world objects (crystal clusters, pylons) so a guest's hit finds the right one
+
 // BOSS MECHANICS — the signature rule that makes one boss fight different from another (data: data/bosses.js
 // `mechanics: [{ type, ... }]`). An AreaBoss owns a list of these and calls their hooks; no boss is named here.
 //   hooks (all optional): reset() · update(dt) · onMoveDone(id, move) · onImpact({ x, y, r, move })
@@ -65,7 +72,7 @@ class LavaPools {
     for (const p of this.pools) {
       p.t -= dt; p.tick -= dt;
       if (p.tick > 0) continue;
-      for (const pl of g.players()) {
+      for (const pl of PLAYERS(g)) {
         if (pl.dead || pl.invulnerable() || dist(pl.x, pl.y, p.x, p.y) > p.r) continue;
         pl.status.add('burn', this.d.burn, { source: this.b });
         p.tick = this.d.tick;
@@ -145,7 +152,7 @@ class RuneSequence {
   }
   wantsTurn() { return this.b.phase >= this.d.phase && this.t <= 0 ? this.cast() : null; }
   *cast() {
-    const b = this.b, g = b.game, p = g.player, d = this.d, NUM = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+    const b = this.b, g = b.game, p = b.foe, d = this.d, NUM = ['I', 'II', 'III', 'IV', 'V', 'VI'];
     this.t = d.every; this.casts++;
     b.facePlayer();
     b.curMove = { anim: { roar: d.anim || 'roar' } };
@@ -193,7 +200,7 @@ class Echoes {
   }
   onTelegraph(tel, m) {
     if (tel.fromEcho || !this.list.length) return;
-    const b = this.b, g = b.game, p = g.player;
+    const b = this.b, g = b.game, p = b.foe;
     for (const e of this.list) {
       const ang = angleTo(e.x, e.y, p.x, p.y), total = tel.total + this.d.delay;
       let c;
@@ -257,7 +264,7 @@ class Judgement {
     }
     b.tele({ shape: 'circle', x: b.center.x, y: b.center.y, r: b.arenaR - 6, total: d.windup, color: '120,170,255' }, { dmg: 'magic' });
     yield d.windup;
-    for (const p of g.players()) {
+    for (const p of PLAYERS(g)) {
       if (p.dead) continue;
       if (domes.some((c) => Math.hypot(p.x - c.x, p.y - c.y) <= d.domeR) || p.invulnerable()) { this.safe++; continue; }
       g.combat.dealDamage(b, p, { power: d.power, type: 'magic', unblockable: true, knock: 260 });
@@ -279,25 +286,31 @@ class Judgement {
 // a shatter hit). Moving / dodging melts it. Stops a player from camping one spot against a fast hunter.
 class Frostbite {
   constructor(boss, d) { this.b = boss; this.d = { phase: 2, max: 5, rate: 1.1, melt: 2.2, freeze: 1.1, power: 30, ...d }; this.reset(); }
-  reset() { this.stacks = 0; this.last = null; this.freezes = 0; }
+  reset() { this.stacks = new Map(); this.last = new Map(); this.freezes = 0; }
+  get(p) { return this.stacks.get(p) || 0; }
+  // every player of the run gathers its own stacks (a guest's freeze = a forwarded stun + hit, net/bossSync.js)
   update(dt) {
-    const b = this.b, g = b.game, p = g.player, d = this.d;
-    if (b.dead || b.phase < d.phase || (b.state !== 'fight' && b.state !== 'weak') || !p || p.dead) { this.stacks = Math.max(0, this.stacks - dt * d.melt); return; }
-    const moved = this.last ? Math.hypot(p.x - this.last.x, p.y - this.last.y) / Math.max(dt, 1e-4) : 0;
-    this.last = { x: p.x, y: p.y };
-    if (moved > 30 || p.dash) this.stacks = Math.max(0, this.stacks - dt * d.melt);
-    else this.stacks += dt * d.rate;
-    if (this.stacks >= 1 && Math.random() < dt * 4) g.vfx.particle(p.x + (Math.random() - 0.5) * 20, p.y - 10 - Math.random() * 30, { color: '#cfe8ff', vy: -20, life: 0.6, size: 2 });
-    if (this.stacks >= d.max) {
-      this.stacks = 0; this.freezes++;
-      p.status.add('stun', d.freeze);
-      g.combat.dealDamage(b, p, { power: d.power, type: 'magic', unblockable: true, knock: 0 });
-      b.fx('shatter', p.x, p.y - 20, 0, { scale: 0.8, life: 0.5 });
-      g.vfx.text(p.x, p.y - 60, 'FROZEN!', { color: '#bfe6ff', size: 12 });
-      g.events.emit('playerFrozen', { bossId: b.bossId, player: p });
+    const b = this.b, g = b.game, d = this.d, active = !(b.dead || b.phase < d.phase || (b.state !== 'fight' && b.state !== 'weak'));
+    for (const p of PLAYERS(g)) {
+      let st = this.get(p);
+      if (!active || p.dead) { this.stacks.set(p, Math.max(0, st - dt * d.melt)); continue; }
+      const l = this.last.get(p), moved = l ? Math.hypot(p.x - l.x, p.y - l.y) / Math.max(dt, 1e-4) : 0;
+      this.last.set(p, { x: p.x, y: p.y });
+      if (moved > 30 || p.dash) st = Math.max(0, st - dt * d.melt);
+      else st += dt * d.rate;
+      if (st >= 1 && Math.random() < dt * 4) g.vfx.particle(p.x + (Math.random() - 0.5) * 20, p.y - 10 - Math.random() * 30, { color: '#cfe8ff', vy: -20, life: 0.6, size: 2 });
+      if (st >= d.max) {
+        st = 0; this.freezes++;
+        p.status.add('stun', d.freeze);
+        g.combat.dealDamage(b, p, { power: d.power, type: 'magic', unblockable: true, knock: 0 });
+        b.fx('shatter', p.x, p.y - 20, 0, { scale: 0.8, life: 0.5 });
+        g.vfx.text(p.x, p.y - 60, 'FROZEN!', { color: '#bfe6ff', size: 12 });
+        g.events.emit('playerFrozen', { bossId: b.bossId, player: p });
+      }
+      this.stacks.set(p, st);
     }
   }
-  tags() { return this.b.phase >= this.d.phase && this.stacks >= 0.5 ? [{ label: `FROSTBITE ${Math.floor(this.stacks)}/${this.d.max}`, color: this.stacks >= this.d.max - 1 ? '#ff8080' : '#bfe6ff' }] : []; }
+  tags() { const n = this.get(this.b.game.player); return this.b.phase >= this.d.phase && n >= 0.5 ? [{ label: `FROSTBITE ${Math.floor(n)}/${this.d.max}`, color: n >= this.d.max - 1 ? '#ff8080' : '#bfe6ff' }] : []; }
 }
 
 // glacier (from phase d.phase, every `every` s): the boss howls ICE PILLARS out of the floor (solid for `life` s), then
@@ -343,7 +356,7 @@ class Glacier {
     g.audio.sfx('roar');
     g.ui.callout(d.name, 'Hide behind an ice pillar!', '#bfe6ff');
     // pillars around the boss, one on the player's side so a shelter is always reachable
-    const pa = Math.atan2(g.player.y - b.y, g.player.x - b.x);
+    const foe = b.foe, pa = Math.atan2(foe.y - b.y, foe.x - b.x);
     for (let k = 0; k < d.count; k++) {
       const a = pa + (k - (d.count - 1) / 2) * ((Math.PI * 2) / d.count);
       const c = b.clampToArena(b.x + Math.cos(a) * d.dist, b.y + Math.sin(a) * d.dist, 40);
@@ -358,7 +371,7 @@ class Glacier {
     }
     b.tele({ shape: 'circle', x: b.center.x, y: b.center.y, r: b.arenaR, total: d.windup, color: '150,210,255' }, { dmg: 'magic' });
     yield d.windup;
-    for (const p of g.players()) {
+    for (const p of PLAYERS(g)) {
       if (p.dead) continue;
       if (this.covered(p) || p.invulnerable()) { this.safe++; continue; }
       g.combat.dealDamage(b, p, { power: d.power, type: 'magic', unblockable: true, knock: 240 });
@@ -421,6 +434,7 @@ class CrystalArmor {
       const a = a0 + (k / n) * Math.PI * 2, c = b.clampToArena(b.center.x + Math.cos(a) * d.dist, b.center.y + Math.sin(a) * d.dist, 40);
       const prop = w.map.addProp({ name: d.prop, x: c.x, y: c.y + 10, scale: 0.9 });
       const br = new Breakable(g, c.x, c.y, { kind: 'crystal', hp: Math.round(d.hp * ((b.levelScale && b.levelScale.hp) || 1)), radius: 16, height: 40, prop, label: 'Crystal Cluster' });
+      br.netId = ++NET_ID;
       const onDeath0 = br.onDeath.bind(br); br.onDeath = () => { onDeath0(); prop.visible = false; };
       w.breakables.push(br);
       this.list.push(br);
@@ -488,6 +502,7 @@ class Pylons {
       const a = a0 + (k / d.count) * Math.PI * 2, c = b.clampToArena(b.center.x + Math.cos(a) * d.dist, b.center.y + Math.sin(a) * d.dist, 40);
       const prop = w.map.addProp({ name: d.prop, x: c.x, y: c.y + 10, scale: 0.8 });
       const br = new Breakable(g, c.x, c.y, { kind: 'crystal', hp: Math.round(d.hp * ((this.b.levelScale && this.b.levelScale.hp) || 1)), radius: 18, height: 50, prop, label: 'Eclipse Pylon' });
+      br.netId = ++NET_ID;
       const onDeath0 = br.onDeath.bind(br); br.onDeath = () => { onDeath0(); prop.visible = false; g.events.emit('bossPylonBroken', { bossId: b.bossId }); };
       w.breakables.push(br);
       this.list.push(br);
@@ -516,7 +531,7 @@ class Pylons {
       return;
     }
     // too slow: the nova
-    for (const p of g.players()) if (!p.dead && !p.invulnerable()) g.combat.dealDamage(b, p, { power: d.power, type: 'magic', unblockable: true, knock: 260 });
+    for (const p of PLAYERS(g)) if (!p.dead && !p.invulnerable()) g.combat.dealDamage(b, p, { power: d.power, type: 'magic', unblockable: true, knock: 260 });
     g.vfx.flash('200,150,255', 0.6, 1.4);
     g.camera.shake(1);
     b.fx('nova', b.center.x, b.center.y, 0, { scale: b.arenaR / 45, life: 0.8, ground: true, squash: 0.6 });
@@ -536,7 +551,7 @@ class Pylons {
 // a mechanic that listens to the event bus subscribes while it lives and unsubscribes on reset / clear
 function listen(mech, name, fn) { (mech.subs = mech.subs || []).push(mech.b.game.events.on(name, fn)); }
 function unlisten(mech) { for (const off of mech.subs || []) off(); mech.subs = []; }
-const isPlayer = (g, e) => e && g.players().includes(e);
+const isPlayer = (g, e) => e && PLAYERS(g).includes(e);
 
 // ember_debt : every fire (magic) hit from the boss leaves EMBER stacks on that player (max `max`; from phase
 //              `heavyPhase` on, `gainHeavy` per hit). Stacks do nothing — until the boss roars IGNITE (every `every` s):
@@ -571,7 +586,7 @@ class EmberDebt {
     if (b.state !== 'fight') return;
     this.t -= dt;
     if (this.t <= 0 && !this.pending) {
-      if (b.game.players().some((p) => this.get(p) > 0)) this.pending = true;
+      if (PLAYERS(b.game).some((p) => this.get(p) > 0)) this.pending = true;
       else this.t = 5; // nobody owes anything yet: ask again soon
     }
   }
@@ -583,10 +598,10 @@ class EmberDebt {
     b.pose = 'roar';
     g.ui.callout('IGNITE', 'Every ember you carry is about to explode — burn them off: perfect dodges, strike it while weak', '#ff7a30');
     g.audio.sfx('roar');
-    const owe = g.players().filter((p) => !p.dead && this.get(p) > 0);
+    const owe = PLAYERS(g).filter((p) => !p.dead && this.get(p) > 0);
     for (const p of owe) g.vfx.ring(p.x, p.y, 10, 40 + this.get(p) * 8, { color: '255,120,40', life: b.wind(d.windup), width: 3 });
     yield b.wind(d.windup);
-    for (const p of g.players()) {
+    for (const p of PLAYERS(g)) {
       const n = this.get(p);
       if (!n || p.dead) continue;
       g.combat.dealDamage(b, p, { power: d.per * n, type: 'magic', unblockable: true, knock: 120 });
@@ -600,7 +615,7 @@ class EmberDebt {
   }
   draw(ctx) {
     const g = this.b.game;
-    for (const p of g.players()) {
+    for (const p of PLAYERS(g)) {
       const n = this.get(p);
       if (!n || p.dead) continue;
       ctx.globalCompositeOperation = 'lighter';
@@ -658,7 +673,7 @@ class RisingLava {
       if (Math.random() < 0.35) g.vfx.particle((tx + 0.5) * TILE_PX, (ty + 0.5) * TILE_PX, { color: '#ff8a30', vy: -40, life: 0.8, size: 3, add: true });
     }
     if (m.chunkCache) m.chunkCache.clear();
-    for (const p of g.players()) {
+    for (const p of PLAYERS(g)) {
       if (p.dead || Math.hypot(p.x - cx, p.y - cy) < (r - 0.6) * TILE_PX) continue;
       const a = angleTo(cx, cy, p.x, p.y);
       p.x = cx + Math.cos(a) * (r - 1.4) * TILE_PX; p.y = cy + Math.sin(a) * (r - 1.4) * TILE_PX; p.kx = p.ky = 0;
@@ -704,7 +719,7 @@ class SkyChains {
     for (const k of this.lit) {
       if (this.chained.includes(k)) continue;
       const s = this.post(k);
-      const p = g.players().find((pl) => !pl.dead && Math.hypot(pl.x - s.x, pl.y - s.y) <= d.reach && this.holding(pl));
+      const p = PLAYERS(g).find((pl) => !pl.dead && Math.hypot(pl.x - s.x, pl.y - s.y) <= d.reach && this.holding(pl));
       const cur = this.progress.get(k);
       if (!p) { if (cur) this.progress.delete(k); continue; }
       const v = cur && cur.p === p ? cur.v + dt : dt;
@@ -747,7 +762,7 @@ class SkyChains {
       // hover toward the players while it waits for its next attack
       yield (dt) => {
         left -= dt; next -= dt;
-        const p = g.player, c = b.clampToArena(p.x, p.y, 40);
+        const p = b.foe, c = b.clampToArena(p.x, p.y, 40);
         b.x += (c.x - b.x) * Math.min(1, dt * 0.8); b.y += (c.y - b.y) * Math.min(1, dt * 0.8);
         b.facing = angleTo(b.x, b.y, p.x, p.y);
         if (final && Math.random() < dt * 10) b.fx('charge', b.x, b.y - b.air - 30, 0, { scale: 1.2, life: 0.4 });
@@ -781,7 +796,7 @@ class SkyChains {
       g.ui.callout('LAST BREATH', '', '#ff5a20');
       b.tele({ shape: 'circle', x: b.center.x, y: b.center.y, r: b.arenaR + 20, total: 0.9, color: '255,80,20' }, { dmg: 'magic' });
       yield 0.9;
-      for (const p of g.players()) if (!p.dead && !p.invulnerable()) { g.combat.dealDamage(b, p, { power: F.power, type: 'magic', unblockable: true, knock: 200 }); p.status.add('burn', 3, { source: b }); }
+      for (const p of PLAYERS(g)) if (!p.dead && !p.invulnerable()) { g.combat.dealDamage(b, p, { power: F.power, type: 'magic', unblockable: true, knock: 200 }); p.status.add('burn', 3, { source: b }); }
       g.vfx.flash('255,120,40', 0.6, 1.4); g.camera.shake(1);
       b.fx('nova', b.center.x, b.center.y, 0, { scale: b.arenaR / 45, life: 0.8, ground: true, squash: 0.6 });
       this.finalFails++;
@@ -804,7 +819,7 @@ class SkyChains {
   }
   // a dive at the player's position (it lands, strikes, lifts off again)
   *dive() {
-    const b = this.b, g = b.game, s = this.d.dive, p = g.player;
+    const b = this.b, g = b.game, s = this.d.dive, p = b.foe;
     const tel = b.tele({ shape: 'circle', x: p.x, y: p.y, r: s.r, total: b.wind(s.windup) }, { dmg: 'physical' });
     yield (dt) => { b.x += (tel.x - b.x) * Math.min(1, dt * 3); b.y += (tel.y - b.y) * Math.min(1, dt * 3); return tel.resolved || tel.time >= tel.total || this.chained.length >= this.d.need; };
     if (this.chained.length >= this.d.need) { tel.cancelled = true; return; }
@@ -819,7 +834,7 @@ class SkyChains {
   }
   // a line of fire swept across the arena through the player
   *strafe() {
-    const b = this.b, g = b.game, s = this.d.strafe, p = g.player, ang = angleTo(b.center.x, b.center.y, p.x, p.y) + Math.PI / 2 * (Math.random() < 0.5 ? 1 : -1);
+    const b = this.b, g = b.game, s = this.d.strafe, p = b.foe, ang = angleTo(b.center.x, b.center.y, p.x, p.y) + Math.PI / 2 * (Math.random() < 0.5 ? 1 : -1);
     const len = b.arenaR * 2, x0 = p.x - Math.cos(ang) * len / 2, y0 = p.y - Math.sin(ang) * len / 2;
     const tel = b.tele({ shape: 'line', x: x0, y: y0, ang, len, width: s.width, total: b.wind(s.windup), color: '255,110,30' }, { dmg: 'magic' });
     yield b.wind(s.windup);
@@ -850,6 +865,113 @@ class SkyChains {
     return [];
   }
 }
+
+// ---------------- ONLINE: mechanic state for the guests of a party run (net/bossSync.js)
+// netState() (host) -> plain data in the boss snapshot; netApply(state, ctx) (guest, on the puppet boss's copy) makes the
+// guest see / feel the same: pools, pillars (real blocked tiles), lava ring (real lava tiles + a push inward), echoes,
+// chain posts, stacks (its OWN stacks from the per-player values), clusters / pylons (puppet breakables whose hits go to
+// the host). netClear() (guest) undoes what netApply changed in the world (the run ended / we became the host).
+// ctx = { me: our player id, map, game, boss, index (this mechanic's index), hitObject(index, netId, dmg) }
+const r1 = (v) => Math.round(v * 10) / 10;
+const keyed = (g, map) => { const o = {}; for (const [p, v] of map) if (v) o[pid(g, p)] = r1(v); return o; };
+
+Overheat.prototype.netState = function () { return { h: Math.round(this.heat) }; };
+Overheat.prototype.netApply = function (st) { this.heat = st.h || 0; };
+
+LavaPools.prototype.netState = function () { return { p: this.pools.slice(-14).map((p) => [r1(p.x), r1(p.y), r1(p.r), r1(p.t)]) }; };
+LavaPools.prototype.netApply = function (st) { this.pools = (st.p || []).map(([x, y, r, t]) => ({ x, y, r, t, tick: 0 })); };
+
+Stance.prototype.netState = function () { return { c: this.cur, g: Math.round(this.guard) }; };
+Stance.prototype.netApply = function (st) { if (this.d.stances[st.c]) this.cur = st.c; this.guard = st.g || 0; };
+
+Echoes.prototype.netState = function () { return { l: this.list.map((e) => [r1(e.x), r1(e.y), r1(e.life)]) }; };
+Echoes.prototype.netApply = function (st) { this.list = (st.l || []).map(([x, y, life]) => ({ x, y, life })); };
+
+Frostbite.prototype.netState = function () { return { s: keyed(this.b.game, this.stacks) }; };
+Frostbite.prototype.netApply = function (st, ctx) { this.stacks = new Map([[ctx.game.player, (st.s || {})[ctx.me] || 0]]); };
+
+EmberDebt.prototype.netState = function () { return { s: keyed(this.b.game, this.stacks), t: r1(this.t) }; };
+EmberDebt.prototype.netApply = function (st, ctx) { this.stacks = new Map([[ctx.game.player, (st.s || {})[ctx.me] || 0]]); this.t = st.t ?? this.t; };
+
+// pillars: the same tiles block on the guest's map while they stand
+Glacier.prototype.netState = function () { return { p: this.pillars.map((pl) => [pl.i, r1(pl.t)]) }; };
+Glacier.prototype.netApply = function (st, ctx) {
+  const m = ctx.map, want = new Map((st.p || []).filter(([i]) => Number.isInteger(i) && i >= 0 && i < m.blocker.length).map(([i, t]) => [i, t]));
+  this.netHeld = this.netHeld || new Set();
+  for (const i of [...this.netHeld]) if (!want.has(i)) { if (m.blocker[i] > 0) m.blocker[i]--; this.netHeld.delete(i); }
+  for (const i of want.keys()) if (!this.netHeld.has(i)) { m.blocker[i]++; this.netHeld.add(i); }
+  this.pillars = [...want].map(([i, t]) => ({ i, t, x: (i % m.w + 0.5) * TILE_PX, y: (Math.floor(i / m.w) + 0.5) * TILE_PX }));
+};
+Glacier.prototype.netClear = function (ctx) { this.netApply({ p: [] }, ctx); this.pillars = []; };
+
+// the lava ring: the same floor tiles turn to lava on the guest's map; a guest still out there is pushed in
+RisingLava.prototype.netState = function () { return { r: this.r, n: this.rises }; };
+RisingLava.prototype.netApply = function (st, ctx) {
+  const b = this.b, g = ctx.game, m = ctx.map, full = b.def.arena.radius + 0.5, r = typeof st.r === 'number' ? st.r : full;
+  this.map = m;
+  if (r >= full - 0.01) { if (this.saved.length) this.restore(); this.r = full; this.rises = 0; return; }
+  if (r >= this.r - 0.01) return;
+  const cx = b.center.x, cy = b.center.y, ctxT = Math.floor(cx / TILE_PX), cty = Math.floor(cy / TILE_PX), R = Math.ceil(this.r) + 1;
+  for (let ty = cty - R; ty <= cty + R; ty++) for (let tx = ctxT - R; tx <= ctxT + R; tx++) {
+    if (!m.inBounds(tx, ty)) continue;
+    const dd = Math.hypot((tx + 0.5) * TILE_PX - cx, (ty + 0.5) * TILE_PX - cy) / TILE_PX, i = m.idx(tx, ty);
+    if (dd <= r || dd > this.r + 0.6 || !this.d.floorTiles.includes(m.tiles[i])) continue;
+    this.saved.push([i, m.tiles[i]]);
+    m.tiles[i] = this.d.lavaTile;
+  }
+  if (m.chunkCache) m.chunkCache.clear();
+  const p = g.player;
+  if (p && !p.dead && Math.hypot(p.x - cx, p.y - cy) >= (r - 0.6) * TILE_PX) { const a = angleTo(cx, cy, p.x, p.y); p.x = cx + Math.cos(a) * (r - 1.4) * TILE_PX; p.y = cy + Math.sin(a) * (r - 1.4) * TILE_PX; p.kx = p.ky = 0; }
+  this.r = r; this.rises = st.n || this.rises + 1;
+  b.arenaR = (r - 0.5) * TILE_PX;
+};
+RisingLava.prototype.netClear = function () { this.restore(); this.r = this.b.def.arena.radius + 0.5; this.rises = 0; };
+
+// chain posts: lit / chained / progress (a guest holds [E] at a post: net/bossSync.js sends it to the host)
+SkyChains.prototype.netState = function () { const pr = {}; for (const [k, v] of this.progress) pr[k] = r1(v.v); return { f: this.flying ? 1 : 0, l: this.lit, c: this.chained, p: pr, x: this.finalDone ? 1 : 0 }; };
+SkyChains.prototype.netApply = function (st) {
+  this.flying = !!st.f; this.lit = (st.l || []).filter(Number.isInteger); this.chained = (st.c || []).filter(Number.isInteger); this.finalDone = !!st.x;
+  this.progress = new Map(Object.entries(st.p || {}).map(([k, v]) => [Number(k), { p: null, v }]));
+};
+
+// clusters / pylons: breakables on the host; the guest gets PUPPET breakables (same place, the host's HP) — a hit on one
+// goes to the host (ctx.hitObject), only the host breaks it
+function objectsState(list) { return list.filter((c) => !c.dead).map((c) => [c.netId || 0, r1(c.x), r1(c.y), Math.max(0, Math.round(c.hp)), c.maxHp]); }
+function objectsApply(mech, rows, ctx, prop, label, height) {
+  const g = ctx.game, w = g.world;
+  mech.netObjs = mech.netObjs || new Map();
+  const seen = new Set();
+  for (const [id, x, y, hp, max] of rows || []) {
+    if (!Number.isInteger(id)) continue;
+    seen.add(id);
+    let br = mech.netObjs.get(id);
+    if (!br) {
+      const pr = w.map.addProp({ name: prop, x, y: y + 10, scale: 0.85 });
+      br = new Breakable(g, x, y, { kind: 'crystal', hp: max, radius: 17, height, prop: pr, label });
+      br.puppet = true; br.netId = id;
+      br.netDamage = (amount) => ctx.hitObject(ctx.index, id, Math.max(0, Math.round(amount)));
+      mech.netObjs.set(id, br);
+      w.breakables.push(br);
+    }
+    br.maxHp = max; br.hp = Math.max(1, hp);
+  }
+  for (const [id, br] of [...mech.netObjs]) if (!seen.has(id)) { br.onDeath(); if (br.prop) br.prop.visible = false; const i = w.breakables.indexOf(br); if (i >= 0) w.breakables.splice(i, 1); mech.netObjs.delete(id); }
+}
+function objectsClear(mech, ctx) { objectsApply(mech, [], ctx); }
+CrystalArmor.prototype.netState = function () { return { o: objectsState(this.list), g: r1(this.growT), t: r1(this.t) }; };
+CrystalArmor.prototype.netApply = function (st, ctx) { objectsApply(this, st.o, ctx, this.d.prop, 'Crystal Cluster', 40); this.growT = st.g || 0; this.t = st.t ?? this.t; this.list = [...(this.netObjs || new Map()).values()]; };
+CrystalArmor.prototype.netClear = function (ctx) { objectsClear(this, ctx); this.list = []; };
+Pylons.prototype.netState = function () { return { o: objectsState(this.list), k: this.casting ? 1 : 0, c: r1(this.chargeT) }; };
+Pylons.prototype.netApply = function (st, ctx) { objectsApply(this, st.o, ctx, this.d.prop, 'Eclipse Pylon', 50); this.casting = !!st.k; this.chargeT = st.c || 0; this.list = [...(this.netObjs || new Map()).values()]; };
+Pylons.prototype.netClear = function (ctx) { objectsClear(this, ctx); this.list = []; };
+// host: a guest's hit on one of our clusters / pylons
+CrystalArmor.prototype.netHit = Pylons.prototype.netHit = function (id, dmg, src) {
+  const c = this.list.find((x) => x.netId === id && !x.dead);
+  if (!c) return;
+  c.hp -= dmg; c.flash = 0.12;
+  if (c.onHurt) c.onHurt(dmg, src);
+  if (c.hp <= 0) { c.hp = 0; c.onDeath(src); }
+};
 
 export const MECHANICS = { ember_debt: EmberDebt, rising_lava: RisingLava, sky_chains: SkyChains, overheat: Overheat, lava_pools: LavaPools, stance: Stance, rune_sequence: RuneSequence, echoes: Echoes, judgement: Judgement, frostbite: Frostbite, glacier: Glacier, crystal_armor: CrystalArmor, pylons: Pylons };
 export const MECHANIC_TYPES = Object.keys(MECHANICS);

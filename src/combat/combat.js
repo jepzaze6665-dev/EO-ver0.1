@@ -143,6 +143,8 @@ export class Combat {
   dealDamage(src, target, opts) {
     const g = this.game;
     if (target.downed) return { amount: 0, crit: false, killed: false, tags: ['downed'] }; // party: a downed player waits for a revive
+    // ONLINE: a guest's ally proxy (host of a party run) is never hurt here — the hit goes to that player's client
+    if (target.isAlly) return g.online ? g.online.mobs.bosses.forwardDamage(src, target, opts) : { amount: 0, crit: false, killed: false, tags: [] };
     const fromPlayer = src && src.team === TEAM.PLAYER;
     const ang = src ? angleTo(src.x, src.y, target.x, target.y) : rand(0, TAU);
     // 1) CALCULATE — pure, data in / result out (combat/damageSystem.js)
@@ -193,7 +195,7 @@ export class Combat {
     }
     target.hp -= target.endure ? target.endure(amount) : amount; // ENDURE (players): no one-shot from healthy
     // ONLINE N7a: a puppet is the room host's monster — the host applies the hit (net/mobSync.js); only it decides death
-    if (target.puppet) { if (target.netDamage) target.netDamage(amount, opts, src, ang, crit); if (target.hp <= 0) target.hp = 1; }
+    if (target.puppet) { if (target.netDamage) target.netDamage(amount, opts, src, ang, crit, res.armorDamage || 0); if (target.hp <= 0) target.hp = 1; }
     target.flash = 0.12;
     this.lastCombatTime = g.time;
 

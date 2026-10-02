@@ -32,7 +32,8 @@ export class CityRooms {
       t.send('revived', { by: s.name });
     });
     // friends' skill effects: anyone in a room, to the others there (presentation only)
-    server.handle('fx', (s, m) => { const r = s.presence?.room; if (r) this.send(r, 'fx', { c: m.c, s: m.s, from: s.id }, s); });
+    server.handle('fx', (s, m) => { const r = s.presence?.room; if (r) this.send(r, 'fx', { c: m.c, s: m.s, b: m.b, from: s.id }, s); });
+    server.handle('bossEvt', (s, m) => { const r = s.presence?.room, h = r && this.hosts.get(r); if (h && h !== s.id) this.server.sessions.get(h)?.send('bossEvt', { ...m, from: s.id }); });
     server.handle('boss', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'boss', { b: m.b }, s); });
     server.handle('mobAct', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'mobAct', { id: m.id, k: m.k, d: m.d }, s); });
     server.handle('mobs', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'mobs', { ps: m.ps, full: m.full }, s); });
