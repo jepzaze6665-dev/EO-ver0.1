@@ -18,6 +18,7 @@ import { dir4, TAU } from '../core/math.js';
 import { ServerSaveAdapter } from './serverSave.js';
 import { MobSync } from './mobSync.js';
 import { NetRevive } from './netRevive.js';
+import { NetFx } from './netFx.js';
 import { SAVE_KEY, BACKUP_KEY } from '../save/save.js';
 
 const NAME_KEY = 'eclipse_online_last_name';
@@ -38,6 +39,8 @@ export class OnlineSession {
     this.saves = new ServerSaveAdapter(this.net, { mainKey: SAVE_KEY, backupKey: BACKUP_KEY });
     this.mobs = new MobSync(this); // N7a shared monsters in a run map
     this.revive = new NetRevive(this); // revive teammates on other clients
+    this.fx = new NetFx(this);         // friends' skill effects
+    this.fx.install();
     this.saveReady = false;
     this.playerId = null;
     const n = this.net;
@@ -151,6 +154,7 @@ export class OnlineSession {
     }
     this.inWorld = true;
     this.mobs.update(); // N7a: host snapshots (own throttle)
+    this.fx.flush();
     const look = `${p.cls.id}:${p.level}`;
     if (look !== this.sentLook && this.net.send('look', { c: p.cls.id, l: p.level })) this.sentLook = look;
     const t = now(), m = g.world.mapId;

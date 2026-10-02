@@ -421,7 +421,11 @@ export class Game {
     return this.camera.toWorld((m.x * r.dpr) / r.scale, (m.y * r.dpr) / r.scale);
   }
   // Game-time scheduler (pauses with the game, respects hit stop unless realTime).
-  after(sec, fn, realTime = false) { this.timers.push({ t: sec, fn, realTime }); }
+  after(sec, fn, realTime = false) {
+    // ONLINE: a timer made while our player's effects are recorded keeps recording when it fires (skills schedule hits)
+    if (this.online && this.online.fx.isRecording()) { const f = fn, fx = this.online.fx; fn = () => fx.run(f); }
+    this.timers.push({ t: sec, fn, realTime });
+  }
   tickTimers(dt, sdt) {
     if (!this.timers.length) return;
     const due = [];
@@ -617,7 +621,8 @@ export class Game {
     this.time += sdt;
     this.tickTimers(dt, sdt);
     this.world.syncMapToPlayer();
-    this.player.update(sdt);
+    if (this.online) this.online.fx.run(() => this.player.update(sdt)); // ONLINE: our effects are recorded for the party
+    else this.player.update(sdt);
     this.world.update(sdt);
     this.targets.update(this.player);
     this.combat.update(sdt);

@@ -6,14 +6,14 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 10;
+export const PROTOCOL_VERSION = 11;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
   maxSaveBytes: 262144,      // largest 'saveWrite' (the whole save as JSON text); the socket allows this much
   saveInterval: 1,           // s: at most one save write per second per player (autosave is every 4 s)
   // larger messages allowed per type (everything else: maxMessageBytes)
-  typeBytes: { saveWrite: 262144, mobs: 32768 },
+  typeBytes: { saveWrite: 262144, mobs: 32768, fx: 16384 },
   maxMobRows: 120,           // monsters in one 'mobs' message
   helloTimeout: 5,           // s: a socket that does not say 'hello' in time is dropped
   heartbeat: 10,             // s between server pings
@@ -40,11 +40,15 @@ const FIELD = {
   dmg: (v) => Number.isInteger(v) && v >= 0 && v <= 1000000,
   mobRows: (v) => Array.isArray(v) && v.length <= NET_LIMITS.maxMobRows && v.every(validMobRow),
   mobActKind: (v) => v === 'tel' || v === 'proj',
+  fxCalls: (v) => Array.isArray(v) && v.length <= 60 && v.every((c) => Array.isArray(c) && c.length <= 10 && FX_METHODS.includes(c[0]) && c.slice(1).every((a) => validActData(a, 1))),
+  fxShots: (v) => Array.isArray(v) && v.length <= 16 && v.every((s) => s && typeof s === 'object' && !Array.isArray(s) && validActData(s, 1)),
   actData: (v) => validActData(v),
 };
 
 // N7a mob snapshot row (host -> others): [netId, type, x, y, hp, maxHp, facing×100, state, attack index (-1 none),
 // phase (0 windup 1 active 2 recover), dead 0|1, flags (1 elite, 2 corrupted, 4 moving), level, armor]
+// friends' skill effects (src/net/netFx.js): the vfx methods a client may ask the others to replay
+export const FX_METHODS = ['particle', 'burst', 'spark', 'shadowSmoke', 'shards', 'slash', 'ring', 'beam', 'bolt', 'sprite', 'text', 'light', 'ghost'];
 export const MOB_STATES = ['idle', 'patrol', 'aggro', 'chase', 'attack', 'hit', 'return', 'dead'];
 export const MOB_PHASES = ['windup', 'active', 'recover'];
 const num = (v) => typeof v === 'number' && Number.isFinite(v);
@@ -92,7 +96,8 @@ export const CLIENT_MESSAGES = {
   mobs: { ps: 'mobRows', full: 'bool' },                 // host only: changed monsters (full = every monster near the party)
   mobHit: { id: 'slug', dmg: 'dmg', st: 'number?', kb: 'number?', ang: 'number?', crit: 'bool?' }, // my hit on the host's monster
   mobAct: { id: 'slug', k: 'mobActKind', d: 'actData' },
-  revive: { to: 'slug' },                                // I held [E] long enough next to this downed teammate  // N7b host only: a monster started an attack / fired shots
+  revive: { to: 'slug' },
+  fx: { c: 'fxCalls', s: 'fxShots' },                    // my skill effects (presentation only), relayed to my room                                // I held [E] long enough next to this downed teammate  // N7b host only: a monster started an attack / fired shots
   // N5 dungeon gate (server/dungeons.js)
   dungeonEnter: { area: 'slug' },                        // solo entry
   dungeonPropose: { area: 'slug' },                      // party leader: ask every member to enter together
@@ -132,7 +137,8 @@ export const SERVER_MESSAGES = {
   roomHost: { room: 'string', host: 'string' },          // N7a: who simulates the monsters of this run map
   // mobs / mobAct (relayed as sent) · mobHit (relayed to the host, + from: player id)
   // N7b: room rows / moves carry the HP share h (0 = down): entry [id, name, x, y, d, a, k, c, l, h, dn], move [id, x, y, d, a, k, snap, h, dn]
-  revived: { by: 'string' },                             // a teammate revived you (server checked it)
+  revived: { by: 'string' },
+  // fx (relayed + from: player id)                             // a teammate revived you (server checked it)
 };
 
 export const NET_ERROR = {

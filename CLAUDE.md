@@ -1246,3 +1246,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   id in sessionStorage, so a reload of the same tab still logs back in). `tools/onlineKit.js` = multi-tab dev helpers
   (login / createParty / joinParty / propose / accept / tick). Tests: party.test +1, instances.test +1 (server revive rules).
   Checked in 2 tabs: guest downed (not failed), host holds E 3 s -> guest back at 75/250.
+  Done FRIENDS' SKILL EFFECTS (src/net/netFx.js = game.online.fx): PROTOCOL_VERSION 11: client fx { c: calls, s: shots }
+  (typeBytes 16 KB; FX_METHODS in protocol.js; server relays to the sender's room + from). NetFx.install wraps game.vfx
+  methods (FX_METHODS; the original kept as vfx[name].orig) and projectiles.fire. RECORDING = while OUR player's code runs:
+  Game.update calls player.update inside fx.run(); Game.after wraps a timer made while recording so it records when it
+  fires; nested vfx calls (burst -> particle) record once; particles capped 12 / batch; batches every 0.05 s (flush in
+  online.update), only when someone else is in the room. Option objects keep plain values; `follow: our player` -> 'self'
+  -> follows that RemotePlayer on the other screen; ghost frames = { sheet, variant, box } rebuilt from the friend's class
+  sprites. Screen-wide effects (flash, startEclipse) are never sent. Replayed shots are `visual` projectiles (projectiles.js
+  skips every hit test and wall-breakable hit for them). Not replayed: threads / summons / hitbox-only effects of other
+  systems, damage numbers of friends' hits. GOTCHA for tests: call skills through the input inside a step (as the key press
+  does) — a trySkill() from the console runs outside the recording. Checked in 2 tabs: all 6 Astral Weaver skills replay
+  (sprites 24, afterimages 14, bursts, rings, lights, shots), the ult circle shows on the other screen.

@@ -16,7 +16,7 @@ export class Projectiles {
     p.hit.clear();
     Object.assign(p, {
       x: 0, y: 0, vx: 0, vy: 0, r: 5, life: 2, age: 0, team: TEAM.ENEMY, power: 10, owner: null,
-      kind: 'shard', pierce: false, homing: 0, delay: 0, perfectDone: false, color: '#5af0ff', dmgType: 'physical', status: null,
+      kind: 'shard', pierce: false, homing: 0, delay: 0, visual: false, perfectDone: false, color: '#5af0ff', dmgType: 'physical', status: null,
       knock: 120, onHit: null, wallStop: true, skillId: null, noSkillMods: false, accel: 0, rot: 0,
     }, def);
     applySkillMods(p, ['r']); // skill level power / area of the action that fired it
@@ -46,11 +46,12 @@ export class Projectiles {
       p.ang = Math.atan2(p.vy, p.vx);
       p.rot += dt * 10;
       // targets are tested BEFORE walls: things embedded in walls (cracks, wall-bound foes) stay hittable
-      if (p.team === TEAM.ENEMY && g.players) { for (const q of g.players()) if (p.active) this.hitTargets(p, g, q); } // every player
+      if (p.visual) { /* ONLINE: a friend's shot replayed for the eyes only (net/netFx.js) — hits nothing */ }
+      else if (p.team === TEAM.ENEMY && g.players) { for (const q of g.players()) if (p.active) this.hitTargets(p, g, q); } // every player
       else this.hitTargets(p, g, pl);
       if (p.active && p.wallStop && map.blocksShot(p.x, p.y)) {
         // a shot that strikes a wall also strikes what is built into that wall (cracked walls, seals)
-        if (p.team !== TEAM.ENEMY) {
+        if (p.team !== TEAM.ENEMY && !p.visual) {
           const wallThing = g.world.breakables.find((b) => !b.dead && b.hurtable && !p.hit.has(b) && Math.hypot(b.x - p.x, b.y - p.y) < b.radius + 40);
           if (wallThing) { p.hit.add(wallThing); const info = g.combat.dealDamage(p.owner, wallThing, p); if (p.onHit) p.onHit(wallThing, info, p); }
         }
