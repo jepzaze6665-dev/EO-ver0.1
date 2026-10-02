@@ -21,6 +21,7 @@ import { NetRevive } from './netRevive.js';
 import { NetFx } from './netFx.js';
 import { NetSummons } from './netSummons.js';
 import { NetProgress } from './netProgress.js';
+import { NetPiles } from './netPiles.js';
 import { SAVE_KEY, BACKUP_KEY } from '../save/save.js';
 
 const NAME_KEY = 'eclipse_online_last_name';
@@ -44,6 +45,7 @@ export class OnlineSession {
     this.fx = new NetFx(this);         // friends' skill effects
     this.summons = new NetSummons(this); // friends' summons / clones / threads
     this.progress = new NetProgress(this); // N8 boss kills owned by the server
+    this.pileNet = new NetPiles(this);     // N9 death piles (party members' piles: this.piles)
     this.saves.onRemove = () => this.progress.clear();
     this.fx.install();
     this.mobs.bosses.install(); // N7c: host boss telegraphs / strikes / shots go to the guests
@@ -118,6 +120,7 @@ export class OnlineSession {
   }
 
   get online() { return this.net.online; }
+  get piles() { return this.pileNet.list; }
   // someone else is on our map (a city or a run): the world must keep running for them
   sharedPlay() { return this.online && !!this.remotes.room && this.remotes.list.some((r) => !r.leaving); }
   get state() { return this.net.state; }
@@ -165,6 +168,7 @@ export class OnlineSession {
     this.fx.flush();
     this.summons.update();
     this.progress.update();
+    this.pileNet.update();
     const look = `${p.cls.id}:${p.level}`;
     if (look !== this.sentLook && this.net.send('look', { c: p.cls.id, l: p.level })) this.sentLook = look;
     const t = now(), m = g.world.mapId;

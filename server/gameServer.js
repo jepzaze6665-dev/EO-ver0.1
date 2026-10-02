@@ -11,6 +11,7 @@ import { SaveService } from './saves.js';
 import { PartyService } from './parties.js';
 import { DungeonService } from './dungeons.js';
 import { ProgressService } from './progress.js';
+import { PileService } from './piles.js';
 import { MemoryStore } from './store.js';
 import { PROTOCOL_VERSION, NET_LIMITS, NET_ERROR, validateClientMessage, encode } from '../src/net/protocol.js';
 
@@ -33,6 +34,7 @@ export class GameServer extends EventEmitter {
     this.parties = new PartyService(this);           // N4 parties
     this.dungeons = new DungeonService(this);        // N5 dungeon gate + instances
     this.progress = new ProgressService(this, saveStore); // N8 boss kills decided by the server
+    this.piles = new PileService(this);              // N9 death piles shown to the party
   }
 
   handle(type, fn) { this.handlers.set(type, fn); }
@@ -123,6 +125,7 @@ export class GameServer extends EventEmitter {
     this.city.close();
     this.parties.close();
     this.dungeons.close();
+    this.piles.close();
     for (const c of [...this.conns]) c.ws.close(1001, 'server shutting down');
     this.store.flush();
   }

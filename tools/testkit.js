@@ -2047,3 +2047,62 @@ export function gearCheck(g) {
   releaseInput(g);
   return R;
 }
+
+// ONLINE N9 — dungeon run + death pile (dungeon/runSystem.js, data/runRules.js), offline with game.runRulesOffline:
+// run starts outside a city, death = -50% run monster EXP + gained items (worn gear too) into a pile, key / quest items kept,
+// recover at the pile, a city banks the run, a 2nd death replaces the pile, save / load keeps it.
+export function runCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  g.runRulesOffline = true;
+  const w = g.world, p = g.player, inv = g.inventory, run = g.run;
+  const go = (id) => { w.changeMap(id, { entry: w.mapManager.get(id).spawn, silent: true }); g.simulate(0.2); };
+  try {
+    ok('Lumina: no run', !run.active);
+    inv.add('hp_potion', 2, true); // banked (gained in the city)
+    go('a1');
+    ok('A1: run started', run.active && run.start && run.start.items.hp_potion === 5, JSON.stringify(run.start && run.start.items));
+    p.setLevel(5, 0);
+    g.events.emit('enemyDefeated', { entity: { x: p.x, y: p.y }, type: 'wolf', source: p, x: p.x, y: p.y, exp: 200, loot: null });
+    const mexp = run.monsterExp, expNow = p.exp;
+    ok('monster EXP counted', mexp > 0 && expNow >= mexp, `run ${mexp} exp ${expNow}`);
+    inv.add('hp_potion', 3, true); inv.add('rune_crystal', 2, true); inv.add('varkharon_seal', 1, true);
+    const gearId = Object.keys(GEAR_ITEMS).find((id) => !GEAR_ITEMS[id].levelRequirement && g.equipment.check(id) !== 'class');
+    inv.add(gearId, 1, true); g.equipment.equip(gearId);
+    const worn = Object.values(g.equipment.slots).includes(gearId);
+    const gained = run.gained();
+    ok('gained = new stacks + worn gear (no key item)', gained.items.hp_potion === 3 && gained.items.rune_crystal === 2 && !gained.items.varkharon_seal && gained.gear.length === 1 && worn, JSON.stringify(gained.items));
+    const at = { x: p.x, y: p.y, map: w.mapId };
+    g.respawn(); g.simulate(0.2);
+    ok('death: half the run EXP lost (not below the level)', p.level === 5 && p.exp === expNow - Math.min(expNow, Math.floor(mexp * 0.5)), `exp ${p.exp}`);
+    ok('death: gained items left the bag, banked ones stay, key kept', inv.count('hp_potion') === 5 && !inv.count('rune_crystal') && inv.count('varkharon_seal') === 1 && !Object.values(g.equipment.slots).includes(gearId) && !inv.count(gearId), `potions ${inv.count('hp_potion')}`);
+    ok('pile where you fell', run.pile && run.pile.map === at.map && Math.hypot(run.pile.x - at.x, run.pile.y - at.y) < 140 && run.pileCount() === 6, JSON.stringify(run.pile && { m: run.pile.map, n: run.pileCount() }));
+    // save / load keeps the pile
+    g.save.save(); const d = g.save.load(); g.applySave(d); g.runRulesOffline = true;
+    ok('save / load keeps the pile', g.run.pile && g.run.pileCount() === 6);
+    // walk back to it: interactable in the world, E = recover
+    const R2 = g.run;
+    go(R2.pile.map); p.x = R2.pile.x; p.y = R2.pile.y + 10; g.simulate(0.1);
+    w.findNearest(p);
+    ok('pile interactable near it', w.nearest && w.nearest.kind === 'deathPile', w.nearest && w.nearest.kind);
+    if (w.nearest && w.nearest.kind === 'deathPile') w.interactNearest(); // the real [E]
+
+    ok('recovered: items back, pile gone', !g.run.pile && g.inventory.count('rune_crystal') === 2 && g.inventory.count(gearId) === 1 && g.inventory.count('hp_potion') === 8);
+    // they count as gained again: a 2nd death drops them again, a city banks them
+    ok('recovered items are at risk again in this run', g.run.gained().items.rune_crystal === 2);
+    g.respawn(); g.simulate(0.2);
+    const first = g.run.pile && g.run.pileCount();
+    go('a1'); g.inventory.add('rune_crystal', 1, true);
+    g.respawn(); g.simulate(0.2);
+    ok('2nd death replaces the old pile', first === 6 && g.run.pile && g.run.pileCount() === 1, `first ${first} now ${g.run.pileCount()}`);
+    g.inventory.add('rune_crystal', 4, true);
+    go('lumina');
+    ok('city banks the run', !g.run.active);
+    go('a1'); g.respawn(); g.simulate(0.2);
+    ok('banked items are safe after a death in the next run', g.inventory.count('rune_crystal') === 4 && g.run.pileCount() === 1, `rc ${g.inventory.count('rune_crystal')}`);
+    g.runRulesOffline = false;
+    g.respawn();
+    ok('offline (rules off): a death costs nothing', g.inventory.count('rune_crystal') === 4);
+  } finally { g.runRulesOffline = false; }
+  return R;
+}

@@ -52,6 +52,7 @@ export class SaveSystem {
       classProgress: g.classProgress ? (g.classProgress.rememberLoadout(p.loadout.serialize()), g.classProgress.serialize()) : undefined,
       world: g.world.serialize(),
       worldProgress: g.worldProgress.serialize(),
+      run: g.run ? g.run.serialize() : undefined, // N9 dungeon run + death pile
       knowledge: g.knowledge.serialize(),
       stats: g.stats,
     };

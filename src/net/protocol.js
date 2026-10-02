@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 16;
+export const PROTOCOL_VERSION = 17;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -113,7 +113,11 @@ export const CLIENT_MESSAGES = {
   dungeonAnswer: { check: 'slug', yes: 'bool' },         // a member accepts / declines the leader's proposal
   dungeonCancel: {},                                     // the leader withdraws the proposal
   dungeonLeave: {},                                      // N6: return to the city from the run's start point
-  bossKill: { boss: 'slug' },                            // N8 host of the boss's run map: this boss died (server credits the room)
+  bossKill: { boss: 'slug' },
+  // N9 death pile (dungeon/runSystem.js -> server/piles.js): where mine lies (items stay in my save), carry a member's
+  pileSet: { m: 'slug', x: 'coord', y: 'coord', n: 'int' },
+  pileClear: {},
+  pileTake: { owner: 'slug' },                            // N8 host of the boss's run map: this boss died (server credits the room)
 };
 
 // server -> client (documented here, the client does not validate them strictly)
@@ -151,6 +155,8 @@ export const SERVER_MESSAGES = {
   // N8 server-owned progression (server/progress.js): your defeated bosses on login / New Game; a kill credited to you
   progress: { bosses: 'array' },
   bossCredit: { boss: 'string', first: 'bool' },
+  piles: { list: 'array' },                              // N9: party members' piles [{ owner, name, m, x, y, n }]
+  pileTaken: { by: 'string' },                           // a party member carried your pile to you
   // fx (relayed + from: player id) · boss (relayed as sent)                             // a teammate revived you (server checked it)
 };
 

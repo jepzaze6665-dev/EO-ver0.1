@@ -1329,3 +1329,17 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   checked every second while playing. NET_LIMITS.ratePerSecond 40 -> 150 (a run host sends ~80 msgs/s since the lag pass;
   the old limit silently dropped messages). Tests progress.test.mjs (4); dungeonGate.test credits bosses on the server.
   Checked in 2 tabs: host kills Hollow Fang -> server log "HOLLOW FANG defeated — Host (first), Guest (first)", both lists.
+  Done N9 (dungeon runs + death pile): rules `src/data/runRules.js`; `src/dungeon/runSystem.js` = game.run (per session):
+  RUN = stepping from Lumina / City 2 (sharedMaps; Valehaven is inside the dungeon) onto another map (begin = snapshot of bag
+  counts + every gear instance incl. worn) until stepping into one of them (bank). Counts monster EXP (enemyDefeated, same
+  formula as ExperienceSystem). Game.respawn -> run.onDeath() FIRST: -50% of the run's monster EXP (never below the current
+  level's start: no de-level), every item gained this run (stacks above the start, new gear instances, worn ones taken off;
+  never key items / quest_item) -> PILE { map, x, y, items, gear } where you fell (a death that drops something replaces the
+  old pile), then a new segment starts; banner "Lost n EXP · n item(s)". Gold is kept. Saved as save field `run`
+  (applySave loads it last). Interactable kind 'deathPile' (synced each frame by run.sync for the loaded grid: yours = red,
+  [E] recover; a member's = blue, [E] carry). Rules ON only online (or `game.runRulesOffline = true`): offline bots / suites
+  keep their items. ONLINE: PROTOCOL_VERSION 17: pileSet { m, x, y, n } / pileClear / pileTake { owner }; server piles { list }
+  (party members' piles) / pileTaken { by }. `server/piles.js` PileService (memory; the client resends after login; offline
+  owner = hidden): take = same party, picker in a run room on that map within RUN_RULES.helpRange, owner online -> owner's
+  client recover(by). Client `src/net/netPiles.js` (game.online.piles). Tests piles.test.mjs (3) + `T.runCheck(g)` 15 steps.
+  Checked in 2 tabs: guest dies in A1 -> pile (5 items) -> host sees "Carry GuestN9's belongings (5)", [E] -> guest gets them.

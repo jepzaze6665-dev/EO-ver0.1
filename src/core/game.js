@@ -36,6 +36,7 @@ import { LootSystem } from '../loot/lootSystem.js';
 import { HiddenSystem } from '../world/hiddenSystem.js';
 import { WandererSystem } from '../world/wanderers.js';
 import { WorldProgression } from '../world/worldProgression.js';
+import { RunSystem } from '../dungeon/runSystem.js';
 import { WorldTriggerSystem, TRIGGER_ACTIONS } from '../world/worldTriggerSystem.js';
 import { BossSystem } from '../boss/bossSystem.js';
 import { TargetSystem } from '../combat/targetSystem.js';
@@ -265,6 +266,7 @@ export class Game {
     // every boss fight (boss/bossSystem.js + data/bosses.js), world triggers (data/worldTriggers.js)
     this.worldProgress = new WorldProgression(this);
     this.bosses = new BossSystem(this);
+    this.run = new RunSystem(this); // ONLINE N9: dungeon run ledger + death pile (data/runRules.js)
     this.worldTriggers = new WorldTriggerSystem(this);
     this.progression.startingClass = classId;
     this.validateSprites = validateSprites;
@@ -343,6 +345,7 @@ export class Game {
     this.world.syncMapToPlayer({ silent: true });
     this.camera.snap(p.x, p.y);
     this.world.currentZone = Z.NONE;
+    this.run.load(d.run); // after the map entry above (which may have started a fresh run)
   }
   // Class Change (progression/classChange.js) + feedback. opts.force: dev / tests only
   changeClass(toId, opts) {
@@ -467,6 +470,7 @@ export class Game {
     else if (w.bossActive) w.resetBoss();
     this.combat.clear();
     if (this.itemEffects) this.itemEffects.reset(); // item effects: timed buffs end, cooldowns start fresh (gear itself is kept)
+    const pen = this.run.onDeath(); // N9: half the run's monster EXP + every item gained this run -> a death pile here
     const pos = w.checkpoint(); // last waystone (loads its grid) or Lumina
     p.dead = false; p.hp = p.maxHp; p.marks = 0; if (p.poise) p.poise.reset();
     for (const rid in p.resources.defs) p.resources.set(rid, p.resources.defs[rid].respawn ?? p.resources.defs[rid].start, 'respawn');
@@ -475,7 +479,7 @@ export class Game {
     for (const m of w.monsters) { if (m.aggro) { m.aggro = false; m.x = m.home.x; m.y = m.home.y; m.hp = m.maxHp; m.setState('idle'); } }
     this.camera.targetZoom = 1;
     this.camera.snap(p.x, p.y);
-    this.ui.banner('RISE AGAIN', 'Learn its pattern. Strike when it opens.', '#e8d0ff');
+    this.ui.banner('RISE AGAIN', pen && (pen.exp || pen.items) ? `Lost ${pen.exp} EXP · ${pen.items} item(s) left where you fell` : 'Learn its pattern. Strike when it opens.', '#e8d0ff');
   }
 
   onBossDefeated(boss) {
@@ -608,6 +612,7 @@ export class Game {
   }
 
   update(dt) {
+    if (this.run) this.run.sync(); // death piles of the loaded grid (yours + party members')
     if (this.sharedWorld) { this.timeScale = 1; this.slowT = 0; this.hitStop = 0; }
     // slow motion recovers in real time
     if (this.slowT > 0) { this.slowT -= dt; if (this.slowT <= 0) this.timeScale = 1; }
