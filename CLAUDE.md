@@ -1343,3 +1343,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   owner = hidden): take = same party, picker in a run room on that map within RUN_RULES.helpRange, owner online -> owner's
   client recover(by). Client `src/net/netPiles.js` (game.online.piles). Tests piles.test.mjs (3) + `T.runCheck(g)` 15 steps.
   Checked in 2 tabs: guest dies in A1 -> pile (5 items) -> host sees "Carry GuestN9's belongings (5)", [E] -> guest gets them.
+  Done N10 (reconnect + test list + plan): run penalty also applies while RECONNECTING (RunSystem.enabled = logged in this page
+  and state !== offline; DEV ?offline stays off); kicked for good (replaced / version ...) while playing -> panels.onNetState
+  -> toTitle + toast; HUD reconnect notice in the middle after 1.5 s ("CONNECTION LOST — reconnecting… n s", places kept 2 min);
+  server.js prints the LAN addresses ("same network: http://<ip>:port"). Tests reconnect.test.mjs (2: drop mid party run ->
+  auto reconnect -> same run / room / party online / boss list + save resent; 'replaced' never retries). Checked in 2 tabs:
+  guest drop + death while reconnecting (pile made, resent after reconnect), host drop in A1 -> same run as host again,
+  second login -> old tab back to the title. Docs (Thai, for the owner): docs/online/MULTIPLAYER_TEST_CHECKLIST.md (manual
+  2-4 window / 2 PC checklist A-G) and docs/online/HEADLESS_SERVER_PLAN.md (H1 SimGame without DOM -> H2 server hosts each
+  run-map room -> H5 items / EXP on the server -> H3 server-side damage -> H4 movement prediction -> H6 real accounts).
+  ONLINE N1-N10 COMPLETE. Next: owner decides (manual multi-PC test with the checklist, headless H1, UI redesign).

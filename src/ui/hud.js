@@ -585,6 +585,14 @@ export class HUD {
     const x = W - 18 * u - 190 * u + 6 * u, y = 18 * u + 13 * u; // inside the minimap's top-left corner
     this.text(ctx, '●', x, y, 8 * u, col);
     this.text(ctx, label, x + 10 * u, y, 7.5 * u, col);
+    // N10: a lost line for more than a moment = a notice in the middle (the world keeps going; places are kept)
+    if (st !== 'reconnecting') { o.lostAt = 0; return; }
+    const t = performance.now() / 1000;
+    if (!o.lostAt) o.lostAt = t;
+    if (t - o.lostAt < 1.5) return;
+    const msg = `CONNECTION LOST — reconnecting… ${Math.floor(t - o.lostAt)} s`, sub = o.instance || o.party ? 'Your party and dungeon place are kept for 2 minutes' : 'Your progress is kept';
+    this.text(ctx, msg, W / 2, 96 * u, 17 * u, '#ffd060', { align: 'center' });
+    this.text(ctx, sub, W / 2, 116 * u, 10 * u, '#e8e0d0', { align: 'center' });
   }
 
   drawMinimap(ctx, W, u) {

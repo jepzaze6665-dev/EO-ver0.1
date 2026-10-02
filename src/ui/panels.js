@@ -111,7 +111,12 @@ export class Panels {
   onNetState(state) {
     const on = this.game.online;
     if (this.current && this.current.name === 'title' && this.current.el.classList.contains('ts')) this.title(on.saveReady ? this.game.save.exists() : this.titleHasSave);
-    else if (this.game.state === 'play' && state === 'offline' && on.net.lastError) this.game.ui.toast('Offline: ' + on.net.lastError.text, 4);
+    else if (this.game.state === 'play' && state === 'offline' && on.net.lastError) {
+      // N10: kicked for good (logged in elsewhere, new version, ...): an online-only game goes back to the title
+      const why = on.net.lastError.text;
+      this.game.toTitle();
+      this.game.ui.toast('Disconnected: ' + why, 6);
+    }
   }
 
   // ---------------- title

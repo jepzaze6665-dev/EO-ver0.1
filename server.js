@@ -44,6 +44,9 @@ export function startServer({ port = 5173, dataDir = path.join(ROOT, 'server', '
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const s = await startServer({ port: Number(process.env.PORT) || 5173, dataDir: process.env.EO_DATA || undefined });
   console.log(`ECLIPSE ONLINE running at http://localhost:${s.port}  (game server: ws://localhost:${s.port}/ws)`);
+  // other computers on the same network (N10 multi-client tests): open one of these in their browser
+  const { networkInterfaces } = await import('os');
+  for (const list of Object.values(networkInterfaces())) for (const a of list || []) if (a.family === 'IPv4' && !a.internal) console.log(`  same network: http://${a.address}:${s.port}`);
   const stop = () => { s.close().then(() => process.exit(0)); };
   process.on('SIGINT', stop);
   process.on('SIGTERM', stop);

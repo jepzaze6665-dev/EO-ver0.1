@@ -31,7 +31,8 @@ export class RunSystem {
       if (this.active && !e.summoned && e.exp > 0 && p && !p.isMaxLevel) this.monsterExp += Math.max(1, Math.round(e.exp * DIFFICULTY.expRate));
     });
   }
-  enabled() { const g = this.game; return !!(g.runRulesOffline || (g.online && g.online.online)); }
+  // N10: also while RECONNECTING (pulling the cable before a death must not save the items); off in DEV ?offline
+  enabled() { const g = this.game, o = g.online; return !!(g.runRulesOffline || (o && o.playerId && o.state !== 'offline')); }
 
   // ---------------- run start / end
   carried() {
