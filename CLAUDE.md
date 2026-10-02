@@ -1167,3 +1167,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   -> Party): invites Accept / Decline, members (♛, ● online, Lv, class, map), leader ♛ / ✕ buttons, Invite by name, Leave
   (2 clicks); HUD drawOnlineParty = list under the route panel. Tests tools/tests/onlineParty.test.mjs (9). Checked in 2
   tabs: real P key + typed invite -> accept -> both lists, drop -> offline, reconnect -> back.
+  Done N5 (Dungeon Gate): rules ONLINE.dungeon { areas: a1 a2 a3 b1 b2 b3 (free: a1, b1), readyTimeout 30 } + dungeonArea(id);
+  test = every non-secret field map, `free` ⇔ no requires. PROTOCOL_VERSION 5: dungeonEnter { area } (solo) / dungeonPropose
+  { area } (leader) / dungeonAnswer { check, yes } / dungeonCancel; server dungeonCheck (members yes | wait, ends) /
+  dungeonCancel { reason } / dungeonGo { instance, area, mode, members }; refusals = error code 'dungeon' with names.
+  `server/dungeons.js` DungeonService (game.dungeons): entry needs the player IN A CITY ROOM and the area unlocked — unlocks
+  read from the save the SERVER holds (worldProgress.unlockedMaps; N8 swaps this one function for server-owned
+  progression); party = leader proposes -> every member checked (online / in a city / unlocked, refusal names who) -> ready
+  check, each member answers for themselves; all yes = re-check then ONE instance; a no / timeout / party change /
+  disconnect / leader cancel / a member entering solo cancels it. `server/instances.js` InstanceManager (registry only:
+  create / of(player) / leave; N6 grows it). Browser: interactable kind 'dungeonGate' (exploration/interactables.js, code-
+  drawn stone arch + violet swirl) in Lumina [60,182] and City 2 plaza [80,80]; panels.dungeonGate() (Solo / Party tabs,
+  area list by route, locked rows show the map's requirement label, leader button / member note) + panels.dungeonReady()
+  (ready check, Accept / Decline, Esc = decline); game.online.check / instance; game.enterDungeon(area, info) = changeMap
+  to the area spawn + banner. Tests tools/tests/dungeonGate.test.mjs (7). Checked in 2 tabs: E at the gate -> Party ->
+  member Accept -> both in A1, same instance; mapTour 9/9.

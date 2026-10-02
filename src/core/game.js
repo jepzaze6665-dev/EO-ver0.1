@@ -346,6 +346,18 @@ export class Game {
     this.ui.banner('CLASS CHANGE', `${p.cls.name} · LV.${p.level}`, (p.cls.theme && p.cls.theme.color) || '#ffd96a');
     return r;
   }
+  // ONLINE N5: the server sent this player into a run (net/onlineSession.js 'dungeonGo'): arrive at the area's spawn.
+  // The server already checked the unlock, so the map's own requirements are not asked again here.
+  enterDungeon(area, info = {}) {
+    const def = this.world.mapManager.get(area);
+    if (!def || this.state !== 'play') return false;
+    this.ui.panels.close(true);
+    this.world.changeMap(area, { entry: def.spawn, via: 'dungeonGate' });
+    this.ui.banner(def.name, info.mode === 'party' ? 'Party · ' + (info.members || []).join(' · ') : 'Solo run', '#e8d0ff');
+    this.audio.sfx('waystone');
+    this.save.dirty = true;
+    return true;
+  }
   continueGame() { this.loadGame(); }
   // saveGame / loadGame: the spec's API (storage + format live in save/)
   saveGame() {

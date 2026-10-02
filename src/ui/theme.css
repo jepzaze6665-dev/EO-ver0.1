@@ -421,3 +421,17 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 .pt-invite input:focus { border-color: rgba(255, 170, 90, 0.8); }
 .pt-leave { margin-top: 12px; width: 100%; }
 .pt-solo { margin: 10px 0; line-height: 1.5; }
+/* DUNGEON GATE (N5, panels.dungeonGate / dungeonReady) */
+.dg-list { display: flex; flex-direction: column; gap: 4px; }
+.dg-area { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; width: 100%; text-align: left; padding: 9px 12px; margin: 0;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(236, 228, 210, 0.1); border-radius: 3px; }
+.dg-area b { font: 500 14px var(--font-title); } .dg-area span { font-size: 12px; color: var(--ink-dim); }
+.dg-area.sel { border-color: rgba(200, 150, 255, 0.75); background: rgba(150, 90, 230, 0.16); box-shadow: 0 0 10px rgba(160, 100, 255, 0.25); }
+.dg-area.locked { opacity: 0.45; cursor: default; } .dg-area.locked span { color: #e0a090; }
+.dg-act { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+.dg-go { width: 100%; padding: 10px; }
+.dg-ready p { margin: 6px 0 10px; }
+.dg-members { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 10px; }
+.dg-members div { font: 500 14px var(--font-title); color: var(--ink-dim); } .dg-members div.yes { color: #9dffb4; }
+.dg-members i { display: inline-block; width: 20px; font-style: normal; }
+.dg-ready .row { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }

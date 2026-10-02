@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 4;
+export const PROTOCOL_VERSION = 5;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -56,6 +56,11 @@ export const CLIENT_MESSAGES = {
   partyLeave: {},
   partyKick: { id: 'slug' },                             // leader only
   partyLead: { id: 'slug' },                             // leader only: make someone else the leader
+  // N5 dungeon gate (server/dungeons.js)
+  dungeonEnter: { area: 'slug' },                        // solo entry
+  dungeonPropose: { area: 'slug' },                      // party leader: ask every member to enter together
+  dungeonAnswer: { check: 'slug', yes: 'bool' },         // a member accepts / declines the leader's proposal
+  dungeonCancel: {},                                     // the leader withdraws the proposal
 };
 
 // server -> client (documented here, the client does not validate them strictly)
@@ -78,6 +83,10 @@ export const SERVER_MESSAGES = {
   partyInvite: { party: 'string', from: 'string', size: 'int' },
   partyInviteGone: { party: 'string' },                  // expired / party gone / you joined another
   partyInfo: { text: 'string' },
+  // N5: party ready check / entry
+  dungeonCheck: { check: 'string', area: 'string', leader: 'string', members: 'array', ends: 'number' }, // members [{ id, name, answer: yes|wait }]
+  dungeonCancel: { reason: 'string' },
+  dungeonGo: { instance: 'string', area: 'string', mode: 'string', members: 'array' },  // enter now (members = names)
 };
 
 export const NET_ERROR = {
@@ -93,6 +102,7 @@ export const NET_ERROR = {
   server: 'server',       // unexpected server error (the server keeps running)
   roomFull: 'roomFull',   // the shared city room is full: you still play, alone
   party: 'party',         // a party action was refused (text says why)
+  dungeon: 'dungeon',     // a dungeon entry was refused (locked area, not in a city, ... — text says who / why)
 };
 
 // null = ok, else a short reason

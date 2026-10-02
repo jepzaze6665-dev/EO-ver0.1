@@ -582,6 +582,62 @@ export class Panels {
     });
   }
 
+  // ---------------- DUNGEON GATE (ONLINE N5, server/dungeons.js). Solo tab: pick an unlocked area -> Enter. Party tab:
+  // the leader picks -> every member gets a ready check (panels.dungeonReady) and answers for themselves. Locked areas
+  // show their requirement and cannot be picked; only the route field maps are listed (arenas / secrets: on foot).
+  dungeonGate() {
+    const g = this.game, on = g.online, wp = g.worldProgress, mm = g.world.mapManager;
+    const tab = this.npcTab('gate', on && on.party && on.party.members.length > 1 ? 'party' : 'solo');
+    const open = (a) => a.free || !!(wp && wp.unlockedMaps[a.id]);
+    if (!this.gateSel || !ONLINE.dungeon.areas.some((a) => a.id === this.gateSel && open(a))) this.gateSel = (ONLINE.dungeon.areas.find(open) || {}).id;
+    const rows = ['A', 'B'].map((route) => `<div class="pt-h">ROUTE ${route}</div>` + ONLINE.dungeon.areas.filter((a) => (mm.get(a.id) || {}).route === route).map((a) => {
+      const d = mm.get(a.id), ok = open(a), lv = (d.sub || '').split('·').pop().trim();
+      const req = !ok && d.requires && d.requires[0] ? d.requires[0].label : 'Locked';
+      return `<button class="dg-area${ok ? '' : ' locked'}${a.id === this.gateSel ? ' sel' : ''}" data-area="${a.id}" ${ok ? '' : 'disabled'}>
+        <b>${esc(d.short)} · ${esc(d.name)}</b><span>${ok ? esc(lv) : '🔒 ' + esc(req)}</span></button>`;
+    }).join('')).join('');
+    const sel = this.gateSel && mm.get(this.gateSel), pt = on && on.party;
+    let action = '';
+    if (!on || !on.online) action = '<div class="muted">Not connected to the server.</div>';
+    else if (tab === 'solo') action = `<button class="primary dg-go" data-go="solo" ${sel ? '' : 'disabled'}>Enter ${sel ? esc(sel.short) : ''} alone</button>`;
+    else if (!pt || pt.members.length < 2) action = '<div class="muted">No party yet — press <b>P</b> to invite players, or enter solo.</div>';
+    else if (!on.isLeader) action = `<div class="muted">${esc((pt.members.find((m) => m.id === pt.leader) || {}).name || 'The leader')} chooses the area. You will be asked to accept.</div>`;
+    else action = `<div class="muted small">Every member must be online, in a city and have the area unlocked — each one accepts for themselves.</div>
+      <button class="primary dg-go" data-go="party" ${sel ? '' : 'disabled'}>Ask the party to enter ${sel ? esc(sel.short) : ''}</button>`;
+    const el = this.show('gate', npcPanelHTML({ icon: 'npc_waystone', title: 'Dungeon Gate', sub: tab === 'solo' ? 'Solo' : 'Party', menu: [{ id: 'solo', label: 'Solo' }, { id: 'party', label: 'Party' }], tab,
+      body: `<div class="dg-list">${rows}</div><div class="dg-act">${action}</div>`, keys: [['Click', 'Choose area']] }), 'side');
+    this.wireNpc(el, 'gate', () => this.dungeonGate(), (t) => {
+      if (t.dataset.area) { this.gateSel = t.dataset.area; g.audio.sfx('ui'); return this.dungeonGate(); }
+      if (t.dataset.go === 'solo') on.net.send('dungeonEnter', { area: this.gateSel });
+      if (t.dataset.go === 'party') on.net.send('dungeonPropose', { area: this.gateSel });
+    });
+  }
+
+  // party READY CHECK (server 'dungeonCheck'): area, who accepted, Accept / Decline for yourself; Esc = decline
+  dungeonReady() {
+    const g = this.game, on = g.online, c = on && on.check;
+    if (!c) return;
+    const d = g.world.mapManager.get(c.area) || { name: c.area, short: c.area, sub: '' };
+    const mine = c.members.find((m) => m.id === on.playerId), waiting = mine && mine.answer !== 'yes';
+    const secs = Math.max(0, Math.round((c.ends - Date.now()) / 1000));
+    const el = this.show('dungeonReady', `<div class="panel confirm dg-ready">
+      <h2>Party Entry</h2>
+      <p><b>${esc(c.leader)}</b> wants to enter <b>${esc(d.short)} · ${esc(d.name)}</b></p>
+      <div class="dg-members">${c.members.map((m) => `<div class="${m.answer}"><i>${m.answer === 'yes' ? '✓' : '…'}</i>${esc(m.name)}${m.id === on.playerId ? ' (you)' : ''}</div>`).join('')}</div>
+      <div class="muted small">Answer within ${secs} s · nobody enters until everyone accepts</div>
+      <div class="row">${waiting ? '<button class="primary" data-r="yes">Accept</button><button data-r="no">Decline</button>' : '<button data-r="no">Cancel entry</button>'}</div>
+      <div class="keys"><span><kbd>Esc</kbd>${waiting ? 'Decline' : 'Cancel'}</span></div>
+    </div>`, '');
+    const answer = (yes) => (yes ? on.net.send('dungeonAnswer', { check: c.check, yes: true }) : on.net.send('dungeonAnswer', { check: c.check, yes: false }));
+    this.current.onClose = () => { if (on.check && on.check.check === c.check) answer(false); };
+    el.addEventListener('click', (e) => {
+      const t = e.target.closest('[data-r]');
+      if (!t) return;
+      if (t.dataset.r === 'yes') answer(true);
+      else { on.check = null; this.close(true); answer(false); }
+    });
+  }
+
   // ---------------- shop / smith / storage / teleport — UI v2 side panels (ui/npcPanel.js)
   npcTab(name, def) { this.npcTabs ||= {}; return this.npcTabs[name] || def; }
   wireNpc(el, name, redraw, onClick) {

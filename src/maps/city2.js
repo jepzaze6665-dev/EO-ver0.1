@@ -29,6 +29,7 @@ export const CITY2 = {
     interactables: [
       { id: 'ws_asteria', kind: 'waystone', tx: 86, ty: 76, name: 'Asteria City', prompt: 'Waystone' },
       { id: 'a_storage', kind: 'storage', tx: 74, ty: 76, prompt: 'Open Storage' },
+      { id: 'asteria_dungeon_gate', kind: 'dungeonGate', tx: 80, ty: 80, prompt: 'Use the Dungeon Gate', radius: 40 }, // ONLINE N5
       {
         id: 'a_notice', kind: 'sign', tx: 74, ty: 128, prompt: 'Read Notice', title: 'Asteria City — South Gate',
         text: 'ASTERIA CITY (City 2)\n• South Gate: the road to the Sanctum (Route A). East Gate: the road to Frostpeak (Route B).\n• Crystal Plaza — waystone and storage by the fountain.\n• Grand Bazaar (west) · Forge Row (south-west) · Adventurer Guild (east).\n• The Keep (north) is closed to travelers.\n\n"The Warden in the Sanctum kept the dead city from the living one. If you walked past him, the city owes you." — City Watch',

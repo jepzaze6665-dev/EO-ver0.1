@@ -23,6 +23,19 @@ export const ONLINE = {
     offlineGrace: 120,        // s a disconnected member keeps its place (reconnect window), then it is removed
     leaderInvitesOnly: true,  // only the leader invites (inviting while not in a party creates one)
   },
+  // N5 DUNGEON GATE (server/dungeons.js, panels.dungeonGate). The areas the gate can send you to = the route field maps
+  // (tools/tests/dungeonGate.test.mjs checks the list against maps/mapRegistry.js: every non-secret 'field' map, `free`
+  // exactly when the map has no requirement). A locked area cannot be entered; the server checks every member.
+  // Arenas / secret maps are never listed: they are reached on foot inside a run (exploration and secrets stay).
+  dungeon: {
+    areas: [
+      { id: 'a1', free: true }, { id: 'a2' }, { id: 'a3' },
+      { id: 'b1', free: true }, { id: 'b2' }, { id: 'b3' },
+    ],
+    readyTimeout: 30,         // s the party has to accept before the entry is cancelled
+  },
 };
+
+export const dungeonArea = (id) => ONLINE.dungeon.areas.find((a) => a.id === id) || null;
 
 export const isSharedMap = (mapId) => ONLINE.sharedMaps.includes(mapId);

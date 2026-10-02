@@ -17,6 +17,8 @@ export const LUMINA_VILLAGE = {
   // route choice at the north gate (data/routes.js: Route A is open, Route B is architecture only for now)
   content: {
     interactables: [
+      // ONLINE N5: Solo / Party entry to any unlocked route area (the roads north / east still work on foot)
+      { id: 'lumina_dungeon_gate', kind: 'dungeonGate', tx: 60, ty: 182, prompt: 'Use the Dungeon Gate', radius: 40 },
       {
         id: 'lumina_route_sign', kind: 'sign', tx: 43, ty: 162, prompt: 'Read Route Sign', title: 'Roads from Lumina',
         text: 'ROADS FROM LUMINA VILLAGE\n↑ ROUTE A — The Forest Road: Whispering Forest (A1) → Ancient Valley (A2) → Rune Citadel (A3) → City 2 Asteria\n→ ROUTE B — The Eastern Road: Frostwind Plains (B1) → Crystal Caverns (B2) → Frostpeak (B3) → City 2 Asteria\n\n"Each forest keeps a guardian. The road past it stays shut until the guardian falls." — Guild notice',

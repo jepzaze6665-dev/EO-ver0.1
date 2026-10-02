@@ -9,6 +9,7 @@ import { DevAccounts } from './accounts.js';
 import { CityRooms } from './cityRooms.js';
 import { SaveService } from './saves.js';
 import { PartyService } from './parties.js';
+import { DungeonService } from './dungeons.js';
 import { MemoryStore } from './store.js';
 import { PROTOCOL_VERSION, NET_LIMITS, NET_ERROR, validateClientMessage, encode } from '../src/net/protocol.js';
 
@@ -29,6 +30,7 @@ export class GameServer extends EventEmitter {
     this.city = new CityRooms(this);   // N2 shared cities
     this.saves = new SaveService(this, saveStore);   // N3 saves
     this.parties = new PartyService(this);           // N4 parties
+    this.dungeons = new DungeonService(this);        // N5 dungeon gate + instances
   }
 
   handle(type, fn) { this.handlers.set(type, fn); }
@@ -118,6 +120,7 @@ export class GameServer extends EventEmitter {
     clearInterval(this.timer);
     this.city.close();
     this.parties.close();
+    this.dungeons.close();
     for (const c of [...this.conns]) c.ws.close(1001, 'server shutting down');
     this.store.flush();
   }

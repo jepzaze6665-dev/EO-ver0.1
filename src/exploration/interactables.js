@@ -84,6 +84,9 @@ export function interact(w, it) {
     case 'storage':
       g.ui.openStorage();
       break;
+    case 'dungeonGate': // ONLINE N5: Solo / Party entry to an unlocked area (panels.dungeonGate, server/dungeons.js)
+      g.ui.panels.dungeonGate();
+      break;
     case 'sign':
       if (it.text === 'board') g.ui.showLore('Quest Board', (f.guardianDefeated ? BOARD_TEXT_AFTER : BOARD_TEXT).join('\n'));
       else g.ui.showLore(it.title || 'Sign', it.text);
@@ -253,6 +256,7 @@ export function drawInteractable(ctx, w, it, time) {
       }
       break;
     case 'waystone': drawWaystone(ctx, x, y, !!w.state.waystones[it.id], time); break;
+    case 'dungeonGate': drawDungeonGate(ctx, x, y, time); break;
     case 'lever': {
       ctx.fillStyle = '#4a4a52'; ctx.fillRect(x - 5, y - 14, 10, 14);
       ctx.strokeStyle = '#8a6a3a'; ctx.lineWidth = 2;
@@ -325,6 +329,29 @@ function drawChest(ctx, x, y, open, rare, t) {
     ctx.fillStyle = body; ctx.fillRect(x - 11, y - 18, 22, 7);
     ctx.fillStyle = trim; ctx.fillRect(x - 11, y - 18, 22, 1); ctx.fillRect(x - 11, y - 13, 22, 1);
   }
+}
+
+// DUNGEON GATE (online N5): a dark stone arch with a slow violet swirl between its pillars
+function drawDungeonGate(ctx, x, y, t) {
+  ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(x, y, 26, 7, 0, 0, TAU); ctx.fill();
+  // swirl (behind the pillars' fronts)
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 3; i++) {
+    const r = 15 - i * 4, a = 0.22 + 0.08 * Math.sin(t * 2 + i);
+    ctx.fillStyle = `rgba(${150 + i * 30},${70 + i * 30},255,${a})`;
+    ctx.beginPath(); ctx.ellipse(x, y - 26, r, r * 1.45, 0, 0, TAU); ctx.fill();
+  }
+  ctx.strokeStyle = 'rgba(210,170,255,0.55)'; ctx.lineWidth = 1.5;
+  for (let i = 0; i < 2; i++) { ctx.beginPath(); ctx.ellipse(x, y - 26, 9 + i * 4, 15 + i * 5, 0, t * (1.4 - i * 0.5), t * (1.4 - i * 0.5) + 3.6); ctx.stroke(); }
+  ctx.restore();
+  // pillars + lintel
+  ctx.fillStyle = '#2e2a38'; ctx.fillRect(x - 24, y - 50, 8, 50); ctx.fillRect(x + 16, y - 50, 8, 50);
+  ctx.fillStyle = '#433d52'; ctx.fillRect(x - 22, y - 48, 3, 46); ctx.fillRect(x + 18, y - 48, 3, 46);
+  ctx.fillStyle = '#2e2a38'; ctx.fillRect(x - 28, y - 58, 56, 9);
+  ctx.fillStyle = '#4c4560'; ctx.fillRect(x - 28, y - 58, 56, 2);
+  ctx.fillStyle = `rgba(190,140,255,${0.7 + 0.3 * Math.sin(t * 3)})`; // keystone rune
+  ctx.beginPath(); ctx.moveTo(x, y - 61); ctx.lineTo(x + 4, y - 54); ctx.lineTo(x, y - 47); ctx.lineTo(x - 4, y - 54); ctx.closePath(); ctx.fill();
 }
 
 function drawWaystone(ctx, x, y, on, t) {

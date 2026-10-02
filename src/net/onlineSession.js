@@ -7,6 +7,8 @@
 //     uploaded once, to the first player who logs in with no server save.
 //   - N4: the online party (server/parties.js): `party` ({ id, leader, members }) / `invites`; actions go straight to the
 //     server (partyAction), which decides everything; the party panel (panels.party) and the HUD list read this state.
+//   - N5: dungeon entry — `check` (a party ready check in progress) and `instance` (the run the server put us in);
+//     'dungeonGo' = game.enterDungeon(area). Entering is always the server's decision.
 // Nothing here changes the local simulation: remote players are pictures with names.
 import { NetClient, NET_STATE } from './client.js';
 import { RemotePlayers } from './remotePlayers.js';
@@ -44,13 +46,31 @@ export class OnlineSession {
     });
     n.on('partyInviteGone', (m) => { this.invites = this.invites.filter((i) => i.party !== m.party); this.refreshParty(); });
     n.on('partyInfo', (m) => { game.ui.toast(m.text, 2.5); });
+    this.check = null;         // party ready check in progress (server 'dungeonCheck')
+    this.instance = null;      // { id, area, mode, members } once the server sent us into a run
+    n.on('dungeonCheck', (m) => {
+      if (!this.check || this.check.check !== m.check) game.audio.sfx('quest');
+      this.check = m;
+      game.ui.panels.dungeonReady();
+    });
+    n.on('dungeonCancel', (m) => {
+      this.check = null;
+      game.ui.toast('Dungeon entry cancelled — ' + m.reason, 3.5);
+      const pn = game.ui.panels;
+      if (pn.current && pn.current.name === 'dungeonReady') pn.close(true);
+    });
+    n.on('dungeonGo', (m) => {
+      this.check = null;
+      this.instance = { id: m.instance, area: m.area, mode: m.mode, members: m.members };
+      game.enterDungeon(m.area, m);
+    });
     n.on('saveData', (m) => this.onSaveData(m));
     n.on('roomState', (m) => this.remotes.setRoom(m.room, m.players, now()));
     n.on('pJoin', (m) => this.remotes.join(m.p, now()));
     n.on('pLeave', (m) => this.remotes.leave(m.id, m.why, now()));
     n.on('moves', (m) => this.remotes.moves(m.ps, now()));
     n.on('pLook', (m) => this.remotes.look(m.id, m.c, m.l));
-    n.on('error', (m) => { if (m.code === 'roomFull' || m.code === 'party') { game.ui.toast(m.text, 3); if (m.code === 'party') game.audio.sfx('deny'); } });
+    n.on('error', (m) => { if (m.code === 'roomFull' || m.code === 'party' || m.code === 'dungeon') { game.ui.toast(m.text, m.code === 'dungeon' ? 4.5 : 3); if (m.code !== 'roomFull') game.audio.sfx('deny'); } });
     n.onState((s) => {
       // anything we knew about other players is stale once the line drops; after a reconnect send everything again
       if (s !== NET_STATE.online) { this.remotes.clear(); this.saveReady = false; }
@@ -84,7 +104,7 @@ export class OnlineSession {
     try { localStorage.setItem(NAME_KEY, name); } catch { /* storage blocked */ }
     this.net.connect(name);
   }
-  logout() { this.net.stop(); this.party = null; this.invites = []; }
+  logout() { this.net.stop(); this.party = null; this.invites = []; this.check = null; this.instance = null; }
 
   // party actions: the server checks and answers with 'party' / 'partyInfo' / an error
   partyAction(type, fields = {}) { return this.net.send(type, fields); }
