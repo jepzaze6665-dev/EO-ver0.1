@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GameServer } from './server/gameServer.js';
-import { JsonFileStore, MemoryStore } from './server/store.js';
+import { JsonFileStore, JsonDirStore, MemoryStore } from './server/store.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.css': 'text/css', '.md': 'text/plain', '.woff2': 'font/woff2', '.ttf': 'font/ttf' };
@@ -17,7 +17,8 @@ const PRIVATE = ['/server/', '/.git/', '/.claude/'];
 export function startServer({ port = 5173, dataDir = path.join(ROOT, 'server', 'data'), quiet = false, limits } = {}) {
   const log = quiet ? {} : console;
   const store = dataDir ? new JsonFileStore(dataDir, 'accounts') : new MemoryStore();
-  const game = new GameServer({ store, limits, log });
+  const saveStore = dataDir ? new JsonDirStore(path.join(dataDir, 'saves')) : new MemoryStore();
+  const game = new GameServer({ store, saveStore, limits, log });
   const httpServer = http.createServer((req, res) => {
     let p;
     try { p = decodeURIComponent(req.url.split('?')[0]); } catch { res.writeHead(400); return res.end(); }
