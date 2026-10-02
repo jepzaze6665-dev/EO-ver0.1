@@ -8,9 +8,10 @@ const lerp = (a, b, t) => a + (b - a) * t;
 
 export class RemotePlayer {
   constructor(row, now) {
-    const [id, name, x, y, d, a, k, c, l, h] = row;
+    const [id, name, x, y, d, a, k, c, l, h, dn] = row;
     this.id = id; this.name = name;
     this.h = h ?? 1;            // HP share (0 = down / dead)
+    this.dn = !!dn;             // downed (revivable)
     this.cls = c || null; this.level = l || 1;
     this.snaps = [{ t: now, x, y, d, a, k: k || 0, snap: true }];
     this.leaving = null;      // { at, why } while fading out
@@ -66,9 +67,9 @@ export class RemotePlayers {
   leave(id, why, now) { const r = this.map.get(id); if (r && !r.leaving) r.leaving = { at: now, why }; }
   look(id, c, l) { const r = this.map.get(id); if (r) { r.cls = c; r.level = l; } }
   moves(rows, now) {
-    for (const [id, x, y, d, a, k, snap, h] of rows) {
+    for (const [id, x, y, d, a, k, snap, h, dn] of rows) {
       const r = this.map.get(id);
-      if (r && h !== undefined) r.h = h;
+      if (r && h !== undefined) { r.h = h; r.dn = !!dn; }
       if (r && !r.leaving) r.push({ t: now, x, y, d, a, k: k || 0, snap: !!snap });
     }
   }

@@ -649,7 +649,10 @@ export class Player extends Entity {
       else if (input.pressed('KeyQ') || input.mouse.rightPressed) input.pushBuffer('break');
       for (let i = 1; i <= 5; i++) if (input.pressed('Digit' + i)) input.pushBuffer('skill' + i);
       if (input.pressed('KeyR')) g.inventory.quickUse('hp_potion');
-      if (input.isDown('KeyE') && g.party) g.party.tryRevive(this, dt); // hold [E] next to a downed teammate
+      if (input.isDown('KeyE') && g.party) { // hold [E] next to a downed teammate (this client's, else one on another client)
+        if (g.party.downedNear(this)) g.party.tryRevive(this, dt);
+        else if (g.online) g.online.revive.hold(this, dt);
+      }
       if (input.pressed('KeyF')) g.inventory.quickUse('shadow_tonic');
 
       if (input.peek('dodge') && this.tryDodge()) input.consume('dodge');

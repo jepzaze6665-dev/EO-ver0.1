@@ -123,6 +123,30 @@ await test('the grace runs out -> removed; the last member gone -> the run is de
   await cleanup();
 });
 
+await test('revive across clients: only a downed teammate on the same run map, close enough; the server tells the target', async () => {
+  const a = await player('Mira'), b = await player('Nash'), c = await player('Orin');
+  const revived = [], errs = [];
+  b.c.on('revived', (m) => revived.push(m)); a.c.on('error', (m) => errs.push(m.text)); c.c.on('error', (m) => errs.push(m.text));
+  await partyRun('a1', a, b);
+  a.send('pos', { m: 'a1', x: 300, y: 300, d: 0, a: 'idle', h: 1 });
+  b.send('pos', { m: 'a1', x: 320, y: 300, d: 0, a: 'idle', h: 0.5 }); await wait(150);
+  a.send('revive', { to: b.id }); await until(() => errs.length === 1);
+  ok(/not downed/.test(errs[0]) && !revived.length, 'standing teammate: refused');
+  b.send('pos', { m: 'a1', x: 600, y: 300, d: 0, a: 'death', k: 1, h: 0, dn: true }); await wait(150);
+  ok(a.seen.has(b.id), 'still seen');
+  a.send('revive', { to: b.id }); await until(() => errs.length === 2);
+  ok(/too far/.test(errs[1]), 'too far: refused');
+  await c.at('lumina'); c.send('revive', { to: b.id }); await until(() => errs.length === 3);
+  ok(/nobody to revive/.test(errs[2]), 'from another place: refused');
+  b.send('pos', { m: 'a1', x: 330, y: 300, d: 0, a: 'death', k: 1, h: 0, dn: true }); await wait(150);
+  a.send('revive', { to: b.id });
+  await until(() => revived.length, 2000, 'revived');
+  ok(revived[0].by === 'Mira', 'told who');
+  a.send('revive', { to: b.id }); await until(() => errs.length === 4);
+  ok(/not downed/.test(errs[3]), 'no double revive');
+  await cleanup();
+});
+
 await srv.close();
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

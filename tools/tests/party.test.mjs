@@ -51,5 +51,17 @@ test('max 4 members; reset (checkpoint) stands everyone up', () => {
   party.onDefeated(ms[0]); party.reset(); ok(!ms[0].downed && !party.failed, 'reset');
 });
 
+test('online allies: alone on this client but a teammate up elsewhere -> DOWNED; our own bleed-out still ends OUR encounter', () => {
+  const { party, ms, log } = setup(1);
+  let up = 1; party.allies = () => up;
+  party.game.player = ms[0];
+  ok(party.onDefeated(ms[0]) === 'downed' && ms[0].downed, 'downed thanks to a remote teammate');
+  run(party, ms[1] || ms[0], PARTY.downed.bleedOut + 1);
+  ok(ms[0].dead && party.failed && log.includes('playerBledOut'), 'bled out -> failed for us');
+  const b = setup(1); b.party.allies = () => 0;
+  ok(b.party.onDefeated(b.ms[0]) === 'failed', 'nobody up anywhere -> failed at once');
+  up = 0;
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

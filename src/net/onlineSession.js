@@ -17,9 +17,13 @@ import { CLASSES, DEFAULT_CLASS } from '../skills/classes.js';
 import { dir4, TAU } from '../core/math.js';
 import { ServerSaveAdapter } from './serverSave.js';
 import { MobSync } from './mobSync.js';
+import { NetRevive } from './netRevive.js';
 import { SAVE_KEY, BACKUP_KEY } from '../save/save.js';
 
 const NAME_KEY = 'eclipse_online_last_name';
+const TAB_KEY = 'eclipse_online_tab_'; // + name: '<tab id>:<time>' = which open tab of this browser played it, and when
+// this tab's id (sessionStorage survives a reload of the same tab, not a new tab)
+const TAB_ID = (() => { try { let id = sessionStorage.getItem('eclipse_online_tab_id'); if (!id) { id = Math.random().toString(36).slice(2, 10); sessionStorage.setItem('eclipse_online_tab_id', id); } return id; } catch { return 'x'; } })();
 const CLAIM_KEY = 'eclipse_online_local_save_moved'; // the pre-online browser save was moved to this player
 const now = () => performance.now() / 1000;
 
@@ -33,6 +37,7 @@ export class OnlineSession {
     this.inWorld = false;
     this.saves = new ServerSaveAdapter(this.net, { mainKey: SAVE_KEY, backupKey: BACKUP_KEY });
     this.mobs = new MobSync(this); // N7a shared monsters in a run map
+    this.revive = new NetRevive(this); // revive teammates on other clients
     this.saveReady = false;
     this.playerId = null;
     const n = this.net;
@@ -122,12 +127,24 @@ export class OnlineSession {
     else if (c === 'gate') pn.dungeonGate();
   }
   lastName() { try { return localStorage.getItem(NAME_KEY) || ''; } catch { return ''; } }
+  // tabs of one browser share storage: each online tab stamps its name every 2 s (update), so a new tab does not
+  // auto-login with a name another open tab is using
+  nameInUseElsewhere(name) {
+    try { const [tab, at] = (localStorage.getItem(TAB_KEY + name.toLowerCase()) || ':0').split(':'); return tab !== TAB_ID && Date.now() - Number(at) < 5000; } catch { return false; }
+  }
+  stampName() {
+    const t = Date.now();
+    if (!this.online || !this.playerName || t - (this.stampAt || 0) < 2000) return;
+    this.stampAt = t;
+    try { localStorage.setItem(TAB_KEY + this.playerName.toLowerCase(), TAB_ID + ':' + t); } catch { /* storage blocked */ }
+  }
 
   // every frame (play or not)
   update() {
     const g = this.game, p = g.player;
     const playing = g.state === 'play' && p && g.world;
     if (!this.online) return;
+    this.stampName();
     if (!playing) {
       if (this.inWorld) { this.net.send('leave', {}); this.inWorld = false; this.sent = null; this.remotes.clear(); }
       return;
@@ -139,9 +156,10 @@ export class OnlineSession {
     const t = now(), m = g.world.mapId;
     if (!m) return;
     const ad = p.sprites && p.sprites.anims[p.anim];
-    const pos = { m, x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10, d: dir4(p.facing), a: (p.anim || 'idle').slice(0, 24), k: ad && !ad.loop ? Math.round(Math.min(1, Math.max(0, p.animProgress || 0)) * 100) / 100 : 0, h: p.dead || p.downed ? 0 : Math.round(Math.max(0, Math.min(1, p.hp / p.maxHp)) * 100) / 100 };
+    const down = !!p.downed;
+    const pos = { m, x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10, d: dir4(p.facing), a: down ? 'death' : (p.anim || 'idle').slice(0, 24), dn: down, k: down ? 1 : ad && !ad.loop ? Math.round(Math.min(1, Math.max(0, p.animProgress || 0)) * 100) / 100 : 0, h: p.dead || p.downed ? 0 : Math.round(Math.max(0, Math.min(1, p.hp / p.maxHp)) * 100) / 100 };
     const s = this.sent;
-    const changed = !s || s.m !== pos.m || s.x !== pos.x || s.y !== pos.y || s.d !== pos.d || s.a !== pos.a || s.k !== pos.k || s.h !== pos.h;
+    const changed = !s || s.m !== pos.m || s.x !== pos.x || s.y !== pos.y || s.d !== pos.d || s.a !== pos.a || s.k !== pos.k || s.h !== pos.h || s.dn !== pos.dn;
     if (s && t - s.at < 1 / ONLINE.sendRate) return;
     if (!changed && s && t - s.at < ONLINE.idleResend) return;
     if (s && s.m !== pos.m) this.remotes.clear(); // left the room: the server sends the new room's roomState

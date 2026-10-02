@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 9;
+export const PROTOCOL_VERSION = 10;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -71,7 +71,7 @@ export const CLIENT_MESSAGES = {
   ping: { n: 'int?' },                                   // keep-alive / latency probe (server answers 'pong')
   // N2 presence (src/net/onlineSession.js): where I am + what I look like. Shared-city positions are NOT authoritative
   // (no combat there); dungeon movement gets server checks in N7.
-  pos: { m: 'slug', x: 'coord', y: 'coord', d: 'dir', a: 'slug', k: 'unit?', h: 'unit?' },  // map, position, facing, anim, anim progress, HP share (0 = down)
+  pos: { m: 'slug', x: 'coord', y: 'coord', d: 'dir', a: 'slug', k: 'unit?', h: 'unit?', dn: 'bool?' },  // map, position, facing, anim, anim progress, HP share (0 = down)
   look: { c: 'slug', l: 'level' },                       // class id + level (sent on change)
   leave: {},                                             // left the world (title screen)
   // N3 save on the server (src/net/serverSave.js): the client sends the whole save text; the server keeps the previous
@@ -91,7 +91,8 @@ export const CLIENT_MESSAGES = {
   // report their hits to the host (relayed by the server). Not authoritative yet: N8 checks kills on the server.
   mobs: { ps: 'mobRows', full: 'bool' },                 // host only: changed monsters (full = every monster near the party)
   mobHit: { id: 'slug', dmg: 'dmg', st: 'number?', kb: 'number?', ang: 'number?', crit: 'bool?' }, // my hit on the host's monster
-  mobAct: { id: 'slug', k: 'mobActKind', d: 'actData' },  // N7b host only: a monster started an attack / fired shots
+  mobAct: { id: 'slug', k: 'mobActKind', d: 'actData' },
+  revive: { to: 'slug' },                                // I held [E] long enough next to this downed teammate  // N7b host only: a monster started an attack / fired shots
   // N5 dungeon gate (server/dungeons.js)
   dungeonEnter: { area: 'slug' },                        // solo entry
   dungeonPropose: { area: 'slug' },                      // party leader: ask every member to enter together
@@ -130,7 +131,8 @@ export const SERVER_MESSAGES = {
   dungeonLeft: { city: 'string' },                       // answer to dungeonLeave: go to this city's gate
   roomHost: { room: 'string', host: 'string' },          // N7a: who simulates the monsters of this run map
   // mobs / mobAct (relayed as sent) · mobHit (relayed to the host, + from: player id)
-  // N7b: room rows / moves carry the HP share h (0 = down): entry [id, name, x, y, d, a, k, c, l, h], move [id, x, y, d, a, k, snap, h]
+  // N7b: room rows / moves carry the HP share h (0 = down): entry [id, name, x, y, d, a, k, c, l, h, dn], move [id, x, y, d, a, k, snap, h, dn]
+  revived: { by: 'string' },                             // a teammate revived you (server checked it)
 };
 
 export const NET_ERROR = {

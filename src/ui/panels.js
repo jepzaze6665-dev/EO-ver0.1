@@ -121,12 +121,13 @@ export class Panels {
     // ONLINE (N2): the game is online-only -> Continue / New Game wait for a connection. The name box is the DEV identity
     // (server/accounts.js: name + a token kept in this browser). DEV ONLY: ?offline in the URL skips the connection.
     const on = this.game.online, devOffline = /[?&]offline\b/.test(location.search);
-    // a reload: this browser already owns the last name (token kept) -> log straight back in, once per page
+    // a reload: this browser already owns the last name (token kept) -> log straight back in, once per page — unless
+    // another open tab of this browser is playing that name right now (it would be kicked: 'replaced')
     this.titleHasSave = hasSave;
     if (on && !devOffline && !on.autoTried && on.state === 'offline') {
       on.autoTried = true;
       const n = on.lastName();
-      if (n && on.net.tokens()[n.toLowerCase()]) return on.connect(n); // onNetState redraws the title
+      if (n && on.net.tokens()[n.toLowerCase()] && !on.nameInUseElsewhere(n)) return on.connect(n); // onNetState redraws the title
     }
     const ready = devOffline || (on && on.online && on.saveReady); // N3: saves come from the server after login
     const st = on ? on.state : 'offline', err = on && on.net.lastError;

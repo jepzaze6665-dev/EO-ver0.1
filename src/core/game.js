@@ -108,6 +108,13 @@ export class Game {
     ev.on('healed', (e) => { const p = e.entity; this.vfx.text(p.x, p.y - 64, `+${e.amount} HP`, { color: '#80ff90', size: 10 }); });
     ev.on('lootDropped', (e) => { if (e.gold) this.vfx.text(e.x, e.y - 10, `+${e.gold}G`, { color: '#ffd24a', size: 8, life: 0.8 }); });
     ev.on('chestOpened', () => { this.stats.chests++; });
+    // bled out while downed (nobody revived in time): the same end as a defeat — death panel, back to the checkpoint
+    ev.on('playerBledOut', (e) => {
+      if (e.player !== this.player) return;
+      this.stats.deaths++;
+      this.audio.sfx('death');
+      this.after(1.2, () => this.ui.panels.death(), true);
+    });
     // world progression feedback (rules: data/bosses.js, data/worldTriggers.js, maps/*.js requires)
     ev.on('bossRewarded', (e) => { if (e.reward.lore) TRIGGER_ACTIONS.lore(this, { lore: e.reward.lore }); });
     ev.on('mapUnlocked', (e) => { if (e.reason === 'requirements') this.ui.notify('MAP UNLOCKED', e.map.name, '#ffe8b0'); });
@@ -252,6 +259,7 @@ export class Game {
     // PARTY (party/partySystem.js, data/party.js): the players of this world — solo = a party of one
     this.party = new PartySystem(this);
     this.party.add(this.player);
+    this.party.allies = () => (this.online ? this.online.revive.standingAllies() : 0); // ONLINE: teammates on other clients
     // V2.2 world progression: defeated bosses / unlocked maps / world events (world/worldProgression.js),
     // every boss fight (boss/bossSystem.js + data/bosses.js), world triggers (data/worldTriggers.js)
     this.worldProgress = new WorldProgression(this);

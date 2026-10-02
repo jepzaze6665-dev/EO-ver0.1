@@ -679,6 +679,12 @@ export class HUD {
       if (pr > 0) this.bar(ctx, s.x - w / 2, s.y + 10 * u, w, 5 * u, pr, '#8af0a0', '#1a6a2c');
     }
     const p = g.player, near = !p.downed && !p.dead && party.downedNear(p);
+    const rn = !near && g.online && g.online.revive.near(p); // a downed teammate on another client
+    if (rn) {
+      const s = this.toScreen(rn.x, rn.y - 92), pr = g.online.revive.progress();
+      this.text(ctx, '[Hold E] Revive ' + rn.name, s.x, s.y, 11 * u, '#dfffe0', { align: 'center' });
+      if (pr > 0) this.bar(ctx, s.x - 30 * u, s.y + 6 * u, 60 * u, 5 * u, pr, '#8af0a0', '#1a6a2c');
+    }
     if (near) { const s = this.toScreen(near.x, near.y - 92); this.text(ctx, '[Hold E] Revive', s.x, s.y, 11 * u, '#dfffe0', { align: 'center' }); }
   }
 

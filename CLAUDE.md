@@ -1234,3 +1234,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   proxy follows the guest's HP; solo suites in ?offline: enemy 5 · slot 5 · dodge 8 · counter 7 · poise 8 · tank 6 ·
   checklist 31 (AG) · playthrough 17 · party 8. Debug note: never stack wrappers on telegraphs.add / enemyStrike across
   console calls (they compound and look like duplicated attacks). NOT yet: bosses (N7c), remote skill VFX.
+  Done REVIVE ACROSS CLIENTS (src/net/netRevive.js = game.online.revive): PartySystem `allies` hook (Game sets it: standing
+  teammates on the same run map from the presence stream) -> falling with a teammate up elsewhere = DOWNED, not
+  ENCOUNTER FAILED; our own bleed-out still fails OUR encounter (new Game listener: playerBledOut -> death panel).
+  PROTOCOL_VERSION 10: pos `dn` (downed) -> rows [.., h, dn]; a downed player sends anim 'death' k 1 (lies down on every
+  screen). Hold [E] next to a downed teammate (Player input: a local downed member first, else revive.hold) for
+  PARTY.downed.reviveTime — progress runs on GAME time (a hit or a gap > 0.15 s resets it) -> client revive { to } -> server
+  checks same run map + target dn + distance ≤ reviveRange + 40, clears dn, sends revived { by } -> PartySystem.revive
+  (30% HP, i-frames) + banner. HUD "[Hold E] Revive <name>" + bar. Tabs of one browser: an online tab stamps
+  `eclipse_online_tab_<name>` = '<tab id>:<time>' every 2 s; title auto-login skips a name another open tab is using (tab
+  id in sessionStorage, so a reload of the same tab still logs back in). `tools/onlineKit.js` = multi-tab dev helpers
+  (login / createParty / joinParty / propose / accept / tick). Tests: party.test +1, instances.test +1 (server revive rules).
+  Checked in 2 tabs: guest downed (not failed), host holds E 3 s -> guest back at 75/250.

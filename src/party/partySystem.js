@@ -14,6 +14,8 @@ export class PartySystem {
     this.members = [];
     this.revives = new Map(); // downed member -> { reviver, t }
     this.failed = false;
+    // ONLINE: teammates on other clients (net/netRevive.js) — counted as standing, never simulated here
+    this.allies = null; // () => number of standing remote teammates
     game.events.on('damageTaken', (e) => { for (const [target, r] of this.revives) if (e.target === r.reviver && e.amount > 0) this.interrupt(target, 'hit'); });
   }
   add(p) {
@@ -23,11 +25,12 @@ export class PartySystem {
   }
   remove(p) { this.members = this.members.filter((m) => m !== p); this.revives.delete(p); }
   standing() { return this.members.filter((m) => !m.dead && !m.downed); }
+  alliesStanding() { return this.allies ? this.allies() : 0; }
 
   // a member reached 0 HP -> 'downed' | 'failed'
   onDefeated(p) {
     const g = this.game;
-    if (this.standing().some((m) => m !== p)) {
+    if (this.standing().some((m) => m !== p) || this.alliesStanding() > 0) {
       p.downed = true; p.downedT = 0; p.dead = false; p.hp = 0;
       g.events.emit('playerDowned', { player: p });
       return 'downed';
@@ -88,7 +91,8 @@ export class PartySystem {
       if (m.downedT >= this.rules.downed.bleedOut) {
         m.downed = false; m.dead = true; this.revives.delete(m);
         this.game.events.emit('playerBledOut', { player: m });
-        if (!this.standing().length) this.fail();
+        // nobody standing here and (no online teammate up, or it is OUR player: our encounter ends, theirs goes on)
+        if (!this.standing().length && (!this.alliesStanding() || m === this.game.player)) this.fail();
       }
     }
     // a revive only continues while the reviver keeps holding it (tryRevive marks it each frame)
