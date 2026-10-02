@@ -130,35 +130,48 @@ export class Panels {
     });
   }
 
-  // ---------------- class select (generic: every card is built from class data)
+  // ---------------- class select (owner reference: base class + its Class 2 masteries as a vertical tree, big character art)
+  // Built from class data + CLASS_TREE: tabs = the 3 starting lines, tree = base class banner + its tier-2 children (locked:
+  // preview only), right = the class splash (tools/build-class-art.js -> assets/ui/class) + info. Only a base class can start.
   classSelect(hasSave) {
-    const stars = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
-    const card = (id) => {
-      const c = CLASSES[id], r = c.ratings || {}, res = RESOURCES[c.resource];
-      return `<button class="class-card" data-cls="${id}" style="--cc:${(c.theme && c.theme.color) || '#b070ff'}">
-        <div class="cc-name">${esc(c.name)}</div>
-        <div class="cc-role">${esc(c.role || '')}</div>
-        <div class="cc-desc">${esc(c.description || '')}</div>
-        <div class="cc-stats">
-          <span>Difficulty</span><b>${stars(c.difficulty || 3)}</b>
-          <span>Damage</span><b>${stars(r.damage || 3)}</b><span>Range</span><b>${stars(r.range || 3)}</b>
-          <span>Defense</span><b>${stars(r.defense || 3)}</b><span>Mobility</span><b>${stars(r.mobility || 3)}</b>
-        </div>
-        <div class="cc-res">Resource: <b style="color:${res.colors[0]}">${esc(res.name)}</b></div>
-        <div class="cc-skills">${[...c.skills, c.special].map((s) => esc(s.name)).join(' · ')}</div>
-      </button>`;
-    };
+    const lines = STARTING_CLASSES;
+    if (!lines.includes(this.csLine)) this.csLine = lines[0];
+    const base = this.csLine, kids = Object.values(CLASS_TREE).filter((n) => n.parent === base && !n.hidden).map((n) => n.id);
+    if (this.csSel !== base && !kids.includes(this.csSel)) this.csSel = base;
+    const sel = this.csSel, c = CLASSES[sel], node = CLASS_TREE[sel] || {}, isBase = sel === base;
+    const color = (id) => (CLASSES[id] && CLASSES[id].theme && CLASSES[id].theme.color) || '#b070ff';
+    const emblem = (id) => `assets/ui/class/${id}_emblem.png`;
+    const r = c.ratings || {}, res = RESOURCES[c.resource] || { name: '—', colors: ['#ccc'] };
+    const bar = (label, v) => `<div class="cs-rate"><span>${label}</span><i>${[1, 2, 3, 4, 5].map((k) => `<b class="${k <= (v || 0) ? 'on' : ''}"></b>`).join('')}</i></div>`;
+    const reqText = (n) => (n.requirements || []).map((q) => q.type === 'level' ? `LV ${q.min ?? q.level}` : q.type === 'counter' ? `${(CLASS_COUNTERS[q.counter] || { label: q.counter }).label} ×${q.min}` : '').filter(Boolean).join(' · ');
+    const row = (id, kind) => `<button class="cs-node ${kind}${id === sel ? ' sel' : ''}" data-cs-sel="${id}" style="--cc:${color(id)}">
+        <span class="cs-emb"><img src="${emblem(id)}" alt="">${kind === 'mastery' ? '<i class="cs-lock">🔒</i>' : ''}</span>
+        <span class="cs-txt"><small>${kind === 'base' ? 'BASE CLASS' : 'CLASS 2'}</small><b>${esc(CLASSES[id] ? CLASSES[id].name : CLASS_TREE[id].name)}</b></span></button>`;
     const el = this.show('title', `
-      <div class="title-wrap compact">
-        <div class="logo"><span class="eclipse"></span>ECLIPSE<small>ONLINE</small></div>
-        <div class="tag">Choose your class</div>
-        <div class="class-cards">${STARTING_CLASSES.map(card).join('')}</div>
-        <div class="menu-buttons"><button data-a="back">Back</button></div>
-      </div>`, 'title');
+      <div class="cs-bg" style="--cc:${color(sel)}"></div>
+      <img class="cs-splash" src="assets/ui/class/${sel}_splash.png" alt="" style="--cc:${color(sel)}">
+      <div class="cs-wrap">
+        <div class="cs-lines">${lines.map((id) => `<button data-cs-line="${id}" class="${id === base ? 'on' : ''}" title="${esc(CLASSES[id].name)}" style="--cc:${color(id)}"><img src="${emblem(id)}" alt=""><span>${esc(CLASSES[id].name)}</span></button>`).join('')}</div>
+        <div class="cs-tree">${row(base, 'base')}<div class="cs-kids">${kids.map((id) => row(id, 'mastery')).join('')}</div></div>
+        <div class="cs-info" style="--cc:${color(sel)}">
+          <div class="cs-role">${esc(c.role || '')}</div>
+          ${c.identity ? `<div class="cs-quote">“${esc(c.identity)}”</div>` : ''}
+          <p>${esc(c.description || node.description || '')}</p>
+          <div class="cs-rates">${bar('Difficulty', c.difficulty || 3)}${bar('Damage', r.damage)}${bar('Defense', r.defense)}${bar('Range', r.range)}${bar('Mobility', r.mobility)}</div>
+          <div class="cs-res">Resource <b style="color:${res.colors[0]}">${esc(res.name)}</b>${c.signatureWeapon ? ` · Weapon <b>${esc(c.signatureWeapon)}</b>` : ''}</div>
+          <div class="cs-skills">${[...c.skills, c.special].filter(Boolean).slice(0, 7).map((s) => `<img src="${skillIconURL(s)}" title="${esc(s.name)}" alt="">`).join('')}</div>
+          ${isBase ? `<button class="cs-start" data-cs-start="${base}">Begin as ${esc(c.name)}</button>`
+            : `<div class="cs-unlock">🔒 CLASS 2 — unlocked later: ${esc(reqText(node))} · then pass its Trial</div><button class="cs-start" data-cs-sel="${base}">◂ Back to ${esc(CLASSES[base].name)}</button>`}
+        </div>
+        <button class="cs-back" data-a="back">◂ Back</button>
+      </div>`, 'title cs');
     el.addEventListener('click', (e) => {
-      const c = e.target.closest('[data-cls]');
-      if (c) return this.game.newGame(c.dataset.cls);
-      if (e.target.dataset.a === 'back') this.title(hasSave);
+      const t = e.target.closest('[data-cs-line],[data-cs-sel],[data-cs-start],[data-a]');
+      if (!t) return;
+      if (t.dataset.csLine) { this.csLine = t.dataset.csLine; this.csSel = t.dataset.csLine; this.game.audio.sfx('ui'); return this.classSelect(hasSave); }
+      if (t.dataset.csSel) { this.csSel = t.dataset.csSel; this.game.audio.sfx('ui'); return this.classSelect(hasSave); }
+      if (t.dataset.csStart) return this.game.newGame(t.dataset.csStart);
+      if (t.dataset.a === 'back') this.title(hasSave);
     });
   }
 

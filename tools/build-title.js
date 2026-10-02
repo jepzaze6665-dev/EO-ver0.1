@@ -20,22 +20,43 @@ const FILES = {
   logo: ['logo.png', 'image-6626a46e-4c55-4fcd-9bc4-721ecef25bfe-0.png'],
   emblem: ['emblem.png', 'image-4bc1099c-2cf9-4bdf-96b7-b0b7998c3ded-0.png'],
 };
-const BG = 26, SOFT = 6, SOFT_LUM = 90; // background threshold (max channel), soft edge reach (px) and brightness scale
-const HOLE = 0.01; // enclosed dark regions smaller than 1% of the image = letter holes -> background
+// defaults: background threshold (max channel), soft edge reach (px), brightness scale of the soft edge, and HOLE = enclosed
+// dark regions smaller than this share of the image are letter holes -> background (0 = keep every enclosed region)
+const CUT = { bg: 26, soft: 6, softLum: 90, hole: 0.01 };
 
 const find = (names) => names.map((n) => path.join(SRC, n)).find((f) => fs.existsSync(f));
 
-function cutBlack(img) {
+function cutBlack(img, o = {}) {
+  const { bg: BG, soft: SOFT, softLum: SOFT_LUM, hole: HOLE, erode: R = 0 } = { ...CUT, ...o };
   const { width: W, height: H, data: d } = img, N = W * H, bg = new Uint8Array(N), mx = (i) => Math.max(d[i * 4], d[i * 4 + 1], d[i * 4 + 2]);
+  // ERODE (dark costumes): the flood may only travel through CORE background = every pixel within R is dark too, so it cannot
+  // seep through a thin dark gap into black clothes; afterwards it widens back R px into dark pixels next to it
+  const dark = new Uint8Array(N);
+  for (let i = 0; i < N; i++) dark[i] = mx(i) <= BG ? 1 : 0;
+  let pass = dark;
+  if (R > 0) {
+    const rowOk = new Uint8Array(N); // horizontal run check, then vertical
+    for (let y = 0; y < H; y++) { let run = 0; for (let x = 0; x < W; x++) { run = dark[y * W + x] ? run + 1 : 0; rowOk[y * W + x] = run; } }
+    const h = new Uint8Array(N);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const xe = Math.min(W - 1, x + R); h[y * W + x] = rowOk[y * W + xe] >= xe - Math.max(0, x - R) + 1 ? 1 : 0; }
+    pass = new Uint8Array(N);
+    for (let x = 0; x < W; x++) { let run = 0; const col = new Uint16Array(H); for (let y = 0; y < H; y++) { run = h[y * W + x] ? run + 1 : 0; col[y] = run; }
+      for (let y = 0; y < H; y++) { const ye = Math.min(H - 1, y + R); pass[y * W + x] = col[ye] >= ye - Math.max(0, y - R) + 1 ? 1 : 0; } }
+  }
   const st = [];
   for (let x = 0; x < W; x++) st.push(x, (H - 1) * W + x);
   for (let y = 0; y < H; y++) st.push(y * W, y * W + W - 1);
   while (st.length) {
     const i = st.pop();
-    if (bg[i] || mx(i) > BG) continue;
+    if (bg[i] || !pass[i]) continue;
     bg[i] = 1;
     const x = i % W, y = (i / W) | 0;
     if (x > 0) st.push(i - 1); if (x < W - 1) st.push(i + 1); if (y > 0) st.push(i - W); if (y < H - 1) st.push(i + W);
+  }
+  for (let k = 0; k < R; k++) { // widen back into dark pixels touching the background
+    const add = [];
+    for (let i = 0; i < N; i++) if (!bg[i] && dark[i]) { const x = i % W; if ((x > 0 && bg[i - 1]) || (x < W - 1 && bg[i + 1]) || (i >= W && bg[i - W]) || (i < N - W && bg[i + W])) add.push(i); }
+    for (const i of add) bg[i] = 1;
   }
   // enclosed dark holes (the inside of "O", "P"...) are background too when SMALL; the eclipse disc is a big dark region
   // (several % of the image) and stays solid
@@ -131,4 +152,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { FILES };
+module.exports = { FILES, cutBlack, crop, shrink };

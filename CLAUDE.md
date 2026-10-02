@@ -1030,6 +1030,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   LOADING SCREEN (index.html #loading + main.js): blurred dimmed title bg, eclipse emblem turning (24 s) with a breathing glow, logo,
   gold progress bar with a diamond tip + %, status label, TIPS (gameplay / lore, main.js TIPS) every 4.5 s; .done = fade out 0.6 s
   then removed. Preview docs/ui/loading_screen.png.
+- CLASS SELECT v2 (owner reference: base class + masteries tree, big art): panels.classSelect — line tabs (STARTING_CLASSES with
+  emblems), tree = gold BASE CLASS banner + its CLASS_TREE tier-2 children (lock badge, click = preview only), info box (role,
+  identity, ratings, resource, weapon, skill icons, Begin / unlock text from requirements), splash on the right with the class
+  colour glow. Art: desgin/UI/ตัวละคร/<CODE>.png (splash) + desgin/UI/ICON CLASS/<line>/<file> (emblems, random names mapped by
+  eye in EMBLEMS) -> node tools/build-class-art.js [--preview] -> assets/ui/class/<id>_splash.png (900 px high) / _emblem.png
+  (160) + class.json. build-title cutBlack now takes options { bg, soft, softLum, hole, erode } — erode R = flood only through
+  core background (all pixels within R dark) then widen back: dark costumes no longer leak (Reaper robe). Preview on MAGENTA.
+  Prompts for the art: docs/ui/class_art_prompts.md. tools/tests/classArt.test.mjs.
 - SKILL TREE VIEW (owner reference, made to fit the game): Skills tab = src/ui/skillTreeUI.js — pure layoutTree(cls): special (Q) =
   root at the bottom, branches = unlock.requires chains (rows = depth in the branch, columns = leaves spread, parents over
   their children), ultimate = big gold diamond crowning every branch top; treeHTML = SVG curves (lit gold when both ends are

@@ -307,3 +307,51 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 .stn.ultimate img { width: 48px; height: 48px; }
 .st-right .skill-card { flex-direction: column; } .st-right .skill-card img { width: 56px; height: 56px; }
 @media (max-width: 1100px) { .st-layout { grid-template-columns: 1fr; } }
+
+/* ---------- CLASS SELECT (panels.classSelect): line tabs, base + Class 2 tree on the left, splash on the right ---------- */
+.overlay.cs { background: #050308; overflow: hidden; align-items: stretch; justify-content: stretch; }
+.cs-bg { position: absolute; inset: -20px; background: url("../../assets/ui/title/bg.png") center 30% / cover no-repeat; filter: blur(5px) brightness(0.32); }
+.cs-bg::after { content: ""; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 40% 60% at 72% 55%, color-mix(in srgb, var(--cc) 28%, transparent), transparent 70%),
+    linear-gradient(90deg, rgba(5, 3, 8, 0.9) 0%, rgba(5, 3, 8, 0.4) 45%, rgba(5, 3, 8, 0.1) 100%); }
+.cs-splash { position: absolute; right: 3vw; bottom: 0; height: 92vh; max-width: 48vw; object-fit: contain; object-position: bottom right;
+  filter: drop-shadow(0 0 30px color-mix(in srgb, var(--cc) 45%, transparent)); animation: cs-in 0.5s ease-out; pointer-events: none; }
+@keyframes cs-in { from { opacity: 0; transform: translateX(30px); } }
+.cs-wrap { position: relative; z-index: 1; width: 100%; height: 100%; padding: 4vh 0 4vh 0; display: grid; grid-template-columns: minmax(380px, 40vw) 1fr; grid-template-rows: auto 1fr; }
+.cs-lines { grid-column: 1; display: flex; gap: 8px; padding: 0 0 2vh 3vw; }
+.cs-lines button { display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 8px; background: rgba(6, 6, 10, 0.55); border: 1px solid var(--line); border-radius: 3px; font-size: 13px; color: var(--ink-dim); }
+.cs-lines button img { width: 30px; height: 30px; }
+.cs-lines button.on { border-color: var(--cc); color: #fff; background: color-mix(in srgb, var(--cc) 16%, rgba(6, 6, 10, 0.7)); }
+.cs-tree { grid-column: 1; align-self: start; }
+.cs-node { display: flex; align-items: center; gap: 18px; width: 100%; border: 0; border-radius: 0; background: none; padding: 0; margin: 0; text-align: left; cursor: pointer; }
+.cs-node:hover:not(:disabled) { background: none; border: 0; }
+.cs-node.base { padding: 14px 0 14px 3vw; background: linear-gradient(90deg, rgba(150, 120, 70, 0.55), rgba(110, 90, 50, 0.35) 70%, transparent);
+  border-top: 1px solid rgba(232, 215, 165, 0.45); border-bottom: 1px solid rgba(232, 215, 165, 0.45); }
+.cs-node.base.sel, .cs-node.base:hover { background: linear-gradient(90deg, rgba(180, 145, 80, 0.65), rgba(120, 95, 55, 0.4) 70%, transparent); }
+.cs-emb { position: relative; flex: none; display: grid; place-items: center; }
+.cs-node.base .cs-emb { width: 120px; height: 120px; } .cs-node.base .cs-emb img { width: 120px; height: 120px; }
+.cs-node.mastery .cs-emb { width: 74px; height: 74px; } .cs-node.mastery .cs-emb img { width: 74px; height: 74px; filter: saturate(0.8) brightness(0.85); }
+.cs-node.mastery.sel .cs-emb img, .cs-node.mastery:hover .cs-emb img { filter: drop-shadow(0 0 10px var(--cc)); }
+.cs-lock { position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 13px; background: rgba(6, 6, 10, 0.9); border: 1px solid var(--line-strong); border-radius: 50%; width: 22px; height: 22px; display: grid; place-items: center; }
+.cs-txt small { display: block; font: 500 12px var(--font-title); letter-spacing: 3px; color: var(--ink-dim); border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-bottom: 4px; width: 260px; }
+.cs-node.base .cs-txt small { color: #e8dcc0; } .cs-node.mastery .cs-txt small { color: #c9a96a; }
+.cs-txt b { font: 600 28px var(--font-title); letter-spacing: 3px; color: #fff; text-transform: uppercase; }
+.cs-node.mastery .cs-txt b { font-size: 22px; color: var(--ink); } .cs-node.mastery.sel .cs-txt b, .cs-node.mastery:hover .cs-txt b { color: var(--cc); }
+.cs-kids { position: relative; padding: 6px 0 0 calc(3vw + 23px); display: flex; flex-direction: column; gap: 10px; }
+.cs-kids::before { content: ""; position: absolute; left: calc(3vw + 60px); top: 0; bottom: 40px; width: 1px; background: linear-gradient(180deg, rgba(232, 215, 165, 0.6), rgba(232, 215, 165, 0.15)); }
+.cs-info { grid-column: 1; grid-row: 2; align-self: end; margin: 2vh 0 0 3vw; width: min(520px, 36vw); padding: 14px 18px; background: rgba(6, 6, 10, 0.72);
+  border-left: 2px solid var(--cc); }
+.cs-role { font: 500 12px var(--font-title); letter-spacing: 2px; text-transform: uppercase; color: var(--cc); }
+.cs-quote { font-style: italic; color: #e8e0f0; margin: 4px 0; } .cs-info p { font-size: 13px; color: var(--ink-dim); margin: 6px 0; }
+.cs-rates { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 16px; margin: 8px 0; }
+.cs-rate { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--ink-dim); } .cs-rate span { width: 62px; }
+.cs-rate i b { display: inline-block; width: 12px; height: 5px; margin-right: 2px; background: rgba(255, 255, 255, 0.12); } .cs-rate i b.on { background: var(--cc); }
+.cs-res { font-size: 12px; color: var(--ink-dim); } .cs-res b { color: var(--ink); }
+.cs-skills { display: flex; gap: 5px; margin: 10px 0; } .cs-skills img { width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 4px; }
+.cs-unlock { font-size: 12px; color: #e0b070; margin: 6px 0 10px; }
+.cs-start { display: block; width: 100%; padding: 11px; font-size: 16px; letter-spacing: 2px; border-color: var(--cc) !important; background: color-mix(in srgb, var(--cc) 20%, rgba(6, 6, 10, 0.7)) !important; }
+.cs-back { position: absolute; right: 2vw; top: 3vh; }
+@media (max-height: 760px) { .cs-node.base .cs-emb, .cs-node.base .cs-emb img { width: 90px; height: 90px; } .cs-node.mastery .cs-emb, .cs-node.mastery .cs-emb img { width: 56px; height: 56px; } .cs-kids { gap: 4px; } .cs-txt b { font-size: 22px; } .cs-node.mastery .cs-txt b { font-size: 18px; } }
+.cs-wrap { grid-template-rows: auto auto 1fr; padding: 3vh 0 3vh 0; }
+.cs-tree { grid-row: 2; } .cs-info { grid-row: 3; margin-top: 1.5vh; }
+@media (max-height: 760px) { .cs-info p { display: none; } .cs-info { padding: 10px 14px; } .cs-skills { margin: 6px 0; } .cs-skills img { width: 30px; height: 30px; } .cs-start { padding: 8px; } }
