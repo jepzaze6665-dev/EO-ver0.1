@@ -48,15 +48,17 @@ export class RemotePlayer {
 }
 
 export class RemotePlayers {
-  constructor() { this.room = null; this.map = new Map(); }
+  // room = the server's room key (a city map id, or '<instance>:<map>' in a run); mapId = the map that room is on
+  constructor() { this.room = null; this.mapId = null; this.map = new Map(); }
 
-  clear() { this.room = null; this.map.clear(); }
+  clear() { this.room = null; this.mapId = null; this.map.clear(); }
+  here(mapId) { return !!this.room && this.mapId === mapId; }
   get list() { return [...this.map.values()]; }
   get(id) { return this.map.get(id); }
 
-  setRoom(room, rows, now) {
+  setRoom(room, rows, now, mapId = room) {
     this.clear();
-    this.room = room;
+    this.room = room; this.mapId = mapId;
     for (const r of rows) this.map.set(r[0], new RemotePlayer(r, now));
   }
   join(row, now) { this.map.set(row[0], new RemotePlayer(row, now)); }

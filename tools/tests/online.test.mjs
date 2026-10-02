@@ -88,8 +88,10 @@ await test('leaving the city (into A1) / disconnecting: the others are told (lef
   await until(() => b.got.some((m) => m.t === 'pLeave' && m.why === 'offline'), 2000, 'offline');
   ok(srv.game.city.rooms.get('lumina').size === 1, 'one left');
   a.pos('lumina', 120, 120);
-  await until(() => a.got.filter((m) => m.t === 'roomState').length === 2, 2000, 'A back: fresh roomState');
-  ok(a.got.filter((m) => m.t === 'roomState').at(-1).players.length === 1, 'A sees only B (C is gone)');
+  const lum = () => a.got.filter((m) => m.t === 'roomState' && m.room === 'lumina');
+  await until(() => lum().length === 2, 2000, 'A back: fresh Lumina roomState');
+  ok(lum().at(-1).players.length === 1, 'A sees only B (C is gone)');
+  ok(a.got.some((m) => m.t === 'roomState' && m.room.endsWith(':a1') && m.players.length === 0), 'in A1 A was alone in its own run room');
   a.c.stop(); b.c.stop(); await until(() => !srv.game.city.rooms.size);
 });
 await test('rooms are separate: Lumina players never see City 2 players; the title (leave) removes you', async () => {

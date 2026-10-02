@@ -20,6 +20,7 @@ import { densify, ordinary } from './spawnDensity.js';
 import { liveBosses } from '../data/bosses.js';
 const ARENA_CLEAR = 4; // tiles around a boss arena kept free of ordinary field packs
 import { DIFFICULTY } from '../data/difficulty.js';
+import { ONLINE, dungeonArea } from '../data/online.js';
 
 const REVEAL_R = 10;
 // the World's fields that belong to the loaded grid (swapped by enterGrid)
@@ -98,6 +99,12 @@ export class World {
       for (const sp of c.spawns || []) L.spawnPoints.push({ def: { radius: 2, count: 1, ...sp, x: (sp.tx + 0.5) * TILE, y: (sp.ty + 0.5) * TILE }, alive: [], respawnT: 0, active: false });
     }
     this.mapManager.attach(id, map);
+    // ONLINE N6: a 'Return to the city' stone near the start of every dungeon area (data/online.js dungeon.areas)
+    for (const d of MAPS) {
+      if (d.grid !== id || !dungeonArea(d.id) || !d.spawn) continue;
+      const [ox, oy] = ONLINE.dungeon.returnOffset, pos = map.findOpen((d.spawn[0] + ox) * TILE, (d.spawn[1] + oy) * TILE, 4);
+      L.interactables.push({ id: 'city_return_' + d.id, kind: 'cityReturn', x: pos.x, y: pos.y, radius: 36, mapId: d.id, prompt: 'Return to the city' });
+    }
     // boss arenas stay clear of ordinary field packs (a mini-boss fight must not turn into a swarm), then
     // more monsters per map (data/difficulty.js spawnDensity): bigger packs + new packs, seeded per grid
     const gridOf = (mapId) => (this.mapManager.get(mapId) || {}).grid || START_GRID; // maps without a grid = start grid
@@ -106,7 +113,7 @@ export class World {
     const nearArena = (d) => arenas.some((a) => Math.hypot(d.x - a.x, d.y - a.y) < a.r);
     L.spawnPoints = L.spawnPoints.filter((sp) => !ordinary(sp.def) || !nearArena(sp.def));
     // new packs never land on a resting spot (NPCs, waystones)
-    const rest = [...L.npcs, ...L.interactables.filter((it) => it.kind === 'waystone')];
+    const rest = [...L.npcs, ...L.interactables.filter((it) => it.kind === 'waystone' || it.kind === 'cityReturn')];
     const nearRest = (d) => rest.some((r) => Math.hypot(d.x - r.x, d.y - r.y) < 8 * TILE);
     L.spawnPoints.push(...densify(L.spawnPoints, map, (x, y) => this.mapManager.idAt(x, y, id), DIFFICULTY.spawnDensity, def.seed || 1).filter((sp) => !nearArena(sp.def) && !nearRest(sp.def)));
     if (def.setup) def.setup(this, L);

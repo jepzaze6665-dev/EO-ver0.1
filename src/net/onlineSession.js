@@ -59,13 +59,16 @@ export class OnlineSession {
       const pn = game.ui.panels;
       if (pn.current && pn.current.name === 'dungeonReady') pn.close(true);
     });
+    // N6: the run the server has us in (gate entry, walking out on foot, leaving) — null in a city
+    n.on('instanceState', (m) => { this.instance = m.instance; });
+    n.on('dungeonLeft', (m) => { this.instance = null; game.returnToCity(m.city); });
     n.on('dungeonGo', (m) => {
       this.check = null;
       this.instance = { id: m.instance, area: m.area, mode: m.mode, members: m.members };
       game.enterDungeon(m.area, m);
     });
     n.on('saveData', (m) => this.onSaveData(m));
-    n.on('roomState', (m) => this.remotes.setRoom(m.room, m.players, now()));
+    n.on('roomState', (m) => this.remotes.setRoom(m.room, m.players, now(), m.map || m.room));
     n.on('pJoin', (m) => this.remotes.join(m.p, now()));
     n.on('pLeave', (m) => this.remotes.leave(m.id, m.why, now()));
     n.on('moves', (m) => this.remotes.moves(m.ps, now()));
@@ -136,10 +139,17 @@ export class OnlineSession {
     if (this.net.send('pos', pos)) this.sent = { ...pos, at: t };
   }
 
+  // the return stone at an area's start (exploration/interactables.js 'cityReturn'): the server ends our part of the run
+  // and answers 'dungeonLeft' { city }. DEV offline (?offline): straight back to Lumina.
+  leaveDungeon() {
+    if (!this.online) return this.game.returnToCity('lumina');
+    if (!this.net.send('dungeonLeave', {})) this.game.ui.toast('Not connected', 2);
+  }
+
   // the other players to draw on the map the local player is on
   drawables() {
     const g = this.game;
-    if (!this.remotes.room || this.remotes.room !== g.world.mapId) return [];
+    if (!this.remotes.here(g.world.mapId)) return [];
     const list = this.remotes.visible(now());
     for (const r of list) if (!r.draw) r.draw = (ctx) => this.drawRemote(ctx, r);
     return list;

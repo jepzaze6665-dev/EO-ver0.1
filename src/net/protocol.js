@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 5;
+export const PROTOCOL_VERSION = 6;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -61,6 +61,7 @@ export const CLIENT_MESSAGES = {
   dungeonPropose: { area: 'slug' },                      // party leader: ask every member to enter together
   dungeonAnswer: { check: 'slug', yes: 'bool' },         // a member accepts / declines the leader's proposal
   dungeonCancel: {},                                     // the leader withdraws the proposal
+  dungeonLeave: {},                                      // N6: return to the city from the run's start point
 };
 
 // server -> client (documented here, the client does not validate them strictly)
@@ -70,7 +71,7 @@ export const SERVER_MESSAGES = {
   error: { code: 'string', text: 'string' },
   kicked: { code: 'string', text: 'string' },          // the server is closing this connection on purpose
   // N2 shared city rooms (server/cityRooms.js). A player entry = [id, name, x, y, d, a, k, c, l]
-  roomState: { room: 'string', players: 'array' },      // you joined a room: everyone already there
+  roomState: { room: 'string', map: 'string', players: 'array' }, // you joined a room (city or run map): everyone there
   pJoin: { p: 'array' },                                 // someone entered your room
   pLeave: { id: 'string', why: 'string' },               // 'left' (another map) | 'offline' (disconnected)
   moves: { ps: 'array' },                                // batched movement: [id, x, y, d, a, k, snap]
@@ -87,6 +88,9 @@ export const SERVER_MESSAGES = {
   dungeonCheck: { check: 'string', area: 'string', leader: 'string', members: 'array', ends: 'number' }, // members [{ id, name, answer: yes|wait }]
   dungeonCancel: { reason: 'string' },
   dungeonGo: { instance: 'string', area: 'string', mode: 'string', members: 'array' },  // enter now (members = names)
+  // N6: which run you are in (null = none: in a city). Sent when it changes (gate entry, walking out on foot, leaving)
+  instanceState: { instance: 'object|null' },            // { id, area, mode, city, members: [names], maps: [ids] }
+  dungeonLeft: { city: 'string' },                       // answer to dungeonLeave: go to this city's gate
 };
 
 export const NET_ERROR = {

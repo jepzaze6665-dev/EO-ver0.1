@@ -33,6 +33,8 @@ export const ONLINE = {
       { id: 'b1', free: true }, { id: 'b2' }, { id: 'b3' },
     ],
     readyTimeout: 30,         // s the party has to accept before the entry is cancelled
+    reconnectGrace: 120,      // N6: s a disconnected member stays in the run (reload / line drop), then removed
+    returnOffset: [2, 0],     // N6: the 'Return to the city' stone stands this many tiles from each area's spawn
   },
 };
 

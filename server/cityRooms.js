@@ -1,5 +1,7 @@
 // ONLINE N2 — shared city rooms (rules: src/data/online.js). A player whose last 'pos' is on a shared map (Lumina,
-// City 2) is in that map's room: everyone in it sees everyone else. Movement is batched per room ONLINE.serverTick times
+// City 2) is in that map's room: everyone in it sees everyone else.
+// N6: rooms are also INSTANCE MAP rooms — `<instance id>:<map>` (server/dungeons.js roomFor decides the key): members of
+// the same run on the same map see each other, nobody else does. Movement is batched per room ONLINE.serverTick times
 // a second, and only for players who moved. A move faster than ONLINE.maxSpeed is passed on as a SNAP (teleport:
 // waystone, map entry) instead of being refused — cities have no combat, positions there are not authoritative (N7
 // adds server checks for dungeon movement). Only presence travels: name, class, level, position, facing, animation.
@@ -25,9 +27,13 @@ export class CityRooms {
     return s.presence;
   }
 
+  // which room a position belongs to: a city map = its room; otherwise the run's room (dungeons) or none
+  roomKey(s, m) { return this.server.dungeons ? this.server.dungeons.roomFor(s, m) : isSharedMap(m) ? m : null; }
+
   onPos(s, msg) {
     const p = this.presence(s), now = Date.now();
-    const sameRoom = p.room && p.room === msg.m;
+    const key = this.roomKey(s, msg.m);
+    const sameRoom = !!p.room && p.room === key;
     if (sameRoom) {
       const dt = Math.max(0.05, (now - p.t) / 1000);
       if (Math.hypot(msg.x - p.x, msg.y - p.y) > ONLINE.maxSpeed * dt * 1.5 + 48) p.snap = true;
@@ -36,7 +42,7 @@ export class CityRooms {
     p.t = now;
     if (!sameRoom) {
       if (p.room) this.leave(s, 'left');
-      if (isSharedMap(msg.m)) this.join(s, msg.m);
+      if (key) this.join(s, key);
       return;
     }
     p.dirty = true;
@@ -54,10 +60,13 @@ export class CityRooms {
     if (!set) this.rooms.set(room, (set = new Set()));
     if (set.size >= ONLINE.maxRoomPlayers) { s.send('error', { code: NET_ERROR.roomFull, text: 'this city is full — you are playing alone here' }); return; }
     p.room = room; p.dirty = false; p.snap = false;
-    s.send('roomState', { room, players: [...set].map(entry) });
+    s.send('roomState', { room, map: p.m, players: [...set].map(entry) });
     this.send(room, 'pJoin', { p: entry(s) }, s);
     set.add(s);
   }
+
+  // move a player out of their room now (left the run, instance closed): the next 'pos' puts them where they are
+  kick(s) { this.leave(s, 'left'); if (s.presence) s.presence.t = 0; }
 
   leave(s, why) {
     const p = s.presence;

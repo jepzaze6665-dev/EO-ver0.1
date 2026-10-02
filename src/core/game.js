@@ -358,6 +358,19 @@ export class Game {
     this.save.dirty = true;
     return true;
   }
+  // ONLINE N6: back to a city from a run (server 'dungeonLeft', or the return stone in DEV offline mode): arrive beside
+  // that city's Dungeon Gate (its spawn when it has none)
+  returnToCity(city = 'lumina') {
+    const def = this.world.mapManager.get(city) || this.world.mapManager.get('lumina');
+    if (!def || this.state !== 'play') return false;
+    const gate = ((def.content && def.content.interactables) || []).find((i) => i.kind === 'dungeonGate');
+    this.ui.panels.close(true);
+    this.world.changeMap(def.id, { entry: gate ? [gate.tx + 0.5, gate.ty + 2] : def.spawn, via: 'cityReturn' });
+    this.ui.banner(def.name, 'Back in the city', '#ffe8b0');
+    this.audio.sfx('waystone');
+    this.save.dirty = true;
+    return true;
+  }
   continueGame() { this.loadGame(); }
   // saveGame / loadGame: the spec's API (storage + format live in save/)
   saveGame() {

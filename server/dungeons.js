@@ -4,16 +4,23 @@
 //                             the names) -> READY CHECK sent to all ('dungeonCheck'); each member answers for themselves
 //                             ('dungeonAnswer'); all yes = one instance for everyone; a no / the timer / any party change
 //                             cancels it ('dungeonCancel'). Nobody is moved without their own yes.
+// N6 RUNS: roomFor(session, map) is asked for every position (server/cityRooms.js): a city map = leave the run (if any) and
+//   join that city's room; any other map = the run's room `<instance>:<map>` — a player with no run (walked out of the
+//   city by road, or came back after the reconnect grace) gets a SOLO run there. The run remembers its city (return
+//   point) and every map visited; members of one run on one map see each other, nobody else does. 'dungeonLeave' (the
+//   return stone at an area's start) ends your part of the run -> 'dungeonLeft' { city }. A dropped member keeps their
+//   place for ONLINE.dungeon.reconnectGrace s; an empty run is deleted.
 // UNLOCKS: read from the player's save held by the server (worldProgress.unlockedMaps). That save is still written by the
 // browser — N8 replaces this one function with server-owned progression (boss kills decided by the server).
-import { ONLINE, dungeonArea } from '../src/data/online.js';
+import { ONLINE, dungeonArea, isSharedMap } from '../src/data/online.js';
 import { NET_ERROR } from '../src/net/protocol.js';
 import { InstanceManager } from './instances.js';
 
 export class DungeonService {
   constructor(server) {
     this.server = server;
-    this.instances = new InstanceManager();
+    this.instances = new InstanceManager({ onClose: (inst) => this.server.log.info?.(`[server] instance ${inst.id} closed (empty)`) });
+    this.lastCity = new Map(); // player id -> the last city room they stood in (return point of a run started on foot)
     this.checks = new Map();   // check id -> { id, area, partyId, leader, members: [ids], yes: Set, ends }
     this.counter = 0;
     this.unlockCache = new Map(); // player id -> { at, maps }
@@ -21,7 +28,13 @@ export class DungeonService {
     server.handle('dungeonPropose', (s, m) => this.propose(s, m.area));
     server.handle('dungeonAnswer', (s, m) => this.answer(s, m.check, m.yes));
     server.handle('dungeonCancel', (s) => { const c = this.checkOfParty(this.server.parties.partyOf(s.id)); if (c && c.leader === s.id) this.cancel(c, 'the leader cancelled'); });
-    server.on('sessionClosed', (s) => { for (const c of this.checks.values()) if (c.members.includes(s.id)) this.cancel(c, `${s.name} disconnected`); });
+    server.handle('dungeonLeave', (s) => this.leaveToCity(s));
+    server.on('sessionClosed', (s) => {
+      for (const c of this.checks.values()) if (c.members.includes(s.id)) this.cancel(c, `${s.name} disconnected`);
+      const inst = this.instances.of(s.id);
+      if (inst) inst.offline.set(s.id, Date.now());
+    });
+    server.on('sessionOpened', (s) => { const inst = this.instances.of(s.id); s.send('instanceState', { instance: inst ? this.instances.view(inst) : null }); });
     this.timer = setInterval(() => this.tick(), 500);
     this.timer.unref?.();
   }
@@ -45,7 +58,7 @@ export class DungeonService {
   problem(playerId, areaId) {
     const s = this.server.sessions.get(playerId);
     if (!s) return 'is offline';
-    if (!s.presence?.room) return 'is not in a city';
+    if (!isSharedMap(s.presence?.room)) return 'is not in a city';
     if (!this.canEnter(playerId, areaId)) return 'has not unlocked this area';
     return null;
   }
@@ -91,11 +104,57 @@ export class DungeonService {
   }
 
   go(ids, area, mode) {
-    const inst = this.instances.create({ area, mode, members: ids });
+    const city = this.server.sessions.get(ids[0])?.presence?.room;
+    const inst = this.instances.create({ area, mode, members: ids, city: isSharedMap(city) ? city : 'lumina', names: Object.fromEntries(ids.map((id) => [id, this.name(id)])) });
     const names = ids.map((id) => this.name(id));
     for (const id of ids) this.server.sessions.get(id)?.send('dungeonGo', { instance: inst.id, area, mode, members: names });
+    this.pushState(inst);
     this.server.log.info?.(`[server] instance ${inst.id}: ${area} (${mode}) — ${names.join(', ')}`);
     return inst;
+  }
+
+  // ---------------- N6 runs
+  roomFor(s, m) {
+    if (isSharedMap(m)) {
+      this.lastCity.set(s.id, m);
+      if (this.instances.of(s.id)) this.leaveRun(s.id);
+      return m;
+    }
+    let inst = this.instances.of(s.id);
+    if (!inst) inst = this.startOnFoot(s, m);
+    const newMap = !inst.maps.has(m);
+    inst.maps.add(m);
+    if (inst.offline.delete(s.id) || newMap) this.pushState(inst);
+    return `${inst.id}:${m}`;
+  }
+
+  // walked out of a city by road (or back after the grace ran out): a solo run where they stand
+  startOnFoot(s, m) {
+    const inst = this.instances.create({ area: m, mode: 'solo', members: [s.id], city: this.lastCity.get(s.id) || 'lumina', names: { [s.id]: s.name } });
+    this.server.log.info?.(`[server] instance ${inst.id}: ${m} (solo, on foot) — ${s.name}`);
+    this.pushState(inst);
+    return inst;
+  }
+
+  leaveToCity(s) {
+    const inst = this.instances.of(s.id);
+    if (!inst) return this.refuse(s, 'you are not in a dungeon run');
+    const city = inst.city;
+    this.leaveRun(s.id);
+    this.server.city.kick(s); // out of the run's room now; the next position puts them in the city room
+    s.send('dungeonLeft', { city });
+    return true;
+  }
+
+  leaveRun(playerId) {
+    const inst = this.instances.leave(playerId);
+    this.server.sessions.get(playerId)?.send('instanceState', { instance: null });
+    if (inst && this.instances.get(inst.id)) this.pushState(inst);
+  }
+
+  pushState(inst) {
+    const view = this.instances.view(inst);
+    for (const id of inst.members) if (!inst.offline.has(id)) this.server.sessions.get(id)?.send('instanceState', { instance: view });
   }
 
   checkOfParty(p) { if (p) for (const c of this.checks.values()) if (c.partyId === p.id) return c; return null; }
@@ -112,6 +171,9 @@ export class DungeonService {
 
   tick() {
     const now = Date.now();
+    for (const inst of [...this.instances.list.values()]) for (const [id, since] of [...inst.offline]) {
+      if (now - since > ONLINE.dungeon.reconnectGrace * 1000) { this.instances.leave(id); if (this.instances.get(inst.id)) this.pushState(inst); }
+    }
     for (const c of [...this.checks.values()]) {
       const p = this.server.parties.parties.get(c.partyId);
       if (now > c.ends) this.cancel(c, 'not everyone answered in time');

@@ -578,8 +578,9 @@ export class HUD {
     if (!o || (o.state === 'offline' && !o.net.name && !o.wasOnline)) return;
     if (o.online) o.wasOnline = true;
     const st = o.state, col = st === 'online' ? '#7dffa0' : st === 'offline' ? '#ff7070' : '#ffd060';
-    const here = o.remotes.room === this.game.world.mapId ? o.remotes.list.filter((r) => !r.leaving).length : 0;
-    const label = st === 'online' ? `ONLINE${o.net.latency != null ? '  ' + o.net.latency + ' ms' : ''}${here ? '  ·  ' + here + ' here' : ''}`
+    const here = o.remotes.here(this.game.world.mapId) ? o.remotes.list.filter((r) => !r.leaving).length : 0;
+    const run = o.instance ? `  ·  ${o.instance.mode === 'party' ? 'PARTY RUN' : 'SOLO RUN'}` : '';
+    const label = st === 'online' ? `ONLINE${o.net.latency != null ? '  ' + o.net.latency + ' ms' : ''}${run}${here ? '  ·  ' + here + ' here' : ''}`
       : st === 'offline' ? 'CONNECTION LOST' : 'RECONNECTING…';
     const x = W - 18 * u - 190 * u + 6 * u, y = 18 * u + 13 * u; // inside the minimap's top-left corner
     this.text(ctx, '●', x, y, 8 * u, col);
@@ -903,7 +904,7 @@ export class HUD {
     }
     // other players in a shared city (net/onlineSession.js): name + level, class colour tick
     if (g.online) for (const r of g.online.remotes.list) {
-      if (r.leaving || g.online.remotes.room !== g.world.mapId || Math.hypot(r.x - p.x, r.y - p.y) > ONLINE.nameRange) continue;
+      if (r.leaving || !g.online.remotes.here(g.world.mapId) || Math.hypot(r.x - p.x, r.y - p.y) > ONLINE.nameRange) continue;
       const s = this.toScreen(r.x, r.y - 66), c = CLASSES[r.cls];
       this.text(ctx, r.name, s.x, s.y - 11 * u, 11 * u, '#ffffff', { align: 'center' });
       this.text(ctx, `Lv.${r.level}${c ? '  ' + c.name : ''}`, s.x, s.y, 8.5 * u, (c && c.theme && c.theme.color) || '#c8c0d8', { align: 'center' });

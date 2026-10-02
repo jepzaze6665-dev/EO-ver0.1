@@ -1182,3 +1182,17 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (ready check, Accept / Decline, Esc = decline); game.online.check / instance; game.enterDungeon(area, info) = changeMap
   to the area spawn + banner. Tests tools/tests/dungeonGate.test.mjs (7). Checked in 2 tabs: E at the gate -> Party ->
   member Accept -> both in A1, same instance; mapTour 9/9.
+  Done N6 (runs = instances): PROTOCOL_VERSION 6: client dungeonLeave; server instanceState { instance: { id, area, mode,
+  city, members, maps } | null } (sent on login + every change) / dungeonLeft { city }; roomState now carries `map`.
+  Rooms (server/cityRooms.js) are city rooms OR run-map rooms `<instance>:<map>`, key decided by DungeonService.roomFor:
+  city map = leave the run (walking back / respawning in a city ends your part) + city room; other map = the run's room —
+  no run yet (walked out of a city by road, or back after the grace) = a SOLO run started there (city = last city room).
+  Runs continue through the map exits (inst.maps = every map visited, pushed when it grows); members of one run on one
+  map see each other, nobody else does. A dropped member keeps the place ONLINE.dungeon.reconnectGrace (120 s); an empty
+  run is deleted (InstanceManager onClose). RETURN STONE: interactable kind 'cityReturn' (code-drawn, gold rune ring) made by
+  World.buildGrid next to every dungeon area's spawn (ONLINE.dungeon.returnOffset, findOpen) -> confirm -> online.leaveDungeon
+  -> server dungeonLeft -> game.returnToCity(city) (beside that city's Dungeon Gate). RemotePlayers.here(mapId) replaces the
+  old `room === mapId` checks; the minimap chip shows SOLO RUN / PARTY RUN. Tests tools/tests/instances.test.mjs (6: party
+  sees each other + a solo player on the same map is invisible, continue arena -> a2, return stone, walking back, reconnect
+  rejoin, grace + cleanup). Checked in 2 tabs: party in A1 sees each other, real E at the stone -> Lumina beside the gate,
+  the other member's view drops them; mapTour 9/9, playthrough 17/17 online, every area's stone ~2 tiles from its start.

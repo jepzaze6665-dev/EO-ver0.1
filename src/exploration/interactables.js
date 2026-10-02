@@ -87,6 +87,11 @@ export function interact(w, it) {
     case 'dungeonGate': // ONLINE N5: Solo / Party entry to an unlocked area (panels.dungeonGate, server/dungeons.js)
       g.ui.panels.dungeonGate();
       break;
+    case 'cityReturn': { // ONLINE N6: the return stone at each area's start — ends your part of the run (server decides)
+      const party = g.online && g.online.instance && g.online.instance.members.length > 1;
+      g.ui.panels.confirm('Return to the city', `Leave this run and go back to the city?${party ? '\nYour party stays here — you can rejoin them only through a new entry.' : ''}`, 'Return', 'Stay', () => g.online.leaveDungeon(), () => {});
+      break;
+    }
     case 'sign':
       if (it.text === 'board') g.ui.showLore('Quest Board', (f.guardianDefeated ? BOARD_TEXT_AFTER : BOARD_TEXT).join('\n'));
       else g.ui.showLore(it.title || 'Sign', it.text);
@@ -257,6 +262,7 @@ export function drawInteractable(ctx, w, it, time) {
       break;
     case 'waystone': drawWaystone(ctx, x, y, !!w.state.waystones[it.id], time); break;
     case 'dungeonGate': drawDungeonGate(ctx, x, y, time); break;
+    case 'cityReturn': drawCityReturn(ctx, x, y, time); break;
     case 'lever': {
       ctx.fillStyle = '#4a4a52'; ctx.fillRect(x - 5, y - 14, 10, 14);
       ctx.strokeStyle = '#8a6a3a'; ctx.lineWidth = 2;
@@ -329,6 +335,22 @@ function drawChest(ctx, x, y, open, rare, t) {
     ctx.fillStyle = body; ctx.fillRect(x - 11, y - 18, 22, 7);
     ctx.fillStyle = trim; ctx.fillRect(x - 11, y - 18, 22, 1); ctx.fillRect(x - 11, y - 13, 22, 1);
   }
+}
+
+// RETURN STONE (online N6): a low stone with a pale gold rune circle — the way back to the city
+function drawCityReturn(ctx, x, y, t) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const p = 0.5 + 0.5 * Math.sin(t * 2.2);
+  ctx.strokeStyle = `rgba(255,220,140,${0.35 + 0.25 * p})`; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(x, y, 22, 8, 0, 0, TAU); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(x, y, 15, 5.5, 0, t * 0.8, t * 0.8 + 4.2); ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(x, y, 11, 4, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#4a4438'; ctx.beginPath(); ctx.moveTo(x - 10, y); ctx.lineTo(x - 7, y - 20); ctx.lineTo(x + 7, y - 22); ctx.lineTo(x + 10, y); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#5e5646'; ctx.fillRect(x - 6, y - 19, 3, 17);
+  ctx.fillStyle = `rgba(255,215,130,${0.65 + 0.35 * p})`; // house rune
+  ctx.fillRect(x - 1, y - 16, 2, 9); ctx.fillRect(x - 4, y - 13, 8, 2); ctx.fillRect(x - 3, y - 7, 6, 1);
 }
 
 // DUNGEON GATE (online N5): a dark stone arch with a slow violet swirl between its pillars
