@@ -1318,3 +1318,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   closed while it is alive this run (BossSystem.roadBlocked -> gateSystem.isOpen / transitionSystem.lockReason, "rose again").
   Guardian repeat kill only ends the fight (forest stays restored). Tests: bossRuns.test.mjs; testkit `downBoss(g, id)` = first
   kill + run kill, kept through city visits for that test (mapTour walks through Lumina with every road open).
+  Done N8 (server-owned boss progress): `server/progress.js` ProgressService (game.progress): record field `progress: { v, bosses:
+  { id: time } }` next to the save (SaveService.write keeps it; saveRemove = New Game resets it, old one in deletedProgress; a
+  pre-N8 record is SEEDED once from its save's defeatedBosses). PROTOCOL_VERSION 16: client bossKill { boss }; server progress
+  { bosses } (login / New Game) + bossCredit { boss, first }. The server credits a kill only from the HOST of room
+  `<run>:<boss map>`, once per run (inst.kills), to every member of that run in that room. Dungeon Gate unlocks =
+  progress.unlockedArea (map requires over the server's boss list; the save text no longer counts). Client
+  `src/net/netProgress.js` (game.online.progress): wire(ev) from Game.wireEvents (the event bus is NEW every session!) ->
+  bossDefeated while hosting a run room -> bossKill; merge() records server kills the game lacks (defeatBoss, no rewards),
+  checked every second while playing. NET_LIMITS.ratePerSecond 40 -> 150 (a run host sends ~80 msgs/s since the lag pass;
+  the old limit silently dropped messages). Tests progress.test.mjs (4); dungeonGate.test credits bosses on the server.
+  Checked in 2 tabs: host kills Hollow Fang -> server log "HOLLOW FANG defeated — Host (first), Guest (first)", both lists.

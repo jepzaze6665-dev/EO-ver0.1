@@ -10,6 +10,7 @@ import { CityRooms } from './cityRooms.js';
 import { SaveService } from './saves.js';
 import { PartyService } from './parties.js';
 import { DungeonService } from './dungeons.js';
+import { ProgressService } from './progress.js';
 import { MemoryStore } from './store.js';
 import { PROTOCOL_VERSION, NET_LIMITS, NET_ERROR, validateClientMessage, encode } from '../src/net/protocol.js';
 
@@ -31,6 +32,7 @@ export class GameServer extends EventEmitter {
     this.saves = new SaveService(this, saveStore);   // N3 saves
     this.parties = new PartyService(this);           // N4 parties
     this.dungeons = new DungeonService(this);        // N5 dungeon gate + instances
+    this.progress = new ProgressService(this, saveStore); // N8 boss kills decided by the server
   }
 
   handle(type, fn) { this.handlers.set(type, fn); }

@@ -10,8 +10,7 @@
 //   point) and every map visited; members of one run on one map see each other, nobody else does. 'dungeonLeave' (the
 //   return stone at an area's start) ends your part of the run -> 'dungeonLeft' { city }. A dropped member keeps their
 //   place for ONLINE.dungeon.reconnectGrace s; an empty run is deleted.
-// UNLOCKS: read from the player's save held by the server (worldProgress.unlockedMaps). That save is still written by the
-// browser — N8 replaces this one function with server-owned progression (boss kills decided by the server).
+// UNLOCKS (N8): server-owned progression — server/progress.js unlockedArea (boss kills the server credited).
 import { ONLINE, dungeonArea, isSharedMap } from '../src/data/online.js';
 import { NET_ERROR } from '../src/net/protocol.js';
 import { InstanceManager } from './instances.js';
@@ -23,7 +22,6 @@ export class DungeonService {
     this.lastCity = new Map(); // player id -> the last city room they stood in (return point of a run started on foot)
     this.checks = new Map();   // check id -> { id, area, partyId, leader, members: [ids], yes: Set, ends }
     this.counter = 0;
-    this.unlockCache = new Map(); // player id -> { at, maps }
     server.handle('dungeonEnter', (s, m) => this.enterSolo(s, m.area));
     server.handle('dungeonPropose', (s, m) => this.propose(s, m.area));
     server.handle('dungeonAnswer', (s, m) => this.answer(s, m.check, m.yes));
@@ -42,17 +40,7 @@ export class DungeonService {
   refuse(s, text) { s.send('error', { code: NET_ERROR.dungeon, text }); return false; }
   name(id) { return this.server.sessions.get(id)?.name || 'a member'; }
 
-  // unlocked maps of a player, from the save the server holds (N8: server-owned progression instead)
-  unlocked(playerId) {
-    const rec = this.server.saves.store.get(playerId);
-    const hit = this.unlockCache.get(playerId);
-    if (hit && rec && hit.at === rec.at) return hit.maps;
-    let maps = {};
-    try { maps = (rec && rec.main && JSON.parse(rec.main).worldProgress?.unlockedMaps) || {}; } catch { maps = {}; }
-    this.unlockCache.set(playerId, { at: rec?.at, maps });
-    return maps;
-  }
-  canEnter(playerId, areaId) { const a = dungeonArea(areaId); return !!a && (a.free || !!this.unlocked(playerId)[areaId]); }
+  canEnter(playerId, areaId) { return this.server.progress.unlockedArea(playerId, areaId); }
 
   // why this player cannot go right now (null = ok)
   problem(playerId, areaId) {

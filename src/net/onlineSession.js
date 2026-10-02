@@ -20,6 +20,7 @@ import { MobSync } from './mobSync.js';
 import { NetRevive } from './netRevive.js';
 import { NetFx } from './netFx.js';
 import { NetSummons } from './netSummons.js';
+import { NetProgress } from './netProgress.js';
 import { SAVE_KEY, BACKUP_KEY } from '../save/save.js';
 
 const NAME_KEY = 'eclipse_online_last_name';
@@ -42,6 +43,8 @@ export class OnlineSession {
     this.revive = new NetRevive(this); // revive teammates on other clients
     this.fx = new NetFx(this);         // friends' skill effects
     this.summons = new NetSummons(this); // friends' summons / clones / threads
+    this.progress = new NetProgress(this); // N8 boss kills owned by the server
+    this.saves.onRemove = () => this.progress.clear();
     this.fx.install();
     this.mobs.bosses.install(); // N7c: host boss telegraphs / strikes / shots go to the guests
     this.saveReady = false;
@@ -161,6 +164,7 @@ export class OnlineSession {
     this.mobs.update(); // N7a: host snapshots (own throttle)
     this.fx.flush();
     this.summons.update();
+    this.progress.update();
     const look = `${p.cls.id}:${p.level}`;
     if (look !== this.sentLook && this.net.send('look', { c: p.cls.id, l: p.level })) this.sentLook = look;
     const t = now(), m = g.world.mapId;

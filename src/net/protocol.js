@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 15;
+export const PROTOCOL_VERSION = 16;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -18,7 +18,8 @@ export const NET_LIMITS = {
   helloTimeout: 5,           // s: a socket that does not say 'hello' in time is dropped
   heartbeat: 10,             // s between server pings
   timeout: 30,               // s without any message from the client = stale, dropped
-  ratePerSecond: 40,         // client messages per second (burst bucket); more = 'rate' error, then dropped
+  ratePerSecond: 150,        // client messages per second (burst bucket); more = 'rate' error, then dropped. A run host sends
+                             // pos 15 + mobs 15 + boss 20 + fx 20 + sum 10 + mobAct bursts per second (data/online.js)
   nameMin: 3,
   nameMax: 16,
 };
@@ -112,6 +113,7 @@ export const CLIENT_MESSAGES = {
   dungeonAnswer: { check: 'slug', yes: 'bool' },         // a member accepts / declines the leader's proposal
   dungeonCancel: {},                                     // the leader withdraws the proposal
   dungeonLeave: {},                                      // N6: return to the city from the run's start point
+  bossKill: { boss: 'slug' },                            // N8 host of the boss's run map: this boss died (server credits the room)
 };
 
 // server -> client (documented here, the client does not validate them strictly)
@@ -146,6 +148,9 @@ export const SERVER_MESSAGES = {
   // mobs / mobAct (relayed as sent) · mobHit (relayed to the host, + from: player id)
   // N7b: room rows / moves carry the HP share h (0 = down): entry [id, name, x, y, d, a, k, c, l, h, dn], move [id, x, y, d, a, k, snap, h, dn]
   revived: { by: 'string' },
+  // N8 server-owned progression (server/progress.js): your defeated bosses on login / New Game; a kill credited to you
+  progress: { bosses: 'array' },
+  bossCredit: { boss: 'string', first: 'bool' },
   // fx (relayed + from: player id) · boss (relayed as sent)                             // a teammate revived you (server checked it)
 };
 

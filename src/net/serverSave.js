@@ -56,6 +56,7 @@ export class ServerSaveAdapter {
   remove(key) {
     if (key === this.mainKey) {
       if (this.main || this.backup) this.net.send('saveRemove', {});
+      this.onRemove?.(); // N8: forget the old character's server progress until the server sends the new one
       this.main = null; this.pending = null; this.unacked = null;
     } else if (key === this.backupKey) this.backup = null;
   }

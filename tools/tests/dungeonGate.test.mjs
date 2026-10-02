@@ -38,9 +38,9 @@ const player = async (name, { city = 'lumina', unlocked = null } = {}) => {
   await until(() => c.online && saved, 3000, name + ' online');
   P.id = c.player.id;
   P.send = (t, f = {}) => c.send(t, f);
-  if (unlocked) { // the server reads unlocks from the save it holds
-    P.send('saveWrite', { s: JSON.stringify({ v: 6, savedAt: 1, worldProgress: { unlockedMaps: Object.fromEntries(unlocked.map((m) => [m, true])) } }) });
-    await until(() => srv.game.saves.store.get(P.id), 2000, 'save stored');
+  if (unlocked) { // N8: unlocks come from the server's boss kills (server/progress.js): credit the boss before each map
+    const prog = srv.game.progress.get(P.id), need = { a2: 'boss_a1', a3: 'boss_a2', b2: 'boss_b1', b3: 'boss_b2' };
+    for (const m of unlocked) if (need[m]) prog.bosses[need[m]] = 1;
   }
   if (city) { P.send('pos', { m: city, x: 100, y: 100, d: 0, a: 'idle' }); await until(() => ONLINE.sharedMaps.includes(city) ? srv.game.city.rooms.get(city)?.has(srv.game.sessions.get(P.id)) : srv.game.sessions.get(P.id).presence?.m === city, 2000, 'placed'); }
   all.push(P);
@@ -65,7 +65,7 @@ await test('scenario 4: solo entry into a free area from the city -> own instanc
   ok(srv.game.dungeons.instances.of(a.id).area === 'a1', 'server knows where Aria is');
   await cleanup();
 });
-await test('scenario 7: a locked area cannot be entered; unlocked in your save = allowed; not in a city = refused', async () => {
+await test('scenario 7: a locked area cannot be entered; unlocked on the server = allowed; not in a city = refused', async () => {
   const a = await player('Cyra'), b = await player('Dain', { unlocked: ['a1', 'a2'] }), c = await player('Eryn', { city: 'a1' });
   a.send('dungeonEnter', { area: 'a2' }); await until(() => a.errors.length);
   ok(a.errors[0].code === NET_ERROR.dungeon && /locked/.test(errText(a)) && !a.gos.length, 'locked: ' + errText(a));

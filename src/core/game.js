@@ -95,6 +95,7 @@ export class Game {
 
   wireEvents() {
     const ev = this.events;
+    if (this.online) this.online.progress.wire(ev); // N8: boss kills reported to the server (the bus is new every session)
     ev.on('enemyDefeated', (e) => {
       this.stats.kills++;
       if (!e.boss) this.knowledge.kill(e.type);
