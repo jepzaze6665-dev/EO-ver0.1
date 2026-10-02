@@ -38,7 +38,10 @@ const EMBLEMS = {
   warden_of_dawn: 'AG/image-b4bd3a37-eebd-4dc0-af1f-75699234d299-0.png',
   oathbreaker: 'AG/image-c462c400-5f50-44df-83c1-0d9142ef7bc0-0.png',
 };
-const SPLASH_CUT = { bg: 12, soft: 3, softLum: 36, hole: 0, erode: 5, gap: 0.5, gapMin: 400 }; // gap: enclosed pure-black gaps between limbs / beside blades
+// splash cut: dark costumes (black shins / cloaks reach values 4-12) need a LOW threshold; gaps must be almost all pure black
+const SPLASH_CUT = { bg: 3, soft: 3, softLum: 30, hole: 0, erode: 4, gap: 0.8, gapMin: 400 };
+// per-class overrides: bright armour + AI grey noise around the head (Aegis) -> a higher threshold is safe there
+const SPLASH_CUT_BY = { aegis_guardian: { bg: 12, erode: 5, gap: 0.5 }, warden_of_dawn: { bg: 10, erode: 5, gap: 0.6 }, lumen_oracle: { bg: 10, erode: 5, gap: 0.6 }, oathbreaker: { bg: 6, gap: 0.4 } };
 const EMBLEM_CUT = { bg: 18, soft: 5, softLum: 70, hole: 0 };
 
 // drop small DARK islands left floating in the background (AI noise specks); bright sparks / magic motes are art: kept
@@ -63,7 +66,7 @@ function main() {
   for (const [id, code] of Object.entries(SPLASH)) {
     const f = path.join(SPLASH_DIR, code + '.png');
     if (!fs.existsSync(f)) { console.log('missing splash', id); continue; }
-    const im = shrink(crop(dropSpecks(cutBlack(png.read(f), SPLASH_CUT)), 4), SPLASH_H);
+    const im = shrink(crop(dropSpecks(cutBlack(png.read(f), { ...SPLASH_CUT, ...(SPLASH_CUT_BY[id] || {}) })), 4), SPLASH_H);
     png.write(path.join(OUT, id + '_splash.png'), im);
     meta[id] = { splash: `assets/ui/class/${id}_splash.png`, sw: im.width, sh: im.height };
     previews.push(im);

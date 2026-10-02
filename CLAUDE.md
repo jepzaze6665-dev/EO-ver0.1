@@ -1039,7 +1039,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   core background (all pixels within R dark) then widen back: dark costumes no longer leak (Reaper robe). Preview on MAGENTA.
   Clean-up pass (owner: black showing between limbs / beside blades): cutBlack option gap (enclosed core-dark regions whose
   share of PURE black (0) >= gap and size >= gapMin are background; costumes are textured, ~20% pure 0) + build-class-art
-  dropSpecks (small dark islands floating in the background). Splash cut = bg 12, erode 5, gap 0.5, gapMin 400.
+  dropSpecks (small dark islands floating in the background). Splash cut = bg 3, erode 4, gap 0.8, gapMin 400 (a higher bg ate the black shins of Reaper / Duskrunner) +
+  SPLASH_CUT_BY per class (Aegis bg 12 for the grey AI noise by the head, Warden / Lumen 10, Oathbreaker bg 6 gap 0.4).
   Check images docs/ui/class_art_check_1.png / _2.png (on magenta).
   Prompts for the art: docs/ui/class_art_prompts.md. tools/tests/classArt.test.mjs.
 - SKILL TREE VIEW (owner reference, made to fit the game): Skills tab = src/ui/skillTreeUI.js — pure layoutTree(cls): special (Q) =
