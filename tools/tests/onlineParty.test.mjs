@@ -138,6 +138,35 @@ await test('party list carries class / level / map from presence (for the HUD an
   await cleanup();
 });
 
+await test('at the gate: create -> listed for players in the same city -> join without an invite; other cities / full / in a run = not listed', async () => {
+  const lists = new Map();
+  const at = async (P, m) => { P.send('pos', { m, x: 10, y: 10, d: 0, a: 'idle' }); await until(() => srv.game.sessions.get(P.id).presence?.m === m, 2000, P.name + ' at ' + m); await wait(30); };
+  const listOf = async (P) => { lists.delete(P.id); P.send('partyList'); await until(() => lists.has(P.id), 2000, 'list'); return lists.get(P.id); };
+  const a = await player('Yara'), b = await player('Zed'), c = await player('Abel'), d = await player('Bree');
+  for (const P of [a, b, c, d]) P.c.on('partyListData', (m) => lists.set(P.id, m));
+  await at(a, 'lumina'); await at(b, 'lumina'); await at(c, 'city2'); await at(d, 'a1');
+  ok((await listOf(b)).parties.length === 0, 'nothing open yet');
+  a.send('partyCreate'); await until(() => a.party);
+  const l = await listOf(b);
+  ok(l.city === 'lumina' && l.parties.length === 1 && l.parties[0].leader === 'Yara' && l.parties[0].size === 1, JSON.stringify(l));
+  ok((await listOf(c)).parties.length === 0, 'City 2 does not see a Lumina party');
+  ok((await listOf(d)).city === '' && lists.get(d.id).parties.length === 0, 'outside a city: no list');
+  d.send('partyJoin', { party: a.party.id }); await until(() => d.errors.length);
+  ok(/Dungeon Gate/.test(d.lastError().text), 'joining from a dungeon is refused');
+  c.send('partyJoin', { party: a.party.id }); await until(() => c.errors.length);
+  ok(/not open here/.test(c.lastError().text), 'joining from another city is refused');
+  b.send('partyJoin', { party: a.party.id });
+  await until(() => b.party && a.party.members.length === 2, 2000, 'Zed joined without an invite');
+  ok(a.infos.some((t) => /Zed joined/.test(t)), 'leader told');
+  b.send('partyJoin', { party: a.party.id }); await until(() => b.errors.length);
+  ok(/leave your party/.test(b.lastError().text), 'already in it');
+  await at(c, 'lumina');
+  a.send('dungeonEnter', { area: 'a1' }); await until(() => srv.game.dungeons.instances.of(a.id), 2000, 'leader in a run');
+  await at(a, 'a1');
+  ok((await listOf(c)).parties.length === 0, 'a party whose leader is in a run is not listed');
+  await cleanup();
+});
+
 await srv.close();
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

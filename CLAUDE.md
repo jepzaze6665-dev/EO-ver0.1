@@ -1196,3 +1196,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   sees each other + a solo player on the same map is invisible, continue arena -> a2, return stone, walking back, reconnect
   rejoin, grace + cleanup). Checked in 2 tabs: party in A1 sees each other, real E at the stone -> Lumina beside the gate,
   the other member's view drops them; mapTour 9/9, playthrough 17/17 online, every area's stone ~2 tiles from its start.
+  OWNER (after N6): parties are CREATED and JOINED AT THE DUNGEON GATE (UI functional only — the owner redesigns it later).
+  PROTOCOL_VERSION 7: partyList {} -> partyListData { city, parties: [{ id, leader, size, max, members, level }] } = OPEN
+  parties whose leader stands in the same city room (not full, leader not in a run); partyJoin { party } joins one without
+  an invite (same checks on the server; from a dungeon / another city = refused). panels.dungeonGate Party tab: not in a
+  party = Create Party + open parties here (Join; list re-asked every 2 s while shown); in a party = members, Leave, leader
+  area list + "Ask the party to enter". The [P] panel keeps members / leader actions / Leave, no invite box (partyInvite
+  still exists in the protocol). onlineParty.test +1 (gate list / join rules).

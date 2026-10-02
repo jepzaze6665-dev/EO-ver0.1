@@ -38,6 +38,8 @@ export class OnlineSession {
     this.invites = [];         // open invites: { party, from, size }
     n.on('welcome', (m) => { if (m.id !== this.playerId) { this.saves.reset(); this.playerId = m.id; this.party = null; this.invites = []; } });
     n.on('party', (m) => { this.party = m.party; this.refreshParty(); });
+    this.openParties = [];     // open parties at this city's gate (server 'partyListData', asked by panels.dungeonGate)
+    n.on('partyListData', (m) => { this.openParties = m.parties; this.refreshParty(); });
     n.on('partyInvite', (m) => {
       this.invites = this.invites.filter((i) => i.party !== m.party).concat([{ party: m.party, from: m.from, size: m.size }]);
       game.ui.notify('Party invite', `${m.from} invites you  ·  [P] Party`, '#9ad8ff');
@@ -112,7 +114,11 @@ export class OnlineSession {
   // party actions: the server checks and answers with 'party' / 'partyInfo' / an error
   partyAction(type, fields = {}) { return this.net.send(type, fields); }
   get isLeader() { return !!this.party && this.party.leader === this.playerId; }
-  refreshParty() { const pn = this.game.ui.panels; if (pn.current && pn.current.name === 'party') pn.party(); }
+  refreshParty() {
+    const pn = this.game.ui.panels, c = pn.current && pn.current.name;
+    if (c === 'party') pn.party();
+    else if (c === 'gate') pn.dungeonGate();
+  }
   lastName() { try { return localStorage.getItem(NAME_KEY) || ''; } catch { return ''; } }
 
   // every frame (play or not)

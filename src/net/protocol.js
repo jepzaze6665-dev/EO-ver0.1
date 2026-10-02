@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 6;
+export const PROTOCOL_VERSION = 7;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -56,6 +56,8 @@ export const CLIENT_MESSAGES = {
   partyLeave: {},
   partyKick: { id: 'slug' },                             // leader only
   partyLead: { id: 'slug' },                             // leader only: make someone else the leader
+  partyList: {},                                         // open parties at this city's gate
+  partyJoin: { party: 'slug' },                          // join an open party at the gate (no invite needed)
   // N5 dungeon gate (server/dungeons.js)
   dungeonEnter: { area: 'slug' },                        // solo entry
   dungeonPropose: { area: 'slug' },                      // party leader: ask every member to enter together
@@ -84,6 +86,7 @@ export const SERVER_MESSAGES = {
   partyInvite: { party: 'string', from: 'string', size: 'int' },
   partyInviteGone: { party: 'string' },                  // expired / party gone / you joined another
   partyInfo: { text: 'string' },
+  partyListData: { city: 'string', parties: 'array' },  // [{ id, leader, size, max, members, level }]
   // N5: party ready check / entry
   dungeonCheck: { check: 'string', area: 'string', leader: 'string', members: 'array', ends: 'number' }, // members [{ id, name, answer: yes|wait }]
   dungeonCancel: { reason: 'string' },

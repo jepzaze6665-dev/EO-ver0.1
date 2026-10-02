@@ -4,7 +4,10 @@
 //   kick + lead (leader only). A leader who leaves or drops hands the lead to the longest-standing ONLINE member
 //   (else the longest-standing member). Every change sends the whole party ('party') to every online member.
 // Nobody is ever moved anywhere by a party: entering a dungeon together needs each member's own confirmation (N5).
-import { ONLINE } from '../src/data/online.js';
+// AT THE DUNGEON GATE (owner, after N6): parties are made and joined at the gate. 'partyList' = the OPEN parties whose
+// leader stands in the same city (not full, not in a run); 'partyJoin' joins one of them without an invite (same checks
+// again on the server). Invites still work through the protocol (no UI for them now).
+import { ONLINE, isSharedMap } from '../src/data/online.js';
 import { NET_ERROR } from '../src/net/protocol.js';
 
 export class PartyService {
@@ -18,6 +21,7 @@ export class PartyService {
     const H = (t, fn) => server.handle(t, (s, m) => fn.call(this, s, m));
     H('partyCreate', this.create); H('partyInvite', this.invite); H('partyAnswer', this.answer);
     H('partyLeave', (s) => this.leave(s.id, 'left')); H('partyKick', this.kick); H('partyLead', this.lead);
+    H('partyList', this.list); H('partyJoin', this.join);
     server.on('sessionOpened', (s) => this.online(s));
     server.on('sessionClosed', (s) => this.offline(s));
     this.timer = setInterval(() => this.tick(), 1000);
@@ -37,6 +41,35 @@ export class PartyService {
     this.dropInvites(s.id);
     this.push(p);
     return p;
+  }
+
+  // the city room a player stands in (null = not in a city)
+  cityOf(playerId) { const r = this.session(playerId)?.presence?.room; return isSharedMap(r) ? r : null; }
+  inRun(playerId) { return !!this.server.dungeons?.instances.of(playerId); }
+
+  // open parties at this city's gate: leader online, in the same city, not in a run, not full
+  openParties(city) {
+    return [...this.parties.values()].filter((p) => p.members.size < this.rules.maxSize && this.cityOf(p.leader) === city && !this.inRun(p.leader));
+  }
+
+  list(s) {
+    const city = this.cityOf(s.id);
+    const parties = city ? this.openParties(city).map((p) => ({ id: p.id, leader: p.members.get(p.leader).name, size: p.members.size, max: this.rules.maxSize,
+      members: [...p.members.values()].map((m) => m.name), level: this.session(p.leader)?.presence?.l || null })) : [];
+    s.send('partyListData', { city: city || '', parties });
+  }
+
+  join(s, { party }) {
+    const city = this.cityOf(s.id);
+    if (!city) return this.refuse(s, 'join a party at a Dungeon Gate in a city');
+    if (this.partyOf(s.id)) return this.refuse(s, 'leave your party first');
+    const p = this.parties.get(party);
+    if (!p || !this.openParties(city).includes(p)) return this.refuse(s, 'that party is not open here any more');
+    this.addMember(p, s);
+    this.dropInvites(s.id);
+    this.notice(p, `${s.name} joined the party`, s.id);
+    this.push(p);
+    return true;
   }
 
   invite(s, { name }) {

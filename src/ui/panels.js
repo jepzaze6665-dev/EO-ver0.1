@@ -538,7 +538,8 @@ export class Panels {
 
   // ---------------- ONLINE PARTY (N4, net/onlineSession.js -> server/parties.js). [P] or ESC menu -> Party.
   // Shows open invites (Accept / Decline), the members (leader ♛, online ●, class / level / where), leader actions
-  // (Lead, Remove), Invite by name, Leave. The server decides every action; this panel only sends them and redraws.
+  // (Lead, Remove), Leave. Parties are created / joined at a Dungeon Gate (owner), not here. The server decides every
+  // action; this panel only sends them and redraws.
   party() {
     const g = this.game, on = g.online, pt = on && on.party, me = on && on.playerId;
     const mapName = (id) => { const m = id && g.world.mapManager.get(id); return m ? m.short || m.name : ''; };
@@ -556,20 +557,10 @@ export class Panels {
           return npcRow({ img: null, cls: 'pt-row' + (m.online ? '' : ' off'), name: `${lead ? '♛ ' : ''}${m.name}${mine ? '  (you)' : ''}`, nameColor: lead ? '#ffd98a' : null,
             text: `<i class="pt-dot${m.online ? ' on' : ''}"></i>${m.l ? 'Lv.' + m.l + ' ' : ''}${c ? esc(c.name) : ''}${where ? ' · ' + esc(where) : ''}`, right: acts });
         }).join('');
-      } else body += '<div class="muted pt-solo">You are not in a party. Invite someone who is online — a party is created for you.</div>';
-      const canInvite = !pt || (on.isLeader && pt.members.length < pt.max);
-      if (canInvite) body += '<form class="pt-invite"><input name="nm" maxlength="16" placeholder="Player name" autocomplete="off" spellcheck="false"><button type="submit">Invite</button></form>';
+      } else body += '<div class="muted pt-solo">You are not in a party. Create one or join one at a <b>Dungeon Gate</b> in a city.</div>';
       if (pt) body += '<button data-pa="leave" class="danger pt-leave">Leave party</button>';
     }
     const el = this.show('party', npcPanelHTML({ icon: 'npc_guild', title: 'Party', sub: pt ? (on.isLeader ? 'You lead' : 'Member') : 'Solo', body, keys: [['P', 'Close']] }), 'side');
-    const form = el.querySelector('form.pt-invite');
-    if (form) form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const n = form.querySelector('input').value.trim().replace(/\s+/g, ' '), bad = validName(n);
-      if (bad) return g.ui.toast('Name: ' + bad, 2);
-      on.partyAction('partyInvite', { name: n });
-      form.querySelector('input').value = '';
-    });
     this.wireNpc(el, 'party', () => this.party(), (t) => {
       const a = t.dataset.pa;
       if (a === 'yes' || a === 'no') on.partyAction('partyAnswer', { party: t.dataset.party, yes: a === 'yes' });
@@ -582,34 +573,61 @@ export class Panels {
     });
   }
 
-  // ---------------- DUNGEON GATE (ONLINE N5, server/dungeons.js). Solo tab: pick an unlocked area -> Enter. Party tab:
-  // the leader picks -> every member gets a ready check (panels.dungeonReady) and answers for themselves. Locked areas
-  // show their requirement and cannot be picked; only the route field maps are listed (arenas / secrets: on foot).
+  // ---------------- DUNGEON GATE (ONLINE N5 + owner: parties are made and joined HERE). Functional UI only — the owner
+  // redesigns it later. Tabs: SOLO (pick an unlocked area -> Enter alone) · PARTY (not in a party: Create Party + the
+  // open parties of this city with Join; in a party: members, Leave, and for the leader the area list + "Ask the party to
+  // enter" -> each member answers the ready check, panels.dungeonReady). Locked areas show their requirement; only the
+  // route field maps are listed (arenas / secrets: on foot). The open-party list refreshes every 2 s while shown.
   dungeonGate() {
     const g = this.game, on = g.online, wp = g.worldProgress, mm = g.world.mapManager;
-    const tab = this.npcTab('gate', on && on.party && on.party.members.length > 1 ? 'party' : 'solo');
+    const pt = on && on.party, tab = this.npcTab('gate', pt ? 'party' : 'solo');
     const open = (a) => a.free || !!(wp && wp.unlockedMaps[a.id]);
     if (!this.gateSel || !ONLINE.dungeon.areas.some((a) => a.id === this.gateSel && open(a))) this.gateSel = (ONLINE.dungeon.areas.find(open) || {}).id;
-    const rows = ['A', 'B'].map((route) => `<div class="pt-h">ROUTE ${route}</div>` + ONLINE.dungeon.areas.filter((a) => (mm.get(a.id) || {}).route === route).map((a) => {
+    const areaList = () => '<div class="dg-list">' + ['A', 'B'].map((route) => `<div class="pt-h">ROUTE ${route}</div>` + ONLINE.dungeon.areas.filter((a) => (mm.get(a.id) || {}).route === route).map((a) => {
       const d = mm.get(a.id), ok = open(a), lv = (d.sub || '').split('·').pop().trim();
       const req = !ok && d.requires && d.requires[0] ? d.requires[0].label : 'Locked';
       return `<button class="dg-area${ok ? '' : ' locked'}${a.id === this.gateSel ? ' sel' : ''}" data-area="${a.id}" ${ok ? '' : 'disabled'}>
         <b>${esc(d.short)} · ${esc(d.name)}</b><span>${ok ? esc(lv) : '🔒 ' + esc(req)}</span></button>`;
-    }).join('')).join('');
-    const sel = this.gateSel && mm.get(this.gateSel), pt = on && on.party;
-    let action = '';
-    if (!on || !on.online) action = '<div class="muted">Not connected to the server.</div>';
-    else if (tab === 'solo') action = `<button class="primary dg-go" data-go="solo" ${sel ? '' : 'disabled'}>Enter ${sel ? esc(sel.short) : ''} alone</button>`;
-    else if (!pt || pt.members.length < 2) action = '<div class="muted">No party yet — press <b>P</b> to invite players, or enter solo.</div>';
-    else if (!on.isLeader) action = `<div class="muted">${esc((pt.members.find((m) => m.id === pt.leader) || {}).name || 'The leader')} chooses the area. You will be asked to accept.</div>`;
-    else action = `<div class="muted small">Every member must be online, in a city and have the area unlocked — each one accepts for themselves.</div>
-      <button class="primary dg-go" data-go="party" ${sel ? '' : 'disabled'}>Ask the party to enter ${sel ? esc(sel.short) : ''}</button>`;
-    const el = this.show('gate', npcPanelHTML({ icon: 'npc_waystone', title: 'Dungeon Gate', sub: tab === 'solo' ? 'Solo' : 'Party', menu: [{ id: 'solo', label: 'Solo' }, { id: 'party', label: 'Party' }], tab,
-      body: `<div class="dg-list">${rows}</div><div class="dg-act">${action}</div>`, keys: [['Click', 'Choose area']] }), 'side');
+    }).join('')).join('') + '</div>';
+    const sel = this.gateSel && mm.get(this.gateSel);
+    let body;
+    if (!on || !on.online) body = '<div class="muted">Not connected to the server.</div>';
+    else if (tab === 'solo') body = areaList() + `<div class="dg-act"><button class="primary dg-go" data-go="solo" ${sel ? '' : 'disabled'}>Enter ${sel ? esc(sel.short) : ''} alone</button></div>`;
+    else if (!pt) {
+      const list = on.openParties || [];
+      body = `<div class="dg-act"><button class="primary dg-go" data-go="create">Create Party</button></div>
+        <div class="pt-h">OPEN PARTIES HERE</div>${list.length ? list.map((p) => npcRow({ img: null, name: '♛ ' + p.leader, nameColor: '#ffd98a',
+          text: `${p.size}/${p.max} · ${p.members.map(esc).join(', ')}${p.level ? ' · leader Lv.' + p.level : ''}`, right: `<button data-join="${esc(p.id)}">Join</button>` })).join('')
+        : '<div class="muted">No open party at this gate yet — create one, others can join it here.</div>'}`;
+    } else {
+      const lead = pt.members.find((m) => m.id === pt.leader) || {};
+      const members = pt.members.map((m) => npcRow({ img: null, cls: 'pt-row' + (m.online ? '' : ' off'), name: `${m.id === pt.leader ? '♛ ' : ''}${m.name}${m.id === on.playerId ? '  (you)' : ''}`,
+        nameColor: m.id === pt.leader ? '#ffd98a' : null, text: `<i class="pt-dot${m.online ? ' on' : ''}"></i>${m.l ? 'Lv.' + m.l + ' ' : ''}${m.c && CLASSES[m.c] ? esc(CLASSES[m.c].name) : ''}` })).join('');
+      const act = !on.isLeader ? `<div class="muted">${esc(lead.name || 'The leader')} chooses the area. You will be asked to accept.</div>`
+        : pt.members.length < 2 ? '<div class="muted">Waiting for players to join at this gate… (or enter solo)</div>'
+        : `<div class="muted small">Every member must be online, in a city and have the area unlocked — each one accepts for themselves.</div>
+          <button class="primary dg-go" data-go="party" ${sel ? '' : 'disabled'}>Ask the party to enter ${sel ? esc(sel.short) : ''}</button>`;
+      body = `<div class="pt-h">YOUR PARTY ${pt.members.length}/${pt.max}</div>${members}${on.isLeader ? areaList() : ''}<div class="dg-act">${act}<button data-go="leave" class="danger">Leave party</button></div>`;
+    }
+    const el = this.show('gate', npcPanelHTML({ icon: 'npc_waystone', title: 'Dungeon Gate', sub: tab === 'solo' ? 'Solo' : pt ? 'Party' : 'Create / Join a party',
+      menu: [{ id: 'solo', label: 'Solo' }, { id: 'party', label: 'Party' }], tab, body, keys: [['Click', 'Choose']] }), 'side');
+    if (on && on.online && tab === 'party' && !pt) { // ask for the open parties now and every 2 s while this view is up
+      on.net.send('partyList', {});
+      clearInterval(this.gatePoll);
+      this.gatePoll = setInterval(() => {
+        const c = this.current;
+        if (!c || c.name !== 'gate' || on.party || this.npcTab('gate') !== 'party' || !on.online) return clearInterval(this.gatePoll);
+        on.net.send('partyList', {});
+      }, 2000);
+    }
     this.wireNpc(el, 'gate', () => this.dungeonGate(), (t) => {
       if (t.dataset.area) { this.gateSel = t.dataset.area; g.audio.sfx('ui'); return this.dungeonGate(); }
-      if (t.dataset.go === 'solo') on.net.send('dungeonEnter', { area: this.gateSel });
-      if (t.dataset.go === 'party') on.net.send('dungeonPropose', { area: this.gateSel });
+      if (t.dataset.join) return on.partyAction('partyJoin', { party: t.dataset.join });
+      const go = t.dataset.go;
+      if (go === 'solo') on.net.send('dungeonEnter', { area: this.gateSel });
+      if (go === 'party') on.net.send('dungeonPropose', { area: this.gateSel });
+      if (go === 'create') on.partyAction('partyCreate');
+      if (go === 'leave') { if (t.dataset.confirm) on.partyAction('partyLeave'); else { t.dataset.confirm = '1'; t.textContent = 'Click again to leave'; } }
     });
   }
 
