@@ -996,7 +996,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   tab_* (bag filters 8) · menu_* (8) · stat_* (14) · empty_* (5 loadout slots) · npc_* (shop smith storage waystone guild) ·
   cur_* (gold crystal token) · level_diamond (128) · pedestal (320 wide). Line icons are made pure white + alpha stretched.
   Done U-B: CHARACTER WINDOW = Layout C, src/ui/charWindow.js (built by panels.inventory, overlay class 'side' = left panel,
-  world visible): header (level diamond, class, EXP, POWER = pure src/progression/power.js), icon tabs Equipment / Skills /
+  world visible): header (level diamond, class, EXP; POWER removed by the owner — src/progression/power.js kept, unused by the UI), icon tabs Equipment / Skills /
   Class / Codex / Quests (bag + loadout merged into Equipment; 'inventory' tab id maps to it), Equipment tab = real class sprite
   standing still facing the viewer (idle front frame, canvas ×2 pixelated; owner: no walking), feet on the pedestal top centre, 7 gear slots (empty-slot icons), key stats with stat icons,
   "All stats · sets · item effects" fold, bag with 8 icon filters (BAG_FILTERS) + gold; clicking a slot filters the bag to

@@ -1,5 +1,5 @@
 // CHARACTER WINDOW (UI v2, Layout C) — the left side panel opened with [I]. Built by ui/panels.js inventory():
-//   header : level diamond · name / class · EXP bar · POWER (progression/power.js)
+//   header : level diamond · name / class · EXP bar
 //   tabs   : Equipment · Skills · Class · Codex · Quests (owner's menu icons)
 //   Equipment tab: the real class sprite turning on its pedestal (×2, pixel-sharp) + the 7 gear slots + key stats,
 //   then the bag (filter tabs with the owner's icons, rarity-coloured slots) and the selected item.
@@ -11,7 +11,6 @@ import { itemIconURL } from './icons.js';
 import { esc } from './itemTooltip.js';
 import { finalStatRows, setsHTML } from './loadoutUI.js';
 import { expToNext } from '../progression/experience.js';
-import { playerPower } from '../progression/power.js';
 import { meetsLevel } from '../items/itemDefs.js';
 
 export const UI_ICON = (name) => `assets/ui/icons/${name}.png`;
@@ -49,7 +48,6 @@ export function charHeaderHTML(g) {
     <div class="cw-lvl" style="background-image:url(${UI_ICON('level_diamond')})"><span>${p.level}</span></div>
     <div class="cw-who"><b>${esc(p.cls.name)}</b><div class="cw-exp-t">EXP ${Math.floor(p.exp).toLocaleString()} / ${need ? need.toLocaleString() : 'MAX'}</div>
       <div class="cw-exp"><i style="width:${pct}%"></i></div></div>
-    <div class="cw-pow"><div class="cap">POWER</div><b>${playerPower(p).toLocaleString()}</b></div>
   </div>`;
 }
 
