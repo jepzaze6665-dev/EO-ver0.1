@@ -556,6 +556,7 @@ export class Game {
     if (inp.pressed('Escape')) this.ui.panels.menu();
     else if (inp.pressed('KeyI')) this.ui.panels.inventory();
     else if (inp.pressed('KeyM')) this.ui.panels.worldMap();
+    else if (inp.pressed('KeyP')) this.ui.panels.party();
     else if (inp.pressed('KeyE')) this.world.interactNearest();
     if (inp.pressed('Tab')) this.targets.nearest(this.player, true);
     if (inp.mouse.leftPressed) { const mw = this.mouseWorld(), t = this.targets.pickAt(mw.x, mw.y); if (t) this.targets.set(t); }

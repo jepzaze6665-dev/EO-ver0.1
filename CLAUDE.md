@@ -1155,3 +1155,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   on another port (autoPort) is a new origin, so an existing name answers "belongs to another player": use a new name
   (or delete server/data/). Tests tools/tests/serverSave.test.mjs (9, incl. a server restart from the data folder);
   checked in 2 tabs (separate saves per player), playthrough 17/17 online.
+  Done N4 (online party): rules ONLINE.party (maxSize = PARTY.maxSize 4, inviteTimeout 60 s, offlineGrace 120 s,
+  leaderInvitesOnly). PROTOCOL_VERSION 4: partyCreate / partyInvite { name } / partyAnswer { party, yes } / partyLeave /
+  partyKick { id } / partyLead { id }; server party { party | null } (whole view: id, leader, max, members [{ id, name,
+  online, c, l, m }] — class / level / map from the city presence) / partyInvite / partyInviteGone / partyInfo; refusals =
+  error code 'party' with a text. `server/parties.js` PartyService (game.parties): keyed by PLAYER id; inviting while solo
+  creates a party; leader leaves / drops -> longest-standing ONLINE member leads; a dropped member stays (offline) for the
+  grace, a reconnect puts them back, then 'timeout' removes them; last one out disbands; tick pushes map / level changes.
+  NOT the in-world PartySystem (party/partySystem.js, downed / revive) — N6 feeds online members into that one.
+  Browser: game.online.party / invites / isLeader / partyAction(type, fields); panels.party() = side panel ([P] or ESC menu
+  -> Party): invites Accept / Decline, members (♛, ● online, Lv, class, map), leader ♛ / ✕ buttons, Invite by name, Leave
+  (2 clicks); HUD drawOnlineParty = list under the route panel. Tests tools/tests/onlineParty.test.mjs (9). Checked in 2
+  tabs: real P key + typed invite -> accept -> both lists, drop -> offline, reconnect -> back.

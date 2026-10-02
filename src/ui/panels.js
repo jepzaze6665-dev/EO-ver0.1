@@ -23,6 +23,7 @@ import { charHeaderHTML, charTabsHTML, equipmentTabHTML, startHeroPreview, UI_IC
 import { treeHTML, nodeState } from './skillTreeUI.js';
 import { npcPanelHTML, npcRow, goldTag } from './npcPanel.js';
 import { validName } from '../net/protocol.js';
+import { ONLINE } from '../data/online.js';
 
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
@@ -535,6 +536,52 @@ export class Panels {
     el.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
   }
 
+  // ---------------- ONLINE PARTY (N4, net/onlineSession.js -> server/parties.js). [P] or ESC menu -> Party.
+  // Shows open invites (Accept / Decline), the members (leader ♛, online ●, class / level / where), leader actions
+  // (Lead, Remove), Invite by name, Leave. The server decides every action; this panel only sends them and redraws.
+  party() {
+    const g = this.game, on = g.online, pt = on && on.party, me = on && on.playerId;
+    const mapName = (id) => { const m = id && g.world.mapManager.get(id); return m ? m.short || m.name : ''; };
+    let body = '';
+    if (!on || !on.online) body = '<div class="muted">Not connected — the party needs the server.</div>';
+    else {
+      if (on.invites.length) body += '<div class="pt-h">INVITES</div>' + on.invites.map((i) => npcRow({ img: UI_ICON('npc_guild'), name: i.from,
+        text: `invites you to a party (${i.size}/${ONLINE.party.maxSize})`, right: `<button data-pa="yes" data-party="${esc(i.party)}">Accept</button> <button data-pa="no" data-party="${esc(i.party)}">Decline</button>` })).join('');
+      if (pt) {
+        body += `<div class="pt-h">PARTY  ${pt.members.length}/${pt.max}</div>`;
+        body += pt.members.map((m) => {
+          const c = m.c && CLASSES[m.c], lead = m.id === pt.leader, mine = m.id === me;
+          const where = m.online ? mapName(m.m) : 'offline — keeps the place for a while';
+          const acts = on.isLeader && !mine ? `<button data-pa="lead" data-id="${esc(m.id)}" title="Make leader">♛</button> <button data-pa="kick" data-id="${esc(m.id)}" title="Remove from party">✕</button>` : '';
+          return npcRow({ img: null, cls: 'pt-row' + (m.online ? '' : ' off'), name: `${lead ? '♛ ' : ''}${m.name}${mine ? '  (you)' : ''}`, nameColor: lead ? '#ffd98a' : null,
+            text: `<i class="pt-dot${m.online ? ' on' : ''}"></i>${m.l ? 'Lv.' + m.l + ' ' : ''}${c ? esc(c.name) : ''}${where ? ' · ' + esc(where) : ''}`, right: acts });
+        }).join('');
+      } else body += '<div class="muted pt-solo">You are not in a party. Invite someone who is online — a party is created for you.</div>';
+      const canInvite = !pt || (on.isLeader && pt.members.length < pt.max);
+      if (canInvite) body += '<form class="pt-invite"><input name="nm" maxlength="16" placeholder="Player name" autocomplete="off" spellcheck="false"><button type="submit">Invite</button></form>';
+      if (pt) body += '<button data-pa="leave" class="danger pt-leave">Leave party</button>';
+    }
+    const el = this.show('party', npcPanelHTML({ icon: 'npc_guild', title: 'Party', sub: pt ? (on.isLeader ? 'You lead' : 'Member') : 'Solo', body, keys: [['P', 'Close']] }), 'side');
+    const form = el.querySelector('form.pt-invite');
+    if (form) form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const n = form.querySelector('input').value.trim().replace(/\s+/g, ' '), bad = validName(n);
+      if (bad) return g.ui.toast('Name: ' + bad, 2);
+      on.partyAction('partyInvite', { name: n });
+      form.querySelector('input').value = '';
+    });
+    this.wireNpc(el, 'party', () => this.party(), (t) => {
+      const a = t.dataset.pa;
+      if (a === 'yes' || a === 'no') on.partyAction('partyAnswer', { party: t.dataset.party, yes: a === 'yes' });
+      if (a === 'lead') on.partyAction('partyLead', { id: t.dataset.id });
+      if (a === 'kick') on.partyAction('partyKick', { id: t.dataset.id });
+      if (a === 'leave') {
+        if (t.dataset.confirm) on.partyAction('partyLeave');
+        else { t.dataset.confirm = '1'; t.textContent = 'Click again to leave'; }
+      }
+    });
+  }
+
   // ---------------- shop / smith / storage / teleport — UI v2 side panels (ui/npcPanel.js)
   npcTab(name, def) { this.npcTabs ||= {}; return this.npcTabs[name] || def; }
   wireNpc(el, name, redraw, onClick) {
@@ -682,7 +729,7 @@ export class Panels {
         <div class="np-head"><img class="np-ico" src="${UI_ICON('menu_settings')}" alt=""><div class="np-title"><b>ECLIPSE ONLINE</b><div class="np-sub">Paused</div></div></div>
         <div class="esc-list">
           ${[['resume', 'Resume', 'menu_class', ''], ['save', 'Save', 'menu_save', ''], ['load', 'Load', 'menu_save', g.save.exists() ? '' : 'disabled'],
-            ['map', 'World Map', 'menu_map', ''], ['controls', 'Controls', 'menu_codex', ''], ['mute', (g.audio.muted ? 'Unmute' : 'Mute') + ' Audio', 'menu_settings', ''],
+            ['map', 'World Map', 'menu_map', ''], ['party', 'Party' + (g.online && g.online.party ? ` (${g.online.party.members.length})` : ''), 'menu_class', g.online && g.online.online ? '' : 'disabled'], ['controls', 'Controls', 'menu_codex', ''], ['mute', (g.audio.muted ? 'Unmute' : 'Mute') + ' Audio', 'menu_settings', ''],
             ['layout', 'HUD: ' + (g.ui.hud.layout() === 'focus' ? 'Focus (skill bar)' : 'Classic (top-left)'), 'menu_skills', ''],
             ['reset', 'Reset Progress', 'menu_quests', ''], ['title', 'Title Screen', 'menu_equipment', '']]
             .map(([a, l, ic, dis]) => `<button data-a="${a}" ${dis}><img src="${UI_ICON(ic)}" alt="">${l}</button>`).join('')}
@@ -697,6 +744,7 @@ export class Panels {
       e = { target: btn };
       if (a === 'resume') this.close();
       if (a === 'map') { this.close(); this.worldMap(); }
+      if (a === 'party') { this.close(); this.party(); }
       if (a === 'save') { g.saveGame(); this.menu(); }
       if (a === 'load') { this.close(); g.loadGame(); }
       if (a === 'reset') {

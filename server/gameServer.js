@@ -8,6 +8,7 @@ import { acceptUpgrade } from './ws.js';
 import { DevAccounts } from './accounts.js';
 import { CityRooms } from './cityRooms.js';
 import { SaveService } from './saves.js';
+import { PartyService } from './parties.js';
 import { MemoryStore } from './store.js';
 import { PROTOCOL_VERSION, NET_LIMITS, NET_ERROR, validateClientMessage, encode } from '../src/net/protocol.js';
 
@@ -27,6 +28,7 @@ export class GameServer extends EventEmitter {
     this.handle('ping', (s, m) => s.send('pong', { n: m.n, time: Date.now() }));
     this.city = new CityRooms(this);   // N2 shared cities
     this.saves = new SaveService(this, saveStore);   // N3 saves
+    this.parties = new PartyService(this);           // N4 parties
   }
 
   handle(type, fn) { this.handlers.set(type, fn); }
@@ -115,6 +117,7 @@ export class GameServer extends EventEmitter {
   close() {
     clearInterval(this.timer);
     this.city.close();
+    this.parties.close();
     for (const c of [...this.conns]) c.ws.close(1001, 'server shutting down');
     this.store.flush();
   }

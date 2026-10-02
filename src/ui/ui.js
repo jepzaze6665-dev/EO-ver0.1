@@ -42,6 +42,7 @@ export class UI {
     }
     if (input.pressed('KeyI') && name === 'inventory') { p.close(); return true; }
     if (input.pressed('KeyM') && name === 'map') { p.close(); return true; }
+    if (input.pressed('KeyP') && name === 'party') { p.close(); return true; }
     return true;
   }
 }

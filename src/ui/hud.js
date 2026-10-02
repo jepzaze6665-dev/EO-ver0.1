@@ -122,6 +122,7 @@ export class HUD {
     this.drawSkillBar(ctx, W, H, u);
     this.drawMinimap(ctx, W, u);
     this.drawNet(ctx, W, u);
+    ctx.globalAlpha = this.questA ?? 1; this.drawOnlineParty(ctx, u); ctx.globalAlpha = 1; // fades in intense fights
     this.drawQuests(ctx, W, u);
     ctx.globalAlpha = this.questA ?? 1; this.drawRoute(ctx, u); ctx.globalAlpha = 1; // fades with the quest tracker
     this.drawBoss(ctx, W, u);
@@ -553,6 +554,22 @@ export class HUD {
     const goal = t.map || w.mapManager.idAt(pos.x, pos.y, t.npc ? undefined : START_GRID);
     if (goal && w.mapId && goal !== w.mapId) { const e = w.mapManager.nextExit(w.mapId, goal); if (e) return w.mapManager.exitCenter(e); }
     return pos;
+  }
+
+  // online party list (N4) on the left under the route panel: ♛ leader, ● online, name, Lv; you first in white
+  drawOnlineParty(ctx, u) {
+    const o = this.game.online, pt = o && o.party;
+    if (!pt) return;
+    const x = 18 * u, y0 = 300 * u, rowH = 17 * u;
+    this.panel(ctx, x, y0, 170 * u, 22 * u + pt.members.length * rowH, 0.55);
+    this.text(ctx, `PARTY ${pt.members.length}/${pt.max}`, x + 8 * u, y0 + 14 * u, 8.5 * u, '#c8bca0');
+    pt.members.forEach((m, i) => {
+      const y = y0 + 30 * u + i * rowH;
+      this.text(ctx, '●', x + 8 * u, y, 8 * u, m.online ? '#7dffa0' : '#7a7080');
+      const name = `${m.id === pt.leader ? '♛ ' : ''}${m.name}`;
+      this.text(ctx, name, x + 20 * u, y, 10 * u, !m.online ? '#8a8098' : m.id === o.playerId ? '#ffffff' : m.id === pt.leader ? '#ffd98a' : '#e0d8f0');
+      if (m.l) this.text(ctx, `Lv.${m.l}`, x + 162 * u, y, 8.5 * u, '#a89cc0', { align: 'right' });
+    });
   }
 
   // connection chip on the minimap: ● ONLINE n ms / RECONNECTING / OFFLINE (+ players here)

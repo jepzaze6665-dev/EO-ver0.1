@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 3;
+export const PROTOCOL_VERSION = 4;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -49,6 +49,13 @@ export const CLIENT_MESSAGES = {
   // one as the backup. NOT authoritative yet: boss kills / unlocks / loot move to the server in N8 / N9.
   saveWrite: { s: 'save' },
   saveRemove: {},                                        // New Game / reset
+  // N4 online party (server/parties.js)
+  partyCreate: {},
+  partyInvite: { name: 'name' },                         // invite an online player by name (creates a party if needed)
+  partyAnswer: { party: 'slug', yes: 'bool' },           // accept / decline an invite
+  partyLeave: {},
+  partyKick: { id: 'slug' },                             // leader only
+  partyLead: { id: 'slug' },                             // leader only: make someone else the leader
 };
 
 // server -> client (documented here, the client does not validate them strictly)
@@ -66,6 +73,11 @@ export const SERVER_MESSAGES = {
   // N3: your saves, right after 'welcome' (null = none)
   saveData: { main: 'string|null', backup: 'string|null' },
   saveOk: { at: 'number' },                              // a saveWrite is stored (savedAt of that save)
+  // N4: your party ({ id, leader, members: [{ id, name, online, c, l, m }] }) or null; invites; plain notices
+  party: { party: 'object|null' },
+  partyInvite: { party: 'string', from: 'string', size: 'int' },
+  partyInviteGone: { party: 'string' },                  // expired / party gone / you joined another
+  partyInfo: { text: 'string' },
 };
 
 export const NET_ERROR = {
@@ -80,6 +92,7 @@ export const NET_ERROR = {
   timeout: 'timeout',
   server: 'server',       // unexpected server error (the server keeps running)
   roomFull: 'roomFull',   // the shared city room is full: you still play, alone
+  party: 'party',         // a party action was refused (text says why)
 };
 
 // null = ok, else a short reason

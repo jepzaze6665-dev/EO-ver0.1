@@ -5,6 +5,8 @@
 //   - N3: keeps the player's saves on the server (ServerSaveAdapter becomes game.save.storage once 'saveData' arrives;
 //     saveReady = the title may offer Continue / New Game). A save left in this browser from before online play is
 //     uploaded once, to the first player who logs in with no server save.
+//   - N4: the online party (server/parties.js): `party` ({ id, leader, members }) / `invites`; actions go straight to the
+//     server (partyAction), which decides everything; the party panel (panels.party) and the HUD list read this state.
 // Nothing here changes the local simulation: remote players are pictures with names.
 import { NetClient, NET_STATE } from './client.js';
 import { RemotePlayers } from './remotePlayers.js';
@@ -30,14 +32,25 @@ export class OnlineSession {
     this.saveReady = false;
     this.playerId = null;
     const n = this.net;
-    n.on('welcome', (m) => { if (m.id !== this.playerId) { this.saves.reset(); this.playerId = m.id; } });
+    this.party = null;         // server's view of my party (null = none)
+    this.invites = [];         // open invites: { party, from, size }
+    n.on('welcome', (m) => { if (m.id !== this.playerId) { this.saves.reset(); this.playerId = m.id; this.party = null; this.invites = []; } });
+    n.on('party', (m) => { this.party = m.party; this.refreshParty(); });
+    n.on('partyInvite', (m) => {
+      this.invites = this.invites.filter((i) => i.party !== m.party).concat([{ party: m.party, from: m.from, size: m.size }]);
+      game.ui.notify('Party invite', `${m.from} invites you  ·  [P] Party`, '#9ad8ff');
+      game.audio.sfx('quest');
+      this.refreshParty();
+    });
+    n.on('partyInviteGone', (m) => { this.invites = this.invites.filter((i) => i.party !== m.party); this.refreshParty(); });
+    n.on('partyInfo', (m) => { game.ui.toast(m.text, 2.5); });
     n.on('saveData', (m) => this.onSaveData(m));
     n.on('roomState', (m) => this.remotes.setRoom(m.room, m.players, now()));
     n.on('pJoin', (m) => this.remotes.join(m.p, now()));
     n.on('pLeave', (m) => this.remotes.leave(m.id, m.why, now()));
     n.on('moves', (m) => this.remotes.moves(m.ps, now()));
     n.on('pLook', (m) => this.remotes.look(m.id, m.c, m.l));
-    n.on('error', (m) => { if (m.code === 'roomFull') game.ui.toast(m.text, 3); });
+    n.on('error', (m) => { if (m.code === 'roomFull' || m.code === 'party') { game.ui.toast(m.text, 3); if (m.code === 'party') game.audio.sfx('deny'); } });
     n.onState((s) => {
       // anything we knew about other players is stale once the line drops; after a reconnect send everything again
       if (s !== NET_STATE.online) { this.remotes.clear(); this.saveReady = false; }
@@ -71,7 +84,12 @@ export class OnlineSession {
     try { localStorage.setItem(NAME_KEY, name); } catch { /* storage blocked */ }
     this.net.connect(name);
   }
-  logout() { this.net.stop(); }
+  logout() { this.net.stop(); this.party = null; this.invites = []; }
+
+  // party actions: the server checks and answers with 'party' / 'partyInfo' / an error
+  partyAction(type, fields = {}) { return this.net.send(type, fields); }
+  get isLeader() { return !!this.party && this.party.leader === this.playerId; }
+  refreshParty() { const pn = this.game.ui.panels; if (pn.current && pn.current.name === 'party') pn.party(); }
   lastName() { try { return localStorage.getItem(NAME_KEY) || ''; } catch { return ''; } }
 
   // every frame (play or not)
