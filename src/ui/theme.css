@@ -269,3 +269,41 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 .ld-tip b { color: var(--hl); font-weight: 600; margin-right: 6px; letter-spacing: 1px; }
 @keyframes ld-turn { to { transform: rotate(360deg); } }
 @keyframes ld-glow { 0%, 100% { filter: drop-shadow(0 0 6px rgba(240, 180, 80, 0.4)); opacity: 0.92; } 50% { filter: drop-shadow(0 0 22px rgba(170, 100, 255, 0.75)); opacity: 1; } }
+
+/* ---------- SKILL TREE (ui/skillTreeUI.js, Skills tab): grows upward, diamond nodes, ultimate crown ---------- */
+.st-layout { display: grid; grid-template-columns: 200px 1fr 300px; gap: 16px; align-items: start; }
+.st-left { text-align: center; padding-top: 6px; }
+.st-lvl { width: 96px; height: 96px; margin: 0 auto 4px; } .st-lvl span { font-size: 30px; }
+.st-cls { font: 600 16px var(--font-title); margin-bottom: 6px; }
+.st-pts { font: 500 14px var(--font-title); color: var(--ink); } .st-pts b { color: var(--gold); font-size: 18px; }
+.st-left h4 { margin: 16px 0 6px; font-size: 11px; letter-spacing: 2px; color: var(--hl); }
+.st-left .cx-skill { text-align: left; }
+.st-bar { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+.st-key { position: relative; width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 5px; padding: 2px; cursor: pointer; background: rgba(8, 8, 12, 0.85); }
+.st-key img { width: 100%; height: 100%; border-radius: 3px; } .st-key kbd { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); margin: 0; background: #06060a; }
+.st-key.on, .st-key:hover { border-color: var(--hl); }
+.st-mid { display: flex; justify-content: center; overflow: auto; }
+.st-tree { position: relative; flex: none;
+  background: radial-gradient(ellipse 45% 55% at 50% 55%, rgba(120, 80, 200, 0.10), transparent 70%); }
+.st-tree svg { position: absolute; inset: 0; }
+.stl { fill: none; stroke: rgba(236, 228, 210, 0.16); stroke-width: 2; }
+.stl.lit { stroke: rgba(232, 200, 120, 0.75); stroke-width: 2.5; filter: drop-shadow(0 0 4px rgba(240, 190, 90, 0.6)); }
+.stn { position: absolute; width: 58px; height: 58px; margin: -29px 0 0 -29px; padding: 0; border: 0; background: none; cursor: pointer; }
+.stn:hover:not(:disabled) { background: none; border: 0; }
+.stn-d { position: absolute; inset: 4px; transform: rotate(45deg); border: 2px solid rgba(236, 228, 210, 0.5); background: rgba(10, 8, 16, 0.95);
+  box-shadow: 0 0 0 3px rgba(6, 6, 10, 0.9); transition: box-shadow 0.15s, border-color 0.15s; }
+.stn img { position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; transform: translate(-50%, -50%); border-radius: 4px; }
+.stn-b { position: absolute; left: 50%; bottom: -16px; transform: translateX(-50%); white-space: nowrap; font: 600 10px var(--font-title);
+  color: var(--ink); background: rgba(6, 6, 10, 0.92); border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; }
+.stn.locked img { filter: grayscale(1) brightness(0.45); } .stn.locked .stn-d { border-color: rgba(140, 130, 120, 0.35); } .stn.locked .stn-b { color: #c08060; }
+.stn.slotted .stn-d { border-color: #e8c070; }
+.stn.maxed .stn-d { box-shadow: 0 0 0 3px rgba(6, 6, 10, 0.9), 0 0 16px rgba(240, 190, 90, 0.7); }
+.stn:hover .stn-d, .stn.sel .stn-d { border-color: #fff4d8; box-shadow: 0 0 0 3px rgba(6, 6, 10, 0.9), 0 0 18px rgba(255, 230, 170, 0.8); }
+.stn.special .stn-d { border-color: rgba(176, 128, 240, 0.9); }
+.stn.ultimate { width: 84px; height: 84px; margin: -42px 0 0 -42px; }
+.stn.ultimate .stn-d { border: 3px solid #e7a13a; background: radial-gradient(circle, rgba(70, 30, 90, 0.95), rgba(10, 6, 16, 0.98));
+  box-shadow: 0 0 0 4px rgba(6, 6, 10, 0.9), 0 0 24px rgba(231, 161, 58, 0.55); }
+.stn.ultimate::before { content: "◆"; position: absolute; left: 50%; top: -18px; transform: translateX(-50%); color: #e7a13a; font-size: 14px; }
+.stn.ultimate img { width: 48px; height: 48px; }
+.st-right .skill-card { flex-direction: column; } .st-right .skill-card img { width: 56px; height: 56px; }
+@media (max-width: 1100px) { .st-layout { grid-template-columns: 1fr; } }

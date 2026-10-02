@@ -1030,6 +1030,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   LOADING SCREEN (index.html #loading + main.js): blurred dimmed title bg, eclipse emblem turning (24 s) with a breathing glow, logo,
   gold progress bar with a diamond tip + %, status label, TIPS (gameplay / lore, main.js TIPS) every 4.5 s; .done = fade out 0.6 s
   then removed. Preview docs/ui/loading_screen.png.
+- SKILL TREE VIEW (owner reference, made to fit the game): Skills tab = src/ui/skillTreeUI.js — pure layoutTree(cls): special (Q) =
+  root at the bottom, branches = unlock.requires chains (rows = depth in the branch, columns = leaves spread, parents over
+  their children), ultimate = big gold diamond crowning every branch top; treeHTML = SVG curves (lit gold when both ends are
+  unlocked) + diamond nodes (icon, Lv n/m or LV need, states locked / open / slotted gold / maxed glow / selected). Left =
+  level diamond, points available, skill bar (click = select), passives; right = the selected skill card (level up, mastery,
+  evolution, Put on key 1-4) built by panels.js; click a node = data-tree-sel (Panels.treeSel). tools/tests/skillTreeUI.test.mjs.
+  Previews docs/ui/skill_tree_umbral_sword.png / skill_tree_aegis_guardian.png.
 - GUARD HOLD VFX (owner): Player.drawGuardFx — every class with guard data shows its guard.fx strip (AG ag_emblem, Warden
   dw_shield, Bulwark bs_aegis, Oathbreaker ok_brand) in front of the body toward the aim WHILE the guard is held (intro frames
   0-3, glow loop 1-2, fade 4-5 after release; behind the body when aiming up). Data guard.hold { intro, loop, out, fps, scale,

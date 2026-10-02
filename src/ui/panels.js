@@ -20,6 +20,7 @@ import { expToNext } from '../progression/experience.js';
 import { isGear } from '../items/itemDefs.js';
 import { itemTooltipHTML, swapPreview } from './itemTooltip.js';
 import { charHeaderHTML, charTabsHTML, equipmentTabHTML, startHeroPreview, UI_ICON } from './charWindow.js';
+import { treeHTML, nodeState } from './skillTreeUI.js';
 import { npcPanelHTML, npcRow, goldTag } from './npcPanel.js';
 
 
@@ -300,18 +301,30 @@ export class Panels {
           ${evolutionsOf(s).map(option).join('')}
         </div>`;
       } else
-      body = `<div class="skills-layout">
-        <div><h3>${esc(p.cls.name)} — Skill Loadout</h3>
-          <p class="small">Class LV <b style="color:#e0c070">${p.classLevel()}</b>${p.classFollowsCharacter() ? ' <span class="muted">(= character level)</span>' : ` <span class="muted">(${Math.floor((g.classProgress.classes[p.cls.id] || {}).exp || 0)}/${expToNext(p.classLevel())} class EXP)</span>`}
-            · Skill points: <b style="color:#e0c070">${Math.max(0, p.skillPointsLeft())}</b> <span class="muted">(1 per ${SKILL_TREE.pointsFrom === 'class' ? 'class' : 'character'} level · each class has its own points)</span></p>
-          <div class="small sk-tree" style="display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px">${[...p.cls.skills, p.cls.special].filter(Boolean)
-            .sort((a, b) => ((a.unlock && a.unlock.classLevel) || 1) - ((b.unlock && b.unlock.classLevel) || 1))
-            .map((s) => { const ok = p.skillUnlocked(s); return `<span title="${esc(s.name)}" style="padding:2px 6px;border-radius:4px;border:1px solid ${ok ? '#6a58a0' : '#3a3040'};color:${ok ? '#e8dcff' : '#8a7a70'}">${ok ? '' : '🔒'}LV ${(s.unlock && s.unlock.classLevel) || 1} ${esc(s.name)}</span>`; }).join('<span class="muted">›</span>')}</div>
-          <p class="muted small">Keys <b>1-4</b> are yours to choose. <b>5</b> is always the ultimate and <b>Q</b> the class special. Changes are locked while in combat.</p>
-          ${[...lo.pool()].sort((a, b) => ((a.unlock && a.unlock.classLevel) || 1) - ((b.unlock && b.unlock.classLevel) || 1)).map((s) => card(s, !p.skillUnlocked(s) ? '' : `<div class="slot-btns">${[0, 1, 2, 3].map((i) => `<button data-slot="${i}" data-skill="${s.id}" class="${lo.slots[i] === s.id ? 'on' : ''}">${i + 1}</button>`).join('')}</div>`)).join('')}
-        </div>
-        <div><h3>Fixed</h3>${[lo.ultimate(), p.cls.special].filter(Boolean).map((s) => card(s, `<div class="muted small">Key ${s.ultimate ? '5' : 'Q'}</div>`)).join('')}${passiveRows(p.cls)}</div>
-      </div>`;
+      {
+        // SKILL TREE VIEW (ui/skillTreeUI.js): left = level + points, centre = the tree, right = the selected skill's card
+        const all = [...p.cls.skills, p.cls.special].filter(Boolean);
+        if (!this.treeSel || !all.some((s) => s.id === this.treeSel)) this.treeSel = (lo.slots.find((id) => id) || all[0].id);
+        const sel = all.find((s) => s.id === this.treeSel);
+        const fixedKey = sel.ultimate ? '5' : sel === p.cls.special ? 'Q' : null;
+        const slotRow = fixedKey ? `<div class="muted small">Key ${fixedKey} (fixed)</div>`
+          : !p.skillUnlocked(sel) ? '' : `<div class="small muted" style="margin-top:6px">Put on key:</div><div class="slot-btns">${[0, 1, 2, 3].map((i) => `<button data-slot="${i}" data-skill="${sel.id}" class="${lo.slots[i] === sel.id ? 'on' : ''}">${i + 1}</button>`).join('')}</div>`;
+        const bar = lo.bindings().map((b) => `<span class="st-key${b.skill.id === sel.id ? ' on' : ''}" data-tree-sel="${b.skill.id}"><img src="${skillIconURL(b.skill)}" alt=""><kbd>${b.key}</kbd></span>`).join('')
+          + (p.cls.special ? `<span class="st-key${p.cls.special.id === sel.id ? ' on' : ''}" data-tree-sel="${p.cls.special.id}"><img src="${skillIconURL(p.cls.special)}" alt=""><kbd>Q</kbd></span>` : '');
+        body = `<div class="st-layout">
+          <div class="st-left">
+            <div class="cw-lvl st-lvl" style="background-image:url(${UI_ICON('level_diamond')})"><span>${p.progressLevel ? p.progressLevel() : p.level}</span></div>
+            <div class="st-cls">${esc(p.cls.name)}</div>
+            <div class="st-pts"><b>+${Math.max(0, p.skillPointsLeft())}</b> points available</div>
+            <div class="muted small">1 point per ${SKILL_TREE.pointsFrom === 'class' ? 'class' : 'character'} level · each class has its own points</div>
+            <div class="muted small" style="margin-top:4px">Class LV ${p.classLevel()}${p.classFollowsCharacter() ? ' (= character level)' : ` · ${Math.floor((g.classProgress.classes[p.cls.id] || {}).exp || 0)}/${expToNext(p.classLevel())} class EXP`}</div>
+            <h4>SKILL BAR</h4><div class="st-bar">${bar}</div>
+            ${passiveRows(p.cls)}
+          </div>
+          <div class="st-mid">${treeHTML(p.cls, sel.id, nodeState(p))}</div>
+          <div class="st-right">${card(sel, slotRow)}<p class="muted small">Keys <b>1-4</b> are yours to choose · <b>5</b> = ultimate · <b>Q</b> = class special. Changes are locked while in combat.</p></div>
+        </div>`;
+      }
     } else if (this.invTab === 'class') {
       // CLASS UI (generic): lineage tree + codex of the selected class + path card (requirements / trial)
       const p = g.player, prog = g.progression, rec = prog.records[p.cls.id] || {};
@@ -406,10 +419,11 @@ export class Panels {
     startHeroPreview(el, g);
     this.wireTooltip(el);
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-tab],[data-cat],[data-filter],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
+      const t = e.target.closest('[data-tab],[data-cat],[data-filter],[data-tree-sel],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
       if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
+      else if (t.dataset.treeSel) { this.treeSel = t.dataset.treeSel; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.filter) { this.invFilter = t.dataset.filter; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.cat) { this.invCat = t.dataset.cat; this.inventory(); }
       else if (t.dataset.item) { this.selected = t.dataset.item; this.inventory(); g.audio.sfx('ui'); }
