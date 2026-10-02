@@ -435,3 +435,9 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 .dg-members div { font: 500 14px var(--font-title); color: var(--ink-dim); } .dg-members div.yes { color: #9dffb4; }
 .dg-members i { display: inline-block; width: 20px; font-style: normal; }
 .dg-ready .row { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+
+/* Sound settings (panels.sound) */
+.snd-list { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 12px; }
+.snd-row { display: grid; grid-template-columns: 90px 1fr 34px; align-items: center; gap: 10px; font-size: 13px; }
+.snd-row input { accent-color: var(--hl, #e6c27a); width: 100%; }
+.snd-row b { text-align: right; font-family: var(--font-title); font-weight: 500; }

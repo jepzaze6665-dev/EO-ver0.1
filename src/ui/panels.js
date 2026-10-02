@@ -1,4 +1,5 @@
 import { PARTY } from '../data/party.js';
+import { AUDIO_BUSES } from '../data/sounds.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { ITEMS, RARITY_COLOR, CATEGORIES, RECIPES, SHOPS } from '../items/items.js';
 import { iconURL, itemIconURL, skillIconURL } from './icons.js';
@@ -809,7 +810,7 @@ export class Panels {
         <div class="np-head"><img class="np-ico" src="${UI_ICON('menu_settings')}" alt=""><div class="np-title"><b>ECLIPSE ONLINE</b><div class="np-sub">Paused</div></div></div>
         <div class="esc-list">
           ${[['resume', 'Resume', 'menu_class', ''], ['save', 'Save', 'menu_save', ''], ['load', 'Load', 'menu_save', g.save.exists() ? '' : 'disabled'],
-            ['map', 'World Map', 'menu_map', ''], ['party', 'Party' + (g.online && g.online.party ? ` (${g.online.party.members.length})` : ''), 'menu_class', g.online && g.online.online ? '' : 'disabled'], ['controls', 'Controls', 'menu_codex', ''], ['mute', (g.audio.muted ? 'Unmute' : 'Mute') + ' Audio', 'menu_settings', ''],
+            ['map', 'World Map', 'menu_map', ''], ['party', 'Party' + (g.online && g.online.party ? ` (${g.online.party.members.length})` : ''), 'menu_class', g.online && g.online.online ? '' : 'disabled'], ['controls', 'Controls', 'menu_codex', ''], ['sound', 'Sound' + (g.audio.muted ? ' (muted)' : ''), 'menu_settings', ''],
             ['layout', 'HUD: ' + (g.ui.hud.layout() === 'focus' ? 'Focus (skill bar)' : 'Classic (top-left)'), 'menu_skills', ''],
             ['reset', 'Reset Progress', 'menu_quests', ''], ['title', 'Title Screen', 'menu_equipment', '']]
             .map(([a, l, ic, dis]) => `<button data-a="${a}" ${dis}><img src="${UI_ICON(ic)}" alt="">${l}</button>`).join('')}
@@ -832,9 +833,32 @@ export class Panels {
         else { e.target.dataset.confirm = '1'; e.target.textContent = 'Click again to confirm reset'; e.target.classList.add('danger'); }
       }
       if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.menu(), true);
-      if (a === 'mute') { g.audio.setMuted(!g.audio.muted); this.menu(); }
+      if (a === 'sound') this.sound();
       if (a === 'layout') { g.ui.hud.setLayout(g.ui.hud.layout() === 'focus' ? 'classic' : 'focus'); this.menu(); }
       if (a === 'title') { this.close(); g.toTitle(); }
+    });
+  }
+  // Sound settings: one slider per mixer bus (data/sounds.js AUDIO_BUSES), saved per browser by Audio.
+  sound() {
+    const g = this.game, A = g.audio;
+    const rows = Object.entries(AUDIO_BUSES).map(([k, b]) => `<label class="snd-row"><span>${esc(b.label)}</span>
+      <input type="range" min="0" max="100" step="1" value="${Math.round(A.levels[k] * 100)}" data-bus="${k}"><b>${Math.round(A.levels[k] * 100)}</b></label>`).join('');
+    const el = this.show('menu', `
+      <div class="panel menu esc-menu">
+        <div class="np-head"><img class="np-ico" src="${UI_ICON('menu_settings')}" alt=""><div class="np-title"><b>SOUND</b><div class="np-sub">Volume</div></div></div>
+        <div class="snd-list">${rows}</div>
+        <div class="esc-list"><button data-a="mute">${A.muted ? 'Unmute all' : 'Mute all'}</button><button data-a="back">Back</button></div>
+        <div class="keys"><span><kbd>Esc</kbd>Resume</span></div>
+      </div>`, 'side');
+    el.addEventListener('input', (e) => {
+      const r = e.target.closest('[data-bus]'); if (!r) return;
+      A.setLevel(r.dataset.bus, r.value / 100); r.nextElementSibling.textContent = r.value;
+      if (r.dataset.bus !== 'music') A.sfx(r.dataset.bus === 'ui' ? 'ui' : 'hit');
+    });
+    el.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-a]'); if (!b) return;
+      if (b.dataset.a === 'mute') { A.setMuted(!A.muted); this.sound(); }
+      if (b.dataset.a === 'back') this.menu();
     });
   }
   death() {

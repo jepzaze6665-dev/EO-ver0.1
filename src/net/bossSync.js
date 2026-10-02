@@ -259,7 +259,7 @@ export class BossSync {
     if (b.phase !== e.phase && Number.isInteger(b.phase)) {
       e.phase = b.phase;
       const ph = enc.def.phases && enc.def.phases[b.phase - 1];
-      if (ph && isFighting(enc.state)) g.ui.callout(ph.name || `PHASE ${b.phase}`, ph.sub || '', '#e0b0ff');
+      if (ph && isFighting(enc.state)) { g.ui.callout(ph.name || `PHASE ${b.phase}`, ph.sub || '', '#e0b0ff'); g.audio.bossMusic(enc.id, b.phase); }
       enc.phase = b.phase;
     }
     // the encounter follows the host's: boss bar, camera lock, arena locks
@@ -277,7 +277,7 @@ export class BossSync {
     else g.ui.showBossBar(true);
     if (enc.def.arena && enc.def.arena.cameraLock) B.lockCamera(enc, true);
     g.ui.bossTitle && g.ui.bossTitle(enc.def.name, enc.def.title || '');
-    g.audio.music('boss');
+    g.audio.bossMusic(enc.id, enc.phase || 1);
   }
   disengage(enc) {
     const g = this.game, B = g.bosses;

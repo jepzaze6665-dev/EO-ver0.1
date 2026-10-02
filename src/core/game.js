@@ -68,6 +68,7 @@ export class Game {
     this.camera.setView(this.renderer.vw, this.renderer.vh);
     this.camera.bounds = { x0: 0, y0: 0, x1: WORLD_W * TILE, y1: WORLD_H * TILE };
     this.audio = new Audio();
+    this.audio.listener = () => this.player || this.camera; // positional sfx are heard from the player
     this.vfx = new VFX(this);
     this.combat = new Combat(this);
     this.ui = new UI(this);
@@ -121,6 +122,7 @@ export class Game {
     ev.on('bossRewarded', (e) => { if (e.reward.lore) TRIGGER_ACTIONS.lore(this, { lore: e.reward.lore }); });
     ev.on('mapUnlocked', (e) => { if (e.reason === 'requirements') this.ui.notify('MAP UNLOCKED', e.map.name, '#ffe8b0'); });
     // quest feedback (the Quest System only reports; rewards: ExperienceSystem + LootSystem)
+    ev.on('bossPhaseChanged', (e) => { if (this.audio.boss) this.audio.bossMusic(e.bossId, e.phase); });
     ev.on('questAccepted', (e) => { this.ui.questBanner('NEW QUEST', e.quest.name); this.audio.sfx('quest'); });
     ev.on('questUpdated', (e) => { if (e.done) this.ui.notify(this.quests.data[e.id].name, '✓ ' + e.text, '#a8f0b0'); });
     ev.on('questCompleted', (e) => {
@@ -287,7 +289,7 @@ export class Game {
     this.camera.snap(s.x, s.y - 40);
     this.state = 'title';
     this.ui.panels.title(this.save.exists());
-    this.audio.music('village');
+    this.audio.screen('title', 'village');
     if (!this.looping) { this.looping = true; requestAnimationFrame((t) => this.frame(t)); }
   }
 
@@ -491,7 +493,7 @@ export class Game {
     this.vfx.shards(boss.x, boss.y - 50, '#5af0ff', 60, 300);
     this.vfx.ring(boss.x, boss.y, 10, 260, { color: '150,250,255', life: 1.2, width: 8 });
     this.audio.sfx('crash');
-    this.audio.music('victory');
+    this.audio.endBoss('victory');
     this.ui.showBossBar(false);
     this.combat.telegraphs.clear();
     this.combat.projectiles.clear();

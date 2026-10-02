@@ -182,7 +182,7 @@ export class BossSystem {
   }
   restoreMusic() {
     const z = this.game.world.currentZone, info = ZONE_INFO[z];
-    if (info) this.game.audio.music(info.music);
+    this.game.audio.endBoss(info && (this.game.audio.zoneTrack || info.music));
   }
 
   // ---------------- defeat (area bosses: called by AreaBoss.onDeath; the Guardian: Game.onBossDefeated -> complete)

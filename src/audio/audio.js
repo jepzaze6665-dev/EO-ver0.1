@@ -1,32 +1,79 @@
-// Placeholder audio: every sound is synthesised with WebAudio (no files), so any
-// sfx name can later be mapped to a real sample without touching gameplay code.
+// Audio: real sound files when they exist (tools/build-audio.js -> assets/audio/audio.json, rules in
+// src/data/sounds.js), else every sound is synthesised with WebAudio as before (fallback, like sprites).
+import { AUDIO_BUSES, AUDIO_STORAGE_KEY, SOUND_RULES, SFX, ZONE_MUSIC, ZONE_AMBIENCE, bossTrack, spatial } from '../data/sounds.js';
+
+const MANIFEST = 'assets/audio/audio.json';
+
 export class Audio {
   constructor() {
+    this.zoneWant = null;
     this.ctx = null;
     this.master = null;
     this.muted = false;
-    this.volume = 0.5;
     this.musicNode = null;
     this.currentMusic = null;
     this.last = {};
+    this.voices = {}; // sfx name -> playing count
+    this.manifest = { sfx: {}, music: {}, amb: {} };
+    this.buffers = new Map(); // file -> AudioBuffer | Promise
+    this.listener = null; // () => { x, y } (Game sets it: the camera centre)
+    this.levels = {};
+    for (const [k, b] of Object.entries(AUDIO_BUSES)) this.levels[k] = b.def;
+    try { Object.assign(this.levels, JSON.parse(localStorage.getItem(AUDIO_STORAGE_KEY) || '{}').levels || {}); this.muted = !!JSON.parse(localStorage.getItem(AUDIO_STORAGE_KEY) || '{}').muted; } catch (e) {}
+    this.boss = null; // { id, phase } while a boss track rules
+    this.ambNode = null; this.currentAmb = null;
   }
+  get volume() { return this.levels.master; }
   init() {
     if (this.ctx) return;
     try {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       this.master = this.ctx.createGain();
-      this.master.gain.value = this.volume;
       this.master.connect(this.ctx.destination);
-      this.sfxBus = this.ctx.createGain(); this.sfxBus.gain.value = 0.8; this.sfxBus.connect(this.master);
-      this.musicBus = this.ctx.createGain(); this.musicBus.gain.value = 0.28; this.musicBus.connect(this.master);
+      const bus = (k, mul) => { const g = this.ctx.createGain(); g.connect(this.master); g._mul = mul; return g; };
+      this.sfxBus = bus('sfx', 1); this.musicBus = bus('music', 0.56); this.ambBus = bus('amb', 1); this.uiBus = bus('ui', 1);
+      this.applyLevels();
       this.noiseBuf = this.ctx.createBuffer(1, this.ctx.sampleRate, this.ctx.sampleRate);
       const d = this.noiseBuf.getChannelData(0);
       for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      this.loadManifest();
       if (this.pendingMusic) this.music(this.pendingMusic);
     } catch (e) { this.ctx = null; }
   }
-  setMuted(m) { this.muted = m; if (this.master) this.master.gain.value = m ? 0 : this.volume; }
-
+  async loadManifest() {
+    try {
+      const r = await fetch(MANIFEST, { cache: 'no-cache' });
+      if (!r.ok) return;
+      const m = await r.json();
+      this.manifest = { sfx: m.sfx || {}, music: m.music || {}, amb: m.amb || {} };
+      for (const files of Object.values(this.manifest.sfx)) for (const file of files) this.buffer(file); // sfx are small: preload
+      // a track that just got a file replaces the synth theme playing now
+      if (this.boss) { const b = this.boss; this.boss = null; this.bossMusic(b.id, b.phase); }
+      else if (this.zoneTrack && this.zoneTrack !== this.currentMusic) this.music(this.zoneTrack);
+      if (this.wantAmb) { const a = this.wantAmb; this.currentAmb = null; this.ambience(a); }
+    } catch (e) {}
+  }
+  buffer(file) {
+    if (this.buffers.has(file)) return this.buffers.get(file);
+    const p = fetch('assets/audio/' + file).then((r) => r.arrayBuffer()).then((a) => this.ctx.decodeAudioData(a))
+      .then((b) => { this.buffers.set(file, b); return b; }).catch(() => { this.buffers.set(file, null); return null; });
+    this.buffers.set(file, p);
+    return p;
+  }
+  hasMusic(name) { return !!this.manifest.music[name]; }
+  // ---- volume
+  applyLevels() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime, L = this.levels;
+    this.master.gain.setTargetAtTime(this.muted ? 0 : L.master, t, 0.05);
+    this.sfxBus.gain.setTargetAtTime(L.sfx * this.sfxBus._mul, t, 0.05);
+    this.musicBus.gain.setTargetAtTime(L.music * this.musicBus._mul, t, 0.05);
+    this.ambBus.gain.setTargetAtTime(L.amb * this.ambBus._mul, t, 0.05);
+    this.uiBus.gain.setTargetAtTime(L.ui * this.uiBus._mul, t, 0.05);
+  }
+  saveLevels() { try { localStorage.setItem(AUDIO_STORAGE_KEY, JSON.stringify({ levels: this.levels, muted: this.muted })); } catch (e) {} }
+  setLevel(bus, v) { if (!(bus in AUDIO_BUSES)) return; this.levels[bus] = Math.max(0, Math.min(1, +v || 0)); this.applyLevels(); this.saveLevels(); }
+  setMuted(m) { this.muted = m; this.applyLevels(); this.saveLevels(); }
   tone(freq, dur, { type = 'sine', vol = 0.3, slide = 0, attack = 0.005, delay = 0, bus } = {}) {
     const c = this.ctx, t = c.currentTime + delay;
     const o = c.createOscillator(), g = c.createGain();
@@ -36,7 +83,7 @@ export class Audio {
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(vol, t + attack);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g.connect(bus || this.sfxBus);
+    o.connect(g); g.connect(bus || this.curBus || this.sfxBus);
     o.start(t); o.stop(t + dur + 0.05);
   }
   noise(dur, { vol = 0.3, freq = 1200, q = 1, type = 'bandpass', slide = 0, delay = 0 } = {}) {
@@ -47,15 +94,48 @@ export class Audio {
     const g = c.createGain();
     g.gain.setValueAtTime(vol, t);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    s.connect(f); f.connect(g); g.connect(this.sfxBus);
+    s.connect(f); f.connect(g); g.connect(this.curBus || this.sfxBus);
     s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.05);
   }
 
-  sfx(name) {
+  // sfx(name, { x, y }) — with a position the sound fades with distance from the listener and pans.
+  sfx(name, at) {
     if (!this.ctx || this.muted) return;
-    const now = this.ctx.currentTime;
-    if (this.last[name] && now - this.last[name] < 0.03) return; // de-dupe bursts
+    const now = this.ctx.currentTime, R = SOUND_RULES, def = SFX[name] || {};
+    if (this.last[name] && now - this.last[name] < R.minGap) return; // de-dupe bursts
+    let gain = 1, pan = 0;
+    if (at && this.listener) {
+      const l = this.listener();
+      if (l) { const sp = spatial(at.x, at.y, l.x, l.y); gain = sp.gain; pan = sp.pan; if (gain <= 0.01) return; }
+    }
+    if ((this.voices[name] || 0) >= (def.maxVoices || R.maxVoices)) return;
     this.last[name] = now;
+    const bus = def.bus === 'ui' ? this.uiBus : this.sfxBus;
+    const files = this.manifest.sfx[name];
+    if (files && files.length) {
+      const file = files[Math.floor(Math.random() * files.length)], b = this.buffers.get(file);
+      if (b && !(b instanceof Promise)) { this.playBuffer(name, b, bus, gain * (def.vol ?? 1), pan, def.pitch || R.pitch); return; }
+    }
+    this.curBus = bus;
+    if (gain < 1 || pan) { // synth fallback through a positional node
+      const g = this.ctx.createGain(); g.gain.value = gain;
+      if (pan && this.ctx.createStereoPanner) { const p = this.ctx.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(bus); } else g.connect(bus);
+      this.curBus = g;
+    }
+    try { this.synth(name); } finally { this.curBus = null; }
+  }
+  playBuffer(name, buf, bus, vol, pan, pitch) {
+    const c = this.ctx, src = c.createBufferSource(), g = c.createGain();
+    src.buffer = buf;
+    src.playbackRate.value = pitch[0] + Math.random() * (pitch[1] - pitch[0]);
+    g.gain.value = vol;
+    src.connect(g);
+    if (pan && c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(bus); } else g.connect(bus);
+    this.voices[name] = (this.voices[name] || 0) + 1;
+    src.onended = () => { this.voices[name]--; };
+    src.start();
+  }
+  synth(name) {
     const N = (d, o) => this.noise(d, o), Tn = (f, d, o) => this.tone(f, d, o);
     switch (name) {
       case 'swing': N(0.12, { freq: 2400, slide: 0.4, vol: 0.18, q: 2 }); break;
@@ -125,15 +205,37 @@ export class Audio {
   }
 
   // Generative ambient music per zone: slow pads + occasional notes.
-  music(name) {
+  // ---- music. A boss track stays while that boss rules (bossMusic / endBoss); zone music waits under it.
+  zone(z, info) {
+    this.zoneWant = { track: ZONE_MUSIC[z], synth: info && info.music };
+    this.ambience(ZONE_AMBIENCE[z] || null);
+    if (!this.boss) this.music(this.zoneTrack);
+  }
+  // a fixed screen track (title): file when there is one, else the synth theme
+  screen(track, synth) { this.boss = null; this.zoneWant = { track, synth }; this.ambience(null); this.music(this.zoneTrack); }
+  get zoneTrack() { const w = this.zoneWant; return w ? (w.track && this.hasMusic(w.track) ? w.track : w.synth) : null; }
+  bossMusic(bossId, phase = 1) {
+    if (this.boss && this.boss.id === bossId && this.boss.phase === phase) return;
+    this.boss = { id: bossId, phase };
+    const t = bossTrack(bossId, phase, (n) => this.hasMusic(n));
+    this.music(t || 'boss', { fade: phase > 1 ? SOUND_RULES.phaseFade : SOUND_RULES.musicFade, force: true });
+  }
+  endBoss(next) { this.boss = null; this.music(next || this.zoneTrack); }
+  music(name, { fade = SOUND_RULES.musicFade, force = false } = {}) {
+    if (!name) return;
+    if (!force && this.boss) return; // zone changes inside an arena keep the boss track
     if (!this.ctx) { this.pendingMusic = name; return; }
     if (this.currentMusic === name) return;
     this.currentMusic = name;
     if (this.musicNode) {
-      const old = this.musicNode;
-      old.gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 1.5);
-      setTimeout(() => old.stop(), 1700);
+      const old = this.musicNode, t = this.ctx.currentTime;
+      old.gain.gain.cancelScheduledValues(t); old.gain.gain.setValueAtTime(old.gain.gain.value, t);
+      old.gain.gain.linearRampToValueAtTime(0, t + fade);
+      setTimeout(() => old.stop(), fade * 1000 + 200);
+      this.musicNode = null;
     }
+    const files = this.manifest.music[name];
+    if (files && files.length) { this.playTrack(name, files[0], fade); return; }
     const SCALES = {
       village: { root: 196, notes: [0, 2, 4, 7, 9, 12], pad: 'triangle', tempo: 1.4, bright: 1 },
       forest: { root: 147, notes: [0, 3, 5, 7, 10, 12], pad: 'sine', tempo: 2.2, bright: 0.6 },
@@ -187,5 +289,31 @@ export class Audio {
     };
     tick();
     this.musicNode = { gain, stop: () => { alive = false; oscs.forEach((o) => { try { o.stop(); } catch (e) {} }); gain.disconnect(); } };
+  }
+  // a looping file on a bus with a fade-in; loop points from the manifest (seconds) when given
+  playTrack(name, file, fade, bus = this.musicBus, slot = 'musicNode') {
+    const c = this.ctx, gain = c.createGain();
+    gain.gain.value = 0; gain.connect(bus);
+    let src = null, alive = true;
+    const node = { gain, stop: () => { alive = false; try { src && src.stop(); } catch (e) {} gain.disconnect(); } };
+    this[slot] = node;
+    Promise.resolve(this.buffer(file)).then((b) => {
+      if (!alive || !b) return;
+      src = c.createBufferSource(); src.buffer = b; src.loop = true;
+      const lp = (this.manifest.loops || {})[file];
+      if (lp) { src.loopStart = lp[0]; src.loopEnd = lp[1]; }
+      src.connect(gain); src.start();
+      const t = c.currentTime;
+      gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(1, t + fade);
+    });
+  }
+  ambience(name) {
+    this.wantAmb = name;
+    if (!this.ctx || this.currentAmb === name) return;
+    const files = name && this.manifest.amb[name];
+    if (name && !files) return; // no file yet: keep silence (or the previous loop until a real one exists)
+    this.currentAmb = name;
+    if (this.ambNode) { const o = this.ambNode, t = this.ctx.currentTime; o.gain.gain.linearRampToValueAtTime(0, t + SOUND_RULES.ambFade); setTimeout(() => o.stop(), SOUND_RULES.ambFade * 1000 + 200); this.ambNode = null; }
+    if (files) this.playTrack(name, files[0], SOUND_RULES.ambFade, this.ambBus, 'ambNode');
   }
 }

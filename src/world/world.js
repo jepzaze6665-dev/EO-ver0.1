@@ -368,7 +368,7 @@ export class World {
       if (info) {
         if (z === Z.CAVE) this.discoverSecret(1, 'HIDDEN CAVE');
         else if (!quiet) g.ui.zoneBanner(info.name, info.sub, first);
-        g.audio.music(info.music);
+        g.audio.zone(z, info);
       }
       g.events.emit('zoneEnter', z);
       if (z === Z.VALLEY) this.setFlag('valleyEntered');
@@ -466,7 +466,7 @@ export class World {
     this.endBoss();
     this.setArenaPhase(0);
     this.monsters = this.monsters.filter((m) => !m.summoned);
-    this.game.audio.music('arena');
+    this.game.audio.endBoss();
   }
   setArenaPhase(ph) {
     this.arenaPhase = ph;

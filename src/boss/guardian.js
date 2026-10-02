@@ -81,7 +81,7 @@ export class Guardian extends Entity {
     g.camera.lookAt(this.x, this.y - 30, 2.2);
     g.camera.shake(0.6);
     g.audio.sfx('roar');
-    g.audio.music('boss');
+    g.audio.bossMusic('boss_a1', 1);
     g.vfx.ring(this.x, this.y, 20, 200, { life: 0.9, color: '120,240,255', width: 5 });
     g.ui.bossTitle(this.def.name.toUpperCase(), this.def.title);
     this.run(this.introMove());

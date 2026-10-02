@@ -121,7 +121,7 @@ export class AreaBoss extends Entity {
     this.facePlayer();
     g.camera.shake(0.5);
     g.audio.sfx('roar');
-    g.audio.music('boss');
+    g.audio.bossMusic(this.bossId, this.phase || 1);
     g.vfx.ring(this.x, this.y, 16, 150, { life: 0.8, color: this.look.aura || '255,120,120', width: 5 });
     g.ui.bossTitle(this.def.name, this.def.title || '');
     this.run(this.introMove());

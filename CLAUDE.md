@@ -1353,3 +1353,16 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   2-4 window / 2 PC checklist A-G) and docs/online/HEADLESS_SERVER_PLAN.md (H1 SimGame without DOM -> H2 server hosts each
   run-map room -> H5 items / EXP on the server -> H3 server-side damage -> H4 movement prediction -> H6 real accounts).
   ONLINE N1-N10 COMPLETE. Next: owner decides (manual multi-PC test with the checklist, headless H1, UI redesign).
+- **Current: AUDIO** (owner 2026-10-03: AI-made files — ElevenLabs SFX / ambience, Suno / Udio music —, Hollow Knight style, boss
+  music per phase, voice later). Phases A1 system · A2 music + ambience files · A3 combat + UI sfx · A4 class sfx · A5 monsters /
+  bosses · A6 footsteps + mix. Done A1: rules `src/data/sounds.js` (AUDIO_BUSES master / music / sfx / amb / ui saved in
+  localStorage `eclipse_audio_v1`, SOUND_RULES (maxVoices 4 per name, random pitch, hearRange 900 px, crossfades), SFX per-name
+  tuning, ZONE_MUSIC / ZONE_AMBIENCE track per zone, BOSS_MUSIC base per boss -> pure bossTrack(id, phase, has) =
+  '<base>_p<phase>' > lower phase > base > boss_common > null (= synth 'boss'), pure spatial()). `node tools/build-audio.js
+  [--list]`: desgin/SOUND/{sfx,music,amb}/*.mp3|ogg|wav (sfx variants name_1, name_2) -> assets/audio/<kind>/ + audio.json
+  (+ desgin/SOUND/loops.json loop points). Audio (src/audio/audio.js): file when the manifest has one, else the old synth
+  (`synth(name)`); `sfx(name, { x, y })` positional (monster sounds pass the monster; listener = player); music API
+  zone(z, info) (world.js) · screen('title', 'village') · bossMusic(id, phase) (AreaBoss / Guardian intro, bossPhaseChanged,
+  guest bossSync phase) · endBoss(next) (BossSystem.restoreMusic, Guardian reset, victory); a boss track blocks zone music.
+  ESC menu Sound panel (panels.sound: sliders + mute). Prompts for the owner: docs/audio/AUDIO_PROMPTS.md (music 14, boss phases,
+  ambience 8, combat / UI sfx 40). Test tools/tests/audio.test.mjs. No sound files exist yet (everything still synth).

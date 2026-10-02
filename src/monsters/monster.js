@@ -100,7 +100,7 @@ export class Monster extends Entity {
     this.shieldHp = (this.shieldHp ?? sh.hp) - raw * (opts.big || (opts.stagger || 0) >= 20 ? 2 : 1);
     g.vfx.spark(this.x, this.y - this.height * 0.5, ang + Math.PI, '#ffd070', 8);
     if ((this.blockTextT || 0) <= g.time) { this.blockTextT = g.time + 1.2; g.vfx.text(this.x, this.y - this.height - 8, 'BLOCKED — flank it', { color: '#ffd070', size: 9 }); }
-    g.audio.sfx('block');
+    g.audio.sfx('block', this);
     if (this.shieldHp > 0) return;
     this.shieldBroken = true; this.shieldRegen = sh.regen || 8;
     this.status.add('stun', sh.breakTime || 2.2); this.status.add('vulnerable', sh.breakTime || 2.2);
@@ -119,7 +119,7 @@ export class Monster extends Entity {
     g.vfx.text(this.x, this.y - 60, 'ARMOR BROKEN!', { color: '#9af4ff', size: 12 });
     g.vfx.ring(this.x, this.y, 10, 60, { color: '120,240,255', life: 0.4 });
     g.camera.shake(0.3);
-    g.audio.sfx('shatter');
+    g.audio.sfx('shatter', this);
   }
 
   // ---------------- events from combat
@@ -390,7 +390,7 @@ export class Monster extends Entity {
     // ONLINE N7b: the room's guests play this attack on their puppet and resolve it against themselves (net/mobSync.js)
     if (g.online) { const { owner, ...shape } = tel; g.online.mobs.hostAct(this, 'tel', { shape, total: atk.windup, kind: atk.kind, power: atk.power * this.mod.power * this.status.damageMult(), knock: atk.knock, guardBreak: !!(atk.guardBreak ?? atk.heavy), unblockable: !!atk.unblockable, status: atk.status || null }); }
     if (atk.heavy) g.vfx.text(this.x, this.y - this.height - 12, '⚠', { color: '#ffb040', size: 14, life: atk.windup });
-    g.audio.sfx(atk.kind === 'volley' ? 'cast' : 'windup');
+    g.audio.sfx(atk.kind === 'volley' ? 'cast' : 'windup', this);
   }
 
   resolveAttack() {
@@ -406,7 +406,7 @@ export class Monster extends Entity {
         g.vfx.ring(this.curShape.x, this.curShape.y, 4, atk.shape.r, { color: this.type.startsWith('crystal') ? '120,240,255' : '255,200,160', life: 0.3 });
         g.camera.shake(0.15);
       }
-      g.audio.sfx(atk.heavy ? 'slam' : 'enemy_swing');
+      g.audio.sfx(atk.heavy ? 'slam' : 'enemy_swing', this);
       if (atk.shape.shape === 'ring') g.vfx.shards(this.x, this.y - 6, '#5af0ff', 14, 150);
       if (atk.exposes) { this.status.add('vulnerable', atk.exposes); g.vfx.text(this.x, this.y - this.height - 8, atk.exposeText || 'CORE EXPOSED!', { color: '#ff9ad8', size: 10 }); }
       if (atk.opening) { this.status.add('vulnerable', atk.recover); g.vfx.text(this.x, this.y - this.height - 8, 'OPENING!', { color: '#ffe070', size: 10 }); }
@@ -416,7 +416,7 @@ export class Monster extends Entity {
       this.phase = 'active';
       this.stateT = 0;
       this.dashHit = false;
-      g.audio.sfx('dash_enemy');
+      g.audio.sfx('dash_enemy', this);
     } else if (atk.kind === 'volley') {
       const n = atk.count, shots = [];
       for (let i = 0; i < n; i++) {
@@ -463,7 +463,7 @@ export class Monster extends Entity {
         this.curShape.ang = ang + Math.PI + rand(-0.6, 0.6); this.facing = this.curShape.ang;
         this.stateT = Math.max(0, this.stateT - atk.dashTime * 0.6);
         this.dashHit = false;
-        g.vfx.ring(this.x, this.y, 6, 40, { color: '220,200,160', life: 0.3, width: 4 }); g.camera.shake(0.15); g.audio.sfx('slam');
+        g.vfx.ring(this.x, this.y, 6, 40, { color: '220,200,160', life: 0.3, width: 4 }); g.camera.shake(0.15); g.audio.sfx('slam', this);
         g.vfx.text(this.x, this.y - this.height - 6, 'BOUNCE', { color: '#e8d8b0', size: 8, life: 0.5 });
       }
       if (!this.dashHit) {
@@ -509,7 +509,7 @@ export class Monster extends Entity {
       }
     }
     g.vfx.burst(this.x, this.y - 20, '#c080ff', 20, 120);
-    g.audio.sfx('blink');
+    g.audio.sfx('blink', this);
   }
 
   // ---------------- render
