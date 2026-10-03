@@ -658,8 +658,10 @@ export class Panels {
     const strip = areas.map((a) => `<button class="ms-chip${a.id === this.gateSel ? ' sel' : ''}${open(a) ? '' : ' locked'}" data-area="${a.id}">${esc(mm.get(a.id).short)}</button>`).join('');
     const el = this.show('gate', `<div class="ms">
       <div class="ms-map${this.worldMapArt ? ' art' : ''}">
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none">${['A', 'B'].map((r) => `<polyline points="${pts(r)}" stroke="${routeCol(r)}"/>`).join('')}</svg>
-        ${cities}${pins}
+        <div class="ms-world" style="--ar:${W.aspect || 1.5};${this.worldMapArt ? `background-image:url(${W.image})` : ''}">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none">${['A', 'B'].map((r) => `<polyline points="${pts(r)}" stroke="${routeCol(r)}"/>`).join('')}</svg>
+          ${cities}${pins}
+        </div>
       </div>
       <div class="ms-top"><kbd>Q</kbd>${strip}<kbd>E</kbd></div>
       <div class="ms-side">

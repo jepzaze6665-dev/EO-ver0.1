@@ -1,5 +1,5 @@
 // Map select data (src/data/worldMap.js). Run: node tools/tests/worldMap.test.mjs
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { WORLD_MAP } from '../../src/data/worldMap.js';
 import { ONLINE } from '../../src/data/online.js';
 
@@ -25,6 +25,10 @@ test('roads A / B start at Lumina and end at Asteria', () => {
     ok(road[0][0] === at('lumina').x && road[0][1] === at('lumina').y, r + ' starts at Lumina');
     ok(road.at(-1)[0] === at('city2').x && road.at(-1)[1] === at('city2').y, r + ' ends at Asteria');
   }
+});
+
+test('the painted map exists when WORLD_MAP.image names it', () => {
+  if (WORLD_MAP.image) ok(existsSync(new URL('../../' + WORLD_MAP.image, import.meta.url)), 'missing ' + WORLD_MAP.image);
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

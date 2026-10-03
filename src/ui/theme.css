@@ -495,3 +495,11 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 .ms-leave { margin: 0; }
 .ms-side .keys { padding: 10px 0 0; justify-content: center; }
 .ms-pin.sel b { margin-top: 18px; color: var(--hl); }
+/* the world box keeps the picture's shape (3:2) and covers the map area, so pins (% of the picture) stay on their spot */
+.ms-map { container-type: size; }
+.ms-map.art { background: #07080d; }
+.ms-world { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); aspect-ratio: var(--ar);
+  width: max(100cqw, calc(100cqh * var(--ar))); background: center / 100% 100% no-repeat; }
+.ms-map.art .ms-world::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(4, 4, 8, 0.6)); }
+.ms-map.art polyline { display: none; } /* the painted map has its own roads */
+.ms-map.art .ms-pin, .ms-map.art .ms-city { z-index: 1; }
