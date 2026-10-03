@@ -1,0 +1,80 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Telegraph mock-up</title>
+<style>body{margin:0;background:#111;color:#ece4d2;font-family:Segoe UI,sans-serif}
+.row{display:flex;gap:10px;padding:10px}.cell{position:relative}canvas{display:block;border-radius:4px}
+.cap{position:absolute;left:8px;top:6px;font:600 14px Kanit,Segoe UI;text-shadow:0 1px 3px #000}
+.sub{position:absolute;left:8px;bottom:6px;font-size:11.5px;color:#cfc7b4;text-shadow:0 1px 3px #000;max-width:300px}</style></head>
+<body><div class="row" id="r1"></div><div class="row" id="r2"></div>
+<script>
+const W = 312, H = 260;
+const P = 0.72; // how far the wind-up is (0..1)
+function ground(ctx, seed) {
+  ctx.fillStyle = '#2d3b22'; ctx.fillRect(0, 0, W, H);
+  let s = seed; const r = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  for (let i = 0; i < 260; i++) { ctx.fillStyle = r() < .5 ? 'rgba(0,0,0,.10)' : 'rgba(255,255,255,.04)'; ctx.fillRect(r() * W, r() * H, 6 + r() * 14, 3 + r() * 6); }
+  ctx.fillStyle = 'rgba(110,80,50,.45)'; ctx.fillRect(0, H * .62, W, 26);
+}
+function shapePath(ctx, t, s) {
+  ctx.beginPath();
+  if (t.shape === 'circle') ctx.arc(t.x, t.y, Math.max(.1, t.r * s), 0, Math.PI * 2);
+  else if (t.shape === 'cone') { ctx.moveTo(t.x, t.y); ctx.arc(t.x, t.y, Math.max(.1, t.r * s), t.ang - t.half, t.ang + t.half); ctx.closePath(); }
+  else if (t.shape === 'line') { const c = Math.cos(t.ang), sn = Math.sin(t.ang), hw = t.width, L = t.len * s;
+    ctx.moveTo(t.x - sn * hw, t.y + c * hw); ctx.lineTo(t.x + c * L - sn * hw, t.y + sn * L + c * hw); ctx.lineTo(t.x + c * L + sn * hw, t.y + sn * L - c * hw); ctx.lineTo(t.x + sn * hw, t.y - c * hw); ctx.closePath(); }
+}
+// CURRENT style (copy of src/combat/telegraph.js)
+function drawOld(ctx, t) {
+  const col = '255,60,60', p = P, pulse = 1;
+  ctx.fillStyle = `rgba(${col},${.13 + p * .1})`; shapePath(ctx, t, 1); ctx.fill();
+  ctx.fillStyle = `rgba(${col},${.25 + p * .25})`; shapePath(ctx, t, p); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,245,235,.95)'; ctx.lineWidth = 2.5; shapePath(ctx, t, 1); ctx.stroke();
+}
+function radial(ctx, t, inner, outer) {
+  const R = t.shape === 'line' ? t.len : t.r, cx = t.shape === 'line' ? t.x + Math.cos(t.ang) * t.len / 2 : t.x, cy = t.shape === 'line' ? t.y + Math.sin(t.ang) * t.len / 2 : t.y;
+  const g = ctx.createRadialGradient(cx, cy, R * (t.shape === 'line' ? .1 : 0), cx, cy, R * (t.shape === 'line' ? .6 : 1));
+  g.addColorStop(0, inner); g.addColorStop(1, outer); return g;
+}
+// NEW: tier 1 light / 2 heavy / 3 danger
+function drawNew(ctx, t, tier) {
+  const p = P;
+  if (tier === 1) {
+    ctx.setLineDash([5, 6]); ctx.strokeStyle = 'rgba(255,190,150,.38)'; ctx.lineWidth = 1.2; shapePath(ctx, t, 1); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = `rgba(255,200,160,${.25 + p * .3})`; ctx.lineWidth = 1.5; shapePath(ctx, t, p); ctx.stroke();
+    return;
+  }
+  const col = tier === 3 ? '200,20,40' : '255,90,60';
+  ctx.fillStyle = radial(ctx, t, `rgba(${col},${tier === 3 ? .10 : .04})`, `rgba(${col},${tier === 3 ? .42 : .28})`); shapePath(ctx, t, 1); ctx.fill();
+  // closing ring (shows when it lands)
+  ctx.strokeStyle = `rgba(255,${tier === 3 ? 120 : 170},120,${.5 + p * .4})`; ctx.lineWidth = tier === 3 ? 3 : 2; shapePath(ctx, t, p); ctx.stroke();
+  if (tier === 3) { // hatch + warning glyph
+    ctx.save(); shapePath(ctx, t, 1); ctx.clip(); ctx.strokeStyle = 'rgba(255,60,70,.18)'; ctx.lineWidth = 3;
+    for (let i = -W; i < W * 2; i += 14) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + H, H); ctx.stroke(); } ctx.restore();
+    const gx = t.shape === 'line' ? t.x + Math.cos(t.ang) * t.len / 2 : t.shape === 'cone' ? t.x + Math.cos(t.ang) * t.r * .55 : t.x, gy = t.shape === 'line' ? t.y + Math.sin(t.ang) * t.len / 2 : t.shape === 'cone' ? t.y + Math.sin(t.ang) * t.r * .55 : t.y;
+    ctx.font = '700 22px Segoe UI'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,235,220,.9)'; ctx.fillText('⚠', gx, gy + 8);
+  }
+  ctx.shadowColor = `rgba(${col},.9)`; ctx.shadowBlur = tier === 3 ? 14 : 6;
+  ctx.strokeStyle = tier === 3 ? 'rgba(255,240,235,.95)' : `rgba(${col},.85)`; ctx.lineWidth = tier === 3 ? 3 : 1.6; shapePath(ctx, t, 1); ctx.stroke(); ctx.shadowBlur = 0;
+}
+function actor(ctx, x, y, color, r = 11) { ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(x, y + r * .8, r, r * .4, 0, 0, 7); ctx.fill(); ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); }
+function scene(ctx, draw) {
+  ground(ctx, 7);
+  // a pack: 3 wolves light swipes, 1 bear heavy cone, boss danger circle
+  const L = [{ shape: 'cone', x: 70, y: 70, r: 46, ang: .6, half: .55 }, { shape: 'cone', x: 120, y: 200, r: 44, ang: -1.0, half: .5 }, { shape: 'line', x: 40, y: 150, ang: .2, len: 70, width: 9 }];
+  const Hv = { shape: 'cone', x: 220, y: 70, r: 80, ang: 2.1, half: .5 };
+  const D = { shape: 'circle', x: 225, y: 185, r: 58 };
+  draw(L, Hv, D);
+  for (const t of L) actor(ctx, t.x, t.y, '#8aa3b8', 9);
+  actor(ctx, Hv.x, Hv.y, '#f2f2f2', 14); actor(ctx, D.x + 40, D.y - 50, '#7a3ac0', 18); actor(ctx, 150, 130, '#e8d7a5', 9);
+}
+function cell(row, title, sub, draw, solo) {
+  const d = document.createElement('div'); d.className = 'cell';
+  const c = document.createElement('canvas'); c.width = W; c.height = H; d.appendChild(c);
+  d.insertAdjacentHTML('beforeend', `<div class="cap">${title}</div><div class="sub">${sub}</div>`);
+  document.getElementById(row).appendChild(d); if (solo) draw(c.getContext('2d')); else scene(c.getContext('2d'), (L, Hv, Dg) => draw(c.getContext('2d'), L, Hv, Dg));
+}
+cell('r1', 'ตอนนี้', 'ทุกวงเหมือนกันหมด: แดงทึบ + ขอบขาวกะพริบ', (ctx, L, Hv, D) => { for (const t of [...L, Hv, D]) drawOld(ctx, t); });
+cell('r1', 'ใหม่ — ทั้ง 3 ระดับ', 'เบา = เส้นประจาง · หนัก = ไล่สีส้ม + วงปิด · อันตราย = แดงเข้ม ลายทแยง ⚠', (ctx, L, Hv, D) => { for (const t of L) drawNew(ctx, t, 1); drawNew(ctx, Hv, 2); drawNew(ctx, D, 3); });
+cell('r1', 'ใหม่ — ตั้งค่า "เฉพาะท่าหนักขึ้นไป"', 'ค่าเริ่มต้นที่แนะนำ: การตีธรรมดาไม่มีวง ดูจากท่ามอนสเตอร์', (ctx, L, Hv, D) => { drawNew(ctx, Hv, 2); drawNew(ctx, D, 3); });
+const one = (title, sub, tier, t) => cell('r2', title, sub, (ctx) => { ground(ctx, 3); drawNew(ctx, t, tier); });
+cell('r2', 'ระดับ 1 · เบา', 'โจมตีธรรมดา: เส้นประจาง + เส้นวิ่งบอกจังหวะ ไม่มีพื้นทึบ', (ctx) => { ground(ctx, 3); const t = { shape: 'cone', x: 110, y: 120, r: 90, ang: .2, half: .55 }; drawNew(ctx, t, 1); actor(ctx, t.x, t.y, '#8aa3b8', 12); actor(ctx, 200, 130, '#e8d7a5', 9); }, true);
+cell('r2', 'ระดับ 2 · หนัก', 'heavy / guardBreak / elite: ขอบชัด กลางจาง วงปิดเข้าบอกเวลา', (ctx) => { ground(ctx, 3); const t = { shape: 'cone', x: 90, y: 130, r: 130, ang: .1, half: .5 }; drawNew(ctx, t, 2); actor(ctx, t.x, t.y, '#f2f2f2', 15); actor(ctx, 230, 120, '#e8d7a5', 9); }, true);
+cell('r2', 'ระดับ 3 · อันตราย', 'ท่าบอส / unblockable / กลไก: แดงเข้ม ลายทแยง ⚠ ขอบเรืองแสง', (ctx) => { ground(ctx, 3); const t = { shape: 'circle', x: 156, y: 130, r: 95 }; drawNew(ctx, t, 3); actor(ctx, 156, 40, '#7a3ac0', 20); actor(ctx, 120, 150, '#e8d7a5', 9); }, true);
+</script></body></html>
