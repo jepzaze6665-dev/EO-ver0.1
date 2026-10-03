@@ -41,7 +41,12 @@ export const FIELD_A1 = {
   requires: [],
   hiddenAreas: ['hidden_cave', 'behind_waterfall', 'moonlit_shrine', 'sealed_archive'],
   region: { zones: [Z.FOREST, Z.CAVE, Z.RUINS, Z.GATE] },
-  mechanics: [{ type: 'fireflies' }], // stand still: fireflies drift toward what the forest still hides (world/mechanics/fireflies.js)
+  mechanics: [
+    { type: 'fireflies' }, // stand still: fireflies drift toward what the forest still hides (world/mechanics/fireflies.js)
+    // RANDOM EVENT (world/mechanics/quarry.js): on ~1 visit in 4 a Golden Hare hides somewhere — it runs, catch it for gold
+    { type: 'quarry', monster: 'rabbit', name: 'Golden Hare', chance: 0.25, hp: 4, speed: 1.6, life: 75, gold: 400,
+      reward: [{ item: 'moon_crystal', count: 2 }], spots: [[51, 123], [128, 97], [14, 72], [136, 64], [40, 140], [90, 150], [120, 130], [60, 105]] },
+  ],
   spawn: [47.5, 150],
   // difficulty by part of the map (world.js populate): north of the river the beasts are corrupted until the Guardian
   // falls; in the ruins they are hardened (tougher, more EXP, +2 level — Monster opts.areaMod)

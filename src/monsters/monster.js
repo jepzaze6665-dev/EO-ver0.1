@@ -199,6 +199,7 @@ export class Monster extends Entity {
     this.status.update(dt);
     this.applyKnockback(dt, map);
     for (const k in this.cds) this.cds[k] -= dt;
+    if (this.scripted) { this.scripted(this, dt); return; } // a map event drives this one (e.g. the golden hare flees): no AI
     if (this.shieldBroken) { this.shieldRegen -= dt; if (this.shieldRegen <= 0) { this.shieldBroken = false; this.shieldHp = this.def.shield.hp; } }
     if (this.armorRegen !== undefined && this.armor <= 0) {
       this.armorRegen -= dt;

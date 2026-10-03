@@ -1,7 +1,7 @@
 import { PARTY } from '../data/party.js';
 import { AUDIO_BUSES } from '../data/sounds.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
-import { ITEMS, RARITY_COLOR, CATEGORIES, RECIPES, SHOPS } from '../items/items.js';
+import { ITEMS, RARITY_COLOR, CATEGORIES, RECIPES, SHOPS, shopId, shopPrice } from '../items/items.js';
 import { iconURL, itemIconURL, skillIconURL } from './icons.js';
 import { dialogueFor, LORE } from '../world/narrative.js';
 import { QUESTS } from '../quests/quests.js';
@@ -680,14 +680,14 @@ export class Panels {
     const sellable = g.inventory.list('Material').filter(({ def }) => !def.bound), shop = SHOPS[this.dialogueNpc] || SHOPS.merchant;
     const tab = this.npcTab('shop', 'buy');
     const body = tab === 'buy'
-      ? shop.stock.map((id) => { const d = ITEMS[id], ok = p.canAfford(d.price); return npcRow({ img: itemIconURL(d), color: RARITY_COLOR[d.rarity], name: d.name, nameColor: RARITY_COLOR[d.rarity], text: esc(d.modText || d.desc || ''), tip: id,
-        right: `<button data-buy="${id}" ${ok ? '' : 'disabled'}>${goldTag(d.price, ok)}</button>` }); }).join('')
+      ? shop.stock.map((s) => { const id = shopId(s), d = ITEMS[id], price = shopPrice(s), ok = p.canAfford(price); return npcRow({ img: itemIconURL(d), color: RARITY_COLOR[d.rarity], name: d.name, nameColor: RARITY_COLOR[d.rarity], text: esc(d.modText || d.desc || ''), tip: id,
+        right: `<button data-buy="${id}" ${ok ? '' : 'disabled'}>${goldTag(price, ok)}</button>` }); }).join('')
       : sellable.map(({ id, n, def }) => npcRow({ img: itemIconURL(def), color: RARITY_COLOR[def.rarity], name: `${def.name} ×${n}`, tip: id, right: `<button data-sell="${id}">+ ${goldTag(def.sell)}</button>` })).join('')
         || '<div class="muted small">No materials to sell.</div>';
     const el = this.show('shop', npcPanelHTML({ icon: 'npc_shop', title: shop.title, sub: tab === 'buy' ? 'Buy' : 'Sell materials', gold: p.gold,
       menu: [{ id: 'buy', label: 'Buy' }, { id: 'sell', label: 'Sell' }], tab, body, keys: [['Click', tab === 'buy' ? 'Buy' : 'Sell']] }), 'side');
     this.wireNpc(el, 'shop', () => this.shop(), (t) => {
-      if (t.dataset.buy) { const d = ITEMS[t.dataset.buy]; if (!g.inventory.canAdd(t.dataset.buy)) g.ui.toast('Inventory full', 1); else if (p.removeGold(d.price)) { g.inventory.add(t.dataset.buy, 1); g.audio.sfx('chest'); } this.shop(); }
+      if (t.dataset.buy) { const s = shop.stock.find((x) => shopId(x) === t.dataset.buy); if (!s) return; if (!g.inventory.canAdd(t.dataset.buy)) g.ui.toast('Inventory full', 1); else if (p.removeGold(shopPrice(s))) { g.inventory.add(t.dataset.buy, 1); g.audio.sfx('chest'); } this.shop(); }
       if (t.dataset.sell) { const d = ITEMS[t.dataset.sell]; if (g.inventory.remove(t.dataset.sell, 1)) { p.addGold(d.sell); g.audio.sfx('gather'); } this.shop(); }
     });
   }

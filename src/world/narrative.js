@@ -280,6 +280,11 @@ export function dialogueFor(id, g) {
         ],
         options: [{ label: 'Thank you', action: 'close' }],
       };
+    case 'caravan': // random event (data/wanderers.js): never in the same place twice
+      return {
+        lines: ['Marrow, of the long roads. The caravan does not stay — tomorrow we are three valleys east.', 'Charms and runes from places your cities have forgotten. Buy now; I may not find you again.'],
+        options: [{ label: 'Trade', action: 'shop' }, { label: 'Leave', action: 'close' }],
+      };
     case 'a_merchant':
       return {
         lines: ['Odo, of the Asterian Bazaar! Draughts from the plaza crystal, charms from the old city — all fairly priced, mostly.'],

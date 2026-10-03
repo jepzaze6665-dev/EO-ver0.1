@@ -99,6 +99,7 @@ export function npcSprite(look) {
     scout: { robe: '#3a5a3a', trim: '#b0a060', hair: '#7a3a2a', skin: '#e0b090', extra: 'bow' },
     guildmaster: { robe: '#24346a', trim: '#e0c070', hair: '#d8d0c0', skin: '#e0b894', extra: 'staff' },
     knight: { robe: '#5a6478', trim: '#d8b060', hair: '#4a3a2a', skin: '#d8a880', extra: 'sword' },
+    caravan: { robe: '#6a4a2a', trim: '#e0b060', hair: '#d8d0c0', skin: '#d8a880', hood: true, extra: 'bag' }, // travelling merchant (random event)
   }[look] || { robe: '#555', trim: '#999', hair: '#333', skin: '#dba' };
   const make = (bob) => frame(28, 46, (g) => {
     const s = L.small ? 0.8 : 1;

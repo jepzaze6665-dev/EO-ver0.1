@@ -39,6 +39,8 @@ export class WandererSystem {
       if (g.worldProgress && !g.worldProgress.meets(entry.requires || [])) continue;
       const spots = this.openSpots(entry);
       if (!spots.length) continue;
+      if (entry.chance !== undefined && !(this.force && this.force[def.id]) && rng() >= entry.chance) continue; // random event: not this visit
+      if (def.banner) g.ui.banner(def.banner.title, def.banner.sub, '#ffd98a');
       const [tx, ty] = spots[Math.floor(rng() * spots.length) % spots.length];
       const npc = new NPC(g, { id: def.id, name: def.name, role: def.role, look: def.look, x: (tx + 0.5) * TILE, y: (ty + 0.7) * TILE });
       npc.mapId = mapId;

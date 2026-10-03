@@ -2443,3 +2443,56 @@ export async function discoveryCheck(g, classId = 'umbral_sword') {
   console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
   return { pass, R };
 }
+
+// RANDOM EVENTS: the nomad caravan (data/wanderers.js `chance`, sells gear with its own prices) and the Golden Hare
+// (world/mechanics/quarry.js: flees, pays gold when caught, slips away when time runs out).
+export async function randomEventCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  const { interact } = await import('../src/exploration/interactables.js');
+  const { Quarry } = await import('../src/world/mechanics/quarry.js');
+  g.newGame(classId);
+  const w = g.world, p = g.player;
+  p.god = true; releaseInput(g);
+  // caravan: random per visit
+  let seen = 0;
+  for (let i = 0; i < 40; i++) { w.changeMap(i % 2 ? 'b1' : 'lumina', { entry: w.mapManager.get(i % 2 ? 'b1' : 'lumina').spawn }); if (w.npcs.some((n) => n.id === 'caravan')) seen++; }
+  ok('caravan: shows up on some B1 visits, not all', seen > 1 && seen < 18, `${seen}/20`);
+  g.wanderers.force = { caravan: true };
+  w.changeMap('b1', { entry: w.mapManager.get('b1').spawn });
+  const npc = w.npcs.find((n) => n.id === 'caravan'), it = w.interactables.find((i) => i.npc === npc);
+  ok('forced: the caravan stands on open B1 ground', npc && !w.map.isSolidAt(npc.x, npc.y) && w.mapManager.idAt(npc.x, npc.y) === 'b1');
+  g.wanderers.force = null;
+  p.addGold(5000); const gold = p.gold;
+  interact(w, it); g.ui.panels.shop();
+  const btn = document.querySelector('[data-buy="charm_swift"]');
+  ok('caravan shop lists gear with its own price', btn && /900/.test(btn.textContent), btn && btn.textContent);
+  btn.click();
+  ok('buying works (gold -900, item in the bag)', p.gold === gold - 900 && g.inventory.count('charm_swift') >= 1, `${gold} -> ${p.gold}`);
+  g.ui.panels.close(true);
+  // golden hare
+  Quarry.force = true;
+  w.changeMap('a1', { entry: w.mapManager.get('a1').spawn });
+  Quarry.force = false;
+  const q = w.mapMech.get('quarry'), hare = q && q.mon;
+  ok('forced: a Golden Hare spawns far from you on A1', hare && hare.name === 'Golden Hare' && Math.hypot(hare.x - p.x, hare.y - p.y) > 600 && w.mapManager.idAt(hare.x, hare.y) === 'a1');
+  p.x = hare.x - 120; p.y = hare.y; const d0 = Math.hypot(hare.x - p.x, hare.y - p.y); g.simulate(0.6);
+  ok('it runs from you', Math.hypot(hare.x - p.x, hare.y - p.y) > d0 + 30, `${d0 | 0} -> ${Math.hypot(hare.x - p.x, hare.y - p.y) | 0}`);
+  ok('it never attacks (no slot, no wind-up)', hare.state !== 'attack');
+  const g0 = p.gold;
+  for (let i = 0; i < 20 && !hare.dead; i++) g.combat.dealDamage(p, hare, { power: 50, type: 'physical' });
+  g.simulate(0.3);
+  ok('caught: +400 gold + moon crystals', hare.dead && q.caught && p.gold >= g0 + 400, `${g0} -> ${p.gold}`);
+  Quarry.force = true;
+  w.changeMap('lumina', { entry: w.mapManager.get('lumina').spawn }); w.changeMap('a1', { entry: w.mapManager.get('a1').spawn });
+  Quarry.force = false;
+  const q2 = w.mapMech.get('quarry'), h2 = q2.mon;
+  for (const m of w.monsters) if (m !== h2) m.removed = true; // nothing else may kill the test player during the wait
+  w.monsters = [h2]; for (const sp of w.spawnPoints) sp.active = false;
+  g.simulate(76);
+  ok('not caught in time: it slips away (gone, no reward)', h2.dead && q2.fled && !q2.caught);
+  w.changeMap('lumina', { entry: w.mapManager.get('lumina').spawn });
+  ok('leaving the map: no quarry left behind', !w.monsters.some((m) => m.golden && !m.dead));
+  const pass = R.every((r) => r[1]);
+  console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
+  return { pass, R };
+}

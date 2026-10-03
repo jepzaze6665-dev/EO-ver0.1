@@ -4,9 +4,20 @@
 //   id, name, role, look (monsters/monsterSprites.js npcSprite)
 //   maps: { mapId: { requires: [...], spots: [[tx, ty], ...] } }
 //   doneFlag: world flag that sends the wanderer away everywhere
+//   chance (per map entry, default 1): a RANDOM EVENT wanderer only shows up on some visits (the caravan)
+//   banner: { title, sub } shown when it does appear
 // Spots = open ground reachable from the map spawn, away from packs, boss arenas and other objects, far apart (BFS pick).
 // Dialogue = world/narrative.js dialogueFor(id) (it reads which map the player is on + the wanderer's quests).
 export const WANDERERS = {
+  // RANDOM EVENT: a nomad caravan camps somewhere on the snow roads on ~1 visit in 3, selling what no city shop has
+  caravan: {
+    id: 'caravan', name: 'Marrow the Trader', role: 'Nomad Caravan', look: 'caravan',
+    banner: { title: 'A CARAVAN IS IN THE PASS', sub: 'Smoke from a trader\'s fire, somewhere on the roads' },
+    maps: {
+      b1: { chance: 0.35, spots: [[60, 50], [100, 60], [118, 64], [66, 88], [92, 140]] },
+      b3: { chance: 0.35, requires: [], spots: [[80, 170], [72, 146], [84, 106], [132, 104]] },
+    },
+  },
   // A2 secret boss chain (Varkharon): one trial per Route A field map, each pays a Cinder Shard (data/quests.js ember_*)
   ashen_pilgrim: {
     id: 'ashen_pilgrim', name: 'Ashen Pilgrim', role: 'Keeper of the Cinders', look: 'pilgrim',

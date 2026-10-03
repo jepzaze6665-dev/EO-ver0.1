@@ -121,8 +121,13 @@ export const RECIPES = [
 ];
 
 // shops per NPC (dialogue action 'shop' opens the shop of the NPC you talk to)
+// stock entries: an item id (its own `price`) or [id, price] (gear items have no price of their own)
 export const SHOPS = {
   merchant: { title: "Lysa's Goods", stock: ['hp_potion', 'shadow_tonic', 'hunters_charm', 'hunger_rune', 'shade_charm'] },
   a_merchant: { title: 'Asterian Bazaar', stock: ['hp_potion', 'shadow_tonic', 'hunters_charm', 'hunger_rune', 'shade_charm', 'eclipse_relic'] },
+  // RANDOM EVENT (data/wanderers.js caravan): sells gear no city shop has
+  caravan: { title: "Marrow's Caravan", stock: ['hp_potion', ['charm_swift', 900], ['charm_focus', 950], ['rune_iron_will', 1100], ['rune_second_wind', 1200], ['charm_wanderer', 1400]] },
 };
+export const shopId = (s) => (Array.isArray(s) ? s[0] : s);
+export const shopPrice = (s) => (Array.isArray(s) ? s[1] : ITEMS[s].price);
 export const SHOP = SHOPS.merchant.stock;

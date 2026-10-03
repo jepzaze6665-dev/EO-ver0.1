@@ -1435,3 +1435,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   showed B1 / B3 with NOTHING to find -> new chests + lore on B1 (4 + trapper_journal), B3 (4 + hermit_notes), A2 (2 +
   ford_marker), B2 (1 + gallery_scratching), A3 (1 + archive_ledger, which tells where the vault switches are): every field
   map now has >= 5 (A1 18). `await T.discoveryCheck(g)` 7/7.
+  Done RANDOM EVENTS: (1) wanderer entries may carry `chance` (+ def `banner`): NOMAD CARAVAN `caravan` (Marrow the Trader,
+  look 'caravan') on ~35% of B1 / B3 visits at a random spot; SHOPS.caravan sells gear — shop stock entries may be
+  [id, price] (items.js shopId / shopPrice; gear has no price of its own). WandererSystem.force = { id: true } for tests.
+  (2) map mechanic `quarry` (`src/world/mechanics/quarry.js`, A1 GOLDEN HARE: chance 0.25, hp ×4, flees at 1.6× speed from
+  anyone within 260 px, slips away after 75 s, catch = +400 G + 2 moon crystals). NEW generic Monster hook `scripted(m, dt)`:
+  replaces the AI (status / knockback / death still run). Quarry.force = true for tests. `await T.randomEventCheck(g)` 10/10.
