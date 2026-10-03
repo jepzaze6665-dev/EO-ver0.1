@@ -1366,3 +1366,18 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   guest bossSync phase) · endBoss(next) (BossSystem.restoreMusic, Guardian reset, victory); a boss track blocks zone music.
   ESC menu Sound panel (panels.sound: sliders + mute). Prompts for the owner: docs/audio/AUDIO_PROMPTS.md (music 14, boss phases,
   ambience 8, combat / UI sfx 40). Test tools/tests/audio.test.mjs. No sound files exist yet (everything still synth).
+- **Current: MAP MECHANICS** (owner 2026-10-03: every field map gets ONE signature mechanic that changes play + secrets /
+  challenges / puzzles / random events built on it; owner chose the "real mechanic" route). Plan: M0 core · A1 fireflies
+  (guide to secrets) · B1 blizzard cycle + campfires · B3 altitude cold + warm embers · A3 rune switches (timed bridges /
+  doors) · B2 darkness + glow crystals · A2 water level / sluice gates (art delivered: desgin/Map/A/a2/water — dry riverbed
+  tileset, sluice gate / lever / chest / statue / underwater stairs props, waterfall 3 states; prompts docs/map/).
+  Done M0: `src/world/mapMechanics.js` (MapMechanic base + MapMechanicSystem = world.mapMech, registry
+  registerMapMechanic(type, cls); types live in src/world/mechanics/, imported by mechanics/index.js). Map data
+  `mechanics: [{ type, ... }]`; built on changeMap (enterMap), exit() on leaving / unloadGrid (undo world changes there),
+  reset() on respawn; hooks update / drawGround / drawAbove / drawScreen (renderer: after hazards, after vfx above, after
+  lighting) / hudTags (HUD under the minimap); `this.saved` = world.state.mapMech[map][key] (saved with the world).
+  ONLINE: PROTOCOL_VERSION 18 mapm { m, s } (room host -> room: netState() when markNet() or every 2 s) + mapEvt { m, i, k, d }
+  (guest -> host: netEvent(kind, data, from)); `this.authority` = false on a guest; net/mapSync.js. Gotcha: MapManager COPIES
+  the map defs per World (a load builds a new World): patch MAPS (mapRegistry) in tests, not mapManager.get(). Tests
+  tools/tests/mapMechanics.test.mjs (7) + `await T.mapMechCheck(g)` (8: build / update / draw / exit / saved / load / respawn /
+  other grid). No map uses a mechanic yet.

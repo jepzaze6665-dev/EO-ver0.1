@@ -14,6 +14,8 @@ import { Assets } from '../core/assets.js';
 import { MapManager } from './mapManager.js';
 import { TransitionSystem } from './transitionSystem.js';
 import { HazardSystem } from './hazardSystem.js';
+import { MapMechanicSystem } from './mapMechanics.js';
+import './mechanics/index.js';
 import { GateSystem } from './gateSystem.js';
 import { MAPS } from '../maps/mapRegistry.js';
 import { densify, ordinary } from './spawnDensity.js';
@@ -55,6 +57,7 @@ export class World {
     this.mapManager = new MapManager(MAPS);
     this.transitions = new TransitionSystem(this);
     this.hazardSys = new HazardSystem(this, MAPS); // map hazards (maps/*.js content.hazards)
+    this.mapMech = new MapMechanicSystem(this); // the current map's signature mechanics (maps/*.js mechanics)
     this.gates = new GateSystem(this, MAPS);       // boss gates with collision (maps/*.js gates)
     this.mapId = null;
     this.suppressZoneBanner = false;
@@ -139,6 +142,7 @@ export class World {
   unloadGrid() {
     const L = this.level, g = this.game;
     if (!L) return;
+    if (this.mapMech) this.mapMech.exitAll(); // undo their world changes while the grid is still loaded
     for (const k of LEVEL_FIELDS) L[k] = this[k]; // runtime additions (e.g. a totem chest) stay with the grid
     for (const m of L.monsters) m.removed = true;
     L.monsters = [];
@@ -188,6 +192,7 @@ export class World {
     if (def.grid !== this.gridId) this.enterGrid(def.grid); // another grid: unload this one, load that one
     this.mapId = id;
     this.mapManager.activate(id);
+    this.mapMech.enterMap(id);
     g.camera.bounds = this.mapManager.boundsPx(id);
     if (opts.entry) {
       const pos = this.map.findOpen(opts.entry[0] * TILE, opts.entry[1] * TILE, 4);
@@ -579,6 +584,7 @@ export class World {
     if (this.totemTick) this.totemTick();
     this.updateHazards(dt);
     this.hazardSys.update(dt);
+    this.mapMech.update(dt);
     // respawns
     for (const sp of this.spawnPoints) {
       if (!sp.active || sp.def.unique || sp.def.type === 'guardian') continue;

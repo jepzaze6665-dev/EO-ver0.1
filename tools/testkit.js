@@ -2106,3 +2106,49 @@ export function runCheck(g, classId = 'umbral_sword') {
   } finally { g.runRulesOffline = false; }
   return R;
 }
+
+// M0 MAP MECHANICS (world/mapMechanics.js): a test-only mechanic put on A1 while this runs — built on entry, updated,
+// drawn without errors, dropped on leaving / grid unload, saved data kept through save / load, reset on respawn.
+export async function mapMechCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  const { MapMechanic, registerMapMechanic } = await import('../src/world/mapMechanics.js');
+  const log = [];
+  class Probe extends MapMechanic {
+    enter() { log.push('enter'); this.t = 0; this.saved.visits = (this.saved.visits || 0) + 1; }
+    exit() { log.push('exit'); }
+    reset() { log.push('reset'); }
+    update(dt) { this.t += dt; }
+    drawGround() { this.drewG = true; } drawAbove() { this.drewA = true; } drawScreen() { this.drewS = true; }
+    hudTags() { return [{ label: 'PROBE ' + this.t.toFixed(1), color: '#9fe' }]; }
+  }
+  registerMapMechanic('probe_check', Probe);
+  // the registry object: a loaded game builds a new World whose MapManager copies the defs from it
+  const { MAPS } = await import('../src/maps/mapRegistry.js');
+  const src = MAPS.find((d) => d.id === 'a1'), keep = src.mechanics;
+  src.mechanics = [{ type: 'probe_check' }];
+  g.newGame(classId);
+  const w = g.world, def = w.mapManager.get('a1');
+  try {
+    g.player.god = true;
+    w.changeMap('a1', { entry: def.spawn });
+    const m = w.mapMech.get('probe_check');
+    ok('entering A1 builds its mechanic', m && log.join() === 'enter', log.join());
+    g.simulate(1);
+    ok('updated every frame', m.t > 0.9, m.t);
+    g.renderer.render(g, 1); g.ui.hud.draw(g.renderer.ctx, g.renderer.vw, g.renderer.vh);
+    ok('drawn on all 3 layers + HUD tag', m.drewG && m.drewA && m.drewS && w.mapMech.hudTags()[0].label.startsWith('PROBE'));
+    w.changeMap('lumina', { entry: w.mapManager.get('lumina').spawn });
+    ok('leaving A1 exits it', !w.mapMech.list.length && log.at(-1) === 'exit', log.join());
+    w.changeMap('a1', { entry: def.spawn });
+    ok('saved data kept between visits', w.state.mapMech.a1['0:probe_check'].visits === 2);
+    g.saveGame(); g.loadGame();
+    ok('save / load keeps it and rebuilds the mechanic', g.world.state.mapMech?.a1?.['0:probe_check']?.visits >= 2 && g.world.mapMech.list.length === 1, JSON.stringify(g.world.state.mapMech));
+    g.respawn();
+    ok('respawn: mechanics reset or rebuilt for the checkpoint map', log.includes('reset') || g.world.mapMech.mapId !== 'a1', log.slice(-3).join());
+    g.world.changeMap('b1', { entry: g.world.mapManager.get('b1').spawn });
+    ok('another grid: the A1 mechanic is gone', !g.world.mapMech.get('probe_check') && g.world.gridId === 'frostwind');
+  } finally { if (keep) src.mechanics = keep; else delete src.mechanics; }
+  const pass = R.every((r) => r[1]);
+  console.table(R.map(([step, p, d]) => ({ step, pass: p ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
+  return { pass, R };
+}

@@ -137,6 +137,7 @@ export class Renderer {
     for (const p of props) if (p.layer === 'ground') this.drawProp(ctx, p, game, true);
     this.drawHazards(ctx, game);
     game.world.hazardSys.draw(ctx, t);
+    game.world.mapMech.drawGround(ctx, t);      // map mechanics (world/mapMechanics.js)
     game.world.gates.draw(ctx, t);              // boss gates (world/gateSystem.js)
     if (game.bosses) game.bosses.drawGround(ctx, t); // boss arena boundaries (boss/bossSystem.js)
     game.vfx.drawBelow(ctx, t);
@@ -168,10 +169,12 @@ export class Renderer {
     this.drawThreads(ctx, game, t);
     game.combat.projectiles.draw(ctx, t);
     game.vfx.drawAbove(ctx, t);
+    game.world.mapMech.drawAbove(ctx, t);
 
     // ---------------- lighting (view space)
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.drawLighting(game, props);
+    game.world.mapMech.drawScreen(ctx, game);   // weather / darkness overlays (view space)
     // telegraphs go on top of the lighting so danger stays readable even in the darkest cave
     ctx.setTransform(z, 0, 0, z, Math.round(ox), Math.round(oy));
     game.combat.telegraphs.draw(ctx, t);

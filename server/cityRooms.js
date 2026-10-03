@@ -35,6 +35,8 @@ export class CityRooms {
     server.handle('sum', (s, m) => { const r = s.presence?.room; if (r) this.send(r, 'sum', { s: m.s, th: m.th, from: s.id }, s); });
     server.handle('fx', (s, m) => { const r = s.presence?.room; if (r) this.send(r, 'fx', { c: m.c, s: m.s, b: m.b, from: s.id }, s); });
     server.handle('bossEvt', (s, m) => { const r = s.presence?.room, h = r && this.hosts.get(r); if (h && h !== s.id) this.server.sessions.get(h)?.send('bossEvt', { ...m, from: s.id }); });
+    server.handle('mapm', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'mapm', { m: m.m, s: m.s }, s); });
+    server.handle('mapEvt', (s, m) => { const r = s.presence?.room, h = r && this.hosts.get(r); if (h && h !== s.id) this.server.sessions.get(h)?.send('mapEvt', { ...m, from: s.id }); });
     server.handle('boss', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'boss', { b: m.b }, s); });
     server.handle('mobAct', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'mobAct', { id: m.id, k: m.k, d: m.d }, s); });
     server.handle('mobs', (s, m) => { const r = s.presence?.room; if (r && this.hosts.get(r) === s.id) this.send(r, 'mobs', { ps: m.ps, full: m.full }, s); });

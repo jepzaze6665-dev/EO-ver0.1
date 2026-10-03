@@ -27,6 +27,7 @@ import { SUMMIT } from './summit.js';
 //   gates      : collision gates { id, rect, requires, color, label } (world/gateSystem.js) — solid until met
 //   hiddenAreas: data/hidden.js ids that live here (route panel "secrets found"; content = data/hidden.js)
 //   corruptedMonsters (true | { minTy, maxTy }) / monsterMods [{ zones, mod }]: how hard spawns are, by part of the map
+//   mechanics  : [{ type, ...options }] the map's signature mechanics (world/mapMechanics.js, types in world/mechanics/)
 //   exits / spawn / region / content: see maps/luminaVillage.js
 export const MAPS = [LUMINA_VILLAGE, FIELD_A1, MAJOR_BOSS_ARENA, VALEHAVEN, FIELD_A2, MAGMA_RIFT, CINDER_THRONE, FIELD_A3, SANCTUM, CITY2, FIELD_B1, FROST_ARENA_MAP, FIELD_B2, CRYSTAL_HEART, FIELD_B3, SUMMIT];
 export const START_MAP = 'lumina';

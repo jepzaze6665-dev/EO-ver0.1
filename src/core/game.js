@@ -478,6 +478,7 @@ export class Game {
     for (const rid in p.resources.defs) p.resources.set(rid, p.resources.defs[rid].respawn ?? p.resources.defs[rid].start, 'respawn');
     p.x = pos.x; p.y = pos.y; p.invulnT = 2; p.kx = p.ky = 0;
     w.syncMapToPlayer();
+    w.mapMech.reset(); // map mechanics: back to their checkpoint state
     for (const m of w.monsters) { if (m.aggro) { m.aggro = false; m.x = m.home.x; m.y = m.home.y; m.hp = m.maxHp; m.setState('idle'); } }
     this.camera.targetZoom = 1;
     this.camera.snap(p.x, p.y);

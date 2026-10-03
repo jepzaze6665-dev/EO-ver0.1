@@ -22,6 +22,7 @@ import { NetFx } from './netFx.js';
 import { NetSummons } from './netSummons.js';
 import { NetProgress } from './netProgress.js';
 import { NetPiles } from './netPiles.js';
+import { MapSync } from './mapSync.js';
 import { SAVE_KEY, BACKUP_KEY } from '../save/save.js';
 
 const NAME_KEY = 'eclipse_online_last_name';
@@ -44,6 +45,7 @@ export class OnlineSession {
     this.revive = new NetRevive(this); // revive teammates on other clients
     this.fx = new NetFx(this);         // friends' skill effects
     this.summons = new NetSummons(this); // friends' summons / clones / threads
+    this.mapSync = new MapSync(this); // M0: the run map's mechanics (host -> guests)
     this.progress = new NetProgress(this); // N8 boss kills owned by the server
     this.pileNet = new NetPiles(this);     // N9 death piles (party members' piles: this.piles)
     this.saves.onRemove = () => this.progress.clear();
@@ -167,6 +169,7 @@ export class OnlineSession {
     this.mobs.update(); // N7a: host snapshots (own throttle)
     this.fx.flush();
     this.summons.update();
+    this.mapSync.update();
     this.progress.update();
     this.pileNet.update();
     const look = `${p.cls.id}:${p.level}`;

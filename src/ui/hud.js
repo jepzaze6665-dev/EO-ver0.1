@@ -122,6 +122,7 @@ export class HUD {
     this.drawSkillBar(ctx, W, H, u);
     this.drawMinimap(ctx, W, u);
     this.drawNet(ctx, W, u);
+    this.drawMapTags(ctx, W, u);
     ctx.globalAlpha = this.questA ?? 1; this.drawOnlineParty(ctx, u); ctx.globalAlpha = 1; // fades in intense fights
     this.drawQuests(ctx, W, u);
     ctx.globalAlpha = this.questA ?? 1; this.drawRoute(ctx, u); ctx.globalAlpha = 1; // fades with the quest tracker
@@ -595,6 +596,11 @@ export class HUD {
     this.text(ctx, sub, W / 2, 116 * u, 10 * u, '#e8e0d0', { align: 'center' });
   }
 
+  // map mechanics (world/mapMechanics.js hudTags): small labels under the minimap, e.g. BLIZZARD 12s
+  drawMapTags(ctx, W, u) {
+    const mm = this.game.world.mapMech, tags = mm ? mm.hudTags() : [];
+    tags.forEach((tg, k) => this.text(ctx, tg.label, W - 18 * u, 18 * u + 190 * u + 46 * u + k * 16 * u, 12 * u, tg.color || '#e8e0c8', { align: 'right' }));
+  }
   drawMinimap(ctx, W, u) {
     const g = this.game, p = g.player, map = g.world.map;
     this.miniT -= 1 / 60;

@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 17;
+export const PROTOCOL_VERSION = 18;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -106,6 +106,10 @@ export const CLIENT_MESSAGES = {
   revive: { to: 'slug' },
   fx: { c: 'fxCalls', s: 'fxShots', b: 'slug?' },
   sum: { s: 'rows16', th: 'rows16' },                   // my summons / clones and threads (presentation only), relayed to my room        // b = a boss id: that boss's effects (host only — the clients check)
+  // M0 map mechanics (net/mapSync.js): the run-map HOST sends the current map's mechanic states { index: state };
+  // a guest tells the host what only it did (pulled a lever: k = kind) — both relayed by the server inside the room
+  mapm: { m: 'slug', s: 'bossData' },
+  mapEvt: { m: 'slug', i: 'int', k: 'slug', d: 'actData' },
   boss: { b: 'bossData' },                                // N7c host only: boss snapshot { id, st, x, y, f, pose, state, phase, hp, max, dead, air, hurt, vul, move, tags }                    // my skill effects (presentation only), relayed to my room                                // I held [E] long enough next to this downed teammate  // N7b host only: a monster started an attack / fired shots
   // N5 dungeon gate (server/dungeons.js)
   dungeonEnter: { area: 'slug' },                        // solo entry
