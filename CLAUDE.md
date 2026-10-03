@@ -1386,3 +1386,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (undiscovered `secret` interactable / NPC first (weighted ×0.6 distance), else an unopened chest); nothing -> they circle
   you. Every 3.5 s while you keep still; HUD tag "✦ The fireflies lead the way"; one-time tip toast (saved.told).
   Presentation only (each client runs its own). `T.fireflyCheck(g)` 8/8. Next map mechanic: B1 blizzard.
+  Done B1 BLIZZARD (`src/world/mechanics/blizzard.js`, map b1 mechanics { type 'blizzard', hunters ['rime_wolf'], fires 12 }):
+  cycle CALM 75 s -> WARN 8 s (toast) -> STORM 32 s (banner) -> calm (arrival = calm with 35-60% left). Storm: white-out
+  overlay (drawScreen: fog canvas with clear holes round you + every campfire), driving snow; COLD meter per client
+  (+4.5/s in the storm away from fire, -18/s within warmR 96 px of a campfire, -6/s calm): 60% = status `frostbite`
+  (move ×0.8), 100% = `frozen_through` (dot 3% max HP / 1.5 s); hunters within 700 px of a player not at a fire -> chase +
+  haste. Campfires are code-drawn by the mechanic (findOpen near the data tiles). Online: host owns phase + time
+  (netState { ph, t }), cold is per client. HUD map tags now at the TOP CENTRE. `T.blizzardCheck(g)` 11/11.
+  Gotcha (again): `node -e` edit scripts hang on this machine even with </dev/null -> use the Edit tool.

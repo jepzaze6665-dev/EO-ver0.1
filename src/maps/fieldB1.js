@@ -19,6 +19,11 @@ export const FIELD_B1 = {
   requires: [],
   hiddenAreas: [],
   region: { zones: [Z.FROSTWIND] },
+  // BLIZZARD cycle (world/mechanics/blizzard.js): white-out + cold away from the campfires, the wolf packs hunt by scent
+  mechanics: [{
+    type: 'blizzard', hunters: ['rime_wolf'],
+    fires: [[18, 25], [79, 60], [87, 31], [37, 67], [144, 67], [140, 91], [68, 92], [26, 148], [92, 146], [118, 64], [52, 44], [71, 182]],
+  }],
   spawn: [8.5, 21],
   content: {
     interactables: [

@@ -2184,3 +2184,41 @@ export function fireflyCheck(g, classId = 'umbral_sword') {
   console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
   return { pass, R };
 }
+
+// B1 BLIZZARD (world/mechanics/blizzard.js): calm -> warning -> storm cycle, cold + statuses away from fires, fires warm,
+// the wolf packs hunt by scent (hasted), guests follow the host's cycle, leaving the map clears the cold.
+export function blizzardCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player;
+  p.god = true; releaseInput(g);
+  w.changeMap('b1', { entry: [30, 30] });
+  const b = w.mapMech.get('blizzard');
+  ok('B1 has the blizzard + 12 campfires on open ground', b && b.fires.length === 12 && b.fires.every((f) => !w.map.isSolidAt(f.x, f.y) && w.mapManager.idAt(f.x, f.y) === 'b1'));
+  ok('arrival is calm, the storm is not instant', b.phase === 'calm' && b.t > 10, b.t);
+  b.t = 0.05; g.simulate(0.2);
+  ok('calm -> warning', b.phase === 'warn' && w.mapMech.hudTags()[0].label.includes('Blizzard in'));
+  b.t = 0.05; g.simulate(0.2);
+  ok('warning -> BLIZZARD', b.phase === 'storm');
+  const away = w.map.findOpen(30 * TILE, 30 * TILE, 4); p.x = away.x; p.y = away.y;
+  g.simulate(14);
+  ok('away from fires: cold builds, 60% = FROSTBITE', b.cold >= 60 && p.status.has('frostbite'), Math.round(b.cold));
+  b.cold = 100; g.simulate(2.5);
+  ok('100% = FROZEN THROUGH (damage over time)', p.status.has('frozen_through'));
+  const f = b.fires[0]; p.x = f.x + 30; p.y = f.y; g.simulate(3);
+  ok('at a campfire: cold drains', b.cold < 60, Math.round(b.cold));
+  const wolf = w.monsters.find((m) => m.type === 'rime_wolf' && !m.dead && !m.aggro);
+  if (wolf) {
+    const pos = w.map.findOpen(wolf.x - 500, wolf.y, 6); p.x = pos.x; p.y = pos.y; g.simulate(0.2);
+    ok('storm: the pack catches your scent (chase + haste)', wolf.aggro && wolf.status.has('haste'));
+  } else ok('storm: the pack catches your scent', false, 'no idle wolf');
+  b.netApply({ ph: 0, t: 40 });
+  ok('guest view follows the host\'s cycle (netApply)', b.phase === 'calm' && b.t === 40);
+  ok('netState carries phase + time', JSON.stringify(b.netState()) === '{"ph":0,"t":40}', JSON.stringify(b.netState()));
+  b.cold = 100; g.simulate(0.1);
+  w.changeMap('lumina', { entry: w.mapManager.get('lumina').spawn });
+  ok('leaving B1: no blizzard, cold statuses gone', !w.mapMech.get('blizzard') && !p.status.has('frostbite') && !p.status.has('frozen_through'));
+  const pass = R.every((r) => r[1]);
+  console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
+  return { pass, R };
+}

@@ -42,6 +42,9 @@ export const STATUSES = {
   // bleed: physical damage over time (items: Bloodletter's Hook); data.damage = per tick per stack
   bleed: { id: 'bleed', category: 'dot', maxStacks: 5, stacking: 'stack', dot: { interval: 1, damage: 3, type: 'physical' }, display: { label: 'BLEED', color: '#e04050' } },
   poison: { id: 'poison', category: 'dot', maxStacks: 5, stacking: 'stack', dot: { interval: 1, damage: 4, type: 'poison' }, display: { label: 'POISON', color: '#90e050' } },
+  // map cold (world/mechanics/blizzard.js): 60% cold = slower, 100% = frost damage (data.damage = per tick, set from max HP)
+  frostbite: { id: 'frostbite', category: 'debuff', maxStacks: 1, stacking: 'longest', modifiers: { moveMult: 0.8 }, display: { label: 'FROSTBITE', color: '#9ac8ff' } },
+  frozen_through: { id: 'frozen_through', category: 'dot', maxStacks: 1, stacking: 'longest', dot: { interval: 1.5, damage: 4, type: 'ice' }, display: { label: 'FROZEN', color: '#6ab0ff' } },
   // ---- buffs
   haste: { id: 'haste', category: 'buff', maxStacks: 1, stacking: 'longest', modifiers: { moveMult: 1.25 }, display: { label: 'HASTE', color: '#9af8ff' } },
   counter_ready: { id: 'counter_ready', category: 'buff', maxStacks: 1, stacking: 'refresh', display: { label: 'COUNTER READY', color: '#ffd070' } },

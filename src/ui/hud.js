@@ -596,10 +596,12 @@ export class HUD {
     this.text(ctx, sub, W / 2, 116 * u, 10 * u, '#e8e0d0', { align: 'center' });
   }
 
-  // map mechanics (world/mapMechanics.js hudTags): small labels under the minimap, e.g. BLIZZARD 12s
+  // map mechanics (world/mapMechanics.js hudTags): small labels side by side at the top centre, e.g. BLIZZARD 12s
   drawMapTags(ctx, W, u) {
     const mm = this.game.world.mapMech, tags = mm ? mm.hudTags() : [];
-    tags.forEach((tg, k) => this.text(ctx, tg.label, W - 18 * u, 18 * u + 190 * u + 46 * u + k * 16 * u, 12 * u, tg.color || '#e8e0c8', { align: 'right' }));
+    if (!tags.length) return;
+    const gap = 170 * u, x0 = W / 2 - ((tags.length - 1) * gap) / 2;
+    tags.forEach((tg, k) => this.text(ctx, tg.label, x0 + k * gap, 30 * u, 14 * u, tg.color || '#e8e0c8', { align: 'center' }));
   }
   drawMinimap(ctx, W, u) {
     const g = this.game, p = g.player, map = g.world.map;
