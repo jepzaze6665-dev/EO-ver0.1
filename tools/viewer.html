@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sprite Viewer</title>
+<!-- SPRITE / VFX VIEWER (dev tool): every built atlas outside the game. Open http://localhost:5173/tools/viewer.html
+     Player presets (every sheet, 4 direction rows), monsters (every anim), VFX strips (vfx / boss / playerfx).
+     Play / pause / step, fps, zoom, background (dark / magenta / checker / white: holes and white fringes show on
+     magenta), pivot cross, all-frames grid with empty / blank frames marked. Reads only assets/*.json + png. -->
+<style>
+:root { --bg: #14111d; --panel: #1e1a2b; --line: #4a3f6b; --text: #e8e0ff; --dim: #9a90b8; --hl: #ffd96a; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 13px 'Segoe UI', sans-serif; display: flex; height: 100vh; }
+#side { width: 260px; border-right: 1px solid var(--line); display: flex; flex-direction: column; background: var(--panel); }
+#side select, #side input { margin: 6px 8px 0; background: #120f1c; color: var(--text); border: 1px solid var(--line); padding: 4px; }
+#list { flex: 1; overflow: auto; margin-top: 6px; }
+#list div { padding: 3px 10px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#list div:hover { background: #2c2540; } #list div.on { background: #4a3a80; color: #fff; }
+#main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px; border-bottom: 1px solid var(--line); }
+#bar button, #bar select { background: #2a2440; color: var(--text); border: 1px solid var(--line); border-radius: 3px; padding: 3px 8px; cursor: pointer; }
+#info { padding: 4px 8px; color: var(--dim); font-family: monospace; font-size: 12px; }
+#stage { flex: 1; overflow: auto; padding: 10px; }
+canvas { image-rendering: pixelated; display: block; }
+#grid { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
+#grid canvas { border: 1px solid var(--line); cursor: pointer; }
+#grid canvas.cur { border-color: var(--hl); }
+#grid canvas.empty { border-color: #f55; }
+h4 { margin: 12px 0 4px; color: var(--hl); font-weight: 600; }
+@media (max-width: 700px) { body { flex-direction: column; } #side { width: 100%; height: 40vh; } }
+</style>
+</head>
+<body>
+<div id="side">
+  <select id="cat"><option value="player">Player classes</option><option value="monster">Monsters / bosses</option><option value="vfx">VFX strips</option></select>
+  <input id="filter" placeholder="filter…">
+  <div id="list"></div>
+</div>
+<div id="main">
+  <div id="bar">
+    <select id="sub"></select>
+    <button id="play">❚❚ Pause</button><button id="prev">◀</button><button id="next">▶</button>
+    <label>FPS <input id="fps" type="range" min="1" max="30" value="10"> <span id="fpsv">10</span></label>
+    <label>Zoom <select id="zoom"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+    <label>BG <select id="bgc"><option value="#14111d">dark</option><option value="#ff00ff">magenta</option><option value="checker">checker</option><option value="#ffffff">white</option><option value="#3a6a3a">grass</option></select></label>
+    <label><input id="pivot" type="checkbox" checked> pivot</label>
+  </div>
+  <div id="info"></div>
+  <div id="stage"><canvas id="cv" width="10" height="10"></canvas><h4>All frames (click = show; red = empty)</h4><div id="grid"></div></div>
+</div>
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const json = (u) => fetch('/' + u).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+const imgs = {};
+const img = (f) => imgs[f] || (imgs[f] = new Promise((res) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = '/' + f; }));
+
+// ---- sources: each entry -> { name, subs: [{ name, frames: [{ file, x, y, w, h, ax?, ay?, empty? }] }] }
+const PRESETS = ['', 'ag', 'aw', 'be', 'bs', 'dr', 'lo', 'ok', 'rp', 'sm', 'vs', 'wd'];
+const DIRS = ['down', 'side 1', 'side 2', 'up'];
+async function loadPlayers() {
+  const out = [];
+  for (const p of PRESETS) {
+    const a = await json(`assets/player/${p ? p + '/' : ''}atlas.json`);
+    if (!a.sheets) continue;
+    const subs = [];
+    for (const [sn, s] of Object.entries(a.sheets)) {
+      if (!s.fw || !s.rows) continue;
+      const empty = new Set((s.emptyFrames || []).map((e) => (Array.isArray(e) ? e.join(',') : String(e))));
+      for (let r = 0; r < s.rows; r++) {
+        const frames = [];
+        for (let c = 0; c < (s.cols || a.cols || 6); c++) frames.push({ file: s.file, x: c * s.fw, y: r * s.fh, w: s.fw, h: s.fh, ax: s.ax, ay: s.ay, empty: empty.has(`${r},${c}`) });
+        subs.push({ name: `${sn} · ${DIRS[r] || 'row ' + r}`, frames });
+      }
+    }
+    out.push({ name: `${p || 'ub'} (${a.preset || p})`, subs });
+  }
+  return out;
+}
+async function loadMonsters() {
+  const m = await json('assets/monsters/monsters.json');
+  return Object.entries(m).map(([id, d]) => ({
+    name: id,
+    subs: Object.entries(d.anims || {}).map(([an, list]) => ({ name: an, frames: list.map(([x, y]) => ({ file: d.file, x, y, w: d.fw, h: d.fh, ax: d.ax, ay: d.ay })) })),
+  }));
+}
+async function loadVfx() {
+  const all = { ...(await json('assets/vfx/vfx.json')), ...(await json('assets/vfx/boss.json')), ...(await json('assets/vfx/playerfx.json')) };
+  return Object.entries(all).map(([id, d]) => ({
+    name: `${id}  [${d.set || ''}]`,
+    subs: [{ name: `${d.frames} frames ${d.fw}×${d.fh}`, frames: Array.from({ length: d.frames || 1 }, (_, i) => ({ file: d.file, x: i * d.fw, y: 0, w: d.fw, h: d.fh })) }],
+  }));
+}
+
+let entries = [], entry = null, sub = null, frame = 0, playing = true, acc = 0, last = 0;
+const loaders = { player: loadPlayers, monster: loadMonsters, vfx: loadVfx };
+const cache = {};
+
+async function setCat() {
+  const c = $('cat').value;
+  entries = cache[c] || (cache[c] = await loaders[c]());
+  renderList();
+  if (entries[0]) pick(entries[0]);
+}
+function renderList() {
+  const f = $('filter').value.toLowerCase();
+  $('list').innerHTML = '';
+  for (const e of entries) {
+    if (f && !e.name.toLowerCase().includes(f)) continue;
+    const d = document.createElement('div');
+    d.textContent = e.name; d.className = e === entry ? 'on' : '';
+    d.onclick = () => pick(e);
+    $('list').appendChild(d);
+  }
+}
+function pick(e) {
+  entry = e;
+  $('sub').innerHTML = e.subs.map((s, i) => `<option value="${i}">${s.name}</option>`).join('');
+  setSub(0);
+  renderList();
+}
+async function setSub(i) {
+  sub = entry.subs[i]; frame = 0;
+  await Promise.all(sub.frames.map((f) => img(f.file)));
+  buildGrid();
+  draw();
+}
+function bg(ctx, w, h) {
+  const v = $('bgc').value;
+  if (v !== 'checker') { ctx.fillStyle = v; ctx.fillRect(0, 0, w, h); return; }
+  for (let y = 0; y < h; y += 8) for (let x = 0; x < w; x += 8) { ctx.fillStyle = (x + y) / 8 % 2 ? '#bbb' : '#888'; ctx.fillRect(x, y, 8, 8); }
+}
+// a frame with nothing drawn in it (catches empty cells the atlas does not list)
+function blank(im, f) {
+  const c = document.createElement('canvas'); c.width = f.w; c.height = f.h;
+  const x = c.getContext('2d'); x.drawImage(im, f.x, f.y, f.w, f.h, 0, 0, f.w, f.h);
+  const d = x.getImageData(0, 0, f.w, f.h).data;
+  for (let i = 3; i < d.length; i += 4) if (d[i] > 10) return false;
+  return true;
+}
+async function drawFrame(cv, f, z, pivot) {
+  const im = await img(f.file);
+  cv.width = f.w * z; cv.height = f.h * z;
+  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+  bg(ctx, cv.width, cv.height);
+  if (im) ctx.drawImage(im, f.x, f.y, f.w, f.h, 0, 0, f.w * z, f.h * z);
+  if (pivot && f.ax !== undefined) {
+    ctx.strokeStyle = '#0ff'; ctx.lineWidth = 1; ctx.beginPath();
+    ctx.moveTo(f.ax * z - 6, f.ay * z + 0.5); ctx.lineTo(f.ax * z + 6, f.ay * z + 0.5);
+    ctx.moveTo(f.ax * z + 0.5, f.ay * z - 6); ctx.lineTo(f.ax * z + 0.5, f.ay * z + 6); ctx.stroke();
+  }
+  return im;
+}
+async function buildGrid() {
+  const g = $('grid'); g.innerHTML = '';
+  for (let i = 0; i < sub.frames.length; i++) {
+    const f = sub.frames[i], c = document.createElement('canvas');
+    const im = await drawFrame(c, f, 1, false);
+    if (f.empty || !im || blank(im, f)) { c.classList.add('empty'); c.title = 'empty frame'; }
+    c.onclick = () => { frame = i; playing = false; $('play').textContent = '▶ Play'; draw(); };
+    g.appendChild(c);
+  }
+}
+function draw() {
+  if (!sub) return;
+  const f = sub.frames[frame];
+  drawFrame($('cv'), f, +$('zoom').value, $('pivot').checked);
+  [...$('grid').children].forEach((c, i) => c.classList.toggle('cur', i === frame));
+  $('info').textContent = `${entry.name} · ${sub.name} · frame ${frame + 1}/${sub.frames.length} · ${f.w}×${f.h}` +
+    (f.ax !== undefined ? ` · pivot (${f.ax}, ${f.ay})` : '') + ` · ${f.file}`;
+}
+function loop(t) {
+  const dt = Math.min(0.1, (t - last) / 1000); last = t;
+  if (playing && sub) { acc += dt; const step = 1 / +$('fps').value; if (acc >= step) { acc = 0; frame = (frame + 1) % sub.frames.length; draw(); } }
+  requestAnimationFrame(loop);
+}
+$('cat').onchange = setCat;
+$('filter').oninput = renderList;
+$('sub').onchange = (e) => setSub(+e.target.value);
+$('play').onclick = () => { playing = !playing; $('play').textContent = playing ? '❚❚ Pause' : '▶ Play'; };
+$('prev').onclick = () => { playing = false; frame = (frame - 1 + sub.frames.length) % sub.frames.length; draw(); };
+$('next').onclick = () => { playing = false; frame = (frame + 1) % sub.frames.length; draw(); };
+$('fps').oninput = (e) => { $('fpsv').textContent = e.target.value; };
+for (const id of ['zoom', 'bgc', 'pivot']) $(id).onchange = () => { draw(); if (id === 'bgc') buildGrid(); };
+window.viewer = { get entries() { return entries; }, pick, setSub, get sub() { return sub; } }; // for tests
+setCat();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

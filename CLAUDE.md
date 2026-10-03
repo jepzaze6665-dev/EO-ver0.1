@@ -1447,5 +1447,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   elite, kill all on the map) · Items (filter + give) · SNAPSHOTS (save states in localStorage `eclipse_dev_snapshots`, separate
   from the real save; load = parseSave + applySave) · Tests (runs testkit suites, shows ✓ / ✗ rows). DATA VALIDATOR
   `node tools/validate.mjs` (loot / shop / quest / boss / map exit / spawn / parent / signature / class loadout references +
-  asset manifests; tools/tests/validate.test.mjs). Next (owner picks): sprite / VFX viewer, boss sandbox, balance dashboard,
+  asset manifests; tools/tests/validate.test.mjs). SPRITE VIEWER `/tools/viewer.html` (Dev Panel World tab button): player presets
+  (every sheet × direction row), monster anims, VFX strips (vfx + boss + playerfx); play / step / fps / zoom / bg dark-magenta-
+  checker-white / pivot cross / all-frames grid (red = empty or blank). Next (owner picks): boss sandbox, balance dashboard,
   map inspector, online test bots, quest graph, audio board.
