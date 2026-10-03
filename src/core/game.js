@@ -29,6 +29,7 @@ import { MasterySystem } from '../progression/masterySystem.js';
 import { installSkillTraits } from '../progression/skillTraits.js';
 import { ItemEffectSystem } from '../items/effectSystem.js';
 import { ItemDebug } from '../items/itemDebug.js';
+import { DevPanel, isDevMode } from '../dev/devPanel.js';
 import { ExperienceSystem } from '../progression/experienceSystem.js';
 import { CounterSystem } from '../combat/counterSystem.js';
 import { AttackSlots } from '../combat/attackSlots.js';
@@ -225,6 +226,7 @@ export class Game {
     installSkillTraits(this); // generic level / evolution behaviours (echo, lifesteal, refund, reset, haste)
     // gear effects (relics / runes: trigger -> condition -> effect, items/effectSystem.js)
     this.itemEffects = new ItemEffectSystem(this);
+    this.dev = this.dev || (isDevMode() ? new DevPanel(this) : null); // F4 dev panel (dev/devPanel.js), localhost or ?dev only
     this.items = new ItemDebug(this); // console: __game.items.help() (items/itemDebug.js)
     // gear 'resourceGain' skill modifier: + class resource the first time each cast hits (progression/skillModifiers.js)
     const gearPaid = {};
@@ -604,6 +606,7 @@ export class Game {
   handleGlobalKeys() {
     const inp = this.input;
     if (inp.pressed('F3')) this.debug = !this.debug;
+    if (inp.pressed('F4') && this.dev) this.dev.toggle();
     if (this.state !== 'play') { this.ui.handleKeys(inp); return; }
     if (this.ui.panelOpen) { this.ui.handleKeys(inp); return; }
     if (this.player.dead) return;
@@ -617,6 +620,7 @@ export class Game {
   }
 
   update(dt) {
+    if (this.dev) this.dev.update(); // dev panel god mode
     if (this.run) this.run.sync(); // death piles of the loaded grid (yours + party members')
     if (this.sharedWorld) { this.timeScale = 1; this.slowT = 0; this.hitStop = 0; }
     // slow motion recovers in real time

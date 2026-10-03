@@ -1441,3 +1441,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (2) map mechanic `quarry` (`src/world/mechanics/quarry.js`, A1 GOLDEN HARE: chance 0.25, hp ×4, flees at 1.6× speed from
   anyone within 260 px, slips away after 75 s, catch = +400 G + 2 moon crystals). NEW generic Monster hook `scripted(m, dt)`:
   replaces the AI (status / knockback / death still run). Quarry.force = true for tests. `await T.randomEventCheck(g)` 10/10.
+- **DEV TOOLS** (owner 2026-10-03): DEV PANEL [F4] = `src/dev/devPanel.js` (game.dev; only in dev mode: localhost / 127.0.0.1 or
+  `?dev`, `?nodev` = off). Floating box (world keeps running): Player (level, +gold, heal, GOD mode via dev.update, unlock all
+  skills, change class with force) · World (go to any map / boss arena, mark boss defeated, defeat all, save) · Spawn (monster ×n,
+  elite, kill all on the map) · Items (filter + give) · SNAPSHOTS (save states in localStorage `eclipse_dev_snapshots`, separate
+  from the real save; load = parseSave + applySave) · Tests (runs testkit suites, shows ✓ / ✗ rows). DATA VALIDATOR
+  `node tools/validate.mjs` (loot / shop / quest / boss / map exit / spawn / parent / signature / class loadout references +
+  asset manifests; tools/tests/validate.test.mjs). Next (owner picks): sprite / VFX viewer, boss sandbox, balance dashboard,
+  map inspector, online test bots, quest graph, audio board.

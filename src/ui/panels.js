@@ -72,7 +72,7 @@ export const controlsHTML = (cls = CLASSES.umbral_sword, player = null) => `
   <div><b>R</b> Healing Draught</div><div><b>F</b> Resource Tonic</div>
   <div><b>E</b> Interact / Talk</div><div><b>STAMINA</b> Dodge · Guard · some skills</div>
   <div><b>I</b> Inventory · Equipment · Knowledge</div><div><b>M</b> World Map</div>
-  <div><b>ESC</b> Menu (Save / Load / Reset)</div><div><b>F3</b> Debug overlay</div>
+  <div><b>ESC</b> Menu (Save / Load / Reset)</div><div><b>F3</b> Debug overlay</div><div><b>F4</b> Dev panel (dev only)</div>
 </div>`;
 
 export class Panels {
