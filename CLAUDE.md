@@ -1441,6 +1441,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (2) map mechanic `quarry` (`src/world/mechanics/quarry.js`, A1 GOLDEN HARE: chance 0.25, hp ×4, flees at 1.6× speed from
   anyone within 260 px, slips away after 75 s, catch = +400 G + 2 moon crystals). NEW generic Monster hook `scripted(m, dt)`:
   replaces the AI (status / knockback / death still run). Quarry.force = true for tests. `await T.randomEventCheck(g)` 10/10.
+- MAP SELECT (owner reference: painted world map + pins + PLAY; no points system): panels.dungeonGate is a full screen — left
+  side panel (Solo / Party tabs, boss portrait diamond, route · short, name, level band, description, boss + defeated, lock
+  requirement, explored ✦ n/m, POSSIBLE REWARDS = boss loot table + oneOf + elite table icons with tooltips, 4 party pedestals
+  with class emblems, PLAY / CREATE PARTY / Join / Leave), right = the world map (code-drawn until WORLD_MAP.image is set)
+  with route roads, Lumina / Asteria and diamond pins (boss idle frame from assets/monsters, locked = dark + lock), top strip
+  of area chips; keys Q / E (cycle maps), F (main button), Esc. Same server messages as before. Data src/data/worldMap.js
+  (pins in % of the picture, desc, boss atlas, cities, roads, route colours). Prompt for the art docs/ui/world_map_prompt.md.
+  tools/tests/worldMap.test.mjs. Preview docs/ui/map_select.png. Next: RUN SUMMARY screen (owner) when a run is banked.
 - **DEV TOOLS** (owner 2026-10-03): DEV PANEL [F4] = `src/dev/devPanel.js` (game.dev; only in dev mode: localhost / 127.0.0.1 or
   `?dev`, `?nodev` = off). Floating box (world keeps running): Player (level, +gold, heal, GOD mode via dev.update, unlock all
   skills, change class with force) · World (go to any map / boss arena, mark boss defeated, defeat all, save) · Spawn (monster ×n,

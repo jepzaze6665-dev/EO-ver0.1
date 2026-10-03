@@ -25,6 +25,10 @@ import { treeHTML, nodeState } from './skillTreeUI.js';
 import { npcPanelHTML, npcRow, goldTag } from './npcPanel.js';
 import { validName } from '../net/protocol.js';
 import { ONLINE } from '../data/online.js';
+import { WORLD_MAP } from '../data/worldMap.js';
+import { BOSSES } from '../data/bosses.js';
+import { LOOT_TABLES } from '../data/lootTables.js';
+import { Assets } from '../core/assets.js';
 
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
@@ -588,41 +592,95 @@ export class Panels {
   // Owner: there is no gate object any more — walking into a road out of a city opens this panel
   // (world/transitionSystem.js passes that exit; its target area is preselected).
   dungeonGate(exit) {
+    // MAP SELECT (owner reference: a painted world map with diamond pins, area panel on the left, party pedestals, PLAY).
+    // Same server flow as before: Solo -> dungeonEnter · Party -> create / join here, leader proposes, ready check.
     const g = this.game, on = g.online, wp = g.worldProgress, mm = g.world.mapManager;
     if (exit) { this.gateExit = exit; if (ONLINE.dungeon.areas.some((a) => a.id === exit.to)) this.gateSel = exit.to; }
     const ex = this.gateExit, exDef = ex && mm.get(ex.to), exIsArea = ex && ONLINE.dungeon.areas.some((a) => a.id === ex.to);
     const pt = on && on.party, tab = this.npcTab('gate', pt ? 'party' : 'solo');
+    const areas = ONLINE.dungeon.areas.filter((a) => mm.get(a.id));
     const open = (a) => a.free || !!(wp && wp.unlockedMaps[a.id]);
-    if (!this.gateSel || !ONLINE.dungeon.areas.some((a) => a.id === this.gateSel && open(a))) this.gateSel = (ONLINE.dungeon.areas.find(open) || {}).id;
-    const areaList = () => '<div class="dg-list">' + ['A', 'B'].map((route) => `<div class="pt-h">ROUTE ${route}</div>` + ONLINE.dungeon.areas.filter((a) => (mm.get(a.id) || {}).route === route).map((a) => {
-      const d = mm.get(a.id), ok = open(a), lv = (d.sub || '').split('·').pop().trim();
-      const req = !ok && d.requires && d.requires[0] ? d.requires[0].label : 'Locked';
-      return `<button class="dg-area${ok ? '' : ' locked'}${a.id === this.gateSel ? ' sel' : ''}" data-area="${a.id}" ${ok ? '' : 'disabled'}>
-        <b>${esc(d.short)} · ${esc(d.name)}</b><span>${ok ? esc(lv) : '🔒 ' + esc(req)}</span></button>`;
-    }).join('')).join('') + '</div>';
-    const sel = this.gateSel && mm.get(this.gateSel);
-    let body;
-    if (!on || !on.online) body = '<div class="muted">Not connected to the server.</div>';
-    else if (tab === 'solo') body = areaList() + `<div class="dg-act"><button class="primary dg-go" data-go="solo" ${sel ? '' : 'disabled'}>Enter ${sel ? esc(sel.short) : ''} alone</button>`
-      + (ex && exDef && !exIsArea ? `<button class="dg-go" data-go="road">Take the road to ${esc(exDef.name)} alone</button>` : '') + '</div>';
+    if (!this.gateSel || !areas.some((a) => a.id === this.gateSel)) this.gateSel = (areas.find(open) || areas[0]).id;
+    const selArea = areas.find((a) => a.id === this.gateSel), sel = mm.get(this.gateSel), selOpen = open(selArea);
+    const W = WORLD_MAP, routeCol = (r) => W.routeColor[r] || '#e8d7a5';
+    // boss portrait = the idle frame of its atlas, scaled into a box
+    const portrait = (atlasId, box) => {
+      const m = Assets.data && Assets.data.monsters && Assets.data.monsters[atlasId];
+      if (!m || !m.anims || !m.anims.idle) return '';
+      const [fx, fy] = m.anims.idle[0], k = Math.min(box / m.fw, box / m.fh) * 1.25;
+      return `<span class="ms-face" style="width:${m.fw}px;height:${m.fh}px;background:url(${m.file}) -${fx}px -${fy}px;transform:translate(-50%,-50%) scale(${k.toFixed(3)})"></span>`;
+    };
+    const boss = sel && BOSSES[sel.bossId];
+    const bossDown = boss && wp && wp.isBossDefeated(boss.id);
+    const lv = sel ? (sel.sub || '').split('·').pop().trim() : '';
+    // possible rewards = the boss's loot table (+ its oneOf groups) + elite drops on the map
+    const rewardIds = [];
+    const addTable = (id) => { const t = LOOT_TABLES[id]; if (!t) return; for (const d of t.drops || []) rewardIds.push(d.item); for (const grp of t.oneOf || []) for (const it of grp.items || []) rewardIds.push(it.item); };
+    if (boss && boss.rewards) addTable(boss.rewards.loot);
+    addTable('elite');
+    const rewards = [...new Set(rewardIds)].filter((id) => ITEMS[id]).slice(0, 12);
+    const disc = g.discoveries && g.discoveries.of(this.gateSel);
+    // party pedestals: you (solo) or every member, 4 places
+    const people = pt ? pt.members.map((m) => ({ name: m.name, c: m.c, l: m.l, lead: m.id === pt.leader, off: !m.online }))
+      : [{ name: (on && on.name) || 'You', c: g.player.cls.id, l: g.player.level, lead: false }];
+    const slots = [0, 1, 2, 3].map((i) => {
+      const m = people[i];
+      return m ? `<div class="ms-ped${m.off ? ' off' : ''}"><img class="ms-emb" src="assets/ui/class/${m.c}_emblem.png" alt=""><img class="ms-base" src="assets/ui/icons/pedestal.png" alt="">
+          <b>${m.lead ? '♛ ' : ''}${esc(m.name)}</b><span>Lv.${m.l || '?'}${m.c && CLASSES[m.c] ? ' · ' + esc(CLASSES[m.c].name) : ''}</span></div>`
+        : `<div class="ms-ped empty"><img class="ms-base" src="assets/ui/icons/pedestal.png" alt=""><span>${pt ? 'Open' : ''}</span></div>`;
+    }).join('');
+    // actions (bottom of the side panel)
+    let act;
+    if (!on || !on.online) act = '<div class="muted">Not connected to the server.</div>';
+    else if (tab === 'solo') act = `<button class="ms-play" data-go="solo" ${selOpen ? '' : 'disabled'}>${selOpen ? 'PLAY — ' + esc(sel.short) + ' alone' : '🔒 LOCKED'}</button>`
+      + (ex && exDef && !exIsArea ? `<button class="dg-go" data-go="road">Take the road to ${esc(exDef.name)} alone</button>` : '');
     else if (!pt) {
       const list = on.openParties || [];
-      body = `<div class="dg-act"><button class="primary dg-go" data-go="create">Create Party</button></div>
-        <div class="pt-h">OPEN PARTIES HERE</div>${list.length ? list.map((p) => npcRow({ img: null, name: '♛ ' + p.leader, nameColor: '#ffd98a',
-          text: `${p.size}/${p.max} · ${p.members.map(esc).join(', ')}${p.level ? ' · leader Lv.' + p.level : ''}`, right: `<button data-join="${esc(p.id)}">Join</button>` })).join('')
-        : '<div class="muted">No open party at this gate yet — create one, others can join it here.</div>'}`;
+      act = `<button class="ms-play" data-go="create">CREATE PARTY</button><div class="pt-h">OPEN PARTIES HERE</div>`
+        + (list.length ? list.map((p) => `<div class="ms-open"><span>♛ ${esc(p.leader)} · ${p.size}/${p.max}${p.level ? ' · Lv.' + p.level : ''}</span><button data-join="${esc(p.id)}">Join</button></div>`).join('')
+          : '<div class="muted small">No open party here yet — create one, others can join it here.</div>');
     } else {
       const lead = pt.members.find((m) => m.id === pt.leader) || {};
-      const members = pt.members.map((m) => npcRow({ img: null, cls: 'pt-row' + (m.online ? '' : ' off'), name: `${m.id === pt.leader ? '♛ ' : ''}${m.name}${m.id === on.playerId ? '  (you)' : ''}`,
-        nameColor: m.id === pt.leader ? '#ffd98a' : null, text: `<i class="pt-dot${m.online ? ' on' : ''}"></i>${m.l ? 'Lv.' + m.l + ' ' : ''}${m.c && CLASSES[m.c] ? esc(CLASSES[m.c].name) : ''}` })).join('');
-      const act = !on.isLeader ? `<div class="muted">${esc(lead.name || 'The leader')} chooses the area. You will be asked to accept.</div>`
-        : pt.members.length < 2 ? '<div class="muted">Waiting for players to join at this gate… (or enter solo)</div>'
-        : `<div class="muted small">Every member must be online, in a city and have the area unlocked — each one accepts for themselves.</div>
-          <button class="primary dg-go" data-go="party" ${sel ? '' : 'disabled'}>Ask the party to enter ${sel ? esc(sel.short) : ''}</button>`;
-      body = `<div class="pt-h">YOUR PARTY ${pt.members.length}/${pt.max}</div>${members}${on.isLeader ? areaList() : ''}<div class="dg-act">${act}<button data-go="leave" class="danger">Leave party</button></div>`;
+      act = !on.isLeader ? `<div class="muted small">${esc(lead.name || 'The leader')} chooses the map. You will be asked to accept.</div>`
+        : pt.members.length < 2 ? '<div class="muted small">Waiting for players to join… (or switch to Solo)</div>'
+        : `<button class="ms-play" data-go="party" ${selOpen ? '' : 'disabled'}>${selOpen ? 'PLAY — ' + esc(sel.short) + ' with the party' : '🔒 LOCKED'}</button>`;
+      act += '<button data-go="leave" class="danger ms-leave">Leave party</button>';
     }
-    const el = this.show('gate', npcPanelHTML({ icon: 'npc_waystone', title: ex && exDef ? 'Road to ' + exDef.name : 'Leave the City', sub: tab === 'solo' ? 'Solo' : pt ? 'Party' : 'Create / Join a party',
-      menu: [{ id: 'solo', label: 'Solo' }, { id: 'party', label: 'Party' }], tab, body, keys: [['Click', 'Choose']] }), 'side');
+    // the map: picture (if the owner's art exists) or the drawn map, roads, cities, pins
+    const pts = (r) => W.roads[r].map(([x, y]) => `${x},${y}`).join(' ');
+    const pins = areas.map((a) => {
+      const p = W.pins[a.id], d = mm.get(a.id);
+      if (!p) return '';
+      return `<button class="ms-pin${open(a) ? '' : ' locked'}${a.id === this.gateSel ? ' sel' : ''}" data-area="${a.id}" style="left:${p.x}%;top:${p.y}%;--rc:${routeCol(d.route)}">
+          <span class="ms-dia">${portrait(p.boss, 44)}</span>${open(a) ? '' : '<i class="ms-lock">🔒</i>'}<b>${esc(d.short)}</b></button>`;
+    }).join('');
+    const cities = W.cities.map((c) => `<div class="ms-city" style="left:${c.x}%;top:${c.y}%"><span>◆</span>${esc(c.name)}</div>`).join('');
+    const strip = areas.map((a) => `<button class="ms-chip${a.id === this.gateSel ? ' sel' : ''}${open(a) ? '' : ' locked'}" data-area="${a.id}">${esc(mm.get(a.id).short)}</button>`).join('');
+    const el = this.show('gate', `<div class="ms">
+      <div class="ms-map${this.worldMapArt ? ' art' : ''}">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none">${['A', 'B'].map((r) => `<polyline points="${pts(r)}" stroke="${routeCol(r)}"/>`).join('')}</svg>
+        ${cities}${pins}
+      </div>
+      <div class="ms-top"><kbd>Q</kbd>${strip}<kbd>E</kbd></div>
+      <div class="ms-side">
+        <div class="ms-tabs"><button data-npc-tab="solo" class="${tab === 'solo' ? 'on' : ''}">Solo</button><button data-npc-tab="party" class="${tab === 'party' ? 'on' : ''}">Party</button>
+          <button class="close ms-x" title="Close">✕</button></div>
+        <div class="ms-head"><span class="ms-dia big" style="--rc:${routeCol(sel.route)}">${portrait((W.pins[this.gateSel] || {}).boss, 70)}</span>
+          <div class="ms-route" style="color:${routeCol(sel.route)}">ROUTE ${esc(sel.route || '')} · ${esc(sel.short)}</div>
+          <h2>${esc(sel.name)}</h2><div class="ms-lv">${esc(lv)}</div></div>
+        <p class="ms-desc">${esc((W.pins[this.gateSel] || {}).desc || '')}</p>
+        ${boss ? `<div class="ms-boss"><span>BOSS</span><b>${esc(boss.name)}</b>${bossDown ? '<i class="ok">✓ Defeated</i>' : '<i>Not yet defeated</i>'}</div>` : ''}
+        ${!selOpen && sel.requires && sel.requires[0] ? `<div class="ms-req">🔒 ${esc(sel.requires[0].label)}</div>` : ''}
+        ${disc ? `<div class="ms-boss"><span>EXPLORED</span><b>✦ ${disc.found} / ${disc.total}</b></div>` : ''}
+        <div class="pt-h">POSSIBLE REWARDS</div>
+        <div class="ms-rewards">${rewards.map((id) => `<span class="slot" data-tip="${id}" style="border-color:${RARITY_COLOR[ITEMS[id].rarity]}"><img src="${itemIconURL(ITEMS[id])}" alt=""></span>`).join('')}</div>
+        <div class="ms-peds">${slots}</div>
+        <div class="ms-act">${act}</div>
+        <div class="keys"><span><kbd>Q</kbd><kbd>E</kbd>Map</span><span><kbd>F</kbd>Play</span><span><kbd>Esc</kbd>Back</span></div>
+      </div></div>`, 'ms-ov');
+    // the owner's painted map, when it exists (checked once)
+    if (this.worldMapArt === undefined && !W.image) this.worldMapArt = false;
+    if (this.worldMapArt === undefined) { const im = new Image(); im.onload = () => { this.worldMapArt = true; if (this.current && this.current.name === 'gate') this.dungeonGate(); }; im.onerror = () => { this.worldMapArt = false; }; im.src = W.image; }
     if (on && on.online && tab === 'party' && !pt) { // ask for the open parties now and every 2 s while this view is up
       on.net.send('partyList', {});
       clearInterval(this.gatePoll);
@@ -632,6 +690,15 @@ export class Panels {
         on.net.send('partyList', {});
       }, 2000);
     }
+    // keys: Q / E cycle the maps, F = the main button
+    const step = (k) => { const i = areas.findIndex((a) => a.id === this.gateSel); this.gateSel = areas[(i + k + areas.length) % areas.length].id; g.audio.sfx('ui'); this.dungeonGate(); };
+    const onKey = (e) => {
+      if (!el.isConnected) return window.removeEventListener('keydown', onKey);
+      if (e.target && /input|textarea/i.test(e.target.tagName)) return;
+      if (e.code === 'KeyQ') step(-1); else if (e.code === 'KeyE') step(1);
+      else if (e.code === 'KeyF') { const b = el.querySelector('.ms-play:not([disabled])'); if (b) b.click(); }
+    };
+    window.addEventListener('keydown', onKey);
     this.wireNpc(el, 'gate', () => this.dungeonGate(), (t) => {
       if (t.dataset.area) { this.gateSel = t.dataset.area; g.audio.sfx('ui'); return this.dungeonGate(); }
       if (t.dataset.join) return on.partyAction('partyJoin', { party: t.dataset.join });
