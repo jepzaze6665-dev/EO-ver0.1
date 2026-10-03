@@ -333,6 +333,8 @@ export function mapTour(g, classId = 'umbral_sword') {
   const unreachable = [];
   for (const def of mm.list) {
     w.changeMap(def.id, { silent: true });
+    const vaults = w.mapMech.get('rune_vaults'); // map-mechanic doors count as open here (like the flag-sealed exits)
+    if (vaults) for (const v of vaults.vaults) vaults.seal(v, false);
     const m = w.map, seen = new Uint8Array(m.w * m.h), sp = m.findOpen(def.spawn[0] * TILE, def.spawn[1] * TILE, 4);
     const q = [[Math.floor(sp.x / TILE), Math.floor(sp.y / TILE)]];
     seen[q[0][1] * m.w + q[0][0]] = 1;
@@ -2264,5 +2266,56 @@ export function altitudeCheck(g, classId = 'umbral_sword') {
   ok('leaving B3: cold statuses gone', !w.mapMech.get('altitude_cold') && !p.status.has('frostbite') && !p.status.has('frozen_through'));
   const pass = R.every((r) => r[1]);
   console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
+  return { pass, R };
+}
+
+// A3 RUNE VAULTS (world/mechanics/runeVaults.js): sealed vaults (unreachable), a switch opens its door for a while, the
+// door holds while someone is inside, the chest pays, a two-switch vault needs both burning, door blockers never leak.
+export async function runeVaultCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  const { interact } = await import('../src/exploration/interactables.js');
+  g.newGame(classId);
+  let w = g.world;
+  const p = g.player;
+  p.god = true; releaseInput(g);
+  w.changeMap('a3', { entry: [84, 196] });
+  for (const m of w.monsters) m.removed = true;
+  w.monsters = []; for (const sp of w.spawnPoints) sp.active = false;
+  let rv = w.mapMech.get('rune_vaults');
+  const open = (tx, ty) => { const x = (tx + 0.5) * TILE, y = (ty + 0.5) * TILE; return !w.map.isSolidAt(x, y) && w.mapManager.idAt(x, y) === 'a3'; };
+  const reach = (to) => { const seen = new Set(['84,196']), todo = [[84, 196]]; while (todo.length) { const [x, y] = todo.pop(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = `${x + dx},${y + dy}`; if (!seen.has(k) && open(x + dx, y + dy)) { seen.add(k); todo.push([x + dx, y + dy]); } } } return seen.has(to.join()); };
+  ok('A3: 3 vaults, 4 rune switches, 3 vault chests', rv && rv.vaults.length === 3 && rv.items.length === 4 && w.interactables.filter((i) => i.id.startsWith('chest_vault')).length === 3);
+  ok('sealed: no chest reachable on foot, every switch reachable', rv.vaults.every((v) => !reach(v.chest)) && rv.vaults.every((v) => v.sw.every((s) => reach([s.x / TILE | 0, s.y / TILE | 0]))));
+  ok('no monster pack spawns inside a vault', !w.spawnPoints.some((sp) => rv.vaults.some((v) => rv.inside(v, sp.def))));
+  const v = rv.vaults[0], it = rv.items[0], s = v.sw[0];
+  p.x = s.x; p.y = s.y + 20; g.simulate(0.1);
+  ok('the switch is the nearest interactable with its prompt', w.nearest === it && /Rune Switch/.test(it.promptText), w.nearest && w.nearest.id);
+  interact(w, it); g.simulate(0.1);
+  ok('lit -> the door opens and is walkable', v.openT > 9 && !v.sealed && reach(v.chest), v.openT);
+  ok('HUD shows the open vault + time', w.mapMech.hudTags().some((t) => /OPEN/.test(t.label)));
+  const c = (v.room[0] + v.room[2]) / 2, d = (v.room[1] + v.room[3]) / 2;
+  p.x = (c + 0.5) * TILE; p.y = (d + 0.5) * TILE; g.simulate(11);
+  ok('time is up but you are inside: the door holds', !v.sealed && v.openT > 0);
+  const chest = w.interactables.find((i) => i.id === 'chest_vault_lamplight'), gold = p.gold;
+  interact(w, chest); g.simulate(0.1);
+  ok('vault chest pays (gold + items)', p.gold > gold && g.inventory.count('hp_potion') >= 3, `${gold} -> ${p.gold}`);
+  p.x = s.x; p.y = s.y + 20; g.simulate(0.5);
+  ok('out of the vault: the door seals again', v.sealed && !reach(v.chest));
+  const b = rv.vaults[2];
+  interact(w, rv.items[2]); g.simulate(0.2);
+  ok('two-switch vault: one switch is not enough', b.sealed && b.sw[0].t > 0 && w.mapMech.hudTags().some((t) => /1\/2 lit/.test(t.label)));
+  g.simulate(17);
+  ok('the lone switch burns out', b.sw[0].t <= 0 && b.sealed);
+  interact(w, rv.items[2]); g.simulate(5); interact(w, rv.items[3]); g.simulate(0.1);
+  ok('both burning -> the Bronze Vault opens', !b.sealed && b.openT > 9);
+  const doorI = b.doorIdx[0];
+  g.respawn(); w = g.world; w.changeMap('a3', { entry: [84, 196] }); rv = w.mapMech.get('rune_vaults');
+  ok('respawn / re-entry: every door sealed again', rv.vaults.every((x) => x.sealed));
+  w.changeMap('a3', { entry: [84, 190] }); w.changeMap('a3', { entry: [84, 196] });
+  ok('door blockers never pile up (count 1 after re-entries)', w.map.blocker[doorI] === 1, w.map.blocker[doorI]);
+  w.changeMap('city2', { entry: w.mapManager.get('city2').spawn });
+  ok('another grid: no switches left behind', !w.interactables.some((i) => i.kind === 'mech'));
+  const pass = R.every((r) => r[1]);
+  console.table(R.map(([step, p2, dd]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(dd).slice(0, 80) })));
   return { pass, R };
 }

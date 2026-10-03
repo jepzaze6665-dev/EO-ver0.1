@@ -1,4 +1,17 @@
 import { Z } from '../core/constants.js';
+import { CITADEL_VAULTS } from './runeCitadel.js';
+
+// RUNE VAULTS (world/mechanics/runeVaults.js): which switches open which vault, how long they burn / stay open
+const VAULT_RULES = {
+  lamplight: { name: 'Lamplight Vault', switches: [[84, 160]], lit: 12, open: 10 },
+  scribe: { name: "Scribe's Vault", switches: [[46, 140]], lit: 12, open: 10 },
+  bronze: { name: 'Bronze Vault', switches: [[122, 104], [100, 64]], lit: 16, open: 10 }, // both at once: a race, or a team
+};
+const VAULT_CHESTS = {
+  lamplight: { loot: [{ item: 'hp_potion', count: 3 }, { item: 'crystal_shard', count: 2 }], gold: 250 },
+  scribe: { loot: [{ item: 'rune_hunters_sigil', count: 1 }, { item: 'crystal_shard', count: 2 }], gold: 200, rare: true },
+  bronze: { loot: [{ item: 'charm_wanderer', count: 1 }, { item: 'hp_potion', count: 2 }], gold: 450, rare: true },
+};
 
 // A3 — RUNE CITADEL (own grid: world/levels/runeCitadel.js, terrain maps/runeCitadel.js). The fallen city of Asteria,
 // built from the owner's A3 art. Reached from the Magma Rift's east causeway once the Magma Beast falls.
@@ -21,8 +34,10 @@ export const FIELD_A3 = {
   hiddenAreas: [],
   region: { zones: [Z.CITADEL] },
   spawn: [84, 196],
+  mechanics: [{ type: 'rune_vaults', vaults: CITADEL_VAULTS.map((v) => ({ ...v, ...VAULT_RULES[v.id] })) }],
   content: {
     interactables: [
+      ...CITADEL_VAULTS.map((v) => ({ id: `chest_vault_${v.id}`, kind: 'chest', tx: v.chest[0], ty: v.chest[1], ...VAULT_CHESTS[v.id] })),
       { id: 'a3_gate_plaque', kind: 'sign', tx: 90, ty: 194, prompt: 'Read Plaque', title: 'Gate Ward', text: PLAQUE },
       { id: 'ws_a3_gate', kind: 'waystone', tx: 77, ty: 194, name: 'Gate Ward', prompt: 'Waystone' },
       // the Ashen Pilgrim's third trial (quest ember_trial_a3): a stone dragon that listens only while its runes burn

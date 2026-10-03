@@ -23,6 +23,7 @@ export function isAvailable(w, it) {
     case 'questAltar': return w.game.quests.isActive(it.quest) && !f['lit_' + it.id];
     case 'timedRune': return w.game.quests.isActive(it.quest) && !f[it.flag];
     case 'npc': return !(it.npc && it.npc.hidden);
+    case 'mech': return it.available ? it.available() : true; // owned by a map mechanic (world/mapMechanics.js)
   }
   return true;
 }
@@ -236,6 +237,9 @@ export function interact(w, it) {
         g.save.dirty = true;
       } else g.ui.showLore(it.title, it.locked);
       break;
+    case 'mech': // a map mechanic's object (rune switch ...): its own use() decides
+      if (it.use) it.use();
+      break;
     case 'crackInfo':
       g.ui.showLore('Cracked Stone', 'Violet light seeps through the cracks and the stone hums faintly. It looks brittle — as if a strong strike would bring it down.');
       break;
@@ -266,6 +270,7 @@ export function drawInteractable(ctx, w, it, time) {
       break;
     case 'waystone': drawWaystone(ctx, x, y, !!w.state.waystones[it.id], time); break;
     case 'dungeonGate': drawDungeonGate(ctx, x, y, time); break;
+    case 'mech': if (it.draw) it.draw(ctx, time); break;
     case 'cityReturn': drawCityReturn(ctx, x, y, time); break;
     case 'deathPile': drawDeathPile(ctx, x, y, time, !!it.owner); break;
     case 'lever': {

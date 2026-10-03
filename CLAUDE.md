@@ -1401,3 +1401,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   reachability step: B3 waterfall prop p_fall_c (44,96) blocked the only path to the west terraces (Crystal Plateau,
   Hermit's Shrine + its Elite yeti) -> moved to (47,95). `T.altitudeCheck(g)` 10/10 (incl. BFS reachability of every
   fire / ember). Next: A3 rune switches.
+  Done A3 RUNE VAULTS (`src/world/mechanics/runeVaults.js`; terrain maps/runeCitadel.js CITADEL_VAULTS = 3 walled rooms
+  (ruin floor in RUIN_WALL, 3-tile doorway, rune ring + light, kept clear of buildings); rules / chests in maps/fieldA3.js
+  VAULT_RULES / VAULT_CHESTS): a vault's door opens only while ALL its rune switches burn (press [E]: lit 12-16 s), then
+  stays open 10 s (single-switch doors ≈ 41 tiles away = 8 s at walk speed 5 tiles/s; the Bronze Vault needs 2 switches
+  62 tiles apart). Never closes on someone inside / in the doorway. Closed door = counted map.blocker on the doorway tiles
+  (exit / reset give them back; re-entries never pile up). Chests: Lamplight (potions + shards + 250 G), Scribe's (Hunter's
+  Sigil rune), Bronze (Wanderer's Charm + 450 G). NEW generic interactable kind 'mech' (exploration/interactables.js):
+  an object owned by a map mechanic { available(), use(), draw(ctx, t), prompt } pushed into world.interactables on
+  enter, removed on exit. Online: host owns the timers (netState { v: [[openT, ...switch t]] }), a guest press = send('press').
+  `await T.runeVaultCheck(g)` 15/15; mapTour opens the vault doors before its reachability step. Next: B2 darkness.

@@ -13,6 +13,14 @@ export const CITADEL_PLACES = {
   gate: [84, 196], market: [46, 184], lamplight: [122, 184], winged: [84, 114], well: [122, 114], shrine: [46, 114],
   archive: [46, 78], barracks: [122, 78], golden: [84, 56], sanctum: [84, 24],
 };
+// RUNE VAULTS (map mechanic 'rune_vaults', world/mechanics/runeVaults.js): small sealed rooms in the city blocks, a chest
+// inside; the door (3 tiles, `door` side) opens for a few seconds when its rune switch(es) are lit.
+//   room = [x0, y0, x1, y1] floor; door = [x, y] tiles of the doorway (in the wall)
+export const CITADEL_VAULTS = [
+  { id: 'lamplight', room: [100, 183, 108, 189], door: [[103, 182], [104, 182], [105, 182]], chest: [104, 187] },
+  { id: 'scribe', room: [60, 109, 68, 115], door: [[63, 116], [64, 116], [65, 116]], chest: [64, 111] },
+  { id: 'bronze', room: [136, 72, 144, 78], door: [[135, 74], [135, 75], [135, 76]], chest: [142, 75] },
+];
 const BUILDINGS = ['c_tower_a', 'c_tower_b', 'c_tower_c', 'c_tower_d', 'c_tower_e', 'c_tower_f', 'c_house_a', 'c_house_b', 'c_house_c',
   'c_house_d', 'c_house_e', 'c_house_f', 'c_house_g', 'c_house_h', 'c_house_i', 'c_house_j', 'c_wall_a', 'c_wall_b', 'c_wall_c', 'c_wall_d'];
 
@@ -56,6 +64,16 @@ export function buildRuneCitadelTerrain(b) {
   b.prop('c_plaza_ring', P.sanctum[0], P.sanctum[1] + 3, { layer: 'ground', scale: 1.4 });
   for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2 + 0.3; if (Math.abs(a - Math.PI / 2) < 0.4 || Math.abs(a - Math.PI * 1.5) < 0.4) continue; const x = P.sanctum[0] + Math.cos(a) * 15.5, y = P.sanctum[1] + Math.sin(a) * 15.5; b.prop('c_lamp_d', x, y, { solid: true }); b.light(x, y - 1, 70, '#8ab8ff', { a: 0.5, flicker: true }); }
 
+  // ---------------- rune vaults: ruin floor inside a ring of ruin wall (the doorway is floor too: the mechanic seals it)
+  for (const v of CITADEL_VAULTS) {
+    const [x0, y0, x1, y1] = v.room;
+    b.rect(x0 - 1, y0 - 1, x1 + 1, y1 + 1, T.RUIN_WALL);
+    b.rect(x0, y0, x1, y1, R);
+    for (const [x, y] of v.door) m.set(x, y, R);
+    b.prop('c_plaza_ring', (x0 + x1) / 2 + 0.5, (y0 + y1) / 2 + 1, { layer: 'ground', scale: 0.5 });
+    b.light((x0 + x1) / 2 + 0.5, (y0 + y1) / 2 + 0.5, 90, '#8ab8ff', { a: 0.35, flicker: true });
+  }
+
   // ---------------- landmarks
   b.prop('c_statue_plaza', P.winged[0], P.winged[1] + 2, { layer: 'ground', scale: 0.9 });
   b.prop('c_obelisk_s', P.winged[0], P.winged[1] - 1, { solid: true });
@@ -77,7 +95,8 @@ export function buildRuneCitadelTerrain(b) {
 
   // ---------------- the city blocks: buildings on the open ground (never on streets, plazas or the canal)
   const open = new Set([D, G]);
-  const clear = [...Object.values(P).map(([x, y]) => [x, y, 12]), [84, 150, 4]];
+  const clear = [...Object.values(P).map(([x, y]) => [x, y, 12]), [84, 150, 4],
+    ...CITADEL_VAULTS.map((v) => [(v.room[0] + v.room[2]) / 2, (v.room[1] + v.room[3]) / 2, 9])]; // vaults + their doorways
   for (let ty = 52; ty <= 200; ty += 4) for (let tx = 18; tx <= 150; tx += 4) {
     const x = tx + r.int(-1, 1), y = ty + r.int(-1, 1);
     if (!open.has(m.get(x, y)) || !open.has(m.get(x - 1, y)) || !open.has(m.get(x + 1, y))) continue;
