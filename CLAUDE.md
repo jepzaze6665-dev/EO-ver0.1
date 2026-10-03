@@ -1458,6 +1458,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   { dmg, heal, deaths, kills } } every 2 s in a run (src/net/netRunStats.js = game.online.runStats) -> server/dungeons.js relays
   to the run members -> table() rows (class / level from the party view). Tests runSummary.test.mjs + instances.test (relay,
   another run never hears it). Preview docs/ui/run_summary.png.
+- TELEGRAPH TIERS (owner: warnings looked stiff, show them for dangerous moves): src/combat/telegraph.js telegraphTier(def) — 1
+  LIGHT ordinary monster attacks (dashed faint outline + closing line), 2 HEAVY (heavy / guardBreak / elite / world hazards /
+  small boss moves: radial edge glow + closing ring), 3 DANGER (unblockable / def.danger / boss area >= 90 px / boss mechanic
+  owners with .b: deep red, hatch, ⚠, glowing white edge); def.tier overrides; fade-in. Monster.startAttack + mobSync guest
+  copies pass heavy / unblockable. Player setting TELEGRAPH_VIEW (localStorage eclipse_telegraph_view): all | heavy (default:
+  tier 2+) | danger — hidden tiers still resolve. ESC menu button Warnings. tools/tests/telegraph.test.mjs. Mock-up
+  docs/ui/telegraph_mockup.png.
 - **DEV TOOLS** (owner 2026-10-03): DEV PANEL [F4] = `src/dev/devPanel.js` (game.dev; only in dev mode: localhost / 127.0.0.1 or
   `?dev`, `?nodev` = off). Floating box (world keeps running): Player (level, +gold, heal, GOD mode via dev.update, unlock all
   skills, change class with force) · World (go to any map / boss arena, mark boss defeated, defeat all, save) · Spawn (monster ×n,

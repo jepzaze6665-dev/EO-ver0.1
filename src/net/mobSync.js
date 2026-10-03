@@ -217,7 +217,7 @@ export class MobSync {
         half: clampN(sh.half, 0, Math.PI), len: clampN(sh.len, 0, 900), width: clampN(sh.width, 0, 400) };
       m.netAtk = { kind: d.kind, power, extra };
       const strike = d.kind === 'strike';
-      g.combat.telegraphs.add({ ...shape, total: clampN(d.total, 0.05, 6, 0.6), owner: m, onResolve: strike ? () => { if (!m.dead) g.combat.enemyStrike(m, shape, power, extra); } : undefined });
+      g.combat.telegraphs.add({ ...shape, total: clampN(d.total, 0.05, 6, 0.6), owner: m, heavy: !!d.guardBreak, unblockable: !!d.unblockable, onResolve: strike ? () => { if (!m.dead) g.combat.enemyStrike(m, shape, power, extra); } : undefined });
     } else if (k === 'proj' && Array.isArray(d.list)) {
       for (const p of d.list.slice(0, 24)) {
         g.combat.projectiles.fire({ x: clampN(p.x, 0, 1e5), y: clampN(p.y, 0, 1e5), vx: clampN(p.vx, -2000, 2000), vy: clampN(p.vy, -2000, 2000), r: clampN(p.r, 1, 40, 5),

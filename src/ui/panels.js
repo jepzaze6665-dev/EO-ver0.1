@@ -26,6 +26,7 @@ import { npcPanelHTML, npcRow, goldTag } from './npcPanel.js';
 import { validName } from '../net/protocol.js';
 import { ONLINE } from '../data/online.js';
 import { WORLD_MAP } from '../data/worldMap.js';
+import { TELEGRAPH_VIEW, telegraphView, setTelegraphView } from '../combat/telegraph.js';
 import { BOSSES } from '../data/bosses.js';
 import { LOOT_TABLES } from '../data/lootTables.js';
 import { Assets } from '../core/assets.js';
@@ -946,6 +947,7 @@ export class Panels {
           ${[['resume', 'Resume', 'menu_class', ''], ['save', 'Save', 'menu_save', ''], ['load', 'Load', 'menu_save', g.save.exists() ? '' : 'disabled'],
             ['map', 'World Map', 'menu_map', ''], ['party', 'Party' + (g.online && g.online.party ? ` (${g.online.party.members.length})` : ''), 'menu_class', g.online && g.online.online ? '' : 'disabled'], ['controls', 'Controls', 'menu_codex', ''], ['sound', 'Sound' + (g.audio.muted ? ' (muted)' : ''), 'menu_settings', ''],
             ['layout', 'HUD: ' + (g.ui.hud.layout() === 'focus' ? 'Focus (skill bar)' : 'Classic (top-left)'), 'menu_skills', ''],
+            ['tele', 'Warnings: ' + ({ all: 'All attacks', heavy: 'Heavy + danger', danger: 'Danger only' })[telegraphView()], 'menu_codex', ''],
             ['reset', 'Reset Progress', 'menu_quests', ''], ['title', 'Title Screen', 'menu_equipment', '']]
             .map(([a, l, ic, dis]) => `<button data-a="${a}" ${dis}><img src="${UI_ICON(ic)}" alt="">${l}</button>`).join('')}
         </div>
@@ -968,6 +970,7 @@ export class Panels {
       }
       if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.menu(), true);
       if (a === 'sound') this.sound();
+      if (a === 'tele') { const o = TELEGRAPH_VIEW.options; setTelegraphView(o[(o.indexOf(telegraphView()) + 1) % o.length]); this.menu(); }
       if (a === 'layout') { g.ui.hud.setLayout(g.ui.hud.layout() === 'focus' ? 'classic' : 'focus'); this.menu(); }
       if (a === 'title') { this.close(); g.toTitle(); }
     });

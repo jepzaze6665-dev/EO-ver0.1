@@ -387,7 +387,7 @@ export class Monster extends Entity {
     const tel = { ...s, x: this.x + Math.cos(ang) * off, y: this.y + Math.sin(ang) * off, ang, total: atk.windup, owner: this };
     if (s.shape === 'line') { tel.len = s.len; tel.width = s.width; }
     this.curShape = tel;
-    this.telegraph = g.combat.telegraphs.add({ ...tel, onResolve: () => this.resolveAttack() });
+    this.telegraph = g.combat.telegraphs.add({ ...tel, heavy: !!(atk.heavy || atk.guardBreak), unblockable: !!atk.unblockable, onResolve: () => this.resolveAttack() }); // danger flags pick the telegraph tier
     // ONLINE N7b: the room's guests play this attack on their puppet and resolve it against themselves (net/mobSync.js)
     if (g.online) { const { owner, ...shape } = tel; g.online.mobs.hostAct(this, 'tel', { shape, total: atk.windup, kind: atk.kind, power: atk.power * this.mod.power * this.status.damageMult(), knock: atk.knock, guardBreak: !!(atk.guardBreak ?? atk.heavy), unblockable: !!atk.unblockable, status: atk.status || null }); }
     if (atk.heavy) g.vfx.text(this.x, this.y - this.height - 12, '⚠', { color: '#ffb040', size: 14, life: atk.windup });
