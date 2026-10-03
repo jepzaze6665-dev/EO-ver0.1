@@ -1449,6 +1449,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   of area chips; keys Q / E (cycle maps), F (main button), Esc. Same server messages as before. Data src/data/worldMap.js
   (pins in % of the picture, desc, boss atlas, cities, roads, route colours). Prompt for the art docs/ui/world_map_prompt.md.
   tools/tests/worldMap.test.mjs. Preview docs/ui/map_select.png. Next: RUN SUMMARY screen (owner) when a run is banked.
+- RUN SUMMARY (owner reference: VICTORY / Level UP, members DMG · H · D, EXP + rewards; no points): RunSystem.stats per run
+  (damage dealt by you or your summons to foes, healing, falls (DOWNED or a death, a bleed-out counted once), kills, bosses,
+  gold, EXP, start level, maps, start time; saved with the run) -> bank() emits runSummary(summary()) when the run gained
+  anything -> Game listener -> panels.runSummary(sum, others): banner (VICTORY when a boss fell, else RUN COMPLETE + area +
+  time, Level UP line), members table sorted by damage (MVP), level diamond + EXP bar +gain, kills / bosses / maps rows,
+  REWARDS = gold + every item / gear gained (tooltips), Continue (E / Esc). ONLINE: PROTOCOL_VERSION 19 client runStat { s:
+  { dmg, heal, deaths, kills } } every 2 s in a run (src/net/netRunStats.js = game.online.runStats) -> server/dungeons.js relays
+  to the run members -> table() rows (class / level from the party view). Tests runSummary.test.mjs + instances.test (relay,
+  another run never hears it). Preview docs/ui/run_summary.png.
 - **DEV TOOLS** (owner 2026-10-03): DEV PANEL [F4] = `src/dev/devPanel.js` (game.dev; only in dev mode: localhost / 127.0.0.1 or
   `?dev`, `?nodev` = off). Floating box (world keeps running): Player (level, +gold, heal, GOD mode via dev.update, unlock all
   skills, change class with force) · World (go to any map / boss arena, mark boss defeated, defeat all, save) · Spawn (monster ×n,

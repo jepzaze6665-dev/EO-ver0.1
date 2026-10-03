@@ -147,6 +147,20 @@ await test('revive across clients: only a downed teammate on the same run map, c
   await cleanup();
 });
 
+await test('RUN SUMMARY: a member\'s runStat reaches every member of the same run, never another run', async () => {
+  const a = await player('Ash'), b = await player('Bree'), c = await player('Cole');
+  const got = { a: [], b: [], c: [] };
+  a.c.on('runStat', (m) => got.a.push(m)); b.c.on('runStat', (m) => got.b.push(m)); c.c.on('runStat', (m) => got.c.push(m));
+  await partyRun('a1', a, b);
+  await c.at('lumina'); await c.at('a1', 210, 200);
+  b.send('runStat', { s: { dmg: 500, heal: 40, deaths: 1, kills: 6 } });
+  await until(() => got.a.length && got.b.length, 2000, 'stats relayed');
+  ok(got.a[0].from === b.id && got.a[0].name === 'Bree' && got.a[0].s.dmg === 500, 'Ash got Bree\'s row');
+  await wait(150);
+  ok(!got.c.length, 'a solo run never hears it');
+  await cleanup();
+});
+
 await srv.close();
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

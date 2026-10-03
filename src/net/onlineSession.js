@@ -22,6 +22,7 @@ import { NetFx } from './netFx.js';
 import { NetSummons } from './netSummons.js';
 import { NetProgress } from './netProgress.js';
 import { NetPiles } from './netPiles.js';
+import { NetRunStats } from './netRunStats.js';
 import { MapSync } from './mapSync.js';
 import { SAVE_KEY, BACKUP_KEY } from '../save/save.js';
 
@@ -47,6 +48,7 @@ export class OnlineSession {
     this.summons = new NetSummons(this); // friends' summons / clones / threads
     this.mapSync = new MapSync(this); // M0: the run map's mechanics (host -> guests)
     this.progress = new NetProgress(this); // N8 boss kills owned by the server
+    this.runStats = new NetRunStats(this); // RUN SUMMARY: the run members' damage / healing / falls / kills
     this.pileNet = new NetPiles(this);     // N9 death piles (party members' piles: this.piles)
     this.saves.onRemove = () => this.progress.clear();
     this.fx.install();
@@ -172,6 +174,7 @@ export class OnlineSession {
     this.mapSync.update();
     this.progress.update();
     this.pileNet.update();
+    this.runStats.update(1 / 60);
     const look = `${p.cls.id}:${p.level}`;
     if (look !== this.sentLook && this.net.send('look', { c: p.cls.id, l: p.level })) this.sentLook = look;
     const t = now(), m = g.world.mapId;

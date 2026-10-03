@@ -100,6 +100,12 @@ export class Game {
   wireEvents() {
     const ev = this.events;
     if (this.online) this.online.progress.wire(ev); // N8: boss kills reported to the server (the bus is new every session)
+    // RUN SUMMARY: a banked run (back in a city) shows its results (ui panels.runSummary), with the members' stats online
+    ev.on('runSummary', (sum) => {
+      const others = this.online && this.online.runStats ? this.online.runStats.table() : [];
+      if (this.online && this.online.runStats) this.online.runStats.clear();
+      setTimeout(() => { if (this.state === 'play') this.ui.panels.runSummary(sum, others); }, 400); // after the map-entry fade
+    });
     ev.on('enemyDefeated', (e) => {
       this.stats.kills++;
       if (!e.boss) this.knowledge.kill(e.type);

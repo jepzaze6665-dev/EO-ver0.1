@@ -27,6 +27,12 @@ export class DungeonService {
     server.handle('dungeonAnswer', (s, m) => this.answer(s, m.check, m.yes));
     server.handle('dungeonCancel', (s) => { const c = this.checkOfParty(this.server.parties.partyOf(s.id)); if (c && c.leader === s.id) this.cancel(c, 'the leader cancelled'); });
     server.handle('dungeonLeave', (s) => this.leaveToCity(s));
+    // RUN SUMMARY: a member's run stats go to every member of the same run (each client shows the table when it banks)
+    server.handle('runStat', (s, m) => {
+      const inst = this.instances.of(s.id);
+      if (!inst) return;
+      for (const id of inst.members) this.server.sessions.get(id)?.send('runStat', { from: s.id, name: s.name, s: m.s });
+    });
     server.on('sessionClosed', (s) => {
       for (const c of this.checks.values()) if (c.members.includes(s.id)) this.cancel(c, `${s.name} disconnected`);
       const inst = this.instances.of(s.id);

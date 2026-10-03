@@ -24,11 +24,21 @@ export class RunSystem {
     this.start = null;      // { items: { id: n }, gear: [instanceIds] }
     this.monsterExp = 0;    // EXP earned from monsters in this run
     this.pile = null;       // { map, x, y, items: { id: n }, gear: [instances], at }
+    this.stats = null;      // RUN SUMMARY: { dmg, heal, deaths, kills, bosses: [ids], gold, exp, startLevel, startExp, area, maps, t0 }
     const ev = game.events;
+    const mine = (x) => x && x === game.player;
+    ev.on('damageDealt', (e) => { const st = this.stats; if (!st || !e.amount) return; const src = e.source && (e.source.owner || e.source); if (mine(src) && e.target && !e.target.isAlly && e.target !== game.player) st.dmg += e.amount; });
+    ev.on('healed', (e) => { if (this.stats && e.amount > 0) this.stats.heal += e.amount; });
+    ev.on('playerDowned', (e) => { if (this.stats && mine(e.player)) { this.stats.deaths++; this.downedAt = Date.now(); } });
+    ev.on('goldChanged', (e) => { if (this.stats && mine(e.entity) && e.amount > 0) this.stats.gold += e.amount; });
+    ev.on('expGained', (e) => { if (this.stats && mine(e.entity) && e.amount > 0) this.stats.exp += e.amount; });
+    ev.on('bossDefeated', (e) => { const id = e && (e.id || e.bossId || (e.boss && e.boss.id)); if (this.stats && id && !this.stats.bosses.includes(id)) this.stats.bosses.push(id); });
+    ev.on('mapEntered', (e) => { if (this.stats && !isSharedMap(e.id) && !this.stats.maps.includes(e.id)) this.stats.maps.push(e.id); });
     ev.on('mapEntered', (e) => { if (isSharedMap(e.id)) this.bank(); else if (!this.active) this.begin(); });
     ev.on('enemyDefeated', (e) => {
       const p = game.player;
       if (this.active && !e.summoned && e.exp > 0 && p && !p.isMaxLevel) this.monsterExp += Math.max(1, Math.round(e.exp * DIFFICULTY.expRate));
+      if (this.stats && !e.summoned && !e.boss) this.stats.kills++;
     });
   }
   // N10: also while RECONNECTING (pulling the cable before a death must not save the items); off in DEV ?offline
@@ -43,8 +53,25 @@ export class RunSystem {
     for (const slot of Object.keys(eq.slots)) { const inst = eq.slots[slot] && eq.instanceFor(slot); if (inst) gear.push(inst.instanceId); }
     return { items, gear };
   }
-  begin() { this.active = true; this.start = this.carried(); this.monsterExp = 0; this.dirty(); }
-  bank() { if (!this.active) return; this.active = false; this.start = null; this.monsterExp = 0; this.dirty(); }
+  begin() {
+    this.active = true; this.start = this.carried(); this.monsterExp = 0;
+    const p = this.game.player, w = this.game.world;
+    if (!this.stats) this.stats = { dmg: 0, heal: 0, deaths: 0, kills: 0, bosses: [], gold: 0, exp: 0, startLevel: p.level, startExp: p.exp, area: w && w.mapId, maps: w && w.mapId ? [w.mapId] : [], t0: Date.now() };
+    this.dirty();
+  }
+  // RUN SUMMARY data of the run that just ended (what it gained + the stats), 'runSummary' for the UI
+  summary() {
+    const st = this.stats, p = this.game.player;
+    if (!st) return null;
+    const gain = this.gained();
+    return { ...st, bosses: [...st.bosses], maps: [...st.maps], level: p.level, levelUp: p.level - st.startLevel, items: gain.items, gear: gain.gear.map((x) => x.inst.itemId), secs: Math.round((Date.now() - st.t0) / 1000) };
+  }
+  bank() {
+    if (!this.active && !this.stats) return;
+    const sum = this.summary();
+    this.active = false; this.start = null; this.monsterExp = 0; this.stats = null; this.dirty();
+    if (sum && (sum.kills || sum.dmg || sum.exp || sum.bosses.length || sum.gold)) this.game.events.emit('runSummary', sum);
+  }
   dirty() { if (this.game.save) this.game.save.dirty = true; }
 
   // what this run has gained so far (never key / quest items): { items: { id: n }, gear: [{ inst, slot|null }] }
@@ -67,6 +94,8 @@ export class RunSystem {
 
   // ---------------- death
   onDeath() {
+    if (this.stats && !(this.downedAt && Date.now() - this.downedAt < 30000)) this.stats.deaths++; // a bleed-out after DOWNED is one fall
+    this.downedAt = 0;
     if (!this.enabled() || !this.active) return null;
     const g = this.game, p = g.player, inv = g.inventory, eq = g.equipment, w = g.world;
     // EXP: half of this run's monster EXP, never below the start of the current level
@@ -109,13 +138,16 @@ export class RunSystem {
   }
 
   // ---------------- save
-  serialize() { return { v: 1, active: this.active, start: this.start, monsterExp: this.monsterExp, pile: this.pile }; }
+  serialize() { return { v: 1, active: this.active, start: this.start, monsterExp: this.monsterExp, pile: this.pile, stats: this.stats }; }
   load(d) {
     if (!d || typeof d !== 'object') return;
     this.active = !!d.active;
     this.start = d.start && typeof d.start === 'object' ? { items: { ...(d.start.items || {}) }, gear: [...(d.start.gear || [])] } : null;
     if (this.active && !this.start) this.start = this.carried();
     this.monsterExp = Math.max(0, d.monsterExp || 0);
+    const st = d.stats;
+    this.stats = this.active && st && typeof st === 'object' ? { dmg: +st.dmg || 0, heal: +st.heal || 0, deaths: +st.deaths || 0, kills: +st.kills || 0, bosses: Array.isArray(st.bosses) ? st.bosses.filter((x) => typeof x === 'string') : [],
+      gold: +st.gold || 0, exp: +st.exp || 0, startLevel: +st.startLevel || 1, startExp: +st.startExp || 0, area: st.area || null, maps: Array.isArray(st.maps) ? st.maps.filter((x) => typeof x === 'string') : [], t0: +st.t0 || Date.now() } : null;
     const pl = d.pile;
     this.pile = pl && typeof pl.map === 'string' && Number.isFinite(pl.x) && Number.isFinite(pl.y)
       ? { map: pl.map, x: pl.x, y: pl.y, at: pl.at || 0, items: Object.fromEntries(Object.entries(pl.items || {}).filter(([id, n]) => ITEMS[id] && n > 0)),

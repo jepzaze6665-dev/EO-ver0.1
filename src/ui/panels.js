@@ -713,6 +713,57 @@ export class Panels {
     });
   }
 
+  // RUN SUMMARY (owner reference: VICTORY / Level UP banner, members table DMG · H · D, EXP bar + gained, counts, rewards).
+  // Shown when a run is banked (back in a city): sum = game.run.summary(), others = the run members' stats (online).
+  runSummary(sum, others = []) {
+    const g = this.game, p = g.player, mm = g.world.mapManager;
+    const fmt = (n) => Math.round(n || 0).toLocaleString();
+    const win = sum.bosses.length > 0;
+    const me = { name: (g.online && g.online.name) || 'You', c: p.cls.id, l: p.level, dmg: sum.dmg, heal: sum.heal, deaths: sum.deaths, kills: sum.kills, you: true };
+    const rows = [me, ...others].sort((a, b) => (b.dmg || 0) - (a.dmg || 0));
+    const top = rows[0];
+    const row = (r) => `<div class="rs-row${r.you ? ' you' : ''}">
+        <span class="rs-who">${r.c ? `<img src="assets/ui/class/${r.c}_emblem.png" alt="">` : '<i class="rs-noemb"></i>'}<span><b>${esc(r.name)}${r === top && rows.length > 1 ? ' <i class="rs-mvp">MVP</i>' : ''}</b>
+          <small>${r.l ? 'Lv.' + r.l : ''}${r.c && CLASSES[r.c] ? ' · ' + esc(CLASSES[r.c].name) : ''}</small></span></span>
+        <span>${fmt(r.dmg)}</span><span>${fmt(r.heal)}</span><span>${r.deaths || 0}</span></div>`;
+    const need = p.isMaxLevel ? 1 : p.expToNext(), pct = p.isMaxLevel ? 100 : Math.min(100, (p.exp / need) * 100);
+    const rewards = [
+      ...(sum.gold ? [`<span class="slot rs-gold" title="Gold"><img src="assets/ui/icons/cur_gold.png" alt=""><span class="n">${fmt(sum.gold)}</span></span>`] : []),
+      ...Object.entries(sum.items).filter(([id]) => ITEMS[id]).map(([id, n]) => `<span class="slot" data-tip="${id}" style="border-color:${RARITY_COLOR[ITEMS[id].rarity]}"><img src="${itemIconURL(ITEMS[id])}" alt=""><span class="n">${n > 1 ? n : ''}</span></span>`),
+      ...sum.gear.filter((id) => ITEMS[id]).map((id) => `<span class="slot" data-tip="${id}" style="border-color:${RARITY_COLOR[ITEMS[id].rarity]}"><img src="${itemIconURL(ITEMS[id])}" alt=""></span>`),
+    ];
+    const area = sum.area && mm.get(sum.area);
+    const mins = Math.floor(sum.secs / 60), secs = sum.secs % 60;
+    const el = this.show('runSummary', `<div class="rs">
+      <div class="rs-banner">
+        ${sum.levelUp > 0 ? `<div class="rs-lvup"><span class="rs-chev">⌃</span><b>Level UP!</b><small>You've reached level ${p.level}.</small></div>` : ''}
+        <div class="rs-title ${win ? 'win' : ''}">${win ? 'VICTORY' : 'RUN COMPLETE'}</div>
+        <div class="rs-sub">${area ? esc(area.short + ' · ' + area.name) : ''} · ${mins}:${String(secs).padStart(2, '0')}</div>
+      </div>
+      <div class="rs-left">
+        <div class="rs-row rs-headrow"><span></span><span>DMG</span><span>H</span><span>D</span></div>
+        ${rows.map(row).join('')}
+      </div>
+      <div class="rs-right">
+        <div class="rs-lv"><div class="cw-lvl" style="background-image:url(assets/ui/icons/level_diamond.png)"><span>${p.level}</span></div></div>
+        <div class="rs-exp"><span>EXP ${fmt(p.exp)} / ${p.isMaxLevel ? 'MAX' : fmt(need)}</span><b>+${fmt(sum.exp)}</b></div>
+        <div class="rs-bar"><i style="width:${pct}%"></i></div>
+        <div class="rs-stat"><span>Enemies Killed</span><b>${fmt(sum.kills)}</b></div>
+        <div class="rs-stat"><span>Bosses Defeated</span><b>${sum.bosses.length ? sum.bosses.map((id) => esc((BOSSES[id] || { name: id }).name)).join(', ') : '—'}</b></div>
+        <div class="rs-stat"><span>Maps Visited</span><b>${sum.maps.filter((m) => mm.get(m)).map((m) => esc(mm.get(m).short || m)).join(' · ') || '—'}</b></div>
+        <h4>REWARDS</h4>
+        <div class="rs-rewards">${rewards.join('') || '<span class="muted small">Nothing carried home this time.</span>'}</div>
+        <p class="muted small">Everything above is now safely yours.</p>
+        <button class="primary rs-ok" data-ok="1">Continue</button>
+      </div>
+      <div class="keys rs-keys"><span><kbd>E</kbd><kbd>Esc</kbd>Continue</span></div>
+    </div>`, 'rs-ov');
+    this.wireTooltip(el);
+    this.current.advance = () => this.close();
+    el.addEventListener('click', (e) => { if (e.target.closest('[data-ok]')) this.close(); });
+    g.audio.sfx(win ? 'levelup' : 'quest');
+  }
+
   // party READY CHECK (server 'dungeonCheck'): area, who accepted, Accept / Decline for yourself; Esc = decline
   dungeonReady() {
     const g = this.game, on = g.online, c = on && on.check;

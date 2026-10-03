@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 18;
+export const PROTOCOL_VERSION = 19;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -47,6 +47,7 @@ const FIELD = {
   fxCalls: (v) => Array.isArray(v) && v.length <= 60 && v.every((c) => Array.isArray(c) && c.length <= 10 && (FX_METHODS.includes(c[0]) || BOSS_FX_EXTRA.includes(c[0])) && c.slice(1).every((a) => validActData(a, 1))),
   fxShots: (v) => Array.isArray(v) && v.length <= 16 && v.every((s) => s && typeof s === 'object' && !Array.isArray(s) && validActData(s, 1)),
   actData: (v) => validActData(v),
+  runStat: (v) => v && typeof v === 'object' && !Array.isArray(v) && ['dmg', 'heal', 'deaths', 'kills'].every((k) => Number.isInteger(v[k]) && v[k] >= 0 && v[k] <= 1e9) && Object.keys(v).length <= 4,
 };
 
 // N7a mob snapshot row (host -> others): [netId, type, x, y, hp, maxHp, facing×100, state, attack index (-1 none),
@@ -121,7 +122,8 @@ export const CLIENT_MESSAGES = {
   // N9 death pile (dungeon/runSystem.js -> server/piles.js): where mine lies (items stay in my save), carry a member's
   pileSet: { m: 'slug', x: 'coord', y: 'coord', n: 'int' },
   pileClear: {},
-  pileTake: { owner: 'slug' },                            // N8 host of the boss's run map: this boss died (server credits the room)
+  pileTake: { owner: 'slug' },
+  runStat: { s: 'runStat' },                              // RUN SUMMARY: my damage / healing / falls / kills this run, relayed to my run's members                            // N8 host of the boss's run map: this boss died (server credits the room)
 };
 
 // server -> client (documented here, the client does not validate them strictly)

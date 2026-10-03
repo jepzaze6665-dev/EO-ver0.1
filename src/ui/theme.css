@@ -503,3 +503,36 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 .ms-map.art .ms-world::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(4, 4, 8, 0.6)); }
 .ms-map.art polyline { display: none; } /* the painted map has its own roads */
 .ms-map.art .ms-pin, .ms-map.art .ms-city { z-index: 1; }
+
+/* ---------- RUN SUMMARY (panels.runSummary) — banner, members table, EXP + counts + rewards ---------- */
+.overlay.rs-ov { background: radial-gradient(ellipse at 50% 30%, rgba(4, 4, 8, 0.35), rgba(4, 4, 8, 0.8)); align-items: stretch; justify-content: stretch; }
+.rs { position: relative; width: 100%; height: 100%; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; gap: 2vh 4vw; padding: 3vh 3vw 6vh; }
+.rs-banner { grid-column: 1 / 3; text-align: center; position: relative; padding: 2vh 0 1vh;
+  background: linear-gradient(90deg, transparent, rgba(6, 6, 10, 0.75) 20%, rgba(6, 6, 10, 0.75) 80%, transparent); border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+.rs-lvup { display: flex; flex-direction: column; align-items: center; margin-bottom: 4px; } .rs-lvup b { font: 600 20px var(--font-title); } .rs-lvup small { color: var(--ink-dim); }
+.rs-chev { font: 700 26px var(--font-title); color: #fff; line-height: 0.8; }
+.rs-title { font: 700 clamp(44px, 7vw, 92px) var(--font-title); letter-spacing: 6px; line-height: 1; color: #e8d7a5; text-shadow: 0 4px 18px rgba(0, 0, 0, 0.9); animation: rs-pop 0.6s ease-out; }
+.rs-title.win { background: linear-gradient(180deg, #b6ffd8, #2fae6a 70%, #11402a); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8)); }
+.rs-sub { color: var(--ink-dim); font-size: 13px; letter-spacing: 2px; margin-top: 4px; }
+@keyframes rs-pop { from { opacity: 0; transform: scale(1.25); letter-spacing: 18px; } }
+.rs-left { align-self: start; background: linear-gradient(90deg, rgba(6, 6, 10, 0.85), rgba(6, 6, 10, 0.4)); padding: 6px 0; }
+.rs-row { display: grid; grid-template-columns: 1fr 90px 70px 50px; align-items: center; gap: 8px; padding: 8px 16px; font: 500 15px var(--font-title); text-align: center; }
+.rs-row + .rs-row { border-top: 1px solid rgba(236, 228, 210, 0.06); }
+.rs-row.you { background: linear-gradient(90deg, rgba(232, 215, 165, 0.16), transparent); }
+.rs-headrow { font: 600 11px var(--font-title); letter-spacing: 2px; color: var(--ink-dim); padding: 4px 16px; }
+.rs-who { display: flex; align-items: center; gap: 10px; text-align: left; } .rs-who img { width: 46px; height: 46px; } .rs-noemb { width: 46px; height: 46px; display: inline-block; }
+.rs-who b { display: block; font: 600 16px var(--font-title); } .rs-who small { color: var(--ink-dim); font: 400 11px var(--font-body); }
+.rs-mvp { font: 700 9px var(--font-title); background: #e8c070; color: #1a1206; padding: 1px 5px; border-radius: 2px; font-style: normal; vertical-align: 2px; }
+.rs-right { align-self: start; padding: 10px 18px; background: rgba(6, 6, 10, 0.72); border: 1px solid var(--line); border-radius: 3px; }
+.rs-lv { display: flex; justify-content: flex-end; } .rs-lv .cw-lvl { width: 70px; height: 70px; } .rs-lv .cw-lvl span { font-size: 26px; }
+.rs-exp { display: flex; gap: 10px; font: 500 13px var(--font-title); } .rs-exp b { color: #d88cff; }
+.rs-bar { height: 5px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden; margin: 4px 0 12px; } .rs-bar i { display: block; height: 100%; background: linear-gradient(90deg, #8a3fb8, #c86fe8); }
+.rs-stat { display: flex; justify-content: space-between; gap: 12px; padding: 9px 12px; margin: 4px 0; background: linear-gradient(90deg, rgba(47, 174, 106, 0.38), rgba(47, 174, 106, 0.12)); font: 500 14px var(--font-title); }
+.rs-stat b { text-align: right; }
+.rs-right h4 { margin: 14px 0 6px; font: 600 15px var(--font-title); letter-spacing: 1px; color: var(--ink); }
+.rs-rewards { display: flex; flex-wrap: wrap; gap: 5px; } .rs-rewards .slot { width: 50px; height: 50px; cursor: default; } .rs-rewards .slot img { width: 38px; height: 38px; }
+.rs-ok { margin: 12px 0 0; width: 100%; padding: 10px; }
+.rs-keys { position: absolute; right: 3vw; bottom: 2vh; }
+@media (max-width: 1000px) { .rs { grid-template-columns: 1fr; } .rs-banner { grid-column: 1; } }
+.overlay.rs-ov { background: rgba(4, 4, 8, 0.78); }
+.rs-right { background: rgba(6, 6, 10, 0.96); } .rs-left { background: linear-gradient(90deg, rgba(6, 6, 10, 0.96), rgba(6, 6, 10, 0.75)); }
