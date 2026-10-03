@@ -585,8 +585,12 @@ export class Panels {
   // open parties of this city with Join; in a party: members, Leave, and for the leader the area list + "Ask the party to
   // enter" -> each member answers the ready check, panels.dungeonReady). Locked areas show their requirement; only the
   // route field maps are listed (arenas / secrets: on foot). The open-party list refreshes every 2 s while shown.
-  dungeonGate() {
+  // Owner: there is no gate object any more — walking into a road out of a city opens this panel
+  // (world/transitionSystem.js passes that exit; its target area is preselected).
+  dungeonGate(exit) {
     const g = this.game, on = g.online, wp = g.worldProgress, mm = g.world.mapManager;
+    if (exit) { this.gateExit = exit; if (ONLINE.dungeon.areas.some((a) => a.id === exit.to)) this.gateSel = exit.to; }
+    const ex = this.gateExit, exDef = ex && mm.get(ex.to), exIsArea = ex && ONLINE.dungeon.areas.some((a) => a.id === ex.to);
     const pt = on && on.party, tab = this.npcTab('gate', pt ? 'party' : 'solo');
     const open = (a) => a.free || !!(wp && wp.unlockedMaps[a.id]);
     if (!this.gateSel || !ONLINE.dungeon.areas.some((a) => a.id === this.gateSel && open(a))) this.gateSel = (ONLINE.dungeon.areas.find(open) || {}).id;
@@ -599,7 +603,8 @@ export class Panels {
     const sel = this.gateSel && mm.get(this.gateSel);
     let body;
     if (!on || !on.online) body = '<div class="muted">Not connected to the server.</div>';
-    else if (tab === 'solo') body = areaList() + `<div class="dg-act"><button class="primary dg-go" data-go="solo" ${sel ? '' : 'disabled'}>Enter ${sel ? esc(sel.short) : ''} alone</button></div>`;
+    else if (tab === 'solo') body = areaList() + `<div class="dg-act"><button class="primary dg-go" data-go="solo" ${sel ? '' : 'disabled'}>Enter ${sel ? esc(sel.short) : ''} alone</button>`
+      + (ex && exDef && !exIsArea ? `<button class="dg-go" data-go="road">Take the road to ${esc(exDef.name)} alone</button>` : '') + '</div>';
     else if (!pt) {
       const list = on.openParties || [];
       body = `<div class="dg-act"><button class="primary dg-go" data-go="create">Create Party</button></div>
@@ -616,7 +621,7 @@ export class Panels {
           <button class="primary dg-go" data-go="party" ${sel ? '' : 'disabled'}>Ask the party to enter ${sel ? esc(sel.short) : ''}</button>`;
       body = `<div class="pt-h">YOUR PARTY ${pt.members.length}/${pt.max}</div>${members}${on.isLeader ? areaList() : ''}<div class="dg-act">${act}<button data-go="leave" class="danger">Leave party</button></div>`;
     }
-    const el = this.show('gate', npcPanelHTML({ icon: 'npc_waystone', title: 'Dungeon Gate', sub: tab === 'solo' ? 'Solo' : pt ? 'Party' : 'Create / Join a party',
+    const el = this.show('gate', npcPanelHTML({ icon: 'npc_waystone', title: ex && exDef ? 'Road to ' + exDef.name : 'Leave the City', sub: tab === 'solo' ? 'Solo' : pt ? 'Party' : 'Create / Join a party',
       menu: [{ id: 'solo', label: 'Solo' }, { id: 'party', label: 'Party' }], tab, body, keys: [['Click', 'Choose']] }), 'side');
     if (on && on.online && tab === 'party' && !pt) { // ask for the open parties now and every 2 s while this view is up
       on.net.send('partyList', {});
@@ -632,6 +637,7 @@ export class Panels {
       if (t.dataset.join) return on.partyAction('partyJoin', { party: t.dataset.join });
       const go = t.dataset.go;
       if (go === 'solo') on.net.send('dungeonEnter', { area: this.gateSel });
+      if (go === 'road' && ex) { this.close(true); g.world.transitions.go(ex); }
       if (go === 'party') on.net.send('dungeonPropose', { area: this.gateSel });
       if (go === 'create') on.partyAction('partyCreate');
       if (go === 'leave') { if (t.dataset.confirm) on.partyAction('partyLeave'); else { t.dataset.confirm = '1'; t.textContent = 'Click again to leave'; } }

@@ -1,4 +1,5 @@
 import { TILE } from '../core/constants.js';
+import { isSharedMap } from '../data/online.js';
 
 // TRANSITION SYSTEM — the only way to walk from one map to another. Each map lists its exits (data); when the
 // player stands in an open exit, the World switches maps and places the player at the exit's entry point.
@@ -36,12 +37,19 @@ export class TransitionSystem {
   }
   go(exit) {
     this.pending = null;
+    this.onAbandon = null;
     this.cooldown = this.cooldownTime;
     this.world.changeMap(exit.to, { entry: exit.entry, via: exit.id });
   }
   update(dt, player) {
     const w = this.world, g = w.game;
-    if (this.pending) { if (!g.ui.panelOpen) this.pending = null; return; } // answered (or closed by something else)
+    if (this.pending) { // answered (or closed by something else)
+      if (!g.ui.panelOpen) {
+        this.pending = null;
+        if (this.onAbandon) { this.onAbandon(); this.onAbandon = null; this.cooldown = this.cooldownTime; }
+      }
+      return;
+    }
     if (this.cooldown > 0) { this.cooldown -= dt; return; }
     if (player.dead || !w.mapId) return;
     const def = w.mapManager.get(w.mapId);
@@ -50,6 +58,16 @@ export class TransitionSystem {
     if (!this.isOpen(exit)) {
       this.warnT = (this.warnT || 0) - dt;
       if (this.warnT <= 0) { this.warnT = 3; g.ui.notify('THE WAY IS BLOCKED', this.lockReason(exit), '#ff9a80'); g.events.emit('exitBlocked', { exit, reason: this.lockReason(exit) }); }
+      return;
+    }
+    // ONLINE (owner: no Dungeon Gate object): a road OUT of a shared city opens the Solo / Party panel (panels.dungeonGate)
+    // — create / join a party, ready check, or go alone. Closing it puts you back where you stood.
+    const on = g.online;
+    if (on && on.online && isSharedMap(w.mapId) && !isSharedMap(exit.to) && !this.autoConfirm) {
+      const back = this.lastSafe, map = w.mapId;
+      this.pending = exit;
+      g.ui.panels.dungeonGate(exit);
+      this.onAbandon = () => { if (w.mapId === map && back) { player.x = back.x; player.y = back.y; player.kx = player.ky = 0; } };
       return;
     }
     if (!exit.confirm || this.autoConfirm) { this.go(exit); return; }
