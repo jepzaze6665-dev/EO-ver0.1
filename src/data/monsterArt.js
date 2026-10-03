@@ -261,15 +261,14 @@ export const MONSTER_ART = {
   },
   // B3 MAJOR BOSS: the Crystal Warden (blob-cut frames per form: p1 dormant, p2 awakened, p3 corrupted)
   crystal_warden: {
+    // v2 sheet (B3.png): one form; the 4 phases differ by colour / glow / size (bosses.js look.phaseStyle)
     sheet: 'crystal_warden', replaces: ['crystal_warden'],
-    // only frames that hold ONE whole body (the sheet also has spike-only and two-pose shapes — left out)
     anims: {
-      idle: ['p1', [0, 1, 2]], move: ['p1', [3, 4]], windup: ['p1', [5]], attack: ['p1', [6]], hurt: ['p1', [9, 10]], death: 'death',
-      p1_idle: ['p1', [0, 1, 2]], p1_move: ['p1', [3, 4]], p1_wind: ['p1', [5]], p1_hit: ['p1', [6]], p1_hurt: ['p1', [9, 10, 11]], p1_special: ['p1', [5]],
-      p2_idle: ['p2', [0, 1, 2]], p2_move: ['p2', [3, 4]], p2_wind: ['p2', [5]], p2_hit: ['p2', [6, 7, 8]], p2_hurt: ['p2', [10, 11, 12]], p2_special: ['p2', [7]],
-      p3_idle: ['p3', [0, 1, 2]], p3_move: ['p3', [3, 4]], p3_wind: ['p3', [6]], p3_hit: ['p3', [7]], p3_hurt: ['p3', [9, 10, 11]], p3_special: ['p3', [6]],
+      idle: 'idle', move: 'walk', windup: ['thrust', [0, 1, 2, 3]], attack: ['thrust', [4, 5, 6, 7, 8]], hurt: ['hurt', [0, 1, 2]], death: 'death',
+      lunge: 'lunge', sweep: ['sweep', [0, 1, 2, 3, 4]], slam: ['sweep', [5, 6]], cast: ['spell', [0, 1, 2, 3]], nova: ['spell', [4, 5, 6, 7, 8]],
+      roar: 'aura', stagger: ['hurt', [3, 4, 5, 6, 7]],
     },
-    fps: { idle: 4, move: 5 },
+    fps: { idle: 6, move: 8, roar: 8, nova: 9 },
   },
   // A2 SECRET BOSS: Varkharon (owner's v2 sheet, one form at twice the size). The phases differ by colour / glow
   // (bosses.js look.phaseStyle filter), the enrage row is its roar / transformation.

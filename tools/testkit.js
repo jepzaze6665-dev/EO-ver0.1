@@ -1711,7 +1711,9 @@ export function b3BossCheck(g, classId = 'umbral_sword', { god = true, level = 4
   g.simulate(6);
   g.vfx.sprite = spawn0;
   for (const [n, f] of subs) g.events.off(n, f);
-  ok('Forms change with the phases (dormant / awakened / corrupted art)', ['p1_idle', 'p2_idle', 'p3_idle'].filter((a) => anims.has(a)).length >= 2 || ['p1_hit', 'p2_hit', 'p3_hit'].filter((a) => anims.has(a)).length >= 2, [...anims].join(','));
+  // v2 art = one form; the phases differ by colour (look.phaseStyle filter)
+  const ps = e.look.phaseStyle || {};
+  ok('Forms change with the phases (sheet anims + a colour per phase)', ['idle', 'attack', 'windup'].some((a) => anims.has(a)) && [2, 3, 4].every((n) => ps[n] && ps[n].filter), [...anims].join(','));
   ok('AWAKENED: frost sigils burst in order', st.bursts >= 4, `bursts=${st.bursts}`);
   ok('CORRUPTED: reflections copy its attacks', echoes.copies > 0, `copies=${echoes.copies}`);
   ok(`SHATTERED ECLIPSE: pylons broken in time -> EXPOSED${god ? ' (after one failed charge)' : ''}`, st.eclipse.includes(true) && (!god || st.eclipse[0] === false), JSON.stringify(st.eclipse));

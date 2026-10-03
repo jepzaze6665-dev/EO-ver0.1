@@ -469,11 +469,10 @@ export const BOSSES = {
     teaches: 'Read four forms · remember the sigil order · watch the reflections · break the pylons in time',
     stats: { hp: 24000, def: 16, speed: 104, radius: 22, height: 64, mass: 8, weakness: ['physical'], superArmor: true, poise: 1300 },
     look: {
-      sprite: 'crystal_warden', scale: 1.15, aura: '150,200,255',
+      sprite: 'crystal_warden', scale: 1, aura: '150,200,255',
       // each phase its own glow / size: pale ice -> bright cyan -> violet corruption -> magenta, larger (enraged)
-      phaseStyle: { 1: { aura: '150,200,255' }, 2: { aura: '90,220,255', glow: 5 }, 3: { aura: '170,100,255', glow: 7, scale: 1.05 }, 4: { aura: '230,80,255', glow: 10, scale: 1.14 } },
-      anims: { idle: 'p1_idle', walk: 'p1_move', windup: 'p1_wind', attack: 'p1_hit', hurt: 'p1_hurt', roar: 'p1_special' },
-      phaseAnims: { 2: { idle: 'p2_idle', walk: 'p2_move', windup: 'p2_wind', attack: 'p2_hit', hurt: 'p2_hurt', roar: 'p2_special' }, 3: { idle: 'p3_idle', walk: 'p3_move', windup: 'p3_wind', attack: 'p3_hit', hurt: 'p3_hurt', roar: 'p3_special' }, 4: { idle: 'p3_idle', walk: 'p3_move', windup: 'p3_wind', attack: 'p3_hit', hurt: 'p3_hurt', roar: 'p3_special' } },
+      phaseStyle: { 1: { aura: '150,200,255' }, 2: { aura: '90,220,255', glow: 5, filter: 'saturate(1.35) brightness(1.1)' }, 3: { aura: '170,100,255', glow: 7, scale: 1.05, filter: 'hue-rotate(40deg) saturate(1.4)' }, 4: { aura: '230,80,255', glow: 10, scale: 1.14, filter: 'hue-rotate(75deg) saturate(1.7) contrast(1.1)' } },
+      anims: { idle: 'idle', walk: 'move', windup: 'windup', attack: 'attack', hurt: 'hurt', roar: 'roar' },
       vfx: { charge: 'w_spark', slash: 'w_slash', impact: 'w_crater', bolt: 'w_bolt', eruption: 'w_spikes', nova: 'w_eruption', phase: 'w_burst', sigil: 'w_sigil', pillar: 'w_pillar', shatter: 'w_shatter', spark: 'w_sparkle', echo: 'w_crystal', burst: 'w_blast' },
       // phase changes: the Warden's shape shifts inside an ice burst; phase 4 keeps the violet corruption aura (B2's AURA
       // sheet, 'ca_*') boiling under it

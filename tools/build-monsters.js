@@ -153,16 +153,12 @@ const SHEETS = {
     file: 'B/B3/4', height: 34, // rows: front · back · side (faces left) · attack · hit · telegraph · special · death
     rows: [['front', 6], ['back', 6], ['side', 6, { flip: true }], ['attack', 6, { flip: true }], ['hit', 6, { flip: true }], ['telegraph', 6], ['special', 6, { flip: true }], ['death', 6, { flip: true }]],
   },
-  // B3 MAJOR BOSS: the CRYSTAL WARDEN — the owner's multi-phase sheet ("Phase BOSS"): 4 forms (dormant / awakened /
-  // corrupted / enraged) + the three transformations + death. Groups cut by band (the labels' counts are not the drawn ones).
+  // B3 MAJOR BOSS: the CRYSTAL WARDEN v2 (owner 2026-10-03: B3.png = ONE form drawn ~2x larger, poses spaced apart; the old
+  // 4-form sheet's small, overlapping poses were cut broken). Phases = colour / glow (bosses.js look.phaseStyle filter).
+  // 10 rows: idle · walk · thrust · lunge · sweep (arcs) · spells · hurt + fall · aura (transformation) · death · death 2.
   crystal_warden: {
-    file: 'B/B3/Phase  BOSS/image-467ab296-8880-4d8b-9d4f-d616ceb660b9-0.PNG', height: 88, darkBg: { neutral: 10, lum: 50 }, flip: true, // swings to the left
-    // blob rows (poses overlap in x). Phase 4's purple aura and the transformation rows join their poses into one shape,
-    // so they are not cut: the game shows phase 4 as the corrupted form + a strong aura (data/bosses.js look.phaseAura).
-    rows: [
-      ['p1', 0, { y: [160, 292], x: [120, 1990], blobs: { min: 2500 } }], ['p2', 0, { y: [388, 532], x: [118, 1990], blobs: { min: 2500 } }],
-      ['p3', 0, { y: [628, 782], x: [118, 1990], blobs: { min: 2500 } }], ['death', 0, { y: [1780, 1935], x: [140, 1990], blobs: { min: 700 } }],
-    ],
+    file: 'B/B3/Phase  BOSS/B3.png', height: 100, flip: true, // spear points LEFT: mirrored so the game's 'faces right' rule holds
+    rows: [['idle', 8], ['walk', 9], ['thrust', 9], ['lunge', 7], ['sweep', 7], ['spell', 9], ['hurt', 8], ['aura', 9], ['death', 10], ['death2', 6]],
   },
   // A2 SECRET BOSS VARKHARON v2 (owner 2026-10-01: the first 4-phase sheet was drawn too small and looked broken when scaled up): one form drawn at twice the size (~170 px bodies),
   // 9 rows: idle · walk · claw · breath · fire spit · specials · hurt · enrage · death. Built at height 128 and drawn at
