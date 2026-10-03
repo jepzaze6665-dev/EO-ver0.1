@@ -39,13 +39,15 @@ export const SFX = {
 };
 
 // Field / city music per zone (files named after the track). Missing file -> the zone's old synth theme.
+// OWNER 2026-10-03: a SMALL music set (9 files) shared by many zones; a zone / boss may still get its own file later
+// (name it in these tables). Missing file -> the zone's old synth theme.
 export const ZONE_MUSIC = {
-  [Z.VILLAGE]: 'lumina', [Z.FOREST]: 'whispering_forest', [Z.RUINS]: 'whispering_forest', [Z.GATE]: 'whispering_forest',
-  [Z.ARENA]: 'boss_arena_calm', [Z.VALLEY]: 'valehaven', [Z.CAVE]: 'hidden_cave', [Z.ANCIENT]: 'ancient_valley',
-  [Z.RIFT]: 'boss_arena_calm', [Z.CITADEL]: 'rune_citadel', [Z.SANCTUM]: 'boss_arena_calm', [Z.ASTERIA]: 'asteria',
-  [Z.FROSTWIND]: 'frostwind', [Z.FROST_ARENA]: 'boss_arena_calm', [Z.CAVERNS]: 'crystal_caverns',
-  [Z.CAVERN_HEART]: 'boss_arena_calm', [Z.FROSTPEAK]: 'frostpeak', [Z.PEAK_SUMMIT]: 'boss_arena_calm',
-  [Z.EMBER]: 'quiet_hollow', [Z.CINDER]: 'boss_arena_calm',
+  [Z.VILLAGE]: 'town', [Z.VALLEY]: 'town', [Z.ASTERIA]: 'town',
+  [Z.FOREST]: 'field_a', [Z.RUINS]: 'field_a', [Z.GATE]: 'field_a', [Z.ANCIENT]: 'field_a', [Z.CITADEL]: 'field_a',
+  [Z.FROSTWIND]: 'field_b', [Z.CAVERNS]: 'field_b', [Z.FROSTPEAK]: 'field_b',
+  [Z.CAVE]: 'dungeon_dark', [Z.EMBER]: 'dungeon_dark', [Z.ARENA]: 'dungeon_dark', [Z.RIFT]: 'dungeon_dark',
+  [Z.SANCTUM]: 'dungeon_dark', [Z.FROST_ARENA]: 'dungeon_dark', [Z.CAVERN_HEART]: 'dungeon_dark',
+  [Z.PEAK_SUMMIT]: 'dungeon_dark', [Z.CINDER]: 'dungeon_dark',
 };
 // Ambience loops per zone (optional files).
 export const ZONE_AMBIENCE = {
@@ -58,12 +60,8 @@ export const ZONE_AMBIENCE = {
 
 // Boss music: track '<base>_p<phase>' (phase 1..n). A missing phase file plays the highest phase below it,
 // then '<base>', then the shared boss track, then the old synth 'boss' theme.
-export const BOSS_MUSIC = {
-  mini_hollow_fang: 'boss_mini', mini_grukk: 'boss_mini', mini_sunken_horn: 'boss_mini', mini_archive_warden: 'boss_mini',
-  mini_old_scarclaw: 'boss_mini', mini_broodmother: 'boss_mini', mini_icebound_king: 'boss_mini',
-  boss_a1: 'boss_guardian', boss_a2: 'boss_magma_beast', boss_a3: 'boss_rune_knight',
-  boss_b1: 'boss_hoarfang', boss_b2: 'boss_colossus', boss_b3: 'boss_crystal_warden', boss_varkharon: 'boss_varkharon',
-};
+// Boss music: '<base>_p<phase>'. Ordinary + mini bosses share boss_common, the three big ones share boss_final.
+export const BOSS_MUSIC = { boss_a3: 'boss_final', boss_b3: 'boss_final', boss_varkharon: 'boss_final' };
 export const BOSS_MUSIC_FALLBACK = 'boss_common';
 
 // Pure: which track to play for a boss phase, given the set of tracks that have files.

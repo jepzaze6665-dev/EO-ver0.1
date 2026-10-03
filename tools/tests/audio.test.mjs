@@ -10,15 +10,15 @@ const ok = (c, msg) => { if (!c) throw new Error(msg); };
 const ROOT = new URL('../../', import.meta.url);
 
 console.log('audio');
-test('every boss has a music track', () => { for (const id of Object.keys(BOSSES)) ok(BOSS_MUSIC[id], 'no track for ' + id); });
+test('every boss has a music track', () => { for (const id of Object.keys(BOSSES)) ok(bossTrack(id, 1, () => true), 'no track for ' + id); });
 test('every zone with info has music + ambience entries', () => {
   for (const z of Object.keys(ZONE_INFO)) { ok(ZONE_MUSIC[z], 'zone ' + z + ' no music'); ok(ZONE_AMBIENCE[z], 'zone ' + z + ' no ambience'); }
 });
 test('boss track picks the phase file, else lower phase, base, shared, null', () => {
   const has = (set) => (n) => set.includes(n);
-  ok(bossTrack('boss_b3', 3, has(['boss_crystal_warden_p1', 'boss_crystal_warden_p3'])) === 'boss_crystal_warden_p3', 'exact');
-  ok(bossTrack('boss_b3', 2, has(['boss_crystal_warden_p1', 'boss_crystal_warden_p3'])) === 'boss_crystal_warden_p1', 'lower');
-  ok(bossTrack('boss_b3', 2, has(['boss_crystal_warden'])) === 'boss_crystal_warden', 'base');
+  ok(bossTrack('boss_b3', 2, has(['boss_final_p1', 'boss_final_p2'])) === 'boss_final_p2', 'exact');
+  ok(bossTrack('boss_b3', 4, has(['boss_final_p1', 'boss_final_p2'])) === 'boss_final_p2', 'lower');
+  ok(bossTrack('boss_a1', 2, has(['boss_common_p1'])) === 'boss_common_p1', 'common');
   ok(bossTrack('boss_b3', 2, has([BOSS_MUSIC_FALLBACK + '_p2'])) === BOSS_MUSIC_FALLBACK + '_p2', 'shared');
   ok(bossTrack('boss_b3', 2, has([])) === null, 'none -> synth');
 });

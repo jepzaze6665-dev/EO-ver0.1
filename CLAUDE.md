@@ -1353,7 +1353,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   2-4 window / 2 PC checklist A-G) and docs/online/HEADLESS_SERVER_PLAN.md (H1 SimGame without DOM -> H2 server hosts each
   run-map room -> H5 items / EXP on the server -> H3 server-side damage -> H4 movement prediction -> H6 real accounts).
   ONLINE N1-N10 COMPLETE. Next: owner decides (manual multi-PC test with the checklist, headless H1, UI redesign).
-- **Current: AUDIO** (owner 2026-10-03: AI-made files — ElevenLabs SFX / ambience, Suno / Udio music —, Hollow Knight style, boss
+- **Current: AUDIO** (music set cut to 9 files by the owner: title · town · field_a · field_b · dungeon_dark · boss_common_p1/p2 · boss_final_p1/p2 (A3 / B3 / Varkharon); prompts v2 = every sfx name) (owner 2026-10-03: AI-made files — ElevenLabs SFX / ambience, Suno / Udio music —, Hollow Knight style, boss
   music per phase, voice later). Phases A1 system · A2 music + ambience files · A3 combat + UI sfx · A4 class sfx · A5 monsters /
   bosses · A6 footsteps + mix. Done A1: rules `src/data/sounds.js` (AUDIO_BUSES master / music / sfx / amb / ui saved in
   localStorage `eclipse_audio_v1`, SOUND_RULES (maxVoices 4 per name, random pitch, hearRange 900 px, crossfades), SFX per-name

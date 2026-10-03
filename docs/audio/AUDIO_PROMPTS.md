@@ -1,120 +1,147 @@
-# ECLIPSE ONLINE — ชุด Prompt เสียง (ชุดที่ 1: เพลง + Ambience + SFX Combat/UI)
+# ECLIPSE ONLINE — ชุด Prompt เสียง v2 (เพลง 9 เพลง + SFX ครบทุกเสียง)
 
-แนวทางเสียงทั้งเกม: **แนว Hollow Knight** — เบาบาง เศร้า มีช่องว่าง เครื่องดนตรีจริง (เปียโน, เชลโล, ไวโอลิน,
-ฮาร์ป, คอรัสเบา ๆ) · SFX แห้ง คม สั้น ไม่มี reverb ยาว (ยกเว้นเสียงใหญ่: ult / บอส)
+แนวเสียงทั้งเกม: **แนว Hollow Knight** — เบาบาง เศร้า มีช่องว่าง เครื่องดนตรีจริง (เปียโน, เชลโล, ไวโอลิน, ฮาร์ป,
+คอรัสเบา ๆ) · SFX แห้ง คม สั้น ไม่มี reverb ยาว (ยกเว้นเสียงใหญ่: ult / บอส)
 
-## วิธีใช้ (ทำตามนี้ทุกครั้ง)
-1. คัดลอก prompt ภาษาอังกฤษไปสั่ง AI (เพลง = **Suno / Udio** เลือก *Instrumental* · SFX + Ambience = **ElevenLabs Sound Effects**)
-2. สั่งหลายครั้ง เลือกอันที่ดีที่สุด → **ตั้งชื่อไฟล์ตามตาราง** (ตัวพิมพ์เล็ก) แล้ววางในโฟลเดอร์:
+## วิธีใช้
+1. คัดลอก prompt ภาษาอังกฤษไปสั่ง AI — เพลง = **Suno / Udio** (เลือก *Instrumental*) · SFX + Ambience = **ElevenLabs Sound Effects**
+2. ตั้งชื่อไฟล์ตามตาราง (ตัวพิมพ์เล็ก) แล้ววาง:
    - เพลง → `desgin/SOUND/music/<ชื่อ>.mp3`
+   - SFX → `desgin/SOUND/sfx/<ชื่อ>.wav` (ถ้าโหลด **wav** ได้ให้เลือก wav) · หลายแบบ: `hit_1`, `hit_2`, `hit_3` (เกมสุ่มเล่น)
    - Ambience → `desgin/SOUND/amb/<ชื่อ>.mp3`
-   - SFX → `desgin/SOUND/sfx/<ชื่อ>.mp3` · มีหลายแบบได้: `hit_1.mp3`, `hit_2.mp3`, `hit_3.mp3` (เกมสุ่มเล่น)
-3. รัน `node tools/build-audio.js` (หรือ `--list` ดูว่าเสียงไหนยังไม่มีไฟล์) → รีโหลดเกม เสียงใหม่ใช้ทันที
-4. เสียงไหนยังไม่มีไฟล์ = เกมใช้เสียงเดิม (เสียงสังเคราะห์) อัตโนมัติ — ทำทีละนิดได้
+3. รัน `node tools/build-audio.js` (เติม `--list` = ดูว่าเสียงไหนยังขาด) → รีโหลดเกม
+4. เสียงไหนยังไม่มีไฟล์ เกมใช้เสียงเดิมให้อัตโนมัติ — ทำทีละชุดได้
 5. ⚠ **License**: ใช้แพ็กเกจที่อนุญาตเชิงพาณิชย์ (แพ็กเกจฟรีของ Suno / Udio มักห้าม)
 
-**เคล็ดลับเพลง loop**: ใส่ในทุก prompt เพลงว่า `seamless loop, no intro, no fade-out ending` ถ้ายังมีหัว/ท้าย
-ผมทำจุด loop ให้ได้ (`desgin/SOUND/loops.json` = `{ "music/lumina.mp3": [วินาทีเริ่ม, วินาทีจบ] }`)
+**กฎทอง SFX** — ต่อท้าย *ทุก* prompt ด้วยประโยคเดียวกันเสมอ เสียงจะฟังเป็นเกมเดียวกัน:
+`, dark fantasy game sound effect, dry, punchy, short tail, no music, no voice`
 
-**เพลงบอสหลาย phase**: สร้าง phase 1 ก่อน แล้วใช้ **Extend / Remix / Cover** ของเพลงเดิมทำ phase 2, 3, 4
-(**tempo + คีย์ต้องเท่ากัน** เกมจะ crossfade 2.2 วินาทีให้กลืนกัน) แต่ละ phase = หนักขึ้น เร็วขึ้นไม่ได้ แต่ใส่เครื่องเพิ่ม
+**ช่อง "แบบ"** = ควรทำกี่ไฟล์ (เสียงที่ดังบ่อยต้องมีหลายแบบ ไม่งั้นฟังซ้ำซาก)
 
 ---
 
-## 1. เพลงเมือง / แผนที่ (13 เพลง, ยาว 2-3 นาที)
+## 1. เพลง (9 เพลง)
 
-| ไฟล์ | ใช้ที่ | Prompt |
-|---|---|---|
-| `title` | หน้า Title | `melancholic dark fantasy main theme, solo piano and soft string ensemble, distant wordless female choir, slow 70 bpm, minor key, a lonely eclipse over a ruined world, Hollow Knight style, instrumental, seamless loop` |
-| `lumina` | Lumina Village (เมืองเริ่มต้น) | `gentle village theme, warm acoustic guitar and harp, soft flute melody, quiet and safe but slightly wistful, 80 bpm, D major with minor colour, Hollow Knight Dirtmouth mood, instrumental, seamless loop, no intro, no ending` |
-| `asteria` | Asteria City (เมือง 2) | `grand but lonely royal city theme, cello and violin duet, soft brass swells, harp arpeggios, noble and melancholic, 76 bpm, Hollow Knight City of Tears mood without rain, instrumental, seamless loop` |
-| `valehaven` | Valehaven (เมืองลับ) | `hidden peaceful valley sanctuary, music box and soft strings, light choir pad, dreamy and fragile, 66 bpm, instrumental, seamless loop` |
-| `whispering_forest` | A1 Whispering Forest | `mysterious overgrown forest exploration, plucked strings pizzicato, soft woodwinds, sparse piano notes, gentle tension, 84 bpm, Hollow Knight Greenpath mood, instrumental, seamless loop` |
-| `hidden_cave` | ถ้ำลับ A1 | `dark quiet cave, deep cello drones, single piano notes with space, water drip like percussion, eerie and calm, 60 bpm, instrumental, seamless loop` |
-| `ancient_valley` | A2 Ancient Valley | `ancient fallen kingdom terraces, solemn strings, ethnic flute, low choir, waterfalls and ruins, nostalgic and vast, 72 bpm, instrumental, seamless loop` |
-| `quiet_hollow` | Quiet Hollow (รังมังกร) | `ominous ash cave before a sealed dragon, low cello drones, distant timpani heartbeat, faint dissonant choir, smouldering dread, 58 bpm, instrumental, seamless loop` |
-| `rune_citadel` | A3 Rune Citadel | `ruined white stone citadel with glowing runes, haunting violin solo, bell-like celesta, soft organ pad, sorrowful and majestic, 70 bpm, instrumental, seamless loop` |
-| `frostwind` | B1 Frostwind Plains | `cold empty snowfield, solo violin over airy string pad, glass harmonica, wind-like textures, lonely, 74 bpm, instrumental, seamless loop` |
-| `crystal_caverns` | B2 Crystal Caverns | `glittering crystal cavern, celesta and harp shimmer, low cello pulse, mysterious and beautiful, 78 bpm, Hollow Knight Crystal Peak mood, instrumental, seamless loop` |
-| `frostpeak` | B3 Frostpeak | `harsh frozen mountain climb, determined cello ostinato, sparse snare, high strings, cold wind, rising tension, 88 bpm, instrumental, seamless loop` |
-| `boss_arena_calm` | ลานบอส (ก่อนสู้) | `the silence before a boss, low string drone, very sparse piano, a distant heartbeat drum, unease, 60 bpm, instrumental, seamless loop` |
-| `victory` | ชนะบอส / จบ route | `short triumphant but bittersweet fanfare, strings and soft brass, choir swell, resolves warmly, 20 seconds, instrumental` |
+ต่อท้ายทุก prompt: `, Hollow Knight style, instrumental, seamless loop, no intro, no fade-out ending`
 
-## 2. เพลงบอส (แยก phase — คีย์ / tempo เดิมในบอสเดียวกัน)
+| ไฟล์ | ใช้ที่ | ยาว | Prompt |
+|---|---|---|---|
+| `title` | หน้า Title | 2 นาที | `melancholic dark fantasy main theme, solo piano and soft string ensemble, distant wordless female choir, 70 bpm, minor key, a lonely eclipse over a ruined world` |
+| `town` | Lumina · Asteria · Valehaven (ทุกเมือง) | 2-3 นาที | `gentle safe town theme, warm harp and acoustic guitar, soft flute and cello melody, calm but slightly wistful, 78 bpm, major key with minor colour` |
+| `field_a` | A1 · A2 · A3 (Route A) | 3 นาที | `mysterious overgrown ancient lands exploration, pizzicato strings, soft woodwinds, sparse piano, gentle tension, 84 bpm, D minor` |
+| `field_b` | B1 · B2 · B3 (Route B: หิมะ / ถ้ำคริสตัล / ภูเขา) | 3 นาที | `cold frozen wilderness exploration, solo violin over airy strings, celesta and glass shimmer, lonely and vast, 76 bpm, B minor` |
+| `dungeon_dark` | ถ้ำลับ · Quiet Hollow · ลานบอสก่อนสู้ | 2 นาที | `ominous dark place, low cello drones, sparse single piano notes, distant heartbeat drum, eerie and still, 60 bpm` |
+| `boss_common_p1` | มินิบอส + บอสธรรมดาทุกตัว (phase 1) | 2 นาที | `intense dark fantasy boss battle, driving string ostinato, taiko drums, choir stabs, 140 bpm, C minor` |
+| `boss_common_p2` | บอสธรรมดา phase 2 ขึ้นไป | 2 นาที | **ใช้ Extend / Remix จาก p1** · `same theme, heavier: add brass, full choir, more percussion, same tempo and key` |
+| `boss_final_p1` | Rune Knight · Crystal Warden · Varkharon (phase 1) | 2-3 นาที | `epic final boss battle, cathedral organ, deep male choir, virtuoso violin, war drums, 132 bpm, D minor, tragic and grand` |
+| `boss_final_p2` | บอสใหญ่ phase 2 ขึ้นไป | 2-3 นาที | **ใช้ Extend / Remix จาก p1** · `same theme at its climax: full orchestra, dissonant choir, maximum intensity, same tempo and key` |
 
-ทุก prompt เติมท้ายด้วย: `, Hollow Knight boss fight style, instrumental, seamless loop, no intro, no ending`
+- **เพลงชนะ** ไม่ต้องทำ — ใช้ SFX `victory` (ข้อ 3)
+- p2 ต้อง **tempo + คีย์เท่ากับ p1** เกมจะ crossfade 2.2 วินาทีให้กลืน
+- ถ้าอยากให้บอสตัวไหนมีเพลงเองภายหลัง: บอกผม แล้ววางไฟล์ชื่อใหม่ได้เลย (ไม่ต้องแก้ระบบ)
 
-| ไฟล์ | บอส | Prompt |
-|---|---|---|
-| `boss_common` | สำรอง (บอสที่ยังไม่มีเพลงเอง) | `intense dark fantasy boss battle, driving strings ostinato, taiko drums, choir stabs, 140 bpm, C minor` |
-| `boss_mini_p1` / `_p2` | มินิบอสทุกตัว | p1 `fast aggressive strings and percussion duel, 135 bpm, D minor` · p2 = Extend: `same theme, heavier, add brass and choir` |
-| `boss_guardian_p1` · `_p2` · `_p3` | Guardian of the Forest (A1) | p1 `ancient forest guardian awakens, epic cello and violin, tribal drums, wooden percussion, 128 bpm, E minor` · p2 `+ choir and brass, more urgent` · p3 `corrupted, dissonant choir, full orchestra climax` |
-| `boss_magma_beast_p1` · `_p2` | Magma Beast (A2) | p1 `molten lava beast, heavy low brass, pounding taiko, aggressive strings, 132 bpm, F minor` · p2 `molten fury: faster feel, distorted low strings, roaring choir` |
-| `boss_rune_knight_p1` · `_p2` · `_p3` | Rune Knight (A3 Major) | p1 `noble fallen knight duel, virtuoso violin, harpsichord, marching drums, 144 bpm, A minor` · p2 `+ organ and runic choir` · p3 `tragic climax, full choir, cathedral organ, all strings` |
-| `boss_hoarfang_p1` · `_p2` | Hoarfang (B1) | p1 `winter alpha wolf hunt, fast staccato strings, war drums, howling horn, 138 bpm, B minor` · p2 `whiteout: icy high strings, choir, blizzard intensity` |
-| `boss_colossus_p1` · `_p2` | Amethyst Colossus (B2) | p1 `giant crystal golem, heavy slow brass, celesta and glass percussion, 120 bpm, G minor` · p2 `resonance: shimmering crystal choir, pounding drums` |
-| `boss_crystal_warden_p1` … `_p4` | Crystal Warden (B3 Major, 4 phase) | p1 `dormant ice warden, cold string drone building, 130 bpm, C# minor` · p2 `awakened: strings ostinato + drums` · p3 `corrupted: dissonant choir, distorted strings` · p4 `enraged: full orchestra, choir, maximum intensity` |
-| `boss_varkharon_p1` … `_p4` | Varkharon (บอสลับ, 4 phase) | p1 `sealed ancient dragon king, ominous organ, deep male choir, war drums, 126 bpm, D minor` · p2 `awakened flame: brass fanfares, fiery strings` · p3 `abyssal corruption: dissonant choir, low drones, chaos` · p4 `cinder king's wrath: everything, epic final battle, cathedral organ and full choir` |
-
-ถ้ายังทำไม่ครบทุก phase: เกมเล่น phase ที่มีอันล่าสุดต่อไป (เช่นมีแค่ `_p1` = ทั้งไฟต์ใช้ p1)
-
-## 3. Ambience (loop 20-30 วินาที, ElevenLabs)
+## 2. Ambience (ไม่บังคับ, loop 20-30 วินาที)
 | ไฟล์ | Prompt |
 |---|---|
-| `amb_village` | `quiet fantasy village ambience, distant birds, light wind, soft wooden creaks, faint far-away chatter, seamless loop` |
-| `amb_city` | `large medieval city ambience, distant crowd murmur, footsteps on stone, fountain water, bell far away, seamless loop` |
+| `amb_village` | `quiet fantasy village ambience, distant birds, light wind, soft wooden creaks, seamless loop` |
+| `amb_city` | `large medieval city ambience, distant crowd murmur, fountain water, far bell, seamless loop` |
 | `amb_forest` | `mysterious forest ambience, rustling leaves, distant owl, insects, soft wind, seamless loop` |
-| `amb_valley` | `open valley ambience, distant waterfall, river, gentle wind, birds, seamless loop` |
+| `amb_valley` | `open valley ambience, distant waterfall, river, gentle wind, seamless loop` |
 | `amb_cave` | `dark cave ambience, water drips, low rumble, faint echo, seamless loop` |
 | `amb_lava` | `volcanic cavern ambience, bubbling lava, crackling embers, deep rumble, seamless loop` |
 | `amb_ruins` | `ancient stone ruins ambience, hollow wind through pillars, faint magical hum, seamless loop` |
-| `amb_wind` | `cold snowy mountain wind ambience, howling gusts, blowing snow, seamless loop` |
-
-## 4. SFX ชุดที่ 1 — Combat + UI (ElevenLabs, ทำ 2-3 แบบต่อชื่อถ้าเป็นเสียงที่ดังบ่อย)
-ทุก prompt เติมท้าย: `, game sound effect, dry, punchy, no music`
-
-| ไฟล์ | ใช้ตอน | ยาว | Prompt |
-|---|---|---|---|
-| `swing` (×3) | ฟันธรรมดา | 0.3 s | `quick sword whoosh swing` |
-| `swing_fast` (×2) | ฟันเร็ว | 0.2 s | `very fast light blade swish` |
-| `slash_heavy` (×2) | ฟันหนัก | 0.5 s | `heavy sword slash whoosh with metal ring` |
-| `hit` (×3) | โดนศัตรู | 0.2 s | `blade hitting creature flesh, short impact` |
-| `crit` (×2) | คริติคอล | 0.4 s | `powerful critical hit impact, sharp crack with bright metallic ring` |
-| `kill` (×2) | ศัตรูตาย | 0.5 s | `creature defeated, soft dark dissolve whoosh` |
-| `hurt` (×3) | ผู้เล่นโดน | 0.3 s | `player gets hit, dull thump with short grunt-less impact` |
-| `death` | ผู้เล่นตาย | 2 s | `hero falls, heavy body thud then fading low tone` |
-| `dodge` (×2) | หลบ | 0.3 s | `quick cloth dash whoosh` |
-| `dash` | พุ่ง (สกิล) | 0.4 s | `fast magical dash whoosh with air rush` |
-| `perfect` | Perfect Dodge | 0.8 s | `time slows down, shimmering magical chime with reverse whoosh` |
-| `block` (×2) | Guard กัน | 0.3 s | `shield blocking sword, solid metal clang` |
-| `perfect_guard` | Parry | 0.6 s | `perfect parry, bright ringing metal clash with sparkle` |
-| `counter` | Counter hit | 0.4 s | `fast counter strike, sharp slash with impact` |
-| `mark` | ติด Mark | 0.2 s | `small dark magic tick, shadow ping` |
-| `mark_full` | Mark เต็ม | 0.5 s | `dark energy fully charged, rising shadow chime` |
-| `break` | Shadow Break | 1.2 s | `massive shadow explosion, deep boom with glass shatter tail` |
-| `ult_charge` | ชาร์จ Ultimate | 1 s | `magic power charging up, rising rumble and energy hum` |
-| `ult_slash` | Ultimate ปล่อย | 1.5 s | `enormous epic slash, deep boom, wide whoosh, magical ringing tail` |
-| `cast` (×2) | ร่ายเวท | 0.5 s | `soft arcane spell cast, magical shimmer` |
-| `shoot` (×2) | ยิงกระสุน | 0.3 s | `magic projectile launched, quick energy whoosh` |
-| `boom_small` (×2) | ระเบิดเล็ก | 0.5 s | `small magical explosion, short boom` |
-| `windup` | ศัตรูตั้งท่า | 0.3 s | `enemy preparing attack, short rising tension tone` |
-| `windup_big` | ศัตรูตั้งท่าหนัก | 0.6 s | `big enemy preparing heavy attack, deep ominous rising growl-like tone` |
-| `enemy_swing` (×2) | ศัตรูฟาด | 0.3 s | `monster claw swipe whoosh` |
-| `slam` (×2) | ทุบพื้น | 0.6 s | `heavy ground slam, deep thud with rubble` |
-| `slam_big` | บอสทุบพื้น | 1 s | `giant boss slams the ground, huge earth-shaking boom` |
-| `roar` | บอสคำราม | 2 s | `huge monster roar, deep and terrifying` |
-| `weak` | บอสเปิดจุดอ่อน | 0.6 s | `boss stunned, glass crack chime, opportunity sound` |
-| `potion` | ดื่มยา | 0.6 s | `drinking a potion, glass gulp with soft healing chime` |
-| `levelup` | เลเวลอัป | 2 s | `level up, ascending warm magical chime with soft choir` |
-| `quest` | รับเควส | 0.8 s | `quest accepted, soft parchment and gentle chime` |
-| `quest_done` | เควสเสร็จ | 1.5 s | `quest complete, satisfying warm chime sequence` |
-| `chest` | เปิดหีบ | 0.8 s | `wooden chest opening, creak and small sparkle` |
-| `chest_rare` | หีบหายาก | 1.5 s | `rare treasure chest, creak then brilliant magical sparkle` |
-| `equip` | ใส่ของ | 0.3 s | `equipping armor, short leather and metal clink` |
-| `ui` (×2) | คลิก UI | 0.1 s | `soft subtle UI click, wooden and clean` |
-| `deny` | ทำไม่ได้ | 0.2 s | `soft UI error buzz, muted` |
-| `waystone` | Waystone | 1.5 s | `ancient stone activates, magical resonant hum and chime` |
-| `secret` | เจอความลับ | 2 s | `secret discovered, mysterious magical shimmer arpeggio` |
+| `amb_wind` | `cold snowy mountain wind, howling gusts, blowing snow, seamless loop` |
 
 ---
-**ชุดถัดไป (ทำทีหลัง):** เสียงเฉพาะ 12 คลาส (A4) · เสียงมอนสเตอร์ / บอสแต่ละตัว (A5) · เสียงก้าวเท้าตามพื้น (A6)
+
+## 3. SFX — ครบทุกเสียงที่เกมใช้ (66 ชื่อ) เรียงตามลำดับที่ควรทำ
+
+### ชุด 1 — ดังทุกวินาที (ทำก่อน แล้วเข้าเกมฟัง)
+| ไฟล์ | แบบ | ยาว | ใช้ตอน | Prompt |
+|---|---|---|---|---|
+| `swing` | 3 | 0.3 s | ฟันธรรมดา | `quick sword whoosh swing` |
+| `hit` | 3 | 0.2 s | โดนศัตรู | `blade hitting creature flesh, short impact` |
+| `hurt` | 3 | 0.3 s | ผู้เล่นโดนตี | `hero takes a hit, dull thump impact` |
+| `dodge` | 2 | 0.3 s | หลบ | `quick cloth dash whoosh` |
+| `enemy_swing` | 3 | 0.3 s | ศัตรูฟาด | `monster claw swipe whoosh` |
+| `kill` | 2 | 0.5 s | ศัตรูตาย | `creature defeated, soft dark dissolve whoosh` |
+| `step` | 4 | 0.1 s | เดิน | `single soft footstep on dirt` |
+| `ui` | 2 | 0.1 s | คลิกเมนู | `soft subtle interface click, wooden and clean` |
+| `deny` | 1 | 0.2 s | ทำไม่ได้ / ขาดทรัพยากร | `soft muted interface error buzz` |
+
+### ชุด 2 — ต่อสู้
+| ไฟล์ | แบบ | ยาว | ใช้ตอน | Prompt |
+|---|---|---|---|---|
+| `swing_fast` | 2 | 0.2 s | ฟันเร็ว | `very fast light blade swish` |
+| `slash_heavy` | 2 | 0.5 s | ฟันหนัก / ท่าจบคอมโบ | `heavy sword slash whoosh with metal ring` |
+| `crit` | 2 | 0.4 s | คริติคอล | `powerful critical hit, sharp crack with bright metallic ring` |
+| `dash` | 2 | 0.4 s | สกิลพุ่ง | `fast magical dash whoosh with air rush` |
+| `blink` | 1 | 0.3 s | วาร์ป / หายตัว | `quick magical teleport blink, airy shimmer` |
+| `perfect` | 1 | 0.8 s | Perfect Dodge | `time slows, shimmering chime with reverse whoosh` |
+| `block` | 2 | 0.3 s | กันด้วยโล่ | `shield blocks sword, solid metal clang` |
+| `perfect_guard` | 1 | 0.6 s | Parry | `perfect parry, bright ringing metal clash with sparkle` |
+| `counter` | 1 | 0.4 s | ตีสวน | `fast counter strike, sharp slash with impact` |
+| `taunt` | 1 | 0.6 s | ยั่วศัตรู | `knight war shout replaced by a deep rising horn-like magic pulse` |
+| `cast` | 2 | 0.5 s | ร่ายเวท | `soft arcane spell cast, magical shimmer` |
+| `shoot` | 2 | 0.3 s | ยิงกระสุนเวท | `magic projectile launched, quick energy whoosh` |
+| `boom_small` | 2 | 0.5 s | ระเบิดเล็ก | `small magical explosion, short boom` |
+| `arc` | 1 | 0.5 s | ฟันวงกว้าง | `wide sweeping blade arc, long whoosh` |
+| `chain` | 1 | 0.5 s | โซ่ / ดึงศัตรู | `heavy metal chain whips and pulls, rattling` |
+| `fire` | 2 | 0.5 s | ไฟ / ลูกไฟ | `fire burst whoosh, crackling flame` |
+| `potion` | 1 | 0.6 s | ดื่มยา | `drinking potion, glass gulp with soft healing chime` |
+| `death` | 1 | 2 s | ผู้เล่นตาย | `hero falls, heavy body thud then fading low tone` |
+
+### ชุด 3 — ศัตรู / บอส
+| ไฟล์ | แบบ | ยาว | ใช้ตอน | Prompt |
+|---|---|---|---|---|
+| `windup` | 2 | 0.3 s | ศัตรูตั้งท่า | `enemy prepares attack, short rising tension tone` |
+| `windup_big` | 1 | 0.6 s | ตั้งท่าหนัก | `big enemy prepares heavy attack, deep ominous rising tone` |
+| `claw` | 2 | 0.4 s | ข่วน | `beast claw slash, tearing whoosh` |
+| `slam` | 2 | 0.6 s | ทุบพื้น | `heavy ground slam, deep thud with rubble` |
+| `slam_big` | 2 | 1 s | บอสทุบพื้น | `giant boss slams the ground, huge earth-shaking boom` |
+| `charge` | 1 | 0.8 s | ศัตรูพุ่งชาร์จ | `heavy beast charging, thundering rush` |
+| `dash_enemy` | 1 | 0.4 s | ศัตรูพุ่ง | `creature lunges forward, fast whoosh` |
+| `crash` | 1 | 1 s | ชนกำแพง / ตกกระแทก | `huge body crashes into stone, heavy impact and debris` |
+| `quake` | 1 | 1.2 s | แผ่นดินไหว | `ground quake rumble, cracking earth` |
+| `roar` | 2 | 2 s | บอสคำราม | `huge monster roar, deep and terrifying` |
+| `roar_small` | 2 | 0.8 s | มอนสเตอร์คำรามเล็ก | `small beast growl roar` |
+| `roots` | 1 | 0.9 s | รากไม้ / หนาม | `roots burst from the ground, wood creak and snap` |
+| `shatter` | 2 | 0.5 s | คริสตัล / น้ำแข็งแตก | `crystal shatters, bright glass break` |
+| `weak` | 1 | 0.6 s | บอสเปิดจุดอ่อน | `boss stunned, glass crack chime, opportunity sound` |
+| `discover_boss` | 1 | 2 s | เจอบอส | `ominous discovery sting, low brass swell with dark choir` |
+| `victory` | 1 | 6 s | ชนะบอส | `bittersweet triumphant fanfare, strings and soft brass, choir swell, resolves warmly` |
+
+### ชุด 4 — สกิลพิเศษ / Ultimate
+| ไฟล์ | แบบ | ยาว | ใช้ตอน | Prompt |
+|---|---|---|---|---|
+| `mark` | 2 | 0.2 s | ติด Mark | `small dark magic tick, shadow ping` |
+| `mark_full` | 1 | 0.5 s | Mark เต็ม | `dark energy fully charged, rising shadow chime` |
+| `break_charge` | 1 | 0.4 s | เตรียม Shadow Break | `dark energy gathers, quick rising hum` |
+| `break` | 1 | 1.2 s | Shadow Break | `massive shadow explosion, deep boom with glass shatter tail` |
+| `ult_charge` | 1 | 1 s | ชาร์จ Ultimate | `power charging up, rising rumble and energy hum` |
+| `ult_slash` | 1 | 1.5 s | Ultimate ปล่อย | `enormous epic slash, deep boom, wide whoosh, ringing tail` |
+| `star` | 2 | 0.3 s | ดาว (Astral) | `small star twinkle hit, bright celestial ping` |
+| `thread` | 2 | 0.4 s | เส้นด้ายดาว | `magical thread stretches, glassy sine shimmer` |
+| `thread_burst` | 1 | 0.6 s | เส้นด้ายระเบิด | `magical threads snap and burst, sparkling crack` |
+| `constellation` | 1 | 1 s | กลุ่มดาว | `constellation forms, rising celestial chimes` |
+
+### ชุด 5 — โลก / UI / รางวัล
+| ไฟล์ | แบบ | ยาว | ใช้ตอน | Prompt |
+|---|---|---|---|---|
+| `levelup` | 1 | 2 s | เลเวลอัป | `level up, ascending warm magical chime with soft choir` |
+| `quest` | 1 | 0.8 s | รับเควส | `quest accepted, parchment rustle and gentle chime` |
+| `quest_done` | 1 | 1.5 s | เควสสำเร็จ | `quest complete, satisfying warm chime sequence` |
+| `chest` | 1 | 0.8 s | เปิดหีบ | `wooden chest opening, creak and small sparkle` |
+| `chest_rare` | 1 | 1.5 s | หีบหายาก | `rare treasure chest, creak then brilliant magical sparkle` |
+| `equip` | 2 | 0.3 s | ใส่ของ | `equipping armor, short leather and metal clink` |
+| `gather` | 2 | 0.3 s | เก็บของ | `pick up item, soft pluck with tiny chime` |
+| `secret` | 1 | 2 s | เจอความลับ | `secret discovered, mysterious magical shimmer arpeggio` |
+| `lore` | 1 | 1 s | อ่านจารึก | `ancient tablet read, soft mystical tone with stone resonance` |
+| `waystone` | 1 | 1.5 s | Waystone | `ancient stone activates, resonant hum and chime` |
+| `shrine` | 1 | 1.5 s | ศาลเจ้า / กลไกโบราณ | `ancient shrine awakens, deep resonant tone with soft light hum` |
+| `gate` | 1 | 1.5 s | ประตูเปิด | `heavy stone gate opens, grinding rumble` |
+| `rubble` | 1 | 0.6 s | หินพัง | `rocks crumble, small debris fall` |
+| `timber` | 1 | 1.2 s | ต้นไม้ล้ม | `tree cracks and falls, heavy thud` |
+
+---
+**รวม:** 66 ชื่อ ≈ 95 ไฟล์ (นับแบบ) · ชุดถัดไป (ภายหลัง): เสียงเฉพาะ 12 คลาส · มอนสเตอร์ / บอสแต่ละตัว · ก้าวเท้าตามพื้น
