@@ -1411,3 +1411,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   an object owned by a map mechanic { available(), use(), draw(ctx, t), prompt } pushed into world.interactables on
   enter, removed on exit. Online: host owns the timers (netState { v: [[openT, ...switch t]] }), a guest press = send('press').
   `await T.runeVaultCheck(g)` 15/15; mapTour opens the vault doors before its reachability step. Next: B2 darkness.
+  Done B2 DARKNESS (`src/world/mechanics/darkness.js`, map b2 { type 'darkness', lit 45, zones 3 }): dark chambers Old Mine /
+  Sunken Ruins / Sealed Crystal Vault (centre + radius in tiles): the screen goes black (alpha 0.93, fades in over the last 4
+  tiles of the edge) except a 95 px circle round you (and round online teammates); 3 GLOW CRYSTALS per chamber ('mech'
+  interactables, [E]) light 210 px for 45 s; all 3 of a chamber burning at once = THE HOARD WAKES: a rare chest appears
+  (saved.solved per save; opened = world.state.chests). Telegraphs stay visible (drawn after drawScreen). Online: host owns
+  timers + solved (netState { c, s }), a guest's [E] = send('light'). `await T.darknessCheck(g)` 9/9. Next: A2 water level.

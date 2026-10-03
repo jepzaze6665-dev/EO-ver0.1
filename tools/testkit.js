@@ -2319,3 +2319,47 @@ export async function runeVaultCheck(g, classId = 'umbral_sword') {
   console.table(R.map(([step, p2, dd]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(dd).slice(0, 80) })));
   return { pass, R };
 }
+
+// B2 DARKNESS (world/mechanics/darkness.js): dark chambers darken the screen, glow crystals light with [E] and burn out,
+// all crystals of a chamber at once = its hoard chest (once per save, survives save / load), crystals reachable on foot.
+export async function darknessCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  const { interact } = await import('../src/exploration/interactables.js');
+  g.newGame(classId);
+  let w = g.world;
+  const p = g.player;
+  p.god = true; releaseInput(g);
+  w.changeMap('b2', { entry: w.mapManager.get('b2').spawn });
+  for (const m of w.monsters) m.removed = true;
+  w.monsters = []; for (const sp of w.spawnPoints) sp.active = false;
+  let dk = w.mapMech.get('darkness');
+  const open = (tx, ty) => { const x = (tx + 0.5) * TILE, y = (ty + 0.5) * TILE; return !w.map.isSolidAt(x, y) && w.mapManager.idAt(x, y) === 'b2'; };
+  const sp = w.mapManager.get('b2').spawn.map(Math.floor), seen = new Set([sp.join()]), todo = [sp];
+  while (todo.length) { const [x, y] = todo.pop(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = `${x + dx},${y + dy}`; if (!seen.has(k) && open(x + dx, y + dy)) { seen.add(k); todo.push([x + dx, y + dy]); } } }
+  const tileOf = (e) => `${e.x / TILE | 0},${e.y / TILE | 0}`;
+  ok('B2: 3 dark chambers, 9 glow crystals, all reachable on foot', dk && dk.zones.length === 3 && dk.items.length === 9 && dk.zones.every((z) => z.cr.every((c) => seen.has(tileOf(c)))));
+  g.simulate(1);
+  ok('at the entrance: no darkness', dk.k < 0.05, dk.k.toFixed(2));
+  const z = dk.zones[0];
+  p.x = z.x; p.y = z.y; g.simulate(2);
+  ok('inside the Old Mine: dark', dk.k > 0.9 && w.mapMech.hudTags()[0].label.includes('0/3'), dk.k.toFixed(2));
+  g.renderer.render(g, 1);
+  for (const c of z.cr.slice(0, 2)) { p.x = c.x; p.y = c.y + 20; g.simulate(0.1); interact(w, w.nearest); }
+  g.simulate(0.1);
+  ok('two crystals lit by [E] (the nearest interactable)', z.cr.filter((c) => c.t > 0).length === 2 && !dk.solved.mine);
+  g.simulate(46);
+  ok('they burn out after 45 s, nothing solved', z.cr.every((c) => c.t <= 0) && !dk.solved.mine);
+  for (const c of z.cr) { p.x = c.x; p.y = c.y + 20; g.simulate(0.1); interact(w, w.nearest); }
+  const chest = w.interactables.find((i) => i.id === 'chest_hoard_mine');
+  ok('all three at once: THE HOARD WAKES, chest in the chamber', dk.solved.mine && chest && seen.has(tileOf(chest)));
+  const gold = p.gold; p.x = chest.x; p.y = chest.y + 20; interact(w, chest);
+  ok('hoard chest pays', p.gold >= gold + 350, `${gold} -> ${p.gold}`);
+  g.saveGame(); g.loadGame(); w = g.world;
+  dk = w.mapMech.get('darkness');
+  ok('save / load: chamber stays solved, chest stays opened', dk && dk.solved.mine && w.state.chests.chest_hoard_mine && w.interactables.some((i) => i.id === 'chest_hoard_mine'));
+  w.changeMap('lumina', { entry: w.mapManager.get('lumina').spawn });
+  ok('another map: crystals + hoard chest gone', !w.interactables.some((i) => i.kind === 'mech' || i.id.startsWith('chest_hoard')));
+  const pass = R.every((r) => r[1]);
+  console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
+  return { pass, R };
+}

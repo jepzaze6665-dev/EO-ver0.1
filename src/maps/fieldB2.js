@@ -19,6 +19,18 @@ export const FIELD_B2 = {
   requires: [{ type: 'boss_defeated', boss: 'boss_b1', label: 'Defeat Hoarfang (B1 Boss)' }],
   hiddenAreas: [],
   region: { zones: [Z.CAVERNS] },
+  // DARKNESS (world/mechanics/darkness.js): three deep chambers go black; light all 3 glow crystals of one at once = its hoard chest
+  mechanics: [{
+    type: 'darkness', lit: 45,
+    zones: [
+      { id: 'mine', name: 'Old Mine', at: [32, 92], r: 14, crystals: [[24, 86], [40, 88], [30, 101]],
+        chest: { loot: [{ item: 'hp_potion', count: 3 }, { item: 'crystal_shard', count: 3 }], gold: 350 } },
+      { id: 'ruins', name: 'Sunken Ruins', at: [143, 76], r: 12, crystals: [[136, 70], [150, 72], [142, 84]],
+        chest: { loot: [{ item: 'rune_second_wind', count: 1 }, { item: 'crystal_shard', count: 2 }], gold: 300 } },
+      { id: 'vault', name: 'Sealed Crystal Vault', at: [88, 172], r: 12, crystals: [[80, 166], [96, 166], [88, 180]],
+        chest: { loot: [{ item: 'rune_executioner', count: 1 }, { item: 'hp_potion', count: 2 }], gold: 500 } },
+    ],
+  }],
   spawn: [7, 12],
   content: {
     interactables: [
