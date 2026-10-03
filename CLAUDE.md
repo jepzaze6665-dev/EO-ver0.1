@@ -1381,3 +1381,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   the map defs per World (a load builds a new World): patch MAPS (mapRegistry) in tests, not mapManager.get(). Tests
   tools/tests/mapMechanics.test.mjs (7) + `await T.mapMechCheck(g)` (8: build / update / draw / exit / saved / load / respawn /
   other grid). No map uses a mechanic yet.
+  Done A1 FIREFLIES (`src/world/mechanics/fireflies.js`, map a1 `mechanics: [{ type: 'fireflies' }]`): stand still out of
+  combat 1.6 s -> a swarm of 7 rises and drifts up to 8 tiles toward the nearest thing the map still hides within 48 tiles
+  (undiscovered `secret` interactable / NPC first (weighted ×0.6 distance), else an unopened chest); nothing -> they circle
+  you. Every 3.5 s while you keep still; HUD tag "✦ The fireflies lead the way"; one-time tip toast (saved.told).
+  Presentation only (each client runs its own). `T.fireflyCheck(g)` 8/8. Next map mechanic: B1 blizzard.

@@ -2152,3 +2152,35 @@ export async function mapMechCheck(g, classId = 'umbral_sword') {
   console.table(R.map(([step, p, d]) => ({ step, pass: p ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
   return { pass, R };
 }
+
+// A1 FIREFLIES (world/mechanics/fireflies.js): stand still -> a swarm heads for the nearest hidden thing; moving or a
+// fight stops new swarms; nothing hidden in range -> they only circle you.
+export function fireflyCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player;
+  p.god = true;
+  w.changeMap('a1', { entry: [16, 100] });
+  for (const m of w.monsters) m.removed = true;
+  w.monsters = []; for (const sp of w.spawnPoints) sp.active = false;
+  const f = w.mapMech.get('fireflies');
+  ok('A1 has the fireflies mechanic', !!f);
+  releaseInput(g); g.simulate(0.8);
+  ok('moving / just arrived: no swarm yet', f.flies.length === 0, f.flies.length);
+  g.simulate(1.5);
+  const t = f.target;
+  ok('standing still: a swarm rises', f.flies.length > 0, f.flies.length);
+  ok('it heads for the undiscovered waterfall secret', t && t.secret && Math.abs(t.x / TILE - 4.5) < 2 && Math.abs(t.y / TILE - 95.5) < 2, t && [t.x / TILE, t.y / TILE].join());
+  g.simulate(1.5);
+  const dx = f.flies.filter((x) => x.t > 0).reduce((s, x) => s + (x.x - x.ax), 0);
+  ok('the fireflies actually drift toward it (west)', dx < 0, Math.round(dx));
+  w.discoverSecret(2, 'TEST'); f.flies = []; f.emitT = 0; g.simulate(0.1);
+  ok('found secret: they pick something else (or nothing)', !f.target || !(f.target.secret && Math.abs(f.target.x / TILE - 4.5) < 2), f.target && [f.target.x / TILE, f.target.y / TILE].join());
+  walk(g, 'KeyD', 0.5); const n = f.flies.length; g.simulate(0.2);
+  ok('walking: no new swarm', f.flies.length <= n);
+  w.changeMap('lumina', { entry: w.mapManager.get('lumina').spawn });
+  ok('Lumina: no fireflies mechanic', !w.mapMech.get('fireflies'));
+  const pass = R.every((r) => r[1]);
+  console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
+  return { pass, R };
+}

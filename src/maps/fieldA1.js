@@ -41,6 +41,7 @@ export const FIELD_A1 = {
   requires: [],
   hiddenAreas: ['hidden_cave', 'behind_waterfall', 'moonlit_shrine', 'sealed_archive'],
   region: { zones: [Z.FOREST, Z.CAVE, Z.RUINS, Z.GATE] },
+  mechanics: [{ type: 'fireflies' }], // stand still: fireflies drift toward what the forest still hides (world/mechanics/fireflies.js)
   spawn: [47.5, 150],
   // difficulty by part of the map (world.js populate): north of the river the beasts are corrupted until the Guardian
   // falls; in the ruins they are hardened (tougher, more EXP, +2 level — Monster opts.areaMod)
