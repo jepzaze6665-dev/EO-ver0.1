@@ -4,4 +4,5 @@ import './blizzard.js';   // B1 Frostwind Plains
 import './altitude.js';   // B3 Frostpeak
 import './runeVaults.js'; // A3 Rune Citadel
 import './darkness.js';   // B2 Crystal Caverns
+import './waterLevel.js'; // A2 Ancient Valley
 export { MAP_MECHANICS, registerMapMechanic, MapMechanic } from '../mapMechanics.js';

@@ -248,6 +248,9 @@ export function buildTileset() {
   add(T.SCORCHED, (s) => stones(PAL.scorched, s, 11, { crack: true }));
   add(T.LAVA, (s) => lavaFn(s));
   add(T.ICE, (s) => stones(PAL.ice, s, 20, { crack: true }));
+  add(T.MUD, (s) => grassLike(['#3e3022', '#4a3a28', '#5a4832', '#2c2218'], s));
+  add(T.RIVERBED, (s) => stones(['#4a4238', '#5a5246', '#6e665a', '#36302a'], s, 14));
+  add(T.SUNKEN, (s) => stones(['#3a4a38', '#465a44', '#5a6e56', '#2a3628'], s, 9));
 
   // alternative palettes used by world state (corrupted canopy / restored forest)
   const alt = {};
@@ -321,4 +324,5 @@ export const EDGE_PRIORITY = {
   [T.CORRUPT]: 7, [T.FOREST_FLOOR]: 6, [T.GRASS]: 6, [T.FLOWERS]: 6, [T.VALLEY]: 6,
   [T.MOSS_STONE]: 5, [T.SAND]: 4, [T.DIRT]: 3, [T.CAVE]: 3,
   [T.COBBLE]: 2, [T.RUIN]: 2, [T.ARENA]: 1, [T.SHALLOW]: 1, [T.SCORCHED]: 2, [T.ICE]: 1,
+  [T.MUD]: 2, [T.RIVERBED]: 1, [T.SUNKEN]: 1,
 };

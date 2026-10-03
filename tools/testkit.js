@@ -333,8 +333,7 @@ export function mapTour(g, classId = 'umbral_sword') {
   const unreachable = [];
   for (const def of mm.list) {
     w.changeMap(def.id, { silent: true });
-    const vaults = w.mapMech.get('rune_vaults'); // map-mechanic doors count as open here (like the flag-sealed exits)
-    if (vaults) for (const v of vaults.vaults) vaults.seal(v, false);
+    for (const mech of w.mapMech.list) mech.tourOpen(); // map-mechanic doors / water count as open here (like the flag-sealed exits)
     const m = w.map, seen = new Uint8Array(m.w * m.h), sp = m.findOpen(def.spawn[0] * TILE, def.spawn[1] * TILE, 4);
     const q = [[Math.floor(sp.x / TILE), Math.floor(sp.y / TILE)]];
     seen[q[0][1] * m.w + q[0][0]] = 1;
@@ -2359,6 +2358,52 @@ export async function darknessCheck(g, classId = 'umbral_sword') {
   ok('save / load: chamber stays solved, chest stays opened', dk && dk.solved.mine && w.state.chests.chest_hoard_mine && w.interactables.some((i) => i.id === 'chest_hoard_mine'));
   w.changeMap('lumina', { entry: w.mapManager.get('lumina').spawn });
   ok('another map: crystals + hoard chest gone', !w.interactables.some((i) => i.kind === 'mech' || i.id.startsWith('chest_hoard')));
+  const pass = R.every((r) => r[1]);
+  console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
+  return { pass, R };
+}
+
+// A2 WATER LEVEL (world/mechanics/waterLevel.js): the temple wheel drains Mirror Lake + the lower river into walkable
+// riverbed in 3 waves, the lakebed (drowned chest, drowned stair lore) becomes reachable, the water comes back on leaving,
+// nothing outside the basin / the bridge changes.
+export async function waterCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  const { interact } = await import('../src/exploration/interactables.js');
+  const { T: TT } = await import('../src/core/constants.js');
+  g.newGame(classId);
+  const w = g.world, p = g.player;
+  p.god = true; releaseInput(g);
+  w.changeMap('a2', { entry: w.mapManager.get('a2').spawn });
+  for (const m of w.monsters) m.removed = true;
+  w.monsters = []; for (const sp of w.spawnPoints) sp.active = false;
+  const wl = w.mapMech.get('water_level'), m = w.map;
+  const open = (tx, ty) => { const x = (tx + 0.5) * TILE, y = (ty + 0.5) * TILE; return !m.isSolidAt(x, y) && w.mapManager.idAt(x, y) === 'a2'; };
+  const reach = () => { const sp = w.mapManager.get('a2').spawn.map(Math.floor), seen = new Set([sp.join()]), todo = [sp]; while (todo.length) { const [x, y] = todo.pop(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = `${x + dx},${y + dy}`; if (!seen.has(k) && open(x + dx, y + dy)) { seen.add(k); todo.push([x + dx, y + dy]); } } } return seen; };
+  const bridge = m.tiles.reduce((n, t) => n + (t === TT.BRIDGE ? 1 : 0), 0);
+  let s = reach();
+  ok('A2 water level: lever reachable, lakebed (chest / stair) not', wl && s.has('38,101') && !s.has('31,167') && !s.has('25,170'));
+  ok('basin = the lake + the lower river west of the bridge (300+ wet tiles)', wl.cells.length > 300, wl.cells.length);
+  const lever = w.interactables.find((i) => i.id === 'water_lever');
+  p.x = lever.x; p.y = lever.y + 20; g.simulate(0.1);
+  ok('the wheel is the nearest interactable', w.nearest === lever && /Wheel/.test(lever.promptText));
+  interact(w, lever); g.simulate(1.2);
+  const mid = wl.cells.filter((c) => c.done);
+  ok('draining in waves: shallows first, deep water last', mid.length > 0 && mid.length < wl.cells.length && !mid.some((c) => c.wave === 2), `${mid.length}/${wl.cells.length}`);
+  g.simulate(3);
+  s = reach();
+  ok('drained: mud / riverbed / sunken paving, lakebed reachable on foot', wl.cells.every((c) => c.done) && s.has('31,167') && s.has('25,170'));
+  ok('bridge untouched', m.tiles.reduce((n, t) => n + (t === TT.BRIDGE ? 1 : 0), 0) === bridge);
+  ok('lever used: no second pull', !w.interactables.find((i) => i.id === 'water_lever' && i.available()));
+  const chestIt = w.interactables.find((i) => i.id === 'water_chest'), gold = p.gold;
+  p.x = chestIt.x; p.y = chestIt.y + 18; g.simulate(0.1); interact(w, chestIt);
+  ok('drowned chest pays (once)', p.gold >= gold + 400 && w.state.chests.chest_mirror_lake && !chestIt.available(), `${gold} -> ${p.gold}`);
+  const stair = w.interactables.find((i) => i.id === 'water_stair'); interact(w, stair); g.ui.panels.close(true); // an open window pauses the world
+  ok('drowned stair = lore found', w.state.lore.drowned_hall);
+  w.changeMap('lumina', { entry: w.mapManager.get('lumina').spawn });
+  w.changeMap('a2', { entry: w.mapManager.get('a2').spawn });
+  const wl2 = w.mapMech.get('water_level');
+  ok('leave + come back: the lake is full again, chest stays opened', !wl2.drained && wl2.cells.every((c) => !c.done && m.tiles[c.i] === c.wet) && !reach().has('31,167') && w.state.chests.chest_mirror_lake);
+  ok('online: netState / netApply drain a guest copy', JSON.stringify(wl2.netState()) === '{"d":0}' && (wl2.netApply({ d: 1 }), g.simulate(4), wl2.cells.every((c) => c.done)));
   const pass = R.every((r) => r[1]);
   console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
   return { pass, R };

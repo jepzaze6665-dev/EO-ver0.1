@@ -36,6 +36,7 @@ export class MapMechanic {
   enter() {} exit() {} update() {} reset() {}
   drawGround() {} drawAbove() {} drawScreen() {}
   hudTags() { return []; }
+  tourOpen() {} // dev / tests (T.mapTour): open everything the mechanic can open, at once (doors, drained water)
   netState() { return null; }
   netApply() {}
   netEvent() {}

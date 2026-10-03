@@ -31,6 +31,9 @@ export const T = {
   SCORCHED: 23, // walkable burnt / cracked earth (A2 caldera rim)
   LAVA: 24, // molten rock: solid like deep water (shots fly over it), glows
   ICE: 25, // B1 frozen lake / river: walkable ice
+  MUD: 26,      // A2 drained river (world/mechanics/waterLevel.js): wet mud, walkable
+  RIVERBED: 27, // A2 drained river: stones of the old riverbed, walkable
+  SUNKEN: 28,   // A2 drained river: algae-covered ancient paving revealed under the water, walkable
 };
 
 // Which tiles block movement

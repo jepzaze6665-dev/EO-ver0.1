@@ -22,15 +22,27 @@ const B1P = '../B/B1/image-53b4c9a1-506f-42b5-904f-7281d8bc5b1f-0';
 const B2P = '../B/B2/image-b4a161fc-56d2-45fc-9b60-7300aa39c577-0';
 const B3P = '../B/B3/image-e8e42a4f-cf0e-4610-8207-6e224b047dca-0';
 const DRP = '../A/a2/SC/DRAGON/image-1e3f0fef-1571-4868-b296-d7673ea2e55d-0'; // A2 secret lair (Varkharon): near-black sheet
-const SCALE = { [DRP]: 0.5, [A2P]: 0.5, [A3P]: 0.5, [B1P]: 0.5, [B2P]: 0.5, [B3P]: 0.5 }; // the city sheet (CP) stays full size: its buildings are drawn large
+// A2 water-level art (world/mechanics/waterLevel.js): props of the drained river (1254 px sheet) + the waterfall in 3 states (1024 px)
+const WP = '../A/a2/water/image-fb49acbd-d88c-4dc3-a28d-d133e8bc77e3-0';
+const WF = '../A/a2/water/image-d226c3dd-a2f5-45df-83a3-59d131251238-0';
+const SCALE = { [WP]: 0.8, [WF]: 0.62, [DRP]: 0.5, [A2P]: 0.5, [A3P]: 0.5, [B1P]: 0.5, [B2P]: 0.5, [B3P]: 0.5 }; // the city sheet (CP) stays full size: its buildings are drawn large
 // sheets whose background is not the navy of the old sets: their own background test. `fillHoles` = box mode keeps
 // background-coloured pixels enclosed by the prop (dark grey stone inside the city buildings)
 const GREY_BG = (r, g, b) => { const l = (r + g + b) / 3; return l >= 24 && l <= 58 && Math.max(r, g, b) - Math.min(r, g, b) <= 8; };
 const NAVY_DEEP = (r, g, b) => r <= 20 && g >= 20 && g <= 42 && b >= 46 && b <= 66 && b - g >= 14;
 const NEAR_BLACK = (r, g, b) => Math.max(r, g, b) <= 15 && b >= r;
-const SHEET_BG = { [CP]: GREY_BG, [B3P]: NAVY_DEEP, [DRP]: NEAR_BLACK };
-const FILL_HOLES = new Set([CP, DRP]);
+const WATER_NAVY = (r, g, b) => r <= 26 && g >= 12 && g <= 38 && b >= 36 && b <= 62 && b - g >= 18; // A2 water sheets (6,20,45 / 16,27,51)
+const SHEET_BG = { [CP]: GREY_BG, [B3P]: NAVY_DEEP, [DRP]: NEAR_BLACK, [WP]: WATER_NAVY, [WF]: WATER_NAVY };
+const FILL_HOLES = new Set([CP, DRP, WP, WF]);
 const MANIFEST = {
+  w_sluice_closed: [WP, 30, 40, 450, 362], w_sluice_open: [WP, 470, 40, 872, 362],
+  w_lever_off: [WP, 895, 112, 1032, 352], w_lever_on: [WP, 1072, 112, 1212, 352],
+  w_statue_a: [WP, 30, 408, 462, 592], w_statue_b: [WP, 502, 408, 832, 588], w_statue_c: [WP, 858, 408, 1232, 592],
+  w_chest_closed: [WP, 42, 618, 348, 802], w_chest_open: [WP, 376, 618, 642, 802],
+  w_fish_a: [WP, 736, 652, 928, 728], w_driftwood: [WP, 972, 628, 1218, 732], w_fish_b: [WP, 736, 772, 922, 862], w_reeds: [WP, 1006, 762, 1204, 908],
+  w_temple_stairs: [WP, 38, 838, 612, 1208],
+  w_shells_a: [WP, 638, 992, 802, 1098], w_shells_b: [WP, 832, 988, 992, 1098], w_shells_c: [WP, 1036, 988, 1184, 1098],
+  w_fall_full: [WF, 22, 150, 342, 872], w_fall_thin: [WF, 356, 150, 668, 872], w_fall_dry: [WF, 682, 150, 994, 872],
   // ---- A2 secret lair: the Cinder Throne (Varkharon). Boxes in the sheet's pixels; 'dr_*'
   dr_door: [DRP, 1128, 0, 1952, 628],
   dr_fence_post: [DRP, 30, 985, 95, 1100], dr_wall_a: [DRP, 118, 980, 300, 1100], dr_wall_spiked: [DRP, 325, 995, 615, 1110], dr_fence_iron: [DRP, 645, 985, 820, 1110],

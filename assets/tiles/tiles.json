@@ -20,7 +20,10 @@
    "ARENA": 13,
    "CAVE_WALL": 14,
    "face:cave": 15,
-   "CORRUPT": 16
+   "CORRUPT": 16,
+   "MUD": 17,
+   "RIVERBED": 18,
+   "SUNKEN": 19
   }
  },
  "citadel": {

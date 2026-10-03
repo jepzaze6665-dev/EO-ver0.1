@@ -30,9 +30,23 @@ export const FIELD_A2 = {
   requires: [{ type: 'boss_defeated', boss: 'boss_a1', label: 'Defeat the Guardian of the Forest (A1 Boss)' }],
   hiddenAreas: [],
   region: { zones: [Z.ANCIENT, Z.EMBER] }, // EMBER = the Quiet Hollow (ash lair, own zone tint + banner)
+  // WATER LEVEL (world/mechanics/waterLevel.js): the wheel in the Sunken Temple drains Mirror Lake + the river west of the
+  // south bridge (once per visit); the lakebed holds a drowned chest, the drowned stair (lore) and the things the lake kept
+  mechanics: [{
+    type: 'water_level', basin: [15, 158, 62, 180], lever: [38, 101], sluice: { at: [60, 174], scale: 0.6 },
+    chest: { id: 'chest_mirror_lake', at: [31, 167], loot: [{ item: 'relic_ember_war', count: 1 }, { item: 'hp_potion', count: 3 }], gold: 400 },
+    stair: { at: [25, 170], lore: 'drowned_hall' },
+    finds: [
+      { prop: 'w_statue_a', at: [44, 174], scale: 0.3 }, { prop: 'w_statue_c', at: [36, 164], scale: 0.28 },
+      { prop: 'w_fish_a', at: [30, 173] }, { prop: 'w_fish_b', at: [49, 173] }, { prop: 'w_driftwood', at: [53, 172] },
+      { prop: 'w_reeds', at: [24, 164] }, { prop: 'w_shells_a', at: [28, 172] }, { prop: 'w_shells_b', at: [39, 168] }, { prop: 'w_shells_c', at: [47, 171] },
+    ],
+  }],
   spawn: [84.5, 192],
   content: {
     interactables: [
+      { id: 'a2_lake_sign', kind: 'sign', tx: 42, ty: 161, prompt: 'Read Weathered Sign', title: 'Mirror Lake',
+        text: '"The priests\' Lower Hall lies under this water. They let the lake in from the temple above —\nand only the temple wheel can send it away again."' },
       { id: 'a2_gate_plaque', kind: 'sign', tx: 88, ty: 191, prompt: 'Read Plaque', title: 'Valley Gate', text: PLAQUE },
       { id: 'ws_a2_gate', kind: 'waystone', tx: 79, ty: 194, name: 'Valley Gate', prompt: 'Waystone' },
       // QUIET HOLLOW (secret lair): the rumour gargoyle + the sealed dragon door (generic `sealDoor`: item -> flag)

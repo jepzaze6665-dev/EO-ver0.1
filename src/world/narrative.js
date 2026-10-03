@@ -20,6 +20,10 @@ export const LORE = {
     title: 'Statue Inscription — Ancient Forest Path',
     text: '"Here begins the Warden’s Road. Let none who carry darkness pass the Gate, for the Guardian remembers every blade."',
   },
+  drowned_hall: { // A2 Mirror Lake lakebed (world/mechanics/waterLevel.js), readable only while the lake is drained
+    title: 'Drowned Stair — The Lower Hall',
+    text: 'Steps cut into the lakebed fall away into a flooded hall. A bronze plate, green with age, still reads:\n\n"When the river rose, we closed the Hall and let the lake keep it. Whoever turns the temple wheel again: take what we left, and let the water come home."',
+  },
   cave_mural: {
     title: 'Cave Mural — The Warden’s Weakness',
     text: 'A mural of a great antlered beast. Its chest holds a crystal heart. In the next panel, the beast crashes into a stone wall and kneels — the heart blazing, open.\n\n[Monster Knowledge] Guardian of the Forest: Weakness & Pattern revealed.',

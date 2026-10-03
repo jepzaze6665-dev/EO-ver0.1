@@ -26,7 +26,7 @@ const MINI_COLORS = {
   [T.RUIN]: '#4f5664', [T.MOSS_STONE]: '#44574a', [T.ARENA]: '#5a6476', [T.WATER]: '#215a80', [T.DEEP_WATER]: '#133452',
   [T.SHALLOW]: '#357a8c', [T.BRIDGE]: '#9a7550', [T.SAND]: '#7b7050', [T.CORRUPT]: '#3a2450', [T.CAVE]: '#3a3149',
   [T.VALLEY]: '#6a8a48', [T.CANOPY]: '#10201a', [T.CLIFF]: '#2a2a30', [T.RUIN_WALL]: '#22252e', [T.CAVE_WALL]: '#16121e',
-  [T.BUILDING]: '#8a5a3a', [T.STAIRS]: '#5e6676', [T.VOID]: '#05040a', [T.SCORCHED]: '#3a302a', [T.LAVA]: '#e8601a',
+  [T.BUILDING]: '#8a5a3a', [T.STAIRS]: '#5e6676', [T.VOID]: '#05040a', [T.SCORCHED]: '#3a302a', [T.LAVA]: '#e8601a', [T.MUD]: '#4a3a28', [T.RIVERBED]: '#5a5246', [T.SUNKEN]: '#465a44',
 };
 
 

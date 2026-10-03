@@ -22,6 +22,8 @@ const B3 = 'desgin/Map/B/B3/image-9f857ead-dee4-45da-90c6-536a066b2a3b-0';
 const B2 = 'desgin/Map/B/B2/image-76690731-d973-441f-ba7f-1b03cda9b3eb-0';
 const DRT = 'desgin/Map/A/a2/SC/DRAGON/image-097bd277-76c5-4f9d-af5e-906c6ea9c94d-0'; // A2 secret lair tileset (Varkharon)
 const B1 = 'desgin/Map/B/B1/image-4e5b0ee7-22d6-4f86-96e0-1b8e9df7ebb6-0';
+const DRY = 'desgin/Map/A/a2/water/image-dd5a659d-c838-4602-a2fe-532a18d37a0b-0'; // A2 drained riverbed tileset (4 cards / row)
+const DRY_ROW = (y0) => [177, 477, 776, 1076].map((cx) => [cx - 88, y0 + 4, cx + 88, y0 + 180]);
 
 // skin -> sheet + rows. Each row: [name, region [x0, y0, x1, y1] (sheet px), picks (card indices in reading order)]
 //   a pick may also be a card box [x0, y0, x1, y1] (sheets whose cards touch: no gap to find them by); region null then
@@ -50,6 +52,10 @@ const SKINS = {
       ['CAVE_WALL', null, [[184, 1280, 302, 1398], [184, 1422, 302, 1538], [184, 1280, 302, 1398], [184, 1422, 302, 1538]], { src: DRT }],
       ['face:cave', null, [[1652, 797, 1738, 846], [1540, 797, 1625, 846], [1652, 797, 1738, 846], [1540, 797, 1625, 846]], { src: DRT }],
       ['CORRUPT', null, [[320, 1280, 433, 1398], [320, 1422, 433, 1538], [320, 1280, 433, 1398], [320, 1422, 433, 1538]], { src: DRT }],
+      // the drained river (world/mechanics/waterLevel.js), owner's riverbed sheet: cards ~253 x 186, square boxes from the middle
+      ['MUD', null, DRY_ROW(22), { src: DRY }],
+      ['RIVERBED', null, DRY_ROW(435), { src: DRY }],
+      ['SUNKEN', null, DRY_ROW(1048), { src: DRY }],
     ],
   },
   // A3 RUNE CITADEL (owner's sheet desgin/Map/A/a3): dark stone + bronze gold, grid cards ~72 px

@@ -1417,3 +1417,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   interactables, [E]) light 210 px for 45 s; all 3 of a chamber burning at once = THE HOARD WAKES: a rare chest appears
   (saved.solved per save; opened = world.state.chests). Telegraphs stay visible (drawn after drawScreen). Online: host owns
   timers + solved (netState { c, s }), a guest's [E] = send('light'). `await T.darknessCheck(g)` 9/9. Next: A2 water level.
+  Done A2 WATER LEVEL (`src/world/mechanics/waterLevel.js`, map a2 { type 'water_level', basin [15,158,62,180], lever, sluice,
+  chest, stair, finds }): the TEMPLE WHEEL ('mech' lever, Sunken Temple [38,101]) drains every wet tile of the basin (Mirror
+  Lake + the river west of the south bridge, 334 tiles) in 3 waves over 3 s: SHALLOW -> MUD, WATER -> RIVERBED, DEEP_WATER ->
+  SUNKEN (new walkable tile types 26-28, valley skin rows from the owner's riverbed sheet desgin/Map/A/a2/water: build-tiles
+  DRY_ROW square boxes). Lakebed: drowned chest (Ember of War relic + 400 G, once per save), drowned stair = lore
+  'drowned_hall' (world/narrative.js), finds (statues / fish / driftwood / reeds / shells) drawn by the mechanic; sluice gate
+  swaps w_sluice_closed / open. The water comes back when you leave the map (once per visit / run). Sign a2_lake_sign hints it.
+  Props `w_*` (extract-props: sheets WP 0.8 / WF 0.62, bg test WATER_NAVY, fill holes); waterfall states w_fall_full / thin /
+  dry extracted but not placed yet. Online: host owns `drained` (netState { d }), guest pull = send('pull'). NEW base hook
+  MapMechanic.tourOpen() (T.mapTour opens doors / drains water before its reachability step). `await T.waterCheck(g)` 11/11.
+  MAP MECHANICS M0 + all 6 field maps DONE (A1 fireflies, A2 water, A3 rune vaults, B1 blizzard, B2 darkness, B3 altitude).

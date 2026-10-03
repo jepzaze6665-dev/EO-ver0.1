@@ -38,6 +38,7 @@ export class RuneVaults extends MapMechanic {
   }
   reset() { if (!this.authority) return; for (const v of this.vaults) { v.openT = 0; for (const s of v.sw) s.t = 0; this.seal(v, true); } this.markNet(); }
 
+  tourOpen() { for (const v of this.vaults) this.seal(v, false); }
   // the doorway's tiles blocked (closed) or free (open) — counted blockers, so other systems' blocks stay
   seal(v, on) {
     if (v.sealed === on) return;
