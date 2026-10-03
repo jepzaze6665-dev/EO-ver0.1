@@ -641,7 +641,8 @@ export class HUD {
     // zone label
     const sa = g.world.currentSub;
     const md = g.world.mapDef;
-    this.text(ctx, md ? md.name : '', x + size / 2, y + size + 18 * u, 12 * u, '#e8dcff', { align: 'center' });
+    const ex = md && g.discoveries ? g.discoveries.of(md.id) : null; // exploration counter (world/discoveries.js)
+    this.text(ctx, md ? md.name + (ex && ex[1] ? `  ✦ ${ex[0]}/${ex[1]}` : '') : '', x + size / 2, y + size + 18 * u, 12 * u, ex && ex[1] && ex[0] === ex[1] ? '#ffe08a' : '#e8dcff', { align: 'center' });
     this.text(ctx, sa && (!md || sa.name.toUpperCase() !== md.name) ? sa.name : '', x + size / 2, y + size + 31 * u, 9 * u, '#b8acd8', { align: 'center' });
     this.text(ctx, '[M] Map   [I] Inventory', x + size / 2, y + size + 44 * u, 9 * u, '#8a80a8', { align: 'center' });
   }

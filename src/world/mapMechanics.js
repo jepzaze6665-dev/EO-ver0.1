@@ -36,6 +36,7 @@ export class MapMechanic {
   enter() {} exit() {} update() {} reset() {}
   drawGround() {} drawAbove() {} drawScreen() {}
   hudTags() { return []; }
+  discoveries() { return []; } // [{ found }] hidden rewards the exploration counter cannot see as interactables (world/discoveries.js)
   tourOpen() {} // dev / tests (T.mapTour): open everything the mechanic can open, at once (doors, drained water)
   netState() { return null; }
   netApply() {}

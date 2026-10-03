@@ -780,13 +780,21 @@ export class Panels {
         const mark = s.bossDefeated ? '✓' : s.unlocked ? '●' : '✕';
         const boss = s.boss ? `<div class="small" style="color:${s.bossDefeated ? '#8af0a0' : '#ff9a8a'}">${s.boss.type === 'major' ? 'MAJOR' : 'BOSS'}: ${s.boss.name}${s.bossDefeated ? ' ✓' : ''}</div>` : '';
         const hid = s.hiddenTotal ? `<div class="small muted">secrets ${s.hiddenFound}/${s.hiddenTotal}</div>` : '';
+        const ex = s.unlocked && !s.planned ? this.exploredHtml(s.id) : '';
         const why = !s.unlocked && s.lockReason ? `<div class="small muted">${s.lockReason}</div>` : '';
-        return `<div style="display:inline-block;vertical-align:top;margin:4px 8px;min-width:120px;color:${col}"><b>${mark} ${s.short}</b> <span class="small">${s.planned ? '(planned)' : s.name}</span>${boss}${hid}${why}</div>`;
+        return `<div style="display:inline-block;vertical-align:top;margin:4px 8px;min-width:120px;color:${col}"><b>${mark} ${s.short}</b> <span class="small">${s.planned ? '(planned)' : s.name}</span>${boss}${hid}${ex}${why}</div>`;
       };
       const city = st.city ? `<div style="display:inline-block;vertical-align:top;margin:4px 8px;color:${st.city.unlocked ? '#ffe8b0' : '#77708a'}"><b>${st.city.unlocked ? '●' : '✕'} ${st.city.short}</b> <span class="small">${st.city.name}</span></div>`
         : `<div style="display:inline-block;vertical-align:top;margin:4px 8px;color:#77708a"><b>✕ City 2</b> <span class="small">(planned)</span></div>`;
       return `<div style="margin-top:8px;text-align:left"><b style="color:#ffd98a">${r.name}</b> <span class="muted small">${r.sub}${r.playable ? (st.complete ? ' · COMPLETE' : '') : ' · not surveyed yet'}</span><br>${st.steps.map(cell).join('<span class="muted">→</span>')}<span class="muted">→</span>${city}</div>`;
     }).join('') + this.secretMapsHtml();
+  }
+  // exploration counter of a map (world/discoveries.js): ✦ found / total, "?" until visited, gold when complete
+  exploredHtml(mapId) {
+    const ex = this.game.discoveries && this.game.discoveries.of(mapId);
+    if (!ex) return '<div class="small muted">✦ explored ?</div>';
+    if (!ex[1]) return '';
+    return `<div class="small" style="color:${ex[0] === ex[1] ? '#ffe08a' : '#b8acd8'}">✦ explored ${ex[0]}/${ex[1]}${ex[0] === ex[1] ? ' ✓' : ''}</div>`;
   }
   // secret maps (maps/*.js `secret: true`): listed only once visited
   secretMapsHtml() {

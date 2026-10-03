@@ -1428,3 +1428,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   dry extracted but not placed yet. Online: host owns `drained` (netState { d }), guest pull = send('pull'). NEW base hook
   MapMechanic.tourOpen() (T.mapTour opens doors / drains water before its reachability step). `await T.waterCheck(g)` 11/11.
   MAP MECHANICS M0 + all 6 field maps DONE (A1 fireflies, A2 water, A3 rune vaults, B1 blizzard, B2 darkness, B3 altitude).
+  Done EXPLORATION COUNTER (`src/world/discoveries.js`, game.discoveries): per map ✦ found / total = chests + lore tablets +
+  secret areas (each `secret` id once) on the map + MapMechanic.discoveries() (hidden rewards: unsolved dark chambers, the
+  drowned chest / stair); counted for the current map every second, remembered in world.state.discover[map] (saved), "?"
+  until visited, FULLY EXPLORED banner. Shown on the minimap caption and per map in the World Map route list. The count
+  showed B1 / B3 with NOTHING to find -> new chests + lore on B1 (4 + trapper_journal), B3 (4 + hermit_notes), A2 (2 +
+  ford_marker), B2 (1 + gallery_scratching), A3 (1 + archive_ledger, which tells where the vault switches are): every field
+  map now has >= 5 (A1 18). `await T.discoveryCheck(g)` 7/7.

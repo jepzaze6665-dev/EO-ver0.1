@@ -20,6 +20,26 @@ export const LORE = {
     title: 'Statue Inscription — Ancient Forest Path',
     text: '"Here begins the Warden’s Road. Let none who carry darkness pass the Gate, for the Guardian remembers every blade."',
   },
+  ford_marker: { // A2 River Fords
+    title: 'Ford Marker — Valley Toll',
+    text: '"Travellers: the river is honest, the stone is not. Cross where the old road crosses, and leave the temple to its priests."\n\nSomeone has scratched underneath: "the priests are gone. the wheel still turns."',
+  },
+  gallery_scratching: { // B2 Northern Gallery
+    title: 'Miner\'s Scratching — Northern Gallery',
+    text: '"Third crew lost in the Old Mine. Light dies in there. Lena says the purple stones answer a lamp — light three and the dark backs off. Then she went in alone."',
+  },
+  trapper_journal: { // B1 Trapper's Ruins
+    title: 'Trapper\'s Journal — last page',
+    text: '"When the white comes down, the wolves stop hiding. They follow the smell of anyone who is not near a fire. I counted twelve fires across the plains — I lit every one of them. Keep them lit."',
+  },
+  hermit_notes: { // B3 Hermit's Shrine
+    title: 'Hermit\'s Notes — the High Cold',
+    text: '"The mountain does not hate you. It only takes the warmth you carry. The embers on the paths are mine: I leave them where a climber will need them. Take one, and leave the next one for whoever comes after."',
+  },
+  archive_ledger: { // A3 Archive Ruins
+    title: 'Archive Ledger — Vault Keys',
+    text: '"Lamplight Vault: switch on the canal road. Scribe\'s Vault: switch by the west avenue. The Bronze Vault answers only when BOTH its switches burn — one by the barracks road, one on the north cross street. Run, scribe. The doors do not wait."',
+  },
   drowned_hall: { // A2 Mirror Lake lakebed (world/mechanics/waterLevel.js), readable only while the lake is drained
     title: 'Drowned Stair — The Lower Hall',
     text: 'Steps cut into the lakebed fall away into a flooded hall. A bronze plate, green with age, still reads:\n\n"When the river rose, we closed the Hall and let the lake keep it. Whoever turns the temple wheel again: take what we left, and let the water come home."',

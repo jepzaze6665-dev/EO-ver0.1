@@ -60,6 +60,10 @@ export class WaterLevel extends MapMechanic {
   }
   refill() { let any = false; for (const c of this.cells) if (c.done) { this.setTile(c, false); any = true; } if (any) this.world.map.invalidate(); this.drained = false; }
 
+  discoveries() {
+    const st = this.world.state, o = this.o;
+    return [...(o.chest ? [{ found: !!st.chests[o.chest.id] }] : []), ...(o.stair ? [{ found: !!st.lore[o.stair.lore] }] : [])];
+  }
   tourOpen() { this.drained = true; this.t = this.o.drainTime; for (const c of this.cells) this.setTile(c, true); this.world.map.invalidate(); }
   netEvent(kind) {
     if (kind !== 'pull' || this.drained) return;

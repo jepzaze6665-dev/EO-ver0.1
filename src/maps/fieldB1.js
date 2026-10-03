@@ -27,6 +27,12 @@ export const FIELD_B1 = {
   spawn: [8.5, 21],
   content: {
     interactables: [
+      // EXPLORATION (world/discoveries.js counts them): chests + a lore tablet off the main road
+      { id: 'b1_chest_tower', kind: 'chest', tx: 92, ty: 29, loot: [{ item: 'hp_potion', count: 2 }, { item: 'frost_pelt', count: 2 }], gold: 120 },
+      { id: 'b1_chest_ridge', kind: 'chest', tx: 115, ty: 19, loot: [{ item: 'crystal_shard', count: 2 }], gold: 160 },
+      { id: 'b1_chest_cave_ne', kind: 'chest', tx: 133, ty: 33, loot: [{ item: 'charm_swift', count: 1 }], gold: 100, rare: true },
+      { id: 'b1_chest_cave_s', kind: 'chest', tx: 71, ty: 185, loot: [{ item: 'hp_potion', count: 3 }], gold: 220, rare: true },
+      { id: 'b1_lore_trapper', kind: 'lore', tx: 37, ty: 65, lore: 'trapper_journal', prompt: 'Read Journal' },
       { id: 'b1_lodge_notice', kind: 'sign', tx: 10, ty: 24, prompt: 'Read Notice', title: "Hunter's Lodge", text: NOTICE },
       { id: 'ws_b1_lodge', kind: 'waystone', tx: 14, ty: 18, name: "Hunter's Lodge", prompt: 'Waystone' },
       { id: 'b1_cross_sign', kind: 'sign', tx: 83, ty: 60, prompt: 'Read Sign', title: 'Frostwind Crossroads', text: "↑ Old Watchtower\n→ Nomad Camp · the arena road (south-east)\n← Trapper's Ruins\n↓ the Frozen Mere" },

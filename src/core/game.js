@@ -35,6 +35,7 @@ import { AttackSlots } from '../combat/attackSlots.js';
 import { LootSystem } from '../loot/lootSystem.js';
 import { HiddenSystem } from '../world/hiddenSystem.js';
 import { WandererSystem } from '../world/wanderers.js';
+import { DiscoverySystem } from '../world/discoveries.js';
 import { WorldProgression } from '../world/worldProgression.js';
 import { RunSystem } from '../dungeon/runSystem.js';
 import { WorldTriggerSystem, TRIGGER_ACTIONS } from '../world/worldTriggerSystem.js';
@@ -208,6 +209,7 @@ export class Game {
     this.hidden = new HiddenSystem(this);
     // NPCs that appear at a random spot on each map entry (data/wanderers.js: the Ashen Pilgrim)
     this.wanderers = new WandererSystem(this);
+    this.discoveries = new DiscoverySystem(this); // exploration counter per map (world map / minimap)
     // current target (Tab = nearest / cycle, click an enemy, or hit one); the HUD reads targets.current
     this.targets = new TargetSystem({
       candidates: () => this.world.hostiles().filter((e) => !e.isBreakable),
@@ -637,6 +639,7 @@ export class Game {
     if (this.online) this.online.fx.run(() => this.player.update(sdt)); // ONLINE: our effects are recorded for the party
     else this.player.update(sdt);
     this.world.update(sdt);
+    this.discoveries.update(dt);
     this.targets.update(this.player);
     this.combat.update(sdt);
     this.party.update(sdt);

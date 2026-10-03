@@ -45,6 +45,10 @@ export const FIELD_A2 = {
   spawn: [84.5, 192],
   content: {
     interactables: [
+      // EXPLORATION (world/discoveries.js counts them): chests + a lore tablet off the main road
+      { id: 'a2_chest_arch', kind: 'chest', tx: 142, ty: 121, loot: [{ item: 'hp_potion', count: 2 }, { item: 'stone_scute', count: 2 }], gold: 180 },
+      { id: 'a2_chest_upper', kind: 'chest', tx: 76, ty: 60, loot: [{ item: 'charm_focus', count: 1 }], gold: 150, rare: true },
+      { id: 'a2_lore_fords', kind: 'lore', tx: 101, ty: 135, lore: 'ford_marker', prompt: 'Read Marker' },
       { id: 'a2_lake_sign', kind: 'sign', tx: 42, ty: 161, prompt: 'Read Weathered Sign', title: 'Mirror Lake',
         text: '"The priests\' Lower Hall lies under this water. They let the lake in from the temple above —\nand only the temple wheel can send it away again."' },
       { id: 'a2_gate_plaque', kind: 'sign', tx: 88, ty: 191, prompt: 'Read Plaque', title: 'Valley Gate', text: PLAQUE },

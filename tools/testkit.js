@@ -2408,3 +2408,38 @@ export async function waterCheck(g, classId = 'umbral_sword') {
   console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
   return { pass, R };
 }
+
+// EXPLORATION COUNTER (world/discoveries.js): every field map has things to find, opening a chest / reading lore counts,
+// a mechanic's hidden reward counts, the world map + minimap show it, saved with the world.
+export async function discoveryCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  const { interact } = await import('../src/exploration/interactables.js');
+  g.newGame(classId);
+  let w = g.world;
+  g.player.god = true; releaseInput(g);
+  const counts = {};
+  for (const id of ['a1', 'a2', 'a3', 'b1', 'b2', 'b3']) { w.changeMap(id, { entry: w.mapManager.get(id).spawn }); g.simulate(1.2); counts[id] = g.discoveries.of(id); }
+  ok('every field map has at least 5 things to find', Object.values(counts).every((c) => c && c[1] >= 5), JSON.stringify(counts));
+  ok('nothing found on a new game', Object.values(counts).every((c) => c[0] === 0));
+  w.changeMap('b1', { entry: w.mapManager.get('b1').spawn }); g.simulate(1.2);
+  const chest = w.interactables.find((i) => i.id === 'b1_chest_tower');
+  interact(w, chest); g.simulate(1.2);
+  ok('opening a chest counts', g.discoveries.of('b1')[0] === 1, JSON.stringify(g.discoveries.of('b1')));
+  const lore = w.interactables.find((i) => i.id === 'b1_lore_trapper');
+  interact(w, lore); g.ui.panels.close(true); g.simulate(1.2);
+  ok('reading lore counts', g.discoveries.of('b1')[0] === 2);
+  w.changeMap('b2', { entry: w.mapManager.get('b2').spawn }); g.simulate(1.2);
+  const dk = w.mapMech.get('darkness'), before = g.discoveries.of('b2');
+  dk.solve(dk.zones[0]); g.simulate(1.2);
+  ok('a solved dark chamber keeps the total (its chest replaces the hidden reward)', g.discoveries.of('b2')[1] === before[1], `${before} -> ${g.discoveries.of('b2')}`);
+  g.renderer.render(g, 1); g.ui.hud.draw(g.renderer.ctx, g.renderer.vw, g.renderer.vh);
+  g.ui.panels.worldMap();
+  const html = document.querySelector('.panel.map') ? document.querySelector('.panel.map').innerHTML : '';
+  g.ui.panels.close(true);
+  ok('world map lists "explored n/m" per map', /explored 2\/5/.test(html) && /explored 0\//.test(html));
+  g.saveGame(); g.loadGame(); w = g.world;
+  ok('saved with the world', g.discoveries.of('b1') && g.discoveries.of('b1')[0] === 2);
+  const pass = R.every((r) => r[1]);
+  console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
+  return { pass, R };
+}

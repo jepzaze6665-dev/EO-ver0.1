@@ -56,6 +56,8 @@ export class Darkness extends MapMechanic {
     this.game.vfx.burst(z.x, z.y - 10, '#d0b0ff', 40, 220);
   }
 
+  // a chamber not solved yet = one hidden reward (once solved, its chest is an ordinary chest the counter sees itself)
+  discoveries() { return this.zones.filter((z) => !this.solved[z.id]).map(() => ({ found: false })); }
   netEvent(kind, d) {
     if (kind !== 'light' || !d) return;
     const z = this.zones[d.z], c = z && z.cr[d.c];
