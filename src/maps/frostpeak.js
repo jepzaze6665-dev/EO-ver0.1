@@ -107,7 +107,7 @@ export function buildFrostpeakTerrain(b) {
   lit(P.summit[0], P.summit[1], '#9ad0ff', 220, 0.35);
   // bridges over the gaps, waterfalls down the terraces
   for (const [n, x, y] of [['p_bridge_rope', 106, 106], ['p_bridge_stone', 62, 106], ['p_bridge_wood', 120, 168]]) b.prop(n, x, y, { layer: 'ground' });
-  for (const [n, x, y] of [['p_fall_a', 58, 126], ['p_fall_b', 100, 124], ['p_fall_c', 44, 96], ['p_fall_d', 112, 90], ['p_cliff_fall_a', 66, 92], ['p_cliff_fall_b', 104, 144]])
+  for (const [n, x, y] of [['p_fall_a', 58, 126], ['p_fall_b', 100, 124], ['p_fall_c', 47, 95], /* was 44,96: its footprint closed the only path to the west terraces */ ['p_fall_d', 112, 90], ['p_cliff_fall_a', 66, 92], ['p_cliff_fall_b', 104, 144]])
     { b.prop(n, x, y, { solid: true, footprint: [[-1, 0], [0, 0], [1, 0]] }); lit(x, y, '#5ab8ff', 70, 0.35); }
 
   // ---------------- forest + rocks on the snow (never on paths / ice / water)

@@ -2222,3 +2222,47 @@ export function blizzardCheck(g, classId = 'umbral_sword') {
   console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
   return { pass, R };
 }
+
+// B3 ALTITUDE COLD (world/mechanics/altitude.js): no cold at the foot, cold grows with height, frostbite, campfires
+// warm, a warm ember = warmth (no cold) and comes back later, leaving the map clears it.
+export function altitudeCheck(g, classId = 'umbral_sword') {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const w = g.world, p = g.player;
+  p.god = true; releaseInput(g);
+  w.changeMap('b3', { entry: w.mapManager.get('b3').spawn });
+  for (const m of w.monsters) m.removed = true;
+  w.monsters = []; for (const sp of w.spawnPoints) sp.active = false;
+  const a = w.mapMech.get('altitude_cold');
+  const onMap = (e) => !w.map.isSolidAt(e.x, e.y) && w.mapManager.idAt(e.x, e.y) === 'b3';
+  ok('B3 has altitude cold, 9 fires + 12 embers on open B3 ground', a && a.fires.length === 9 && a.embers.length === 12 && a.fires.every(onMap) && a.embers.every(onMap),
+    [...a.fires, ...a.embers].filter((e) => !onMap(e)).map((e) => [e.x / TILE | 0, e.y / TILE | 0].join(',')).join(' '));
+  // every fire / ember (and the west terraces: a waterfall prop once closed them) reachable on foot from the spawn
+  const open = (tx, ty) => { const x = (tx + 0.5) * TILE, y = (ty + 0.5) * TILE; return !w.map.isSolidAt(x, y) && w.mapManager.idAt(x, y) === 'b3'; };
+  const sp = w.mapManager.get('b3').spawn, seen = new Set([`${sp[0] | 0},${sp[1] | 0}`]), todo = [[sp[0] | 0, sp[1] | 0]];
+  while (todo.length) { const [x, y] = todo.pop(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = `${x + dx},${y + dy}`; if (!seen.has(k) && open(x + dx, y + dy)) { seen.add(k); todo.push([x + dx, y + dy]); } } }
+  const far = [...a.fires, ...a.embers].filter((e) => !seen.has(`${e.x / TILE | 0},${e.y / TILE | 0}`));
+  ok('every fire / ember reachable on foot (incl. the west terraces)', !far.length, far.map((e) => [e.x / TILE | 0, e.y / TILE | 0].join(',')).join(' '));
+  g.simulate(5);
+  ok('the foot of the mountain: no cold', a.cold === 0, a.cold);
+  const put = (tx, ty) => { const q = w.map.findOpen(tx * TILE, ty * TILE, 6); p.x = q.x; p.y = q.y; };
+  put(84, 100); g.simulate(5); const mid = a.cold;
+  a.cold = 0; put(96, 56); g.simulate(5); const high = a.cold;
+  ok('higher = colder (mid < high)', mid > 0 && high > mid * 1.4, `${mid.toFixed(1)} < ${high.toFixed(1)}`);
+  a.cold = 70; g.simulate(0.2);
+  ok('60% = FROSTBITE', p.status.has('frostbite'));
+  const f = a.fires[6]; p.x = f.x + 30; p.y = f.y; g.simulate(3);
+  ok('campfire: cold drains', a.cold < 20, a.cold.toFixed(1));
+  const e = a.embers[7]; a.cold = 30; p.x = e.x; p.y = e.y; g.simulate(0.2);
+  ok('warm ember: WARMTH, taken', a.warmT > 30 && e.gone > 0, a.warmT.toFixed(1));
+  put(96, 56); const c0 = a.cold; g.simulate(5);
+  ok('warmth: no cold high up', a.cold <= c0, `${c0.toFixed(1)} -> ${a.cold.toFixed(1)}`);
+  e.gone = 0.1; g.simulate(0.3);
+  ok('the ember comes back', e.gone <= 0);
+  a.cold = 100; g.simulate(0.1);
+  w.changeMap('lumina', { entry: w.mapManager.get('lumina').spawn });
+  ok('leaving B3: cold statuses gone', !w.mapMech.get('altitude_cold') && !p.status.has('frostbite') && !p.status.has('frozen_through'));
+  const pass = R.every((r) => r[1]);
+  console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
+  return { pass, R };
+}

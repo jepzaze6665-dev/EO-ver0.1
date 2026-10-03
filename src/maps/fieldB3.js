@@ -19,6 +19,12 @@ export const FIELD_B3 = {
   requires: [{ type: 'boss_defeated', boss: 'boss_b2', label: 'Defeat the Amethyst Colossus (B2 Boss)' }],
   hiddenAreas: [],
   region: { zones: [Z.FROSTPEAK] },
+  // ALTITUDE COLD (world/mechanics/altitude.js): colder the higher you climb; campfires at the camps, warm embers on the paths
+  mechanics: [{
+    type: 'altitude_cold', low: 160, high: 40, rate: 5,
+    fires: [[70, 148], [132, 112], [52, 106], [84, 112], [32, 80], [86, 78], [28, 36], [138, 64], [148, 30]],
+    embers: [[80, 165], [70, 134], [79, 124], [40, 92], [84, 92], [110, 100], [49, 71], [96, 52], [125, 94], [140, 44], [30, 52], [150, 42]],
+  }],
   spawn: [81.5, 196],
   content: {
     interactables: [

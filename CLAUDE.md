@@ -1394,3 +1394,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   haste. Campfires are code-drawn by the mechanic (findOpen near the data tiles). Online: host owns phase + time
   (netState { ph, t }), cold is per client. HUD map tags now at the TOP CENTRE. `T.blizzardCheck(g)` 11/11.
   Gotcha (again): `node -e` edit scripts hang on this machine even with </dev/null -> use the Edit tool.
+  Done B3 ALTITUDE COLD (`src/world/mechanics/altitude.js`, map b3 { type 'altitude_cold', low 160, high 40, rate 5, fires 9,
+  embers 12 }): cold builds by height (0 below tile y 160 -> 5/s at y <= 40), same statuses as the blizzard; campfires
+  (drawCampfire, shared from blizzard.js) warm; WARM EMBERS (walk over) = 40 s WARMTH (no cold, drains), back after 120 s,
+  personal (no online state); frost vignette on the screen edges above 30% cold; one-time tip toast. BUG FIX found by its
+  reachability step: B3 waterfall prop p_fall_c (44,96) blocked the only path to the west terraces (Crystal Plateau,
+  Hermit's Shrine + its Elite yeti) -> moved to (47,95). `T.altitudeCheck(g)` 10/10 (incl. BFS reachability of every
+  fire / ember). Next: A3 rune switches.

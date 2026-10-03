@@ -88,21 +88,7 @@ export class Blizzard extends MapMechanic {
   }
 
   // ---- drawing
-  drawGround(ctx, t) {
-    for (const f of this.fires) { // a ring of stones, logs and a living flame
-      ctx.fillStyle = 'rgba(255,150,60,0.13)';
-      ctx.beginPath(); ctx.ellipse(f.x, f.y, this.o.warmR, this.o.warmR * 0.65, 0, 0, TAU); ctx.fill();
-      ctx.fillStyle = '#4a4a52';
-      for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; ctx.fillRect(Math.round(f.x + Math.cos(a) * 13) - 2, Math.round(f.y + Math.sin(a) * 8) - 2, 5, 4); }
-      ctx.fillStyle = '#5a3a22'; ctx.fillRect(f.x - 9, f.y - 2, 18, 4); ctx.fillRect(f.x - 2, f.y - 6, 4, 10);
-      for (let i = 0; i < 3; i++) {
-        const h = 10 + 5 * Math.sin(t * 9 + i * 2), x = f.x + (i - 1) * 4;
-        ctx.fillStyle = i === 1 ? '#ffe08a' : '#ff8a30';
-        ctx.beginPath(); ctx.moveTo(x - 4, f.y); ctx.quadraticCurveTo(x, f.y - h * 1.4, x + 4, f.y); ctx.fill();
-      }
-      if (Math.random() < 0.2) this.game.vfx.particle(f.x + rand(-4, 4), f.y - 12, { color: '#ffb060', vy: -30, life: 1, size: 1.5, add: true, drag: 0 });
-    }
-  }
+  drawGround(ctx, t) { for (const f of this.fires) drawCampfire(ctx, f, t, this.o.warmR, this.game); }
   drawScreen(ctx, game) {
     const k = this.k, cam = game.camera, z = cam.zoom, W = ctx.canvas.width, H = ctx.canvas.height;
     if (k <= 0.01) return;
@@ -148,3 +134,18 @@ export class Blizzard extends MapMechanic {
   }
 }
 registerMapMechanic('blizzard', Blizzard);
+
+// a code-drawn campfire (ring of stones, logs, living flame) with its warm circle — shared by the cold mechanics
+export function drawCampfire(ctx, f, t, warmR, game) {
+  ctx.fillStyle = 'rgba(255,150,60,0.13)';
+  ctx.beginPath(); ctx.ellipse(f.x, f.y, warmR, warmR * 0.65, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#4a4a52';
+  for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; ctx.fillRect(Math.round(f.x + Math.cos(a) * 13) - 2, Math.round(f.y + Math.sin(a) * 8) - 2, 5, 4); }
+  ctx.fillStyle = '#5a3a22'; ctx.fillRect(f.x - 9, f.y - 2, 18, 4); ctx.fillRect(f.x - 2, f.y - 6, 4, 10);
+  for (let i = 0; i < 3; i++) {
+    const h = 10 + 5 * Math.sin(t * 9 + i * 2), x = f.x + (i - 1) * 4;
+    ctx.fillStyle = i === 1 ? '#ffe08a' : '#ff8a30';
+    ctx.beginPath(); ctx.moveTo(x - 4, f.y); ctx.quadraticCurveTo(x, f.y - h * 1.4, x + 4, f.y); ctx.fill();
+  }
+  if (Math.random() < 0.2) game.vfx.particle(f.x + rand(-4, 4), f.y - 12, { color: '#ffb060', vy: -30, life: 1, size: 1.5, add: true, drag: 0 });
+}
