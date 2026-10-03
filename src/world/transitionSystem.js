@@ -63,7 +63,8 @@ export class TransitionSystem {
     // ONLINE (owner: no Dungeon Gate object): a road OUT of a shared city opens the Solo / Party panel (panels.dungeonGate)
     // — create / join a party, ready check, or go alone. Closing it puts you back where you stood.
     const on = g.online;
-    if (on && on.online && isSharedMap(w.mapId) && !isSharedMap(exit.to) && !this.autoConfirm) {
+    // offline (DEV ?offline) opens it too: Solo PLAY then simply walks you into the chosen area
+    if (isSharedMap(w.mapId) && !isSharedMap(exit.to) && !this.autoConfirm && on) {
       const back = this.lastSafe, map = w.mapId;
       this.pending = exit;
       g.ui.panels.dungeonGate(exit);

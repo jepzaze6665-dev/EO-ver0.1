@@ -632,7 +632,7 @@ export class Panels {
     }).join('');
     // actions (bottom of the side panel)
     let act;
-    if (!on || !on.online) act = '<div class="muted">Not connected to the server.</div>';
+    if ((!on || !on.online) && tab !== 'solo') act = '<div class="muted">Not connected to the server — parties need the online server. Solo works.</div>';
     else if (tab === 'solo') act = `<button class="ms-play" data-go="solo" ${selOpen ? '' : 'disabled'}>${selOpen ? 'PLAY — ' + esc(sel.short) + ' alone' : '🔒 LOCKED'}</button>`
       + (ex && exDef && !exIsArea ? `<button class="dg-go" data-go="road">Take the road to ${esc(exDef.name)} alone</button>` : '');
     else if (!pt) {
@@ -706,7 +706,7 @@ export class Panels {
       if (t.dataset.area) { this.gateSel = t.dataset.area; g.audio.sfx('ui'); return this.dungeonGate(); }
       if (t.dataset.join) return on.partyAction('partyJoin', { party: t.dataset.join });
       const go = t.dataset.go;
-      if (go === 'solo') on.net.send('dungeonEnter', { area: this.gateSel });
+      if (go === 'solo') { if (on && on.online) on.net.send('dungeonEnter', { area: this.gateSel }); else g.enterDungeon(this.gateSel, { mode: 'solo' }); }
       if (go === 'road' && ex) { this.close(true); g.world.transitions.go(ex); }
       if (go === 'party') on.net.send('dungeonPropose', { area: this.gateSel });
       if (go === 'create') on.partyAction('partyCreate');
