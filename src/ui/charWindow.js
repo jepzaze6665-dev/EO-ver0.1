@@ -12,7 +12,7 @@ import { esc } from './itemTooltip.js';
 import { finalStatRows, setsHTML } from './loadoutUI.js';
 import { expToNext } from '../progression/experience.js';
 import { meetsLevel } from '../items/itemDefs.js';
-import { t as tl } from '../i18n/i18n.js';
+import { t as tl, tx } from '../i18n/i18n.js';
 
 export const UI_ICON = (name) => `assets/ui/icons/${name}.png`;
 
@@ -105,7 +105,7 @@ export function equipmentTabHTML(g, state, itemDetail) {
 function effectsHTML(g) {
   const fx = g.itemEffects ? g.itemEffects.active() : [];
   if (!fx.length) return '';
-  return `<h4>${tl('ITEM EFFECTS')}</h4>${fx.map((x) => `<div class="lo-fx"><span style="color:${x.color || '#ddd'}">${esc(x.name)}</span> ${esc(x.effect.text)}
+  return `<h4>${tl('ITEM EFFECTS')}</h4>${fx.map((x) => `<div class="lo-fx"><span style="color:${x.color || '#ddd'}">${esc(x.name)}</span> ${esc(tx(x.effect.text))}
     <b class="${x.running ? 'run' : x.cooldownLeft > 0 ? 'cd' : 'ready'}">${x.running ? tl('ACTIVE') : x.cooldownLeft > 0 ? x.cooldownLeft.toFixed(1) + 's' : tl('READY')}</b></div>`).join('')}`;
 }
 

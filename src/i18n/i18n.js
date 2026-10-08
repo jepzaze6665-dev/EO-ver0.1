@@ -82,3 +82,10 @@ export function wrapLines(text, maxW, measure) {
   if (cur.trim()) lines.push(cur.trimEnd());
   return lines;
 }
+
+// data texts (item descriptions, effects, set bonuses, ...): English -> Thai pairs built from id-keyed tables (i18n/dataText.js)
+export function addTexts(l, pairs) {
+  const tab = TABLES[l];
+  if (!tab) return;
+  for (const [en, th] of pairs) if (tab.ui[en] === undefined) tab.ui[en] = th;
+}

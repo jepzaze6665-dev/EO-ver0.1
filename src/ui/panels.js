@@ -823,11 +823,11 @@ export class Panels {
     const sellable = g.inventory.list('Material').filter(({ def }) => !def.bound), shop = SHOPS[this.dialogueNpc] || SHOPS.merchant;
     const tab = this.npcTab('shop', 'buy');
     const body = tab === 'buy'
-      ? shop.stock.map((s) => { const id = shopId(s), d = ITEMS[id], price = shopPrice(s), ok = p.canAfford(price); return npcRow({ img: itemIconURL(d), color: RARITY_COLOR[d.rarity], name: d.name, nameColor: RARITY_COLOR[d.rarity], text: esc(d.modText || d.desc || ''), tip: id,
+      ? shop.stock.map((s) => { const id = shopId(s), d = ITEMS[id], price = shopPrice(s), ok = p.canAfford(price); return npcRow({ img: itemIconURL(d), color: RARITY_COLOR[d.rarity], name: d.name, nameColor: RARITY_COLOR[d.rarity], text: esc(tx(d.modText || d.desc || '')), tip: id,
         right: `<button data-buy="${id}" ${ok ? '' : 'disabled'}>${goldTag(price, ok)}</button>` }); }).join('')
       : sellable.map(({ id, n, def }) => npcRow({ img: itemIconURL(def), color: RARITY_COLOR[def.rarity], name: `${def.name} ×${n}`, tip: id, right: `<button data-sell="${id}">+ ${goldTag(def.sell)}</button>` })).join('')
         || `<div class="muted small">${tl('No materials to sell.')}</div>`;
-    const el = this.show('shop', npcPanelHTML({ icon: 'npc_shop', title: shop.title, sub: tab === 'buy' ? tl('Buy') : tl('Sell materials'), gold: p.gold,
+    const el = this.show('shop', npcPanelHTML({ icon: 'npc_shop', title: tx(shop.title), sub: tab === 'buy' ? tl('Buy') : tl('Sell materials'), gold: p.gold,
       menu: [{ id: 'buy', label: tl('Buy') }, { id: 'sell', label: tl('Sell') }], tab, body, keys: [[tl('Click'), tab === 'buy' ? tl('Buy') : tl('Sell')]] }), 'side');
     this.wireNpc(el, 'shop', () => this.shop(), (t) => {
       const E = g.online && g.online.econ, why = (kind, id, fn) => (E ? E.why(kind, id, fn) : fn()); // ONLINE H5a reasons
@@ -840,7 +840,7 @@ export class Panels {
     const can = (r) => p.canAfford(r.gold) && inv.canAdd(r.out) && Object.entries(r.mats).every(([m, n]) => inv.has(m, n));
     const owned = (id) => inv.has(id) || Object.values(g.equipment.slots).includes(id);
     const body = RECIPES.map((r, i) => { const d = ITEMS[r.out]; return npcRow({ img: itemIconURL(d), color: RARITY_COLOR[d.rarity], name: d.name, nameColor: RARITY_COLOR[d.rarity], tip: r.out, cls: 'recipe',
-      text: `${Object.entries(d.stats || {}).map(([k, v]) => `${statLabel(k)} ${statVal(k, v)}`).join(' · ')}${d.modText ? `<div class="mod">◆ ${esc(d.modText)}</div>` : ''}
+      text: `${Object.entries(d.stats || {}).map(([k, v]) => `${statLabel(k)} ${statVal(k, v)}`).join(' · ')}${d.modText ? `<div class="mod">◆ ${esc(tx(d.modText))}</div>` : ''}
         <div>${Object.entries(r.mats).map(([m, n]) => `<span class="${inv.has(m, n) ? 'ok' : 'bad'}">${esc(ITEMS[m].name)} ${inv.count(m)}/${n}</span>`).join(' · ')} · ${goldTag(r.gold, p.gold >= r.gold)}</div>`,
       right: `<button data-craft="${i}" ${can(r) && !owned(r.out) ? '' : 'disabled'}>${owned(r.out) ? tl('Owned') : tl('Forge')}</button>` }); }).join('')
       + `<p class="muted small">${tl('Materials drop from monsters and resource nodes.')}</p>`;

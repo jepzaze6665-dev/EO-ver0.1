@@ -9,7 +9,8 @@ import { CLASSES } from '../skills/classes.js';
 import { itemSources } from '../loot/lootSystem.js';
 import { SETS } from '../data/items/sets.js';
 import { setPieces, activeSetBonuses } from '../items/setSystem.js';
-import { t as tl } from '../i18n/i18n.js';
+import { t as tl, tx } from '../i18n/i18n.js';
+import '../i18n/dataText.js'; // item / set / status Thai texts (registered for tx)
 
 // 'umbral_sword' -> Umbral Sword · 'line:umbral_sword' -> Umbral Sword line (+ its Class 2)
 export const classLabel = (c) => (c.startsWith(LINE_PREFIX) ? tl('{name} line', { name: (CLASSES[c.slice(LINE_PREFIX.length)] || {}).name || c }) : (CLASSES[c] ? CLASSES[c].name : c));
@@ -49,7 +50,7 @@ export function swapPreview(eq, itemId) {
   const changes = [...types].map((type) => ({ type, before: before[type] || 0, after: after[type] || 0 })).filter((c) => Math.abs(c.after - c.before) > 1e-9);
   // PASSIVE CHANGES: effect texts gained / lost by the swap (the replaced item's effects go away)
   const fx = (id) => (ITEMS[id] ? ITEMS[id].effects.map((e) => e.text) : []);
-  const bonusKeys = (slots) => new Map(activeSetBonuses(ids(slots)).map((a) => [a.key, `[${a.set.name} ${a.bonus.pieces}] ${a.bonus.text}`]));
+  const bonusKeys = (slots) => new Map(activeSetBonuses(ids(slots)).map((a) => [a.key, `[${a.set.name} ${a.bonus.pieces}] ${tx(a.bonus.text)}`]));
   const bb = bonusKeys(eq.slots), ba = bonusKeys(newSlots);
   const gained = [...fx(itemId), ...[...ba].filter(([k]) => !bb.has(k)).map(([, t]) => t)];
   const lost = [...fx(eq.slots[slot]), ...[...bb].filter(([k]) => !ba.has(k)).map(([, t]) => t)];
@@ -66,7 +67,7 @@ export function itemTooltipHTML(def, { classId = null, level = null, swap = null
   if (def.bound) rows.push(`<div class="tt-src">${tl('BOUND — cannot be sold, stored or traded')}</div>`);
   if (def.key) rows.push(`<div class="tt-head" style="color:${color}">${tl('KEY ITEM — entry only')}</div>`);
   if (def.levelRequirement > 0) rows.push(`<div class="tt-class ${level == null || meetsLevel(def, level) ? '' : 'bad'}">${tl('Requires LV {n}', { n: def.levelRequirement })}</div>`);
-  if (def.description) rows.push(`<div class="tt-desc">${esc(def.description)}</div>`);
+  if (def.description) rows.push(`<div class="tt-desc">${esc(tx(def.description))}</div>`);
   // older gear: flat stats + its unique behaviour text
   const flat = Object.entries(def.stats || {}).filter(([, v]) => v);
   if (flat.length) rows.push(`<div class="tt-block">${flat.map(([k, v]) => `<div class="tt-mod good">${esc(k)} ${v > 0 ? '+' : ''}${v}</div>`).join('')}</div>`);
@@ -74,14 +75,14 @@ export function itemTooltipHTML(def, { classId = null, level = null, swap = null
   const unique = [...(def.modText ? [def.modText] : []), ...def.effects.map((e) => e.text)];
   if (unique.length) {
     rows.push(`<div class="tt-head">${UNIQUE_RARITIES.includes(def.rarity) ? tl('UNIQUE EFFECT') : tl('EFFECT')}</div>`);
-    for (const e of def.effects) rows.push(`<div class="tt-effect"><span class="tt-trig">${esc(tl(TRIGGER_TEXT[e.trigger] || e.trigger))}</span> ${esc(e.text)}</div>`);
-    if (def.modText) rows.push(`<div class="tt-effect">${esc(def.modText)}</div>`);
+    for (const e of def.effects) rows.push(`<div class="tt-effect"><span class="tt-trig">${esc(tl(TRIGGER_TEXT[e.trigger] || e.trigger))}</span> ${esc(tx(e.text))}</div>`);
+    if (def.modText) rows.push(`<div class="tt-effect">${esc(tx(def.modText))}</div>`);
   }
   if (def.setId && SETS[def.setId]) { // SET: pieces (worn ones lit) + bonuses (lit when on)
     const st = SETS[def.setId], pieces = setPieces(def.setId), n = pieces.filter((id) => worn.includes(id)).length;
     rows.push(`<div class="tt-head" style="color:${st.color || '#ddd'}">${tl('SET: {name} {n}/{total}', { name: esc(st.name.toUpperCase()), n, total: pieces.length })}</div>`);
     rows.push(`<div class="tt-src">${pieces.map((id) => `<span class="${worn.includes(id) ? 'set-on' : ''}">${esc(ITEMS[id].name)}</span>`).join(' · ')}</div>`);
-    for (const b of st.bonuses) rows.push(`<div class="tt-mod ${n >= b.pieces ? 'good' : 'muted'}">(${b.pieces}) ${esc(b.text)}</div>`);
+    for (const b of st.bonuses) rows.push(`<div class="tt-mod ${n >= b.pieces ? 'good' : 'muted'}">(${b.pieces}) ${esc(tx(b.text))}</div>`);
   }
   if (def.tags && def.tags.length) rows.push(`<div class="tt-tags">${def.tags.map((t) => `<span>${esc(t.toUpperCase())}</span>`).join('')}</div>`);
   if (isGear(def) && !def.allowedClasses.includes(ANY_CLASS)) {
@@ -101,8 +102,8 @@ export function itemTooltipHTML(def, { classId = null, level = null, swap = null
       const d = c.after - c.before;
       return `<div class="tt-mod ${goodSign(c.type, d) ? 'good' : 'bad'}">${esc(tl((MODIFIER_TYPES[c.type] || {}).label || c.type))} ${modValue(c.type, c.before)} → ${modValue(c.type, c.after)}</div>`;
     }).join('') : `<div class="tt-src">${tl('No modifier changes')}</div>`);
-    for (const t of swap.lost || []) rows.push(`<div class="tt-mod bad">− ${esc(t)}</div>`);
-    for (const t of swap.gained || []) rows.push(`<div class="tt-mod good">+ ${esc(t)}</div>`);
+    for (const t of swap.lost || []) rows.push(`<div class="tt-mod bad">− ${esc(tx(t))}</div>`);
+    for (const t of swap.gained || []) rows.push(`<div class="tt-mod good">+ ${esc(tx(t))}</div>`);
   }
   return rows.join('');
 }

@@ -101,6 +101,29 @@ await test('every literal text the server sends to players has Thai (exact or pa
   setLang('en');
   ok(!missing.length, 'no Thai for:\n      ' + missing.join('\n      '));
 });
+await test('T4: every item / set text has Thai, Thai tables name real ids, effect counts match', async () => {
+  const { ITEMS, SHOPS } = await import('../../src/items/items.js');
+  const { SETS } = await import('../../src/data/items/sets.js');
+  const { STATUSES } = await import('../../src/data/statuses.js');
+  const { TH_ITEMS, TH_SETS, TH_STATUSES, TH_SHOPS } = await import('../../src/i18n/th/items.js');
+  const { tx } = await import('../../src/i18n/i18n.js');
+  await import('../../src/i18n/dataText.js');
+  const bad = [];
+  for (const id of Object.keys(TH_ITEMS)) if (!ITEMS[id]) bad.push('unknown item ' + id);
+  for (const id of Object.keys(TH_SETS)) if (!SETS[id]) bad.push('unknown set ' + id);
+  for (const id of Object.keys(TH_STATUSES)) if (!STATUSES[id]) bad.push('unknown status ' + id);
+  for (const id of Object.keys(TH_SHOPS)) if (!SHOPS[id]) bad.push('unknown shop ' + id);
+  for (const [id, d] of Object.entries(ITEMS)) {
+    const th = TH_ITEMS[id] || {};
+    if ((d.effects || []).length !== (th.effects || []).length) bad.push(`${id}: effects ${(d.effects || []).length} vs Thai ${(th.effects || []).length}`);
+  }
+  for (const [id, s] of Object.entries(SETS)) if (s.bonuses.length !== ((TH_SETS[id] || {}).bonuses || []).length) bad.push('set bonuses ' + id);
+  setLang('th');
+  for (const d of Object.values(ITEMS)) for (const s of [d.description, d.modText, ...(d.effects || []).map((e) => e.text)]) if (s && tx(s) === s) bad.push(`${d.id}: "${s}"`);
+  for (const s of Object.values(SETS)) for (const x of [s.description, ...s.bonuses.map((b) => b.text)]) if (x && tx(x) === x) bad.push(`set: "${x}"`);
+  setLang('en');
+  ok(!bad.length, bad.join('\n      '));
+});
 await test('Thai text breaks at word edges and fits the width', () => {
   const text = 'ปาร์ตี้ของคุณล้มลงแล้ว กลับไปที่จุดเช็กพอยต์ เรียนรู้จังหวะของศัตรู แล้วลองใหม่อีกครั้ง';
   ok(hasThai(text), 'hasThai');

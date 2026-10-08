@@ -260,7 +260,7 @@ export class HUD {
     // any status with display data (data/statuses.js) — stacks shown as ×N
     for (const st of p.status.list()) {
       const disp = STATUSES[st.id].display;
-      if (disp) chips.push([st.stacks > 1 ? `${disp.label} ×${st.stacks}` : STATUSES[st.id].absorb ? `${disp.label} ${Math.round(st.amount || 0)}` : disp.label, disp.color]);
+      if (disp) { const lb = tx(disp.label); chips.push([st.stacks > 1 ? `${lb} ×${st.stacks}` : STATUSES[st.id].absorb ? `${lb} ${Math.round(st.amount || 0)}` : lb, disp.color]); }
     }
     if (p.guardState && p.guardState.active) chips.push(['GUARDING', '#ffe8a0']);
     if (g.world.state.flags.moonBlessing) chips.push(['MOON BLESSING', '#dfe8ff']);
@@ -881,7 +881,7 @@ export class HUD {
     const parts = [];
     for (const st of entity.status.list()) {
       const disp = STATUSES[st.id].display;
-      if (disp && !STATUSES[st.id].vulnerable) parts.push([st.stacks > 1 ? `${disp.label}×${st.stacks}` : disp.label, disp.color]);
+      if (disp && !STATUSES[st.id].vulnerable) parts.push([st.stacks > 1 ? `${tx(disp.label)}×${st.stacks}` : tx(disp.label), disp.color]);
     }
     parts.forEach(([label, col], i) => this.text(ctx, label, x + (i - (parts.length - 1) / 2) * 52 * u, y, 8 * u, col, { align: 'center' }));
   }

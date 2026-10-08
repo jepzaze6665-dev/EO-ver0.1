@@ -8,7 +8,7 @@ import { iconURL, itemIconURL } from './icons.js';
 import { esc, modifierText, modValue, swapPreview } from './itemTooltip.js';
 import { meetsLevel } from '../items/itemDefs.js';
 import { setSummary } from '../items/setSystem.js';
-import { t as tl } from '../i18n/i18n.js';
+import { t as tl, tx } from '../i18n/i18n.js';
 
 const pct = (v) => `${Math.round(v * 100)}%`;
 const signed = (v) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}%`;
@@ -61,7 +61,7 @@ export function buildTags(eq) {
 export function setsHTML(eq) {
   const sets = setSummary(eq.wornIds());
   if (!sets.length) return `<div class="muted small">${tl('No set pieces worn.')}</div>`;
-  return sets.map((s) => `<div class="lo-set"><b style="color:${s.color || '#ddd'}">${esc(s.name)} ${s.count}/${s.total}</b>${s.bonuses.map((b) => `<div class="small ${b.on ? 'set-on' : 'muted'}">(${b.pieces}) ${esc(b.text)}</div>`).join('')}</div>`).join('');
+  return sets.map((s) => `<div class="lo-set"><b style="color:${s.color || '#ddd'}">${esc(s.name)} ${s.count}/${s.total}</b>${s.bonuses.map((b) => `<div class="small ${b.on ? 'set-on' : 'muted'}">(${b.pieces}) ${esc(tx(b.text))}</div>`).join('')}</div>`).join('');
 }
 
 export function loadoutHTML(g, { pickSlot = null } = {}) {
