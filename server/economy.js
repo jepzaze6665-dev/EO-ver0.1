@@ -22,16 +22,21 @@ import { QUESTS } from '../src/data/quests.js';
 import { HIDDEN } from '../src/data/hidden.js';
 import { questExp, hiddenExp } from '../src/progression/rewardScaling.js';
 import { EconCatalog } from './econCatalog.js';
+import { SHOPS, shopId, shopPrice } from '../src/items/items.js';
 
 export const SERVER_INSTANCE_BASE = 5000000; // gear the server creates: item_5000000+ (clients never count up to it)
 const SERVER_REASONS = new Set(['kill', 'boss']); // paid by the server in a room it hosts
 // H5b: sources checked against the game data — a claim may never pay more than the data says, and only once per character
 // (a gathering node: once per regrow time)
-const VERIFIED = new Set(['quest', 'secret', 'explore', 'chest', 'resource', 'forge', 'shrine']);
-export const ECON_RULES = { regrow: 110, exploreKeys: 600 };
+const VERIFIED = new Set(['quest', 'secret', 'explore', 'chest', 'resource', 'forge', 'shrine', 'quarry']);
+// H5c: every gain must have a checked source; anything else is refused ('unchecked source')
+const PAIRED = new Set(['buy', 'sell', 'pile']);
+export const ECON_RULES = { regrow: 110, quarryAgain: 240, exploreKeys: 600 };
 const expOf = (n) => (n > 0 ? Math.max(1, Math.round(n * DIFFICULTY.expRate)) : 0);
 
-const blank = () => ({ v: 1, gold: 0, level: 1, exp: 0, items: {}, gear: {}, next: SERVER_INSTANCE_BASE, unverified: 0, claims: {} });
+// a new character = the starting kit (Player: LEVELS.start gold; Game.newGame: 3 HP potions + 1 shadow tonic)
+export const START_KIT = { gold: LEVELS.start.gold, items: { hp_potion: 3, shadow_tonic: 1 } };
+const blank = () => ({ v: 1, gold: START_KIT.gold, level: 1, exp: 0, items: { ...START_KIT.items }, gear: {}, next: SERVER_INSTANCE_BASE, unverified: 0, claims: {}, paid: {}, credit: 0, pile: null });
 
 export class EconomyService {
   constructor(server, store, { scan = false } = {}) {
@@ -52,6 +57,7 @@ export class EconomyService {
     try {
       const d = r.main && JSON.parse(r.main);
       if (d && d.player) {
+        e.items = {}; // the save says what this character owns (not the starting kit)
         e.gold = Math.max(0, Math.floor(d.player.gold || 0));
         e.level = Math.max(1, Math.floor(d.player.level || 1)); e.exp = Math.max(0, Math.floor(d.player.exp || 0));
         const inv = d.inventory || {};
@@ -81,7 +87,7 @@ export class EconomyService {
   }
   // true or the reason it was refused
   allow(s, e, op, kind) {
-    const [t, a, b] = op;
+    const [t, a, b] = op, id = String((op[op.length - 1] || [])[1] || '');
     const gain = (t === 'i' && b > 0) || t === 'g+' || (t === '$' && a > 0) || t === 'xp';
     if (gain && SERVER_REASONS.has(kind) && this.serverHosted(s)) return 'the server pays this reward';
     if (t === 'i') {
@@ -96,10 +102,59 @@ export class EconomyService {
       if (a < 0 && e.gold < -a) return 'not enough gold';
     } else if (t === 'xp') {
       if (!Number.isInteger(a) || a <= 0) return 'bad exp';
+    } else if (t === 'xp-') {
+      if (kind !== 'pileDrop' || !Number.isInteger(a) || a < 0) return 'bad exp loss'; // the death penalty only
     } else return 'unknown op';
-    if (gain && VERIFIED.has(kind)) return this.claim(e, op, kind, String(op[op.length - 1][1] || ''));
-    if (gain && !SERVER_REASONS.has(kind) && kind !== 'use') e.unverified++; // H5c checks the rest (shops, piles, mechanics...)
+    // spends that open a paired gain (shop, death pile)
+    if (!gain) { const r = this.pair(e, op, kind, id); if (r !== true) return r; }
+    if (gain && VERIFIED.has(kind)) return this.claim(e, op, kind, id);
+    if (gain && PAIRED.has(kind)) return this.paired(e, op, kind, id);
+    if (gain && SERVER_REASONS.has(kind)) { e.unverified++; return true; } // a room the server does not host yet (its first second)
+    if (gain) return 'unchecked source: ' + kind;
     return true;
+  }
+
+  // ---------------- H5c paired ops: a spend / loss that allows a matching gain right after
+  //   buy  : '$' -price (price must be a shop price of that item) -> one of that item
+  //   sell : an item given away -> its sell price in gold
+  //   pile : items lost on a death (reason pileDrop, id = the pile's time) -> the same items back from that pile
+  pair(e, op, kind, id) {
+    const [t, a, b] = op;
+    if (kind === 'buy' && t === '$') {
+      const prices = Object.values(SHOPS).flatMap((sh) => sh.stock.filter((x) => shopId(x) === id).map((x) => shopPrice(x)));
+      if (!prices.includes(-a)) return 'not a shop price';
+      e.paid = e.paid || {}; e.paid[id] = (e.paid[id] || 0) + 1;
+    } else if (kind === 'sell' && (t === 'i' || t === 'g-')) {
+      const item = t === 'i' ? id : e.gear[a], def = ITEMS[item];
+      if (!def || def.key || def.bound) return 'cannot be sold';
+      e.credit = (e.credit || 0) + (def.sell || 0) * (t === 'i' ? -b : 1);
+    } else if (kind === 'pileDrop' && (t === 'i' || t === 'g-')) {
+      if (!e.pile || e.pile.at !== id) e.pile = { at: id, items: {}, gear: {} }; // a new death replaces the old pile
+      if (t === 'i') e.pile.items[a] = (e.pile.items[a] || 0) - b; else e.pile.gear[a] = e.gear[a];
+    }
+    return true;
+  }
+  paired(e, op, kind, id) {
+    const [t, a, b] = op;
+    if (kind === 'buy') {
+      const item = t === 'i' ? a : t === 'g+' ? a.itemId : null;
+      if (!item || item !== id || !(e.paid && e.paid[id] > 0) || (t === 'i' && b !== 1)) return 'not paid for';
+      e.paid[id]--;
+      return true;
+    }
+    if (kind === 'sell') {
+      if (t !== '$' || a > (e.credit || 0)) return 'more than it sells for';
+      e.credit -= a;
+      return true;
+    }
+    if (kind === 'pile') {
+      const p = e.pile;
+      if (!p || p.at !== id) return 'no such pile';
+      if (t === 'i') { if (!((p.items[a] || 0) >= b)) return 'not in the pile'; p.items[a] -= b; return true; }
+      if (t === 'g+') { if (p.gear[a.instanceId] !== a.itemId) return 'not in the pile'; delete p.gear[a.instanceId]; return true; }
+      return 'not in the pile';
+    }
+    return 'unchecked source';
   }
 
   // ---------------- H5b: what a data source pays (null = unknown source)
@@ -109,15 +164,16 @@ export class EconomyService {
     if (kind === 'secret') { const h = HIDDEN[id]; return h ? { xp: expOf(hiddenExp(h)), gold: (h.reward && h.reward.gold) || 0, items: { ...((h.reward && h.reward.items) || {}) } } : null; }
     if (kind === 'explore') { const src = LEVELS.expSources[id.split(':')[0]]; return src ? { xp: expOf(src), gold: 0, items: {} } : null; }
     if (kind === 'chest') { const c = C.chest[id]; return c ? { xp: 0, gold: c.gold, items: { ...c.items } } : null; }
-    if (kind === 'resource') { const r = C.resource[id]; return r ? { xp: 0, gold: 0, items: { [r.item]: 1 }, regrow: true } : null; }
+    if (kind === 'resource') { const r = C.resource[id]; return r ? { xp: 0, gold: 0, items: { [r.item]: 1 }, regrow: ECON_RULES.regrow } : null; }
     if (kind === 'forge') { const f = C.forge[id]; return f ? { xp: 0, gold: 0, items: { ...f.gives } } : null; }
     if (kind === 'shrine') return { xp: 0, gold: 0, items: { seal_fragment: 1 } };
+    if (kind === 'quarry') { const q = C.quarry[id]; return q ? { xp: 0, gold: q.gold, items: { ...q.items }, regrow: ECON_RULES.quarryAgain } : null; }
     return null;
   }
   claim(e, op, kind, id) {
     const key = kind + ':' + id, claims = e.claims || (e.claims = {}), now = Date.now();
     let b = claims[key];
-    if (b && b.regrow && now - b.at > ECON_RULES.regrow * 1000) b = null; // the node grew back
+    if (b && b.regrow && now - b.at > b.regrow * 1000) b = null; // the node grew back / the hare may run again
     if (!b) {
       const exp = this.expected(kind, id);
       if (!exp) {
@@ -145,6 +201,7 @@ export class EconomyService {
     else if (t === 'g+') e.gear[a.instanceId] = a.itemId;
     else if (t === 'g-') delete e.gear[a];
     else if (t === '$') e.gold = Math.max(0, e.gold + a);
+    else if (t === 'xp-') e.exp = Math.max(0, e.exp - a); // never below the start of the level (no de-level)
     else if (t === 'xp') {
       if (e.level >= LEVELS.maxLevel) return;
       const r = addExp(e.level, e.exp, a); e.level = r.level; e.exp = r.exp;

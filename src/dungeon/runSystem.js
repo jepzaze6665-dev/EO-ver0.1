@@ -100,20 +100,25 @@ export class RunSystem {
     const g = this.game, p = g.player, inv = g.inventory, eq = g.equipment, w = g.world;
     // EXP: half of this run's monster EXP, never below the start of the current level
     const lose = Math.floor(this.monsterExp * RUN_RULES.expLoss), lost = Math.min(lose, p.exp);
-    p.exp -= lost;
-    // items: out of the bag (worn gains are taken off first) into the pile
+    // ONLINE H5c: every loss carries the reason pileDrop:<pile time> so the server keeps the same pile (server/economy.js)
+    const E = g.online && g.online.econ, stamp = Date.now(), why = (fn) => (E ? E.why('pileDrop', stamp, fn) : fn());
     const gain = this.gained(), items = {}, gear = [];
-    for (const [id, n] of Object.entries(gain.items)) if (inv.remove(id, n)) items[id] = n;
-    for (const { inst, slot } of gain.gear) {
-      if (slot) { eq.slots[slot] = null; delete eq.inst[slot]; eq.changed(); g.events.emit('equipChanged', { slot, id: null, removed: inst.itemId }); gear.push(inst); }
-      else if (inv.removeItem(inst.instanceId)) gear.push(inst);
-    }
+    why(() => {
+      p.exp -= lost;
+      if (E && lost) E.note(['xp-', lost]);
+      // items: out of the bag (worn gains are taken off first) into the pile
+      for (const [id, n] of Object.entries(gain.items)) if (inv.remove(id, n)) items[id] = n;
+      for (const { inst, slot } of gain.gear) {
+        if (slot) { eq.slots[slot] = null; delete eq.inst[slot]; eq.changed(); g.events.emit('equipChanged', { slot, id: null, removed: inst.itemId }); gear.push(inst); if (E) E.note(['g-', inst.instanceId]); }
+        else if (inv.removeItem(inst.instanceId)) gear.push(inst);
+      }
+    });
     if (gear.some(Boolean)) p.recomputeStats();
     const count = Object.values(items).reduce((a, b) => a + b, 0) + gear.length;
     const replaced = !!this.pile;
     if (count) {
       const at = w.map.findOpen(p.x, p.y, 4);
-      this.pile = { map: w.mapId, x: Math.round(at.x), y: Math.round(at.y), items, gear, at: Date.now() };
+      this.pile = { map: w.mapId, x: Math.round(at.x), y: Math.round(at.y), items, gear, at: stamp };
     }
     this.begin(); // a new segment from what is left (the checkpoint may be in the dungeon)
     g.events.emit('runPenalty', { exp: lost, items: count, replaced: replaced && count > 0 });
@@ -126,8 +131,11 @@ export class RunSystem {
     const g = this.game, inv = g.inventory, pile = this.pile;
     if (!pile) return 0;
     let got = 0;
-    for (const [id, n] of Object.entries(pile.items)) { const a = inv.add(id, n, true); got += a; if (a < n) pile.items[id] = n - a; else delete pile.items[id]; }
-    pile.gear = pile.gear.filter((inst) => { if (inv.addItem(inst, true)) { got++; return false; } return true; });
+    const E = g.online && g.online.econ, take = () => { // ONLINE H5c: the server gives back only what that pile holds
+      for (const [id, n] of Object.entries(pile.items)) { const a = inv.add(id, n, true); got += a; if (a < n) pile.items[id] = n - a; else delete pile.items[id]; }
+      pile.gear = pile.gear.filter((inst) => { if (inv.addItem(inst, true)) { got++; return false; } return true; });
+    };
+    if (E) E.why('pile', pile.at, take); else take();
     const left = this.pileCount();
     if (!left) this.pile = null;
     this.dirty();

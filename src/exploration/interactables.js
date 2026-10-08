@@ -49,8 +49,9 @@ export function interact(w, it) {
       g.audio.sfx(it.rare ? 'chest_rare' : 'chest');
       g.vfx.burst(it.x, it.y - 10, it.rare ? '#e0a0ff' : '#ffd070', it.rare ? 40 : 20, 140);
       if (it.rare) { g.vfx.ring(it.x, it.y, 6, 70, { color: '220,160,255', life: 0.6 }); g.ui.banner('RARE TREASURE', 'A hidden reward for the curious', '#e0b0ff'); }
-      for (const l of it.loot || []) g.inventory.add(l.item, l.count);
-      if (it.gold) { p.addGold(it.gold); g.ui.pickup({ name: 'Gold', color: '#ffd24a', icon: 'coin' }, it.gold); }
+      const E = g.online && g.online.econ, take = () => { for (const l of it.loot || []) g.inventory.add(l.item, l.count); if (it.gold) p.addGold(it.gold); }; // ONLINE H5: chest = the reason
+      if (E) E.why('chest', it.id, take); else take();
+      if (it.gold) { g.ui.pickup({ name: 'Gold', color: '#ffd24a', icon: 'coin' }, it.gold); }
       g.events.emit('chestOpened', it.id);
       g.save.dirty = true;
       break;

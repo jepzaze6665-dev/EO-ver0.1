@@ -1522,3 +1522,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   of every grid in a SimGame (only when simHosts is on; until `full`, unknown chest / node / forge ids are trusted). Still
   trusted (H5c): shops, death piles, map-mechanic chests ('mech'), NPC gifts, other. Tests economy.test.mjs 6. Checked online:
   T.playthrough 17/17 with only the harness's own kills in server-hosted rooms refused (correct).
+  Done H5c (every gain checked): economy.allow refuses any GAIN whose reason is not checked ('unchecked source: <kind>'); kill /
+  boss gains are still trusted only in a room the server does not host yet. PAIRED ops (economy.pair / paired): buy = '$' -price
+  must equal a SHOPS price of that item -> one of it (e.paid) · sell = an item given away (not key / bound) -> gold <= its data
+  sell price (e.credit; potions have none) · death pile = losses with reason pileDrop:<pile time> build e.pile (a new time
+  replaces it) -> gains with reason pile:<time> only from it; new op 'xp-' (pileDrop only) = the death EXP loss (no de-level).
+  Catalog adds map-mechanic chests (mech.chest, darkness zones chest_hoard_<id>) and the A1 golden hare (kind quarry:<map>, again
+  after 240 s). START_KIT (120 G, 3 HP potions, 1 shadow tonic) = a new ledger (Game.newGame's kit is quiet); a save seeds
+  without the kit. Client reasons: chest (interactables case 'chest' itself, so mechanic chests too), quarry, pileDrop / pile
+  (RunSystem: worn gear notes 'g-'), enforceClass quiet. Tests economy.test.mjs 8. Checked online: start kit + a purchase survive
+  a reload, a death pile drops and recovers with no refusal, T.playthrough 17/17 refused only the harness's own local boss kill;
+  ?offline runCheck 15 · gearCheck 30 · randomEventCheck 10 · playthrough 17 · loadoutCheck 9. H5 COMPLETE (H5a-c).

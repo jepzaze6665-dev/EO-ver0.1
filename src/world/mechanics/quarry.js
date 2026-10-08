@@ -58,9 +58,9 @@ export class Quarry extends MapMechanic {
     if (this.caught) return;
     this.caught = true;
     const g = this.game, p = g.player, o = this.o, m = this.mon;
-    p.addGold(o.gold);
+    const E = g.online && g.online.econ, pay = () => { p.addGold(o.gold); for (const r of o.reward) g.inventory.add(r.item, r.count); }; // ONLINE H5c: reason quarry:<map>
+    if (E) E.why('quarry', this.mapId, pay); else pay();
     g.ui.pickup({ name: 'Gold', color: '#ffd24a', icon: 'coin' }, o.gold);
-    for (const r of o.reward) g.inventory.add(r.item, r.count);
     g.ui.banner('CAUGHT!', `${o.name || 'It'} leaves a trail of gold`, '#ffd860');
     g.vfx.burst(m.x, m.y - 10, '#ffd860', 40, 200);
     g.audio.sfx('chest_rare');

@@ -47,14 +47,32 @@ await test('an old record is seeded once from its save; later saves cannot chang
   const d = JSON.parse(S.saves.store.get(a.id).main);
   ok(d.player.gold === 100 && d.player.level === 3 && d.inventory.items.hp_potion === 2 && !d.inventory.items.rune_crystal && !d.inventory.gear.length, JSON.stringify(d.inventory));
 });
-await test('ops: a not-yet-checked reward is accepted (counted unverified), spending more than you own / a duplicate gear id is undone', async () => {
-  const a = all.at(-1), e = S.economy.get(a.id), u0 = e.unverified;
-  a.send('econ', { ops: [['i', 'rune_crystal', 3, ['npc', 'gift']], ['$', 50, ['npc', 'gift']], ['g+', { instanceId: 'item_000010', itemId: 'relic_oath_mirror' }, ['npc', 'gift']]] });
-  await until(() => S.economy.get(a.id).items.rune_crystal === 3, 2000, 'applied');
-  ok(e.gold === 150 && e.gear.item_000010 && e.unverified === u0 + 3, 'gold / gear / unverified');
-  a.send('econ', { ops: [['$', -1000, ['buy', 'x']], ['g+', { instanceId: 'item_000010', itemId: 'relic_oath_mirror' }, ['other']], ['i', 'hp_potion', -9, ['use', 'hp_potion']]] });
-  await until(() => a.undo.length === 3, 2000, 'three undos');
-  ok(e.gold === 150 && e.items.hp_potion === 2, 'nothing changed');
+await test('H5c: a gain from an unchecked source is undone; spending more than you own is undone', async () => {
+  const a = all.at(-1), e = S.economy.get(a.id), g0 = e.gold, n0 = a.undo.length;
+  a.send('econ', { ops: [['i', 'rune_crystal', 3, ['npc', 'gift']], ['$', 50, ['other']], ['g+', { instanceId: 'item_000010', itemId: 'relic_oath_mirror' }, ['npc', 'gift']], ['i', 'hp_potion', -9, ['use', 'hp_potion']]] });
+  await until(() => a.undo.length === n0 + 4, 2000, 'four undos');
+  ok(e.gold === g0 && !e.items.rune_crystal && !e.gear.item_000010 && e.items.hp_potion === 2, 'nothing changed');
+});
+await test('H5c shop: the right price buys one item; a wrong price / an item not paid for is undone; selling pays its sell price', async () => {
+  const { ITEMS } = await import('../../src/items/items.js');
+  const a = all.at(-1), e = S.economy.get(a.id), n0 = a.undo.length, price = ITEMS.hp_potion.price, g0 = e.gold, p0 = e.items.hp_potion || 0;
+  a.send('econ', { ops: [['$', -price, ['buy', 'hp_potion']], ['i', 'hp_potion', 1, ['buy', 'hp_potion']], ['i', 'hp_potion', 1, ['buy', 'hp_potion']], ['$', -1, ['buy', 'hp_potion']]] });
+  await until(() => a.undo.length === n0 + 2, 2000, 'second potion + wrong price undone');
+  ok(e.gold === g0 - price && e.items.hp_potion === p0 + 1, 'one bought');
+  // an HP potion has no sell price in the data: selling one pays nothing, any gold for it is undone
+  ok(!ITEMS.hp_potion.sell, 'data: potions do not sell');
+  a.send('econ', { ops: [['i', 'hp_potion', -1, ['sell', 'hp_potion']], ['$', 5, ['sell', 'hp_potion']]] });
+  await until(() => a.undo.length === n0 + 3, 2000, 'gold for the sale undone');
+  ok(e.gold === g0 - price && e.items.hp_potion === p0, 'given away, nothing paid');
+});
+await test('H5c death pile: lost items (pileDrop) come back only from that pile; the EXP loss is kept', async () => {
+  const a = all.at(-1), e = S.economy.get(a.id), n0 = a.undo.length, p0 = e.items.hp_potion, x0 = e.exp;
+  a.send('econ', { ops: [['i', 'hp_potion', -1, ['pileDrop', '111']], ['xp-', Math.min(3, x0), ['pileDrop', '111']]] });
+  await until(() => e.items.hp_potion === p0 - 1, 2000, 'dropped');
+  ok(e.exp === x0 - Math.min(3, x0) && e.pile && e.pile.at === '111', 'pile kept on the server');
+  a.send('econ', { ops: [['i', 'hp_potion', 2, ['pile', '111']], ['i', 'hp_potion', 1, ['pile', '999']], ['i', 'hp_potion', 1, ['pile', '111']], ['xp-', 5, ['other']]] });
+  await until(() => a.undo.length === n0 + 3, 2000, 'too many / wrong pile / stray exp loss undone');
+  ok(e.items.hp_potion === p0, 'the one potion back');
 });
 await test('in a room the server hosts: a client claiming kill rewards is undone; the server pays the kill itself (econGrant)', async () => {
   const a = all.at(-1);
@@ -95,10 +113,11 @@ await test('H5b: a map chest pays its data loot once; gold above it is undone; a
   a.send('econ', { ops: [['xp', 5, ['explore', 'areaDiscovered:Old Ford']], ['xp', 5, ['explore', 'areaDiscovered:Old Ford']]] });
   await until(() => a.undo.length === n0 + 3, 2000, 'second discovery undone');
 });
-await test('New Game clears the ledger', async () => {
+await test('New Game resets the ledger to the starting kit', async () => {
   const a = all.at(-1);
   a.send('saveRemove', {});
-  await until(() => S.economy.get(a.id).gold === 0 && !Object.keys(S.economy.get(a.id).items).length, 2000, 'cleared');
+  const { START_KIT } = await import('../../server/economy.js');
+  await until(() => S.economy.get(a.id).gold === START_KIT.gold && JSON.stringify(S.economy.get(a.id).items) === JSON.stringify(START_KIT.items), 2000, 'back to the starting kit');
 });
 
 for (const p of all) p.c.stop();

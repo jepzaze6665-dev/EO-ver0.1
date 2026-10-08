@@ -10,9 +10,17 @@ const chestOf = (it) => ({ gold: it.gold || 0, items: Object.fromEntries((it.loo
 
 export class EconCatalog {
   constructor() {
-    this.chest = {}; this.resource = {}; this.forge = {};
+    this.chest = {}; this.resource = {}; this.forge = {}; this.quarry = {};
     this.full = false;
-    for (const m of MAPS) for (const it of (m.content && m.content.interactables) || []) this.add(it);
+    for (const m of MAPS) {
+      for (const it of (m.content && m.content.interactables) || []) this.add(it);
+      // H5c: chests that map mechanics place (A2 drowned chest, B2 dark-chamber hoards) and the A1 golden hare's reward
+      for (const mech of m.mechanics || []) {
+        if (mech.chest && mech.chest.id) this.chest[mech.chest.id] = chestOf(mech.chest);
+        for (const z of mech.zones || []) if (z.chest) this.chest[`chest_hoard_${z.id}`] = chestOf(z.chest);
+        if (mech.type === 'quarry') this.quarry[m.id] = { gold: mech.gold ?? 400, items: Object.fromEntries((mech.reward || []).map((r) => [r.item, r.count || 1])) };
+      }
+    }
     // a corrupted totem's chest appears in the world once its event is done (world/world.js)
     this.chest.chest_totem = { gold: 80, items: { umbral_band: 1, hp_potion: 2 } };
   }

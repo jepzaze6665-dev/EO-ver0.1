@@ -312,8 +312,9 @@ export class Game {
     this.player.x = s.x; this.player.y = s.y;
     this.player.facing = -Math.PI / 2;
     this.world.syncMapToPlayer({ silent: true }); // start map = the map that owns the spawn point (Lumina)
-    this.inventory.add('hp_potion', 3, true);
-    this.inventory.add('shadow_tonic', 1, true);
+    // the starting kit (server/economy.js START_KIT holds the same): not an earned gain for the server ledger
+    const kit = () => { this.inventory.add('hp_potion', 3, true); this.inventory.add('shadow_tonic', 1, true); };
+    if (this.online && this.online.econ) this.online.econ.quiet(kit); else kit();
     this.camera.snap(s.x, s.y);
     this.ui.panels.close(true);
     this.state = 'play';

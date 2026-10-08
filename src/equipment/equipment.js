@@ -93,7 +93,8 @@ export class Equipment {
   wornIds() { return GEAR_SLOTS.map((s) => this.slots[s.id]).filter(Boolean); }
   lastErrorText() { return EQUIP_FAIL[this.lastError] || ''; }
   // takes off everything the class may not use (after a class change). Fixed slots keep their item.
-  enforceClass(classId) {
+  enforceClass(classId) { const E = this.game.online && this.game.online.econ; return E ? E.quiet(() => this.enforceNow(classId)) : this.enforceNow(classId); } // gear moves to the bag: still yours
+  enforceNow(classId) {
     let n = 0;
     for (const s of GEAR_SLOTS) {
       const id = this.slots[s.id];
