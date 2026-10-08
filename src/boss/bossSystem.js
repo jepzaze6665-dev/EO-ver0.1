@@ -99,7 +99,10 @@ export class BossSystem {
       if (e.netPuppet || (g.online && g.online.mobs.isPaused(enc.def.map))) { if (enc.def.impl === 'area') e.update(dt); continue; }
       if (enc.def.impl === 'area') { if (g.online) g.online.fx.run(() => e.update(dt), 'b_' + enc.id); else e.update(dt); } // ONLINE: its effects reach the party
       const a = this.arenaPx(enc);
-      const inside = dist(p.x, p.y, a.x, a.y);
+      // the nearest fighter (you, or online a party member on this map: H2 the server host has no fighter of its own)
+      const who = g.combatants();
+      let inside = Infinity;
+      for (const q of who) inside = Math.min(inside, dist(q.x, q.y, a.x, a.y));
       // leaving the arena some other way (teleport, respawn elsewhere) resets the fight after a moment.
       // Bosses that own their arena (sealed map, e.g. the Guardian) only reset when the player leaves the map.
       const gone = !this.onMap(enc) || (!this.impl(enc).ownsArena && inside > a.r + 3 * TILE);
@@ -108,7 +111,7 @@ export class BossSystem {
         alreadyDefeated: this.runKills.has(enc.id), // down in THIS run (a new run brings it back)
         canAppear: prog.meets(enc.def.appear),
         playerInTrigger: this.onMap(enc) && inside < a.trigger,
-        playerAlive: !p.dead,
+        playerAlive: who.length > 0 && !(who.length === 1 && who[0] === p && p.dead),
         entityDead: !!e.dead,
         transitioning: this.impl(enc).transitioning ? this.impl(enc).transitioning(e) : e.state === 'transition',
         reset: enc.leaveT > 1.5,

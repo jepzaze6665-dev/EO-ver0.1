@@ -168,6 +168,8 @@ export class OnlineSession {
       return;
     }
     this.inWorld = true;
+    // remote positions advance in visible() — the renderer calls it, but the server's room host (H2) never renders
+    if (this.mobs.host) this.remotes.visible(now());
     this.mobs.update(); // N7a: host snapshots (own throttle)
     this.fx.flush();
     this.summons.update();

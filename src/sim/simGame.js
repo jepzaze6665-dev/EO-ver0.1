@@ -13,7 +13,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const SIM_STEP = 1 / 60;
 let assetsReady = null;
 
-export async function createSimGame({ classId, newGame = true } = {}) {
+export async function createSimGame({ classId, newGame = true, online = false } = {}) {
   const canvas = installHeadless();
   installAssetFetch(ROOT);
   const { loadAll } = await import('../core/assets.js');
@@ -23,7 +23,7 @@ export async function createSimGame({ classId, newGame = true } = {}) {
   const game = new Game(canvas);
   game.headless = true;
   game.audio = NOTHING; // no sound device: every audio call is ignored (the music loop would keep Node alive)
-  game.online.update = () => {}; // the server is the network; a SimGame never opens its own connection
+  if (!online) game.online.update = () => {}; // the server is the network; only an H2 room host (server/simHosts.js) connects
   game.renderer.render = () => {};
   game.ui.draw = () => {};
   // nobody clicks panels here: roads and gates go straight through (the server decides who enters a run)

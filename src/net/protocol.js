@@ -78,7 +78,7 @@ export function validMobRow(r) {
 
 // client -> server
 export const CLIENT_MESSAGES = {
-  hello: { v: 'int', name: 'name', token: 'token?' },   // log in (DEV identity: name + token, server/accounts.js)
+  hello: { v: 'int', name: 'name', token: 'token?', sim: 'string?' }, // sim = H2 server host key (server/simHosts.js), never sent by players   // log in (DEV identity: name + token, server/accounts.js)
   ping: { n: 'int?' },                                   // keep-alive / latency probe (server answers 'pong')
   // N2 presence (src/net/onlineSession.js): where I am + what I look like. Shared-city positions are NOT authoritative
   // (no combat there); dungeon movement gets server checks in N7.

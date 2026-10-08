@@ -414,7 +414,9 @@ export class World {
       if (it.kind === 'npc') { it.x = it.npc.x; it.y = it.npc.y; }
       const d = dist(p.x, p.y, it.x, it.y);
       if (it.kind === 'trigger') {
-        if (d < it.radius) this.fireTrigger(it);
+        // the Guardian wakes for any fighter on the map (H2: the server host's own character never walks in)
+        const hit = d < it.radius || (it.discover === 'guardian' && this.game.combatants().some((q) => dist(q.x, q.y, it.x, it.y) < it.radius));
+        if (hit) this.fireTrigger(it);
         continue;
       }
       if (d > it.radius || d >= bd) continue;

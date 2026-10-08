@@ -55,7 +55,7 @@ export class NetClient {
     let ws;
     try { ws = new this.WS(this.url); } catch (e) { return this.lost({ code: NET_ERROR.server, text: e.message }); }
     this.ws = ws;
-    ws.onopen = () => ws.send(encode('hello', { v: PROTOCOL_VERSION, name: this.name, ...(this.token() ? { token: this.token() } : {}) }));
+    ws.onopen = () => ws.send(encode('hello', { v: PROTOCOL_VERSION, name: this.name, ...(this.token() ? { token: this.token() } : {}), ...(this.helloExtra || {}) })); // helloExtra: H2 server host only
     ws.onmessage = (ev) => this.onMessage(ws, ev.data);
     ws.onclose = () => { if (this.ws === ws) this.lost(null); };
     ws.onerror = () => {};

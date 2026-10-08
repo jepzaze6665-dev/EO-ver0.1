@@ -59,7 +59,8 @@ export class ProgressService {
   onKill(s, bossId) {
     const def = BOSSES[bossId];
     if (!def || def.planned) return this.refuse(s, 'unknown boss');
-    const inst = this.server.dungeons.instances.of(s.id);
+    // H2: the server's own room host is no run member: its run = the room's key
+    const inst = s.sim ? this.server.dungeons.instances.get(String(s.presence?.room || '').split(':')[0]) : this.server.dungeons.instances.of(s.id);
     if (!inst) return this.refuse(s, 'not in a dungeon run');
     const room = `${inst.id}:${def.map}`;
     if (this.server.city.hostOf(room) !== s.id) return this.refuse(s, 'only the host of that fight reports it');

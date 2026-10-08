@@ -1475,3 +1475,19 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (every sheet × direction row), monster anims, VFX strips (vfx + boss + playerfx); play / step / fps / zoom / bg dark-magenta-
   checker-white / pivot cross / all-frames grid (red = empty or blank). Next (owner picks): boss sandbox, balance dashboard,
   map inspector, online test bots, quest graph, audio board.
+- **ONLINE H1 + H2** (docs/online/HEADLESS_SERVER_PLAN.md). H1 = `src/sim/simGame.js` createSimGame({ classId, online }) + `src/sim/headless.js`
+  (the real Game in Node, no screen / sound / keys; tools/tests/simGame.test.mjs). H2 done = THE SERVER HOSTS DUNGEON MAP ROOMS:
+  `server/simHosts.js` SimHostService (GameServer.simHosts; `startServer({ simHosts })`, on for `node server.js` unless EO_SIM=0,
+  off in other unit tests): the first player in a run-map room -> a SimGame on that map (ghost character: invulnerable,
+  game.players() = []; bosses in instance.kills stay dead) connects back over WebSocket with hello `sim: '<key>|<room>'`
+  (GameServer.login -> simHosts.login: session.sim, no account, no sessionOpened, no rate limit) -> CityRooms.joinSim makes it
+  the room HOST -> every player becomes a guest of the existing N7 host code (mobSync / bossSync / mapSync) — no browser change.
+  Sim sessions are filtered out of every player list (people()), ignore their own pos, stop when only they are left; until a
+  SimGame is ready (first ~1 s) / if it fails, the first player hosts as before. progress.onKill finds a sim's run by its room.
+  Generic fixes it needed: BossSystem engage / leave use the nearest of game.combatants() (not only the local player); the
+  Guardian trigger fires for any combatant; OnlineSession.update advances remote positions (remotes.visible) while hosting —
+  the renderer used to be the only caller. Tests tools/tests/simHosts.test.mjs (5: takeover + hidden, snapshots + hits reach the
+  server game, its wolf targets a player + telegraph, boss credit, stop on empty). Checked in 2 tabs: host sim1, both tabs
+  guests (16 puppets), server wolves hit a player 250 -> 121, kill pays EXP; ?offline playthrough 17 · bossReset 4 · b1 11 ·
+  bossArena 6. NOT yet: H5 (items / EXP on the server), H3 server-side damage, H4 movement prediction, H6 accounts; the sim's
+  world flags start fresh (e.g. a restored forest is not mirrored), bosses scale for one player (partyScale = sim alone).

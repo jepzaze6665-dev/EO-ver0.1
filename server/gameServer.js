@@ -12,11 +12,12 @@ import { PartyService } from './parties.js';
 import { DungeonService } from './dungeons.js';
 import { ProgressService } from './progress.js';
 import { PileService } from './piles.js';
+import { SimHostService } from './simHosts.js';
 import { MemoryStore } from './store.js';
 import { PROTOCOL_VERSION, NET_LIMITS, NET_ERROR, validateClientMessage, encode } from '../src/net/protocol.js';
 
 export class GameServer extends EventEmitter {
-  constructor({ store, saveStore = new MemoryStore(), limits = {}, log = console } = {}) {
+  constructor({ store, saveStore = new MemoryStore(), limits = {}, log = console, simHosts = false } = {}) {
     super();
     this.limits = { ...NET_LIMITS, ...limits };
     this.accounts = new DevAccounts(store);
@@ -35,6 +36,7 @@ export class GameServer extends EventEmitter {
     this.dungeons = new DungeonService(this);        // N5 dungeon gate + instances
     this.progress = new ProgressService(this, saveStore); // N8 boss kills decided by the server
     this.piles = new PileService(this);              // N9 death piles shown to the party
+    this.simHosts = new SimHostService(this, { enabled: simHosts }); // H2 the server hosts dungeon map rooms
   }
 
   handle(type, fn) { this.handlers.set(type, fn); }
@@ -53,7 +55,7 @@ export class GameServer extends EventEmitter {
 
   onMessage(c, raw) {
     c.lastSeen = Date.now();
-    if (--c.tokens < 0) {
+    if (!c.session?.sim && --c.tokens < 0) { // H2 server room hosts are trusted (local)
       if (++c.warned > this.limits.ratePerSecond) return this.kick(c, NET_ERROR.rate, 'too many messages');
       return this.sendTo(c, 'error', { code: NET_ERROR.rate, text: 'slow down' });
     }
@@ -76,6 +78,7 @@ export class GameServer extends EventEmitter {
 
   login(c, msg) {
     if (msg.v !== PROTOCOL_VERSION) return this.kick(c, NET_ERROR.version, `server speaks protocol ${PROTOCOL_VERSION}, please reload`);
+    if (msg.sim !== undefined) return this.simHosts.login(c, msg); // H2: a room host the server started itself (secret key)
     const r = this.accounts.login(msg.name, msg.token);
     if (!r.ok) return this.sendTo(c, 'error', { code: r.code, text: r.text });
     const old = this.sessions.get(r.account.id);
@@ -126,6 +129,7 @@ export class GameServer extends EventEmitter {
     this.parties.close();
     this.dungeons.close();
     this.piles.close();
+    this.simHosts.close();
     for (const c of [...this.conns]) c.ws.close(1001, 'server shutting down');
     this.store.flush();
   }

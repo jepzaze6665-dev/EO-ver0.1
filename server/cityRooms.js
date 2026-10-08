@@ -12,6 +12,8 @@ import { ONLINE, isSharedMap } from '../src/data/online.js';
 import { NET_ERROR } from '../src/net/protocol.js';
 import { PARTY } from '../src/data/party.js';
 
+// H2: a server room host (server/simHosts.js, session.sim) is in the room but never shown to anyone
+const people = (set) => [...set].filter((x) => !x.sim);
 const entry = (s) => { const p = s.presence; return [s.id, s.name, p.x, p.y, p.d, p.a, p.k, p.c, p.l, p.h, p.dn ? 1 : 0]; };
 
 export class CityRooms {
@@ -59,6 +61,7 @@ export class CityRooms {
   roomKey(s, m) { return this.server.dungeons ? this.server.dungeons.roomFor(s, m) : isSharedMap(m) ? m : null; }
 
   onPos(s, msg) {
+    if (s.sim) return; // the server room host is placed by joinSim and never moves rooms
     const p = this.presence(s), now = Date.now();
     const key = this.roomKey(s, msg.m);
     const sameRoom = !!p.room && p.room === key;
@@ -88,13 +91,28 @@ export class CityRooms {
     if (!set) this.rooms.set(room, (set = new Set()));
     if (set.size >= ONLINE.maxRoomPlayers) { s.send('error', { code: NET_ERROR.roomFull, text: 'this city is full — you are playing alone here' }); return; }
     p.room = room; p.dirty = false; p.snap = false;
-    s.send('roomState', { room, map: p.m, players: [...set].map(entry) });
+    s.send('roomState', { room, map: p.m, players: people(set).map(entry) });
     this.send(room, 'pJoin', { p: entry(s) }, s);
+    const fresh = !set.size;
     set.add(s);
     if (!isSharedMap(room)) {
       if (!this.hosts.has(room)) this.hosts.set(room, s.id);
       s.send('roomHost', { room, host: this.hosts.get(room) });
+      if (fresh) this.server.simHosts?.request(room); // H2: the server takes over hosting once its SimGame is ready
     }
+  }
+
+  // H2: the server's room host joins (it sees everyone, nobody sees it) and becomes the host -> every player turns guest
+  joinSim(s, room, map) {
+    const set = this.rooms.get(room);
+    if (!set || !people(set).length) return false;
+    const p = this.presence(s);
+    p.room = room; p.m = map;
+    s.send('roomState', { room, map, players: people(set).map(entry) });
+    set.add(s);
+    this.hosts.set(room, s.id);
+    this.send(room, 'roomHost', { room, host: s.id });
+    return true;
   }
 
   // move a player out of their room now (left the run, instance closed): the next 'pos' puts them where they are
@@ -107,8 +125,9 @@ export class CityRooms {
     if (set) {
       set.delete(s);
       if (!set.size) { this.rooms.delete(p.room); this.hosts.delete(p.room); }
+      else if (!people(set).length) this.server.simHosts?.stop(p.room); // only the server host is left: stop it (its socket closing empties the room)
       else {
-        this.send(p.room, 'pLeave', { id: s.id, why });
+        if (!s.sim) this.send(p.room, 'pLeave', { id: s.id, why });
         if (this.hosts.get(p.room) === s.id) this.pickHost(p.room, set);
       }
     }
@@ -117,7 +136,7 @@ export class CityRooms {
 
   // the host left: the party leader if present, else whoever came first
   pickHost(room, set) {
-    const ids = [...set].map((x) => x.id), lead = this.server.parties?.partyOf(ids[0])?.leader;
+    const ids = people(set).map((x) => x.id), lead = this.server.parties?.partyOf(ids[0])?.leader;
     const host = ids.includes(lead) ? lead : ids[0];
     this.hosts.set(room, host);
     this.send(room, 'roomHost', { room, host });
@@ -131,7 +150,7 @@ export class CityRooms {
 
   tick() {
     for (const set of this.rooms.values()) {
-      const moved = [...set].filter((s) => s.presence.dirty);
+      const moved = people(set).filter((s) => s.presence.dirty);
       if (!moved.length) continue;
       const rows = moved.map((s) => { const p = s.presence, r = [s.id, p.x, p.y, p.d, p.a, p.k, p.snap ? 1 : 0, p.h, p.dn ? 1 : 0]; p.dirty = false; p.snap = false; return r; });
       for (const x of set) {
