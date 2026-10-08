@@ -5,7 +5,8 @@ import { TH_UI as BASE, TH_DATA } from './ui.js';
 import { TH_WINDOWS } from './windows.js';
 import { TH_MESSAGES, TH_PATTERNS as MSG_PATTERNS } from './messages.js';
 import { TH_STORY, TH_STORY_PATTERNS } from './story.js';
+import { TH_MAPS, TH_MAP_PATTERNS } from './maps.js';
 
-export const TH_UI = { ...BASE, ...TH_WINDOWS, ...TH_MESSAGES, ...TH_STORY };
-export const TH_PATTERNS = [...MSG_PATTERNS, ...TH_STORY_PATTERNS];
+export const TH_UI = { ...BASE, ...TH_WINDOWS, ...TH_MESSAGES, ...TH_STORY, ...TH_MAPS };
+export const TH_PATTERNS = [...MSG_PATTERNS, ...TH_MAP_PATTERNS, ...TH_STORY_PATTERNS];
 export { TH_DATA };

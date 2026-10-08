@@ -60,7 +60,7 @@ export class HUD {
 
   // ---------------- messages
   banner(title, sub, color = '#e8d0ff', dur = 3) { this.banners.push({ title: tx(title), sub: tx(sub), color, t: 0, dur, kind: 'banner' }); }
-  zone(name, sub, big) { this.banners.push({ title: name, sub, color: '#f0e6ff', t: 0, dur: big ? 4 : 2.6, kind: big ? 'zone' : 'zoneSmall' }); }
+  zone(name, sub, big) { this.banners.push({ title: name, sub: tx(sub), color: '#f0e6ff', t: 0, dur: big ? 4 : 2.6, kind: big ? 'zone' : 'zoneSmall' }); }
   sub(name) { this.notes.push({ title: tx('DISCOVERED'), text: name, color: '#ffe0a0', t: 0, dur: 3.5 }); }
   callout(title, sub, color) { this.callouts = [{ title: tx(title), sub: tx(sub), color, t: 0, dur: 2 }]; }
   bossTitle(title, sub) { this.title = { title: tx(title), sub: tx(sub), t: 0, dur: 3.2 }; }
@@ -803,7 +803,7 @@ export class HUD {
         const i = st.steps.indexOf(here), nx = st.steps[i + 1] || st.city;
         if (nx) {
           lines.push([`NEXT  ${nx.short} ${nx.name}  ${nx.unlocked ? 'UNLOCKED' : 'LOCKED'}`, nx.unlocked ? '#bfe8ff' : '#c8a0a0', 10]);
-          if (!nx.unlocked && nx.lockReason) lines.push([`→ ${nx.lockReason}`, '#a898c0', 9]);
+          if (!nx.unlocked && nx.lockReason) lines.push([`→ ${tx(nx.lockReason)}`, '#a898c0', 9]);
         }
       }
     }
@@ -860,7 +860,7 @@ export class HUD {
     if (!it || g.ui.panelOpen) return;
     const s = this.toScreen(it.x, it.y - 50);
     ctx.font = `700 ${Math.round(12 * u)}px ${FONT}`;
-    const label = `[E]  ${it.promptText}`;
+    const label = `[E]  ${tx(it.promptText)}`;
     const w = ctx.measureText(label).width + 20 * u;
     this.panel(ctx, s.x - w / 2, s.y - 22 * u, w, 26 * u, 0.85);
     this.text(ctx, label, s.x, s.y - 5 * u, 12 * u, '#ffe8a0', { align: 'center', stroke: false });
@@ -898,7 +898,7 @@ export class HUD {
       if (!w.transitions.isOpen(e)) {
         if (w.inBossFight()) continue;
         this.text(ctx, '✕ ' + tl('{name} — LOCKED', { name: to && !to.secret ? to.name : e.label }), s.x, s.y, 9 * u, '#ff9a8a', { align: 'center' });
-        const why = w.transitions.lockReason(e);
+        const why = tx(w.transitions.lockReason(e));
         if (why) this.text(ctx, why, s.x, s.y + 12 * u, 8 * u, '#c8b0b0', { align: 'center' });
         continue;
       }

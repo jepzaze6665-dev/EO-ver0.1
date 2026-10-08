@@ -89,3 +89,12 @@ export function addTexts(l, pairs) {
   if (!tab) return;
   for (const [en, th] of pairs) if (tab.ui[en] === undefined) tab.ui[en] = th;
 }
+
+// txBlock(text): a multi-line text (signs, confirm boxes): the whole text if it has an entry, else line by line
+// (each line trimmed for the lookup, its indent kept).
+export function txBlock(text) {
+  if (typeof text !== 'string') return text;
+  const whole = tx(text);
+  if (whole !== text || !text.includes('\n')) return whole;
+  return text.split('\n').map((l) => { const s = l.trim(); return s ? l.replace(s, tx(s)) : l; }).join('\n');
+}

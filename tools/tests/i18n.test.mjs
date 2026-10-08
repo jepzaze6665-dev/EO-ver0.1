@@ -124,6 +124,42 @@ await test('T4: every item / set text has Thai, Thai tables name real ids, effec
   setLang('en');
   ok(!bad.length, bad.join('\n      '));
 });
+await test('T3: quests, lore, dialogue lines and map signs all have Thai (place names excepted)', async () => {
+  const { QUESTS } = await import('../../src/data/quests.js');
+  const { LORE } = await import('../../src/world/narrative.js');
+  const { MAPS } = await import('../../src/maps/mapRegistry.js');
+  const { tx, txBlock } = await import('../../src/i18n/i18n.js');
+  const isName = (s) => /^[A-Z0-9][\w'’-]*( (of|the|to|and|[A-Z0-9(][\w'’()-]*))*$/.test(s); // "Whispering Forest", "Magma Rift"
+  const miss = [];
+  setLang('th');
+  const need = (s, where) => { if (s && !isName(s) && txBlock(s) === s) miss.push(`${where}: ${s.slice(0, 80)}`); };
+  for (const [id, q] of Object.entries(QUESTS)) { need(q.name, id); need(q.description, id); for (const o of q.objectives || []) need(o.text, id); }
+  for (const [id, l] of Object.entries(LORE)) { need(l.title, id); need(l.text, id); }
+  const src = readFileSync(join(ROOT, 'src/world/narrative.js'), 'utf8').split('export function dialogueFor')[1];
+  // string literals of the dialogue code (a tiny tokenizer: quotes, escapes, // comments)
+  const lits = [];
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (c === '/' && src[i + 1] === '/') { i = src.indexOf('\n', i); if (i < 0) break; continue; }
+    if (c !== "'" && c !== '"' && c !== '`') continue;
+    let s = '', j = i + 1;
+    for (; j < src.length && src[j] !== c; j++) { if (src[j] === '\\') { s += src[++j]; continue; } s += src[j]; }
+    lits.push([c, s]); i = j;
+  }
+  for (const [q, s] of lits) {
+    if (s.length < 14 || q === '`' || /^[a-z_:]+$/.test(s) || s.startsWith('quest:') || s === 'You again. You carry ') continue;
+    need(s, 'dialogue');
+  }
+  const keys = ['title', 'text', 'wake', 'done', 'forge', 'open', 'opening', 'locked', 'label', 'prompt', 'sub', 'yes', 'no'];
+  const walk = (o, k) => {
+    if (typeof o === 'string') { if (keys.includes(k) && /[a-z] [a-z]/i.test(o)) need(o, 'map ' + k); return; }
+    if (Array.isArray(o)) return o.forEach((x) => walk(x, k));
+    if (o && typeof o === 'object') for (const [kk, v] of Object.entries(o)) if (typeof v !== 'function') walk(v, kk);
+  };
+  walk(Object.values(MAPS));
+  setLang('en');
+  ok(!miss.length, miss.length + ' without Thai:\n      ' + miss.slice(0, 40).join('\n      '));
+});
 await test('Thai text breaks at word edges and fits the width', () => {
   const text = 'ปาร์ตี้ของคุณล้มลงแล้ว กลับไปที่จุดเช็กพอยต์ เรียนรู้จังหวะของศัตรู แล้วลองใหม่อีกครั้ง';
   ok(hasThai(text), 'hasThai');

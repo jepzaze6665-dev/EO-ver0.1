@@ -30,7 +30,7 @@ import { TELEGRAPH_VIEW, telegraphView, setTelegraphView } from '../combat/teleg
 import { BOSSES } from '../data/bosses.js';
 import { LOOT_TABLES } from '../data/lootTables.js';
 import { Assets } from '../core/assets.js';
-import { t as tl, tx, getLang, nextLang, setLang } from '../i18n/i18n.js';
+import { t as tl, tx, txBlock, getLang, nextLang, setLang } from '../i18n/i18n.js';
 import { LANG } from '../data/lang.js';
 
 
@@ -284,6 +284,7 @@ export class Panels {
 
   // ---------------- yes / no (e.g. entering a boss arena). [E] = yes, [Esc] = no
   confirm(title, body, yesLabel, noLabel, onYes, onNo) {
+    title = tx(title); body = txBlock(body); yesLabel = tx(yesLabel); noLabel = tx(noLabel);
     const el = this.show('confirm', `
       <div class="panel lore confirm">
         <h2>${esc(title)}</h2>
@@ -301,7 +302,7 @@ export class Panels {
   // ---------------- lore / text
   textPanel(title, body, onClose, html = false) {
     title = tx(title);
-    if (!html) { const b = tx(body); body = b !== body ? b : String(body).split('\n').map((l) => tx(l)).join('\n'); }
+    if (!html) body = txBlock(String(body));
     const el = this.show('text', `
       <div class="panel lore">
         <h2>${esc(title)}</h2>
@@ -496,9 +497,9 @@ export class Panels {
       const found = Object.keys(g.world.state.lore);
       const quests = [...Object.keys(g.quests.active).map((q) => [q, false]), ...Object.keys(g.quests.completed).map((q) => [q, true])];
       body = `<div class="lore-layout">
-        <div><h3>${tl('Quests')}</h3>${quests.map(([q, done]) => `<div class="quest ${done ? 'done' : ''}"><b>${esc(QUESTS[q].name)}</b>${done ? ' ✓' : ''}<div class="muted small">${esc(QUESTS[q].description)}</div></div>`).join('') || `<div class="muted">${tl('None')}</div>`}
+        <div><h3>${tl('Quests')}</h3>${quests.map(([q, done]) => `<div class="quest ${done ? 'done' : ''}"><b>${esc(tx(QUESTS[q].name))}</b>${done ? ' ✓' : ''}<div class="muted small">${esc(tx(QUESTS[q].description))}</div></div>`).join('') || `<div class="muted">${tl('None')}</div>`}
         <h3>${tl('Discoveries')}</h3><div class="muted">${tl('Secrets found:')} <b>${g.world.map.secretsFound.size} / 4</b> · ${tl('Lore:')} <b>${found.length} / ${Object.keys(LORE).length}</b> · ${tl('Areas:')} <b>${Object.keys(g.world.state.subs).filter((k) => !k.startsWith('zone')).length}</b></div></div>
-        <div><h3>${tl('Lore Fragments')}</h3>${found.map((k) => `<details><summary>${esc(LORE[k].title)}</summary><p>${esc(LORE[k].text).replace(/\n/g, '<br>')}</p></details>`).join('') || `<div class="muted">${tl('Unread. Look for glowing pages, statues and strange objects.')}</div>`}</div>
+        <div><h3>${tl('Lore Fragments')}</h3>${found.map((k) => `<details><summary>${esc(tx(LORE[k].title))}</summary><p>${esc(tx(LORE[k].text)).replace(/\n/g, '<br>')}</p></details>`).join('') || `<div class="muted">${tl('Unread. Look for glowing pages, statues and strange objects.')}</div>`}</div>
       </div>`;
     }
     const el = this.show('inventory', `
