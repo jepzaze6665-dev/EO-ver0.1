@@ -48,6 +48,8 @@ export class SimHostService {
     // bosses already down in this run stay down
     const inst = this.server.dungeons.instances.get(entry.inst);
     for (const id of (inst && inst.kills) || []) { g.worldProgress.defeatBoss(id); g.bosses.runKills.add(id); }
+    // H5a: kills this room host sees are paid by the server to the players in the room (server/economy.js)
+    g.events.on('enemyDefeated', (ev) => { if (!entry.stopped) this.server.economy.grantKill(entry.room, ev); });
     // connect back to this server as the room host
     const net = g.online.net;
     net.url = `ws://127.0.0.1:${this.server.port}/ws`;

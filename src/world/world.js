@@ -298,6 +298,7 @@ export class World {
     g.events.emit('enemyDefeated', {
       entity: m, type: m.type, name: m.name, source: src, x: m.x, y: m.y,
       summoned: !!m.summoned, boss: false, elite: m.elite, miniBoss: !!d.miniBoss, exp: m.expReward, loot: m.lootTable,
+      serverRewards: !!m.serverRewards, // ONLINE H5a: a kill in a room the server hosts — the server pays EXP + loot (econGrant)
     });
     g.vfx.burst(m.x, m.y - m.height * 0.5, m.corrupted ? '#b060ff' : '#c8c0b0', 18, 120);
     g.vfx.shadowSmoke(m.x, m.y, 8);
@@ -444,7 +445,8 @@ export class World {
     if (it.secret) { it.fired = true; this.discoverSecret(it.secret, it.discover.toUpperCase()); }
   }
   interactNearest() {
-    if (this.nearest) interact(this, this.nearest);
+    const it = this.nearest, E = this.game.online && this.game.online.econ;
+    if (it) { if (E) E.why(it.kind, it.id, () => interact(this, it)); else interact(this, it); } // ONLINE H5a: chest / forge / altar... = the reason
   }
 
   // ---------------- boss arena

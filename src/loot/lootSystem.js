@@ -63,10 +63,12 @@ export class LootSystem {
     this.game = game;
     this.rng = rng;
     game.events.on('enemyDefeated', (e) => this.onDefeated(e));
-    game.events.on('questCompleted', (e) => this.giveReward(e.reward)); // quest gold + items (EXP: ExperienceSystem)
-    game.events.on('hiddenFound', (e) => this.giveReward(e.reward));
-    game.events.on('bossRewarded', (e) => this.giveReward(e.reward)); // boss gold + trophy items (EXP + table: enemyDefeated)
+    // ONLINE H5a: every gain carries its reason for the server ledger (net/netEconomy.js why)
+    game.events.on('questCompleted', (e) => this.why('quest', e.quest && e.quest.id, () => this.giveReward(e.reward))); // quest gold + items (EXP: ExperienceSystem)
+    game.events.on('hiddenFound', (e) => this.why('secret', e.entry && e.entry.id, () => this.giveReward(e.reward)));
+    game.events.on('bossRewarded', (e) => { if (!e.serverRewards) this.why('boss', e.bossId, () => this.giveReward(e.reward)); }); // boss gold + trophy items (EXP + table: enemyDefeated)
   }
+  why(kind, id, fn) { const E = this.game.online && this.game.online.econ; return E ? E.why(kind, id, fn) : fn(); }
   giveReward(r) {
     if (!r) return;
     const g = this.game;
@@ -74,7 +76,10 @@ export class LootSystem {
     for (const [id, n] of Object.entries(r.items || {})) g.inventory.add(id, n, true);
   }
   onDefeated(e) {
-    if (e.summoned || !e.loot) return; // summoned adds (boss roots, ...) give nothing
+    if (e.summoned || !e.loot || e.serverRewards) return; // summoned adds (boss roots, ...) give nothing; H5a: the server pays
+    this.why(e.bossId ? 'boss' : 'kill', e.bossId || e.type, () => this.rollFor(e));
+  }
+  rollFor(e) {
     const g = this.game, r = { gold: 0, items: [] };
     for (const id of [].concat(e.loot)) { const x = rollLoot(id, this.rng, { repeat: !!e.repeat }); r.gold += x.gold; r.items.push(...x.items); } // elites roll 2 tables
     if (r.gold) g.player.addGold(r.gold);

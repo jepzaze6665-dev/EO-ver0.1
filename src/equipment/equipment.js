@@ -60,7 +60,10 @@ export class Equipment {
     if (!LOADOUT_RULES.duplicates && GEAR_SLOTS.some((s) => s.id !== to && this.slots[s.id] === id)) return { ok: false, reason: 'duplicate' };
     return { ok: true, slot: to };
   }
-  equip(id, slot = null) {
+  // ONLINE H5a: putting gear on / taking it off does not change ownership -> quiet for the server ledger
+  equip(id, slot = null) { const E = this.game.online && this.game.online.econ; return E ? E.quiet(() => this.equipNow(id, slot)) : this.equipNow(id, slot); }
+  unequip(slot) { const E = this.game.online && this.game.online.econ; return E ? E.quiet(() => this.unequipNow(slot)) : this.unequipNow(slot); }
+  equipNow(id, slot = null) {
     const c = this.check(id, slot);
     this.lastError = c.ok ? null : c.reason;
     if (!c.ok) return false;
@@ -75,7 +78,7 @@ export class Equipment {
     this.game.events.emit('equipChanged', { slot: c.slot, id, instanceId: inst.instanceId, removed: prev && prev.itemId });
     return true;
   }
-  unequip(slot) {
+  unequipNow(slot) {
     const id = this.slots[slot];
     if (!id) return false;
     if (SLOT[slot] && SLOT[slot].fixed) { this.lastError = 'fixed'; return false; }

@@ -1498,3 +1498,19 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   dev rule). Title: name + password + Log in / Create account (empty password = this device's remembered login); NetClient
   connect(name, creds) sends creds once, never stores them. tools/onlineKit login uses password 'devpass1' (creates on first use).
   Tests accounts.test.mjs (5). NOT for the open internet yet: plain ws:// -> needs HTTPS / WSS (reverse proxy) when deployed.
+  Done H5a (economy ledger): `server/economy.js` EconomyService (GameServer.economy): record field `econ` { gold, level, exp, items
+  (stacks, bag + storage), gear { instanceId: itemId } (owned anywhere: bag / storage / slots), next, unverified } — seeded ONCE from
+  the save, reset by New Game. Client `src/net/netEconomy.js` (game.online.econ): choke points Inventory.add / remove / addItem /
+  removeItem + Player.addGold / removeGold / gainExp call note(op); reasons via econ.why(kind, id, fn) (kill / boss in Loot +
+  Experience systems, quest, secret, explore, use, buy / sell in the shop, every world interactable = its kind + id); bag <->
+  storage and equip / unequip are quiet (Equipment.equip/unequip -> equipNow/unequipNow inside quiet). PROTOCOL: client econ
+  { ops } (op = ['i', id, ±n] · ['g+', inst] · ['g-', id] · ['$', ±n] · ['xp', n] + why), server econUndo { op, why } (refused ->
+  reversed quietly) / econGrant { ops, x, y, src, boss, first }. In a room the server hosts (MobSync.serverHosted = host id
+  'sim…'), kills / boss kills are PAID BY THE SERVER: simHosts listens to the SimGame's enemyDefeated -> economy.grantKill
+  (EXP × expRate, rollLoot per player, boss first kill (server progress) = rewards gold + items, repeat = repeat chances; gear ids
+  item_5000000+ — InstanceIds.seen ignores that range); guests' events carry serverRewards and skip local EXP / loot; client
+  kill / boss claims there are undone. Every saveWrite is PATCHED to the ledger (gold / level / EXP / stack counts / gear;
+  unchanged text kept). Ops are flushed before any saveWrite (serverSave.beforeSend). Other reasons are TRUSTED for now and
+  counted in econ.unverified (H5b / H5c will check chests, quests, shops, forge, piles against the data, then refuse the rest).
+  Tests economy.test.mjs (4); serverSave.test samples have no player block. Checked online: a guest kill of the server's hare
+  paid once (+5 EXP, +2 G, Hare Pelt), no undos; ?offline playthrough 17 · gearCheck 30 · runCheck 15 · itemSystemCheck 22.

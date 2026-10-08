@@ -26,6 +26,7 @@ export class SaveService {
   }
 
   write(s, text) {
+    if (this.server.economy) text = this.server.economy.patchSave(s.id, text); // H5a: gold / EXP / items always match the ledger
     const now = Date.now();
     if (now - (s.lastSave || 0) < NET_LIMITS.saveInterval * 1000) return s.send('error', { code: NET_ERROR.rate, text: 'saving too often' });
     const d = readable(text);
@@ -43,5 +44,6 @@ export class SaveService {
     if (!r || (!r.main && !r.backup)) return;
     this.store.set(s.id, { deleted: r.main || r.backup, deletedProgress: r.progress || null, deletedAt: Date.now(), main: null, backup: null, at: Date.now() });
     this.server.progress?.reset(s); // N8: a new character starts with no boss kills
+    this.server.economy?.reset(s.id); // H5a: and owns nothing
   }
 }

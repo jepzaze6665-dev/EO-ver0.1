@@ -827,8 +827,9 @@ export class Panels {
     const el = this.show('shop', npcPanelHTML({ icon: 'npc_shop', title: shop.title, sub: tab === 'buy' ? 'Buy' : 'Sell materials', gold: p.gold,
       menu: [{ id: 'buy', label: 'Buy' }, { id: 'sell', label: 'Sell' }], tab, body, keys: [['Click', tab === 'buy' ? 'Buy' : 'Sell']] }), 'side');
     this.wireNpc(el, 'shop', () => this.shop(), (t) => {
-      if (t.dataset.buy) { const s = shop.stock.find((x) => shopId(x) === t.dataset.buy); if (!s) return; if (!g.inventory.canAdd(t.dataset.buy)) g.ui.toast('Inventory full', 1); else if (p.removeGold(shopPrice(s))) { g.inventory.add(t.dataset.buy, 1); g.audio.sfx('chest'); } this.shop(); }
-      if (t.dataset.sell) { const d = ITEMS[t.dataset.sell]; if (g.inventory.remove(t.dataset.sell, 1)) { p.addGold(d.sell); g.audio.sfx('gather'); } this.shop(); }
+      const E = g.online && g.online.econ, why = (kind, id, fn) => (E ? E.why(kind, id, fn) : fn()); // ONLINE H5a reasons
+      if (t.dataset.buy) { const s = shop.stock.find((x) => shopId(x) === t.dataset.buy); if (!s) return; if (!g.inventory.canAdd(t.dataset.buy)) g.ui.toast('Inventory full', 1); else why('buy', t.dataset.buy, () => { if (p.removeGold(shopPrice(s))) { g.inventory.add(t.dataset.buy, 1); g.audio.sfx('chest'); } }); this.shop(); }
+      if (t.dataset.sell) { const d = ITEMS[t.dataset.sell]; why('sell', t.dataset.sell, () => { if (g.inventory.remove(t.dataset.sell, 1)) { p.addGold(d.sell); g.audio.sfx('gather'); } }); this.shop(); }
     });
   }
   smith() {

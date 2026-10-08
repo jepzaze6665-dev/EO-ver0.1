@@ -12,6 +12,7 @@ import { PartyService } from './parties.js';
 import { DungeonService } from './dungeons.js';
 import { ProgressService } from './progress.js';
 import { PileService } from './piles.js';
+import { EconomyService } from './economy.js';
 import { SimHostService } from './simHosts.js';
 import { MemoryStore } from './store.js';
 import { PROTOCOL_VERSION, NET_LIMITS, NET_ERROR, validateClientMessage, encode } from '../src/net/protocol.js';
@@ -36,6 +37,7 @@ export class GameServer extends EventEmitter {
     this.parties = new PartyService(this);           // N4 parties
     this.dungeons = new DungeonService(this);        // N5 dungeon gate + instances
     this.progress = new ProgressService(this, saveStore); // N8 boss kills decided by the server
+    this.economy = new EconomyService(this, saveStore);  // H5a what each player owns (ledger)
     this.piles = new PileService(this);              // N9 death piles shown to the party
     this.simHosts = new SimHostService(this, { enabled: simHosts }); // H2 the server hosts dungeon map rooms
   }

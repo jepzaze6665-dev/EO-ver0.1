@@ -8,6 +8,10 @@ import { InstanceIds, createInstance, sanitizeInstance } from '../items/itemInst
 // GEAR (cores, relics, charms, runes, older weapons / armour) is kept as INSTANCES (items/itemInstance.js) in
 // `gear` / `storageGear`; `items` / `storage` still hold the COUNT of every id (gear included), so count / has /
 // add / remove work the same for every item. Instance API: addItem / removeItem / getItem / hasItem / findItem.
+// ONLINE H5a: every ownership change is reported to the server's ledger (net/netEconomy.js note); moves between bag and
+// storage are quiet (ownership stays)
+const econ = (g) => g && g.online && g.online.econ;
+
 export class Inventory {
   constructor(game) {
     this.game = game;
@@ -30,7 +34,9 @@ export class Inventory {
     const added = Math.min(n, this.space(id));
     if (added < n) this.game.events.emit('inventoryFull', { id, lost: n - added });
     if (!added) return 0;
-    if (isGear(ITEMS[id])) for (let i = 0; i < added; i++) this.gear.push(this.newInstance(id));
+    const E = econ(this.game);
+    if (isGear(ITEMS[id])) for (let i = 0; i < added; i++) { const inst = this.newInstance(id); this.gear.push(inst); if (E) E.note(['g+', { ...inst }]); }
+    else if (E) E.note(['i', id, added]);
     this.items[id] = this.count(id) + added;
     this.game.events.emit('itemCollected', { id, n: added, total: this.items[id], silent });
     return added;
@@ -38,7 +44,9 @@ export class Inventory {
   remove(id, n = 1) {
     n = Math.floor(n);
     if (!(n > 0) || (this.items[id] || 0) < n) return false;
-    if (isGear(ITEMS[id])) for (let i = 0; i < n; i++) this.takeLast(this.gear, id);
+    const E = econ(this.game);
+    if (isGear(ITEMS[id])) for (let i = 0; i < n; i++) { const x = this.takeLast(this.gear, id); if (E && x) E.note(['g-', x.instanceId]); }
+    else if (E) E.note(['i', id, -n]);
     this.items[id] -= n;
     if (this.items[id] <= 0) delete this.items[id];
     return true;
@@ -51,6 +59,7 @@ export class Inventory {
     if (!inst || !isGear(ITEMS[inst.itemId]) || this.getItem(inst.instanceId)) return false;
     if (this.space(inst.itemId) < 1) { this.game.events.emit('inventoryFull', { id: inst.itemId, lost: 1 }); return false; }
     this.gear.push(inst);
+    if (econ(this.game)) econ(this.game).note(['g+', { instanceId: inst.instanceId, itemId: inst.itemId }]);
     this.items[inst.itemId] = this.count(inst.itemId) + 1;
     this.game.events.emit('itemCollected', { id: inst.itemId, n: 1, total: this.items[inst.itemId], silent });
     return true;
@@ -60,6 +69,7 @@ export class Inventory {
     const i = this.gear.findIndex((x) => x.instanceId === instanceId);
     if (i < 0) return null;
     const [inst] = this.gear.splice(i, 1);
+    if (econ(this.game)) econ(this.game).note(['g-', inst.instanceId]);
     if (--this.items[inst.itemId] <= 0) delete this.items[inst.itemId];
     return inst;
   }
@@ -81,7 +91,8 @@ export class Inventory {
   deposit(id, n = 1) {
     if (!(n > 0)) return;
     const moved = isGear(ITEMS[id]) ? this.instancesOf(id).slice(-n) : [];
-    if (!this.remove(id, n)) return;
+    const E = econ(this.game), ok = E ? E.quiet(() => this.remove(id, n)) : this.remove(id, n); // storage is still yours
+    if (!ok) return;
     this.storageGear.push(...moved);
     this.storage[id] = (this.storage[id] || 0) + n;
   }
@@ -105,7 +116,8 @@ export class Inventory {
       g.vfx.burst(p.x, p.y - 20, RESOURCES[p.primaryResource].colors[0], 16, 70);
     }
     g.audio.sfx('potion');
-    this.remove(id, 1);
+    const E = econ(g);
+    if (E) E.why('use', id, () => this.remove(id, 1)); else this.remove(id, 1);
     return true;
   }
   quickUse(id) {

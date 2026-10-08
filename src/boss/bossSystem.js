@@ -220,13 +220,15 @@ export class BossSystem {
     this.runKills.add(id);
     const first = g.worldProgress.defeatBoss(id);
     const r = def.rewards || {};
+    // ONLINE H5a: the server's room host saw this kill and pays every player itself (server/economy.js grantKill)
+    const serverRewards = !!(g.online && g.online.mobs && g.online.mobs.serverHosted && g.online.mobs.serverHosted());
     if (first) {
       // EXP + loot table go through the normal 'enemyDefeated' listeners (ExperienceSystem, LootSystem)
-      g.events.emit('enemyDefeated', { entity: e, type: def.monster || id, bossId: id, name: def.name, source: g.player, x: e.x, y: e.y, summoned: false, boss: true, exp: Math.round((r.exp || 0) * bossScale(def).exp), loot: r.loot || null });
-      g.events.emit('bossRewarded', { bossId: id, reward: { gold: r.gold || 0, items: r.items || {}, lore: r.lore || null } });
+      g.events.emit('enemyDefeated', { entity: e, type: def.monster || id, bossId: id, name: def.name, source: g.player, x: e.x, y: e.y, summoned: false, boss: true, exp: Math.round((r.exp || 0) * bossScale(def).exp), loot: r.loot || null, serverRewards });
+      g.events.emit('bossRewarded', { bossId: id, reward: { gold: r.gold || 0, items: r.items || {}, lore: r.lore || null }, serverRewards });
     } else {
       // a repeat kill (a new run): EXP + the table again, the signature item only by chance (data/lootTables.js REPEAT_KILL)
-      g.events.emit('enemyDefeated', { entity: e, type: def.monster || id, bossId: id, name: def.name, source: g.player, x: e.x, y: e.y, summoned: false, boss: true, repeat: true, exp: Math.round((r.exp || 0) * bossScale(def).exp), loot: r.loot || null });
+      g.events.emit('enemyDefeated', { entity: e, type: def.monster || id, bossId: id, name: def.name, source: g.player, x: e.x, y: e.y, summoned: false, boss: true, repeat: true, exp: Math.round((r.exp || 0) * bossScale(def).exp), loot: r.loot || null, serverRewards });
     }
     g.events.emit('bossDefeated', { bossId: id, type: def.monster || id, boss: def, first, major: def.type === 'major', entity: e });
     g.save.dirty = true;

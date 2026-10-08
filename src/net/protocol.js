@@ -48,6 +48,7 @@ const FIELD = {
   fxCalls: (v) => Array.isArray(v) && v.length <= 60 && v.every((c) => Array.isArray(c) && c.length <= 10 && (FX_METHODS.includes(c[0]) || BOSS_FX_EXTRA.includes(c[0])) && c.slice(1).every((a) => validActData(a, 1))),
   fxShots: (v) => Array.isArray(v) && v.length <= 16 && v.every((s) => s && typeof s === 'object' && !Array.isArray(s) && validActData(s, 1)),
   actData: (v) => validActData(v),
+  econOps: (v) => Array.isArray(v) && v.length >= 1 && v.length <= 64 && v.every((o) => Array.isArray(o) && o.length >= 2 && o.length <= 5 && typeof o[0] === 'string' && validActData(o, 1)),
   runStat: (v) => v && typeof v === 'object' && !Array.isArray(v) && ['dmg', 'heal', 'deaths', 'kills'].every((k) => Number.isInteger(v[k]) && v[k] >= 0 && v[k] <= 1e9) && Object.keys(v).length <= 4,
 };
 
@@ -119,7 +120,8 @@ export const CLIENT_MESSAGES = {
   dungeonAnswer: { check: 'slug', yes: 'bool' },         // a member accepts / declines the leader's proposal
   dungeonCancel: {},                                     // the leader withdraws the proposal
   dungeonLeave: {},                                      // N6: return to the city from the run's start point
-  setPassword: { pw: 'password', old: 'password?' },     // H6: set / change my password (old = needed to change one)
+  setPassword: { pw: 'password', old: 'password?' },
+  econ: { ops: 'econOps' },                              // H5a: what I gained / spent, each op with its reason (server/economy.js)     // H6: set / change my password (old = needed to change one)
   bossKill: { boss: 'slug' },
   // N9 death pile (dungeon/runSystem.js -> server/piles.js): where mine lies (items stay in my save), carry a member's
   pileSet: { m: 'slug', x: 'coord', y: 'coord', n: 'int' },
@@ -131,7 +133,9 @@ export const CLIENT_MESSAGES = {
 // server -> client (documented here, the client does not validate them strictly)
 export const SERVER_MESSAGES = {
   welcome: { v: 'int', id: 'string', name: 'name', token: 'token', created: 'bool', hasPw: 'bool' }, // H6 hasPw: false = an old account without a password yet
-  passwordSet: {},                                       // H6: setPassword done
+  passwordSet: {},
+  econUndo: { op: 'array', why: 'string' },             // H5a: an op the server refused -> undo it
+  econGrant: { ops: 'array', x: 'number', y: 'number', src: 'string', boss: 'string|null', first: 'bool' }, // H5a: kill rewards paid by the server                                       // H6: setPassword done
   pong: { n: 'int?', time: 'number' },
   error: { code: 'string', text: 'string' },
   kicked: { code: 'string', text: 'string' },          // the server is closing this connection on purpose

@@ -13,10 +13,11 @@ export class ExperienceSystem {
     // DIFFICULTY.expRate: the whole game's EXP pace (owner: levels came too easily)
     const give = (n) => { if (n > 0) game.player.gainExp(Math.max(1, Math.round(n * DIFFICULTY.expRate))); };
     const ev = game.events;
-    ev.on('enemyDefeated', (e) => { if (!e.summoned) give(e.exp); });
+    const why = (kind, id, fn) => { const E = game.online && game.online.econ; return E ? E.why(kind, id, fn) : fn(); }; // ONLINE H5a reasons
+    ev.on('enemyDefeated', (e) => { if (!e.summoned && !e.serverRewards) why(e.bossId ? 'boss' : 'kill', e.bossId || e.type, () => give(e.exp)); });
     // quest / secret EXP follows the new level bands (progression/rewardScaling.js, Level rework L4)
-    ev.on('questCompleted', (e) => give(e.quest ? questExp(e.quest) : e.reward && e.reward.exp));
-    ev.on('hiddenFound', (e) => give(e.entry ? hiddenExp(e.entry) : e.reward && e.reward.exp));
-    for (const name of Object.keys(rules.expSources || {})) ev.on(name, () => give(rules.expSources[name]));
+    ev.on('questCompleted', (e) => why('quest', e.quest && e.quest.id, () => give(e.quest ? questExp(e.quest) : e.reward && e.reward.exp)));
+    ev.on('hiddenFound', (e) => why('secret', e.entry && e.entry.id, () => give(e.entry ? hiddenExp(e.entry) : e.reward && e.reward.exp)));
+    for (const name of Object.keys(rules.expSources || {})) ev.on(name, () => why('explore', name, () => give(rules.expSources[name])));
   }
 }

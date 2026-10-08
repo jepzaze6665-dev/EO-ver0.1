@@ -16,7 +16,7 @@ export class InstanceIds {
   // never hand out an id that a loaded instance already uses
   seen(instanceId) {
     const m = /^item_(\d+)$/.exec(instanceId || '');
-    if (m) this.next = Math.max(this.next, Number(m[1]) + 1);
+    if (m && Number(m[1]) < 5000000) this.next = Math.max(this.next, Number(m[1]) + 1); // 5,000,000+ = ids the server hands out (server/economy.js)
   }
 }
 

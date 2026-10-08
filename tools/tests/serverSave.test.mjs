@@ -15,7 +15,7 @@ const ok = (c, msg) => { if (!c) throw new Error(msg); };
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const until = async (fn, ms = 3000, what = 'condition') => { const t0 = Date.now(); while (!fn()) { if (Date.now() - t0 > ms) throw new Error('timed out: ' + what); await wait(10); } };
 const memStorage = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)) }; };
-const save = (n, extra = {}) => JSON.stringify({ v: 6, savedAt: n, player: { level: n }, ...extra });
+const save = (n, extra = {}) => JSON.stringify({ v: 6, savedAt: n, slot: n /* no player block: H5a patches a save's player / inventory to the server ledger */, ...extra });
 const fakeNet = () => { const sent = [], ls = {}; return { sent, online: true, send(t, f) { if (!this.online) return false; sent.push({ t, ...f }); return true; }, on(t, fn) { ls[t] = fn; }, fire(t, m) { ls[t] && ls[t](m); } }; };
 
 console.log('serverSave');

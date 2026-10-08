@@ -276,7 +276,10 @@ export class MobSync {
     this.session.net.send('mobHit', { id: m.netId, dmg: Math.max(0, Math.round(amount)), st: Math.round(opts.stagger || 0), kb: Math.round(opts.knock || 0), ang: Math.round((ang || 0) * 100) / 100, crit: !!opts.crit });
   }
 
+  // H2: the room host is the server's own SimGame (session id 'sim...') -> it pays kill rewards itself (server/economy.js)
+  serverHosted() { return !this.host && typeof this.hostId === 'string' && this.hostId.startsWith('sim'); }
   puppetDied(m) {
+    m.serverRewards = this.serverHosted();
     m.dead = true; m.deathT = 0; m.hp = 0; m.state = 'dead';
     this.game.combat.telegraphs.cancelOwner(m);
     this.world.onMonsterKilled(m, null); // shared kill: EXP / quest credit / loot for this member (N8 / N9: server)

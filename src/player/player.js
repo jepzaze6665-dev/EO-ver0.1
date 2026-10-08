@@ -153,6 +153,7 @@ export class Player extends Entity {
     n = Math.floor(n);
     if (!(n > 0)) return 0;
     this.gold += n;
+    this.game.online?.econ?.note(['$', n]); // ONLINE H5a ledger
     if (this.game.events) this.game.events.emit('goldChanged', { entity: this, amount: n, gold: this.gold });
     return n;
   }
@@ -161,6 +162,7 @@ export class Player extends Entity {
     n = Math.floor(n);
     if (!(n >= 0) || !this.canAfford(n)) return false;
     this.gold -= n;
+    this.game.online?.econ?.note(['$', -n]);
     if (this.game.events) this.game.events.emit('goldChanged', { entity: this, amount: -n, gold: this.gold });
     return true;
   }
@@ -197,6 +199,7 @@ export class Player extends Entity {
     const from = this.level;
     const s = addExp(this.level, this.exp, n);
     this.level = s.level; this.exp = s.exp;
+    this.game.online?.econ?.note(['xp', Math.round(n)]);
     const ev = this.game.events;
     if (ev) ev.emit('expGained', { entity: this, amount: n, level: this.level, exp: this.exp });
     // class EXP for the active class ('classLevelUp'); a tier-1 class simply mirrors the character

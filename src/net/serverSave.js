@@ -65,6 +65,7 @@ export class ServerSaveAdapter {
     if (!this.pending || this.timer) return;
     const wait = this.lastSent + NET_LIMITS.saveInterval * 1000 + 50 - Date.now();
     if (wait > 0) { this.timer = setTimeout(() => { this.timer = null; this.flush(); }, wait); return; }
+    this.beforeSend?.(); // H5a: economy ops first
     if (this.net.send('saveWrite', { s: this.pending })) {
       this.unacked = this.pending; this.pending = null; this.lastSent = Date.now();
     }
