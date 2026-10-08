@@ -260,9 +260,9 @@ export class Panels {
       </div>`, 'bottom');
     const line = el.querySelector('.line'), opts = el.querySelector('.opts'), hint = el.querySelector('.hint');
     const render = () => {
-      line.textContent = d.lines[i];
+      line.textContent = tx(d.lines[i]);
       const last = i === d.lines.length - 1;
-      opts.innerHTML = last ? d.options.map((o, k) => `<button data-k="${k}">${esc(o.label)}</button>`).join('') : '';
+      opts.innerHTML = last ? d.options.map((o, k) => `<button data-k="${k}">${esc(tx(o.label))}</button>`).join('') : '';
       hint.style.display = last ? 'none' : '';
     };
     this.current.advance = () => { if (i < d.lines.length - 1) { i++; render(); this.game.audio.sfx('ui'); } };
@@ -300,6 +300,8 @@ export class Panels {
 
   // ---------------- lore / text
   textPanel(title, body, onClose, html = false) {
+    title = tx(title);
+    if (!html) { const b = tx(body); body = b !== body ? b : String(body).split('\n').map((l) => tx(l)).join('\n'); }
     const el = this.show('text', `
       <div class="panel lore">
         <h2>${esc(title)}</h2>

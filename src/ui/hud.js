@@ -665,11 +665,11 @@ export class HUD {
       ctx.fillStyle = 'rgba(6,6,10,0.82)'; ctx.fillRect(x, y, w, 24 * u);
       ctx.fillStyle = col; ctx.fillRect(x, y, 2 * u, 24 * u);
       this.text(ctx, '◆', x + 10 * u, y + 16 * u, 9 * u, col, { stroke: false });
-      this.text(ctx, q.title, x + 23 * u, y + 17 * u, 12 * u, col, { font: TITLE, weight: 600, stroke: false });
+      this.text(ctx, tx(q.title), x + 23 * u, y + 17 * u, 12 * u, col, { font: TITLE, weight: 600, stroke: false });
       q.lines.forEach((l, i) => {
         const ly = y + (36 + i * 17) * u;
         this.text(ctx, l.done ? '✓' : '•', x + 12 * u, ly, 11 * u, l.done ? '#8af0a0' : '#cfc7b4');
-        this.text(ctx, l.text, x + 26 * u, ly, 11 * u, l.done ? '#7a9a80' : '#ece4d2', { weight: 500 });
+        this.text(ctx, tx(l.text), x + 26 * u, ly, 11 * u, l.done ? '#7a9a80' : '#ece4d2', { weight: 500 });
       });
       y += h + 8 * u;
     }
