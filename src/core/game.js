@@ -325,7 +325,7 @@ export class Game {
     this.world.currentZone = Z.NONE;
     for (const [id, q] of Object.entries(this.quests.data)) if (q.autoStart) this.quests.accept(id);
     this.after(3.2, () => this.ui.banner('ECLIPSE ONLINE', 'Talk to Captain Aldric, the Village Guide  ·  [E] Interact', '#e8d0ff'));
-    this.ui.notify('Tip', 'WASD move · Mouse aim · LMB attack · SPACE dodge', '#9ad8ff');
+    this.ui.notify('Tip', this.touch ? 'Left thumb: move · ATK: attack · tap a skill = auto-aim, drag = aim · DODGE' : 'WASD move · Mouse aim · LMB attack · SPACE dodge', '#9ad8ff'); // MOBILE: touch tip
     this.save.dirty = true;
   }
 

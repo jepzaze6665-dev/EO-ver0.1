@@ -29,7 +29,9 @@ export class Renderer {
   }
 
   resize() {
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    // MOBILE M2: phones (coarse pointer) render at most 1.5x — 2-3x screens cost far more GPU for little gain on pixel art
+    const coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    const dpr = Math.min(coarse ? 1.5 : 2, window.devicePixelRatio || 1);
     // never 0: a hidden / minimised window reports 0x0 and drawImage() throws on empty canvases
     const W = Math.max(1, window.innerWidth), H = Math.max(1, window.innerHeight);
     this.canvas.width = Math.floor(W * dpr);

@@ -125,7 +125,7 @@ export class HUD {
     this.drawMapTags(ctx, W, u);
     ctx.globalAlpha = this.questA ?? 1; this.drawOnlineParty(ctx, u); ctx.globalAlpha = 1; // fades in intense fights
     this.drawQuests(ctx, W, u);
-    ctx.globalAlpha = this.questA ?? 1; this.drawRoute(ctx, u); ctx.globalAlpha = 1; // fades with the quest tracker
+    if (!g.touch) { ctx.globalAlpha = this.questA ?? 1; this.drawRoute(ctx, u); ctx.globalAlpha = 1; } // fades with the quest tracker (MOBILE: the route is on the world map)
     this.drawBoss(ctx, W, u);
     this.drawTarget(ctx, W, u);
     this.drawPickups(ctx, H, u);
@@ -651,9 +651,10 @@ export class HUD {
 
   drawQuests(ctx, W, u) {
     const g = this.game;
-    const list = g.quests.tracker();
-    let y = 18 * u + 190 * u + 56 * u;
-    const w = 250 * u, x = W - w - 18 * u;
+    // MOBILE: the right side belongs to the skill buttons -> one quest, on the left where the route panel was
+    const list = g.touch ? g.quests.tracker().slice(0, 1) : g.quests.tracker();
+    let y = g.touch ? 120 * u : 18 * u + 190 * u + 56 * u;
+    const w = 250 * u, x = g.touch ? 18 * u : W - w - 18 * u;
     ctx.globalAlpha = this.questA ?? 1; // fades during intense fights
     for (const q of list) {
       // UI v2 tracker: a dark title band with a diamond, then plain lines over the world (shadowed text)

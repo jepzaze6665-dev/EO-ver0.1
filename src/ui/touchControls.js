@@ -54,6 +54,13 @@ export class TouchControls {
   build() {
     const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
     document.body.classList.add('touch');
+    // M2: the first touch asks for fullscreen + a landscape lock (Android Chrome; iOS ignores both — use "Add to Home Screen")
+    const full = () => {
+      window.removeEventListener('pointerdown', full, true);
+      const d = document.documentElement;
+      if (!document.fullscreenElement && d.requestFullscreen) d.requestFullscreen({ navigationUI: 'hide' }).then(() => screen.orientation?.lock?.('landscape')).catch(() => {});
+    };
+    if (!/[?&]touch\b/.test(location.search)) window.addEventListener('pointerdown', full, true); // not on a desktop test (?touch)
     const rot = document.createElement('div'); rot.id = 'rotate'; rot.textContent = 'Turn your phone sideways to play'; document.body.appendChild(rot);
     const el = this.el = document.createElement('div'); el.id = 'touch';
     el.innerHTML = `<div class="zone"></div><div class="base"></div><div class="knob"></div><div class="aimline"></div>
@@ -61,9 +68,9 @@ export class TouchControls {
       <div class="b sk" data-k="Digit1"></div><div class="b sk" data-k="Digit2"></div><div class="b sk" data-k="Digit3"></div><div class="b sk" data-k="Digit4"></div>
       <div class="b ult" data-k="Digit5"></div><div class="b q" data-k="KeyQ">Q</div><div class="b dodge" data-k="Space">DODGE</div>
       <div class="b use" data-k="KeyE">E</div>
-      <div class="b small" data-k="Escape" style="left:1.5%;top:22%">≡</div>
-      <div class="b small" data-k="KeyI" style="left:1.5%;top:34%">▣</div>
-      <div class="b small" data-k="KeyR" style="right:1.5%;top:22%">✚</div>`;
+      <div class="b small" data-k="Escape" style="left:calc(50% - 75px);top:30px">≡</div>
+      <div class="b small" data-k="KeyI" style="left:calc(50% - 21px);top:30px">▣</div>
+      <div class="b small" data-k="KeyR" style="left:calc(50% + 33px);top:30px">✚</div>`;
     document.body.appendChild(el);
     this.base = el.querySelector('.base'); this.knob = el.querySelector('.knob'); this.line = el.querySelector('.aimline');
     this.layout();

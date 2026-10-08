@@ -2,9 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Eclipse Online</title>
 <link rel="icon" type="image/png" href="assets/ui/title/icon.png">
+<!-- MOBILE M2: installable app (PWA) — manifest.json + sw.js; iOS home-screen app tags -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#07060c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Eclipse">
+<link rel="apple-touch-icon" href="assets/app/apple-touch-icon.png">
 <style>
   :root {
     --bg: #07050d; --panel: rgba(14, 9, 26, 0.94); --line: rgba(160, 110, 230, 0.45);
@@ -220,5 +228,11 @@
     </div>
   </div>
   <script type="module" src="src/main.js"></script>
+  <script>
+    // MOBILE M2: the service worker (network first, see sw.js). Browsers allow it on https:// and localhost only.
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    }
+  </script>
 </body>
 </html>
