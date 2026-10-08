@@ -68,6 +68,39 @@ await test('labels that come from data (stats, slots, rarities, tiers, triggers,
   const missing = [...new Set(labels)].filter((l) => !(l in TH_UI));
   ok(!missing.length, 'no Thai for: ' + missing.join(' | '));
 });
+await test('tx: messages — exact, pattern (+ captured piece looked up), "a · b" pieces, unknown unchanged', async () => {
+  const { tx } = await import('../../src/i18n/i18n.js');
+  ok(tx('Cooldown') === 'Cooldown', 'English untouched');
+  setLang('th');
+  ok(tx('Cooldown') === TH_UI['Cooldown'], 'exact');
+  ok(tx('Wave 2/5') === 'ระลอก 2/5', 'pattern: ' + tx('Wave 2/5'));
+  ok(tx('Wolf: inventory full').startsWith('Wolf:'), 'name kept');
+  ok(tx('Dungeon entry cancelled — the party changed').includes(TH_UI['the party changed']), 'nested: ' + tx('Dungeon entry cancelled — the party changed'));
+  ok(tx('Ann is offline · Bob is not in a city').includes('Bob'), 'pieces');
+  ok(tx('Some text nobody knows') === 'Some text nobody knows', 'unknown');
+  setLang('en');
+});
+await test('message patterns compile and use only the groups they capture', async () => {
+  const { TH_PATTERNS } = await import('../../src/i18n/th/index.js');
+  for (const [re, out] of TH_PATTERNS) {
+    const groups = new RegExp(re + '|').exec('').length - 1;
+    for (const n of out.match(/\$(\d)/g) || []) ok(+n.slice(1) <= groups, `${re} uses ${n}`);
+  }
+});
+await test('every literal text the server sends to players has Thai (exact or pattern)', async () => {
+  const { tx } = await import('../../src/i18n/i18n.js');
+  const dir = join(ROOT, 'server'), missing = [];
+  setLang('th');
+  for (const f of readdirSync(dir).filter((n) => n.endsWith('.js'))) {
+    const src = readFileSync(join(dir, f), 'utf8');
+    for (const m of src.matchAll(/(?:refuse\(s, |text: )(['`])((?:(?!\1).)+)\1/g)) {
+      const sample = m[2].replace(/\$\{[^}]*\}/g, '7');
+      if (tx(sample) === sample) missing.push(`${f}: ${m[2]}`);
+    }
+  }
+  setLang('en');
+  ok(!missing.length, 'no Thai for:\n      ' + missing.join('\n      '));
+});
 await test('Thai text breaks at word edges and fits the width', () => {
   const text = 'ปาร์ตี้ของคุณล้มลงแล้ว กลับไปที่จุดเช็กพอยต์ เรียนรู้จังหวะของศัตรู แล้วลองใหม่อีกครั้ง';
   ok(hasThai(text), 'hasThai');

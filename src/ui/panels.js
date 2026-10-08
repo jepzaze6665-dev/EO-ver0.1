@@ -30,7 +30,7 @@ import { TELEGRAPH_VIEW, telegraphView, setTelegraphView } from '../combat/teleg
 import { BOSSES } from '../data/bosses.js';
 import { LOOT_TABLES } from '../data/lootTables.js';
 import { Assets } from '../core/assets.js';
-import { t as tl, getLang, nextLang, setLang } from '../i18n/i18n.js';
+import { t as tl, tx, getLang, nextLang, setLang } from '../i18n/i18n.js';
 import { LANG } from '../data/lang.js';
 
 
@@ -123,7 +123,7 @@ export class Panels {
       // N10: kicked for good (logged in elsewhere, new version, ...): an online-only game goes back to the title
       const why = on.net.lastError.text;
       this.game.toTitle();
-      this.game.ui.toast(tl('Disconnected: {why}', { why }), 6);
+      this.game.ui.toast(tl('Disconnected: {why}', { why: tx(why) }), 6);
     }
   }
 
@@ -151,7 +151,7 @@ export class Panels {
           <input name="pw" type="password" maxlength="64" placeholder="${tl('Password')}" autocomplete="current-password">
           <button type="submit" ${st === 'connecting' || st === 'reconnecting' ? 'disabled' : ''}>${st === 'connecting' ? tl('Connecting…') : st === 'reconnecting' ? tl('Reconnecting…') : tl('Log in')}</button>
           <button type="button" data-create ${st === 'connecting' || st === 'reconnecting' ? 'disabled' : ''}>${tl('Create account')}</button>
-          ${err ? `<div class="ts-net-err">${esc(err.text)}</div>` : ''}</form>`;
+          ${err ? `<div class="ts-net-err">${esc(tx(err.text))}</div>` : ''}</form>`;
     const el = this.show('title', `
       <div class="ts-bg ts-art"><div class="ts-shade"></div><canvas class="ts-embers"></canvas></div>
       <div class="ts-wrap">

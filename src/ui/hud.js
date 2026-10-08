@@ -17,7 +17,7 @@ import { ROUTES } from '../data/routes.js';
 import { MAP_MARKERS } from '../data/mapMarkers.js';
 import { ONLINE } from '../data/online.js';
 import { CLASSES } from '../skills/classes.js';
-import { t as tl, wrapLines } from '../i18n/i18n.js';
+import { t as tl, tx, wrapLines } from '../i18n/i18n.js';
 
 const FONT = '"Segoe UI", "Noto Sans Thai", sans-serif'; // body text (theme.css --font-body)
 const TITLE = 'Kanit, "Segoe UI", sans-serif'; // titles / numbers (theme.css --font-title)
@@ -59,13 +59,13 @@ export class HUD {
   }
 
   // ---------------- messages
-  banner(title, sub, color = '#e8d0ff', dur = 3) { this.banners.push({ title, sub, color, t: 0, dur, kind: 'banner' }); }
+  banner(title, sub, color = '#e8d0ff', dur = 3) { this.banners.push({ title: tx(title), sub: tx(sub), color, t: 0, dur, kind: 'banner' }); }
   zone(name, sub, big) { this.banners.push({ title: name, sub, color: '#f0e6ff', t: 0, dur: big ? 4 : 2.6, kind: big ? 'zone' : 'zoneSmall' }); }
-  sub(name) { this.notes.push({ title: 'DISCOVERED', text: name, color: '#ffe0a0', t: 0, dur: 3.5 }); }
-  callout(title, sub, color) { this.callouts = [{ title, sub, color, t: 0, dur: 2 }]; }
-  bossTitle(title, sub) { this.title = { title, sub, t: 0, dur: 3.2 }; }
-  toast(text, dur = 1.2) { if (this.toasts.some((x) => x.text === text)) return; this.toasts.push({ text, t: 0, dur }); }
-  notify(title, text, color = '#c8b8ff') { this.notes.push({ title, text, color, t: 0, dur: 4 }); if (this.notes.length > 5) this.notes.shift(); }
+  sub(name) { this.notes.push({ title: tx('DISCOVERED'), text: name, color: '#ffe0a0', t: 0, dur: 3.5 }); }
+  callout(title, sub, color) { this.callouts = [{ title: tx(title), sub: tx(sub), color, t: 0, dur: 2 }]; }
+  bossTitle(title, sub) { this.title = { title: tx(title), sub: tx(sub), t: 0, dur: 3.2 }; }
+  toast(text, dur = 1.2) { text = tx(text); if (this.toasts.some((x) => x.text === text)) return; this.toasts.push({ text, t: 0, dur }); }
+  notify(title, text, color = '#c8b8ff') { this.notes.push({ title: tx(title), text: tx(text), color, t: 0, dur: 4 }); if (this.notes.length > 5) this.notes.shift(); }
   pickup(def, n) {
     const ex = this.pickups.find((p) => p.name === def.name && p.t < 2);
     if (ex) { ex.n += n; ex.t = 0; return; }

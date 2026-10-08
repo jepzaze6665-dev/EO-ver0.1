@@ -3,9 +3,9 @@
 //   tr('quests', id, 'name', def.name)  data overlays keyed by id (kind -> id -> field), fallback = the data's own text.
 // Names of classes / bosses / skills / items are transliterated by the owner's choice (they stay in English letters).
 import { LANG } from '../data/lang.js';
-import { TH_UI, TH_DATA } from './th/index.js';
+import { TH_UI, TH_DATA, TH_PATTERNS } from './th/index.js';
 
-const TABLES = { th: { ui: TH_UI, data: TH_DATA } };
+const TABLES = { th: { ui: TH_UI, data: TH_DATA, patterns: TH_PATTERNS.map(([re, out]) => [new RegExp(re), out]) } };
 let lang = LANG.default;
 const listeners = [];
 
@@ -39,6 +39,20 @@ export function t(en, params) {
   const tab = TABLES[lang];
   const s = tab && tab.ui[en] !== undefined ? tab.ui[en] : en;
   return fill(s, params);
+}
+
+// tx(text): translate a FINISHED message (toast / banner / server text): exact entry, else a pattern (captured pieces are
+// looked up again), else "a · b" piece by piece, else unchanged. Used where the HUD shows messages, so call sites stay English.
+export function tx(text, depth = 0) {
+  const tab = TABLES[lang];
+  if (!tab || typeof text !== 'string' || !text || depth > 3) return text;
+  if (tab.ui[text] !== undefined) return tab.ui[text];
+  for (const [re, out] of tab.patterns) {
+    const m = text.match(re);
+    if (m) return out.replace(/\$(\d)/g, (_, i) => tx(m[+i] || '', depth + 1));
+  }
+  if (text.includes(' · ')) return text.split(' · ').map((s) => tx(s, depth + 1)).join(' · ');
+  return text;
 }
 
 export function tr(kind, id, field, fallback) {
