@@ -1,0 +1,70 @@
+// i18n: the game's English text stays in the code / data; Thai lives in src/i18n/th/*.js and is looked up on demand.
+//   t('English text', { n: 3 })        UI strings, keyed by the English text itself ({n} = parameter). No Thai entry -> English.
+//   tr('quests', id, 'name', def.name)  data overlays keyed by id (kind -> id -> field), fallback = the data's own text.
+// Names of classes / bosses / skills / items are transliterated by the owner's choice (they stay in English letters).
+import { LANG } from '../data/lang.js';
+import { TH_UI, TH_DATA } from './th/index.js';
+
+const TABLES = { th: { ui: TH_UI, data: TH_DATA } };
+let lang = LANG.default;
+const listeners = [];
+
+try {
+  if (typeof localStorage !== 'undefined') {
+    const s = localStorage.getItem(LANG.storageKey);
+    if (LANG.options.includes(s)) lang = s;
+  }
+} catch (e) { /* private mode: keep the default */ }
+applyDocument();
+
+function applyDocument() {
+  try { if (typeof document !== 'undefined') document.documentElement.lang = lang; } catch (e) { /* no DOM */ }
+}
+
+export const getLang = () => lang;
+export const isThai = () => lang === 'th';
+export function setLang(l) {
+  if (!LANG.options.includes(l) || l === lang) return;
+  lang = l;
+  try { if (typeof localStorage !== 'undefined') localStorage.setItem(LANG.storageKey, l); } catch (e) { /* ignore */ }
+  applyDocument();
+  for (const fn of listeners) fn(l);
+}
+export const nextLang = () => LANG.options[(LANG.options.indexOf(lang) + 1) % LANG.options.length];
+export const onLang = (fn) => { listeners.push(fn); return () => { const i = listeners.indexOf(fn); if (i >= 0) listeners.splice(i, 1); }; };
+
+const fill = (s, params) => (params ? s.replace(/\{(\w+)\}/g, (m, k) => (k in params ? params[k] : m)) : s);
+
+export function t(en, params) {
+  const tab = TABLES[lang];
+  const s = tab && tab.ui[en] !== undefined ? tab.ui[en] : en;
+  return fill(s, params);
+}
+
+export function tr(kind, id, field, fallback) {
+  const tab = TABLES[lang];
+  const v = tab && tab.data[kind] && tab.data[kind][id] && tab.data[kind][id][field];
+  return v !== undefined ? v : fallback;
+}
+
+// ---- text layout helpers (Thai has no spaces between words)
+export const hasThai = (s) => /[฀-๿]/.test(s);
+let segmenter = null;
+// Split text into pieces a line may break between. Thai: dictionary word breaks (Intl.Segmenter); anything else: words + the space after.
+export function breakPieces(text) {
+  if (hasThai(text) && typeof Intl !== 'undefined' && Intl.Segmenter) {
+    segmenter = segmenter || new Intl.Segmenter('th', { granularity: 'word' });
+    return [...segmenter.segment(text)].map((x) => x.segment);
+  }
+  return text.split(/(?<= )/);
+}
+export function wrapLines(text, maxW, measure) {
+  const lines = [];
+  let cur = '';
+  for (const piece of breakPieces(text)) {
+    const test = cur + piece;
+    if (cur && measure(test.trimEnd()) > maxW) { lines.push(cur.trimEnd()); cur = piece.trimStart(); } else cur = test;
+  }
+  if (cur.trim()) lines.push(cur.trimEnd());
+  return lines;
+}

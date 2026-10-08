@@ -536,3 +536,8 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 @media (max-width: 1000px) { .rs { grid-template-columns: 1fr; } .rs-banner { grid-column: 1; } }
 .overlay.rs-ov { background: rgba(4, 4, 8, 0.78); }
 .rs-right { background: rgba(6, 6, 10, 0.96); } .rs-left { background: linear-gradient(90deg, rgba(6, 6, 10, 0.96), rgba(6, 6, 10, 0.75)); }
+
+/* Thai (language switch): stacked vowel / tone marks need more line height; Thai glyphs come from Noto Sans Thai */
+html[lang="th"] body, html[lang="th"] .overlay, html[lang="th"] button, html[lang="th"] input { line-height: 1.6; }
+html[lang="th"] .ts-menu button, html[lang="th"] .esc-list button { line-height: 1.5; padding-top: 0.2em; }
+html[lang="th"] .ts-foot { letter-spacing: 0; }

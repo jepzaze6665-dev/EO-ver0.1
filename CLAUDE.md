@@ -1561,3 +1561,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   the top centre. HUD on touch: no route panel (it is on the world map), quest tracker = the first quest only, on the left;
   touch tip text instead of WASD. Renderer: coarse-pointer screens render at most 1.5x DPR (was 2). Checked at 844×390: layout
   clean, manifest + icons 200, service worker activated; desktop playthrough 17 · uiCheck 6.
+- **Current: THAI TRANSLATION** (owner 2026-10-08: Thai, switchable EN / ไทย; names of classes / bosses / skills / items stay TRANSLITERATED
+  (English letters); Claude writes the Thai text). `src/data/lang.js` (LANG: storageKey `eclipse_lang_v1`, options, names) +
+  `src/i18n/i18n.js`: `t('English text', { n })` = UI string keyed by its English text ({n} params; no Thai entry -> English) · `tr(kind, id,
+  field, fallback)` = data overlay by id (`TH_DATA`, filled in later phases) · `setLang / getLang / nextLang` (saved per browser, sets
+  `<html lang>`) · `wrapLines` / `breakPieces` (Thai has no spaces: Intl.Segmenter word breaks; hud.wrap uses it). Thai tables `src/i18n/th/ui.js`
+  (+ index.js). In hud.js / panels.js the import is aliased `tl` (those files have local variables named `t`). Language button: title
+  screen + ESC menu. Thai CSS (taller lines) at the end of theme.css. tools/tests/i18n.test.mjs: every literal t('...') needs a Thai entry,
+  {params} must match. Phases: T1 core + title / class select labels / ESC menu / sound / death / ending / controls / HUD labels (DONE) ·
+  T2 windows (character, tooltips, npc panels, gate / party, run summary) · T6 server error texts (map by `code`) + toasts / banners ·
+  T4 items / sets / statuses · T3 quests / dialogue / lore / board text · T5 skills / classes / bosses / monsters (biggest).

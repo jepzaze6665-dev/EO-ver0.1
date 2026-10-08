@@ -17,6 +17,7 @@ import { ROUTES } from '../data/routes.js';
 import { MAP_MARKERS } from '../data/mapMarkers.js';
 import { ONLINE } from '../data/online.js';
 import { CLASSES } from '../skills/classes.js';
+import { t as tl, wrapLines } from '../i18n/i18n.js';
 
 const FONT = '"Segoe UI", "Noto Sans Thai", sans-serif'; // body text (theme.css --font-body)
 const TITLE = 'Kanit, "Segoe UI", sans-serif'; // titles / numbers (theme.css --font-title)
@@ -306,7 +307,7 @@ export class HUD {
     const focusTop = this.layout() === 'focus' ? this.drawFocusBlock(ctx, W, y, total, u) : y;
     // dodge hint: bright when there is stamina for a dodge
     // (a tutorial hint: it fades out for good once the player has learned to dodge — data/combatUI.js)
-    if (this.dodgeHintA > 0) { ctx.globalAlpha = this.dodgeHintA; this.text(ctx, 'DODGE [SPACE]', W / 2, focusTop - 18 * u, 9 * u, p.resources.canAfford(STAMINA.resource, p.dodgeCost ? p.dodgeCost() : STAMINA.dodge) ? '#9af8ff' : 'rgba(150,120,120,0.8)', { align: 'center' }); ctx.globalAlpha = 1; }
+    if (this.dodgeHintA > 0) { ctx.globalAlpha = this.dodgeHintA; this.text(ctx, tl('DODGE [SPACE]'), W / 2, focusTop - 18 * u, 9 * u, p.resources.canAfford(STAMINA.resource, p.dodgeCost ? p.dodgeCost() : STAMINA.dodge) ? '#9af8ff' : 'rgba(150,120,120,0.8)', { align: 'center' }); ctx.globalAlpha = 1; }
     const hc = cls.hudCounter ? cls.hudCounter(p) : null;
     if (hc && hc.ready && hc.readyText && this.layout() !== 'focus') { // focus layout shows READY beside the counter
       const k = 0.65 + 0.35 * Math.sin(g.time * 8);
@@ -565,7 +566,7 @@ export class HUD {
     if (!pt) return;
     const x = 18 * u, y0 = 300 * u, rowH = 17 * u;
     this.panel(ctx, x, y0, 170 * u, 22 * u + pt.members.length * rowH, 0.55);
-    this.text(ctx, `PARTY ${pt.members.length}/${pt.max}`, x + 8 * u, y0 + 14 * u, 8.5 * u, '#c8bca0');
+    this.text(ctx, tl('PARTY {n}/{max}', { n: pt.members.length, max: pt.max }), x + 8 * u, y0 + 14 * u, 8.5 * u, '#c8bca0');
     pt.members.forEach((m, i) => {
       const y = y0 + 30 * u + i * rowH;
       this.text(ctx, '●', x + 8 * u, y, 8 * u, m.online ? '#7dffa0' : '#7a7080');
@@ -646,7 +647,7 @@ export class HUD {
     const ex = md && g.discoveries ? g.discoveries.of(md.id) : null; // exploration counter (world/discoveries.js)
     this.text(ctx, md ? md.name + (ex && ex[1] ? `  ✦ ${ex[0]}/${ex[1]}` : '') : '', x + size / 2, y + size + 18 * u, 12 * u, ex && ex[1] && ex[0] === ex[1] ? '#ffe08a' : '#e8dcff', { align: 'center' });
     this.text(ctx, sa && (!md || sa.name.toUpperCase() !== md.name) ? sa.name : '', x + size / 2, y + size + 31 * u, 9 * u, '#b8acd8', { align: 'center' });
-    this.text(ctx, '[M] Map   [I] Inventory', x + size / 2, y + size + 44 * u, 9 * u, '#8a80a8', { align: 'center' });
+    this.text(ctx, tl('[M] Map   [I] Inventory'), x + size / 2, y + size + 44 * u, 9 * u, '#8a80a8', { align: 'center' });
   }
 
   drawQuests(ctx, W, u) {
@@ -693,7 +694,7 @@ export class HUD {
     for (const m of party.members) {
       if (!m.downed) continue;
       const s = this.toScreen(m.x, m.y - 70), w = 60 * u;
-      this.text(ctx, 'DOWNED', s.x, s.y, 11 * u, `rgba(255,150,130,${0.7 + 0.3 * Math.sin(g.time * 6)})`, { align: 'center' });
+      this.text(ctx, tl('DOWNED'), s.x, s.y, 11 * u, `rgba(255,150,130,${0.7 + 0.3 * Math.sin(g.time * 6)})`, { align: 'center' });
       this.bar(ctx, s.x - w / 2, s.y + 4 * u, w, 4 * u, 1 - m.downedT / R.bleedOut, '#ff7060', '#6a1a14');
       const pr = party.progress(m);
       if (pr > 0) this.bar(ctx, s.x - w / 2, s.y + 10 * u, w, 5 * u, pr, '#8af0a0', '#1a6a2c');
@@ -702,10 +703,10 @@ export class HUD {
     const rn = !near && g.online && g.online.revive.near(p); // a downed teammate on another client
     if (rn) {
       const s = this.toScreen(rn.x, rn.y - 92), pr = g.online.revive.progress();
-      this.text(ctx, '[Hold E] Revive ' + rn.name, s.x, s.y, 11 * u, '#dfffe0', { align: 'center' });
+      this.text(ctx, tl('[Hold E] Revive {name}', { name: rn.name }), s.x, s.y, 11 * u, '#dfffe0', { align: 'center' });
       if (pr > 0) this.bar(ctx, s.x - 30 * u, s.y + 6 * u, 60 * u, 5 * u, pr, '#8af0a0', '#1a6a2c');
     }
-    if (near) { const s = this.toScreen(near.x, near.y - 92); this.text(ctx, '[Hold E] Revive', s.x, s.y, 11 * u, '#dfffe0', { align: 'center' }); }
+    if (near) { const s = this.toScreen(near.x, near.y - 92); this.text(ctx, tl('[Hold E] Revive'), s.x, s.y, 11 * u, '#dfffe0', { align: 'center' }); }
   }
 
   // current target (combat/targetSystem.js): marker over it + a small frame at the top (hidden when the boss bar shows it)
@@ -771,7 +772,7 @@ export class HUD {
       ctx.beginPath(); ctx.moveTo(16 * u, 0); ctx.lineTo(-8 * u, -11 * u); ctx.lineTo(-8 * u, 11 * u); ctx.closePath(); ctx.fill();
       ctx.restore();
     }
-    if (weak) this.text(ctx, 'WEAK WINDOW', W / 2, by + bh + 44 * u, 13 * u, `rgba(150,250,255,${0.7 + 0.3 * Math.sin(this.game.time * 12)})`, { align: 'center' });
+    if (weak) this.text(ctx, tl('WEAK WINDOW'), W / 2, by + bh + 44 * u, 13 * u, `rgba(150,250,255,${0.7 + 0.3 * Math.sin(this.game.time * 12)})`, { align: 'center' });
     ctx.globalAlpha = 1;
   }
 
@@ -835,7 +836,7 @@ export class HUD {
       this.text(ctx, bossKind(enc.def.type), s.x, s.y - 26 * u, 9 * u, bossKindColor(enc.def.type), { align: 'center' });
       this.text(ctx, `${enc.def.name}  Lv.${enc.def.level}`, s.x, s.y - 12 * u, 12 * u, '#ffe0d0', { align: 'center', font: TITLE });
       const lv = enc.def.recommendedLevel;
-      if (lv) this.text(ctx, `Recommended LV ${lv} · step into the ${enc.def.arena.name || 'arena'} to fight`, s.x, s.y + 2 * u, 9 * u, p.level >= lv ? '#bfe8ff' : '#ff9a8a', { align: 'center' });
+      if (lv) this.text(ctx, tl('Recommended LV {lv} · step into the {arena} to fight', { lv, arena: enc.def.arena.name || tl('arena') }), s.x, s.y + 2 * u, 9 * u, p.level >= lv ? '#bfe8ff' : '#ff9a8a', { align: 'center' });
     }
   }
 
@@ -896,7 +897,7 @@ export class HUD {
       const to = w.mapManager.get(e.to);
       if (!w.transitions.isOpen(e)) {
         if (w.inBossFight()) continue;
-        this.text(ctx, `✕ ${to && !to.secret ? to.name : e.label} — LOCKED`, s.x, s.y, 9 * u, '#ff9a8a', { align: 'center' });
+        this.text(ctx, '✕ ' + tl('{name} — LOCKED', { name: to && !to.secret ? to.name : e.label }), s.x, s.y, 9 * u, '#ff9a8a', { align: 'center' });
         const why = w.transitions.lockReason(e);
         if (why) this.text(ctx, why, s.x, s.y + 12 * u, 8 * u, '#c8b0b0', { align: 'center' });
         continue;
@@ -919,12 +920,12 @@ export class HUD {
       const w = 64 * u * (m.def.miniBoss ? 1.6 : m.elite ? 1.3 : 1);
       const name = kn.known(m.type) ? m.name : kn.nameFor(m.type), lvl = kn.levelFor(m.type) === '??' ? '??' : m.level;
       const col = !kn.known(m.type) ? '#b0a8c0' : m.elite ? '#ffc860' : m.corrupted ? '#e0a0ff' : m.def.miniBoss ? '#ffb080' : '#f0e8e0';
-      this.text(ctx, `${m.corrupted && kn.known(m.type) ? 'Corrupted ' : ''}${name}  Lv.${lvl}`, s.x, s.y - 8 * u, 10 * u, col, { align: 'center' });
+      this.text(ctx, `${m.corrupted && kn.known(m.type) ? tl('Corrupted') + ' ' : ''}${name}  Lv.${lvl}`, s.x, s.y - 8 * u, 10 * u, col, { align: 'center' });
       if (m.hp < m.maxHp || m.showBar > 0) {
         this.bar(ctx, s.x - w / 2, s.y - 4 * u, w, 5 * u, m.hp / m.maxHp, '#ff6070', '#901828');
         if (m.maxArmor) this.bar(ctx, s.x - w / 2, s.y + 2 * u, w, 3 * u, m.armor / m.maxArmor, '#9af8ff', '#3a90b0');
       }
-      if (m.status.has('vulnerable')) this.text(ctx, 'VULNERABLE', s.x, s.y - 22 * u, 9 * u, '#9af8ff', { align: 'center' });
+      if (m.status.has('vulnerable')) this.text(ctx, tl('VULNERABLE'), s.x, s.y - 22 * u, 9 * u, '#9af8ff', { align: 'center' });
       this.drawMarks(ctx, u, m, s.x, s.y + 14 * u);
       this.drawStatuses(ctx, u, m, s.x, s.y - 34 * u);
     }
@@ -936,7 +937,7 @@ export class HUD {
       this.text(ctx, `Lv.${r.level}${c ? '  ' + c.name : ''}`, s.x, s.y, 8.5 * u, (c && c.theme && c.theme.color) || '#c8c0d8', { align: 'center' });
       // in a run (N7b): their HP share — DOWN when 0
       if (g.online.instance) {
-        if ((r.h ?? 1) <= 0) this.text(ctx, 'DOWN', s.x, s.y + 12 * u, 9 * u, '#ff8a7a', { align: 'center' });
+        if ((r.h ?? 1) <= 0) this.text(ctx, tl('DOWN'), s.x, s.y + 12 * u, 9 * u, '#ff8a7a', { align: 'center' });
         else this.bar(ctx, s.x - 26 * u, s.y + 4 * u, 52 * u, 4 * u, r.h ?? 1, '#7dff9a', '#1f5a2c');
       }
     }
@@ -1013,12 +1014,5 @@ export class HUD {
 
 export function wrap(ctx, text, maxW, font) {
   ctx.font = font;
-  const words = text.split(' '), lines = [];
-  let cur = '';
-  for (const w of words) {
-    const test = cur ? cur + ' ' + w : w;
-    if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; } else cur = test;
-  }
-  if (cur) lines.push(cur);
-  return lines;
+  return wrapLines(text, maxW, (s) => ctx.measureText(s).width); // Thai: breaks at dictionary word edges (no spaces in Thai)
 }

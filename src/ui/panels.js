@@ -30,10 +30,12 @@ import { TELEGRAPH_VIEW, telegraphView, setTelegraphView } from '../combat/teleg
 import { BOSSES } from '../data/bosses.js';
 import { LOOT_TABLES } from '../data/lootTables.js';
 import { Assets } from '../core/assets.js';
+import { t as tl, getLang, nextLang, setLang } from '../i18n/i18n.js';
+import { LANG } from '../data/lang.js';
 
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
-const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>Passives</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">passive</span><div class="small">${esc(x.desc)}</div></div></div>`).join('')}` : '');
+const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>${tl('Passives')}</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">${tl('passive')}</span><div class="small">${esc(x.desc)}</div></div></div>`).join('')}` : '');
 
 // title screen embers: sparks rising from the rune circles (canvas, stops itself once removed from the page)
 function startEmbers(cv) {
@@ -70,14 +72,14 @@ const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt
 // controls sheet — skill lines come from the class data (any class)
 export const controlsHTML = (cls = CLASSES.umbral_sword, player = null) => `
 <div class="controls">
-  <div><b>WASD</b> Move (360°)</div><div><b>Mouse</b> Aim</div>
-  <div><b>Left Click</b> Basic Attack (3-hit combo)</div><div><b>Space</b> Dodge — time it for PERFECT DODGE</div>
-  ${(player ? player.loadout.bindings() : cls.skills.filter((s) => s.slot).map((s) => ({ key: s.slot, skill: s }))).map((b) => `<div><b>${b.key}</b> ${esc(b.skill.name)}${b.skill.ultimate ? ' (Ultimate)' : ''}</div>`).join('')}
-  <div><b>${cls.guard ? 'Hold Shift / Right Click / Q' : 'Q / Right Click'}</b> ${esc(cls.special.name)}${cls.guard ? ' (Guard · time it to PARRY)' : ''}</div>
-  <div><b>R</b> Healing Draught</div><div><b>F</b> Resource Tonic</div>
-  <div><b>E</b> Interact / Talk</div><div><b>STAMINA</b> Dodge · Guard · some skills</div>
-  <div><b>I</b> Inventory · Equipment · Knowledge</div><div><b>M</b> World Map</div>
-  <div><b>ESC</b> Menu (Save / Load / Reset)</div><div><b>F3</b> Debug overlay</div><div><b>F4</b> Dev panel (dev only)</div>
+  <div><b>WASD</b> ${tl('Move (360°)')}</div><div><b>${tl('Mouse')}</b> ${tl('Aim')}</div>
+  <div><b>${tl('Left Click')}</b> ${tl('Basic Attack (3-hit combo)')}</div><div><b>Space</b> ${tl('Dodge — time it for PERFECT DODGE')}</div>
+  ${(player ? player.loadout.bindings() : cls.skills.filter((s) => s.slot).map((s) => ({ key: s.slot, skill: s }))).map((b) => `<div><b>${b.key}</b> ${esc(b.skill.name)}${b.skill.ultimate ? ' ' + tl('(Ultimate)') : ''}</div>`).join('')}
+  <div><b>${cls.guard ? tl('Hold Shift / Right Click / Q') : tl('Q / Right Click')}</b> ${esc(cls.special.name)}${cls.guard ? ' ' + tl('(Guard · time it to PARRY)') : ''}</div>
+  <div><b>R</b> ${tl('Healing Draught')}</div><div><b>F</b> ${tl('Resource Tonic')}</div>
+  <div><b>E</b> ${tl('Interact / Talk')}</div><div><b>${tl('STAMINA')}</b> ${tl('Dodge · Guard · some skills')}</div>
+  <div><b>I</b> ${tl('Inventory · Equipment · Knowledge')}</div><div><b>M</b> ${tl('World Map')}</div>
+  <div><b>ESC</b> ${tl('Menu (Save / Load / Reset)')}</div><div><b>F3</b> ${tl('Debug overlay')}</div><div><b>F4</b> ${tl('Dev panel (dev only)')}</div>
 </div>`;
 
 export class Panels {
@@ -121,7 +123,7 @@ export class Panels {
       // N10: kicked for good (logged in elsewhere, new version, ...): an online-only game goes back to the title
       const why = on.net.lastError.text;
       this.game.toTitle();
-      this.game.ui.toast('Disconnected: ' + why, 6);
+      this.game.ui.toast(tl('Disconnected: {why}', { why }), 6);
     }
   }
 
@@ -143,12 +145,12 @@ export class Panels {
     const ready = devOffline || (on && on.online && on.saveReady); // N3: saves come from the server after login
     const st = on ? on.state : 'offline', err = on && on.net.lastError;
     const netBox = devOffline ? '<div class="ts-net dev">DEV OFFLINE MODE (?offline)</div>'
-      : on && on.online ? `<div class="ts-net ok">● Online as <b>${esc(on.playerName)}</b> <button data-a="logout">Log out</button></div>`
-        + (on.hasPw === false ? `<form class="ts-net ts-setpw"><span>Protect this name with a password:</span><input name="pw" type="password" maxlength="64" placeholder="New password (6+)" autocomplete="new-password"><button type="submit">Set password</button></form>` : '')
-      : `<form class="ts-net" data-a="login"><input name="nm" maxlength="16" placeholder="Character name" value="${esc((on && on.lastName()) || '')}" autocomplete="username" spellcheck="false">
-          <input name="pw" type="password" maxlength="64" placeholder="Password" autocomplete="current-password">
-          <button type="submit" ${st === 'connecting' || st === 'reconnecting' ? 'disabled' : ''}>${st === 'connecting' ? 'Connecting…' : st === 'reconnecting' ? 'Reconnecting…' : 'Log in'}</button>
-          <button type="button" data-create ${st === 'connecting' || st === 'reconnecting' ? 'disabled' : ''}>Create account</button>
+      : on && on.online ? `<div class="ts-net ok">● ${tl('Online as')} <b>${esc(on.playerName)}</b> <button data-a="logout">${tl('Log out')}</button></div>`
+        + (on.hasPw === false ? `<form class="ts-net ts-setpw"><span>${tl('Protect this name with a password:')}</span><input name="pw" type="password" maxlength="64" placeholder="${tl('New password (6+)')}" autocomplete="new-password"><button type="submit">${tl('Set password')}</button></form>` : '')
+      : `<form class="ts-net" data-a="login"><input name="nm" maxlength="16" placeholder="${tl('Character name')}" value="${esc((on && on.lastName()) || '')}" autocomplete="username" spellcheck="false">
+          <input name="pw" type="password" maxlength="64" placeholder="${tl('Password')}" autocomplete="current-password">
+          <button type="submit" ${st === 'connecting' || st === 'reconnecting' ? 'disabled' : ''}>${st === 'connecting' ? tl('Connecting…') : st === 'reconnecting' ? tl('Reconnecting…') : tl('Log in')}</button>
+          <button type="button" data-create ${st === 'connecting' || st === 'reconnecting' ? 'disabled' : ''}>${tl('Create account')}</button>
           ${err ? `<div class="ts-net-err">${esc(err.text)}</div>` : ''}</form>`;
     const el = this.show('title', `
       <div class="ts-bg ts-art"><div class="ts-shade"></div><canvas class="ts-embers"></canvas></div>
@@ -156,11 +158,12 @@ export class Panels {
         <img class="ts-logo-img" src="assets/ui/title/logo.png" alt="Eclipse Online">
         ${netBox}
         <nav class="ts-menu">
-          ${hasSave ? `<button data-a="continue" ${ready ? '' : 'disabled'}>Continue</button>` : ''}
-          <button data-a="new" ${ready ? '' : 'disabled'}>New Game</button>
-          <button data-a="controls">Controls</button>
+          ${hasSave ? `<button data-a="continue" ${ready ? '' : 'disabled'}>${tl('Continue')}</button>` : ''}
+          <button data-a="new" ${ready ? '' : 'disabled'}>${tl('New Game')}</button>
+          <button data-a="controls">${tl('Controls')}</button>
+          <button data-a="lang">${tl('Language: {name}', { name: LANG.names[getLang()] })}</button>
         </nav>
-        <div class="ts-foot">Dark Fantasy Action RPG · Prototype</div>
+        <div class="ts-foot">${tl('Dark Fantasy Action RPG · Prototype')}</div>
       </div>`, 'title ts');
     this.titleHasSave = hasSave;
     startEmbers(el.querySelector('.ts-embers'));
@@ -171,8 +174,8 @@ export class Panels {
       // H6: Log in = name + password (empty password = this device's remembered login); Create account = new name + password
       const go = (create) => {
         const n = inp.value.trim().replace(/\s+/g, ' '), bad = validName(n);
-        if (bad) { this.game.ui.toast('Name: ' + bad, 2); return; }
-        if (create && pw.value.length < 6) { this.game.ui.toast('Password: at least 6 characters', 2.5); return; }
+        if (bad) { this.game.ui.toast(tl('Name: {why}', { why: bad }), 2); return; }
+        if (create && pw.value.length < 6) { this.game.ui.toast(tl('Password: at least 6 characters'), 2.5); return; }
         on.connect(n, pw.value ? { pw: pw.value, ...(create ? { create: true } : {}) } : null);
         this.title(hasSave);
       };
@@ -183,7 +186,7 @@ export class Panels {
     if (setpw) setpw.addEventListener('submit', (e) => {
       e.preventDefault();
       const v = setpw.querySelector('input').value;
-      if (v.length < 6) { this.game.ui.toast('Password: at least 6 characters', 2.5); return; }
+      if (v.length < 6) { this.game.ui.toast(tl('Password: at least 6 characters'), 2.5); return; }
       on.setPassword(v);
     });
     el.addEventListener('click', (e) => {
@@ -191,9 +194,10 @@ export class Panels {
       const a = t && t.dataset.a;
       if (t && t.disabled) return;
       if (a === 'logout') { on.logout(); this.title(hasSave); }
+      if (a === 'lang') { setLang(nextLang()); this.title(hasSave); }
       if (a === 'new') this.classSelect(hasSave);
       if (a === 'continue') this.game.continueGame();
-      if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.title(hasSave), true);
+      if (a === 'controls') this.textPanel(tl('Controls'), controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.title(hasSave), true);
     });
   }
 
@@ -213,7 +217,7 @@ export class Panels {
     const reqText = (n) => (n.requirements || []).map((q) => q.type === 'level' ? `LV ${q.min ?? q.level}` : q.type === 'counter' ? `${(CLASS_COUNTERS[q.counter] || { label: q.counter }).label} ×${q.min}` : '').filter(Boolean).join(' · ');
     const row = (id, kind) => `<button class="cs-node ${kind}${id === sel ? ' sel' : ''}" data-cs-sel="${id}" style="--cc:${color(id)}">
         <span class="cs-emb"><img src="${emblem(id)}" alt="">${kind === 'mastery' ? '<i class="cs-lock">🔒</i>' : ''}</span>
-        <span class="cs-txt"><small>${kind === 'base' ? 'BASE CLASS' : 'CLASS 2'}</small><b>${esc(CLASSES[id] ? CLASSES[id].name : CLASS_TREE[id].name)}</b></span></button>`;
+        <span class="cs-txt"><small>${kind === 'base' ? tl('BASE CLASS') : tl('CLASS 2')}</small><b>${esc(CLASSES[id] ? CLASSES[id].name : CLASS_TREE[id].name)}</b></span></button>`;
     const el = this.show('title', `
       <div class="cs-bg" style="--cc:${color(sel)}"></div>
       <img class="cs-splash" src="assets/ui/class/${sel}_splash.png" alt="" style="--cc:${color(sel)}">
@@ -224,13 +228,13 @@ export class Panels {
           <div class="cs-role">${esc(c.role || '')}</div>
           ${c.identity ? `<div class="cs-quote">“${esc(c.identity)}”</div>` : ''}
           <p>${esc(c.description || node.description || '')}</p>
-          <div class="cs-rates">${bar('Difficulty', c.difficulty || 3)}${bar('Damage', r.damage)}${bar('Defense', r.defense)}${bar('Range', r.range)}${bar('Mobility', r.mobility)}</div>
-          <div class="cs-res">Resource <b style="color:${res.colors[0]}">${esc(res.name)}</b>${c.signatureWeapon ? ` · Weapon <b>${esc(c.signatureWeapon)}</b>` : ''}</div>
+          <div class="cs-rates">${bar(tl('Difficulty'), c.difficulty || 3)}${bar(tl('Damage'), r.damage)}${bar(tl('Defense'), r.defense)}${bar(tl('Range'), r.range)}${bar(tl('Mobility'), r.mobility)}</div>
+          <div class="cs-res">${tl('Resource')} <b style="color:${res.colors[0]}">${esc(res.name)}</b>${c.signatureWeapon ? ` · ${tl('Weapon')} <b>${esc(c.signatureWeapon)}</b>` : ''}</div>
           <div class="cs-skills">${[...c.skills, c.special].filter(Boolean).slice(0, 7).map((s) => `<img src="${skillIconURL(s)}" title="${esc(s.name)}" alt="">`).join('')}</div>
-          ${isBase ? `<button class="cs-start" data-cs-start="${base}">Begin as ${esc(c.name)}</button>`
-            : `<div class="cs-unlock">🔒 CLASS 2 — unlocked later: ${esc(reqText(node))} · then pass its Trial</div><button class="cs-start" data-cs-sel="${base}">◂ Back to ${esc(CLASSES[base].name)}</button>`}
+          ${isBase ? `<button class="cs-start" data-cs-start="${base}">${tl('Begin as {name}', { name: esc(c.name) })}</button>`
+            : `<div class="cs-unlock">🔒 ${tl('CLASS 2 — unlocked later: {req} · then pass its Trial', { req: esc(reqText(node)) })}</div><button class="cs-start" data-cs-sel="${base}">${tl('◂ Back to {name}', { name: esc(CLASSES[base].name) })}</button>`}
         </div>
-        <button class="cs-back" data-a="back">◂ Back</button>
+        <button class="cs-back" data-a="back">${tl('◂ Back')}</button>
       </div>`, 'title cs');
     el.addEventListener('click', (e) => {
       const t = e.target.closest('[data-cs-line],[data-cs-sel],[data-cs-start],[data-a]');
@@ -275,7 +279,7 @@ export class Panels {
     if (a.startsWith('quest:')) { this.close(); g.quests.accept(a.slice(6), { npc: this.dialogueNpc }); return; }
     if (a === 'shop') return this.shop();
     if (a === 'smith') return this.smith();
-    if (a === 'controls') return this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), null, true);
+    if (a === 'controls') return this.textPanel(tl('Controls'), controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), null, true);
   }
 
   // ---------------- yes / no (e.g. entering a boss arena). [E] = yes, [Esc] = no
@@ -300,7 +304,7 @@ export class Panels {
       <div class="panel lore">
         <h2>${esc(title)}</h2>
         <div class="body">${html ? body : esc(body).replace(/\n/g, '<br>')}</div>
-        <button class="close">Close [E]</button>
+        <button class="close">${tl('Close [E]')}</button>
       </div>`);
     this.current.onClose = onClose;
     this.current.advance = () => this.close();
@@ -457,7 +461,7 @@ export class Panels {
           ${selCls.identity ? `<div class="ct-quote">“${esc(selCls.identity)}”</div>` : ''}
           <div class="ct-desc">${esc(selCls.description || selNode.description || '')}</div>
           <div class="ct-rates">${rate('Difficulty', selCls.difficulty)}${rate('Damage', sr.damage)}${rate('Defense', sr.defense)}${rate('Range', sr.range)}${rate('Mobility', sr.mobility)}${sr.support ? rate('Support', sr.support) : ''}</div>
-          <div class="ct-res">Resource <b>${esc(RESOURCES[selCls.resource].name)}</b>${selCls.signatureWeapon ? ` · Weapon <b>${esc(selCls.signatureWeapon)}</b>` : ''}</div>
+          <div class="ct-res">Resource <b>${esc(RESOURCES[selCls.resource].name)}</b>${selCls.signatureWeapon ? ` · ${tl('Weapon')} <b>${esc(selCls.signatureWeapon)}</b>` : ''}</div>
           <div class="ct-skills">${[...selCls.skills, selCls.special].filter(Boolean).map((s) => `<img src="${skillIconURL(s)}" title="${esc(s.name)}" alt="">`).join('')}</div>
           ${selCls.strengths ? `<div class="ct-sw"><div><b class="good">STRENGTHS</b>${selCls.strengths.map((x) => `<div>+ ${esc(x)}</div>`).join('')}</div><div><b class="bad">WEAKNESSES</b>${(selCls.weaknesses || []).map((x) => `<div>− ${esc(x)}</div>`).join('')}</div></div>` : ''}`
         : `<div class="ct-desc">${esc(selNode.description || '')}</div><p class="muted small">Skills are revealed when this class arrives.</p>`;
@@ -768,9 +772,9 @@ export class Panels {
         <h4>REWARDS</h4>
         <div class="rs-rewards">${rewards.join('') || '<span class="muted small">Nothing carried home this time.</span>'}</div>
         <p class="muted small">Everything above is now safely yours.</p>
-        <button class="primary rs-ok" data-ok="1">Continue</button>
+        <button class="primary rs-ok" data-ok="1">${tl('Continue')}</button>
       </div>
-      <div class="keys rs-keys"><span><kbd>E</kbd><kbd>Esc</kbd>Continue</span></div>
+      <div class="keys rs-keys"><span><kbd>E</kbd><kbd>Esc</kbd>${tl('Continue')}</span></div>
     </div>`, 'rs-ov');
     this.wireTooltip(el);
     this.current.advance = () => this.close();
@@ -956,17 +960,17 @@ export class Panels {
     const g = this.game;
     const el = this.show('menu', `
       <div class="panel menu esc-menu">
-        <div class="np-head"><img class="np-ico" src="${UI_ICON('menu_settings')}" alt=""><div class="np-title"><b>ECLIPSE ONLINE</b><div class="np-sub">Paused</div></div></div>
+        <div class="np-head"><img class="np-ico" src="${UI_ICON('menu_settings')}" alt=""><div class="np-title"><b>ECLIPSE ONLINE</b><div class="np-sub">${tl('Paused')}</div></div></div>
         <div class="esc-list">
-          ${[['resume', 'Resume', 'menu_class', ''], ['save', 'Save', 'menu_save', ''], ['load', 'Load', 'menu_save', g.save.exists() ? '' : 'disabled'],
-            ['map', 'World Map', 'menu_map', ''], ['party', 'Party' + (g.online && g.online.party ? ` (${g.online.party.members.length})` : ''), 'menu_class', g.online && g.online.online ? '' : 'disabled'], ['controls', 'Controls', 'menu_codex', ''], ['sound', 'Sound' + (g.audio.muted ? ' (muted)' : ''), 'menu_settings', ''],
-            ['layout', 'HUD: ' + (g.ui.hud.layout() === 'focus' ? 'Focus (skill bar)' : 'Classic (top-left)'), 'menu_skills', ''],
-            ['tele', 'Warnings: ' + ({ all: 'All attacks', heavy: 'Heavy + danger', danger: 'Danger only' })[telegraphView()], 'menu_codex', ''],
-            ['reset', 'Reset Progress', 'menu_quests', ''], ['title', 'Title Screen', 'menu_equipment', '']]
+          ${[['resume', tl('Resume'), 'menu_class', ''], ['save', tl('Save'), 'menu_save', ''], ['load', tl('Load'), 'menu_save', g.save.exists() ? '' : 'disabled'],
+            ['map', tl('World Map'), 'menu_map', ''], ['party', tl('Party') + (g.online && g.online.party ? ` (${g.online.party.members.length})` : ''), 'menu_class', g.online && g.online.online ? '' : 'disabled'], ['controls', tl('Controls'), 'menu_codex', ''], ['sound', tl('Sound') + (g.audio.muted ? ' ' + tl('(muted)') : ''), 'menu_settings', ''],
+            ['layout', g.ui.hud.layout() === 'focus' ? tl('HUD: Focus (skill bar)') : tl('HUD: Classic (top-left)'), 'menu_skills', ''],
+            ['tele', tl('Warnings: {mode}', { mode: ({ all: tl('All attacks'), heavy: tl('Heavy + danger'), danger: tl('Danger only') })[telegraphView()] }), 'menu_codex', ''],
+            ['reset', tl('Reset Progress'), 'menu_quests', ''], ['lang', tl('Language: {name}', { name: LANG.names[getLang()] }), 'menu_settings', ''], ['title', tl('Title Screen'), 'menu_equipment', '']]
             .map(([a, l, ic, dis]) => `<button data-a="${a}" ${dis}><img src="${UI_ICON(ic)}" alt="">${l}</button>`).join('')}
         </div>
         <div class="muted small esc-save">${g.save.info()}</div>
-        <div class="keys"><span><kbd>Esc</kbd>Resume</span></div>
+        <div class="keys"><span><kbd>Esc</kbd>${tl('Resume')}</span></div>
       </div>`, 'side');
     el.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-a]');
@@ -980,10 +984,11 @@ export class Panels {
       if (a === 'load') { this.close(); g.loadGame(); }
       if (a === 'reset') {
         if (e.target.dataset.confirm) { this.close(); g.resetGame(); }
-        else { e.target.dataset.confirm = '1'; e.target.textContent = 'Click again to confirm reset'; e.target.classList.add('danger'); }
+        else { e.target.dataset.confirm = '1'; e.target.textContent = tl('Click again to confirm reset'); e.target.classList.add('danger'); }
       }
-      if (a === 'controls') this.textPanel('Controls', controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.menu(), true);
+      if (a === 'controls') this.textPanel(tl('Controls'), controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.menu(), true);
       if (a === 'sound') this.sound();
+      if (a === 'lang') { setLang(nextLang()); this.menu(); }
       if (a === 'tele') { const o = TELEGRAPH_VIEW.options; setTelegraphView(o[(o.indexOf(telegraphView()) + 1) % o.length]); this.menu(); }
       if (a === 'layout') { g.ui.hud.setLayout(g.ui.hud.layout() === 'focus' ? 'classic' : 'focus'); this.menu(); }
       if (a === 'title') { this.close(); g.toTitle(); }
@@ -992,14 +997,14 @@ export class Panels {
   // Sound settings: one slider per mixer bus (data/sounds.js AUDIO_BUSES), saved per browser by Audio.
   sound() {
     const g = this.game, A = g.audio;
-    const rows = Object.entries(AUDIO_BUSES).map(([k, b]) => `<label class="snd-row"><span>${esc(b.label)}</span>
+    const rows = Object.entries(AUDIO_BUSES).map(([k, b]) => `<label class="snd-row"><span>${esc(tl(b.label))}</span>
       <input type="range" min="0" max="100" step="1" value="${Math.round(A.levels[k] * 100)}" data-bus="${k}"><b>${Math.round(A.levels[k] * 100)}</b></label>`).join('');
     const el = this.show('menu', `
       <div class="panel menu esc-menu">
-        <div class="np-head"><img class="np-ico" src="${UI_ICON('menu_settings')}" alt=""><div class="np-title"><b>SOUND</b><div class="np-sub">Volume</div></div></div>
+        <div class="np-head"><img class="np-ico" src="${UI_ICON('menu_settings')}" alt=""><div class="np-title"><b>${tl('SOUND')}</b><div class="np-sub">${tl('Volume')}</div></div></div>
         <div class="snd-list">${rows}</div>
-        <div class="esc-list"><button data-a="mute">${A.muted ? 'Unmute all' : 'Mute all'}</button><button data-a="back">Back</button></div>
-        <div class="keys"><span><kbd>Esc</kbd>Resume</span></div>
+        <div class="esc-list"><button data-a="mute">${A.muted ? tl('Unmute all') : tl('Mute all')}</button><button data-a="back">${tl('Back')}</button></div>
+        <div class="keys"><span><kbd>Esc</kbd>${tl('Resume')}</span></div>
       </div>`, 'side');
     el.addEventListener('input', (e) => {
       const r = e.target.closest('[data-bus]'); if (!r) return;
@@ -1014,7 +1019,7 @@ export class Panels {
   }
   death() {
     const g = this.game;
-    const el = this.show('death', `<div class="death"><h1>${esc(PARTY.failed.title)}</h1><p>${esc(PARTY.failed.text)}</p><button class="primary">Return to Checkpoint</button></div>`, 'dark');
+    const el = this.show('death', `<div class="death"><h1>${esc(tl(PARTY.failed.title))}</h1><p>${esc(tl(PARTY.failed.text))}</p><button class="primary">${tl('Return to Checkpoint')}</button></div>`, 'dark');
     el.querySelector('button').onclick = () => { this.close(); g.respawn(); };
   }
   ending(stats) {
@@ -1022,15 +1027,15 @@ export class Panels {
     const el = this.show('ending', `
       <div class="ending">
         <div class="eclipse big"></div>
-        <h1>YOUR JOURNEY HAS ONLY BEGUN.</h1>
-        <p>The Guardian rests. The forest breathes again. Beneath the Ancient Valley, the Sealed Depths wait for the one who severed the eclipse.</p>
+        <h1>${tl('YOUR JOURNEY HAS ONLY BEGUN.')}</h1>
+        <p>${tl('The Guardian rests. The forest breathes again. Beneath the Ancient Valley, the Sealed Depths wait for the one who severed the eclipse.')}</p>
         <div class="summary">
-          <div>Play Time <b>${stats.time}</b></div><div>Level <b>${stats.level}</b></div>
-          <div>Secrets <b>${stats.secrets} / 4</b></div><div>Lore <b>${stats.lore} / ${stats.loreTotal}</b></div>
-          <div>Monsters Defeated <b>${stats.kills}</b></div><div>Treasure Found <b>${stats.chests}</b></div>
+          <div>${tl('Play Time')} <b>${stats.time}</b></div><div>${tl('Level')} <b>${stats.level}</b></div>
+          <div>${tl('Secrets')} <b>${stats.secrets} / 4</b></div><div>${tl('Lore')} <b>${stats.lore} / ${stats.loreTotal}</b></div>
+          <div>${tl('Monsters Defeated')} <b>${stats.kills}</b></div><div>${tl('Treasure Found')} <b>${stats.chests}</b></div>
         </div>
-        <p class="muted">ECLIPSE ONLINE — Prototype Vertical Slice · To be continued in Ancient Valley — A2</p>
-        <button class="primary">Continue Exploring</button>
+        <p class="muted">${tl('ECLIPSE ONLINE — Prototype Vertical Slice · To be continued in Ancient Valley — A2')}</p>
+        <button class="primary">${tl('Continue Exploring')}</button>
       </div>`, 'dark');
     el.querySelector('button').onclick = () => this.close();
   }
