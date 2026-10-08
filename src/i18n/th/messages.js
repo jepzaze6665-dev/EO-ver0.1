@@ -193,6 +193,9 @@ export const TH_PATTERNS = [
   ['^(.+): (.+) revealed$', '$1: เปิดเผย$2แล้ว'],
   ['^(.+) invites you {2}· {2}\\[P\\] Party$', '$1 เชิญคุณ  ·  [P] ปาร์ตี้'],
   ['^PHASE (\\d+)$', 'เฟส $1'],
+  ['^(.+) READY — \\[(.)\\]$', '$1 พร้อม — [$2]'], // class hudCounter readyText
+  ['^RETALIATION — SINFUL COUNTER NOW$', 'RETALIATION — ใช้ SINFUL COUNTER เลย'],
+  ['^MAX MOMENTUM — ENHANCED SKILLS$', 'MOMENTUM สูงสุด — สกิลเสริมพลัง'],
   // server texts with names / numbers
   ['^No account named "(.+)" — create one$', 'ไม่มีบัญชีชื่อ "$1" — สร้างบัญชีใหม่'],
   ['^Password must be (\\d+)-(\\d+) characters$', 'รหัสผ่านต้องยาว $1-$2 ตัวอักษร'],

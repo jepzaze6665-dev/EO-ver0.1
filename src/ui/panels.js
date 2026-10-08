@@ -35,7 +35,7 @@ import { LANG } from '../data/lang.js';
 
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
-const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>${tl('Passives')}</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">${tl('passive')}</span><div class="small">${esc(x.desc)}</div></div></div>`).join('')}` : '');
+const passiveRows = (cls) => (cls.passives && cls.passives.length ? `<h4>${tl('Passives')}</h4>${cls.passives.map((x) => `<div class="cx-skill"><div><b>${esc(x.name)}</b> <span class="muted small">${tl('passive')}</span><div class="small">${esc(tx(x.desc))}</div></div></div>`).join('')}` : '');
 
 // title screen embers: sparks rising from the rune circles (canvas, stops itself once removed from the page)
 function startEmbers(cv) {
@@ -225,9 +225,9 @@ export class Panels {
         <div class="cs-lines">${lines.map((id) => `<button data-cs-line="${id}" class="${id === base ? 'on' : ''}" title="${esc(CLASSES[id].name)}" style="--cc:${color(id)}"><img src="${emblem(id)}" alt=""><span>${esc(CLASSES[id].name)}</span></button>`).join('')}</div>
         <div class="cs-tree">${row(base, 'base')}<div class="cs-kids">${kids.map((id) => row(id, 'mastery')).join('')}</div></div>
         <div class="cs-info" style="--cc:${color(sel)}">
-          <div class="cs-role">${esc(c.role || '')}</div>
-          ${c.identity ? `<div class="cs-quote">“${esc(c.identity)}”</div>` : ''}
-          <p>${esc(c.description || node.description || '')}</p>
+          <div class="cs-role">${esc(tx(c.role || ''))}</div>
+          ${c.identity ? `<div class="cs-quote">“${esc(tx(c.identity))}”</div>` : ''}
+          <p>${esc(tx(c.description || node.description || ''))}</p>
           <div class="cs-rates">${bar(tl('Difficulty'), c.difficulty || 3)}${bar(tl('Damage'), r.damage)}${bar(tl('Defense'), r.defense)}${bar(tl('Range'), r.range)}${bar(tl('Mobility'), r.mobility)}</div>
           <div class="cs-res">${tl('Resource')} <b style="color:${res.colors[0]}">${esc(res.name)}</b>${c.signatureWeapon ? ` · ${tl('Weapon')} <b>${esc(c.signatureWeapon)}</b>` : ''}</div>
           <div class="cs-skills">${[...c.skills, c.special].filter(Boolean).slice(0, 7).map((s) => `<img src="${skillIconURL(s)}" title="${esc(s.name)}" alt="">`).join('')}</div>
@@ -333,8 +333,8 @@ export class Panels {
         if (max <= 1) return '';
         const lv = p.skillLevel(s.id), cur = levelMods(s, lv), next = lv < max ? levelMods(s, lv + 1) : null, r = p.upgradeCheck(s.id);
         const why = !r.ok && UPG_WHY[r.reason] ? (typeof UPG_WHY[r.reason] === 'function' ? UPG_WHY[r.reason](r) : UPG_WHY[r.reason]) : '';
-        return `<div class="small sk-level"><b style="color:#e0c070">Lv ${lv}/${max}</b> ${esc(cur.text)}
-          ${next ? `<br><span class="muted">${tl('Next:')} ${esc(next.text)}</span> ${r.ok ? `<button data-upgrade="${s.id}">${tl('+ Level ({n} pt)', { n: r.cost })}</button>` : `<span class="muted">(${why})</span>`}` : ''}</div>`;
+        return `<div class="small sk-level"><b style="color:#e0c070">Lv ${lv}/${max}</b> ${esc(tx(cur.text))}
+          ${next ? `<br><span class="muted">${tl('Next:')} ${esc(tx(next.text))}</span> ${r.ok ? `<button data-upgrade="${s.id}">${tl('+ Level ({n} pt)', { n: r.cost })}</button>` : `<span class="muted">(${why})</span>`}` : ''}</div>`;
       };
       // SKILL MASTERY (data/skillMastery.js): level name, XP bar, current reward
       const masteryRow = (s) => {
@@ -342,7 +342,7 @@ export class Panels {
         const pct = mi.need ? Math.round((mi.into / mi.need) * 100) : 100;
         return `<div class="small sk-mastery"><b style="color:#b8a0ff">${tl('Mastery')} ${MASTERY.names[mi.level]}</b>
           <span style="display:inline-block;width:70px;height:5px;background:#2a2238;vertical-align:middle;border-radius:2px"><span style="display:block;width:${pct}%;height:100%;background:#b8a0ff;border-radius:2px"></span></span>
-          <span class="muted">${mi.need ? `${mi.into}/${mi.need}` : tl('MAX')}${mi.level ? ' · ' + esc(masteryReward(mi.level).text) : ''}</span></div>`;
+          <span class="muted">${mi.need ? `${mi.into}/${mi.need}` : tl('MAX')}${mi.level ? ' · ' + esc(tx(masteryReward(mi.level).text)) : ''}</span></div>`;
       };
       // SKILL EVOLUTION: chosen branch shown on the card, [Evolution] opens the panel below
       const evoRow = (s) => {
@@ -359,10 +359,10 @@ export class Panels {
         const lines = (m.gear || []).map((x) => describeMod(x, (id) => (p.skillSys.get(id) || { name: id }).name));
         return (ch > 1 ? `<div class="small" style="color:#9af8ff">${tl('Charges: {n}', { n: ch })}</div>` : '') + lines.map((l) => `<div class="small" style="color:#9af8ff">⚙ ${esc(l)}</div>`).join('');
       };
-      const lockRow = (s) => { const r = p.skillUnlockCheck(s); return r.ok ? '' : `<div class="small" style="color:#ffb070">🔒 ${tl('Unlocks with:')} ${r.missing.map(esc).join(', ')}</div>`; };
+      const lockRow = (s) => { const r = p.skillUnlockCheck(s); return r.ok ? '' : `<div class="small" style="color:#ffb070">🔒 ${tl('Unlocks with:')} ${r.missing.map((m) => esc(tx(m))).join(', ')}</div>`; };
       const card = (s, extra = '') => `<div class="skill-card${lo.slots.includes(s.id) ? ' on' : ''}"${p.skillUnlocked(s) ? '' : ' style="opacity:.6"'}>
-          <img src="${skillIconURL(s)}"><div class="sk-body">${catTag(s)}<b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).join(', ')}</span>
-          <div class="small">${esc(s.desc || '')}</div>${lockRow(s)}${gearRow(s)}${lvRow(s)}${masteryRow(s)}${evoRow(s)}${extra}</div></div>`;
+          <img src="${skillIconURL(s)}"><div class="sk-body">${catTag(s)}<b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).map((t) => tx(t)).join(', ')}</span>
+          <div class="small">${esc(tx(s.desc || ''))}</div>${lockRow(s)}${gearRow(s)}${lvRow(s)}${masteryRow(s)}${evoRow(s)}${extra}</div></div>`;
       const evoSkill = this.evoSel && p.skillSys.get(this.evoSel);
       if (evoSkill && evolutionsOf(evoSkill).length) {
         const s = evoSkill, cur = p.skillEvolution(s.id), mi = masteryInfo(g.classProgress.peekSkill(p.cls.id, s.id));
@@ -372,10 +372,10 @@ export class Panels {
           const req = e.requirements || {};
           return `<div class="evo-card${chosen ? ' on' : ''}" style="border:1px solid ${chosen ? '#ff9ad0' : '#3a2f50'};border-radius:6px;padding:8px;margin:6px 0;${cur && !chosen ? 'opacity:.55' : ''}">
             <b style="color:#ff9ad0">${esc(e.name)}</b>${chosen ? ` <span class="small" style="color:#ff9ad0">${tl('CHOSEN')}</span>` : ''}
-            <div class="small" style="margin:4px 0">${esc(e.desc)}</div>
-            <div class="small">${CH.filter(([k]) => e.changes && e.changes[k]).map(([k, l]) => `<div><span class="muted">${l}:</span> ${esc(e.changes[k])}</div>`).join('')}</div>
+            <div class="small" style="margin:4px 0">${esc(tx(e.desc))}</div>
+            <div class="small">${CH.filter(([k]) => e.changes && e.changes[k]).map(([k, l]) => `<div><span class="muted">${l}:</span> ${esc(tx(e.changes[k]))}</div>`).join('')}</div>
             <div class="small muted">${tl('Needs: Skill Lv {lv} · Mastery {m}', { lv: req.skillLevel || 1, m: MASTERY.names[req.masteryLevel || 0] })}</div>
-            ${chosen || cur ? '' : r.ok ? `<button data-evolve="${s.id}:${e.id}">${tl('Choose {name}', { name: esc(e.name) })}</button>` : `<div class="small" style="color:#ff7070">${tl('Missing:')} ${r.missing.map(esc).join(', ')}</div>`}
+            ${chosen || cur ? '' : r.ok ? `<button data-evolve="${s.id}:${e.id}">${tl('Choose {name}', { name: esc(e.name) })}</button>` : `<div class="small" style="color:#ff7070">${tl('Missing:')} ${r.missing.map((m) => esc(tx(m))).join(', ')}</div>`}
           </div>`;
         };
         body = `<div class="evo-panel">
@@ -383,7 +383,7 @@ export class Panels {
           <h3>${tl('{name} — Evolution', { name: esc(s.name) })}</h3>
           <p class="small">${tl('Your skill: <b>Lv {lv}</b> · <b>Mastery {m}</b>. Choose <b>ONE</b> branch — it changes how the skill plays.', { lv: p.skillLevel(s.id), m: MASTERY.names[mi.level] })} ${cur ? tl('This skill has evolved.') : ''}</p>
           <div class="evo-card" style="border:1px dashed #3a2f50;border-radius:6px;padding:8px;margin:6px 0">
-            <b>${tl('Original — {name}', { name: esc(s.name) })}</b><div class="small">${esc(s.desc || '')}</div></div>
+            <b>${tl('Original — {name}', { name: esc(s.name) })}</b><div class="small">${esc(tx(s.desc || ''))}</div></div>
           ${evolutionsOf(s).map(option).join('')}
         </div>`;
       } else
@@ -418,13 +418,13 @@ export class Panels {
       if (!this.classSel || !tree.some((t) => t.node.id === this.classSel)) this.classSel = p.cls.id;
       const selId = this.classSel, selNode = CLASS_TREE[selId], selCls = CLASSES[selId];
       const bar = (have, need) => need ? `<span class="req-bar"><i style="width:${Math.min(100, (have / need) * 100)}%"></i></span><span class="muted small">${Math.floor(have)}/${need}</span>` : '';
-      const reqRow = (r) => `<div class="req ${r.met ? 'ok' : ''}">${r.met ? '✓' : '○'} ${esc(r.label)} ${r.need ? bar(r.have, r.need) : ''}</div>`;
+      const reqRow = (r) => `<div class="req ${r.met ? 'ok' : ''}">${r.met ? '✓' : '○'} ${esc(tx(r.label))} ${r.need ? bar(r.have, r.need) : ''}</div>`;
       const trialBox = (x) => {
         const t = x.trial;
         if (!t) return '';
-        if (x.unlocked || t.state === 'passed') return `<div class="trial passed">✦ ${esc(t.def.title)} — ${tl('PASSED')}</div>`;
-        if (t.state === 'active') return `<div class="trial active"><b>${esc(t.def.title)}</b>${t.objectives.map((o) => reqRow({ met: o.have >= o.count, label: CLASS_COUNTERS[o.counter].label, have: Math.max(0, o.have), need: o.count })).join('')}<button data-abandon="${t.id}">${tl('Abandon trial')}</button></div>`;
-        return `<div class="trial"><b>${esc(t.def.title)}</b>${t.def.objectives.map((o) => `<div class="muted small">• ${CLASS_COUNTERS[o.counter].label} ×${o.count}</div>`).join('')}<button data-trial="${x.node.id}" ${x.ready ? '' : 'disabled'}>${x.ready ? tl('Begin trial') : tl('Requirements not met')}</button></div>`;
+        if (x.unlocked || t.state === 'passed') return `<div class="trial passed">✦ ${esc(tx(t.def.title))} — ${tl('PASSED')}</div>`;
+        if (t.state === 'active') return `<div class="trial active"><b>${esc(tx(t.def.title))}</b>${t.objectives.map((o) => reqRow({ met: o.have >= o.count, label: tx(CLASS_COUNTERS[o.counter].label), have: Math.max(0, o.have), need: o.count })).join('')}<button data-abandon="${t.id}">${tl('Abandon trial')}</button></div>`;
+        return `<div class="trial"><b>${esc(tx(t.def.title))}</b>${t.def.objectives.map((o) => `<div class="muted small">• ${tx(CLASS_COUNTERS[o.counter].label)} ×${o.count}</div>`).join('')}<button data-trial="${x.node.id}" ${x.ready ? '' : 'disabled'}>${x.ready ? tl('Begin trial') : tl('Requirements not met')}</button></div>`;
       };
 
       // ---- LAYOUT A (owner's choice, docs/ui/ECLIPSE_ONLINE_Class_Tab_Layouts.pdf): vertical lineage tree with emblems +
@@ -459,15 +459,15 @@ export class Panels {
         : `<div class="ct-note">${tl('🔒 Reach this class through its parent class first.')}</div>`;
       const rate = (label, v) => `<div><span>${label}</span><i>${[1, 2, 3, 4, 5].map((k) => `<b class="${k <= (v || 0) ? 'on' : ''}"></b>`).join('')}</i></div>`;
       const sr = (selCls && selCls.ratings) || {};
-      const info = selCls ? `<div class="ct-role">${esc(selCls.role || '')}</div>
-          ${selCls.identity ? `<div class="ct-quote">“${esc(selCls.identity)}”</div>` : ''}
-          <div class="ct-desc">${esc(selCls.description || selNode.description || '')}</div>
+      const info = selCls ? `<div class="ct-role">${esc(tx(selCls.role || ''))}</div>
+          ${selCls.identity ? `<div class="ct-quote">“${esc(tx(selCls.identity))}”</div>` : ''}
+          <div class="ct-desc">${esc(tx(selCls.description || selNode.description || ''))}</div>
           <div class="ct-rates">${rate(tl('Difficulty'), selCls.difficulty)}${rate(tl('Damage'), sr.damage)}${rate(tl('Defense'), sr.defense)}${rate(tl('Range'), sr.range)}${rate(tl('Mobility'), sr.mobility)}${sr.support ? rate(tl('Support'), sr.support) : ''}</div>
           <div class="ct-res">${tl('Resource')} <b>${esc(RESOURCES[selCls.resource].name)}</b>${selCls.signatureWeapon ? ` · ${tl('Weapon')} <b>${esc(selCls.signatureWeapon)}</b>` : ''}</div>
           <div class="ct-skills">${[...selCls.skills, selCls.special].filter(Boolean).map((s) => `<img src="${skillIconURL(s)}" title="${esc(s.name)}" alt="">`).join('')}</div>
-          ${selCls.strengths ? `<div class="ct-sw"><div><b class="good">${tl('STRENGTHS')}</b>${selCls.strengths.map((x) => `<div>+ ${esc(x)}</div>`).join('')}</div><div><b class="bad">${tl('WEAKNESSES')}</b>${(selCls.weaknesses || []).map((x) => `<div>− ${esc(x)}</div>`).join('')}</div></div>` : ''}`
-        : `<div class="ct-desc">${esc(selNode.description || '')}</div><p class="muted small">${tl('Skills are revealed when this class arrives.')}</p>`;
-      const chips = Object.entries(rec).filter(([, v]) => v > 0).map(([k, v]) => `<span>${esc(CLASS_COUNTERS[k] ? CLASS_COUNTERS[k].label : k)} <b>${Math.floor(v)}</b></span>`).join('') || `<span class="muted">${tl('Nothing yet — fight!')}</span>`;
+          ${selCls.strengths ? `<div class="ct-sw"><div><b class="good">${tl('STRENGTHS')}</b>${selCls.strengths.map((x) => `<div>+ ${esc(tx(x))}</div>`).join('')}</div><div><b class="bad">${tl('WEAKNESSES')}</b>${(selCls.weaknesses || []).map((x) => `<div>− ${esc(tx(x))}</div>`).join('')}</div></div>` : ''}`
+        : `<div class="ct-desc">${esc(tx(selNode.description || ''))}</div><p class="muted small">${tl('Skills are revealed when this class arrives.')}</p>`;
+      const chips = Object.entries(rec).filter(([, v]) => v > 0).map(([k, v]) => `<span>${esc(CLASS_COUNTERS[k] ? tx(CLASS_COUNTERS[k].label) : k)} <b>${Math.floor(v)}</b></span>`).join('') || `<span class="muted">${tl('Nothing yet — fight!')}</span>`;
       body = `<div class="ct-layout" style="--cc:${colorOf(selId)}">
           <img class="ct-splash" src="assets/ui/class/${selId}_splash.png" alt="">
           <div class="ct-left">
@@ -485,12 +485,12 @@ export class Panels {
           <h3>${esc(e.name.toUpperCase())}</h3>
           <div class="kv"><span>${tl('Level')}</span><b>${e.level}</b></div>
           <div class="kv"><span>HP</span><b>${e.hp}</b></div>
-          <div class="kv"><span>${tl('Weakness')}</span><b>${esc(e.weakness)}</b></div>
-          <div class="kv"><span>${tl('Pattern')}</span><b>${esc(e.pattern)}</b></div>
-          <div class="kv"><span>${tl('Role')}</span><b>${esc(e.role)}</b></div>
-          <div class="kv"><span>${tl('Drop')}</span><b>${esc(e.drop)}</b></div>
+          <div class="kv"><span>${tl('Weakness')}</span><b>${esc(tx(e.weakness))}</b></div>
+          <div class="kv"><span>${tl('Pattern')}</span><b>${esc(tx(e.pattern))}</b></div>
+          <div class="kv"><span>${tl('Role')}</span><b>${esc(tx(e.role))}</b></div>
+          <div class="kv"><span>${tl('Drop')}</span><b>${esc(tx(e.drop))}</b></div>
           <div class="kv"><span>${tl('Defeated')}</span><b>${e.kills}</b></div>
-          <p>${esc(e.desc)}</p>${e.roleHint ? `<div class="muted small">⚔ ${esc(e.roleHint)}</div>` : ''}
+          <p>${esc(tx(e.desc))}</p>${e.roleHint ? `<div class="muted small">⚔ ${esc(tx(e.roleHint))}</div>` : ''}
         </div>`).join('') || `<div class="empty">${tl('No monsters encountered yet. The world is waiting to be learned.')}</div>`}
         <div class="muted small">${tl('Knowledge grows as you fight: 1 kill reveals level & pattern, 3 kills weakness & drops, 5 kills HP. Lore fragments reveal secrets early.')}</div></div>`;
     } else {

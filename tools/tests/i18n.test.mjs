@@ -160,6 +160,28 @@ await test('T3: quests, lore, dialogue lines and map signs all have Thai (place 
   setLang('en');
   ok(!miss.length, miss.length + ' without Thai:\n      ' + miss.slice(0, 40).join('\n      '));
 });
+await test('T5: class, skill, class-tree, boss and monster texts have Thai (attack / resource names excepted)', async () => {
+  const { CLASSES } = await import('../../src/skills/classes.js');
+  const { CLASS_TREE, CLASS_COUNTERS } = await import('../../src/data/classTree.js');
+  const { BOSSES } = await import('../../src/data/bosses.js');
+  const { MONSTERS } = await import('../../src/monsters/monsterTypes.js');
+  const { txBlock } = await import('../../src/i18n/i18n.js');
+  const KEYS = new Set(['desc', 'description', 'text', 'role', 'identity', 'strengths', 'weaknesses', 'guideIntro', 'tutorial', 'loop', 'readyText',
+    'perfectGuardText', 'hint', 'label', 'title', 'sub', 'weakness', 'roleHint', 'drop', 'behavior', 'damage', 'utility', 'cooldown', 'trigger', 'defeat', 'callout']);
+  const miss = new Set();
+  setLang('th');
+  const walk = (o, k, d = 0) => {
+    if (d > 8) return;
+    if (typeof o === 'string') { if (KEYS.has(k) && /[a-z]{2} [a-z]/i.test(o) && txBlock(o) === o) miss.add(o); return; }
+    if (Array.isArray(o)) return o.forEach((x) => walk(x, k, d + 1));
+    if (o && typeof o === 'object') for (const [kk, v] of Object.entries(o)) if (typeof v !== 'function') walk(v, KEYS.has(kk) ? kk : (KEYS.has(k) && /^\w+$/.test(kk) ? k : kk), d + 1);
+  };
+  for (const c of Object.values(CLASSES)) walk(c, '');
+  walk(CLASS_TREE, ''); walk(CLASS_COUNTERS, ''); walk(BOSSES, ''); walk(MONSTERS, '');
+  setLang('en');
+  const left = [...miss].filter((s) => !['Storm Burst', 'Broken Oath'].includes(s)); // skill / resource names (kept English)
+  ok(!left.length, left.length + ' without Thai:\n      ' + left.slice(0, 30).join('\n      '));
+});
 await test('Thai text breaks at word edges and fits the width', () => {
   const text = 'ปาร์ตี้ของคุณล้มลงแล้ว กลับไปที่จุดเช็กพอยต์ เรียนรู้จังหวะของศัตรู แล้วลองใหม่อีกครั้ง';
   ok(hasThai(text), 'hasThai');

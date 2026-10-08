@@ -252,7 +252,7 @@ export class HUD {
       this.text(ctx, hc.label, x + 8 * u, my - 2 * u, 10 * u, hc.full);
       this.counterRow(ctx, x + 20 * u, my + 12 * u, u, hc);
       this.text(ctx, `${hc.value} / ${hc.max}`, x + 172 * u, my + 17 * u, 13 * u, hc.value >= hc.max ? hc.full : '#b8b0d8', { align: 'right' });
-      if (hc.ready && hc.readyText) this.text(ctx, hc.readyText, x, my + 42 * u, 11 * u, `rgba(240,220,255,${0.6 + 0.4 * Math.sin(g.time * 6)})`);
+      if (hc.ready && hc.readyText) this.text(ctx, tx(hc.readyText), x, my + 42 * u, 11 * u, `rgba(240,220,255,${0.6 + 0.4 * Math.sin(g.time * 6)})`);
     }
     // status chips
     let sx = x;
@@ -311,7 +311,7 @@ export class HUD {
     const hc = cls.hudCounter ? cls.hudCounter(p) : null;
     if (hc && hc.ready && hc.readyText && this.layout() !== 'focus') { // focus layout shows READY beside the counter
       const k = 0.65 + 0.35 * Math.sin(g.time * 8);
-      this.text(ctx, `◆ ◆ ◆  ${hc.readyText.replace(' — ', '  —  ')}`, W / 2, y - 42 * u, 15 * u * (0.95 + k * 0.08), `rgba(240,220,255,${k})`, { align: 'center', font: TITLE });
+      this.text(ctx, `◆ ◆ ◆  ${tx(hc.readyText).replace(' — ', '  —  ')}`, W / 2, y - 42 * u, 15 * u * (0.95 + k * 0.08), `rgba(240,220,255,${k})`, { align: 'center', font: TITLE });
     }
     slots.forEach((sl, i) => {
       if (i === binds.length) x += 14 * u;
@@ -454,7 +454,7 @@ export class HUD {
     this.counterRow(ctx, rx, cy, u, hc, step);
     if (ready) {
       const k = 0.65 + 0.35 * Math.sin(g.time * 8);
-      this.text(ctx, hc.readyText.split(' — ')[0], W / 2, cy + 5 * u, 14 * u, `rgba(240,220,255,${k})`, { font: TITLE, weight: 600 });
+      this.text(ctx, tx(hc.readyText).split(' — ')[0], W / 2, cy + 5 * u, 14 * u, `rgba(240,220,255,${k})`, { font: TITLE, weight: 600 });
     } else this.text(ctx, `${hc.value}/${hc.max}`, rx + rowW + 14 * u, cy + 4 * u, 10 * u, full ? hc.full : '#b8b0d8', { font: TITLE });
     return cy - 12 * u;
   }
@@ -496,7 +496,7 @@ export class HUD {
 
   tooltip(ctx, x, y, s, u) {
     const w = 280 * u;
-    const lines = wrap(ctx, s.desc, w - 16 * u, `500 ${Math.round(11 * u)}px ${FONT}`);
+    const lines = wrap(ctx, tx(s.desc), w - 16 * u, `500 ${Math.round(11 * u)}px ${FONT}`);
     const h = (46 + lines.length * 15) * u;
     this.panel(ctx, x, y - h, w, h, 0.95);
     this.text(ctx, s.name, x + 8 * u, y - h + 18 * u, 13 * u, '#f0e0ff');
