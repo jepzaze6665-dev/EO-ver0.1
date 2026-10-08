@@ -1533,3 +1533,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (RunSystem: worn gear notes 'g-'), enforceClass quiet. Tests economy.test.mjs 8. Checked online: start kit + a purchase survive
   a reload, a death pile drops and recovers with no refusal, T.playthrough 17/17 refused only the harness's own local boss kill;
   ?offline runCheck 15 · gearCheck 30 · randomEventCheck 10 · playthrough 17 · loadoutCheck 9. H5 COMPLETE (H5a-c).
+  Done H3a (damage limits): `server/combatGuard.js` CombatGuard (GameServer.combatGuard) checks every 'mobHit' before cityRooms relays
+  it to the room host: per hit <= COMBAT_GUARD.perHit 80 × baseAttack(level) (cut down; `ad` armour damage too), per second total
+  <= perSecond 120 × (rest of that second dropped), <= hitsPerSecond 60. baseAttack = the STRONGEST class's base atk +
+  levelStats at the player's SERVER level (economy ledger; the class is not trusted). Limits from measured honest play (every
+  class LV 50 vs Varkharon god, T.itemBuildCheck gear builds, A1 packs): max hit 33×, max second 41×, max 24 hits/s. Logs
+  "combat guard: <name> ..." at most every 10 s. Tests combatGuard.test.mjs (4). NOT yet: the browser still computes its own
+  damage (H3b = the server computes hits from 'cast skill X toward Y'); boss-object hits (bossEvt obj) are not limited.

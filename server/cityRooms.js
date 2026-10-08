@@ -45,6 +45,7 @@ export class CityRooms {
     server.handle('mobHit', (s, m) => {
       const r = s.presence?.room, h = r && this.hosts.get(r);
       if (!h || h === s.id) return;
+      if (this.server.combatGuard) { m = this.server.combatGuard.check(s, m); if (!m) return; } // H3a: size / rate limits
       this.server.sessions.get(h)?.send('mobHit', { ...m, from: s.id });
     });
     server.on('sessionClosed', (s) => this.leave(s, 'offline'));
