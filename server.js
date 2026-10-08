@@ -15,11 +15,12 @@ const PRIVATE = ['/server/', '/.git/', '/.claude/'];
 
 // dataDir null = in-memory store (tests); quiet = no logs; simHosts = H2: the server runs every dungeon map room itself
 // (server/simHosts.js — off in the unit tests unless they ask, on for `node server.js` unless EO_SIM=0)
-export function startServer({ port = 5173, dataDir = path.join(ROOT, 'server', 'data'), quiet = false, limits, simHosts = false } = {}) {
+// requirePassword = H6 accounts need a password (on for `node server.js` unless EO_DEVLOGIN=1; off in the unit tests)
+export function startServer({ port = 5173, dataDir = path.join(ROOT, 'server', 'data'), quiet = false, limits, simHosts = false, requirePassword = false } = {}) {
   const log = quiet ? {} : console;
   const store = dataDir ? new JsonFileStore(dataDir, 'accounts') : new MemoryStore();
   const saveStore = dataDir ? new JsonDirStore(path.join(dataDir, 'saves')) : new MemoryStore();
-  const game = new GameServer({ store, saveStore, limits, log, simHosts });
+  const game = new GameServer({ store, saveStore, limits, log, simHosts, requirePassword });
   const httpServer = http.createServer((req, res) => {
     let p;
     try { p = decodeURIComponent(req.url.split('?')[0]); } catch { res.writeHead(400); return res.end(); }
@@ -44,7 +45,7 @@ export function startServer({ port = 5173, dataDir = path.join(ROOT, 'server', '
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const s = await startServer({ port: Number(process.env.PORT) || 5173, dataDir: process.env.EO_DATA || undefined, simHosts: process.env.EO_SIM !== '0' });
+  const s = await startServer({ port: Number(process.env.PORT) || 5173, dataDir: process.env.EO_DATA || undefined, simHosts: process.env.EO_SIM !== '0', requirePassword: process.env.EO_DEVLOGIN !== '1' });
   console.log(`ECLIPSE ONLINE running at http://localhost:${s.port}  (game server: ws://localhost:${s.port}/ws)`);
   // other computers on the same network (N10 multi-client tests): open one of these in their browser
   const { networkInterfaces } = await import('os');

@@ -143,9 +143,12 @@ export class Panels {
     const ready = devOffline || (on && on.online && on.saveReady); // N3: saves come from the server after login
     const st = on ? on.state : 'offline', err = on && on.net.lastError;
     const netBox = devOffline ? '<div class="ts-net dev">DEV OFFLINE MODE (?offline)</div>'
-      : on && on.online ? `<div class="ts-net ok">● Online as <b>${esc(on.playerName)}</b> <button data-a="logout">Change name</button></div>`
-      : `<form class="ts-net" data-a="login"><input name="nm" maxlength="16" placeholder="Character name" value="${esc((on && on.lastName()) || '')}" autocomplete="off" spellcheck="false">
-          <button type="submit" ${st === 'connecting' || st === 'reconnecting' ? 'disabled' : ''}>${st === 'connecting' ? 'Connecting…' : st === 'reconnecting' ? 'Reconnecting…' : 'Connect'}</button>
+      : on && on.online ? `<div class="ts-net ok">● Online as <b>${esc(on.playerName)}</b> <button data-a="logout">Log out</button></div>`
+        + (on.hasPw === false ? `<form class="ts-net ts-setpw"><span>Protect this name with a password:</span><input name="pw" type="password" maxlength="64" placeholder="New password (6+)" autocomplete="new-password"><button type="submit">Set password</button></form>` : '')
+      : `<form class="ts-net" data-a="login"><input name="nm" maxlength="16" placeholder="Character name" value="${esc((on && on.lastName()) || '')}" autocomplete="username" spellcheck="false">
+          <input name="pw" type="password" maxlength="64" placeholder="Password" autocomplete="current-password">
+          <button type="submit" ${st === 'connecting' || st === 'reconnecting' ? 'disabled' : ''}>${st === 'connecting' ? 'Connecting…' : st === 'reconnecting' ? 'Reconnecting…' : 'Log in'}</button>
+          <button type="button" data-create ${st === 'connecting' || st === 'reconnecting' ? 'disabled' : ''}>Create account</button>
           ${err ? `<div class="ts-net-err">${esc(err.text)}</div>` : ''}</form>`;
     const el = this.show('title', `
       <div class="ts-bg ts-art"><div class="ts-shade"></div><canvas class="ts-embers"></canvas></div>
@@ -161,18 +164,28 @@ export class Panels {
       </div>`, 'title ts');
     this.titleHasSave = hasSave;
     startEmbers(el.querySelector('.ts-embers'));
-    const form = el.querySelector('form.ts-net');
+    const form = el.querySelector('form.ts-net[data-a="login"]');
     if (form) {
-      const inp = form.querySelector('input');
-      if (st === 'offline') setTimeout(() => inp.focus(), 50);
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
+      const inp = form.querySelector('input[name=nm]'), pw = form.querySelector('input[name=pw]');
+      if (st === 'offline') setTimeout(() => (inp.value ? pw : inp).focus(), 50);
+      // H6: Log in = name + password (empty password = this device's remembered login); Create account = new name + password
+      const go = (create) => {
         const n = inp.value.trim().replace(/\s+/g, ' '), bad = validName(n);
         if (bad) { this.game.ui.toast('Name: ' + bad, 2); return; }
-        on.connect(n);
+        if (create && pw.value.length < 6) { this.game.ui.toast('Password: at least 6 characters', 2.5); return; }
+        on.connect(n, pw.value ? { pw: pw.value, ...(create ? { create: true } : {}) } : null);
         this.title(hasSave);
-      });
+      };
+      form.addEventListener('submit', (e) => { e.preventDefault(); go(false); });
+      form.querySelector('[data-create]').addEventListener('click', () => go(true));
     }
+    const setpw = el.querySelector('form.ts-setpw');
+    if (setpw) setpw.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const v = setpw.querySelector('input').value;
+      if (v.length < 6) { this.game.ui.toast('Password: at least 6 characters', 2.5); return; }
+      on.setPassword(v);
+    });
     el.addEventListener('click', (e) => {
       const t = e.target.closest('[data-a]');
       const a = t && t.dataset.a;

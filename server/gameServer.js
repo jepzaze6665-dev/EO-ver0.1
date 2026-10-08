@@ -5,7 +5,7 @@
 // Later phases add message handlers with `on(type, fn(session, msg))` and react to 'sessionOpened' / 'sessionClosed'.
 import { EventEmitter } from 'events';
 import { acceptUpgrade } from './ws.js';
-import { DevAccounts } from './accounts.js';
+import { Accounts } from './accounts.js';
 import { CityRooms } from './cityRooms.js';
 import { SaveService } from './saves.js';
 import { PartyService } from './parties.js';
@@ -17,10 +17,10 @@ import { MemoryStore } from './store.js';
 import { PROTOCOL_VERSION, NET_LIMITS, NET_ERROR, validateClientMessage, encode } from '../src/net/protocol.js';
 
 export class GameServer extends EventEmitter {
-  constructor({ store, saveStore = new MemoryStore(), limits = {}, log = console, simHosts = false } = {}) {
+  constructor({ store, saveStore = new MemoryStore(), limits = {}, log = console, simHosts = false, requirePassword = false } = {}) {
     super();
     this.limits = { ...NET_LIMITS, ...limits };
-    this.accounts = new DevAccounts(store);
+    this.accounts = new Accounts(store, { requirePassword }); // H6: passwords (required on the real server)
     this.store = store;
     this.log = log;
     this.conns = new Set();        // every open connection (logged in or not)
@@ -30,6 +30,7 @@ export class GameServer extends EventEmitter {
     this.timer = setInterval(() => this.tick(), 1000);
     this.timer.unref?.();
     this.handle('ping', (s, m) => s.send('pong', { n: m.n, time: Date.now() }));
+    this.handle('setPassword', (s, m) => { const r = this.accounts.setPassword(s.name, m.pw, m.old); s.send(r.ok ? 'passwordSet' : 'error', r.ok ? {} : { code: NET_ERROR.account, text: r.text }); });
     this.city = new CityRooms(this);   // N2 shared cities
     this.saves = new SaveService(this, saveStore);   // N3 saves
     this.parties = new PartyService(this);           // N4 parties
@@ -79,7 +80,7 @@ export class GameServer extends EventEmitter {
   login(c, msg) {
     if (msg.v !== PROTOCOL_VERSION) return this.kick(c, NET_ERROR.version, `server speaks protocol ${PROTOCOL_VERSION}, please reload`);
     if (msg.sim !== undefined) return this.simHosts.login(c, msg); // H2: a room host the server started itself (secret key)
-    const r = this.accounts.login(msg.name, msg.token);
+    const r = this.accounts.login(msg.name, msg.token, { pw: msg.pw, create: msg.create });
     if (!r.ok) return this.sendTo(c, 'error', { code: r.code, text: r.text });
     const old = this.sessions.get(r.account.id);
     if (old) this.kick(old.conn, NET_ERROR.replaced, 'logged in from another window');
@@ -89,7 +90,7 @@ export class GameServer extends EventEmitter {
     };
     c.session = session;
     this.sessions.set(session.id, session);
-    session.send('welcome', { v: PROTOCOL_VERSION, id: session.id, name: session.name, token: r.token, created: r.created });
+    session.send('welcome', { v: PROTOCOL_VERSION, id: session.id, name: session.name, token: r.token, created: r.created, hasPw: this.accounts.hasPassword(session.name) });
     this.log.info?.(`[server] ${session.name} (${session.id}) online — ${this.sessions.size} player(s)`);
     this.emit('sessionOpened', session);
   }

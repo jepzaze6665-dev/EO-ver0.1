@@ -32,6 +32,7 @@ const FIELD = {
   bool: (v) => typeof v === 'boolean',
   name: (v) => typeof v === 'string' && validName(v) === null,
   token: (v) => typeof v === 'string' && /^[a-f0-9]{32,64}$/.test(v),
+  password: (v) => typeof v === 'string' && v.length >= 1 && v.length <= 64,
   slug: (v) => typeof v === 'string' && /^[A-Za-z0-9_]{1,24}$/.test(v),   // map / class / animation ids
   coord: (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100000,
   dir: (v) => v === 0 || v === 1 || v === 2 || v === 3,                   // dir4: down, up, right, left
@@ -78,7 +79,7 @@ export function validMobRow(r) {
 
 // client -> server
 export const CLIENT_MESSAGES = {
-  hello: { v: 'int', name: 'name', token: 'token?', sim: 'string?' }, // sim = H2 server host key (server/simHosts.js), never sent by players   // log in (DEV identity: name + token, server/accounts.js)
+  hello: { v: 'int', name: 'name', token: 'token?', pw: 'password?', create: 'bool?', sim: 'string?' }, // H6: pw = log in / create an account (server/accounts.js) // sim = H2 server host key (server/simHosts.js), never sent by players   // log in (DEV identity: name + token, server/accounts.js)
   ping: { n: 'int?' },                                   // keep-alive / latency probe (server answers 'pong')
   // N2 presence (src/net/onlineSession.js): where I am + what I look like. Shared-city positions are NOT authoritative
   // (no combat there); dungeon movement gets server checks in N7.
@@ -118,6 +119,7 @@ export const CLIENT_MESSAGES = {
   dungeonAnswer: { check: 'slug', yes: 'bool' },         // a member accepts / declines the leader's proposal
   dungeonCancel: {},                                     // the leader withdraws the proposal
   dungeonLeave: {},                                      // N6: return to the city from the run's start point
+  setPassword: { pw: 'password', old: 'password?' },     // H6: set / change my password (old = needed to change one)
   bossKill: { boss: 'slug' },
   // N9 death pile (dungeon/runSystem.js -> server/piles.js): where mine lies (items stay in my save), carry a member's
   pileSet: { m: 'slug', x: 'coord', y: 'coord', n: 'int' },
@@ -128,7 +130,8 @@ export const CLIENT_MESSAGES = {
 
 // server -> client (documented here, the client does not validate them strictly)
 export const SERVER_MESSAGES = {
-  welcome: { v: 'int', id: 'string', name: 'name', token: 'token', created: 'bool' },
+  welcome: { v: 'int', id: 'string', name: 'name', token: 'token', created: 'bool', hasPw: 'bool' }, // H6 hasPw: false = an old account without a password yet
+  passwordSet: {},                                       // H6: setPassword done
   pong: { n: 'int?', time: 'number' },
   error: { code: 'string', text: 'string' },
   kicked: { code: 'string', text: 'string' },          // the server is closing this connection on purpose
@@ -180,6 +183,10 @@ export const NET_ERROR = {
   roomFull: 'roomFull',   // the shared city room is full: you still play, alone
   party: 'party',         // a party action was refused (text says why)
   dungeon: 'dungeon',     // a dungeon entry was refused (locked area, not in a city, ... — text says who / why)
+  password: 'password',   // H6: wrong / too short password
+  locked: 'locked',       // H6: too many wrong passwords, wait
+  noAccount: 'noAccount', // H6: no account with that name (create one)
+  account: 'account',     // H6: setPassword refused (text says why)
 };
 
 // null = ok, else a short reason

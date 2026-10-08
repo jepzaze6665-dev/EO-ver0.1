@@ -8,7 +8,7 @@ import { PROTOCOL_VERSION, NET_ERROR, encode } from './protocol.js';
 
 export const NET_STATE = { offline: 'offline', connecting: 'connecting', online: 'online', reconnecting: 'reconnecting' };
 const TOKEN_KEY = 'eclipse_online_dev_tokens';
-const NO_RETRY = new Set([NET_ERROR.replaced, NET_ERROR.version, NET_ERROR.rate, NET_ERROR.nameTaken, NET_ERROR.token, NET_ERROR.name]);
+const NO_RETRY = new Set([NET_ERROR.replaced, NET_ERROR.version, NET_ERROR.rate, NET_ERROR.nameTaken, NET_ERROR.token, NET_ERROR.name, NET_ERROR.password, NET_ERROR.locked, NET_ERROR.noAccount]);
 
 export function defaultServerUrl(loc = globalThis.location) {
   if (!loc) return 'ws://localhost:5173/ws';
@@ -41,8 +41,10 @@ export class NetClient {
 
   get online() { return this.state === NET_STATE.online; }
 
-  connect(name) {
+  // creds (H6): { pw, create } sent with the next hello only, never stored (the server answers with a device token)
+  connect(name, creds = null) {
     this.name = name;
+    this.creds = creds;
     this.lastError = null;
     this.retry = 0;
     this.open(NET_STATE.connecting);
@@ -55,7 +57,7 @@ export class NetClient {
     let ws;
     try { ws = new this.WS(this.url); } catch (e) { return this.lost({ code: NET_ERROR.server, text: e.message }); }
     this.ws = ws;
-    ws.onopen = () => ws.send(encode('hello', { v: PROTOCOL_VERSION, name: this.name, ...(this.token() ? { token: this.token() } : {}), ...(this.helloExtra || {}) })); // helloExtra: H2 server host only
+    ws.onopen = () => ws.send(encode('hello', { v: PROTOCOL_VERSION, name: this.name, ...(this.token() ? { token: this.token() } : {}), ...(this.creds || {}), ...(this.helloExtra || {}) })); // helloExtra: H2 server host only
     ws.onmessage = (ev) => this.onMessage(ws, ev.data);
     ws.onclose = () => { if (this.ws === ws) this.lost(null); };
     ws.onerror = () => {};

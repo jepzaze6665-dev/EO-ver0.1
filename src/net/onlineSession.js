@@ -58,7 +58,9 @@ export class OnlineSession {
     const n = this.net;
     this.party = null;         // server's view of my party (null = none)
     this.invites = [];         // open invites: { party, from, size }
-    n.on('welcome', (m) => { if (m.id !== this.playerId) { this.saves.reset(); this.playerId = m.id; this.party = null; this.invites = []; } });
+    n.on('passwordSet', () => { this.hasPw = true; game.ui.toast('Password set — use it to log in on any device', 3); game.ui.panels.onNetState?.('online'); });
+    n.on('error', (m) => { if (m.code === 'account') game.ui.toast(m.text, 3); });
+    n.on('welcome', (m) => { this.hasPw = m.hasPw !== false; if (m.id !== this.playerId) { this.saves.reset(); this.playerId = m.id; this.party = null; this.invites = []; } });
     n.on('party', (m) => { this.party = m.party; this.refreshParty(); });
     this.openParties = [];     // open parties at this city's gate (server 'partyListData', asked by panels.dungeonGate)
     n.on('partyListData', (m) => { this.openParties = m.parties; this.refreshParty(); });
@@ -130,10 +132,12 @@ export class OnlineSession {
   get state() { return this.net.state; }
   get playerName() { return this.net.player ? this.net.player.name : null; }
 
-  connect(name) {
+  // H6: creds = { pw, create } for a password login / a new account (sent once with the hello, never kept)
+  connect(name, creds = null) {
     try { localStorage.setItem(NAME_KEY, name); } catch { /* storage blocked */ }
-    this.net.connect(name);
+    this.net.connect(name, creds);
   }
+  setPassword(pw, old) { return this.net.send('setPassword', old ? { pw, old } : { pw }); }
   logout() { this.net.stop(); this.party = null; this.invites = []; this.check = null; this.instance = null; }
 
   // party actions: the server checks and answers with 'party' / 'partyInfo' / an error

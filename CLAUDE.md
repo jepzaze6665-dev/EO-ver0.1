@@ -1491,3 +1491,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   guests (16 puppets), server wolves hit a player 250 -> 121, kill pays EXP; ?offline playthrough 17 · bossReset 4 · b1 11 ·
   bossArena 6. NOT yet: H5 (items / EXP on the server), H3 server-side damage, H4 movement prediction, H6 accounts; the sim's
   world flags start fresh (e.g. a restored forest is not mirrored), bosses scale for one player (partyScale = sim alone).
+  Done H6 (accounts): `server/accounts.js` Accounts (DevAccounts alias): name + PASSWORD (scrypt + salt) + remembered device tokens
+  (hashes, max 5); hello { name, pw?, create?, token? }; no account -> noAccount; 5 wrong passwords -> locked 60 s; old token-only
+  accounts log in by token, welcome.hasPw false -> title shows "Protect this name with a password" (setPassword { pw, old? } ->
+  passwordSet). `startServer({ requirePassword })`: on for `node server.js` unless EO_DEVLOGIN=1, off in the unit tests (old
+  dev rule). Title: name + password + Log in / Create account (empty password = this device's remembered login); NetClient
+  connect(name, creds) sends creds once, never stores them. tools/onlineKit login uses password 'devpass1' (creates on first use).
+  Tests accounts.test.mjs (5). NOT for the open internet yet: plain ws:// -> needs HTTPS / WSS (reverse proxy) when deployed.

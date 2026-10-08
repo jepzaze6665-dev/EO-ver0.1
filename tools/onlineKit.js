@@ -15,8 +15,13 @@ export async function login(g, name, classId = 'umbral_sword') {
   const on = g.online;
   if (g.state === 'play') g.toTitle();
   on.logout();
-  on.connect(name);
+  // H6: dev accounts share one password; a new name is created on the first try
+  on.connect(name, { pw: 'devpass1' });
   if (!(await until(() => on.saveReady || on.state === 'offline'))) return { ok: false, why: 'timeout' };
+  if (!on.saveReady && on.net.lastError && on.net.lastError.code === 'noAccount') {
+    on.connect(name, { pw: 'devpass1', create: true });
+    if (!(await until(() => on.saveReady || on.state === 'offline'))) return { ok: false, why: 'timeout' };
+  }
   if (!on.saveReady) return { ok: false, why: on.net.lastError && on.net.lastError.text };
   g.newGame(classId);
   await tick(g, 0.3);
