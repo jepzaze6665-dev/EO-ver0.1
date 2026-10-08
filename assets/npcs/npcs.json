@@ -1,0 +1,197 @@
+{
+ "aldric": {
+  "file": "assets/npcs/aldric.png",
+  "cw": 38,
+  "ch": 66,
+  "ax": 19,
+  "ay": 65,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "maren": {
+  "file": "assets/npcs/maren.png",
+  "cw": 40,
+  "ch": 62,
+  "ax": 20,
+  "ay": 61,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "borin": {
+  "file": "assets/npcs/borin.png",
+  "cw": 47,
+  "ch": 61,
+  "ax": 23,
+  "ay": 60,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "kael": {
+  "file": "assets/npcs/kael.png",
+  "cw": 35,
+  "ch": 59,
+  "ax": 17,
+  "ay": 58,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "wren": {
+  "file": "assets/npcs/wren.png",
+  "cw": 34,
+  "ch": 58,
+  "ax": 17,
+  "ay": 57,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "pilgrim": {
+  "file": "assets/npcs/pilgrim.png",
+  "cw": 56,
+  "ch": 70,
+  "ax": 28,
+  "ay": 69,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "seraphine": {
+  "file": "assets/npcs/seraphine.png",
+  "cw": 33,
+  "ch": 63,
+  "ax": 16,
+  "ay": 62,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "odo": {
+  "file": "assets/npcs/odo.png",
+  "cw": 43,
+  "ch": 57,
+  "ax": 21,
+  "ay": 56,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "hilde": {
+  "file": "assets/npcs/hilde.png",
+  "cw": 41,
+  "ch": 68,
+  "ax": 20,
+  "ay": 67,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "callum": {
+  "file": "assets/npcs/callum.png",
+  "cw": 33,
+  "ch": 62,
+  "ax": 16,
+  "ay": 61,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "imre": {
+  "file": "assets/npcs/imre.png",
+  "cw": 34,
+  "ch": 62,
+  "ax": 17,
+  "ay": 61,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "marrow": {
+  "file": "assets/npcs/marrow.png",
+  "cw": 47,
+  "ch": 65,
+  "ax": 23,
+  "ay": 64,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "keeper": {
+  "file": "assets/npcs/keeper.png",
+  "cw": 42,
+  "ch": 64,
+  "ax": 21,
+  "ay": 63,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ }
+}

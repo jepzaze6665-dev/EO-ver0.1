@@ -1575,3 +1575,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   skill tags and the generic level lines (patterns); names of skills / attacks / resources / phases stay English; shown via tx in the Skills tab,
   skill tooltip, class select, Class tab, codex, HUD ready text; i18n.test T5 walks CLASSES / CLASS_TREE / BOSSES / MONSTERS).
   THAI TRANSLATION COMPLETE (T1-T6). New content: add its Thai to the matching th/*.js file — i18n.test fails otherwise.
+- NPC SPRITES (owner's GPT sheets desgin/NPC, prompts docs/npc/NPC_PROMPTS.md): `node tools/build-npcs.js [--preview]` -> assets/npcs/<art>.png
+  (strip front / back / left / right / walk1 / walk2, feet pivot, ~60 px) + npcs.json -> Assets.npcs; which NPC uses which = src/data/npcArt.js
+  (by NPC id; map / wanderer defs may name `art`). NPC.drawArt (faces the player on talk, walk frames toward the camera, bob otherwise);
+  unlisted NPCs keep the canvas figure. SWAP_SIDES in the tool = sheets whose side poses GPT drew the other way. 'keeper' built, unused.
