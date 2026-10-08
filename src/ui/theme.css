@@ -541,3 +541,4 @@ kbd { display: inline-block; font: 600 10px var(--font-title); color: var(--ink)
 html[lang="th"] body, html[lang="th"] .overlay, html[lang="th"] button, html[lang="th"] input { line-height: 1.6; }
 html[lang="th"] .ts-menu button, html[lang="th"] .esc-list button { line-height: 1.5; padding-top: 0.2em; }
 html[lang="th"] .ts-foot { letter-spacing: 0; }
+html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !important; } /* spaced-out caps look broken in Thai */

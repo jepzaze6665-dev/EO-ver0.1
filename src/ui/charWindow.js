@@ -12,6 +12,7 @@ import { esc } from './itemTooltip.js';
 import { finalStatRows, setsHTML } from './loadoutUI.js';
 import { expToNext } from '../progression/experience.js';
 import { meetsLevel } from '../items/itemDefs.js';
+import { t as tl } from '../i18n/i18n.js';
 
 export const UI_ICON = (name) => `assets/ui/icons/${name}.png`;
 
@@ -46,13 +47,13 @@ export function charHeaderHTML(g) {
   const p = g.player, need = expToNext(p.level), pct = need ? Math.min(100, (p.exp / need) * 100) : 100;
   return `<div class="cw-head">
     <div class="cw-lvl" style="background-image:url(${UI_ICON('level_diamond')})"><span>${p.level}</span></div>
-    <div class="cw-who"><b>${esc(p.cls.name)}</b><div class="cw-exp-t">EXP ${Math.floor(p.exp).toLocaleString()} / ${need ? need.toLocaleString() : 'MAX'}</div>
+    <div class="cw-who"><b>${esc(p.cls.name)}</b><div class="cw-exp-t">${tl('EXP {a} / {b}', { a: Math.floor(p.exp).toLocaleString(), b: need ? need.toLocaleString() : tl('MAX') })}</div>
       <div class="cw-exp"><i style="width:${pct}%"></i></div></div>
   </div>`;
 }
 
 export function charTabsHTML(cur) {
-  return `<div class="tabs cw-tabs">${CHAR_TABS.map((t) => `<button data-tab="${t.id}" class="${t.id === cur ? 'on' : ''}" title="${t.label}"><img src="${UI_ICON(t.icon)}" alt="">${t.label}</button>`).join('')}<button class="x" title="Close [I]">✕</button></div>`;
+  return `<div class="tabs cw-tabs">${CHAR_TABS.map((t) => `<button data-tab="${t.id}" class="${t.id === cur ? 'on' : ''}" title="${tl(t.label)}"><img src="${UI_ICON(t.icon)}" alt="">${tl(t.label)}</button>`).join('')}<button class="x" title="${tl('Close [I]')}">✕</button></div>`;
 }
 
 // Equipment tab. state = { filter, selected, pickSlot }
@@ -61,14 +62,14 @@ export function equipmentTabHTML(g, state, itemDetail) {
   const pick = state.pickSlot ? GEAR_SLOTS.find((s) => s.id === state.pickSlot) : null;
   const slot = (s) => {
     const id = eq.slots[s.id], d = ITEMS[id];
-    return `<div class="slot cw-gear${state.pickSlot === s.id ? ' sel' : ''}" data-pick="${s.id}" title="${esc(s.label)}"${d ? ` data-tip="${id}" data-tip-eq="1" style="border-color:${RARITY_COLOR[d.rarity]}"` : ''}>
+    return `<div class="slot cw-gear${state.pickSlot === s.id ? ' sel' : ''}" data-pick="${s.id}" title="${esc(tl(s.label))}"${d ? ` data-tip="${id}" data-tip-eq="1" style="border-color:${RARITY_COLOR[d.rarity]}"` : ''}>
       ${d ? `<img src="${itemIconURL(d)}">` : `<img class="cw-empty" src="${UI_ICON(SLOT_ICON[s.type])}">`}</div>`;
   };
   const rows = finalStatRows(p);
   const key = ['HP', 'Attack', 'Defense', 'Critical Chance', 'Attack Speed', 'Cooldown Reduction'];
-  const keyStats = rows.filter(([l]) => key.includes(l)).map(([l, v]) => `<div class="cw-kv">${statIcon(l)}<span>${l.replace('Critical Chance', 'Crit').replace('Cooldown Reduction', 'CDR')}</span><b>${v}</b></div>`).join('');
+  const keyStats = rows.filter(([l]) => key.includes(l)).map(([l, v]) => `<div class="cw-kv">${statIcon(l)}<span>${tl(l === 'Critical Chance' ? 'Crit' : l === 'Cooldown Reduction' ? 'CDR' : l)}</span><b>${v}</b></div>`).join('');
   const allStats = rows.filter(([, now, base]) => String(now) !== '0%' && String(now) !== '+0%' || String(base) !== String(now))
-    .map(([l, now, base]) => `<div class="cw-kv">${statIcon(l)}<span>${l}</span><b>${now}${String(now) !== String(base) ? ` <i class="lo-base">(${base})</i>` : ''}</b></div>`).join('');
+    .map(([l, now, base]) => `<div class="cw-kv">${statIcon(l)}<span>${tl(l)}</span><b>${now}${String(now) !== String(base) ? ` <i class="lo-base">(${base})</i>` : ''}</b></div>`).join('');
 
   // bag: filtered by the tab, or (while choosing a slot) only items that fit it
   const f = BAG_FILTERS.find((x) => x.id === state.filter) || BAG_FILTERS[0];
@@ -78,7 +79,7 @@ export function equipmentTabHTML(g, state, itemDetail) {
     return `<div class="slot${state.selected === id ? ' sel' : ''}${low}" ${act} data-tip="${id}" style="border-color:${RARITY_COLOR[def.rarity]}"><img src="${itemIconURL(def)}"><span class="n">${n > 1 ? n : ''}</span></div>`;
   });
   const slotsLeft = Math.max(0, 32 - cells.length);
-  const unequip = pick && eq.slots[pick.id] ? `<button data-unequip="${pick.id}">Unequip</button>` : '';
+  const unequip = pick && eq.slots[pick.id] ? `<button data-unequip="${pick.id}">${tl('Unequip')}</button>` : '';
   return `<div class="cw-equip">
     <div class="cw-top">
       <div class="cw-stage"><img class="cw-pedestal" src="${UI_ICON('pedestal')}" alt=""><canvas class="cw-hero" width="160" height="160"></canvas></div>
@@ -88,24 +89,24 @@ export function equipmentTabHTML(g, state, itemDetail) {
         <div class="cw-keys">${keyStats}</div>
       </div>
     </div>
-    <details class="cw-more"><summary>All stats · sets · item effects</summary><div class="cw-all">${allStats}</div><h4>SETS</h4>${setsHTML(eq)}${effectsHTML(g)}</details>
+    <details class="cw-more"><summary>${tl('All stats · sets · item effects')}</summary><div class="cw-all">${allStats}</div><h4>${tl('SETS')}</h4>${setsHTML(eq)}${effectsHTML(g)}</details>
     <div class="cw-bagbar">
-      ${pick ? `<span class="cw-picking">Choose: <b>${esc(pick.label)}</b></span>${unequip}<button data-pick="${pick.id}">Cancel</button>`
-        : `<div class="cw-filters">${BAG_FILTERS.map((x) => `<button data-filter="${x.id}" class="${x.id === f.id ? 'on' : ''}" title="${x.label}"><img src="${UI_ICON(x.icon)}" alt="${x.label}"></button>`).join('')}</div>`}
+      ${pick ? `<span class="cw-picking">${tl('Choose:')} <b>${esc(tl(pick.label))}</b></span>${unequip}<button data-pick="${pick.id}">${tl('Cancel')}</button>`
+        : `<div class="cw-filters">${BAG_FILTERS.map((x) => `<button data-filter="${x.id}" class="${x.id === f.id ? 'on' : ''}" title="${tl(x.label)}"><img src="${UI_ICON(x.icon)}" alt="${tl(x.label)}"></button>`).join('')}</div>`}
       <span class="cw-gold"><img src="${UI_ICON('cur_gold')}" alt="">${p.gold.toLocaleString()}</span>
     </div>
     <div class="grid cw-bag">${cells.join('')}${'<div class="slot cw-free"></div>'.repeat(slotsLeft)}</div>
-    ${pick && !items.length ? '<div class="muted small">Nothing for this slot yet.</div>' : ''}
+    ${pick && !items.length ? `<div class="muted small">${tl('Nothing for this slot yet.')}</div>` : ''}
     ${!pick && state.selected ? `<div class="detail cw-detail">${itemDetail(state.selected)}</div>` : ''}
-    <div class="keys"><span><kbd>Click</kbd>slot = choose item</span><span><kbd>I</kbd>Close</span><span><kbd>Esc</kbd>Back</span></div>
+    <div class="keys"><span><kbd>${tl('Click')}</kbd>${tl('slot = choose item')}</span><span><kbd>I</kbd>${tl('Close')}</span><span><kbd>Esc</kbd>${tl('Back')}</span></div>
   </div>`;
 }
 
 function effectsHTML(g) {
   const fx = g.itemEffects ? g.itemEffects.active() : [];
   if (!fx.length) return '';
-  return `<h4>ITEM EFFECTS</h4>${fx.map((x) => `<div class="lo-fx"><span style="color:${x.color || '#ddd'}">${esc(x.name)}</span> ${esc(x.effect.text)}
-    <b class="${x.running ? 'run' : x.cooldownLeft > 0 ? 'cd' : 'ready'}">${x.running ? 'ACTIVE' : x.cooldownLeft > 0 ? x.cooldownLeft.toFixed(1) + 's' : 'READY'}</b></div>`).join('')}`;
+  return `<h4>${tl('ITEM EFFECTS')}</h4>${fx.map((x) => `<div class="lo-fx"><span style="color:${x.color || '#ddd'}">${esc(x.name)}</span> ${esc(x.effect.text)}
+    <b class="${x.running ? 'run' : x.cooldownLeft > 0 ? 'cd' : 'ready'}">${x.running ? tl('ACTIVE') : x.cooldownLeft > 0 ? x.cooldownLeft.toFixed(1) + 's' : tl('READY')}</b></div>`).join('')}`;
 }
 
 // the hero on the pedestal: standing still, facing the viewer (owner: no walking). Feet (sprite pivot 80,140) land on the

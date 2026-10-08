@@ -1568,6 +1568,6 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `<html lang>`) · `wrapLines` / `breakPieces` (Thai has no spaces: Intl.Segmenter word breaks; hud.wrap uses it). Thai tables `src/i18n/th/ui.js`
   (+ index.js). In hud.js / panels.js the import is aliased `tl` (those files have local variables named `t`). Language button: title
   screen + ESC menu. Thai CSS (taller lines) at the end of theme.css. tools/tests/i18n.test.mjs: every literal t('...') needs a Thai entry,
-  {params} must match. Phases: T1 core + title / class select labels / ESC menu / sound / death / ending / controls / HUD labels (DONE) ·
-  T2 windows (character, tooltips, npc panels, gate / party, run summary) · T6 server error texts (map by `code`) + toasts / banners ·
+  {params} must match. Phases: T1 core + title / class select labels / ESC menu / sound / death / ending / controls / HUD labels (DONE) · T2 windows (DONE: th/windows.js; charWindow, skills / class / codex / quests tabs, item tooltip, shop / forge / storage / waystone, party, map select, ready check, run summary, world map; data labels (stats, slots, rarities, tiers, triggers, equip errors) translated at display time, the English label stays the logic key; Thai turns off letter-spacing) ·
+  T6 server error texts (map by `code`) + toasts / banners ·
   T4 items / sets / statuses · T3 quests / dialogue / lore / board text · T5 skills / classes / bosses / monsters (biggest).

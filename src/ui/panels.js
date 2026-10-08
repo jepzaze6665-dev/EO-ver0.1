@@ -256,7 +256,7 @@ export class Panels {
         <div class="speaker"><span class="name">${esc(npc.name)}</span><span class="role">${esc(npc.role)}</span></div>
         <div class="line"></div>
         <div class="opts"></div>
-        <div class="hint">[E] / Click to continue</div>
+        <div class="hint">${tl('[E] / Click to continue')}</div>
       </div>`, 'bottom');
     const line = el.querySelector('.line'), opts = el.querySelector('.opts'), hint = el.querySelector('.hint');
     const render = () => {
@@ -321,67 +321,66 @@ export class Panels {
       body = equipmentTabHTML(g, { filter: this.invFilter, selected: this.selected, pickSlot: this.pickSlot || null }, (id) => this.itemDetail(id)); // ui/charWindow.js
     } else if (this.invTab === 'skills') {
       // generic loadout editor: every class skill, keys 1-4 are chosen here (5 = ultimate, Q = special)
-      const tierTag = (s) => { const t = SKILL_TIERS[s.tier]; return t ? `<span style="color:${t.color}">${t.label}</span> · ` : ''; };
-      const p = g.player, lo = p.loadout, cd = (s) => `${tierTag(s)}CD ${+p.skillSys.cooldownFor(s).toFixed(1)}s${s.cost ? ` · ${p.skillSys.costFor(s)} ${RESOURCES[s.costResource || p.primaryResource].label}` : ''}${staminaCost(s) ? ` · ${staminaCost(s)} STA` : ''}`;
+      const tierTag = (s) => { const t = SKILL_TIERS[s.tier]; return t ? `<span style="color:${t.color}">${tl(t.label)}</span> · ` : ''; };
+      const p = g.player, lo = p.loadout, cd = (s) => `${tierTag(s)}${tl('CD')} ${+p.skillSys.cooldownFor(s).toFixed(1)}s${s.cost ? ` · ${p.skillSys.costFor(s)} ${RESOURCES[s.costResource || p.primaryResource].label}` : ''}${staminaCost(s) ? ` · ${staminaCost(s)} STA` : ''}`;
       // SKILL LEVEL (progression/skillLevels.js): Lv n / max, this level's effect, next level's effect + [+] button
-      const UPG_WHY = { max: 'MAX', level: (r) => `needs LV ${r.need}`, points: (r) => `needs ${r.cost} pt` };
+      const UPG_WHY = { max: tl('MAX'), level: (r) => tl('needs LV {n}', { n: r.need }), points: (r) => tl('needs {n} pt', { n: r.cost }) };
       const lvRow = (s) => {
         const max = maxLevel(s);
         if (max <= 1) return '';
         const lv = p.skillLevel(s.id), cur = levelMods(s, lv), next = lv < max ? levelMods(s, lv + 1) : null, r = p.upgradeCheck(s.id);
         const why = !r.ok && UPG_WHY[r.reason] ? (typeof UPG_WHY[r.reason] === 'function' ? UPG_WHY[r.reason](r) : UPG_WHY[r.reason]) : '';
         return `<div class="small sk-level"><b style="color:#e0c070">Lv ${lv}/${max}</b> ${esc(cur.text)}
-          ${next ? `<br><span class="muted">Next: ${esc(next.text)}</span> ${r.ok ? `<button data-upgrade="${s.id}">+ Level (${r.cost} pt)</button>` : `<span class="muted">(${why})</span>`}` : ''}</div>`;
+          ${next ? `<br><span class="muted">${tl('Next:')} ${esc(next.text)}</span> ${r.ok ? `<button data-upgrade="${s.id}">${tl('+ Level ({n} pt)', { n: r.cost })}</button>` : `<span class="muted">(${why})</span>`}` : ''}</div>`;
       };
       // SKILL MASTERY (data/skillMastery.js): level name, XP bar, current reward
       const masteryRow = (s) => {
         const mi = masteryInfo(g.classProgress.peekSkill(p.cls.id, s.id));
         const pct = mi.need ? Math.round((mi.into / mi.need) * 100) : 100;
-        return `<div class="small sk-mastery"><b style="color:#b8a0ff">Mastery ${MASTERY.names[mi.level]}</b>
+        return `<div class="small sk-mastery"><b style="color:#b8a0ff">${tl('Mastery')} ${MASTERY.names[mi.level]}</b>
           <span style="display:inline-block;width:70px;height:5px;background:#2a2238;vertical-align:middle;border-radius:2px"><span style="display:block;width:${pct}%;height:100%;background:#b8a0ff;border-radius:2px"></span></span>
-          <span class="muted">${mi.need ? `${mi.into}/${mi.need}` : 'MAX'}${mi.level ? ' · ' + esc(masteryReward(mi.level).text) : ''}</span></div>`;
+          <span class="muted">${mi.need ? `${mi.into}/${mi.need}` : tl('MAX')}${mi.level ? ' · ' + esc(masteryReward(mi.level).text) : ''}</span></div>`;
       };
       // SKILL EVOLUTION: chosen branch shown on the card, [Evolution] opens the panel below
       const evoRow = (s) => {
         if (!evolutionsOf(s).length) return '';
         const cur = evolutionById(s, p.skillEvolution(s.id));
-        return `<div class="small sk-evo">${cur ? `<b style="color:#ff9ad0">◆ ${esc(cur.name)}</b>` : '<span class="muted">◇ Not evolved</span>'}
-          <button data-evo-open="${s.id}">Evolution ▸</button></div>`;
+        return `<div class="small sk-evo">${cur ? `<b style="color:#ff9ad0">◆ ${esc(cur.name)}</b>` : `<span class="muted">◇ ${tl('Not evolved')}</span>`}
+          <button data-evo-open="${s.id}">${tl('Evolution ▸')}</button></div>`;
       };
       // SKILL TREE (data/skillTree.js): category chip + what a locked skill still needs
-      const catTag = (s) => { const c = SKILL_TREE.categories[s.category]; return c ? `<span class="small" style="color:${c.color}">[${c.label}]</span> ` : ''; };
+      const catTag = (s) => { const c = SKILL_TREE.categories[s.category]; return c ? `<span class="small" style="color:${c.color}">[${tl(c.label)}]</span> ` : ''; };
       // S6: charges + equipment / rune modifiers acting on this skill
       const gearRow = (s) => {
         const m = p.skillMods(s), ch = p.skillSys.maxCharges(s);
         const lines = (m.gear || []).map((x) => describeMod(x, (id) => (p.skillSys.get(id) || { name: id }).name));
-        return (ch > 1 ? `<div class="small" style="color:#9af8ff">Charges: ${ch}</div>` : '') + lines.map((l) => `<div class="small" style="color:#9af8ff">⚙ ${esc(l)}</div>`).join('');
+        return (ch > 1 ? `<div class="small" style="color:#9af8ff">${tl('Charges: {n}', { n: ch })}</div>` : '') + lines.map((l) => `<div class="small" style="color:#9af8ff">⚙ ${esc(l)}</div>`).join('');
       };
-      const lockRow = (s) => { const r = p.skillUnlockCheck(s); return r.ok ? '' : `<div class="small" style="color:#ffb070">🔒 Unlocks with: ${r.missing.map(esc).join(', ')}</div>`; };
+      const lockRow = (s) => { const r = p.skillUnlockCheck(s); return r.ok ? '' : `<div class="small" style="color:#ffb070">🔒 ${tl('Unlocks with:')} ${r.missing.map(esc).join(', ')}</div>`; };
       const card = (s, extra = '') => `<div class="skill-card${lo.slots.includes(s.id) ? ' on' : ''}"${p.skillUnlocked(s) ? '' : ' style="opacity:.6"'}>
           <img src="${skillIconURL(s)}"><div class="sk-body">${catTag(s)}<b>${esc(s.name)}</b> <span class="muted small">${cd(s)} · ${(s.tags || []).join(', ')}</span>
           <div class="small">${esc(s.desc || '')}</div>${lockRow(s)}${gearRow(s)}${lvRow(s)}${masteryRow(s)}${evoRow(s)}${extra}</div></div>`;
       const evoSkill = this.evoSel && p.skillSys.get(this.evoSel);
       if (evoSkill && evolutionsOf(evoSkill).length) {
         const s = evoSkill, cur = p.skillEvolution(s.id), mi = masteryInfo(g.classProgress.peekSkill(p.cls.id, s.id));
-        const CH = [['behavior', 'Gameplay'], ['damage', 'Damage'], ['utility', 'Utility'], ['resource', 'Resource'], ['cooldown', 'Cooldown']];
+        const CH = [['behavior', tl('Gameplay')], ['damage', tl('Damage')], ['utility', tl('Utility')], ['resource', tl('Resource')], ['cooldown', tl('Cooldown')]];
         const option = (e) => {
           const r = p.evolutionCheck(s.id, e.id), chosen = cur === e.id;
           const req = e.requirements || {};
           return `<div class="evo-card${chosen ? ' on' : ''}" style="border:1px solid ${chosen ? '#ff9ad0' : '#3a2f50'};border-radius:6px;padding:8px;margin:6px 0;${cur && !chosen ? 'opacity:.55' : ''}">
-            <b style="color:#ff9ad0">${esc(e.name)}</b>${chosen ? ' <span class="small" style="color:#ff9ad0">CHOSEN</span>' : ''}
+            <b style="color:#ff9ad0">${esc(e.name)}</b>${chosen ? ` <span class="small" style="color:#ff9ad0">${tl('CHOSEN')}</span>` : ''}
             <div class="small" style="margin:4px 0">${esc(e.desc)}</div>
             <div class="small">${CH.filter(([k]) => e.changes && e.changes[k]).map(([k, l]) => `<div><span class="muted">${l}:</span> ${esc(e.changes[k])}</div>`).join('')}</div>
-            <div class="small muted">Needs: Skill Lv ${req.skillLevel || 1} · Mastery ${MASTERY.names[req.masteryLevel || 0]}</div>
-            ${chosen || cur ? '' : r.ok ? `<button data-evolve="${s.id}:${e.id}">Choose ${esc(e.name)}</button>` : `<div class="small" style="color:#ff7070">Missing: ${r.missing.map(esc).join(', ')}</div>`}
+            <div class="small muted">${tl('Needs: Skill Lv {lv} · Mastery {m}', { lv: req.skillLevel || 1, m: MASTERY.names[req.masteryLevel || 0] })}</div>
+            ${chosen || cur ? '' : r.ok ? `<button data-evolve="${s.id}:${e.id}">${tl('Choose {name}', { name: esc(e.name) })}</button>` : `<div class="small" style="color:#ff7070">${tl('Missing:')} ${r.missing.map(esc).join(', ')}</div>`}
           </div>`;
         };
         body = `<div class="evo-panel">
-          <button data-evo-open="">◂ Back to loadout</button>
-          <h3>${esc(s.name)} — Evolution</h3>
-          <p class="small">Your skill: <b>Lv ${p.skillLevel(s.id)}</b> · <b>Mastery ${MASTERY.names[mi.level]}</b>.
-            Choose <b>ONE</b> branch — it changes how the skill plays. ${cur ? 'This skill has evolved.' : ''}</p>
+          <button data-evo-open="">${tl('◂ Back to loadout')}</button>
+          <h3>${tl('{name} — Evolution', { name: esc(s.name) })}</h3>
+          <p class="small">${tl('Your skill: <b>Lv {lv}</b> · <b>Mastery {m}</b>. Choose <b>ONE</b> branch — it changes how the skill plays.', { lv: p.skillLevel(s.id), m: MASTERY.names[mi.level] })} ${cur ? tl('This skill has evolved.') : ''}</p>
           <div class="evo-card" style="border:1px dashed #3a2f50;border-radius:6px;padding:8px;margin:6px 0">
-            <b>Original — ${esc(s.name)}</b><div class="small">${esc(s.desc || '')}</div></div>
+            <b>${tl('Original — {name}', { name: esc(s.name) })}</b><div class="small">${esc(s.desc || '')}</div></div>
           ${evolutionsOf(s).map(option).join('')}
         </div>`;
       } else
@@ -391,22 +390,22 @@ export class Panels {
         if (!this.treeSel || !all.some((s) => s.id === this.treeSel)) this.treeSel = (lo.slots.find((id) => id) || all[0].id);
         const sel = all.find((s) => s.id === this.treeSel);
         const fixedKey = sel.ultimate ? '5' : sel === p.cls.special ? 'Q' : null;
-        const slotRow = fixedKey ? `<div class="muted small">Key ${fixedKey} (fixed)</div>`
-          : !p.skillUnlocked(sel) ? '' : `<div class="small muted" style="margin-top:6px">Put on key:</div><div class="slot-btns">${[0, 1, 2, 3].map((i) => `<button data-slot="${i}" data-skill="${sel.id}" class="${lo.slots[i] === sel.id ? 'on' : ''}">${i + 1}</button>`).join('')}</div>`;
+        const slotRow = fixedKey ? `<div class="muted small">${tl('Key {key} (fixed)', { key: fixedKey })}</div>`
+          : !p.skillUnlocked(sel) ? '' : `<div class="small muted" style="margin-top:6px">${tl('Put on key:')}</div><div class="slot-btns">${[0, 1, 2, 3].map((i) => `<button data-slot="${i}" data-skill="${sel.id}" class="${lo.slots[i] === sel.id ? 'on' : ''}">${i + 1}</button>`).join('')}</div>`;
         const bar = lo.bindings().map((b) => `<span class="st-key${b.skill.id === sel.id ? ' on' : ''}" data-tree-sel="${b.skill.id}"><img src="${skillIconURL(b.skill)}" alt=""><kbd>${b.key}</kbd></span>`).join('')
           + (p.cls.special ? `<span class="st-key${p.cls.special.id === sel.id ? ' on' : ''}" data-tree-sel="${p.cls.special.id}"><img src="${skillIconURL(p.cls.special)}" alt=""><kbd>Q</kbd></span>` : '');
         body = `<div class="st-layout">
           <div class="st-left">
             <div class="cw-lvl st-lvl" style="background-image:url(${UI_ICON('level_diamond')})"><span>${p.progressLevel ? p.progressLevel() : p.level}</span></div>
             <div class="st-cls">${esc(p.cls.name)}</div>
-            <div class="st-pts"><b>+${Math.max(0, p.skillPointsLeft())}</b> points available</div>
-            <div class="muted small">1 point per ${SKILL_TREE.pointsFrom === 'class' ? 'class' : 'character'} level · each class has its own points</div>
-            <div class="muted small" style="margin-top:4px">Class LV ${p.classLevel()}${p.classFollowsCharacter() ? ' (= character level)' : ` · ${Math.floor((g.classProgress.classes[p.cls.id] || {}).exp || 0)}/${expToNext(p.classLevel())} class EXP`}</div>
-            <h4>SKILL BAR</h4><div class="st-bar">${bar}</div>
+            <div class="st-pts"><b>+${Math.max(0, p.skillPointsLeft())}</b> ${tl('points available')}</div>
+            <div class="muted small">${tl('1 point per {what} level · each class has its own points', { what: SKILL_TREE.pointsFrom === 'class' ? tl('class') : tl('character') })}</div>
+            <div class="muted small" style="margin-top:4px">${tl('Class LV {n}', { n: p.classLevel() })}${p.classFollowsCharacter() ? ' ' + tl('(= character level)') : ` · ${Math.floor((g.classProgress.classes[p.cls.id] || {}).exp || 0)}/${expToNext(p.classLevel())} ${tl('class EXP')}`}</div>
+            <h4>${tl('SKILL BAR')}</h4><div class="st-bar">${bar}</div>
             ${passiveRows(p.cls)}
           </div>
           <div class="st-mid">${treeHTML(p.cls, sel.id, nodeState(p))}</div>
-          <div class="st-right">${card(sel, slotRow)}<p class="muted small">Keys <b>1-4</b> are yours to choose · <b>5</b> = ultimate · <b>Q</b> = class special. Changes are locked while in combat.</p></div>
+          <div class="st-right">${card(sel, slotRow)}<p class="muted small">${tl('Keys <b>1-4</b> are yours to choose · <b>5</b> = ultimate · <b>Q</b> = class special. Changes are locked while in combat.')}</p></div>
         </div>`;
       }
     } else if (this.invTab === 'class') {
@@ -420,15 +419,15 @@ export class Panels {
       const trialBox = (x) => {
         const t = x.trial;
         if (!t) return '';
-        if (x.unlocked || t.state === 'passed') return `<div class="trial passed">✦ ${esc(t.def.title)} — PASSED</div>`;
-        if (t.state === 'active') return `<div class="trial active"><b>${esc(t.def.title)}</b>${t.objectives.map((o) => reqRow({ met: o.have >= o.count, label: CLASS_COUNTERS[o.counter].label, have: Math.max(0, o.have), need: o.count })).join('')}<button data-abandon="${t.id}">Abandon trial</button></div>`;
-        return `<div class="trial"><b>${esc(t.def.title)}</b>${t.def.objectives.map((o) => `<div class="muted small">• ${CLASS_COUNTERS[o.counter].label} ×${o.count}</div>`).join('')}<button data-trial="${x.node.id}" ${x.ready ? '' : 'disabled'}>${x.ready ? 'Begin trial' : 'Requirements not met'}</button></div>`;
+        if (x.unlocked || t.state === 'passed') return `<div class="trial passed">✦ ${esc(t.def.title)} — ${tl('PASSED')}</div>`;
+        if (t.state === 'active') return `<div class="trial active"><b>${esc(t.def.title)}</b>${t.objectives.map((o) => reqRow({ met: o.have >= o.count, label: CLASS_COUNTERS[o.counter].label, have: Math.max(0, o.have), need: o.count })).join('')}<button data-abandon="${t.id}">${tl('Abandon trial')}</button></div>`;
+        return `<div class="trial"><b>${esc(t.def.title)}</b>${t.def.objectives.map((o) => `<div class="muted small">• ${CLASS_COUNTERS[o.counter].label} ×${o.count}</div>`).join('')}<button data-trial="${x.node.id}" ${x.ready ? '' : 'disabled'}>${x.ready ? tl('Begin trial') : tl('Requirements not met')}</button></div>`;
       };
 
       // ---- LAYOUT A (owner's choice, docs/ui/ECLIPSE_ONLINE_Class_Tab_Layouts.pdf): vertical lineage tree with emblems +
       // path card on the left, class info in the middle, the class splash on the right, class records as chips at the bottom
       const BADGE = { current: ['CURRENT', 'cur'], owned: ['UNLOCKED', 'open'], unlocked: ['UNLOCKED', 'open'], ready: ['TRIAL READY', 'ready'], locked: ['🔒 LOCKED', 'lock'], future: ['🔒 LOCKED', 'lock'] };
-      const badge = (st) => `<span class="ct-badge b-${BADGE[st][1]}">${BADGE[st][0]}</span>`;
+      const badge = (st) => `<span class="ct-badge b-${BADGE[st][1]}">${tl(BADGE[st][0])}</span>`;
       const colorOf = (id) => (CLASSES[id] && CLASSES[id].theme && CLASSES[id].theme.color) || '#e8d7a5';
       const paths = prog.paths();
       const progressOf = (id, st) => {
@@ -443,29 +442,29 @@ export class Panels {
         const id = t.node.id, pr = progressOf(id, t.state), dim = t.state === 'locked' || t.state === 'future';
         return `<button class="ct-node ${kind}${id === selId ? ' sel' : ''}${dim ? ' dim' : ''}" data-node="${id}" style="--cc:${colorOf(id)};${t.depth > 1 ? `margin-left:${(t.depth - 1) * 26}px` : ''}">
           <img class="ct-emb" src="assets/ui/class/${id}_emblem.png" alt="">
-          <span class="ct-txt"><small>${kind === 'base' ? 'BASE CLASS' : `CLASS ${t.node.tier}`}</small><b>${esc(t.node.name)}</b> ${badge(t.state)}
+          <span class="ct-txt"><small>${kind === 'base' ? tl('BASE CLASS') : tl('CLASS {n}', { n: t.node.tier })}</small><b>${esc(t.node.name)}</b> ${badge(t.state)}
           ${kind !== 'base' && pr !== null && pr < 1 ? `<span class="ct-prog"><i style="width:${Math.round(pr * 100)}%"></i></span>` : ''}</span></button>`;
       };
       const path = paths.find((x) => x.node.id === selId);
       const selState = (tree.find((t) => t.node.id === selId) || {}).state;
       const chk = (selState === 'owned' || selState === 'unlocked') && selId !== p.cls.id ? classChangeCheck(g, selId) : null;
-      const why = chk && !chk.ok ? ({ not_playable: 'arrives with Class 2 content', combat: 'leave combat first', boss: 'not during a boss fight' }[chk.reason] || '') : '';
-      const action = selId === p.cls.id ? `<div class="ct-note">You are playing this class.</div>`
-        : chk ? (chk.ok ? `<button class="ct-go" data-change="${selId}" style="--cc:${colorOf(selId)}">Change to ${esc(selNode.name)}</button>` : `<div class="ct-note">${esc(why)}</div>`)
-        : path ? `<div class="k" style="color:${colorOf(selId)}">PATH TO ${esc(path.node.name.toUpperCase())}</div>
-            ${path.unlocked ? `<div class="req ok">✦ UNLOCKED</div>` : path.reqs.map(reqRow).join('')}${trialBox(path)}`
-        : `<div class="ct-note">🔒 Reach this class through its parent class first.</div>`;
+      const why = chk && !chk.ok ? tl({ not_playable: 'arrives with Class 2 content', combat: 'leave combat first', boss: 'not during a boss fight' }[chk.reason] || '') : '';
+      const action = selId === p.cls.id ? `<div class="ct-note">${tl('You are playing this class.')}</div>`
+        : chk ? (chk.ok ? `<button class="ct-go" data-change="${selId}" style="--cc:${colorOf(selId)}">${tl('Change to {name}', { name: esc(selNode.name) })}</button>` : `<div class="ct-note">${esc(why)}</div>`)
+        : path ? `<div class="k" style="color:${colorOf(selId)}">${tl('PATH TO {name}', { name: esc(path.node.name.toUpperCase()) })}</div>
+            ${path.unlocked ? `<div class="req ok">${tl('✦ UNLOCKED')}</div>` : path.reqs.map(reqRow).join('')}${trialBox(path)}`
+        : `<div class="ct-note">${tl('🔒 Reach this class through its parent class first.')}</div>`;
       const rate = (label, v) => `<div><span>${label}</span><i>${[1, 2, 3, 4, 5].map((k) => `<b class="${k <= (v || 0) ? 'on' : ''}"></b>`).join('')}</i></div>`;
       const sr = (selCls && selCls.ratings) || {};
       const info = selCls ? `<div class="ct-role">${esc(selCls.role || '')}</div>
           ${selCls.identity ? `<div class="ct-quote">“${esc(selCls.identity)}”</div>` : ''}
           <div class="ct-desc">${esc(selCls.description || selNode.description || '')}</div>
-          <div class="ct-rates">${rate('Difficulty', selCls.difficulty)}${rate('Damage', sr.damage)}${rate('Defense', sr.defense)}${rate('Range', sr.range)}${rate('Mobility', sr.mobility)}${sr.support ? rate('Support', sr.support) : ''}</div>
-          <div class="ct-res">Resource <b>${esc(RESOURCES[selCls.resource].name)}</b>${selCls.signatureWeapon ? ` · ${tl('Weapon')} <b>${esc(selCls.signatureWeapon)}</b>` : ''}</div>
+          <div class="ct-rates">${rate(tl('Difficulty'), selCls.difficulty)}${rate(tl('Damage'), sr.damage)}${rate(tl('Defense'), sr.defense)}${rate(tl('Range'), sr.range)}${rate(tl('Mobility'), sr.mobility)}${sr.support ? rate(tl('Support'), sr.support) : ''}</div>
+          <div class="ct-res">${tl('Resource')} <b>${esc(RESOURCES[selCls.resource].name)}</b>${selCls.signatureWeapon ? ` · ${tl('Weapon')} <b>${esc(selCls.signatureWeapon)}</b>` : ''}</div>
           <div class="ct-skills">${[...selCls.skills, selCls.special].filter(Boolean).map((s) => `<img src="${skillIconURL(s)}" title="${esc(s.name)}" alt="">`).join('')}</div>
-          ${selCls.strengths ? `<div class="ct-sw"><div><b class="good">STRENGTHS</b>${selCls.strengths.map((x) => `<div>+ ${esc(x)}</div>`).join('')}</div><div><b class="bad">WEAKNESSES</b>${(selCls.weaknesses || []).map((x) => `<div>− ${esc(x)}</div>`).join('')}</div></div>` : ''}`
-        : `<div class="ct-desc">${esc(selNode.description || '')}</div><p class="muted small">Skills are revealed when this class arrives.</p>`;
-      const chips = Object.entries(rec).filter(([, v]) => v > 0).map(([k, v]) => `<span>${esc(CLASS_COUNTERS[k] ? CLASS_COUNTERS[k].label : k)} <b>${Math.floor(v)}</b></span>`).join('') || '<span class="muted">Nothing yet — fight!</span>';
+          ${selCls.strengths ? `<div class="ct-sw"><div><b class="good">${tl('STRENGTHS')}</b>${selCls.strengths.map((x) => `<div>+ ${esc(x)}</div>`).join('')}</div><div><b class="bad">${tl('WEAKNESSES')}</b>${(selCls.weaknesses || []).map((x) => `<div>− ${esc(x)}</div>`).join('')}</div></div>` : ''}`
+        : `<div class="ct-desc">${esc(selNode.description || '')}</div><p class="muted small">${tl('Skills are revealed when this class arrives.')}</p>`;
+      const chips = Object.entries(rec).filter(([, v]) => v > 0).map(([k, v]) => `<span>${esc(CLASS_COUNTERS[k] ? CLASS_COUNTERS[k].label : k)} <b>${Math.floor(v)}</b></span>`).join('') || `<span class="muted">${tl('Nothing yet — fight!')}</span>`;
       body = `<div class="ct-layout" style="--cc:${colorOf(selId)}">
           <img class="ct-splash" src="assets/ui/class/${selId}_splash.png" alt="">
           <div class="ct-left">
@@ -474,30 +473,30 @@ export class Panels {
             <div class="ct-path">${action}</div>
           </div>
           <div class="ct-info">${info}</div>
-          <div class="ct-records"><div class="k">CLASS RECORDS · ${esc(p.cls.name.toUpperCase())}</div><div class="ct-chips">${chips}</div></div>
+          <div class="ct-records"><div class="k">${tl('CLASS RECORDS · {name}', { name: esc(p.cls.name.toUpperCase()) })}</div><div class="ct-chips">${chips}</div></div>
         </div>`;
     } else if (this.invTab === 'knowledge') {
       const list = g.knowledge.view();
       body = `<div class="know">${list.map((e) => `
         <div class="know-card">
           <h3>${esc(e.name.toUpperCase())}</h3>
-          <div class="kv"><span>Level</span><b>${e.level}</b></div>
+          <div class="kv"><span>${tl('Level')}</span><b>${e.level}</b></div>
           <div class="kv"><span>HP</span><b>${e.hp}</b></div>
-          <div class="kv"><span>Weakness</span><b>${esc(e.weakness)}</b></div>
-          <div class="kv"><span>Pattern</span><b>${esc(e.pattern)}</b></div>
-          <div class="kv"><span>Role</span><b>${esc(e.role)}</b></div>
-          <div class="kv"><span>Drop</span><b>${esc(e.drop)}</b></div>
-          <div class="kv"><span>Defeated</span><b>${e.kills}</b></div>
+          <div class="kv"><span>${tl('Weakness')}</span><b>${esc(e.weakness)}</b></div>
+          <div class="kv"><span>${tl('Pattern')}</span><b>${esc(e.pattern)}</b></div>
+          <div class="kv"><span>${tl('Role')}</span><b>${esc(e.role)}</b></div>
+          <div class="kv"><span>${tl('Drop')}</span><b>${esc(e.drop)}</b></div>
+          <div class="kv"><span>${tl('Defeated')}</span><b>${e.kills}</b></div>
           <p>${esc(e.desc)}</p>${e.roleHint ? `<div class="muted small">⚔ ${esc(e.roleHint)}</div>` : ''}
-        </div>`).join('') || '<div class="empty">No monsters encountered yet. The world is waiting to be learned.</div>'}
-        <div class="muted small">Knowledge grows as you fight: 1 kill reveals level & pattern, 3 kills weakness & drops, 5 kills HP. Lore fragments reveal secrets early.</div></div>`;
+        </div>`).join('') || `<div class="empty">${tl('No monsters encountered yet. The world is waiting to be learned.')}</div>`}
+        <div class="muted small">${tl('Knowledge grows as you fight: 1 kill reveals level & pattern, 3 kills weakness & drops, 5 kills HP. Lore fragments reveal secrets early.')}</div></div>`;
     } else {
       const found = Object.keys(g.world.state.lore);
       const quests = [...Object.keys(g.quests.active).map((q) => [q, false]), ...Object.keys(g.quests.completed).map((q) => [q, true])];
       body = `<div class="lore-layout">
-        <div><h3>Quests</h3>${quests.map(([q, done]) => `<div class="quest ${done ? 'done' : ''}"><b>${esc(QUESTS[q].name)}</b>${done ? ' ✓' : ''}<div class="muted small">${esc(QUESTS[q].description)}</div></div>`).join('') || '<div class="muted">None</div>'}
-        <h3>Discoveries</h3><div class="muted">Secrets found: <b>${g.world.map.secretsFound.size} / 4</b> · Lore: <b>${found.length} / ${Object.keys(LORE).length}</b> · Areas: <b>${Object.keys(g.world.state.subs).filter((k) => !k.startsWith('zone')).length}</b></div></div>
-        <div><h3>Lore Fragments</h3>${found.map((k) => `<details><summary>${esc(LORE[k].title)}</summary><p>${esc(LORE[k].text).replace(/\n/g, '<br>')}</p></details>`).join('') || '<div class="muted">Unread. Look for glowing pages, statues and strange objects.</div>'}</div>
+        <div><h3>${tl('Quests')}</h3>${quests.map(([q, done]) => `<div class="quest ${done ? 'done' : ''}"><b>${esc(QUESTS[q].name)}</b>${done ? ' ✓' : ''}<div class="muted small">${esc(QUESTS[q].description)}</div></div>`).join('') || `<div class="muted">${tl('None')}</div>`}
+        <h3>${tl('Discoveries')}</h3><div class="muted">${tl('Secrets found:')} <b>${g.world.map.secretsFound.size} / 4</b> · ${tl('Lore:')} <b>${found.length} / ${Object.keys(LORE).length}</b> · ${tl('Areas:')} <b>${Object.keys(g.world.state.subs).filter((k) => !k.startsWith('zone')).length}</b></div></div>
+        <div><h3>${tl('Lore Fragments')}</h3>${found.map((k) => `<details><summary>${esc(LORE[k].title)}</summary><p>${esc(LORE[k].text).replace(/\n/g, '<br>')}</p></details>`).join('') || `<div class="muted">${tl('Unread. Look for glowing pages, statues and strange objects.')}</div>`}</div>
       </div>`;
     }
     const el = this.show('inventory', `
@@ -517,31 +516,31 @@ export class Panels {
       else if (t.dataset.cat) { this.invCat = t.dataset.cat; this.inventory(); }
       else if (t.dataset.item) { this.selected = t.dataset.item; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.use) { g.inventory.use(t.dataset.use); this.inventory(); }
-      else if (t.dataset.equip) { if (!g.equipment.equip(t.dataset.equip)) g.ui.toast(g.equipment.lastErrorText(), 1.2); if (!g.inventory.has(this.selected)) this.selected = null; this.inventory(); }
-      else if (t.dataset.unequip) { if (!g.equipment.unequip(t.dataset.unequip)) g.ui.toast(g.equipment.lastErrorText(), 1.2); else this.pickSlot = null; this.inventory(); }
-      else if (t.dataset.equipTo) { const [id, slot] = t.dataset.equipTo.split(':'); if (!g.equipment.equip(id, slot)) g.ui.toast(g.equipment.lastErrorText(), 1.2); else this.pickSlot = null; this.inventory(); }
+      else if (t.dataset.equip) { if (!g.equipment.equip(t.dataset.equip)) g.ui.toast(tl(g.equipment.lastErrorText()), 1.2); if (!g.inventory.has(this.selected)) this.selected = null; this.inventory(); }
+      else if (t.dataset.unequip) { if (!g.equipment.unequip(t.dataset.unequip)) g.ui.toast(tl(g.equipment.lastErrorText()), 1.2); else this.pickSlot = null; this.inventory(); }
+      else if (t.dataset.equipTo) { const [id, slot] = t.dataset.equipTo.split(':'); if (!g.equipment.equip(id, slot)) g.ui.toast(tl(g.equipment.lastErrorText()), 1.2); else this.pickSlot = null; this.inventory(); }
       else if (t.dataset.pick) { this.pickSlot = this.pickSlot === t.dataset.pick ? null : t.dataset.pick; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.evoOpen !== undefined) { this.evoSel = t.dataset.evoOpen || null; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.evolve) {
         const [sid, eid] = t.dataset.evolve.split(':'), r = g.player.evolveSkill(sid, eid);
-        if (!r.ok) g.ui.toast(r.reason === 'combat' ? 'Cannot evolve skills in combat' : 'Requirements not met', 1.2);
+        if (!r.ok) g.ui.toast(r.reason === 'combat' ? tl('Cannot evolve skills in combat') : tl('Requirements not met'), 1.2);
         g.audio.sfx(r.ok ? 'levelup' : 'deny'); this.inventory();
       }
       else if (t.dataset.upgrade) { const r = g.player.upgradeSkill(t.dataset.upgrade); g.audio.sfx(r.ok ? 'levelup' : 'deny'); this.inventory(); }
       else if (t.dataset.slot) { g.player.setSkillSlot(+t.dataset.slot, t.dataset.skill); this.inventory(); }
-      else if (t.dataset.trial) { const r = g.progression.startTrial(t.dataset.trial); if (!r.ok) g.ui.toast(r.reason === 'busy' ? 'Finish your current trial first' : 'Requirements not met', 1.2); this.inventory(); }
+      else if (t.dataset.trial) { const r = g.progression.startTrial(t.dataset.trial); if (!r.ok) g.ui.toast(r.reason === 'busy' ? tl('Finish your current trial first') : tl('Requirements not met'), 1.2); this.inventory(); }
       else if (t.dataset.abandon) { g.progression.abandonTrial(t.dataset.abandon); this.inventory(); }
       else if (t.dataset.node) { this.classSel = t.dataset.node; this.inventory(); g.audio.sfx('ui'); }
-      else if (t.dataset.change) { const r = g.changeClass(t.dataset.change); if (r.ok) this.close(); else g.ui.toast('Cannot change class: ' + r.reason, 1.4); }
+      else if (t.dataset.change) { const r = g.changeClass(t.dataset.change); if (r.ok) this.close(); else g.ui.toast(tl('Cannot change class: {why}', { why: r.reason }), 1.4); }
     });
   }
   itemDetail(id) {
     const g = this.game;
-    if (!id || !ITEMS[id] || !g.inventory.has(id)) return '<div class="muted">Select an item.</div>';
+    if (!id || !ITEMS[id] || !g.inventory.has(id)) return `<div class="muted">${tl('Select an item.')}</div>`;
     const d = ITEMS[id];
     return `<img src="${itemIconURL(d)}" class="big-icon">
       <div class="tt">${itemTooltipHTML(d, { classId: g.player.cls.id, level: g.player.level, worn: g.equipment.wornIds(), swap: swapPreview(g.equipment, id) })}</div>
-      ${d.use ? `<button data-use="${id}">Use</button>` : ''}${isGear(d) ? `<button data-equip="${id}">Equip</button>` : ''}`;
+      ${d.use ? `<button data-use="${id}">${tl('Use')}</button>` : ''}${isGear(d) ? `<button data-equip="${id}">${tl('Equip')}</button>` : ''}`;
   }
   // ITEM TOOLTIP: any element with data-tip="<item id>" shows ui/itemTooltip.js next to the mouse
   // (data-tip-eq = the worn one: no "if equipped" preview)
@@ -573,23 +572,23 @@ export class Panels {
     const g = this.game, on = g.online, pt = on && on.party, me = on && on.playerId;
     const mapName = (id) => { const m = id && g.world.mapManager.get(id); return m ? m.short || m.name : ''; };
     let body = '';
-    if (!on || !on.online) body = '<div class="muted">Not connected — the party needs the server.</div>';
+    if (!on || !on.online) body = `<div class="muted">${tl('Not connected — the party needs the server.')}</div>`;
     else {
-      if (on.invites.length) body += '<div class="pt-h">INVITES</div>' + on.invites.map((i) => npcRow({ img: UI_ICON('npc_guild'), name: i.from,
-        text: `invites you to a party (${i.size}/${ONLINE.party.maxSize})`, right: `<button data-pa="yes" data-party="${esc(i.party)}">Accept</button> <button data-pa="no" data-party="${esc(i.party)}">Decline</button>` })).join('');
+      if (on.invites.length) body += `<div class="pt-h">${tl('INVITES')}</div>` + on.invites.map((i) => npcRow({ img: UI_ICON('npc_guild'), name: i.from,
+        text: tl('invites you to a party ({n}/{max})', { n: i.size, max: ONLINE.party.maxSize }), right: `<button data-pa="yes" data-party="${esc(i.party)}">${tl('Accept')}</button> <button data-pa="no" data-party="${esc(i.party)}">${tl('Decline')}</button>` })).join('');
       if (pt) {
-        body += `<div class="pt-h">PARTY  ${pt.members.length}/${pt.max}</div>`;
+        body += `<div class="pt-h">${tl('PARTY  {n}/{max}', { n: pt.members.length, max: pt.max })}</div>`;
         body += pt.members.map((m) => {
           const c = m.c && CLASSES[m.c], lead = m.id === pt.leader, mine = m.id === me;
-          const where = m.online ? mapName(m.m) : 'offline — keeps the place for a while';
-          const acts = on.isLeader && !mine ? `<button data-pa="lead" data-id="${esc(m.id)}" title="Make leader">♛</button> <button data-pa="kick" data-id="${esc(m.id)}" title="Remove from party">✕</button>` : '';
-          return npcRow({ img: null, cls: 'pt-row' + (m.online ? '' : ' off'), name: `${lead ? '♛ ' : ''}${m.name}${mine ? '  (you)' : ''}`, nameColor: lead ? '#ffd98a' : null,
+          const where = m.online ? mapName(m.m) : tl('offline — keeps the place for a while');
+          const acts = on.isLeader && !mine ? `<button data-pa="lead" data-id="${esc(m.id)}" title="${tl('Make leader')}">♛</button> <button data-pa="kick" data-id="${esc(m.id)}" title="${tl('Remove from party')}">✕</button>` : '';
+          return npcRow({ img: null, cls: 'pt-row' + (m.online ? '' : ' off'), name: `${lead ? '♛ ' : ''}${m.name}${mine ? '  ' + tl('(you)') : ''}`, nameColor: lead ? '#ffd98a' : null,
             text: `<i class="pt-dot${m.online ? ' on' : ''}"></i>${m.l ? 'Lv.' + m.l + ' ' : ''}${c ? esc(c.name) : ''}${where ? ' · ' + esc(where) : ''}`, right: acts });
         }).join('');
-      } else body += '<div class="muted pt-solo">You are not in a party. Create one or join one at a <b>Dungeon Gate</b> in a city.</div>';
-      if (pt) body += '<button data-pa="leave" class="danger pt-leave">Leave party</button>';
+      } else body += `<div class="muted pt-solo">${tl('You are not in a party. Create one or join one at a <b>Dungeon Gate</b> in a city.')}</div>`;
+      if (pt) body += `<button data-pa="leave" class="danger pt-leave">${tl('Leave party')}</button>`;
     }
-    const el = this.show('party', npcPanelHTML({ icon: 'npc_guild', title: 'Party', sub: pt ? (on.isLeader ? 'You lead' : 'Member') : 'Solo', body, keys: [['P', 'Close']] }), 'side');
+    const el = this.show('party', npcPanelHTML({ icon: 'npc_guild', title: tl('Party'), sub: pt ? (on.isLeader ? tl('You lead') : tl('Member')) : tl('Solo'), body, keys: [['P', tl('Close')]] }), 'side');
     this.wireNpc(el, 'party', () => this.party(), (t) => {
       const a = t.dataset.pa;
       if (a === 'yes' || a === 'no') on.partyAction('partyAnswer', { party: t.dataset.party, yes: a === 'yes' });
@@ -597,7 +596,7 @@ export class Panels {
       if (a === 'kick') on.partyAction('partyKick', { id: t.dataset.id });
       if (a === 'leave') {
         if (t.dataset.confirm) on.partyAction('partyLeave');
-        else { t.dataset.confirm = '1'; t.textContent = 'Click again to leave'; }
+        else { t.dataset.confirm = '1'; t.textContent = tl('Click again to leave'); }
       }
     });
   }
@@ -640,29 +639,29 @@ export class Panels {
     const disc = g.discoveries && g.discoveries.of(this.gateSel);
     // party pedestals: you (solo) or every member, 4 places
     const people = pt ? pt.members.map((m) => ({ name: m.name, c: m.c, l: m.l, lead: m.id === pt.leader, off: !m.online }))
-      : [{ name: (on && on.name) || 'You', c: g.player.cls.id, l: g.player.level, lead: false }];
+      : [{ name: (on && on.name) || tl('You'), c: g.player.cls.id, l: g.player.level, lead: false }];
     const slots = [0, 1, 2, 3].map((i) => {
       const m = people[i];
       return m ? `<div class="ms-ped${m.off ? ' off' : ''}"><img class="ms-emb" src="assets/ui/class/${m.c}_emblem.png" alt=""><img class="ms-base" src="assets/ui/icons/pedestal.png" alt="">
           <b>${m.lead ? '♛ ' : ''}${esc(m.name)}</b><span>Lv.${m.l || '?'}${m.c && CLASSES[m.c] ? ' · ' + esc(CLASSES[m.c].name) : ''}</span></div>`
-        : `<div class="ms-ped empty"><img class="ms-base" src="assets/ui/icons/pedestal.png" alt=""><span>${pt ? 'Open' : ''}</span></div>`;
+        : `<div class="ms-ped empty"><img class="ms-base" src="assets/ui/icons/pedestal.png" alt=""><span>${pt ? tl('Open') : ''}</span></div>`;
     }).join('');
     // actions (bottom of the side panel)
     let act;
-    if ((!on || !on.online) && tab !== 'solo') act = '<div class="muted">Not connected to the server — parties need the online server. Solo works.</div>';
-    else if (tab === 'solo') act = `<button class="ms-play" data-go="solo" ${selOpen ? '' : 'disabled'}>${selOpen ? 'PLAY — ' + esc(sel.short) + ' alone' : '🔒 LOCKED'}</button>`
-      + (ex && exDef && !exIsArea ? `<button class="dg-go" data-go="road">Take the road to ${esc(exDef.name)} alone</button>` : '');
+    if ((!on || !on.online) && tab !== 'solo') act = `<div class="muted">${tl('Not connected to the server — parties need the online server. Solo works.')}</div>`;
+    else if (tab === 'solo') act = `<button class="ms-play" data-go="solo" ${selOpen ? '' : 'disabled'}>${selOpen ? tl('PLAY — {name} alone', { name: esc(sel.short) }) : tl('🔒 LOCKED')}</button>`
+      + (ex && exDef && !exIsArea ? `<button class="dg-go" data-go="road">${tl('Take the road to {name} alone', { name: esc(exDef.name) })}</button>` : '');
     else if (!pt) {
       const list = on.openParties || [];
-      act = `<button class="ms-play" data-go="create">CREATE PARTY</button><div class="pt-h">OPEN PARTIES HERE</div>`
-        + (list.length ? list.map((p) => `<div class="ms-open"><span>♛ ${esc(p.leader)} · ${p.size}/${p.max}${p.level ? ' · Lv.' + p.level : ''}</span><button data-join="${esc(p.id)}">Join</button></div>`).join('')
-          : '<div class="muted small">No open party here yet — create one, others can join it here.</div>');
+      act = `<button class="ms-play" data-go="create">${tl('CREATE PARTY')}</button><div class="pt-h">${tl('OPEN PARTIES HERE')}</div>`
+        + (list.length ? list.map((p) => `<div class="ms-open"><span>♛ ${esc(p.leader)} · ${p.size}/${p.max}${p.level ? ' · Lv.' + p.level : ''}</span><button data-join="${esc(p.id)}">${tl('Join')}</button></div>`).join('')
+          : `<div class="muted small">${tl('No open party here yet — create one, others can join it here.')}</div>`);
     } else {
       const lead = pt.members.find((m) => m.id === pt.leader) || {};
-      act = !on.isLeader ? `<div class="muted small">${esc(lead.name || 'The leader')} chooses the map. You will be asked to accept.</div>`
-        : pt.members.length < 2 ? '<div class="muted small">Waiting for players to join… (or switch to Solo)</div>'
-        : `<button class="ms-play" data-go="party" ${selOpen ? '' : 'disabled'}>${selOpen ? 'PLAY — ' + esc(sel.short) + ' with the party' : '🔒 LOCKED'}</button>`;
-      act += '<button data-go="leave" class="danger ms-leave">Leave party</button>';
+      act = !on.isLeader ? `<div class="muted small">${tl('{name} chooses the map. You will be asked to accept.', { name: esc(lead.name || tl('The leader')) })}</div>`
+        : pt.members.length < 2 ? `<div class="muted small">${tl('Waiting for players to join… (or switch to Solo)')}</div>`
+        : `<button class="ms-play" data-go="party" ${selOpen ? '' : 'disabled'}>${selOpen ? tl('PLAY — {name} with the party', { name: esc(sel.short) }) : tl('🔒 LOCKED')}</button>`;
+      act += `<button data-go="leave" class="danger ms-leave">${tl('Leave party')}</button>`;
     }
     // the map: picture (if the owner's art exists) or the drawn map, roads, cities, pins
     const pts = (r) => W.roads[r].map(([x, y]) => `${x},${y}`).join(' ');
@@ -683,20 +682,20 @@ export class Panels {
       </div>
       <div class="ms-top"><kbd>Q</kbd>${strip}<kbd>E</kbd></div>
       <div class="ms-side">
-        <div class="ms-tabs"><button data-npc-tab="solo" class="${tab === 'solo' ? 'on' : ''}">Solo</button><button data-npc-tab="party" class="${tab === 'party' ? 'on' : ''}">Party</button>
-          <button class="close ms-x" title="Close">✕</button></div>
+        <div class="ms-tabs"><button data-npc-tab="solo" class="${tab === 'solo' ? 'on' : ''}">${tl('Solo')}</button><button data-npc-tab="party" class="${tab === 'party' ? 'on' : ''}">${tl('Party')}</button>
+          <button class="close ms-x" title="${tl('Close')}">✕</button></div>
         <div class="ms-head"><span class="ms-dia big" style="--rc:${routeCol(sel.route)}">${portrait((W.pins[this.gateSel] || {}).boss, 70)}</span>
-          <div class="ms-route" style="color:${routeCol(sel.route)}">ROUTE ${esc(sel.route || '')} · ${esc(sel.short)}</div>
+          <div class="ms-route" style="color:${routeCol(sel.route)}">${tl('ROUTE {r} · {name}', { r: esc(sel.route || ''), name: esc(sel.short) })}</div>
           <h2>${esc(sel.name)}</h2><div class="ms-lv">${esc(lv)}</div></div>
         <p class="ms-desc">${esc((W.pins[this.gateSel] || {}).desc || '')}</p>
-        ${boss ? `<div class="ms-boss"><span>BOSS</span><b>${esc(boss.name)}</b>${bossDown ? '<i class="ok">✓ Defeated</i>' : '<i>Not yet defeated</i>'}</div>` : ''}
+        ${boss ? `<div class="ms-boss"><span>${tl('BOSS')}</span><b>${esc(boss.name)}</b>${bossDown ? `<i class="ok">${tl('✓ Defeated')}</i>` : `<i>${tl('Not yet defeated')}</i>`}</div>` : ''}
         ${!selOpen && sel.requires && sel.requires[0] ? `<div class="ms-req">🔒 ${esc(sel.requires[0].label)}</div>` : ''}
-        ${disc ? `<div class="ms-boss"><span>EXPLORED</span><b>✦ ${disc.found} / ${disc.total}</b></div>` : ''}
-        <div class="pt-h">POSSIBLE REWARDS</div>
+        ${disc ? `<div class="ms-boss"><span>${tl('EXPLORED')}</span><b>✦ ${disc.found} / ${disc.total}</b></div>` : ''}
+        <div class="pt-h">${tl('POSSIBLE REWARDS')}</div>
         <div class="ms-rewards">${rewards.map((id) => `<span class="slot" data-tip="${id}" style="border-color:${RARITY_COLOR[ITEMS[id].rarity]}"><img src="${itemIconURL(ITEMS[id])}" alt=""></span>`).join('')}</div>
         <div class="ms-peds">${slots}</div>
         <div class="ms-act">${act}</div>
-        <div class="keys"><span><kbd>Q</kbd><kbd>E</kbd>Map</span><span><kbd>F</kbd>Play</span><span><kbd>Esc</kbd>Back</span></div>
+        <div class="keys"><span><kbd>Q</kbd><kbd>E</kbd>${tl('Map')}</span><span><kbd>F</kbd>${tl('Play')}</span><span><kbd>Esc</kbd>${tl('Back')}</span></div>
       </div></div>`, 'ms-ov');
     // the owner's painted map, when it exists (checked once)
     if (this.worldMapArt === undefined && !W.image) this.worldMapArt = false;
@@ -727,7 +726,7 @@ export class Panels {
       if (go === 'road' && ex) { this.close(true); g.world.transitions.go(ex); }
       if (go === 'party') on.net.send('dungeonPropose', { area: this.gateSel });
       if (go === 'create') on.partyAction('partyCreate');
-      if (go === 'leave') { if (t.dataset.confirm) on.partyAction('partyLeave'); else { t.dataset.confirm = '1'; t.textContent = 'Click again to leave'; } }
+      if (go === 'leave') { if (t.dataset.confirm) on.partyAction('partyLeave'); else { t.dataset.confirm = '1'; t.textContent = tl('Click again to leave'); } }
     });
   }
 
@@ -737,7 +736,7 @@ export class Panels {
     const g = this.game, p = g.player, mm = g.world.mapManager;
     const fmt = (n) => Math.round(n || 0).toLocaleString();
     const win = sum.bosses.length > 0;
-    const me = { name: (g.online && g.online.name) || 'You', c: p.cls.id, l: p.level, dmg: sum.dmg, heal: sum.heal, deaths: sum.deaths, kills: sum.kills, you: true };
+    const me = { name: (g.online && g.online.name) || tl('You'), c: p.cls.id, l: p.level, dmg: sum.dmg, heal: sum.heal, deaths: sum.deaths, kills: sum.kills, you: true };
     const rows = [me, ...others].sort((a, b) => (b.dmg || 0) - (a.dmg || 0));
     const top = rows[0];
     const row = (r) => `<div class="rs-row${r.you ? ' you' : ''}">
@@ -746,7 +745,7 @@ export class Panels {
         <span>${fmt(r.dmg)}</span><span>${fmt(r.heal)}</span><span>${r.deaths || 0}</span></div>`;
     const need = p.isMaxLevel ? 1 : p.expToNext(), pct = p.isMaxLevel ? 100 : Math.min(100, (p.exp / need) * 100);
     const rewards = [
-      ...(sum.gold ? [`<span class="slot rs-gold" title="Gold"><img src="assets/ui/icons/cur_gold.png" alt=""><span class="n">${fmt(sum.gold)}</span></span>`] : []),
+      ...(sum.gold ? [`<span class="slot rs-gold" title="${tl('Gold')}"><img src="assets/ui/icons/cur_gold.png" alt=""><span class="n">${fmt(sum.gold)}</span></span>`] : []),
       ...Object.entries(sum.items).filter(([id]) => ITEMS[id]).map(([id, n]) => `<span class="slot" data-tip="${id}" style="border-color:${RARITY_COLOR[ITEMS[id].rarity]}"><img src="${itemIconURL(ITEMS[id])}" alt=""><span class="n">${n > 1 ? n : ''}</span></span>`),
       ...sum.gear.filter((id) => ITEMS[id]).map((id) => `<span class="slot" data-tip="${id}" style="border-color:${RARITY_COLOR[ITEMS[id].rarity]}"><img src="${itemIconURL(ITEMS[id])}" alt=""></span>`),
     ];
@@ -754,24 +753,24 @@ export class Panels {
     const mins = Math.floor(sum.secs / 60), secs = sum.secs % 60;
     const el = this.show('runSummary', `<div class="rs">
       <div class="rs-banner">
-        ${sum.levelUp > 0 ? `<div class="rs-lvup"><span class="rs-chev">⌃</span><b>Level UP!</b><small>You've reached level ${p.level}.</small></div>` : ''}
-        <div class="rs-title ${win ? 'win' : ''}">${win ? 'VICTORY' : 'RUN COMPLETE'}</div>
+        ${sum.levelUp > 0 ? `<div class="rs-lvup"><span class="rs-chev">⌃</span><b>${tl('Level UP!')}</b><small>${tl("You've reached level {n}.", { n: p.level })}</small></div>` : ''}
+        <div class="rs-title ${win ? 'win' : ''}">${win ? tl('VICTORY') : tl('RUN COMPLETE')}</div>
         <div class="rs-sub">${area ? esc(area.short + ' · ' + area.name) : ''} · ${mins}:${String(secs).padStart(2, '0')}</div>
       </div>
       <div class="rs-left">
-        <div class="rs-row rs-headrow"><span></span><span>DMG</span><span>H</span><span>D</span></div>
+        <div class="rs-row rs-headrow"><span></span><span>${tl('DMG')}</span><span>${tl('H')}</span><span>${tl('D')}</span></div>
         ${rows.map(row).join('')}
       </div>
       <div class="rs-right">
         <div class="rs-lv"><div class="cw-lvl" style="background-image:url(assets/ui/icons/level_diamond.png)"><span>${p.level}</span></div></div>
-        <div class="rs-exp"><span>EXP ${fmt(p.exp)} / ${p.isMaxLevel ? 'MAX' : fmt(need)}</span><b>+${fmt(sum.exp)}</b></div>
+        <div class="rs-exp"><span>${tl('EXP {a} / {b}', { a: fmt(p.exp), b: p.isMaxLevel ? tl('MAX') : fmt(need) })}</span><b>+${fmt(sum.exp)}</b></div>
         <div class="rs-bar"><i style="width:${pct}%"></i></div>
-        <div class="rs-stat"><span>Enemies Killed</span><b>${fmt(sum.kills)}</b></div>
-        <div class="rs-stat"><span>Bosses Defeated</span><b>${sum.bosses.length ? sum.bosses.map((id) => esc((BOSSES[id] || { name: id }).name)).join(', ') : '—'}</b></div>
-        <div class="rs-stat"><span>Maps Visited</span><b>${sum.maps.filter((m) => mm.get(m)).map((m) => esc(mm.get(m).short || m)).join(' · ') || '—'}</b></div>
-        <h4>REWARDS</h4>
-        <div class="rs-rewards">${rewards.join('') || '<span class="muted small">Nothing carried home this time.</span>'}</div>
-        <p class="muted small">Everything above is now safely yours.</p>
+        <div class="rs-stat"><span>${tl('Enemies Killed')}</span><b>${fmt(sum.kills)}</b></div>
+        <div class="rs-stat"><span>${tl('Bosses Defeated')}</span><b>${sum.bosses.length ? sum.bosses.map((id) => esc((BOSSES[id] || { name: id }).name)).join(', ') : '—'}</b></div>
+        <div class="rs-stat"><span>${tl('Maps Visited')}</span><b>${sum.maps.filter((m) => mm.get(m)).map((m) => esc(mm.get(m).short || m)).join(' · ') || '—'}</b></div>
+        <h4>${tl('REWARDS')}</h4>
+        <div class="rs-rewards">${rewards.join('') || `<span class="muted small">${tl('Nothing carried home this time.')}</span>`}</div>
+        <p class="muted small">${tl('Everything above is now safely yours.')}</p>
         <button class="primary rs-ok" data-ok="1">${tl('Continue')}</button>
       </div>
       <div class="keys rs-keys"><span><kbd>E</kbd><kbd>Esc</kbd>${tl('Continue')}</span></div>
@@ -790,12 +789,12 @@ export class Panels {
     const mine = c.members.find((m) => m.id === on.playerId), waiting = mine && mine.answer !== 'yes';
     const secs = Math.max(0, Math.round((c.ends - Date.now()) / 1000));
     const el = this.show('dungeonReady', `<div class="panel confirm dg-ready">
-      <h2>Party Entry</h2>
-      <p><b>${esc(c.leader)}</b> wants to enter <b>${esc(d.short)} · ${esc(d.name)}</b></p>
-      <div class="dg-members">${c.members.map((m) => `<div class="${m.answer}"><i>${m.answer === 'yes' ? '✓' : '…'}</i>${esc(m.name)}${m.id === on.playerId ? ' (you)' : ''}</div>`).join('')}</div>
-      <div class="muted small">Answer within ${secs} s · nobody enters until everyone accepts</div>
-      <div class="row">${waiting ? '<button class="primary" data-r="yes">Accept</button><button data-r="no">Decline</button>' : '<button data-r="no">Cancel entry</button>'}</div>
-      <div class="keys"><span><kbd>Esc</kbd>${waiting ? 'Decline' : 'Cancel'}</span></div>
+      <h2>${tl('Party Entry')}</h2>
+      <p>${tl('{name} wants to enter {area}', { name: `<b>${esc(c.leader)}</b>`, area: `<b>${esc(d.short)} · ${esc(d.name)}</b>` })}</p>
+      <div class="dg-members">${c.members.map((m) => `<div class="${m.answer}"><i>${m.answer === 'yes' ? '✓' : '…'}</i>${esc(m.name)}${m.id === on.playerId ? ' ' + tl('(you)') : ''}</div>`).join('')}</div>
+      <div class="muted small">${tl('Answer within {n} s · nobody enters until everyone accepts', { n: secs })}</div>
+      <div class="row">${waiting ? `<button class="primary" data-r="yes">${tl('Accept')}</button><button data-r="no">${tl('Decline')}</button>` : `<button data-r="no">${tl('Cancel entry')}</button>`}</div>
+      <div class="keys"><span><kbd>Esc</kbd>${waiting ? tl('Decline') : tl('Cancel')}</span></div>
     </div>`, '');
     const answer = (yes) => (yes ? on.net.send('dungeonAnswer', { check: c.check, yes: true }) : on.net.send('dungeonAnswer', { check: c.check, yes: false }));
     this.current.onClose = () => { if (on.check && on.check.check === c.check) answer(false); };
@@ -827,12 +826,12 @@ export class Panels {
       ? shop.stock.map((s) => { const id = shopId(s), d = ITEMS[id], price = shopPrice(s), ok = p.canAfford(price); return npcRow({ img: itemIconURL(d), color: RARITY_COLOR[d.rarity], name: d.name, nameColor: RARITY_COLOR[d.rarity], text: esc(d.modText || d.desc || ''), tip: id,
         right: `<button data-buy="${id}" ${ok ? '' : 'disabled'}>${goldTag(price, ok)}</button>` }); }).join('')
       : sellable.map(({ id, n, def }) => npcRow({ img: itemIconURL(def), color: RARITY_COLOR[def.rarity], name: `${def.name} ×${n}`, tip: id, right: `<button data-sell="${id}">+ ${goldTag(def.sell)}</button>` })).join('')
-        || '<div class="muted small">No materials to sell.</div>';
-    const el = this.show('shop', npcPanelHTML({ icon: 'npc_shop', title: shop.title, sub: tab === 'buy' ? 'Buy' : 'Sell materials', gold: p.gold,
-      menu: [{ id: 'buy', label: 'Buy' }, { id: 'sell', label: 'Sell' }], tab, body, keys: [['Click', tab === 'buy' ? 'Buy' : 'Sell']] }), 'side');
+        || `<div class="muted small">${tl('No materials to sell.')}</div>`;
+    const el = this.show('shop', npcPanelHTML({ icon: 'npc_shop', title: shop.title, sub: tab === 'buy' ? tl('Buy') : tl('Sell materials'), gold: p.gold,
+      menu: [{ id: 'buy', label: tl('Buy') }, { id: 'sell', label: tl('Sell') }], tab, body, keys: [[tl('Click'), tab === 'buy' ? tl('Buy') : tl('Sell')]] }), 'side');
     this.wireNpc(el, 'shop', () => this.shop(), (t) => {
       const E = g.online && g.online.econ, why = (kind, id, fn) => (E ? E.why(kind, id, fn) : fn()); // ONLINE H5a reasons
-      if (t.dataset.buy) { const s = shop.stock.find((x) => shopId(x) === t.dataset.buy); if (!s) return; if (!g.inventory.canAdd(t.dataset.buy)) g.ui.toast('Inventory full', 1); else why('buy', t.dataset.buy, () => { if (p.removeGold(shopPrice(s))) { g.inventory.add(t.dataset.buy, 1); g.audio.sfx('chest'); } }); this.shop(); }
+      if (t.dataset.buy) { const s = shop.stock.find((x) => shopId(x) === t.dataset.buy); if (!s) return; if (!g.inventory.canAdd(t.dataset.buy)) g.ui.toast(tl('Inventory full'), 1); else why('buy', t.dataset.buy, () => { if (p.removeGold(shopPrice(s))) { g.inventory.add(t.dataset.buy, 1); g.audio.sfx('chest'); } }); this.shop(); }
       if (t.dataset.sell) { const d = ITEMS[t.dataset.sell]; why('sell', t.dataset.sell, () => { if (g.inventory.remove(t.dataset.sell, 1)) { p.addGold(d.sell); g.audio.sfx('gather'); } }); this.shop(); }
     });
   }
@@ -843,9 +842,9 @@ export class Panels {
     const body = RECIPES.map((r, i) => { const d = ITEMS[r.out]; return npcRow({ img: itemIconURL(d), color: RARITY_COLOR[d.rarity], name: d.name, nameColor: RARITY_COLOR[d.rarity], tip: r.out, cls: 'recipe',
       text: `${Object.entries(d.stats || {}).map(([k, v]) => `${statLabel(k)} ${statVal(k, v)}`).join(' · ')}${d.modText ? `<div class="mod">◆ ${esc(d.modText)}</div>` : ''}
         <div>${Object.entries(r.mats).map(([m, n]) => `<span class="${inv.has(m, n) ? 'ok' : 'bad'}">${esc(ITEMS[m].name)} ${inv.count(m)}/${n}</span>`).join(' · ')} · ${goldTag(r.gold, p.gold >= r.gold)}</div>`,
-      right: `<button data-craft="${i}" ${can(r) && !owned(r.out) ? '' : 'disabled'}>${owned(r.out) ? 'Owned' : 'Forge'}</button>` }); }).join('')
-      + '<p class="muted small">Materials drop from monsters and resource nodes.</p>';
-    const el = this.show('smith', npcPanelHTML({ icon: 'npc_smith', title: "Borin's Forge", sub: 'Forge', gold: p.gold, body, keys: [['Click', 'Forge']] }), 'side');
+      right: `<button data-craft="${i}" ${can(r) && !owned(r.out) ? '' : 'disabled'}>${owned(r.out) ? tl('Owned') : tl('Forge')}</button>` }); }).join('')
+      + `<p class="muted small">${tl('Materials drop from monsters and resource nodes.')}</p>`;
+    const el = this.show('smith', npcPanelHTML({ icon: 'npc_smith', title: tl("Borin's Forge"), sub: tl('Forge'), gold: p.gold, body, keys: [[tl('Click'), tl('Forge')]] }), 'side');
     this.wireNpc(el, 'smith', () => this.smith(), (t) => {
       if (t.dataset.craft === undefined) return;
       const r = RECIPES[+t.dataset.craft];
@@ -853,7 +852,7 @@ export class Panels {
       for (const [m, n] of Object.entries(r.mats)) inv.remove(m, n);
       inv.add(r.out, 1);
       g.audio.sfx('levelup');
-      g.ui.banner('FORGED', ITEMS[r.out].name, '#ffd98a');
+      g.ui.banner(tl('FORGED'), ITEMS[r.out].name, '#ffd98a');
       this.smith();
     });
   }
@@ -861,9 +860,9 @@ export class Panels {
     const g = this.game, inv = g.inventory, tab = this.npcTab('storage', 'store');
     const list = tab === 'store' ? Object.entries(inv.items).filter(([id]) => ITEMS[id].cat !== 'Quest Item' && !ITEMS[id].bound) : Object.entries(inv.storage);
     const body = list.map(([id, n]) => { const d = ITEMS[id]; return npcRow({ img: itemIconURL(d), color: RARITY_COLOR[d.rarity], name: `${d.name} ×${n}`, tip: id,
-      right: tab === 'store' ? `<button data-dep="${id}">Store →</button>` : `<button data-wd="${id}">← Take</button>` }); }).join('') || '<div class="muted small">Empty</div>';
-    const el = this.show('storage', npcPanelHTML({ icon: 'npc_storage', title: 'Storage Chest', sub: tab === 'store' ? 'Your bag → chest' : 'Chest → your bag',
-      menu: [{ id: 'store', label: 'Store' }, { id: 'take', label: 'Take' }], tab, body, keys: [['Click', tab === 'store' ? 'Store one' : 'Take one']] }), 'side');
+      right: tab === 'store' ? `<button data-dep="${id}">${tl('Store →')}</button>` : `<button data-wd="${id}">${tl('← Take')}</button>` }); }).join('') || `<div class="muted small">${tl('Empty')}</div>`;
+    const el = this.show('storage', npcPanelHTML({ icon: 'npc_storage', title: tl('Storage Chest'), sub: tab === 'store' ? tl('Your bag → chest') : tl('Chest → your bag'),
+      menu: [{ id: 'store', label: tl('Store') }, { id: 'take', label: tl('Take') }], tab, body, keys: [[tl('Click'), tab === 'store' ? tl('Store one') : tl('Take one')]] }), 'side');
     this.wireNpc(el, 'storage', () => this.storage(), (t) => {
       if (t.dataset.dep) { inv.deposit(t.dataset.dep, 1); this.storage(); }
       if (t.dataset.wd) { inv.withdraw(t.dataset.wd, 1); this.storage(); }
@@ -872,10 +871,10 @@ export class Panels {
   teleport(fromId) {
     const g = this.game, w = g.world;
     const stones = w.interactables.filter((it) => it.kind === 'waystone');
-    const body = '<p class="muted small">Your wounds close in the waystone\'s light. Travel to any attuned waystone.</p>' + stones.map((s) => npcRow({ img: UI_ICON('npc_waystone'), name: s.name,
-      text: s.id === fromId ? 'You are here' : w.state.waystones[s.id] ? '' : 'Not attuned', cls: s.id === fromId ? 'np-here' : '',
-      right: w.state.waystones[s.id] && s.id !== fromId ? `<button data-tp="${s.id}">Travel</button>` : '' })).join('');
-    const el = this.show('teleport', npcPanelHTML({ icon: 'npc_waystone', title: 'Waystone Network', sub: 'Travel', body, keys: [['Click', 'Travel']] }), 'side');
+    const body = `<p class="muted small">${tl("Your wounds close in the waystone's light. Travel to any attuned waystone.")}</p>` + stones.map((s) => npcRow({ img: UI_ICON('npc_waystone'), name: s.name,
+      text: s.id === fromId ? tl('You are here') : w.state.waystones[s.id] ? '' : tl('Not attuned'), cls: s.id === fromId ? 'np-here' : '',
+      right: w.state.waystones[s.id] && s.id !== fromId ? `<button data-tp="${s.id}">${tl('Travel')}</button>` : '' })).join('');
+    const el = this.show('teleport', npcPanelHTML({ icon: 'npc_waystone', title: tl('Waystone Network'), sub: tl('Travel'), body, keys: [[tl('Click'), tl('Travel')]] }), 'side');
     this.wireNpc(el, 'teleport', () => this.teleport(fromId), (t) => { if (t.dataset.tp) { this.close(); g.teleportTo(t.dataset.tp); } });
   }
 
@@ -883,8 +882,8 @@ export class Panels {
   worldMap() {
     const g = this.game, w = g.world, map = w.map, hud = g.ui.hud;
     hud.refreshMini();
-    const el = this.show('map', `<div class="panel map"><h2><img class="h2-ico" src="${UI_ICON('menu_map')}" alt="">World Map <span class="keys" style="float:right;padding:0"><span><kbd>M</kbd>Close</span></span></h2><canvas></canvas><div class="legend">
-      <span style="color:#fff">▲ You</span><span style="color:#ffe070">◆ Objective</span><span style="color:#5af0ff">◆ Waystone</span><span style="color:#ffc050">● Chest</span><span style="color:#ff4060">● Boss</span><span style="color:#8adfff">● NPC</span></div>
+    const el = this.show('map', `<div class="panel map"><h2><img class="h2-ico" src="${UI_ICON('menu_map')}" alt="">${tl('World Map')} <span class="keys" style="float:right;padding:0"><span><kbd>M</kbd>${tl('Close')}</span></span></h2><canvas></canvas><div class="legend">
+      <span style="color:#fff">${tl('▲ You')}</span><span style="color:#ffe070">${tl('◆ Objective')}</span><span style="color:#5af0ff">${tl('◆ Waystone')}</span><span style="color:#ffc050">${tl('● Chest')}</span><span style="color:#ff4060">${tl('● Boss')}</span><span style="color:#8adfff">${tl('● NPC')}</span></div>
       <div class="routes">${this.routeProgressHtml()}</div></div>`);
     const cv = el.querySelector('canvas');
     const scale = Math.max(2, Math.floor(Math.min((window.innerHeight * 0.72) / map.h, (window.innerWidth * 0.8) / map.w)));
@@ -923,29 +922,29 @@ export class Panels {
       const cell = (s) => {
         const col = s.bossDefeated ? '#8af0a0' : s.unlocked ? '#f0e6c8' : '#77708a';
         const mark = s.bossDefeated ? '✓' : s.unlocked ? '●' : '✕';
-        const boss = s.boss ? `<div class="small" style="color:${s.bossDefeated ? '#8af0a0' : '#ff9a8a'}">${s.boss.type === 'major' ? 'MAJOR' : 'BOSS'}: ${s.boss.name}${s.bossDefeated ? ' ✓' : ''}</div>` : '';
-        const hid = s.hiddenTotal ? `<div class="small muted">secrets ${s.hiddenFound}/${s.hiddenTotal}</div>` : '';
+        const boss = s.boss ? `<div class="small" style="color:${s.bossDefeated ? '#8af0a0' : '#ff9a8a'}">${s.boss.type === 'major' ? tl('MAJOR') : tl('BOSS')}: ${s.boss.name}${s.bossDefeated ? ' ✓' : ''}</div>` : '';
+        const hid = s.hiddenTotal ? `<div class="small muted">${tl('secrets')} ${s.hiddenFound}/${s.hiddenTotal}</div>` : '';
         const ex = s.unlocked && !s.planned ? this.exploredHtml(s.id) : '';
         const why = !s.unlocked && s.lockReason ? `<div class="small muted">${s.lockReason}</div>` : '';
-        return `<div style="display:inline-block;vertical-align:top;margin:4px 8px;min-width:120px;color:${col}"><b>${mark} ${s.short}</b> <span class="small">${s.planned ? '(planned)' : s.name}</span>${boss}${hid}${ex}${why}</div>`;
+        return `<div style="display:inline-block;vertical-align:top;margin:4px 8px;min-width:120px;color:${col}"><b>${mark} ${s.short}</b> <span class="small">${s.planned ? tl('(planned)') : s.name}</span>${boss}${hid}${ex}${why}</div>`;
       };
       const city = st.city ? `<div style="display:inline-block;vertical-align:top;margin:4px 8px;color:${st.city.unlocked ? '#ffe8b0' : '#77708a'}"><b>${st.city.unlocked ? '●' : '✕'} ${st.city.short}</b> <span class="small">${st.city.name}</span></div>`
-        : `<div style="display:inline-block;vertical-align:top;margin:4px 8px;color:#77708a"><b>✕ City 2</b> <span class="small">(planned)</span></div>`;
-      return `<div style="margin-top:8px;text-align:left"><b style="color:#ffd98a">${r.name}</b> <span class="muted small">${r.sub}${r.playable ? (st.complete ? ' · COMPLETE' : '') : ' · not surveyed yet'}</span><br>${st.steps.map(cell).join('<span class="muted">→</span>')}<span class="muted">→</span>${city}</div>`;
+        : `<div style="display:inline-block;vertical-align:top;margin:4px 8px;color:#77708a"><b>✕ ${tl('City 2')}</b> <span class="small">${tl('(planned)')}</span></div>`;
+      return `<div style="margin-top:8px;text-align:left"><b style="color:#ffd98a">${r.name}</b> <span class="muted small">${r.sub}${r.playable ? (st.complete ? ' · ' + tl('COMPLETE') : '') : ' · ' + tl('not surveyed yet')}</span><br>${st.steps.map(cell).join('<span class="muted">→</span>')}<span class="muted">→</span>${city}</div>`;
     }).join('') + this.secretMapsHtml();
   }
   // exploration counter of a map (world/discoveries.js): ✦ found / total, "?" until visited, gold when complete
   exploredHtml(mapId) {
     const ex = this.game.discoveries && this.game.discoveries.of(mapId);
-    if (!ex) return '<div class="small muted">✦ explored ?</div>';
+    if (!ex) return `<div class="small muted">${tl('✦ explored')} ?</div>`;
     if (!ex[1]) return '';
-    return `<div class="small" style="color:${ex[0] === ex[1] ? '#ffe08a' : '#b8acd8'}">✦ explored ${ex[0]}/${ex[1]}${ex[0] === ex[1] ? ' ✓' : ''}</div>`;
+    return `<div class="small" style="color:${ex[0] === ex[1] ? '#ffe08a' : '#b8acd8'}">${tl('✦ explored')} ${ex[0]}/${ex[1]}${ex[0] === ex[1] ? ' ✓' : ''}</div>`;
   }
   // secret maps (maps/*.js `secret: true`): listed only once visited
   secretMapsHtml() {
     const w = this.game.world, found = w.mapManager.list.filter((d) => d.secret && w.state.maps[d.id]);
     if (!found.length) return '';
-    return `<div style="margin-top:8px;text-align:left"><b style="color:#e0b0ff">SECRETS</b> ${found.map((d) => `<span style="margin:0 8px;color:#e0b0ff">✦ ${d.name}</span>`).join('')}</div>`;
+    return `<div style="margin-top:8px;text-align:left"><b style="color:#e0b0ff">${tl('SECRETS')}</b> ${found.map((d) => `<span style="margin:0 8px;color:#e0b0ff">✦ ${d.name}</span>`).join('')}</div>`;
   }
   centroid(map, subIdx) {
     if (!this._cent || this._centMap !== map) { this._cent = {}; this._centMap = map; } // per grid

@@ -4,6 +4,7 @@
 // service keeps its own click handling in panels.js (data-buy, data-sell, data-craft, data-dep, data-wd, data-tp, data-npc-tab).
 import { esc } from './itemTooltip.js';
 import { UI_ICON } from './charWindow.js';
+import { t as tl } from '../i18n/i18n.js';
 
 export function npcPanelHTML({ icon, title, sub = '', gold = null, menu = [], tab = null, body = '', keys = [] }) {
   return `<div class="panel npc-panel">
@@ -13,8 +14,8 @@ export function npcPanelHTML({ icon, title, sub = '', gold = null, menu = [], ta
       ${menu.length > 1 ? `<div class="np-menu">${menu.map((m) => `<button data-npc-tab="${m.id}" class="${m.id === tab ? 'on' : ''}">${esc(m.label)}</button>`).join('')}</div>` : ''}
       <div class="np-body">${body}</div>
     </div>
-    <div class="keys">${keys.map(([k, l]) => `<span><kbd>${k}</kbd>${esc(l)}</span>`).join('')}<span><kbd>Esc</kbd>Back</span></div>
-    <button class="close np-close" title="Close">✕</button>
+    <div class="keys">${keys.map(([k, l]) => `<span><kbd>${k}</kbd>${esc(l)}</span>`).join('')}<span><kbd>Esc</kbd>${tl('Back')}</span></div>
+    <button class="close np-close" title="${tl('Close')}">✕</button>
   </div>`;
 }
 
