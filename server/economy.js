@@ -18,16 +18,27 @@ import { DIFFICULTY } from '../src/data/difficulty.js';
 import { BOSSES } from '../src/data/bosses.js';
 import { LEVELS } from '../src/data/levels.js';
 import { isSharedMap } from '../src/data/online.js';
+import { QUESTS } from '../src/data/quests.js';
+import { HIDDEN } from '../src/data/hidden.js';
+import { questExp, hiddenExp } from '../src/progression/rewardScaling.js';
+import { EconCatalog } from './econCatalog.js';
 
 export const SERVER_INSTANCE_BASE = 5000000; // gear the server creates: item_5000000+ (clients never count up to it)
 const SERVER_REASONS = new Set(['kill', 'boss']); // paid by the server in a room it hosts
+// H5b: sources checked against the game data — a claim may never pay more than the data says, and only once per character
+// (a gathering node: once per regrow time)
+const VERIFIED = new Set(['quest', 'secret', 'explore', 'chest', 'resource', 'forge', 'shrine']);
+export const ECON_RULES = { regrow: 110, exploreKeys: 600 };
+const expOf = (n) => (n > 0 ? Math.max(1, Math.round(n * DIFFICULTY.expRate)) : 0);
 
-const blank = () => ({ v: 1, gold: 0, level: 1, exp: 0, items: {}, gear: {}, next: SERVER_INSTANCE_BASE, unverified: 0 });
+const blank = () => ({ v: 1, gold: 0, level: 1, exp: 0, items: {}, gear: {}, next: SERVER_INSTANCE_BASE, unverified: 0, claims: {} });
 
 export class EconomyService {
-  constructor(server, store) {
+  constructor(server, store, { scan = false } = {}) {
     this.server = server;
     this.store = store;
+    this.catalog = new EconCatalog();
+    if (scan) this.catalog.scan().then(() => server.log.info?.('[server] economy catalog ready (every grid scanned)')).catch((e) => server.log.error?.('[server] economy catalog scan failed:', e));
     server.on('sessionOpened', (s) => this.get(s.id));
     server.handle('econ', (s, m) => this.onOps(s, m.ops));
   }
@@ -86,7 +97,46 @@ export class EconomyService {
     } else if (t === 'xp') {
       if (!Number.isInteger(a) || a <= 0) return 'bad exp';
     } else return 'unknown op';
-    if (gain && !SERVER_REASONS.has(kind) && kind !== 'use') e.unverified++; // H5b / H5c check these against the data
+    if (gain && VERIFIED.has(kind)) return this.claim(e, op, kind, String(op[op.length - 1][1] || ''));
+    if (gain && !SERVER_REASONS.has(kind) && kind !== 'use') e.unverified++; // H5c checks the rest (shops, piles, mechanics...)
+    return true;
+  }
+
+  // ---------------- H5b: what a data source pays (null = unknown source)
+  expected(kind, id) {
+    const C = this.catalog;
+    if (kind === 'quest') { const q = QUESTS[id]; return q ? { xp: expOf(questExp(q)), gold: (q.rewards && q.rewards.gold) || 0, items: { ...((q.rewards && q.rewards.items) || {}) } } : null; }
+    if (kind === 'secret') { const h = HIDDEN[id]; return h ? { xp: expOf(hiddenExp(h)), gold: (h.reward && h.reward.gold) || 0, items: { ...((h.reward && h.reward.items) || {}) } } : null; }
+    if (kind === 'explore') { const src = LEVELS.expSources[id.split(':')[0]]; return src ? { xp: expOf(src), gold: 0, items: {} } : null; }
+    if (kind === 'chest') { const c = C.chest[id]; return c ? { xp: 0, gold: c.gold, items: { ...c.items } } : null; }
+    if (kind === 'resource') { const r = C.resource[id]; return r ? { xp: 0, gold: 0, items: { [r.item]: 1 }, regrow: true } : null; }
+    if (kind === 'forge') { const f = C.forge[id]; return f ? { xp: 0, gold: 0, items: { ...f.gives } } : null; }
+    if (kind === 'shrine') return { xp: 0, gold: 0, items: { seal_fragment: 1 } };
+    return null;
+  }
+  claim(e, op, kind, id) {
+    const key = kind + ':' + id, claims = e.claims || (e.claims = {}), now = Date.now();
+    let b = claims[key];
+    if (b && b.regrow && now - b.at > ECON_RULES.regrow * 1000) b = null; // the node grew back
+    if (!b) {
+      const exp = this.expected(kind, id);
+      if (!exp) {
+        // grid-built chests / nodes are only known after the scan: until then (or without one, e.g. unit tests) trust them
+        if (!this.catalog.full && (kind === 'chest' || kind === 'resource' || kind === 'forge')) { e.unverified++; return true; }
+        return 'unknown ' + kind;
+      }
+      if (kind === 'explore' && Object.keys(claims).filter((k) => k.startsWith('explore:')).length >= ECON_RULES.exploreKeys) return 'too many discoveries';
+      if (claims[key] && !claims[key].regrow) return 'already claimed';
+      b = claims[key] = { ...exp, at: now };
+    }
+    const [t, a, n] = op;
+    if (t === 'xp') { if (a > b.xp) return `more EXP than ${kind} gives`; b.xp -= a; }
+    else if (t === '$') { if (a > b.gold) return `more gold than ${kind} gives`; b.gold -= a; }
+    else {
+      const item = t === 'i' ? a : a.itemId, k = t === 'i' ? n : 1;
+      if (!((b.items[item] || 0) >= k)) return `${item} is not what ${kind} gives`;
+      b.items[item] -= k;
+    }
     return true;
   }
   apply(e, op) {

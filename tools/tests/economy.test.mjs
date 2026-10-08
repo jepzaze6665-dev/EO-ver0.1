@@ -47,9 +47,9 @@ await test('an old record is seeded once from its save; later saves cannot chang
   const d = JSON.parse(S.saves.store.get(a.id).main);
   ok(d.player.gold === 100 && d.player.level === 3 && d.inventory.items.hp_potion === 2 && !d.inventory.items.rune_crystal && !d.inventory.gear.length, JSON.stringify(d.inventory));
 });
-await test('ops: a chest reward is accepted (counted unverified), spending more than you own / a duplicate gear id is undone', async () => {
+await test('ops: a not-yet-checked reward is accepted (counted unverified), spending more than you own / a duplicate gear id is undone', async () => {
   const a = all.at(-1), e = S.economy.get(a.id), u0 = e.unverified;
-  a.send('econ', { ops: [['i', 'rune_crystal', 3, ['chest', 'c1']], ['$', 50, ['chest', 'c1']], ['g+', { instanceId: 'item_000010', itemId: 'relic_oath_mirror' }, ['chest', 'c1']]] });
+  a.send('econ', { ops: [['i', 'rune_crystal', 3, ['npc', 'gift']], ['$', 50, ['npc', 'gift']], ['g+', { instanceId: 'item_000010', itemId: 'relic_oath_mirror' }, ['npc', 'gift']]] });
   await until(() => S.economy.get(a.id).items.rune_crystal === 3, 2000, 'applied');
   ok(e.gold === 150 && e.gear.item_000010 && e.unverified === u0 + 3, 'gold / gear / unverified');
   a.send('econ', { ops: [['$', -1000, ['buy', 'x']], ['g+', { instanceId: 'item_000010', itemId: 'relic_oath_mirror' }, ['other']], ['i', 'hp_potion', -9, ['use', 'hp_potion']]] });
@@ -73,6 +73,27 @@ await test('in a room the server hosts: a client claiming kill rewards is undone
   ok(xp && xp[1] > 0 && g.src === 'wolf', JSON.stringify(g));
   const after = S.economy.get(a.id);
   ok(after.level * 1e6 + after.exp > before.level * 1e6 + before.exp, 'ledger EXP grew');
+});
+await test('H5b: a quest pays what its data says, once; more than that / a second time / an unknown quest is undone', async () => {
+  const { QUESTS } = await import('../../src/data/quests.js');
+  const [qid, q] = Object.entries(QUESTS).find(([, x]) => x.rewards && x.rewards.gold > 0 && x.rewards.items && Object.keys(x.rewards.items).length);
+  const a = all.at(-1), e = S.economy.get(a.id), gold0 = e.gold, item = Object.keys(q.rewards.items)[0], n0 = a.undo.length;
+  a.send('econ', { ops: [['$', q.rewards.gold, ['quest', qid]], ['i', item, q.rewards.items[item], ['quest', qid]]] });
+  await until(() => S.economy.get(a.id).gold === gold0 + q.rewards.gold, 2000, 'paid');
+  a.send('econ', { ops: [['$', 1, ['quest', qid]], ['$', 5, ['quest', 'no_such_quest']]] });
+  await until(() => a.undo.length === n0 + 2, 2000, 'second claim + unknown quest undone');
+  ok(S.economy.get(a.id).gold === gold0 + q.rewards.gold, 'nothing more paid');
+});
+await test('H5b: a map chest pays its data loot once; gold above it is undone; an area discovery pays its EXP once', async () => {
+  const a = all.at(-1), e = S.economy.get(a.id), n0 = a.undo.length;
+  a.send('econ', { ops: [['$', 999, ['chest', 'b1_chest_tower']]] });
+  await until(() => a.undo.length === n0 + 1, 2000, 'too much gold undone');
+  const g0 = e.gold;
+  a.send('econ', { ops: [['$', 120, ['chest', 'b1_chest_tower']], ['i', 'frost_pelt', 2, ['chest', 'b1_chest_tower']], ['i', 'frost_pelt', 1, ['chest', 'b1_chest_tower']]] });
+  await until(() => a.undo.length === n0 + 2, 2000, 'third pelt undone');
+  ok(S.economy.get(a.id).gold === g0 + 120 && S.economy.get(a.id).items.frost_pelt === 2, 'paid once');
+  a.send('econ', { ops: [['xp', 5, ['explore', 'areaDiscovered:Old Ford']], ['xp', 5, ['explore', 'areaDiscovered:Old Ford']]] });
+  await until(() => a.undo.length === n0 + 3, 2000, 'second discovery undone');
 });
 await test('New Game clears the ledger', async () => {
   const a = all.at(-1);

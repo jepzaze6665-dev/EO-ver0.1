@@ -18,6 +18,6 @@ export class ExperienceSystem {
     // quest / secret EXP follows the new level bands (progression/rewardScaling.js, Level rework L4)
     ev.on('questCompleted', (e) => why('quest', e.quest && e.quest.id, () => give(e.quest ? questExp(e.quest) : e.reward && e.reward.exp)));
     ev.on('hiddenFound', (e) => why('secret', e.entry && e.entry.id, () => give(e.entry ? hiddenExp(e.entry) : e.reward && e.reward.exp)));
-    for (const name of Object.keys(rules.expSources || {})) ev.on(name, () => why('explore', name, () => give(rules.expSources[name])));
+    for (const name of Object.keys(rules.expSources || {})) ev.on(name, (e) => why('explore', `${name}:${(e && (e.id || e.name)) || ''}`.slice(0, 32), () => give(rules.expSources[name]))); // H5b: once per area / lore
   }
 }

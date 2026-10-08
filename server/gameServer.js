@@ -37,7 +37,7 @@ export class GameServer extends EventEmitter {
     this.parties = new PartyService(this);           // N4 parties
     this.dungeons = new DungeonService(this);        // N5 dungeon gate + instances
     this.progress = new ProgressService(this, saveStore); // N8 boss kills decided by the server
-    this.economy = new EconomyService(this, saveStore);  // H5a what each player owns (ledger)
+    this.economy = new EconomyService(this, saveStore, { scan: simHosts }); // H5a what each player owns (ledger); H5b checks
     this.piles = new PileService(this);              // N9 death piles shown to the party
     this.simHosts = new SimHostService(this, { enabled: simHosts }); // H2 the server hosts dungeon map rooms
   }

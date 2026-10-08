@@ -1514,3 +1514,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   counted in econ.unverified (H5b / H5c will check chests, quests, shops, forge, piles against the data, then refuse the rest).
   Tests economy.test.mjs (4); serverSave.test samples have no player block. Checked online: a guest kill of the server's hare
   paid once (+5 EXP, +2 G, Hare Pelt), no undos; ?offline playthrough 17 · gearCheck 30 · runCheck 15 · itemSystemCheck 22.
+  Done H5b (data-checked rewards): economy.allow -> claim(e, op, kind, id) for VERIFIED kinds quest / secret / explore / chest /
+  resource / forge / shrine: a budget per `kind:id` made ONCE from the data (economy.expected: QUESTS rewards + questExp × expRate,
+  HIDDEN reward + hiddenExp, LEVELS.expSources per event ('explore' id = '<event>:<area or lore id>', ExperienceSystem), chest
+  gold + loot, resource 1 item per ECON_RULES.regrow 110 s, forge gives, shrine seal_fragment) — ops above it or a second claim
+  are undone; unknown ids refused. `server/econCatalog.js` EconCatalog = map content chests / nodes / forges (static) + `scan()`
+  of every grid in a SimGame (only when simHosts is on; until `full`, unknown chest / node / forge ids are trusted). Still
+  trusted (H5c): shops, death piles, map-mechanic chests ('mech'), NPC gifts, other. Tests economy.test.mjs 6. Checked online:
+  T.playthrough 17/17 with only the harness's own kills in server-hosted rooms refused (correct).
