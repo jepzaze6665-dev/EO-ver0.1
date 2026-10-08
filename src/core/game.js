@@ -39,6 +39,7 @@ import { WandererSystem } from '../world/wanderers.js';
 import { DiscoverySystem } from '../world/discoveries.js';
 import { WorldProgression } from '../world/worldProgression.js';
 import { RunSystem } from '../dungeon/runSystem.js';
+import { TouchControls } from '../ui/touchControls.js';
 import { WorldTriggerSystem, TRIGGER_ACTIONS } from '../world/worldTriggerSystem.js';
 import { BossSystem } from '../boss/bossSystem.js';
 import { TargetSystem } from '../combat/targetSystem.js';
@@ -74,6 +75,8 @@ export class Game {
     this.vfx = new VFX(this);
     this.combat = new Combat(this);
     this.ui = new UI(this);
+    // MOBILE M1: on-screen joystick + buttons on touch devices (or ?touch) — they write the same input as keys / mouse
+    if (TouchControls.wanted()) this.touch = new TouchControls(this);
     this.save = new SaveSystem(this);
     // canvas placeholders, replaced by the owner's sheet art where data/monsterArt.js has an entry
     this.monsterSprites = { ...buildMonsterSprites(), ...buildSheetSprites() };
@@ -558,6 +561,7 @@ export class Game {
     this.fpsAcc += dt; this.fpsN++;
     if (this.fpsAcc > 0.5) { this.fps = Math.round(this.fpsN / this.fpsAcc); this.fpsAcc = 0; this.fpsN = 0; }
 
+    if (this.touch) this.touch.update(dt); // before the keys / player read the input (auto-aim, virtual keys)
     this.handleGlobalKeys();
     if (this.worldRuns()) {
       this.acc += dt;

@@ -10,6 +10,9 @@ export class Input {
     this.mouse = { x: 0, y: 0, left: false, right: false, leftPressed: false, rightPressed: false };
     this.enabled = true;
     this.lastKey = null;
+    // MOBILE (ui/touchControls.js): the on-screen joystick / buttons write here
+    this.touchMove = null;  // { x, y } length 0..1 from the joystick (null = not used)
+    this.aimAngle = null;   // an aim (radians) that replaces the mouse aim while set (auto-aim / dragged skill)
 
     window.addEventListener('keydown', (e) => {
       // typing in a text field (online name on the title screen) is not game input
@@ -24,6 +27,7 @@ export class Input {
     window.addEventListener('keyup', (e) => this.down.delete(normKey(e)));
     window.addEventListener('blur', () => {
       this.down.clear();
+      this.touchMove = null;
       this.mouse.left = this.mouse.right = false;
     });
     canvas.addEventListener('mousemove', (e) => {
@@ -41,6 +45,10 @@ export class Input {
     });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
   }
+
+  // a virtual key from a touch button: down + a 'pressed' edge this frame / released
+  touchDown(k) { if (!this.down.has(k)) this.pressedKeys.add(k); this.down.add(k); }
+  touchUp(k) { this.down.delete(k); }
 
   isDown(k) { return this.enabled && this.down.has(k); }
   pressed(k) { return this.enabled && this.pressedKeys.has(k); }
@@ -72,6 +80,8 @@ export class Input {
   }
 
   moveVector() {
+    const t = this.touchMove;
+    if (t && (t.x || t.y)) { const l = Math.hypot(t.x, t.y); return l > 1 ? { x: t.x / l, y: t.y / l } : { x: t.x, y: t.y }; } // joystick: analog
     let x = 0, y = 0;
     if (this.isDown('KeyA') || this.isDown('ArrowLeft')) x -= 1;
     if (this.isDown('KeyD') || this.isDown('ArrowRight')) x += 1;

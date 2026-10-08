@@ -1540,3 +1540,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   class LV 50 vs Varkharon god, T.itemBuildCheck gear builds, A1 packs): max hit 33×, max second 41×, max 24 hits/s. Logs
   "combat guard: <name> ..." at most every 10 s. Tests combatGuard.test.mjs (4). NOT yet: the browser still computes its own
   damage (H3b = the server computes hits from 'cast skill X toward Y'); boss-object hits (bossEvt obj) are not limited.
+- **MOBILE** (owner 2026-10-08: phones too; landscape; PWA first, an app wrapper later). Done M1 TOUCH CONTROLS: `src/ui/touchControls.js`
+  TouchControls (game.touch; on when '(pointer: coarse)' or ?touch, ?notouch = off; hidden while a window is open / not playing):
+  a DOM layer over the canvas writing the SAME input as keys / mouse — left 46% = floating joystick -> input.touchMove (analog,
+  moveVector uses it) · ATK hold = mouse.left · 1-4 + ULT on an arc up-left of ATK: TAP = cast at the auto-aim target, DRAG then
+  release = cast toward the drag (aim line shown) · Q (guard classes: hold) · DODGE (Space) · E only near something usable / a
+  downed teammate (hold = revive) · ≡ / bag / potion = Escape / I / R. Input.touchDown/touchUp = virtual keys with pressed edges;
+  input.aimAngle replaces the mouse aim while set (Player.update). Auto-aim each frame: current target, else nearest foe within
+  TOUCH_RULES.autoAim 460 px, else the walking direction. Skill icons + conic cooldown, locked skills dark with "LV n". The HUD
+  skill bar is not drawn on touch (focus resource bar only). Portrait = "Turn your phone sideways to play". Checked at 844×390:
+  joystick moved the hero 155 px, ATK attacked, tap cast Shadow Slash, drag aimed 90°; desktop unchanged (playthrough 17, dodge 8).
+  Next: M2 = PWA (manifest, icons, fullscreen / landscape lock, offline asset cache) + phone UI pass (bigger panels / text,
+  quest tracker placement, performance on low-end phones).

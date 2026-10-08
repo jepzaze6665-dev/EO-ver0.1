@@ -640,8 +640,8 @@ export class Player extends Entity {
     }
 
     // aim from mouse
-    const mw = g.mouseWorld();
-    this.aim = angleTo(this.x, this.y - 12, mw.x, mw.y);
+    if (input.aimAngle !== null && input.aimAngle !== undefined) this.aim = input.aimAngle; // MOBILE: auto-aim / dragged skill (ui/touchControls.js)
+    else { const mw = g.mouseWorld(); this.aim = angleTo(this.x, this.y - 12, mw.x, mw.y); }
 
     // ---- input (buffered)
     if (g.controlsEnabled()) {

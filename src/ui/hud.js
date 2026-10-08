@@ -285,6 +285,8 @@ export class HUD {
 
   drawSkillBar(ctx, W, H, u) {
     const g = this.game, p = g.player, cls = p.cls;
+    // MOBILE: the touch buttons are the skill bar (ui/touchControls.js) — only the class resource stays, low in the middle
+    if (g.touch) { if (this.layout() === 'focus') this.drawFocusBlock(ctx, W, H - 8 * u, 300 * u, u); return; }
     // UI v2 SKILL FRAMES (owner: new frames for every slot): code-drawn glass slots, see skillFrame() — the old pixel-kit
     // slot images are no longer used here
     const size = 54 * u, gap = 7 * u, pad = 4 * u;
