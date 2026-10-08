@@ -30,7 +30,7 @@
 - ระบบ sync ตอนนี้ (mobSync / bossSync / ally proxy) คือรูปแบบเดียวกับที่ headless ต้องใช้: เปลี่ยน "Host = เครื่องผู้เล่น" เป็น "Host = เซิร์ฟเวอร์"
 
 ## 4. ขั้นตอน (แนะนำทำทีละขั้น แต่ละขั้นเล่นได้)
-**H1 — แยก "โลกเกม" ออกจากเบราว์เซอร์**
+**H1 — แยก "โลกเกม" ออกจากเบราว์เซอร์** ✅ เสร็จ: `src/sim/simGame.js` (`createSimGame`) + `src/sim/headless.js` (ตัวแทน DOM / canvas / audio, อ่าน assets json จากดิสก์) · เทสต์ `tools/tests/simGame.test.mjs` (บอทเล่น A1 ครบ 3 คลาสใน Node) · วัดจริง ~0.4-0.7 ms ต่อ tick
 - สร้าง `SimGame` ที่ใช้ระบบเดียวกับ `Game` แต่ไม่มี canvas / audio / UI / input (ใส่ตัวแทนเปล่า)
 - ไล่หาโค้ดที่เรียก `document`, `Image`, `localStorage`, `performance`, `requestAnimationFrame` ในระบบเกม → ย้ายออกหรือใส่ตัวแทน
 - Assets: เซิร์ฟเวอร์ต้องการแค่ข้อมูล (ขนาด hitbox, เวลาแอนิเมชันที่ใช้ตัดสิน hit) — แยกตัวเลขพวกนี้ออกจากรูปภาพ
