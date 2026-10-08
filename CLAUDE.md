@@ -1556,7 +1556,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   files when online, cached copy only when the network fails; never /ws or /dev/) registered from index.html on https:// /
   localhost only (browsers refuse service workers on plain http LAN addresses — a real install needs the HTTPS deploy); iOS
   home-screen meta + apple-touch-icon; viewport no zoom + viewport-fit. `node tools/build-app-icons.js` -> assets/app/icon-192 /
-  icon-512 / apple-touch-icon (emulator: emblem in the centre 72% on #07060c, maskable). TouchControls: first touch asks
+  icon-512 / apple-touch-icon (the emblem in the centre 72% on #07060c, maskable). TouchControls: first touch asks
   fullscreen + screen.orientation.lock('landscape') (Android; not on ?touch desktop tests); ≡ / bag / potion buttons in a row at
   the top centre. HUD on touch: no route panel (it is on the world map), quest tracker = the first quest only, on the left;
   touch tip text instead of WASD. Renderer: coarse-pointer screens render at most 1.5x DPR (was 2). Checked at 844×390: layout
