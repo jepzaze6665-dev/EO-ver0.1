@@ -30,7 +30,7 @@ const CSS = `
 #touch .ult{width:64px;height:64px;border-color:#e8c060}
 #touch .q{width:56px;height:56px;border-color:#b98cff}
 #touch .dodge{width:56px;height:56px}
-#touch .use{width:64px;height:64px;left:50%;bottom:6%;transform:translateX(-50%);display:none;border-color:#9dffb4}
+#touch .use{width:64px;height:64px;left:50%;bottom:calc(6% + 46px);transform:translateX(-50%);display:none;border-color:#9dffb4}
 #touch .use.show{display:flex}
 #touch .small{width:42px;height:42px;font-size:16px}
 #touch .aimline{position:absolute;height:3px;background:linear-gradient(90deg,rgba(255,210,120,.9),rgba(255,210,120,0));transform-origin:0 50%;display:none;pointer-events:none}

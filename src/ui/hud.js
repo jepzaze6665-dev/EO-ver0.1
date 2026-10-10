@@ -739,7 +739,9 @@ export class HUD {
     if (!bi || this.bossBarShow <= 0) return;
     const gd = bi.entity, major = bi.type === 'major';
     ctx.globalAlpha = this.bossBarShow;
-    const w = Math.min(W * (major ? 0.5 : 0.4), (major ? 760 : 600) * u), x = W / 2 - w / 2, y = 26 * u;
+    const w = Math.min(W * (major ? 0.5 : 0.4), (major ? 760 : 600) * u), x = W / 2 - w / 2;
+    // MOBILE: the ≡ / bag / potion buttons sit at the top centre (ui/touchControls.js) -> the bar goes under them
+    const y = 26 * u + (this.game.touch ? 70 * (ctx.canvas.height / Math.max(1, window.innerHeight)) : 0);
     const last = bi.phase === bi.phaseCount && bi.phaseCount > 1;
     const hi = last ? '#e8a0ff' : major ? '#ffe6a8' : '#ffe0d0';
     this.text(ctx, bossKind(bi.type), W / 2, y - 14 * u, 9 * u, bossKindColor(bi.type), { align: 'center' });
@@ -970,7 +972,7 @@ export class HUD {
     if (b) {
       const a = b.t < 0.4 ? b.t / 0.4 : b.t > b.dur - 0.6 ? (b.dur - b.t) / 0.6 : 1;
       ctx.globalAlpha = clamp(a, 0, 1);
-      const y = H * 0.24;
+      const y = H * (g.touch ? 0.32 : 0.24); // MOBILE: below the top buttons + boss bar
       if (b.kind === 'zone') {
         const gr = ctx.createLinearGradient(W / 2 - 400 * u, 0, W / 2 + 400 * u, 0);
         gr.addColorStop(0, 'rgba(10,4,24,0)'); gr.addColorStop(0.5, 'rgba(10,4,24,0.75)'); gr.addColorStop(1, 'rgba(10,4,24,0)');
@@ -989,8 +991,8 @@ export class HUD {
       const a = c.t < 0.15 ? c.t / 0.15 : c.t > c.dur - 0.4 ? (c.dur - c.t) / 0.4 : 1;
       const s = 1 + Math.max(0, 0.3 - c.t) * 1.5;
       ctx.globalAlpha = clamp(a, 0, 1);
-      this.text(ctx, c.title, W / 2, H * 0.36, 34 * u * s, c.color, { align: 'center', font: TITLE });
-      if (c.sub) this.text(ctx, c.sub, W / 2, H * 0.36 + 28 * u, 13 * u, '#e8e0ff', { align: 'center', weight: 500 });
+      this.text(ctx, c.title, W / 2, H * (g.touch ? 0.46 : 0.36), 34 * u * s, c.color, { align: 'center', font: TITLE });
+      if (c.sub) this.text(ctx, c.sub, W / 2, H * (g.touch ? 0.46 : 0.36) + 28 * u, 13 * u, '#e8e0ff', { align: 'center', weight: 500 });
       ctx.globalAlpha = 1;
     }
     if (this.title) {
