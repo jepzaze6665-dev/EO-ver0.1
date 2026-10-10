@@ -15,7 +15,7 @@ import { DIFFICULTY } from '../src/data/difficulty.js';
 // which quests belong to which map (the start quests count for both routes)
 export const ROUTES = {
   A: [
-    { map: 'a1', boss: 'boss_a1', quests: ['beyond_lumina', 'first_steps', 'whispers'], minis: ['mini_hollow_fang', 'mini_grukk'] },
+    { map: 'a1', boss: 'boss_a1', quests: ['beyond_lumina', 'first_steps'], minis: ['mini_hollow_fang', 'mini_grukk'] },
     { map: 'a2', boss: 'boss_a2', quests: [], minis: ['mini_sunken_horn'] },
     { map: 'a3', boss: 'boss_a3', quests: [], minis: ['mini_archive_warden'] },
   ],

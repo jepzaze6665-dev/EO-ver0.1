@@ -37,8 +37,8 @@ export function runChecklist(g, classId = 'umbral_sword') {
   // 5-6 guide + quest
   use(g, 'npc_guide'); g.ui.panels.close(true);
   ok('Talk to the Village Guide', ev.npcTalked.some((e) => e.id === 'guide'));
-  use(g, 'npc_elder'); g.ui.panels.dialogueAction('quest:whispers');
-  ok('Quest accepted', g.quests.isActive('beyond_lumina') && g.quests.active.beyond_lumina.done.talk && g.quests.isActive('whispers'));
+  use(g, 'npc_elder'); g.ui.panels.close(true);
+  ok('Quest accepted (+ Elder Maren met)', g.quests.isActive('beyond_lumina') && g.quests.active.beyond_lumina.done.talk && w().state.flags.elderMet);
 
   // 7 walk out to A1
   goto(g, 47.5, 163); hold(g, 'KeyW', 1.6);
@@ -117,7 +117,7 @@ export function runChecklist(g, classId = 'umbral_sword') {
   g.teleportTo('ws_village'); g.simulate(0.3);
   ok('Return to Lumina Village', w().mapId === 'lumina', w().mapId);
   use(g, 'npc_elder'); g.ui.panels.close(true); use(g, 'npc_guide'); g.ui.panels.close(true);
-  ok('Quests complete', g.quests.isDone('whispers') && g.quests.isDone('beyond_lumina'), Object.keys(g.quests.completed).join(','));
+  ok('Quests complete (+ Elder thanks you)', w().state.flags.elderThanked && g.quests.isDone('beyond_lumina'), Object.keys(g.quests.completed).join(','));
 
   // 29-31 save, "reload" (fresh session), load
   const snap = () => JSON.stringify({ c: p.cls.id, lv: g.player.level, exp: g.player.exp, gold: g.player.gold, map: g.world.mapId, inv: g.inventory.items, done: Object.keys(g.quests.completed).sort(), flags: Object.keys(g.world.state.flags).sort() });

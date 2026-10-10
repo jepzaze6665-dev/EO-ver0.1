@@ -441,16 +441,16 @@ export function playthrough(g, classId) {
   ok('Lumina Village', w.map.zoneAt(g.player.x, g.player.y) === 1);
   use(g, 'npc_guide'); g.ui.panels.close(true);
   ok('Village Guide: First Steps Beyond Lumina', g.quests.isActive('beyond_lumina') && g.quests.active.beyond_lumina.done.talk);
-  use(g, 'npc_elder'); g.ui.panels.dialogueAction('quest:whispers');
-  ok('Quest accepted', g.quests.isActive('whispers'));
+  use(g, 'npc_elder'); g.ui.panels.close(true);
+  ok('Elder Maren met (no quest since Q1)', w.state.flags.elderMet);
   goto(g, 47, 150); g.simulate(1);
-  ok('Whispering Forest', g.quests.active.whispers.done.enter);
-  for (const [x, y] of [[38, 121], [20, 112], [54, 80], [66, 62]]) { goto(g, x, y); fight(g, 20, { god: true, until: () => g.quests.active.whispers.done.wolves }); if (g.quests.active.whispers.done.wolves) break; }
+  ok('Whispering Forest', w.mapId === 'a1', w.mapId);
+  for (const [x, y] of [[38, 121], [20, 112], [54, 80], [66, 62]]) { goto(g, x, y); fight(g, 20, { god: true, until: () => g.stats.kills >= 5 }); if (g.stats.kills >= 5) break; }
   // keep fighting until the combat loop has produced a Perfect Dodge and a Shadow Break
   const camps = [[38, 66], [66, 62], [54, 80], [86, 70], [18, 80], [58, 104], [110, 82]]; // (29,60) is Grukk's arena since V2.2
   // two laps over the camps: a strong build can clear a camp before any telegraph shows up
   for (let k = 0; k < camps.length * 2 && (c.perfect === 0 || c.breaks === 0); k++) { goto(g, ...camps[k % camps.length]); fight(g, 10, { god: true, until: () => c.perfect > 0 && c.breaks > 0 }); }
-  ok('Fight + wolves 5/5', g.quests.active.whispers.done.wolves, `kills=${g.stats.kills}`);
+  ok('Fight: 5+ kills', g.stats.kills >= 5, `kills=${g.stats.kills}`);
   ok('Class mechanic / Perfect Dodge / Finisher', c.breaks > 0 && c.perfect > 0, `class=${g.player.cls.id} perfect=${c.perfect} breaks=${c.breaks} constellations=${c.constellations} threads=${c.threads} tut=${!!w.state.flags.tut_marks}`);
   use(g, 'crack_info'); g.ui.panels.close();
   const crack = w.breakables.find((b) => b.kind === 'crack');
@@ -478,7 +478,7 @@ export function playthrough(g, classId) {
   const beforeGold = g.player.gold;
   use(g, 'npc_elder'); g.ui.panels.close(true);
   use(g, 'npc_guide'); g.ui.panels.close(true);
-  ok('Back in Lumina: quests complete', g.quests.isDone('whispers') && g.quests.isDone('beyond_lumina') && g.player.gold > beforeGold, `gold +${g.player.gold - beforeGold}`);
+  ok('Back in Lumina: Elder thanks you · guide quest done', w.state.flags.elderThanked && g.quests.isDone('beyond_lumina'), `gold +${g.player.gold - beforeGold}`);
   ok('Save', g.save.save());
   const lvl = g.player.level;
   g.loadGame(); w = g.world;

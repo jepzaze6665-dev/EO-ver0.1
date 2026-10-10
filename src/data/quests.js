@@ -44,22 +44,8 @@ export const QUESTS = {
     requirements: [{ type: 'quest', id: 'beyond_lumina', label: 'Finish First Steps Beyond Lumina' }],
   },
   // Q1 (owner 2026-10-10): quests are only the tutorial, the secret chains and (Q2+) the class-change quests. The old
-  // route / map quests (route_a, burning_rift, fallen_city, eastern_road, crystal_depths, frostpeak_climb, asteria,
+  // route / map quests (whispers, route_a, burning_rift, fallen_city, eastern_road, crystal_depths, frostpeak_climb, asteria,
   // forest_hunts) are gone: progress = boss gates + exploration; their EXP / gold moved into the boss rewards.
-  whispers: {
-    id: 'whispers', name: 'WHISPERS IN THE FOREST', giver: 'elder',
-    description: 'A fog has swallowed the Whispering Forest and the beasts have turned savage. Find the source.',
-    objectives: [
-      { id: 'enter', text: 'Enter Whispering Forest', type: 'reach', zone: Z.FOREST, marker: [47, 150] },
-      { id: 'wolves', text: 'Defeat Forest Wolves', type: 'kill', target: 'wolf', count: 5, marker: [38, 121] },
-      { id: 'shrine', text: 'Investigate Ancient Shrine', type: 'flag', flag: 'shrineInvestigated', marker: [136, 70] },
-      { id: 'discover', text: 'Discover Guardian', type: 'flag', flag: 'guardianDiscovered', marker: [136, 52] },
-      { id: 'defeat', text: 'Defeat Guardian', type: 'boss', boss: 'guardian', finalizes: true, marker: [132.5, 28] },
-      { id: 'report', text: 'Report to Elder Maren', type: 'talk', npc: 'elder', marker: [46, 172] },
-    ],
-    rewards: { exp: 400, gold: 250, items: { hp_potion: 3 } },
-    requirements: [],
-  },
   // Valehaven is a SECRET city (W2): this quest starts when you first find it (data/worldTriggers.js valehaven_found)
   valley: {
     id: 'valley', name: 'THE HIDDEN VALLEY', giver: null,

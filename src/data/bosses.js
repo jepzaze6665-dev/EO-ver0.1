@@ -219,7 +219,7 @@ export const BOSSES = {
       { name: 'PHASE III — ENRAGED', sub: 'Combos · Nova · the Last Root', hpBelow: 0.3 },
     ],
     notes: ['Weak windows after heavy blows', 'Root patches + corruption pools (arena)', 'Summoned thornlings', 'Final attack: Last Root of the Forest'],
-    rewards: { exp: 950, gold: 150, loot: 'guardian', lore: 'guardian_rest' },
+    rewards: { exp: 1525, gold: 400, loot: 'guardian', lore: 'guardian_rest' },
     unlocks: ['a2'],
   },
 

@@ -20,7 +20,7 @@ export const LEVEL_SCALING = {
   // slope = how many new levels one old level became on that map (A1 1.44 · A2 3 · A3 3 · B1 2 · B2 3.5 · B3 3.5)
   questLevels: {
     beyond_lumina: [3, 4, 1.44], first_steps: [2, 3, 1.44], depths: [8, 11, 1.44],
-    whispers: [10, 14, 1.44], valley: [10, 14, 1.44],
+    valley: [10, 14, 1.44],
     // Q1: the route quests are gone (their EXP is in the boss rewards)
   },
   hiddenLevels: {

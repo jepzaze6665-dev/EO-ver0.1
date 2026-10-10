@@ -186,7 +186,7 @@ export const TH_STORY = {
   'Ah… you must be the adventurer the Guild sent. I am Maren, elder of Lumina.': 'อ้า… เจ้าคงเป็นนักผจญภัยที่กิลด์ส่งมา ข้าคือ Maren ผู้อาวุโสแห่ง Lumina',
   'A strange fog crept out of the Whispering Forest a month ago. The wolves turned savage, travelers vanished, and the old road north is choked with thorns.': 'หมอกประหลาดคืบคลานออกมาจาก Whispering Forest เมื่อเดือนก่อน หมาป่ากลายเป็นดุร้าย นักเดินทางหายตัวไป และถนนเก่าทางเหนือก็ถูกหนามปกคลุม',
   'The fog comes from the ruins beyond the river, where the Guardian of the Forest sleeps. Please — find out what is happening.': 'หมอกมาจากซากปรักหักพังเลยแม่น้ำไป ที่ซึ่ง Guardian of the Forest หลับใหล ได้โปรด — ช่วยหาว่าเกิดอะไรขึ้น',
-  'Accept: Whispers in the Forest': 'รับเควส: เสียงกระซิบในพงไพร',
+  'I will go': 'ข้าจะไป',
   'Not yet': 'ยังก่อน',
   'You have returned! The fog is gone — I can hear birds in the forest for the first time in a month.': 'เจ้ากลับมาแล้ว! หมอกหายไปแล้ว — ข้าได้ยินเสียงนกในป่าเป็นครั้งแรกในรอบเดือน',
   'You did not simply win a fight, child. You changed the forest itself. Lumina owes you more than this purse.': 'เจ้าไม่ได้แค่ชนะการต่อสู้ เด็กน้อย เจ้าเปลี่ยนผืนป่าทั้งผืน Lumina ติดหนี้เจ้ามากกว่าเงินถุงนี้',

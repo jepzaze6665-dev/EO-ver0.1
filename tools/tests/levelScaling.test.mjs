@@ -58,7 +58,7 @@ test('every map with a level band still names its grid (a // comment once swallo
 test('pacing data: every quest / secret level pair names a real quest / secret', () => {
   for (const id of Object.keys(LEVEL_SCALING.questLevels)) ok(QUESTS[id], 'quest ' + id);
   for (const id of Object.keys(LEVEL_SCALING.hiddenLevels)) ok(HIDDEN[id], 'secret ' + id);
-  ok(questExp(QUESTS.whispers) > QUESTS.whispers.rewards.exp, 'quests at a higher new level pay more than their old number');
+  ok(questExp(QUESTS.valley) > QUESTS.valley.rewards.exp, 'quests at a higher new level pay more than their old number');
 });
 test('owner level table: Route A bosses 14 / 26 / 38, Route B 17 / 31 / 45', () => {
   const lv = (id) => BOSSES[id].level;

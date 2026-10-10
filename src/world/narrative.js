@@ -145,15 +145,15 @@ export function dialogueFor(id, g) {
       return { lines: [...intro.slice(trialsDone ? 1 : 0), trial && q.isDone(trial) ? 'This land has given its cinder. Look for me where the others still sleep.' : 'This land is not ready to give its cinder. Return when it has bled a little more.'], options: [bye] };
     }
     case 'elder':
-      if (!restored && !q.isActive('whispers') && !q.isDone('whispers')) return {
+      if (!restored && !f.elderMet) { g.world.setFlag('elderMet'); return {
         lines: [
           'Ah… you must be the adventurer the Guild sent. I am Maren, elder of Lumina.',
           'A strange fog crept out of the Whispering Forest a month ago. The wolves turned savage, travelers vanished, and the old road north is choked with thorns.',
           'The fog comes from the ruins beyond the river, where the Guardian of the Forest sleeps. Please — find out what is happening.',
         ],
-        options: [{ label: 'Accept: Whispers in the Forest', action: 'quest:whispers' }, { label: 'Not yet', action: 'close' }],
-      };
-      if (restored && q.isDone('whispers') && !f.elderThanked) {
+        options: [{ label: 'I will go', action: 'close' }],
+      }; }
+      if (restored && !f.elderThanked) {
         g.world.setFlag('elderThanked');
         return {
           lines: [
