@@ -644,3 +644,16 @@ html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !impo
   .st-mid { grid-column: 1; zoom: 0.62; }
   .st-right { grid-column: 2; }
 }
+@media (max-height: 520px) {
+  /* RUN SUMMARY on a phone: one screen, members left, rewards right (scrolls), Continue always visible */
+  .rs { grid-template-columns: 1fr 1fr !important; gap: 6px 14px; padding: 6px max(12px, env(safe-area-inset-right)) 6px max(12px, env(safe-area-inset-left)); overflow: hidden; }
+  .rs-banner { grid-column: 1 / 3 !important; padding: 2px 0; }
+  .rs-title { font-size: 34px; letter-spacing: 3px; } .rs-lvup b { font-size: 14px; } .rs-chev { font-size: 16px; } .rs-sub { font-size: 11px; margin: 0; }
+  .rs-left { overflow-y: auto; max-height: 100%; }
+  .rs-row { grid-template-columns: 1fr 64px 48px 32px; padding: 5px 8px; font-size: 13px; } .rs-who img, .rs-noemb { width: 32px; height: 32px; } .rs-who b { font-size: 13px; }
+  .rs-right { overflow-y: auto; max-height: 100%; padding: 6px 12px 0; display: flex; flex-direction: column; }
+  .rs-lv { display: none; } .rs-stat { padding: 5px 10px; font-size: 12px; margin: 2px 0; } .rs-right h4 { margin: 6px 0 4px; font-size: 13px; }
+  .rs-rewards .slot { width: 42px; height: 42px; } .rs-rewards .slot img { width: 32px; height: 32px; }
+  .rs-ok { position: sticky; bottom: 0; min-height: 48px; font-size: 16px; margin-top: auto; box-shadow: 0 -8px 12px rgba(6, 6, 10, 0.96); }
+  .rs-keys { display: none; }
+}
