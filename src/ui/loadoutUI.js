@@ -9,6 +9,7 @@ import { esc, modifierText, modValue, swapPreview } from './itemTooltip.js';
 import { meetsLevel } from '../items/itemDefs.js';
 import { setSummary } from '../items/setSystem.js';
 import { archetypeSummary, buildName } from '../items/archetypeSystem.js';
+import { buildSummary } from '../progression/buildPresets.js';
 import { t as tl, tx } from '../i18n/i18n.js';
 
 const pct = (v) => `${Math.round(v * 100)}%`;
@@ -68,6 +69,20 @@ export function archetypeHTML(eq, { full = false } = {}) {
     return `<div class="arch-strip"><span class="arch-name">${name ? esc(tx(name)) : tl('BUILD')}</span>${rows.map(chip).join('')}</div>`;
   }
   return rows.map((r) => `<div class="lo-set"><b style="color:${r.color}">${esc(tx(r.name))} ${r.points}</b> <span class="muted small">(${tl('items')} ${r.items} · ${tl('evolutions')} ${r.evolutions})</span>${r.tiers.map((t) => `<div class="small ${t.on ? 'set-on' : 'muted'}">(${t.points}) ${esc(tx(t.text))}</div>`).join('')}</div>`).join('');
+}
+
+// BUILD PRESETS row (B5): load a saved build / save the current one into a slot
+export function presetsHTML(p) {
+  const list = p.presets();
+  return `<div class="preset-row"><span class="arch-name">${tl('PRESETS')}</span>${list.map((pr, i) => `<span class="preset">
+    <button data-preset-load="${i}" ${pr ? '' : 'disabled'} title="${pr ? esc(tl('Load this build (city only)')) : ''}">${i + 1}. ${pr ? esc(tx(pr.name)) : tl('empty')}</button><button class="preset-save" data-preset-save="${i}" title="${esc(tl('Save the current build here'))}">💾</button></span>`).join('')}</div>`;
+}
+// strengths / weaknesses of the worn build (B5)
+export function buildSummaryHTML(eq) {
+  const s = buildSummary(eq.archetypePoints(), eq.wornIds());
+  const good = s.strengths.map((x) => `<div class="small set-on">+ ${esc(tx(x.text))} <i class="muted">(${esc(tx(x.from))})</i></div>`).join('');
+  const bad = s.weaknesses.map((x) => `<div class="small" style="color:#ff8a80">− ${esc(x.text ? tx(x.text) : `${tl(x.label)} ${x.pct}%`)} <i class="muted">(${esc(tx(x.from))})</i></div>`).join('');
+  return `<div class="lo-set"><b>${tl('Strengths')}</b>${good || `<div class="small muted">—</div>`}<b>${tl('Weaknesses')}</b>${bad || `<div class="small muted">—</div>`}</div>`;
 }
 
 // worn sets: name n/total + every bonus (lit when on)

@@ -18,7 +18,7 @@
 import { addExp, normalize } from './experience.js';
 
 export const SKILL_DEFAULT = () => ({ level: 1, masteryXp: 0, masteryLevel: 0, evolution: null });
-export const CLASS_DEFAULT = () => ({ level: 1, exp: 0, mastery: 0, loadout: null, skills: {} });
+export const CLASS_DEFAULT = () => ({ level: 1, exp: 0, mastery: 0, loadout: null, skills: {}, presets: [] });
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 const int = (v, lo, hi, d) => (Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.floor(v))) : d);
@@ -108,6 +108,7 @@ export class ClassProgress {
       e.exp = Math.max(0, Number(c.exp) || 0);
       e.mastery = Math.max(0, Number(c.mastery) || 0);
       e.loadout = Array.isArray(c.loadout) ? c.loadout.map((x) => (typeof x === 'string' ? x : null)) : null;
+      e.presets = Array.isArray(c.presets) ? c.presets.slice(0, 8).map((x) => (isObj(x) ? x : null)) : []; // build presets (progression/buildPresets.js cleans them)
       for (const [sid, s] of Object.entries(isObj(c.skills) ? c.skills : {})) {
         if (!isObj(s)) continue;
         e.skills[sid] = {

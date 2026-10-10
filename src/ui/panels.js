@@ -547,10 +547,18 @@ export class Panels {
     startHeroPreview(el, g);
     this.wireTooltip(el);
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-tab],[data-cat],[data-filter],[data-tree-sel],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
+      const t = e.target.closest('[data-tab],[data-cat],[data-preset-load],[data-preset-save],[data-filter],[data-tree-sel],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
       if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
+      else if (t.dataset.presetSave) { g.player.savePreset(+t.dataset.presetSave); g.ui.toast(tl('Build saved'), 1); g.audio.sfx('equip'); this.inventory(); }
+      else if (t.dataset.presetLoad) {
+        const r = g.player.applyPreset(+t.dataset.presetLoad);
+        const why = { combat: 'Cannot change builds in combat', safe: 'Builds can only be changed in a city', empty: 'Empty preset' };
+        if (!r.ok) { g.ui.toast(tl(why[r.reason] || 'Cannot load this build'), 1.2); g.audio.sfx('deny'); }
+        else { g.ui.toast(r.missing.length ? tl('Build loaded — {n} item(s) missing', { n: r.missing.length }) : tl('Build loaded'), 1.2); g.audio.sfx('equip'); }
+        this.inventory();
+      }
       else if (t.dataset.treeSel) { this.treeSel = t.dataset.treeSel; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.filter) { this.invFilter = t.dataset.filter; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.cat) { this.invCat = t.dataset.cat; this.inventory(); }

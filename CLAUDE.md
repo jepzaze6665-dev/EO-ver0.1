@@ -1612,6 +1612,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (barrier nova), Galeblade (dash nova), Gambler's Eye (crit = cooldowns), Brand of the Hunt (mark blast), Unmoving Mountain
   (hit = quake), Headsman's Verdict (execute < 12%) — 12% roll on mini_relic; + 7 pieces for burn / summon / counter in the
   elite pool. Every archetype has 4+ items. Test buildItems.test.mjs (8). Gear items now ≈ 78. No icon art for B3 / B4 items.
+  Done B5 (presets + summary): `src/progression/buildPresets.js` (PRESET_RULES count 3 / nameMax 16 / safeOnly; cleanPreset(s),
+  capturePreset(name, loadout, gear slots), buildSummary(points, worn ids) = name + strengths (tier bonuses on) + weaknesses (summed
+  minus modifiers { label, pct } + rule texts)). Stored per class: classProgress classes[id].presets (raw, cleaned on read).
+  Player.presets() / savePreset(i, name?) (name = build name, else "Build n") / applyPreset(i) -> { ok, reason combat | safe |
+  empty, missing } (skill loadout + gear: unequips what differs, equips what is owned; only out of combat in a safe map).
+  Character window: PRESETS row (load buttons + 💾 save) under the BUILD strip; Strengths / Weaknesses in the fold.
+  Events presetSaved / presetApplied. Test buildPresets.test.mjs (4).
 - NPC SPRITES (owner's GPT sheets desgin/NPC, prompts docs/npc/NPC_PROMPTS.md): `node tools/build-npcs.js [--preview]` -> assets/npcs/<art>.png
   (strip front / back / left / right / walk1 / walk2, feet pivot, ~60 px) + npcs.json -> Assets.npcs; which NPC uses which = src/data/npcArt.js
   (by NPC id; map / wanderer defs may name `art`). NPC.drawArt (faces the player on talk, walk frames toward the camera, bob otherwise);

@@ -23,7 +23,8 @@ import { ActionRecorder } from '../combat/actionRecorder.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
 import { LEVELS } from '../data/levels.js';
 import { STAMINA } from '../data/stamina.js';
-import { MAGIC_DAMAGE_TYPES, COUNTER_STATUS } from '../data/items/rules.js';
+import { MAGIC_DAMAGE_TYPES, COUNTER_STATUS, GEAR_SLOTS } from '../data/items/rules.js';
+import { PRESET_RULES, cleanPresets, capturePreset, buildSummary } from '../progression/buildPresets.js';
 import { expToNext, addExp, normalize as normalizeExp, levelStats } from '../progression/experience.js';
 
 const WALK_MUL = 1.08; // Combat 2.0: sprint removed, base walk a little faster to compensate
@@ -590,6 +591,35 @@ export class Player extends Entity {
     return r.ok;
   }
   tryBreak() { return this.trySkill(this.cls.special); }
+  // BUILD PRESETS (progression/buildPresets.js): saved per class in classProgress
+  presets() { const cp = this.game.classProgress; return cleanPresets(cp ? cp.ensure(this.cls.id).presets : []); }
+  savePreset(i, name) {
+    const g = this.game, cp = g.classProgress;
+    if (!cp || !(i >= 0 && i < PRESET_RULES.count)) return false;
+    const list = cp.ensure(this.cls.id).presets;
+    while (list.length < PRESET_RULES.count) list.push(null);
+    list[i] = capturePreset(name || buildSummary(g.equipment.archetypePoints(), g.equipment.wornIds()).name || `Build ${i + 1}`, this.loadout.serialize(), g.equipment.slots);
+    g.save.dirty = true;
+    g.events.emit('presetSaved', { player: this, index: i });
+    return true;
+  }
+  // -> { ok, reason?, missing: [item ids not owned any more] }
+  applyPreset(i) {
+    const g = this.game, pr = this.presets()[i];
+    if (!pr) return { ok: false, reason: 'empty', missing: [] };
+    if (g.combat.inCombat) return { ok: false, reason: 'combat', missing: [] };
+    if (PRESET_RULES.safeOnly && g.world && !g.world.inSafeZone(this)) return { ok: false, reason: 'safe', missing: [] };
+    if (pr.loadout) { this.loadout.load(pr.loadout); g.events.emit('loadoutChanged', { player: this, slots: this.loadout.serialize() }); }
+    const eq = g.equipment, missing = [];
+    for (const s of GEAR_SLOTS) if (eq.slots[s.id] && eq.slots[s.id] !== pr.gear[s.id]) eq.unequip(s.id);
+    for (const s of GEAR_SLOTS) {
+      const id = pr.gear[s.id];
+      if (id && eq.slots[s.id] !== id && !eq.equip(id, s.id)) missing.push(id);
+    }
+    g.save.dirty = true;
+    g.events.emit('presetApplied', { player: this, index: i, missing });
+    return { ok: true, missing };
+  }
   // change which skill sits on key i+1 (Skills tab). Not allowed mid-fight.
   setSkillSlot(i, id) {
     const g = this.game;
