@@ -612,3 +612,35 @@ html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !impo
   .ms-pin { width: 60px; height: 76px; } .ms-dia { width: 44px; height: 44px; } .ms-pin b { font-size: 12px; margin-top: 6px; }
   .ms-city { font-size: 11px; }
 }
+
+/* PHONE: every window (MOBILE M4 step 3) — compact header, big close / tabs / buttons, character window in 2 columns */
+@media (max-height: 520px) {
+  .panel button, .dialogue button { min-height: 38px; }
+  .panel .x, .panel .close, .np-x { min-width: 44px; min-height: 44px; font-size: 20px; }
+  .cw-narrow { width: min(760px, 92vw) !important; max-width: none !important; }
+  .cw-head { padding-top: 4px !important; padding-bottom: 4px !important; }
+  .cw-lvl { transform: scale(0.72); margin: -8px -6px; }
+  .cw-tabs button { padding-top: 6px !important; padding-bottom: 6px !important; }
+  .cw-equip { display: grid !important; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); column-gap: 12px; align-items: start; }
+  .cw-equip > .cw-top { grid-column: 1; grid-row: 1 / span 4; }
+  .cw-equip > .cw-more { grid-column: 1; grid-row: 5; }
+  .cw-equip > .cw-bagbar, .cw-equip > .cw-bag { grid-column: 2; }
+  .cw-equip > .cw-bagbar { grid-row: 1; } .cw-equip > .cw-bag { grid-row: 2 / span 4; }
+  .cw-equip > .keys { display: none; }
+  .cw-stage { width: 120px !important; }
+  .cw-pedestal { left: -20px; }
+  .cw-hero { left: -100px; }
+  .cw-bag { grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)) !important; }
+  .cw-bag .slot { width: auto; height: 44px; }
+  .cw-filters button { min-height: 34px; min-width: 34px; }
+  .item-tip { max-width: min(320px, 60vw); max-height: 90vh; overflow-y: auto; }
+}
+@media (max-height: 520px) {
+  /* Skills tab on a phone: points + skill bar in one row, tree (shrunk) left, the skill card right */
+  .st-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; gap: 8px 12px !important; }
+  .st-left { grid-column: 1 / -1; display: flex !important; flex-wrap: wrap; align-items: center; gap: 4px 14px; text-align: left; }
+  .st-left .st-lvl, .st-left .muted, .st-left h4 { display: none !important; }
+  .st-left .st-bar { margin: 0 0 0 auto; }
+  .st-mid { grid-column: 1; zoom: 0.62; }
+  .st-right { grid-column: 2; }
+}

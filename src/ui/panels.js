@@ -565,6 +565,18 @@ export class Panels {
       tip.style.top = Math.min(window.innerHeight - h - 8, e.clientY + 12) + 'px';
     });
     el.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+    // phones have no hover: a finger on an item shows its tooltip (placed away from the finger), a tap elsewhere hides it
+    el.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch') return;
+      const t = e.target.closest('[data-tip]');
+      if (!t || !ITEMS[t.dataset.tip]) { tip.style.display = 'none'; return; }
+      const id = t.dataset.tip, worn = !!t.dataset.tipEq;
+      tip.innerHTML = itemTooltipHTML(ITEMS[id], { classId: g.player.cls.id, level: g.player.level, worn: g.equipment.wornIds(), equipped: worn, swap: worn ? null : swapPreview(g.equipment, id) });
+      tip.dataset.id = id; tip.style.display = 'block';
+      const w = tip.offsetWidth, h = tip.offsetHeight, left = e.clientX > window.innerWidth / 2;
+      tip.style.left = Math.max(8, left ? e.clientX - w - 24 : Math.min(window.innerWidth - w - 8, e.clientX + 24)) + 'px';
+      tip.style.top = Math.max(8, Math.min(window.innerHeight - h - 8, e.clientY - h / 2)) + 'px';
+    });
   }
 
   // ---------------- ONLINE PARTY (N4, net/onlineSession.js -> server/parties.js). [P] or ESC menu -> Party.
