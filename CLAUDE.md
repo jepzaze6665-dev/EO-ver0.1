@@ -1668,3 +1668,5 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   halves so a body stands inside) / ring / disc / pillar; heartbeat pulse; bakeStrip = frames side by side. Presets
   `src/data/fxPresets.js` (only fields that differ from FX_DEFAULTS). `tools/vfxlab.html` (Dev Panel World > VFX Lab): sliders,
   colours, class sprite inside, bg, PNG strip download, Copy JSON. tools/tests/proceduralFx.test.mjs.
+  F2 SKIPPED (owner, after a side-by-side preview: the AI sprite VFX look better) -> game VFX stay the sprite strips; the
+  procedural FX stay a Lab tool (maybe for cosmetics later). Next: F3 glow layer.
