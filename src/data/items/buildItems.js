@@ -12,8 +12,8 @@ export const BUILD_ITEMS = {
     description: 'Let them bleed. Then open the dam.', tags: ['bleed'],
     modifiers: [{ type: 'attackSpeed', value: -0.05 }],
     effects: [{ trigger: 'onSkillHit', condition: { type: 'targetHasStatus', status: 'bleed' },
-      effect: { type: 'detonateStatus', status: 'bleed', value: 4 }, cooldown: 3,
-      text: 'Skill hit on a BLEEDING foe: the bleed bursts at once for 4 ticks of every stack (3 s cooldown).' }],
+      effect: { type: 'detonateStatus', status: 'bleed', value: 6 }, cooldown: 2.5,
+      text: 'Skill hit on a BLEEDING foe: the bleed bursts at once for 6 ticks of every stack (2.5 s cooldown).' }],
   }),
   core_wildfire_heart: L({
     name: 'Wildfire Heart', type: 'weapon_core', icon: 'sword', color: '#ff7a20',
@@ -51,8 +51,8 @@ export const BUILD_ITEMS = {
     name: 'Galeblade', type: 'weapon_core', icon: 'sword', color: '#7ae0ff',
     description: 'A blade that only cuts while it moves.', tags: ['mobility'],
     modifiers: [{ type: 'movementSpeed', value: 0.06 }, { type: 'defense', value: -0.12 }],
-    effects: [{ trigger: 'onDash', effect: { type: 'nova', power: 1.0, radius: 80, color: '140,230,255' }, cooldown: 1.5,
-      text: 'Dash skill: a gust cuts every foe around you for 100% ATK (1.5 s cooldown).' }],
+    effects: [{ trigger: 'onDash', effect: { type: 'nova', power: 1.4, radius: 80, color: '140,230,255' }, cooldown: 1.5,
+      text: 'Dash skill: a gust cuts every foe around you for 140% ATK (1.5 s cooldown).' }],
   }),
   relic_gamblers_eye: L({
     name: "Gambler's Eye", type: 'relic', icon: 'heart', color: '#ff70c0',

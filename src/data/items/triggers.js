@@ -81,9 +81,10 @@ export const TRIGGER_EVENTS = {
   // I3: the wearer's own class mark reaching its maximum (Umbral: 3 Shadow Marks)
   onMarksFull: { event: 'marksFull', who: (e) => e.player, ctx: (e) => ({ markId: e.mark }) },
   // a mark the wearer put on a foe goes off at max stacks (Astral: Constellation Break)
+  // B6: also when the wearer SPENDS its own marks (Umbral Shadow Break / Eclipse Sever: 'marksSpent', no target -> at you)
   onMarkTriggered: {
-    event: 'markTriggered', who: (e) => e.source, skip: (e) => e.target === e.source,
-    ctx: (e) => ({ target: e.target, markId: e.markId }),
+    event: ['markTriggered', 'marksSpent'], who: (e) => e.source, skip: (e) => !!e.target && e.target === e.source,
+    ctx: (e) => ({ target: e.target || null, markId: e.markId }),
   },
 };
 // B4: a Perfect Dodge by the wearer (Player.onPerfectDodge emits 'perfectDodge' with the attacker; local player only)

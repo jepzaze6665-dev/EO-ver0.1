@@ -17,7 +17,7 @@ import { activeArchetypeBonuses } from './archetypeSystem.js';
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 // living foes within r px of (x, y) (World.hostiles minus breakables)
-const foesNear = (g, x, y, r) => g.world.hostiles().filter((f) => !f.isBreakable && f.status && Math.hypot(f.x - x, f.y - y) <= r);
+const foesNear = (g, x, y, r) => g.world.hostiles().filter((f) => !f.isBreakable && f.status && Math.hypot(f.x - x, f.y - y) <= r + (f.radius || 0)); // edge of the body, not its centre (big bosses)
 
 // EFFECT HANDLERS — one per effect type (data/items/rules.js EFFECT_TYPES). (fx, p, ctx, g, entry) -> true if it acted.
 export const EFFECT_HANDLERS = {
@@ -223,7 +223,7 @@ export class ItemEffectSystem {
     this.log.push({ t: now, itemId: entry.itemId, setId: entry.setId, trigger: entry.trigger, effect: eff.effect.type });
     if (this.log.length > 20) this.log.shift();
     if ((eff.cooldown || 0) >= 3) g.vfx.text(p.x, p.y - 84, entry.name.toUpperCase(), { color: entry.color || '#ffd070', size: 9, life: 1 });
-    g.events.emit('itemEffect', { player: p, itemId: entry.itemId, setId: entry.setId, slot: entry.slot, trigger: entry.trigger, effect: eff.effect.type });
+    g.events.emit('itemEffect', { player: p, itemId: entry.itemId, setId: entry.setId, archetype: entry.archetype, slot: entry.slot, trigger: entry.trigger, effect: eff.effect.type });
     return true;
   }
   endTimed(key, t) {

@@ -1619,6 +1619,16 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   empty, missing } (skill loadout + gear: unequips what differs, equips what is owned; only out of combat in a safe map).
   Character window: PRESETS row (load buttons + 💾 save) under the BUILD strip; Strengths / Weaknesses in the fold.
   Events presetSaved / presetApplied. Test buildPresets.test.mjs (4).
+  Done B6 (bot balance): testkit `ARCHETYPE_BUILDS` (Umbral: baseline + one 7-item build + evolutions per archetype) +
+  `T.archetypeFight(g, name, { level: 25 })` (buildFight gained `setup` + `botOpts`; bot opt `dashAttack` = uses dash skills
+  in its damage rotation). Fixes it found: nova / spread radius now counts the foe's body radius (big bosses were never
+  hit); Player.consumeMarks emits 'marksSpent' and item trigger onMarkTriggered hears it (Umbral marks are self marks);
+  itemEffect event carries `archetype`. Tuning: Severing Arc ×1.7 -> ×1.5, Galeblade 100% -> 140%, Crimson Rupture 4 -> 6 ticks
+  (cd 2.5). Result vs the A1 Guardian at LV 25, no god, 6-8 runs (damage taken is very noisy run to run): baseline 77-83 s ·
+  execute 57 · summon 58 · critical 59 · mark 60 · burn 66 · bleed 71 · counter 73 · momentum 73 · bulwark 82 (−25% dmg) ·
+  barrier 92 (−40% dmg). Bot plays counter / momentum / bleed worse than a human (perfect dodges, dashes, packs): human playtest.
+  CHARACTER BUILD B1-B6 COMPLETE (Umbral pilot). Next: owner decides — same evolutions for the other 8 classes, diamond
+  respec currency, icon art for the 23 B3 / B4 items.
 - NPC SPRITES (owner's GPT sheets desgin/NPC, prompts docs/npc/NPC_PROMPTS.md): `node tools/build-npcs.js [--preview]` -> assets/npcs/<art>.png
   (strip front / back / left / right / walk1 / walk2, feet pivot, ~60 px) + npcs.json -> Assets.npcs; which NPC uses which = src/data/npcArt.js
   (by NPC id; map / wanderer defs may name `art`). NPC.drawArt (faces the player on talk, walk frames toward the camera, bob otherwise);

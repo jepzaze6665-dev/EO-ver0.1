@@ -130,7 +130,7 @@ export function bot(g, i, opts = {}) {
     // any class: fire the first slotted skill (keys 1-4) that is ready, affordable and allowed
     if (i % 20 === 0) {
       // damage rotation only: mobility / dash skills would carry a melee class out of range
-      const b = p.loadout.bindings().find((x) => x.key !== '5' && !(x.skill.tags || []).some((t) => t === 'dash' || t === 'mobility') && p.skillSys.canUse(x.skill.id).ok);
+      const b = p.loadout.bindings().find((x) => x.key !== '5' && (opts.dashAttack || !(x.skill.tags || []).some((t) => t === 'dash' || t === 'mobility')) && p.skillSys.canUse(x.skill.id).ok);
       if (b) inp.pushBuffer('skill' + b.key);
     }
     // finisher specials gated by requirements (Shadow Break: 3 marks, Reaper's Step: a marked foe) fire when allowed
@@ -1898,11 +1898,12 @@ export const AEGIS_BUILDS = {
   guard: ['core_ironheart', 'armor_guardian', 'relic_dawn_core', 'charm_heavy', 'rune_guarding_soul', 'rune_iron_will', 'rune_provocation'],
   counter: ['core_counter', 'armor_risk', 'relic_oath_mirror', 'charm_swift', 'rune_retribution', 'rune_guarding_soul', 'rune_provocation'],
 };
-export function buildFight(g, build, { level = 13, classId = 'aegis_guardian', seconds = 300 } = {}) {
+export function buildFight(g, build, { level = 13, classId = 'aegis_guardian', seconds = 300, setup = null, botOpts = {} } = {}) {
   toBoss(g, classId);
   const pl = g.player; pl.setLevel(level);
   giveGear(g);
   for (const id of build || []) g.equipment.equip(id);
+  if (setup) setup(g, pl);
   pl.hp = pl.maxHp;
   goto(g, 135, 37); g.simulate(3);
   const gd = g.world.guardian;
@@ -1912,13 +1913,52 @@ export function buildFight(g, build, { level = 13, classId = 'aegis_guardian', s
   g.events.on('guardBlocked', () => st.blocked++); g.events.on('perfectGuard', () => st.perfects++);
   g.events.on('resourceChanged', (e) => { if (e.entity === pl && e.resource === pl.primaryResource && e.value > e.before) st.gauge += e.value - e.before; });
   const fired = {}, applied = {}; // per item / set: effects fired · per status: applied by the player
-  g.events.on('itemEffect', (e) => { st.effects++; const k = e.itemId || e.setId; fired[k] = (fired[k] || 0) + 1; });
+  g.events.on('itemEffect', (e) => { st.effects++; const k = e.itemId || e.setId || (e.archetype && 'arch:' + e.archetype); fired[k] = (fired[k] || 0) + 1; });
   g.events.on('statusApplied', (e) => { if (e.source === pl && e.target !== pl) applied[e.id] = (applied[e.id] || 0) + 1; });
   const pots0 = g.inventory.count('hp_potion');
   let t = 0;
-  while (t < seconds && !gd.dead && !pl.dead) { g.simulate(5, (gg, i) => bot(gg, i, {})); t += 5; }
+  while (t < seconds && !gd.dead && !pl.dead) { g.simulate(5, (gg, i) => bot(gg, i, botOpts)); t += 5; }
   releaseInput(g);
   return { result: gd.dead ? 'WIN' : pl.dead ? 'DIED' : 'TIMEOUT', time: t, maxHp: pl.maxHp, speed: Math.round(pl.stats.speed), ...Object.fromEntries(Object.entries(st).map(([k, v]) => [k, Math.round(v)])), potions: pots0 - g.inventory.count('hp_potion'), fired, applied };
+}
+// CHARACTER BUILD B6 — one Umbral Sword build per archetype (items + evolutions + a loadout that uses the evolved skills)
+// fights the A1 Guardian (no god mode). Compare time to kill / damage taken / item effects fired between archetypes.
+//   T.archetypeFight(__game, 'bleed', { level: 25 })  -> one row      T.ARCHETYPE_BUILDS = the builds
+export const ARCHETYPE_BUILDS = {
+  baseline: { items: [], evos: {} },
+  bleed: { items: ['core_nightglass', 'armor_duskweave', 'relic_crimson_rupture', 'charm_wanderer', 'rune_red_thirst', 'rune_blood_pact', 'rune_executioner'],
+    evos: { twin_fang: 'rending_fangs', shadow_arc: 'crimson_arc' } },
+  burn: { items: ['core_wildfire_heart', 'armor_ashen_robe', 'relic_bloodletter', 'charm_ember', 'rune_kindling', 'rune_executioner', 'rune_second_wind'], evos: {} },
+  counter: { items: ['core_counter', 'armor_mirrorstep', 'relic_oath_mirror', 'charm_duelist', 'rune_riposte', 'rune_still_blade', 'rune_retribution'],
+    evos: { twin_fang: 'fang_reflex' } },
+  summon: { items: ['core_shadow_fang', 'armor_pathfinder', 'relic_choir_shades', 'charm_shade_thread', 'rune_echo_knot', 'rune_overclock', 'rune_full_moon'],
+    evos: { twin_fang: 'mirror_fangs', shadow_slash: 'phantom_cut' } },
+  barrier: { items: ['core_ironheart', 'armor_overflowing_ward', 'relic_dawn_core', 'charm_heavy', 'rune_second_wind', 'rune_iron_will', 'rune_guarding_soul'],
+    evos: { shadow_veil: 'iron_veil', shadow_arc: 'warding_arc' } },
+  momentum: { items: ['core_galeblade', 'armor_duskweave', 'relic_heart_eclipse', 'charm_wanderer', 'rune_blood_step', 'rune_hunters_sigil', 'rune_executioner'],
+    evos: { shade_step: 'twin_shade', shadow_veil: 'fleeting_veil' }, botOpts: { dashAttack: true } },
+  critical: { items: ['core_shadow_fang', 'armor_pathfinder', 'relic_gamblers_eye', 'charm_assassin', 'rune_full_moon', 'rune_executioner', 'rune_hunters_sigil'],
+    evos: { phantom_edge: 'keen_edge' } },
+  mark: { items: ['core_shadow_fang', 'armor_pathfinder', 'relic_brand_hunt', 'charm_assassin', 'rune_hunters_sigil', 'rune_shadow_hunger', 'rune_full_moon'],
+    evos: { phantom_edge: 'hunters_edge', shadow_slash: 'shadow_wave' } },
+  bulwark: { items: ['core_ironheart', 'armor_unmoving', 'relic_last_bastion', 'charm_heavy', 'rune_iron_will', 'rune_second_wind', 'rune_provocation'],
+    evos: { shadow_arc: 'warding_arc' } },
+  execute: { items: ['core_headsman', 'armor_risk', 'relic_heart_eclipse', 'charm_assassin', 'rune_reckless', 'rune_executioner', 'rune_full_moon'],
+    evos: { shadow_slash: 'shadow_fang', shade_step: 'shade_reaper', shadow_arc: 'severing_arc' } },
+};
+export function archetypeFight(g, name, { level = 25, seconds = 240, classId = 'umbral_sword' } = {}) {
+  const b = ARCHETYPE_BUILDS[name];
+  const setup = (gg, pl) => {
+    for (const [s, e] of Object.entries(b.evos)) gg.classProgress.skill(classId, s).evolution = e;
+    // loadout: evolved actives first, then the default order
+    const evolved = Object.keys(b.evos).filter((s) => pl.loadout.has(s));
+    pl.loadout.load([...evolved, ...pl.loadout.serialize().filter((s) => !evolved.includes(s))].slice(0, 4));
+    gg.equipment.changed();
+  };
+  const r = buildFight(g, b.items, { level, classId, seconds, setup, botOpts: b.botOpts || {} });
+  const pts = Object.fromEntries(Object.entries(g.equipment.archetypePoints()).map(([k, v]) => [k, v.points]));
+  const fired = Object.entries(r.fired).map(([k, v]) => `${k}×${v}`).join(' ');
+  return { build: name, result: r.result, time: r.time, dmgTaken: r.dmgTaken, potions: r.potions, maxHp: r.maxHp, effects: r.effects, worn: g.equipment.wornIds().length, points: pts, fired, applied: r.applied };
 }
 // ITEM BUILD I3 — one real Guardian fight per new build; checks that the build's items actually fire in combat.
 //   T.itemBuildCheck(__game)  -> [step, pass, detail] rows

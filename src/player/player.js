@@ -279,7 +279,11 @@ export class Player extends Entity {
       }
     }
   }
-  consumeMarks(n) { return this.markId ? this.game.marks.consume(this, this.markId, n) : 0; }
+  consumeMarks(n) {
+    const used = this.markId ? this.game.marks.consume(this, this.markId, n) : 0;
+    if (used > 0) this.game.events.emit('marksSpent', { player: this, source: this, markId: this.markId, n: used }); // items: onMarkTriggered
+    return used;
+  }
   // ---------------- SKILL LEVELS (progression/skillLevels.js + game.classProgress). Skills of this class only.
   skillLevel(id) {
     const cp = this.game.classProgress, s = cp && cp.peekSkill(this.cls.id, id);
