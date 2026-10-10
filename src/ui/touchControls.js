@@ -9,7 +9,8 @@
 //   potion, ≡ menu, bag      : R / Escape / I
 // AUTO-AIM every frame: the current target, else the nearest foe within TOUCH_RULES.autoAim px, else the way you walk.
 // Shown on touch devices ('(pointer: coarse)'), or with ?touch in the URL; ?notouch hides it. Hidden while a window is open.
-import { skillIconURL } from './icons.js';
+import { skillIconURL, itemIconURL } from './icons.js';
+import { ITEMS } from '../items/items.js';
 
 export const TOUCH_RULES = { stick: 62, dead: 0.18, drag: 22, autoAim: 460 };
 
@@ -29,7 +30,9 @@ const CSS = `
 #touch .sk{width:58px;height:58px}
 #touch .ult{width:64px;height:64px;border-color:#e8c060}
 #touch .q{width:56px;height:56px;border-color:#b98cff;background-size:cover;box-shadow:inset 0 0 0 3px rgba(8,6,14,.85),inset 0 0 10px 4px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.6)}
-#touch .potion{width:52px;height:52px;font-size:20px;border-color:#ff8a8a}
+#touch .potion{width:46px;height:46px;bottom:6px;border-radius:10px;background-size:78%;border-color:rgba(240,225,200,.35)}
+#touch .potion .n{position:absolute;right:-4px;bottom:-4px;min-width:18px;padding:0 3px;border-radius:8px;background:#0c0914;border:1px solid rgba(240,225,200,.5);font:600 11px/16px var(--font-title,sans-serif);text-align:center}
+#touch .potion.empty{filter:grayscale(1) brightness(.5)}
 #touch .dodge{width:56px;height:56px}
 #touch .use{width:64px;height:64px;left:50%;bottom:calc(6% + 46px);transform:translateX(-50%);display:none;border-color:#9dffb4}
 #touch .use.show{display:flex}
@@ -84,7 +87,8 @@ export class TouchControls {
       <div class="b use" data-k="KeyE">E</div>
       <div class="b small" data-k="Escape" style="left:calc(50% - 48px);top:30px">≡</div>
       <div class="b small" data-k="KeyI" style="left:calc(50% + 6px);top:30px">▣</div>
-      <div class="b potion" data-k="KeyR">✚</div>`;
+      <div class="b potion" data-k="KeyR" data-item="hp_potion" style="left:calc(50% - 158px)"><span class="n">0</span></div>
+      <div class="b potion" data-k="KeyF" data-item="shadow_tonic" style="left:calc(50% + 112px)"><span class="n">0</span></div>`;
     document.body.appendChild(el);
     this.base = el.querySelector('.base'); this.knob = el.querySelector('.knob'); this.line = el.querySelector('.aimline');
     this.layout();
@@ -111,9 +115,9 @@ export class TouchControls {
     atk.style.transform = `scale(${s})`; atk.style.transformOrigin = '100% 100%';
     const put = (sel, ang, r) => { const b = this.el.querySelector(sel); b.style.right = `${ax + Math.cos(ang) * r * s - 29}px`; b.style.bottom = `${ay + Math.sin(ang) * r * s - 29}px`; b.style.transform = `scale(${s})`; };
     // a low, tight arc: every button within reach of the right thumb (owner: skills sat too high)
-// owner: buttons spaced apart (inner ring 1-4, outer ring Q / ULT / DODGE / potion)
+// owner: buttons spaced apart (inner ring 1-4, outer ring Q / ULT / DODGE)
     put('[data-k=Digit1]', -0.1, 128); put('[data-k=Digit2]', 0.4, 128); put('[data-k=Digit3]', 0.9, 128); put('[data-k=Digit4]', 1.4, 128);
-    put('[data-k=KeyQ]', 0.1, 212); put('[data-k=Digit5]', 0.6, 212); put('[data-k=Space]', 1.1, 212); put('[data-k=KeyR]', -0.04, 292); // potion: low, left of Q
+    put('[data-k=KeyQ]', 0.1, 212); put('[data-k=Digit5]', 0.6, 212); put('[data-k=Space]', 1.1, 212);
   }
   moveStick(e) {
     const s = this.stick, R = TOUCH_RULES.stick;
@@ -186,6 +190,13 @@ export class TouchControls {
       const q = this.el.querySelector('[data-k=KeyQ]'), sp = p.cls.special;
       if (sp && q.dataset.sid !== sp.id) { q.dataset.sid = sp.id; q.style.backgroundImage = `url("${skillIconURL(sp)}")`; q.innerHTML = '<div class="cd"></div>'; }
       if (sp && q.firstChild) q.firstChild.style.setProperty('--p', Math.round(p.skillSys.cooldowns.ratio(sp.id) * 100) + '%');
+      // potions: beside the class resource bar (owner), the bottle art + how many are left
+      for (const b of this.el.querySelectorAll('.potion')) {
+        const d = ITEMS[b.dataset.item]; if (!d) continue;
+        if (!b.dataset.icon) { b.dataset.icon = '1'; b.style.backgroundImage = `url("${itemIconURL(d)}")`; }
+        const n = g.inventory.count ? g.inventory.count(d.id) : (g.inventory.items[d.id] || 0);
+        b.firstChild.textContent = n; b.classList.toggle('empty', !n);
+      }
       const use = this.el.querySelector('.use'), w = g.world;
       use.classList.toggle('show', !!(w && w.nearest) || !!(g.party && g.party.downedNear && g.party.downedNear(p)) || !!(g.online && g.online.revive && g.online.revive.target && g.online.revive.target(p)));
     }
