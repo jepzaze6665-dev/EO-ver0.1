@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 19;
+export const PROTOCOL_VERSION = 20;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -80,8 +80,11 @@ export function validMobRow(r) {
 
 // client -> server
 export const CLIENT_MESSAGES = {
-  hello: { v: 'int', name: 'name', token: 'token?', pw: 'password?', create: 'bool?', sim: 'string?' }, // H6: pw = log in / create an account (server/accounts.js) // sim = H2 server host key (server/simHosts.js), never sent by players   // log in (DEV identity: name + token, server/accounts.js)
-  ping: { n: 'int?' },                                   // keep-alive / latency probe (server answers 'pong')
+  hello: { v: 'int', name: 'name', token: 'token?', pw: 'password?', create: 'bool?', sim: 'string?', slot: 'int?' }, // slot = go straight into that character (a reconnect) // H6: pw = log in / create an account (server/accounts.js) // sim = H2 server host key (server/simHosts.js), never sent by players   // log in (DEV identity: name + token, server/accounts.js)
+  ping: { n: 'int?' },
+  // CHARACTER SLOTS (owner 2026-10-10): an account logs in to a LOBBY (welcome lobby: true + chars), then picks a slot
+  charPick: { slot: 'int' },                             // play that character (empty slot = a new one)
+  charDelete: { slot: 'int' },                           // delete that character (lobby only)                                   // keep-alive / latency probe (server answers 'pong')
   // N2 presence (src/net/onlineSession.js): where I am + what I look like. Shared-city positions are NOT authoritative
   // (no combat there); dungeon movement gets server checks in N7.
   pos: { m: 'slug', x: 'coord', y: 'coord', d: 'dir', a: 'slug', k: 'unit?', h: 'unit?', dn: 'bool?' },  // map, position, facing, anim, anim progress, HP share (0 = down)
@@ -132,7 +135,7 @@ export const CLIENT_MESSAGES = {
 
 // server -> client (documented here, the client does not validate them strictly)
 export const SERVER_MESSAGES = {
-  welcome: { v: 'int', id: 'string', name: 'name', token: 'token', created: 'bool', hasPw: 'bool' }, // H6 hasPw: false = an old account without a password yet
+  welcome: { v: 'int', id: 'string', name: 'name', token: 'token', created: 'bool', hasPw: 'bool', lobby: 'bool?', slot: 'int?', chars: 'any?' }, // lobby: chars = [{ slot, c, l, m } | { slot, empty }] // H6 hasPw: false = an old account without a password yet
   passwordSet: {},
   econUndo: { op: 'array', why: 'string' },             // H5a: an op the server refused -> undo it
   econGrant: { ops: 'array', x: 'number', y: 'number', src: 'string', boss: 'string|null', first: 'bool' }, // H5a: kill rewards paid by the server                                       // H6: setPassword done

@@ -1,6 +1,8 @@
 // Thai UI text, keyed by the English string used in the code (src/i18n/i18n.js t()). Names of classes / bosses / skills stay transliterated.
 // Keep {param} placeholders exactly as in the English text (tools/tests/i18n.test.mjs checks it).
 export const TH_UI = {
+  'Choose your character': 'เลือกตัวละคร', 'New character': 'สร้างตัวละครใหม่', 'Empty slot': 'ช่องว่าง', 'Delete': 'ลบ',
+  'Tap again to delete': 'แตะอีกครั้งเพื่อลบ', 'Loading character…': 'กำลังโหลดตัวละคร…',
   // SETTINGS panel (data/settings.js)
   'Settings': 'ตั้งค่า', 'SETTINGS': 'ตั้งค่า', 'Saved on this device': 'บันทึกในเครื่องนี้', 'HUD layout': 'รูปแบบ HUD',
   'Focus': 'Focus', 'Classic': 'Classic', 'Attack warnings': 'วงเตือนการโจมตี', 'Language': 'ภาษา', 'Display': 'การแสดงผล',

@@ -130,6 +130,11 @@ export class Panels {
   // connection state changed (net/onlineSession.js): redraw the title's online box; in game, say why the line dropped
   onNetState(state) {
     const on = this.game.online;
+    if (state === 'saveReady' && this.pendingPick && this.current && (this.current.name === 'title')) {
+      this.pendingPick = null;
+      if (this.game.save.exists()) return this.game.continueGame();
+      return this.classSelect(false);
+    }
     if (this.current && this.current.name === 'title' && this.current.el.classList.contains('ts')) this.title(on.saveReady ? this.game.save.exists() : this.titleHasSave);
     else if (this.game.state === 'play' && state === 'offline' && on.net.lastError) {
       // N10: kicked for good (logged in elsewhere, new version, ...): an online-only game goes back to the title
@@ -157,6 +162,16 @@ export class Panels {
     }
     const ready = devOffline || (on && on.online && on.saveReady); // N3: saves come from the server after login
     const st = on ? on.state : 'offline', err = on && on.net.lastError;
+    // CHARACTER SLOTS (owner): online = log in -> pick one of 3 characters (or make one) -> straight into the game
+    const online = !devOffline && on && on.online;
+    if (online && !on.lobby && !this.pendingPick) on.toLobby(); // back from the game / class select: the character list again
+    const mm = this.game.world && this.game.world.mapManager;
+    const charsHTML = !online ? '' : !on.lobby ? `<div class="ts-chars"><div class="ts-wait">${tl('Loading character…')}</div></div>`
+      : `<div class="ts-chars"><div class="ts-ch-h">${tl('Choose your character')}</div>${on.chars.map((c) => c.empty
+        ? `<button class="ts-char empty" data-pick="${c.slot}"><span class="ts-plus">+</span><b>${tl('New character')}</b><small>${tl('Empty slot')}</small></button>`
+        : `<div class="ts-char-wrap"><button class="ts-char" data-pick="${c.slot}"><img src="assets/ui/class/${esc(c.c)}_emblem.png" alt="">
+            <b>${esc((CLASSES[c.c] || { name: c.c }).name)}</b><small>Lv.${c.l || 1}${c.m && mm && mm.get(c.m) ? ' · ' + esc(mm.get(c.m).name) : ''}</small></button>
+            <button class="ts-del" data-del="${c.slot}" title="${tl('Delete')}">✕</button></div>`).join('')}</div>`;
     const netBox = devOffline ? '<div class="ts-net dev">DEV OFFLINE MODE (?offline)</div>'
       : on && on.online ? `<div class="ts-net ok">● ${tl('Online as')} <b>${esc(on.playerName)}</b> <button data-a="logout">${tl('Log out')}</button></div>`
         + (on.hasPw === false ? `<form class="ts-net ts-setpw"><span>${tl('Protect this name with a password:')}</span><input name="pw" type="password" maxlength="64" placeholder="${tl('New password (6+)')}" autocomplete="new-password"><button type="submit">${tl('Set password')}</button></form>` : '')
@@ -170,9 +185,10 @@ export class Panels {
       <div class="ts-wrap">
         <img class="ts-logo-img" src="assets/ui/title/logo.png" alt="Eclipse Online">
         ${netBox}
+        ${charsHTML}
         <nav class="ts-menu">
-          ${hasSave ? `<button data-a="continue" ${ready ? '' : 'disabled'}>${tl('Continue')}</button>` : ''}
-          <button data-a="new" ${ready ? '' : 'disabled'}>${tl('New Game')}</button>
+          ${!devOffline ? "" : hasSave ? `<button data-a="continue" ${ready ? '' : 'disabled'}>${tl('Continue')}</button>` : ''}
+          ${!devOffline ? "" : `<button data-a="new" ${ready ? '' : 'disabled'}>${tl('New Game')}</button>`}
           <button data-a="controls">${tl('Controls')}</button>
           <button data-a="lang">${tl('Language: {name}', { name: LANG.names[getLang()] })}</button>
         </nav>
@@ -206,6 +222,12 @@ export class Panels {
       const t = e.target.closest('[data-a]');
       const a = t && t.dataset.a;
       if (t && t.disabled) return;
+      const pick = e.target.closest('[data-pick]'), del = e.target.closest('[data-del]');
+      if (pick) { this.pendingPick = true; on.pickChar(+pick.dataset.pick); this.game.audio.sfx('ui'); return; }
+      if (del) {
+        if (del.dataset.confirm) { on.deleteChar(+del.dataset.del); return; }
+        del.dataset.confirm = '1'; del.textContent = tl('Tap again to delete'); del.classList.add('danger'); return;
+      }
       if (a === 'logout') { on.logout(); this.title(hasSave); }
       if (a === 'lang') { setLang(nextLang()); this.title(hasSave); }
       if (a === 'new') this.classSelect(hasSave);

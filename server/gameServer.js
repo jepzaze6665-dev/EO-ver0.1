@@ -6,6 +6,7 @@
 import { EventEmitter } from 'events';
 import { acceptUpgrade } from './ws.js';
 import { Accounts } from './accounts.js';
+const CHAR_SLOTS = 3; // characters per account (owner)
 import { CityRooms } from './cityRooms.js';
 import { SaveService } from './saves.js';
 import { PartyService } from './parties.js';
@@ -19,8 +20,9 @@ import { MemoryStore } from './store.js';
 import { PROTOCOL_VERSION, NET_LIMITS, NET_ERROR, validateClientMessage, encode } from '../src/net/protocol.js';
 
 export class GameServer extends EventEmitter {
-  constructor({ store, saveStore = new MemoryStore(), limits = {}, log = console, simHosts = false, requirePassword = false } = {}) {
+  constructor({ store, saveStore = new MemoryStore(), limits = {}, log = console, simHosts = false, requirePassword = false, charSlots = false } = {}) {
     super();
+    this.charSlots = charSlots; // CHARACTER SLOTS: on for `node server.js`; off (= straight into slot 1) in the older unit tests
     this.limits = { ...NET_LIMITS, ...limits };
     this.accounts = new Accounts(store, { requirePassword }); // H6: passwords (required on the real server)
     this.store = store;
@@ -73,6 +75,9 @@ export class GameServer extends EventEmitter {
         return this.login(c, msg);
       }
       if (msg.t === 'hello') return this.sendTo(c, 'error', { code: NET_ERROR.bad, text: 'already logged in' });
+      if (msg.t === 'charPick') return this.pickChar(c.session, msg.slot);
+      if (msg.t === 'charDelete') return this.deleteChar(c.session, msg.slot);
+      if (c.session.lobby && msg.t !== 'setPassword' && msg.t !== 'ping') return this.sendTo(c, 'error', { code: NET_ERROR.notReady, text: 'pick a character first' });
       const fn = this.handlers.get(msg.t);
       if (fn) fn(c.session, msg);
     } catch (e) {
@@ -86,17 +91,48 @@ export class GameServer extends EventEmitter {
     if (msg.sim !== undefined) return this.simHosts.login(c, msg); // H2: a room host the server started itself (secret key)
     const r = this.accounts.login(msg.name, msg.token, { pw: msg.pw, create: msg.create });
     if (!r.ok) return this.sendTo(c, 'error', { code: r.code, text: r.text });
-    const old = this.sessions.get(r.account.id);
-    if (old) this.kick(old.conn, NET_ERROR.replaced, 'logged in from another window');
+    // CHARACTER SLOTS: the login is a LOBBY (no game messages) until a slot is picked; a reconnect names its slot
     const session = {
-      id: r.account.id, name: r.account.name, conn: c, since: Date.now(),
+      id: r.account.id, account: r.account.id, name: r.account.name, conn: c, since: Date.now(), lobby: true, token: r.token, created: r.created,
       send: (t, f) => this.sendTo(c, t, f),
     };
     c.session = session;
-    this.sessions.set(session.id, session);
-    session.send('welcome', { v: PROTOCOL_VERSION, id: session.id, name: session.name, token: r.token, created: r.created, hasPw: this.accounts.hasPassword(session.name) });
-    this.log.info?.(`[server] ${session.name} (${session.id}) online — ${this.sessions.size} player(s)`);
-    this.emit('sessionOpened', session);
+    if (msg.slot || !this.charSlots) return this.pickChar(session, msg.slot || 1);
+    session.send('welcome', { v: PROTOCOL_VERSION, id: session.id, name: session.name, token: r.token, created: r.created, hasPw: this.accounts.hasPassword(session.name), lobby: true, chars: this.charList(session.account) });
+  }
+  // a character's player id: slot 1 = the account id (every save made before slots), others "<account>_s<slot>" (a safe file name)
+  charId(account, slot) { return slot === 1 ? account : `${account}_s${slot}`; }
+  charList(account) {
+    const out = [];
+    for (let slot = 1; slot <= CHAR_SLOTS; slot++) {
+      const r = this.saves.store.get(this.charId(account, slot)) || {};
+      let d = null;
+      try { d = r.main ? JSON.parse(r.main) : null; } catch { d = null; }
+      const p = d && d.player;
+      out.push(p ? { slot, c: p.classId, l: p.level, m: p.map || null } : { slot, empty: true });
+    }
+    return out;
+  }
+  pickChar(s, slot) {
+    if (!s || !s.lobby || !Number.isInteger(slot) || slot < 1 || slot > CHAR_SLOTS) return s && s.send('error', { code: NET_ERROR.bad, text: 'no such character slot' });
+    const id = this.charId(s.account, slot);
+    // one character of an account plays at a time: another window / slot of it is sent back
+    for (const o of [...this.sessions.values()]) if (o.account === s.account && o !== s) this.kick(o.conn, NET_ERROR.replaced, 'logged in from another window');
+    s.id = id; s.slot = slot; s.lobby = false;
+    this.sessions.set(id, s);
+    s.send('welcome', { v: PROTOCOL_VERSION, id, name: s.name, token: s.token, created: s.created, hasPw: this.accounts.hasPassword(s.name), slot });
+    this.log.info?.(`[server] ${s.name} (${id}) online — ${this.sessions.size} player(s)`);
+    this.emit('sessionOpened', s);
+  }
+  deleteChar(s, slot) {
+    if (!s || !s.lobby || !Number.isInteger(slot) || slot < 1 || slot > CHAR_SLOTS) return;
+    const id = this.charId(s.account, slot), r = this.saves.store.get(id);
+    if (r && (r.main || r.backup)) {
+      this.saves.store.set(id, { deleted: r.main || r.backup, deletedProgress: r.progress || null, deletedAt: Date.now(), main: null, backup: null, at: Date.now() });
+      this.progress?.reset({ id, send() {} });
+      this.economy?.reset(id);
+    }
+    s.send('welcome', { v: PROTOCOL_VERSION, id: s.id, name: s.name, token: s.token, created: false, hasPw: this.accounts.hasPassword(s.name), lobby: true, chars: this.charList(s.account) });
   }
 
   onClose(c) {

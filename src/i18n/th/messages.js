@@ -135,6 +135,8 @@ export const TH_MESSAGES = {
   'the party changed': 'สมาชิกปาร์ตี้เปลี่ยนไป',
   'slow down': 'ช้าลงหน่อย',
   'say hello first': 'ต้องเชื่อมต่อก่อน',
+  'pick a character first': 'เลือกตัวละครก่อน',
+  'no such character slot': 'ไม่มีช่องตัวละครนี้',
   'already logged in': 'เข้าสู่ระบบอยู่แล้ว',
   'server error': 'เซิร์ฟเวอร์ขัดข้อง',
   'you are already in a party': 'คุณอยู่ในปาร์ตี้แล้ว',

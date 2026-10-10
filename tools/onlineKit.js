@@ -17,6 +17,9 @@ export async function login(g, name, classId = 'umbral_sword') {
   on.logout();
   // H6: dev accounts share one password; a new name is created on the first try
   on.connect(name, { pw: 'devpass1' });
+  // CHARACTER SLOTS: the real server logs in to a lobby first -> play slot 1
+  const pick = async () => { await until(() => on.lobby || on.saveReady || on.state === 'offline'); if (on.lobby) { g.ui.panels.pendingPick = null; on.pickChar(1); } };
+  await pick();
   if (!(await until(() => on.saveReady || on.state === 'offline'))) return { ok: false, why: 'timeout' };
   if (!on.saveReady && on.net.lastError && on.net.lastError.code === 'noAccount') {
     on.connect(name, { pw: 'devpass1', create: true });

@@ -16,14 +16,16 @@ const PRIVATE = ['/server/', '/.git/', '/.claude/'];
 // dataDir null = in-memory store (tests); quiet = no logs; simHosts = H2: the server runs every dungeon map room itself
 // (server/simHosts.js — off in the unit tests unless they ask, on for `node server.js` unless EO_SIM=0)
 // requirePassword = H6 accounts need a password (on for `node server.js` unless EO_DEVLOGIN=1; off in the unit tests)
-export function startServer({ port = 5173, dataDir = path.join(ROOT, 'server', 'data'), quiet = false, limits, simHosts = false, requirePassword = false } = {}) {
+export function startServer({ port = 5173, dataDir = path.join(ROOT, 'server', 'data'), quiet = false, limits, simHosts = false, requirePassword = false, charSlots = false } = {}) {
   const log = quiet ? {} : console;
   const store = dataDir ? new JsonFileStore(dataDir, 'accounts') : new MemoryStore();
   const saveStore = dataDir ? new JsonDirStore(path.join(dataDir, 'saves')) : new MemoryStore();
-  const game = new GameServer({ store, saveStore, limits, log, simHosts, requirePassword });
+  const game = new GameServer({ store, saveStore, limits, log, simHosts, requirePassword, charSlots });
   const httpServer = http.createServer((req, res) => {
     let p;
     try { p = decodeURIComponent(req.url.split('?')[0]); } catch { res.writeHead(400); return res.end(); }
+    // DEV: tools/recorder.js uploads finished promo clips here (localhost only) -> recordings/<name>.mp4
+    if (req.method === 'POST' && p.startsWith('/dev/recording/')) return saveRecording(req, res, p);
     if (p === '/') p = '/index.html';
     const norm = path.posix.normalize(p.replace(/\\/g, '/'));
     if (PRIVATE.some((x) => norm.toLowerCase().startsWith(x))) { res.writeHead(403); return res.end(); }
@@ -44,8 +46,22 @@ export function startServer({ port = 5173, dataDir = path.join(ROOT, 'server', '
   }));
 }
 
+function saveRecording(req, res, p) {
+  const local = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
+  const name = p.slice('/dev/recording/'.length);
+  if (!local || !/^[\w-]{1,60}\.(mp4|webm|png)$/.test(name)) { res.writeHead(403); return res.end(); }
+  const chunks = []; let size = 0;
+  req.on('data', (c) => { size += c.length; if (size > 500e6) req.destroy(); else chunks.push(c); });
+  req.on('end', () => {
+    const dir = path.join(ROOT, 'recordings');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, name), Buffer.concat(chunks));
+    res.writeHead(200); res.end('ok');
+  });
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const s = await startServer({ port: Number(process.env.PORT) || 5173, dataDir: process.env.EO_DATA || undefined, simHosts: process.env.EO_SIM !== '0', requirePassword: process.env.EO_DEVLOGIN !== '1' });
+  const s = await startServer({ port: Number(process.env.PORT) || 5173, dataDir: process.env.EO_DATA || undefined, simHosts: process.env.EO_SIM !== '0', requirePassword: process.env.EO_DEVLOGIN !== '1', charSlots: true });
   console.log(`ECLIPSE ONLINE running at http://localhost:${s.port}  (game server: ws://localhost:${s.port}/ws)`);
   // other computers on the same network (N10 multi-client tests): open one of these in their browser
   const { networkInterfaces } = await import('os');

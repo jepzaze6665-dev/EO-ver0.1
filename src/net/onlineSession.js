@@ -63,7 +63,16 @@ export class OnlineSession {
     this.invites = [];         // open invites: { party, from, size }
     n.on('passwordSet', () => { this.hasPw = true; game.ui.toast('Password set — use it to log in on any device', 3); game.ui.panels.onNetState?.('online'); });
     n.on('error', (m) => { if (m.code === 'account') game.ui.toast(m.text, 3); });
-    n.on('welcome', (m) => { this.hasPw = m.hasPw !== false; if (m.id !== this.playerId) { this.saves.reset(); this.playerId = m.id; this.party = null; this.invites = []; } });
+    // CHARACTER SLOTS: the first welcome is the account LOBBY (chars = the 3 slots); picking one sends a second welcome
+    this.lobby = false; this.chars = []; this.slot = null;
+    n.on('welcome', (m) => {
+      this.hasPw = m.hasPw !== false;
+      this.lobby = !!m.lobby;
+      if (m.lobby) { this.chars = Array.isArray(m.chars) ? m.chars : []; this.slot = null; n.helloExtra = null; this.saveReady = false; this.saves.reset(); this.playerId = null; }
+      else { this.slot = m.slot || 1; n.helloExtra = { slot: this.slot }; } // a reconnect goes straight back into this character
+      if (!m.lobby && m.id !== this.playerId) { this.saves.reset(); this.playerId = m.id; this.party = null; this.invites = []; }
+      game.ui.panels.onNetState?.('welcome');
+    });
     n.on('party', (m) => { this.party = m.party; this.refreshParty(); });
     this.openParties = [];     // open parties at this city's gate (server 'partyListData', asked by panels.dungeonGate)
     n.on('partyListData', (m) => { this.openParties = m.parties; this.refreshParty(); });
@@ -113,7 +122,7 @@ export class OnlineSession {
 
   onSaveData(m) {
     const won = this.saves.load(m);
-    if (!m.main && !m.backup && won === 'server') this.moveLocalSave();
+    if (!m.main && !m.backup && won === 'server' && this.slot === 1) this.moveLocalSave(); // only into the first character
     this.game.save.storage = this.saves;
     this.saveReady = true;
     this.game.ui.panels.onNetState?.('saveReady');
@@ -141,7 +150,16 @@ export class OnlineSession {
     this.net.connect(name, creds);
   }
   setPassword(pw, old) { return this.net.send('setPassword', old ? { pw, old } : { pw }); }
-  logout() { this.net.stop(); this.party = null; this.invites = []; this.check = null; this.instance = null; }
+  logout() { this.net.helloExtra = null; this.net.stop(); this.party = null; this.invites = []; this.check = null; this.instance = null; this.lobby = false; this.slot = null; }
+  // CHARACTER SLOTS: play / delete a slot (lobby), or go back to the character list (log in again without a slot)
+  pickChar(slot) { this.net.send('charPick', { slot }); }
+  deleteChar(slot) { this.net.send('charDelete', { slot }); }
+  toLobby() {
+    const name = this.playerName;
+    if (!name) return;
+    this.net.helloExtra = null; this.net.stop(); this.party = null; this.invites = []; this.check = null; this.instance = null; this.slot = null;
+    this.net.connect(name); // the token kept in this browser logs straight back in -> lobby
+  }
 
   // party actions: the server checks and answers with 'party' / 'partyInfo' / an error
   partyAction(type, fields = {}) { return this.net.send(type, fields); }

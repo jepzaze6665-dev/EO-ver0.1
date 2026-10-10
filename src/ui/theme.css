@@ -665,3 +665,17 @@ html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !impo
 /* side windows: the ✕ added by Panels.show */
 .overlay.side > .panel { position: relative; }
 .side-x { position: absolute !important; top: 10px; right: 10px; margin: 0 !important; padding: 4px 12px; min-width: 40px; min-height: 40px; z-index: 3; }
+/* TITLE: character slots (online) */
+.ts-chars { display: flex; flex-direction: column; gap: 8px; width: min(420px, 90vw); margin: 10px auto 0; }
+.ts-ch-h { font: 600 13px var(--font-title); letter-spacing: 3px; color: var(--hl); text-transform: uppercase; text-align: center; }
+.ts-wait { text-align: center; color: var(--ink-dim); padding: 20px; }
+.ts-char-wrap { position: relative; }
+.ts-char { display: grid; grid-template-columns: 52px 1fr; grid-template-rows: auto auto; align-items: center; column-gap: 12px; width: 100%; margin: 0;
+  padding: 8px 14px; text-align: left; background: rgba(8, 6, 14, 0.72); border: 1px solid rgba(240, 225, 200, 0.22); border-radius: 4px; min-height: 64px; }
+.ts-char:hover { border-color: var(--hl); background: rgba(30, 20, 46, 0.85); }
+.ts-char img, .ts-char .ts-plus { grid-row: 1 / span 2; width: 48px; height: 48px; }
+.ts-char .ts-plus { display: flex; align-items: center; justify-content: center; font: 300 34px var(--font-title); color: var(--hl); border: 1px dashed rgba(240, 225, 200, 0.35); border-radius: 50%; }
+.ts-char b { font: 600 17px var(--font-title); color: #fff; } .ts-char small { color: var(--ink-dim); font-size: 12px; }
+.ts-char.empty { opacity: 0.8; }
+.ts-del { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); margin: 0; padding: 4px 10px; min-width: 36px; font-size: 13px; background: rgba(0, 0, 0, 0.4); }
+@media (max-height: 520px) { .ts-chars { width: 100%; gap: 6px; margin: 0; } .ts-char { min-height: 54px; padding: 5px 12px; } .ts-char img, .ts-char .ts-plus { width: 40px; height: 40px; } }
