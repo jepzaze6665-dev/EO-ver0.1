@@ -1,0 +1,366 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8">
+<title>ECLIPSE ONLINE — Skill + VFX Prompt Book</title>
+<style>
+@page { size: A4; margin: 14mm 12mm; }
+body { font-family: 'Leelawadee UI', 'Noto Sans Thai', 'Segoe UI', sans-serif; color: #efe8ff; background: #0d0a14; font-size: 12px; line-height: 1.45; }
+@media screen { body { padding: 18px; max-width: 940px; margin: 0 auto; } }
+@media print { body { background: #fff; color: #16121d; } }
+.cover { border: 1px solid #4a3a6e; border-radius: 8px; padding: 16px; margin-bottom: 14px; background: #171126; }
+@media print { .cover { background: #f6f3fb; } }
+h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: 3px; color: #c8a0ff; }
+h1.cls { font-size: 20px; margin: 0 0 10px; padding-bottom: 5px; border-bottom: 1px solid #4a3a6e; }
+.sub { font-size: 14px; color: #e8c890; letter-spacing: 2px; margin-bottom: 8px; }
+.guide { margin-top: 10px; font-size: 11px; }
+.guide ul { margin: 4px 0 0; padding-left: 16px; }
+.guide li { margin: 2px 0; }
+h2 { font-size: 15px; margin: 14px 0 5px; color: #e8c890; border-left: 4px solid #7a5ab0; padding-left: 7px; }
+h3 { font-size: 13px; margin: 10px 0 4px; color: #c8a0ff; }
+h4 { font-size: 12px; margin: 8px 0 3px; color: #b8a0d8; }
+p { margin: 4px 0; }
+ul { margin: 3px 0 6px; padding-left: 18px; }
+li { margin: 1px 0; }
+blockquote { margin: 4px 0; padding: 4px 8px; border-left: 3px solid #6a5090; background: #1e1730; }
+@media print { blockquote { background: #f2eef8; } }
+pre { background: #120e1c; border: 1px solid #4a3a6e; border-left: 4px solid #9a6ce0; border-radius: 5px; padding: 8px 10px;
+  font-family: Consolas, 'Cascadia Mono', monospace; font-size: 10.5px; line-height: 1.4; white-space: pre-wrap;
+  word-break: break-word; break-inside: avoid; margin: 6px 0; }
+@media print { pre { background: #f4f1f9; border-color: #b9a5d8; } }
+code { font-family: Consolas, monospace; font-size: 10.5px; background: #241d36; padding: 0 3px; border-radius: 3px; }
+@media print { code { background: #eae4f4; } }
+table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; break-inside: avoid; }
+th, td { border: 1px solid #4a3a6e; padding: 3px 5px; text-align: left; vertical-align: top; }
+th { background: #241d36; color: #e8c890; }
+@media print { th { background: #eae4f4; } }
+.pb { break-before: page; }
+hr { border: 0; border-top: 1px solid #4a3a6e; margin: 10px 0; }
+</style></head><body>
+<div class="cover">
+  <h1>ECLIPSE ONLINE</h1>
+  <div class="sub">SKILL + VFX PROMPT BOOK</div>
+  <p>สร้างจากไฟล์ <code>docs/design/art-prompts-*.md</code> วันที่ 2026-10-04 · 2 คลาส<br>
+  สร้างใหม่ได้ด้วย <code>node tools/promptBook/build.mjs</code></p>
+  <div class="guide"><b>วิธีใช้</b><ul>
+    <li><b>ชิลด์ท่า (สกิล)</b> — แนบรูปตัวละคร + MASTER PROMPT ตัวละคร + SKILL BLOCK หนึ่งบล็อก</li>
+    <li><b>VFX</b> — ไม่แนบรูป + MASTER VFX PROMPT + VFX BLOCK หนึ่งบล็อก</li>
+    <li><b>ทำทีละสกิล</b> — หนึ่ง skill = หนึ่ง sheet หนึ่งคำขอ อย่ารวมหลายสกิล</li>
+    <li><b>4 แถว × 6 เฟรม</b> — Row 1 front/south, Row 2 back/north, Row 3 left/west, Row 4 right/east</li>
+    <li>พื้นหลังโปร่งใสจริง · ไม่มีตัวหนังสือ · ไม่มีเงา · ไม่มีพื้น · ห้ามแตะชื่อคนอื่นใน prompt</li>
+    <li><b>สองขั้นตอน</b>: สร้างตัวละครคุณภาพสูง -> CHIBI STYLE PROMPT -> ได้สไตล์เกม -> เอา sheet เดินเป็นต้นแบบ</li>
+    <li>เอกสารนี้สร้างจากไฟล์อัตโนมัติ — <b>แก้ไฟล์ markdown</b> แล้วรัน build ครั้งเดียวจบ</li>
+    <li>ความจำที่ผู้ช่วยใช้อยู่: สกิล eo-art-prompting / eo-feature-workflow</li>
+  </ul></div>
+</div>
+<div class="pb"></div><h1 class="cls">1. ECLIPSE ONLINE — Art Prompts: Dragon Secret Classes (tier 4)</h1><h1>ECLIPSE ONLINE — Art Prompts: Dragon Secret Classes (tier 4)</h1><p>Three secret classes (tier 4) born from the dragon boss Varkharon. All three share one design</p><p>language: dragon-blood red + obsidian black + ember orange glow, with a dragon-motif trim that is</p><p>subtle enough to still read as each parent line.</p><p><b>Place raw art at</b> <code>desgin/class cr/DRG/</code> (all three classes in one folder), and VFX at</p><p><code>desgin/VFX/DRG/</code>.</p><hr><h2>Shared negative prompt (every image)</h2><pre>text, letters, words, logo, watermark, signature, frame, border, card, UI panel, checkerboard,
+background scenery, multiple characters, cropped feet, cropped head, blurry, low resolution,
+extra limbs, extra arms, photo, 3d render, cel-shaded vector art</pre><pre>
+**Universal style clause** (append to every positive prompt):
+</pre><pre>top-down 3/4 view dark-fantasy action RPG pixel art, crisp clean pixel edges, no anti-aliasing,
+no perspective distortion, game asset sheet, black background, character centred</pre><pre>
+---
+
+## 1. Wyrmblood Reaver — `wyrmblood_reaver` (Umbral Sword line)
+
+Fantasy: a hunter who pays for every strike with his own blood. His silhouette stays Umbral (long
+coat, dark blade) but the blade is now a fang and his veins glow.
+
+### Character sheet
+
+One PNG per animation, all in `desgin/class cr/DRG/wr/`, same layout as the other presets: rows of
+poses, 4 direction columns (front / right / back / left), plain black background, character about
+58-60 px tall in a 160 px cell, feet near the bottom.
+
+Files needed (same names as the other presets so the game can play them):
+</pre><pre>walk1.png    WALK 2.png    ATK1.png    ATK2.png    DASH.png    HIT.png
+SK1.png      SK2.png       SK3.png     SK4.png     SK5.png     SK6.png
+UT.png       VFX.png</pre><pre>
+Positive prompt for the sheet:
+</pre><pre>Top-down 3/4 pixel art character sprite sheet for a dark-fantasy action RPG, one warrior shown
+in many poses arranged in a grid, 4 direction views (front, right, back, left) per row, plain
+black background, no text, no labels.
+
+The warrior: lean agile frame, messy black hair, pale skin, glowing crimson eyes, long tattered
+black coat with a dark red dragon-scale trim on the shoulders and cuffs, exposed forearms marked
+with glowing red veins, dark leather straps across the chest, holding a short curved dragon-fang
+blade with a molten red edge.
+
+Poses: idle breathing stance, walking cycle, slashing forward, dashing low, taking a hit, and
+casting poses with one hand raised and red energy gathering in the palm.
+
+Art style: crisp pixel art, strong crimson rim light, dark shadows, limited palette of black,
+charcoal grey, deep crimson and ember orange, clean readable silhouette, game sprite sheet</pre><pre>
+### VFX strips
+
+`desgin/VFX/DRG/`, one sheet per effect, right-facing strips (the game rotates them):
+
+| File | What it shows |
+|---|---|
+| `SK1` | A dash-bite streak: a long crescent fang slash, red trail behind |
+| `SK2` | A blood-pact pact circle on the ground, cracked rune ring, red |
+| `SK3` | Scales flinging off: small scale shards burst outward |
+| `SK4` | A heavy rend: two huge claw gouges tearing downward |
+| `SK5` | A radial blood burst from a wound, droplets flying |
+| `SK6` | A vein burst: a ring shockwave of red liquid energy |
+| `UT` | An awakening pillar: a column of red light rising from a spreading pool |
+| `VFX` | Blood droplets falling and splashing (generic cast VFX) |
+
+Positive prompt for one VFX strip:
+</pre><pre>Top-down pixel art VFX sprite sheet for a dark-fantasy action RPG, a horizontal strip of 6 frames
+showing one effect progressing left to right, plain black background, no text, no labels.
+The effect: [DESCRIBE ONE EFFECT ONLY]. Bright crimson and ember orange glow, sharp pixel edges,
+transparent-looking background, game VFX asset sheet.</pre><pre>
+---
+
+## 2. Wyrmplate Warden — `wyrmplate_warden` (Aegis Guardian line)
+
+Fantasy: a knight who takes damage and turns it into armour plates that grow on his body. His
+silhouette stays Aegis (shield-first, heavy) but the shield becomes a dragon-plated guard and his
+body visibly scales up as the armour grows.
+
+### Character sheet
+
+`desgin/class cr/DRG/wr2/` (or `wp/`), same file list and layout as above.
+
+Positive prompt:
+</pre><pre>Top-down 3/4 pixel art character sprite sheet for a dark-fantasy action RPG, one heavily armoured
+knight shown in many poses arranged in a grid, 4 direction views per row, plain black background,
+no text, no labels.
+
+The knight: broad heavy frame, full plate armour in dark steel and black, a collar of thick
+overlapping dragon scales around the shoulders and chest, a horned dragon-head pauldron on the
+left shoulder, glowing orange cracks between the plates, a large round dragon-scale shield with
+spiked rim in the right hand, a short heavy blade in the left, tattered dark tabard hanging below.
+
+Poses: idle with shield up, walking slowly with weight, shield bash forward, raising the shield
+to absorb a hit, flinging scales outward, and a casting pose where the armour plates flare open.
+
+Art style: crisp pixel art, strong orange glow from the plate cracks, heavy dark shadows, limited
+palette of black, dark steel, burnt orange and bone white, chunky readable silhouette, game sprite
+sheet</pre><pre>
+### VFX strips
+
+`desgin/VFX/DRG/`, second prefix:
+
+| File | What it shows |
+|---|---|
+| `WP1` | A shield bash impact: a heavy arc of orange sparks |
+| `WP2` | Plates knitting together: a ring of interlocking scale shapes |
+| `WP3` | An armour shudder: a hexagonal plate barrier flashing |
+| `WP4` | A ground slam: a cracked stone ring with orange glow from below |
+| `WP5` | A taunt roar: a wide warning arc with a dragon head silhouette |
+| `WP6` | A barrier dome: a heavy dome of orange light |
+| `WPUT` | A carapace growth: the knight swelling, plates spreading outward |
+| `WP VFX` | Heavy footfall dust with orange embers |
+
+---
+
+## 3. Eclipse Scribe / Void Mirror — `eclipse_scribe` (Astral Weaver line)
+
+Fantasy: a scribe who steals a piece of every hit and throws it back as a mirrored beam. Silhouette
+stays Astral (hooded robe, floating) but the robe is now black-and-red and the codex is replaced by
+a cracked blood-mirror.
+
+### Character sheet
+
+`desgin/class cr/DRG/es/`, same file list and layout.
+
+Positive prompt:
+</pre><pre>Top-down 3/4 pixel art character sprite sheet for a dark-fantasy action RPG, one robed figure shown
+in many poses arranged in a grid, 4 direction views per row, plain black background, no text, no
+labels.
+
+The figure: a slim hooded scribe in a long black robe lined with deep crimson, the hood shadowing
+the face with two glowing red slits for eyes, floating slightly off the ground, long sleeves
+trailing like liquid shadow, holding a cracked oval blood-mirror frame in one hand and a thin bone
+quill in the other, faint red mist orbiting the figure.
+
+Poses: idle hovering, drifting forward, casting with the mirror raised, pulling the mirror to the
+chest, throwing the quill, and a casting pose where the mirror cracks and light pours out.
+
+Art style: crisp pixel art, crimson and violet rim light, deep shadows, limited palette of black,
+deep crimson, violet and pale bone white, elegant readable silhouette, game sprite sheet</pre><pre>
+### VFX strips
+
+`desgin/VFX/DRG/`, third prefix:
+
+| File | What it shows |
+|---|---|
+| `ES1` | A mirror beam: a straight crimson line snapping outward |
+| `ES2` | A steal: red droplets pulled from an impact toward a point |
+| `ES3` | A mirror crack: a spiderweb of red cracks spreading |
+| `ES4` | A beam returning: a line bouncing back along its own path |
+| `ES5` | A stolen-shard projectile: a shard of red glass spinning |
+| `ES6` | A big return beam: a wide reflected column of crimson light |
+| `ESUT` | A constellation of the wyrm: several red star points linked by lines, then flaring |
+| `ES VFX` | Mirror dust motes drifting |
+
+---
+
+## Build commands (after the art arrives)
+</pre><pre>node tools/build-player.js wr        # Wyrmblood Reaver
+node tools/build-player.js wp        # Wyrmplate Warden
+node tools/build-player.js es        # Eclipse Scribe
+node tools/build-vfx.js              # picks up the DRG set once added to SETS in build-vfx.js
+node tools/build-icons.js            # after icons land in desgin/ICON SKILL/DRG/</pre><pre>
+Each preset must end up normalised to canvas 160x160, pivot (80,140), neutral body about 58-59 px,
+with `atlas.json` written. If a preset uses per-sheet options, add them next to the preset in
+`tools/build-player.js` following the pattern of `PRESETS.vs` (it uses `liftFx` and `nearestBody`).
+
+## Splash + emblem (class-select screen)
+
+Also needed for each class: `&lt;id&gt;_splash.png` (2:3, black background) and `&lt;id&gt;_emblem.png` (1:1,
+black background), placed at `desgin/UI/class/`, then `node tools/build-class-art.js`.
+
+**Wyrmblood Reaver emblem**</pre><pre>Pixel art class emblem icon: a curved dragon fang dripping red, crossed with a crimson slash
+sigil, dark iron crest with glowing red edges, centred, isolated on plain pure black background,
+no text, crisp pixels, high resolution</pre><pre>
+**Wyrmplate Warden emblem**</pre><pre>Pixel art class emblem icon: a dragon head made of overlapping armour scales with an open jaw,
+dark steel crest with glowing orange cracks, centred, isolated on plain pure black background,
+no text, crisp pixels, high resolution</pre><pre>
+**Eclipse Scribe emblem**</pre><pre>Pixel art class emblem icon: an oval cracked mirror reflecting a red star, dark frame with
+crimson edges, centred, isolated on plain pure black background, no text, crisp pixels, high
+resolution</pre><pre></pre>
+<div class="pb"></div><h1 class="cls">2. Wyrmblood Reaver — SKILL + VFX prompts</h1><h1>Wyrmblood Reaver — SKILL + VFX prompts</h1><p>ใช้รูปแบบเดียวกับ ECLIPSE_ONLINE_Skill_VFX_Prompts.pdf ของเจ้าของ</p><p>Class: <code>wyrmblood_reaver</code> · Umbral Sword line · secret tier 4</p><hr><h2>โครงสร้างการใช้ (2 ทางแยกกัน)</h2><p><b>ทางที่ 1 - ชิลด์ท่า (สกิล)</b>: แนบรูปตัวละคร + MASTER PROMPT ตัวละคร + SKILL BLOCK</p><p>-&gt; เอฟเฟกต์ถูกวาด <b>อยู่ในภาพ</b> เพราะเกมวาดตัวละครกับ VFX พร้อมกัน</p><p><b>ทางที่ 2 - VFX ล้วน</b>: ไม่แนบรูป + MASTER VFX PROMPT + VFX BLOCK</p><p>-&gt; ต้องระบุ PRIMARY / SECONDARY / ACCENT สี และห้ามมีตัวละคร</p><p><b>ต้องการต่อคลาส</b>: walk, idle, atk1, atk2, dash, hit, sk1-sk6, ut + VFX 8 strip</p><hr><h2>1. MASTER PROMPT - Character Skill Sheet</h2><pre>Use the uploaded character sprite sheet as the EXACT and ONLY visual character reference.
+Create a combat skill animation sprite sheet for the exact same character for ECLIPSE ONLINE,
+a 2D isometric pixel-art action RPG.
+
+The uploaded image is the locked character model. DO NOT redesign the character.
+Preserve exactly: face, eyes, hairstyle, hair shape, skin tone, head size, body proportions,
+armor, clothing, coat, cape, boots, gloves, signature weapon, weapon shape, weapon size,
+color palette, outline thickness, pixel density, shading style, lighting style, silhouette.
+
+ONLY change: combat pose, movement, weapon movement, casting movement, defensive pose,
+and class-specific skill VFX.
+
+CHARACTER: lean agile warrior, messy black hair, pale skin, glowing crimson eyes, long tattered
+black coat with dark red dragon-scale trim on the shoulders and cuffs, exposed forearms with
+glowing red veins, dark leather straps across the chest, a short curved dragon-fang blade with a
+molten red edge.
+
+SPRITE SHEET: ROW 1 = FRONT / SOUTH, ROW 2 = BACK / NORTH, ROW 3 = LEFT / WEST, ROW 4 = RIGHT / EAST.
+6 frames per row. Keep the character centered, same scale, same camera distance, never crop.
+
+ANIMATION: frame 1 = preparation / neutral, frame 2 = wind-up, frame 3 = action begins,
+frame 4 = strongest action / impact, frame 5 = follow-through, frame 6 = recovery.
+
+TRUE TRANSPARENT BACKGROUND ONLY. NO background, floor, environment, character shadow, enemy, UI,
+text, labels, grid, borders, separator lines, watermark, or logo.
+
+PIXEL ART: crisp pixel art, hard pixel edges, no anti-aliasing, no blur, no 3D rendering,
+no realistic rendering, no painterly rendering.
+
+CHARACTER CONSISTENCY: treat the uploaded reference as a locked model sheet. The exact same
+character must appear in every frame. Do not add or remove equipment. Only animate the existing
+character.
+
+Output ONLY the clean sprite sheet, ready for HTML5 Canvas 2D.</pre><pre>
+---
+
+## 2. SKILL BLOCKS - ตัวละครทำท่า (แนบรูปเสมอ)
+
+ต่อทุกบล็อกด้วย:</pre><pre>Keep the exact character design from the uploaded reference. Use only the existing signature weapon
+and equipment. Do not add enemies or environment. Transparent background only. The skill animation
+must remain readable, consistent, and production-ready for HTML5 Canvas.</pre><pre>
+### SK1 Crimson Fang</pre><pre>CLASS: WYRMBLOOD REAVER   SKILL: Crimson Fang
+Fast predatory lunge bite with the fang blade pointed ahead of the body; frame 4 strongest;
+a thin crimson streak trailing the blade.</pre><pre>
+### SK2 Blood Pact</pre><pre>CLASS: WYRMBLOOD REAVER   SKILL: Blood Pact
+Self-burn ritual: one hand rises then presses to the chest, veins flaring brightest on frame 4,
+head tilted back; the glow stays inside the body silhouette.</pre><pre>
+### SK3 Scale Shed</pre><pre>CLASS: WYRMBLOOD REAVER   SKILL: Scale Shed
+Armour shed: shoulders hunch, dark red dragon scales burst off the shoulders and arms, arms spread
+wide on frame 4 with small scale shards around the body.</pre><pre>
+### SK4 Wyrm Rend</pre><pre>CLASS: WYRMBLOOD REAVER   SKILL: Wyrm Rend
+Violent two-handed downward rend; blade raised high on frames 1-2, dragged down through frame 4
+with a crimson gouge trail along the blade path; the most violent pose set on this character.</pre><pre>
+### SK5 Vein Thrust</pre><pre>CLASS: WYRMBLOOD REAVER   SKILL: Vein Thrust
+Clean straight thrust with the fang blade, arm fully extended on frame 4; minimal wind-up,
+a narrow crimson line trailing the blade tip.</pre><pre>
+### SK6 Blood Harvest</pre><pre>CLASS: WYRMBLOOD REAVER   SKILL: Blood Harvest
+Draining strike: the blade is dragged back through a wound, crimson droplets pulled along the
+blade toward the character; frame 4 strongest with droplets mid-air.</pre><pre>
+### UT Dragon Blood Awakening</pre><pre>CLASS: WYRMBLOOD REAVER   SKILL: Dragon Blood Awakening-ULTIMATE
+Massive ultimate transformation; kneels head-down on frame 1, rises with every vein blazing by
+frame 3, head tilted fully back with the blade planted point-down on frame 4; ultimate scale,
+96x96 px per frame.</pre><pre>
+### ATK1 / ATK2 / DASH / HIT / IDLE
+
+ใช้ MASTER + บล็อกจาก art-prompts-wyrmblood-reaver.md หัวข้อ 2 (แอนิเมชันทั่วไป)
+
+---
+
+## 3. MASTER PROMPT - VFX Sprite Sheet (ไม่แนบรูป)
+</pre><pre>Create a production-ready 2D pixel-art VFX sprite sheet for ECLIPSE ONLINE, a fantasy isometric
+action RPG.
+
+VFX ONLY. Do NOT create a character, enemy, weapon, environment, floor, scenery, or UI.
+The VFX must be independently layerable over a character sprite in HTML5 Canvas 2D.
+
+SKILL: [SKILL NAME]    CLASS: WYRMBLOOD REAVER
+VFX TYPE: [SLASH / DASH / PROJECTILE / AOE / BARRIER / MAGIC / EXPLOSION / HEAL / RITUAL]
+
+Design a clear readable game effect with a strong silhouette and obvious
+start -&gt; charge -&gt; impact -&gt; end timing.
+
+PIXEL ART: crisp pixel art, hard pixel edges, no anti-aliasing, no blur, no 3D, no painterly
+rendering. Use hard pixel clusters and controlled color ramps.
+
+COLOR: Primary: deep crimson   Secondary: ember orange   Accent: black
+Do not introduce unrelated colors.
+
+SPRITE FORMAT: 4 rows (South, North, West, East), 6 frames per row.
+Non-directional AOE / ground VFX may use a single animation row.
+
+ANIMATION: frame 1 = initial appearance / charge, frame 2 = energy forming, frame 3 = expansion,
+frame 4 = maximum effect / impact, frame 5 = follow-through / particles, frame 6 = fade out.
+
+TRUE TRANSPARENT BACKGROUND ONLY. NO white, black, pink or colored backdrop. NO floor, ground
+texture, scenery, character shadow, UI, text, labels, borders, grid, watermark, or logo.
+
+Do not create a fake character silhouette. Do not include hands, body, face, armor, or weapon.
+
+Output ONLY the clean VFX sprite sheet.</pre><pre>
+---
+
+## 4. VFX BLOCKS (เติมใน MASTER ข้างบน - ไม่แนบรูป)
+
+ต่อทุก block:</pre><pre>VFX ONLY. Do not create character, enemy, weapon, environment, floor, or UI. Transparent background
+only. Crisp hard-edged pixel art. VFX must be readable and independently layerable over a
+character sprite.</pre><pre>
+| ไฟล์ | เติมใน MASTER VFX |
+|---|---|
+| SK1 | `SKILL: Crimson Fang   VFX TYPE: SLASH`&lt;br&gt;`Fast sharp crescent fang slash of compressed blood energy; crimson core, orange edge, short fragments.` |
+| SK2 | `SKILL: Blood Pact   VFX TYPE: RITUAL`&lt;br&gt;`Cracked rune pact circle burning on the ground; the ring closes then ignites.` |
+| SK3 | `SKILL: Scale Shed   VFX TYPE: MAGIC`&lt;br&gt;`Small dark red dragon scale shards flinging outward in a burst.` |
+| SK4 | `SKILL: Wyrm Rend   VFX TYPE: SLASH`&lt;br&gt;`Two huge claw gouges tearing downward through the air; heavy crimson trail.` |
+| SK5 | `SKILL: Vein Thrust   VFX TYPE: PROJECTILE`&lt;br&gt;`A straight red thrust streak with a bright molten tip and short tail.` |
+| SK6 | `SKILL: Blood Harvest   VFX TYPE: MAGIC`&lt;br&gt;`Crimson droplets pulled inward along a line toward a point, then compressing.` |
+| UT | `SKILL: Dragon Blood Awakening   VFX TYPE: AOE`&lt;br&gt;`A column of red light rising from a spreading pool on the ground; ultimate scale.` |
+| VFX | `SKILL: Blood droplets   VFX TYPE: MAGIC`&lt;br&gt;`Blood droplets falling and splashing on the ground.` |
+
+---
+
+## 5. Passive icons (2)
+</pre><pre>Use the uploaded character sprite sheet as the visual reference for class identity. Create a square
+pixel-art passive-skill icon.
+PASSIVE: Dragon's Thirst   CLASS: WYRMBLOOD REAVER
+A gauntlet hand with black blood draining from the fingers into a crimson pool, framed by two
+curved dragon fang shapes. Class palette: black, deep crimson, ember orange.
+True transparent background. No text, letters, numbers, or UI frame. Readable at 32x32 and 64x64.</pre><pre></pre><pre>PASSIVE: Bloodless Night   CLASS: WYRMBLOOD REAVER
+A cracked dragon fang standing upright with a thin crimson line running through it.
+Class palette: black, deep crimson, ember orange. Transparent background. No text, no UI frame.
+Readable at 32x32 and 64x64.</pre><pre>
+---
+
+## 6. Splash + emblem
+
+ใช้จาก art-prompts-dragon-secret-classes.md - Wyrmblood Reaver splash + emblem
+
+---
+
+## 7. Build
+</pre><pre>node tools/build-player.js wr      # หลังเพิ่ม preset 'wr' ใน build-player.js
+node tools/build-vfx.js            # หลังเพิ่ม set 'wr' ใน build-vfx.js
+node tools/tests/sprites.test.mjs</pre><pre>
+ตรวจผล: `tools/viewer.html`
+</pre>
+</body></html>
