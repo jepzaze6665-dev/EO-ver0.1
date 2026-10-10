@@ -1579,3 +1579,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (strip front / back / left / right / walk1 / walk2, feet pivot, ~60 px) + npcs.json -> Assets.npcs; which NPC uses which = src/data/npcArt.js
   (by NPC id; map / wanderer defs may name `art`). NPC.drawArt (faces the player on talk, walk frames toward the camera, bob otherwise);
   unlisted NPCs keep the canvas figure. SWAP_SIDES in the tool = sheets whose side poses GPT drew the other way. 'keeper' built, unused.
+- MOBILE M3 (owner tried a real phone: no buttons + title / class select not phone-shaped): TouchControls.wanted() now also trusts
+  any-pointer: coarse, a mobile user agent, or touch points + hover: none; and TouchControls.watch(game) turns the controls on at
+  the FIRST real touch (pointerType 'touch' / touchstart) whatever the checks said (some phone browsers / "desktop site" mode
+  report pointer: fine). PHONE LAYOUT in theme.css `@media (max-height: 520px)` (landscape phones; desktop untouched): title =
+  logo left, login (44 px fields, 16 px text so phones don't zoom, Log in / Create account side by side) + menu stacked right,
+  footer hidden; class select = line tabs + compact tree left, class card right (scrolls, Begin button sticky at the bottom),
+  splash faded behind. Checked at 844×390.

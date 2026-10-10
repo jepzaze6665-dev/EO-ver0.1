@@ -76,7 +76,7 @@ export class Game {
     this.combat = new Combat(this);
     this.ui = new UI(this);
     // MOBILE M1: on-screen joystick + buttons on touch devices (or ?touch) — they write the same input as keys / mouse
-    if (TouchControls.wanted()) this.touch = new TouchControls(this);
+    if (TouchControls.wanted()) this.touch = new TouchControls(this); else TouchControls.watch(this); // the first real touch turns them on
     this.save = new SaveSystem(this);
     // canvas placeholders, replaced by the owner's sheet art where data/monsterArt.js has an entry
     this.monsterSprites = { ...buildMonsterSprites(), ...buildSheetSprites() };

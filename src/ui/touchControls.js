@@ -41,7 +41,19 @@ export class TouchControls {
   static wanted() {
     const q = location.search;
     if (/[?&]notouch\b/.test(q)) return false;
-    return /[?&]touch\b/.test(q) || !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    if (/[?&]touch\b/.test(q)) return true;
+    // several signals: some phone browsers ("desktop site" mode, some Android browsers) do not report pointer: coarse
+    const mm = (s) => !!(window.matchMedia && window.matchMedia(s).matches);
+    const ua = navigator.userAgent || '';
+    return mm('(pointer: coarse)') || mm('(any-pointer: coarse)') || /Android|iPhone|iPad|iPod|Mobile/i.test(ua)
+      || ((navigator.maxTouchPoints || 0) > 0 && mm('(hover: none)'));
+  }
+  // a real finger on the screen = a phone / tablet, whatever the checks above said: turn the controls on then
+  static watch(game) {
+    if (/[?&]notouch\b/.test(location.search)) return;
+    const on = (e) => { if (e.pointerType && e.pointerType !== 'touch') return; window.removeEventListener('pointerdown', on, true); window.removeEventListener('touchstart', on, true); if (!game.touch) game.touch = new TouchControls(game); };
+    window.addEventListener('pointerdown', on, true);
+    window.addEventListener('touchstart', on, true);
   }
   constructor(game) {
     this.game = game;

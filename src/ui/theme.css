@@ -542,3 +542,45 @@ html[lang="th"] body, html[lang="th"] .overlay, html[lang="th"] button, html[lan
 html[lang="th"] .ts-menu button, html[lang="th"] .esc-list button { line-height: 1.5; padding-top: 0.2em; }
 html[lang="th"] .ts-foot { letter-spacing: 0; }
 html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !important; } /* spaced-out caps look broken in Thai */
+
+/* ========== PHONE (landscape, short screens): title + class select (MOBILE M3) ========== */
+@media (max-height: 520px) {
+  /* TITLE: logo on the left, login + menu stacked on the right (thumb-sized controls) */
+  .ts-art ~ .ts-wrap { display: grid; grid-template-columns: 1fr minmax(280px, 42vw); align-content: center; align-items: center;
+    column-gap: 4vw; row-gap: 10px; padding: 12px max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left)); text-align: left; }
+  .ts-art ~ .ts-wrap > * { grid-column: 2; }
+  .ts-art ~ .ts-wrap .ts-logo-img { grid-column: 1; grid-row: 1 / span 6; width: 100%; max-width: 48vw; margin: 0; justify-self: center; }
+  .ts-net { display: grid; grid-template-columns: 1fr 1fr; margin: 0; gap: 8px; }
+  .ts-net input, .ts-net .ts-net-err, .ts-net span { grid-column: 1 / -1; }
+  .ts-net input { width: 100%; height: 44px; font-size: 16px; }          /* 16 px: phones do not zoom into the field */
+  .ts-net button { height: 44px; font-size: 15px; }
+  .ts-net.ok { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+  .ts-net.ok button { height: 38px; }
+  .ts-net-err { text-align: left; }
+  .ts-art ~ .ts-wrap .ts-menu { margin: 4px 0 0 !important; align-items: stretch; gap: 6px; }
+  .ts-menu button { font-size: 18px; padding: 4px 12px; text-align: center; background: rgba(8, 6, 14, 0.45); border: 1px solid rgba(240, 225, 200, 0.18); border-radius: 3px; }
+  .ts-foot { display: none; }
+
+  /* CLASS SELECT: tabs + tree on the left, the class card (scrolls, Begin always at the bottom) on the right */
+  .cs-wrap { grid-template-columns: minmax(250px, 44vw) 1fr; grid-template-rows: auto 1fr; padding: 8px 0 8px env(safe-area-inset-left); }
+  .cs-lines { grid-column: 1; grid-row: 1; padding: 0 0 6px 12px; gap: 6px; }
+  .cs-lines button { padding: 4px 8px 4px 4px; font-size: 11px; gap: 4px; }
+  .cs-lines button img { width: 24px; height: 24px; }
+  .cs-tree { grid-column: 1; grid-row: 2; overflow-y: auto; align-self: stretch; }
+  .cs-node.base { padding: 6px 0 6px 12px; gap: 10px; }
+  .cs-node.base .cs-emb, .cs-node.base .cs-emb img { width: 52px; height: 52px; }
+  .cs-node.mastery { gap: 10px; }
+  .cs-node.mastery .cs-emb, .cs-node.mastery .cs-emb img { width: 38px; height: 38px; }
+  .cs-txt small { font-size: 10px; width: 170px; padding-bottom: 2px; margin-bottom: 2px; letter-spacing: 2px; }
+  .cs-txt b { font-size: 18px; letter-spacing: 2px; } .cs-node.mastery .cs-txt b { font-size: 14px; }
+  .cs-kids { padding: 4px 0 0 26px; gap: 4px; } .cs-kids::before { display: none; }
+  .cs-lock { width: 16px; height: 16px; font-size: 9px; }
+  .cs-info { grid-column: 2; grid-row: 1 / span 2; align-self: stretch; width: auto; margin: 44px max(12px, env(safe-area-inset-right)) 0 8px;
+    padding: 10px 12px 0; overflow-y: auto; display: flex; flex-direction: column; }
+  .cs-info p { display: block; font-size: 12px; }
+  .cs-rates { gap: 2px 12px; }
+  .cs-skills img { width: 34px; height: 34px; }
+  .cs-start { position: sticky; bottom: 0; margin: auto -12px 0; width: calc(100% + 24px); padding: 12px; font-size: 15px; min-height: 46px; }
+  .cs-splash { height: 100vh; max-width: 56vw; right: 0; opacity: 0.4; }
+  .cs-back { top: 8px; right: max(12px, env(safe-area-inset-right)); padding: 6px 14px; min-height: 34px; }
+}
