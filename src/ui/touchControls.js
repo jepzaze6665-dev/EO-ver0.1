@@ -39,7 +39,7 @@ const CSS = `
 #touch .atk.talk{background-image:url("assets/ui/touch/talk.png");background-color:transparent}
 #touch .base.fixed{display:block;opacity:.7}
 #touch .small{width:42px;height:42px;font-size:16px}
-#touch .aimline{position:absolute;height:3px;background:linear-gradient(90deg,rgba(255,210,120,.9),rgba(255,210,120,0));transform-origin:0 50%;display:none;pointer-events:none}
+#touch .aimline{position:absolute;height:2px;opacity:.55;background:linear-gradient(90deg,rgba(255,225,170,.6),rgba(255,225,170,0));transform-origin:0 50%;display:none;pointer-events:none}
 #rotate{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:#07060c;color:#f0e1c8;font:16px sans-serif;text-align:center;padding:24px}
 @media (orientation:portrait){body.touch #rotate{display:flex}}
 `;
@@ -176,7 +176,7 @@ export class TouchControls {
   showAim(angle) {
     const g = this.game, p = g.player, c = g.camera, r = g.renderer;
     const sx = ((p.x - c.left) * c.zoom * r.scale) / r.dpr, sy = ((p.y - 12 - c.top) * c.zoom * r.scale) / r.dpr;
-    Object.assign(this.line.style, { display: 'block', left: sx + 'px', top: sy + 'px', width: '160px', transform: `rotate(${angle}rad)` });
+    Object.assign(this.line.style, { display: 'block', left: sx + 'px', top: sy + 'px', width: '110px', transform: `rotate(${angle}rad)` });
   }
   release(b, e, cancel = false) {
     const k = b.dataset.k, inp = this.input;
