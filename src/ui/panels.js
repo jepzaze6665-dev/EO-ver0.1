@@ -624,11 +624,13 @@ export class Panels {
     const selArea = areas.find((a) => a.id === this.gateSel), sel = mm.get(this.gateSel), selOpen = open(selArea);
     const W = WORLD_MAP, routeCol = (r) => W.routeColor[r] || '#e8d7a5';
     // boss portrait = the idle frame of its atlas, scaled into a box
-    const portrait = (atlasId, box) => {
+    // owner: a boss stays a SECRET (black silhouette + ?) until you have beaten it once
+    const known = (areaId) => { const d = mm.get(areaId), b = d && BOSSES[d.bossId]; return !b || !!(wp && wp.isBossDefeated(b.id)); };
+    const portrait = (atlasId, box, hidden) => {
       const m = Assets.data && Assets.data.monsters && Assets.data.monsters[atlasId];
       if (!m || !m.anims || !m.anims.idle) return '';
       const [fx, fy] = m.anims.idle[0], k = Math.min(box / m.fw, box / m.fh) * 1.25;
-      return `<span class="ms-face" style="width:${m.fw}px;height:${m.fh}px;background:url(${m.file}) -${fx}px -${fy}px;transform:translate(-50%,-50%) scale(${k.toFixed(3)})"></span>`;
+      return `<span class="ms-face${hidden ? ' secret' : ''}" style="width:${m.fw}px;height:${m.fh}px;background:url(${m.file}) -${fx}px -${fy}px;transform:translate(-50%,-50%) scale(${k.toFixed(3)})"></span>${hidden ? '<i class="ms-q">?</i>' : ''}`;
     };
     const boss = sel && BOSSES[sel.bossId];
     const bossDown = boss && wp && wp.isBossDefeated(boss.id);
@@ -636,7 +638,7 @@ export class Panels {
     // possible rewards = the boss's loot table (+ its oneOf groups) + elite drops on the map
     const rewardIds = [];
     const addTable = (id) => { const t = LOOT_TABLES[id]; if (!t) return; for (const d of t.drops || []) rewardIds.push(d.item); for (const grp of t.oneOf || []) for (const it of grp.items || []) rewardIds.push(it.item); };
-    if (boss && boss.rewards) addTable(boss.rewards.loot);
+    if (boss && boss.rewards && bossDown) addTable(boss.rewards.loot); // a secret boss keeps its loot secret too
     addTable('elite');
     const rewards = [...new Set(rewardIds)].filter((id) => ITEMS[id]).slice(0, 12);
     const disc = g.discoveries && g.discoveries.of(this.gateSel);
@@ -672,11 +674,11 @@ export class Panels {
       const p = W.pins[a.id], d = mm.get(a.id);
       if (!p) return '';
       return `<button class="ms-pin${open(a) ? '' : ' locked'}${a.id === this.gateSel ? ' sel' : ''}" data-area="${a.id}" style="left:${p.x}%;top:${p.y}%;--rc:${routeCol(d.route)}">
-          <span class="ms-dia">${portrait(p.boss, 44)}</span>${open(a) ? '' : '<i class="ms-lock">🔒</i>'}<b>${esc(d.short)}</b></button>`;
+          <span class="ms-dia">${portrait(p.boss, 44, !known(a.id))}</span>${open(a) ? '' : '<i class="ms-lock">🔒</i>'}<b>${esc(d.short)}</b></button>`;
     }).join('');
     const cities = W.cities.map((c) => `<div class="ms-city" style="left:${c.x}%;top:${c.y}%"><span>◆</span>${esc(c.name)}</div>`).join('');
     const strip = areas.map((a) => `<button class="ms-chip${a.id === this.gateSel ? ' sel' : ''}${open(a) ? '' : ' locked'}" data-area="${a.id}">${esc(mm.get(a.id).short)}</button>`).join('');
-    const el = this.show('gate', `<div class="ms">
+    const el = this.show('gate', `<div class="ms${this.gateInfo ? ' info' : ''}">
       <div class="ms-map${this.worldMapArt ? ' art' : ''}">
         <div class="ms-world" style="--ar:${W.aspect || 1.5};${this.worldMapArt ? `background-image:url(${W.image})` : ''}">
           <svg viewBox="0 0 100 100" preserveAspectRatio="none">${['A', 'B'].map((r) => `<polyline points="${pts(r)}" stroke="${routeCol(r)}"/>`).join('')}</svg>
@@ -687,11 +689,12 @@ export class Panels {
       <div class="ms-side">
         <div class="ms-tabs"><button data-npc-tab="solo" class="${tab === 'solo' ? 'on' : ''}">${tl('Solo')}</button><button data-npc-tab="party" class="${tab === 'party' ? 'on' : ''}">${tl('Party')}</button>
           <button class="close ms-x" title="${tl('Close')}">✕</button></div>
-        <div class="ms-head"><span class="ms-dia big" style="--rc:${routeCol(sel.route)}">${portrait((W.pins[this.gateSel] || {}).boss, 70)}</span>
+        <div class="ms-head"><span class="ms-dia big" style="--rc:${routeCol(sel.route)}">${portrait((W.pins[this.gateSel] || {}).boss, 70, !bossDown && !!boss)}</span>
+          <button class="ms-info" data-info="1" title="${tl('Details')}">i</button>
           <div class="ms-route" style="color:${routeCol(sel.route)}">${tl('ROUTE {r} · {name}', { r: esc(sel.route || ''), name: esc(sel.short) })}</div>
           <h2>${esc(sel.name)}</h2><div class="ms-lv">${esc(lv)}</div></div>
         <p class="ms-desc">${esc((W.pins[this.gateSel] || {}).desc || '')}</p>
-        ${boss ? `<div class="ms-boss"><span>${tl('BOSS')}</span><b>${esc(boss.name)}</b>${bossDown ? `<i class="ok">${tl('✓ Defeated')}</i>` : `<i>${tl('Not yet defeated')}</i>`}</div>` : ''}
+        ${boss ? `<div class="ms-boss"><span>${tl('BOSS')}</span><b>${bossDown ? esc(boss.name) : '???'}</b>${bossDown ? `<i class="ok">${tl('✓ Defeated')}</i>` : `<i>${tl('Not yet defeated')}</i>`}</div>` : ''}
         ${!selOpen && sel.requires && sel.requires[0] ? `<div class="ms-req">🔒 ${esc(sel.requires[0].label)}</div>` : ''}
         ${disc ? `<div class="ms-boss"><span>${tl('EXPLORED')}</span><b>✦ ${disc.found} / ${disc.total}</b></div>` : ''}
         <div class="pt-h">${tl('POSSIBLE REWARDS')}</div>
@@ -722,6 +725,7 @@ export class Panels {
     };
     window.addEventListener('keydown', onKey);
     this.wireNpc(el, 'gate', () => this.dungeonGate(), (t) => {
+      if (t.dataset.info) { this.gateInfo = !this.gateInfo; return this.dungeonGate(); }
       if (t.dataset.area) { this.gateSel = t.dataset.area; g.audio.sfx('ui'); return this.dungeonGate(); }
       if (t.dataset.join) return on.partyAction('partyJoin', { party: t.dataset.join });
       const go = t.dataset.go;

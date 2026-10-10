@@ -278,6 +278,7 @@ export const TH_WINDOWS = {
   'Not yet defeated': 'ยังไม่ได้ปราบ',
   'EXPLORED': 'สำรวจแล้ว',
   'POSSIBLE REWARDS': 'รางวัลที่อาจได้รับ',
+  'Details': 'รายละเอียด',
   'Q / E: Map': 'Q / E: เปลี่ยนแผนที่',
   'F: Play': 'F: เล่น',
   'Party Entry': 'เข้าดันเจี้ยนเป็นปาร์ตี้',

@@ -584,3 +584,31 @@ html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !impo
   .cs-splash { height: 100vh; max-width: 56vw; right: 0; opacity: 0.4; }
   .cs-back { top: 8px; right: max(12px, env(safe-area-inset-right)); padding: 6px 14px; min-height: 34px; }
 }
+
+/* MAP SELECT: secret bosses (owner: unknown until beaten once) + the phone layout (MOBILE M4) */
+.ms-face.secret { filter: brightness(0) drop-shadow(0 0 3px rgba(190, 160, 255, 0.55)) !important; }
+.ms-q { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font: 700 22px var(--font-title); font-style: normal; color: #d8c8ff; text-shadow: 0 0 8px #6b4cc0, 0 2px 3px #000; pointer-events: none; }
+.ms-dia.big .ms-q { font-size: 34px; }
+.ms-info { display: none; }
+@media (max-height: 520px) {
+  .ms { grid-template-columns: minmax(250px, 34vw) 1fr; }
+  .ms-side { padding: 8px 12px 0 max(12px, env(safe-area-inset-left)); }
+  .ms-tabs { margin-bottom: 4px; } .ms-tabs button { padding: 8px 16px; min-height: 38px; font-size: 14px; }
+  .ms-x { min-width: 44px; font-size: 18px; }
+  .ms-head { display: grid; grid-template-columns: 64px 1fr 36px; align-items: center; text-align: left; column-gap: 10px; }
+  .ms-head .ms-dia.big { grid-row: 1 / span 3; width: 50px; height: 50px; margin: 6px 0 0 7px; }
+  .ms-head h2 { text-align: left; font-size: 17px; letter-spacing: 1px; } .ms-route { font-size: 10px; letter-spacing: 2px; }
+  .ms-info { display: block; grid-column: 3; grid-row: 1 / span 3; width: 34px; height: 34px; margin: 0; padding: 0; border-radius: 50%; font: italic 700 16px Georgia, serif; }
+  .ms.info .ms-info { border-color: var(--hl); color: #fff; }
+  .ms-desc, .ms-side .pt-h, .ms-rewards, .ms-peds, .ms-side .keys, .ms-top kbd { display: none; }
+  .ms.info .ms-desc, .ms.info .ms-side .pt-h, .ms.info .ms-peds { display: block; }
+  .ms.info .ms-rewards { display: flex; } .ms.info .ms-peds { display: grid; }
+  .ms-boss { font-size: 13px; padding: 6px 0; }
+  .ms-act { position: sticky; bottom: 0; padding: 8px 0 max(8px, env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(5, 6, 10, 0.95) 30%); }
+  .ms-play { padding: 14px 8px; font-size: 16px; letter-spacing: 2px; min-height: 52px; }
+  .ms-open button, .ms-leave { min-height: 40px; }
+  .ms-top { top: auto; bottom: max(8px, env(safe-area-inset-bottom)); padding: 0 8px; overflow-x: auto; justify-content: flex-start; flex-wrap: nowrap; }
+  .ms-chip { flex: none; padding: 10px 16px; min-height: 40px; font-size: 14px; }
+  .ms-pin { width: 60px; height: 76px; } .ms-dia { width: 44px; height: 44px; } .ms-pin b { font-size: 12px; margin-top: 6px; }
+  .ms-city { font-size: 11px; }
+}
