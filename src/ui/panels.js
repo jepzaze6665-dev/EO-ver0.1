@@ -152,7 +152,8 @@ export class Panels {
     if (on && !devOffline && !on.autoTried && on.state === 'offline') {
       on.autoTried = true;
       const n = on.lastName();
-      if (n && on.net.tokens()[n.toLowerCase()] && !on.nameInUseElsewhere(n)) return on.connect(n); // onNetState redraws the title
+      // the title is still drawn below (Connecting…): returning here left the player on the bare world with no screen
+      if (n && on.net.tokens()[n.toLowerCase()] && !on.nameInUseElsewhere(n)) on.connect(n); // onNetState redraws the title
     }
     const ready = devOffline || (on && on.online && on.saveReady); // N3: saves come from the server after login
     const st = on ? on.state : 'offline', err = on && on.net.lastError;
