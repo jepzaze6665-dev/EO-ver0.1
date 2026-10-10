@@ -21,19 +21,15 @@ export const WORLD_TRIGGERS = [
     id: 'lumina_route_choice', on: 'npcTalked', match: { id: 'guard' },
     actions: [{ type: 'notify', title: 'ROUTE CHOICE', text: 'Route A (Forest Road, north gate) and Route B (Eastern Road, east lane) are both open', color: '#ffd98a' }],
   },
-  {
-    id: 'route_a_begins', on: 'questCompleted', match: { id: 'beyond_lumina' },
-    actions: ['accept_quest:route_a'],
-  },
 
   // ---- B1 Frostwind Plains (Route B)
   {
     id: 'b1_first_visit', on: 'mapEntered', match: { id: 'b1', first: true },
-    actions: [{ type: 'cutscene', title: 'FROSTWIND PLAINS', sub: 'Route B · B1', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:eastern_road'],
+    actions: [{ type: 'cutscene', title: 'FROSTWIND PLAINS', sub: 'Route B · B1', focus: 'player', zoom: 1.3, time: 2.2 }],
   },
   {
     id: 'b2_first_visit', on: 'mapEntered', match: { id: 'b2', first: true },
-    actions: [{ type: 'cutscene', title: 'CRYSTAL CAVERNS', sub: 'Route B · B2', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:crystal_depths'],
+    actions: [{ type: 'cutscene', title: 'CRYSTAL CAVERNS', sub: 'Route B · B2', focus: 'player', zoom: 1.3, time: 2.2 }],
   },
   {
     id: 'b2_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_b2' },
@@ -41,7 +37,7 @@ export const WORLD_TRIGGERS = [
   },
   {
     id: 'b3_first_visit', on: 'mapEntered', match: { id: 'b3', first: true },
-    actions: [{ type: 'cutscene', title: 'FROSTPEAK', sub: 'Route B · B3', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:frostpeak_climb'],
+    actions: [{ type: 'cutscene', title: 'FROSTPEAK', sub: 'Route B · B3', focus: 'player', zoom: 1.3, time: 2.2 }],
   },
   {
     id: 'b3_boss_defeated', on: 'bossDefeated', match: { bossId: 'boss_b3' },
@@ -59,11 +55,7 @@ export const WORLD_TRIGGERS = [
     actions: [{ type: 'banner', title: 'THE WINTER ALPHA FALLS', text: 'The pack scatters. The stairs south of the arena lead down into the Crystal Caverns (B2).', color: '#bfe6ff' }],
   },
 
-  // ---- A1 optional mini-bosses (W2): a side quest, rewards once, no gate
-  {
-    id: 'a1_hunts_begin', on: 'questCompleted', match: { id: 'beyond_lumina' },
-    actions: ['accept_quest:forest_hunts'],
-  },
+  // ---- A1 optional mini-bosses (W2): rewards once, no gate
   {
     id: 'mini_hollow_fang_start', on: 'bossEngaged', match: { bossId: 'mini_hollow_fang' },
     actions: [{ type: 'notify', title: 'BOSS TIP', text: 'Red ground = an attack is coming. Step out, or [Space] dodge through it.', color: '#ffb070' }],
@@ -90,7 +82,7 @@ export const WORLD_TRIGGERS = [
   },
   {
     id: 'a2_first_visit', on: 'mapEntered', match: { id: 'a2', first: true },
-    actions: [{ type: 'cutscene', title: 'ANCIENT VALLEY', sub: 'Route A · A2', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:burning_rift'],
+    actions: [{ type: 'cutscene', title: 'ANCIENT VALLEY', sub: 'Route A · A2', focus: 'player', zoom: 1.3, time: 2.2 }],
   },
 
   {
@@ -109,7 +101,7 @@ export const WORLD_TRIGGERS = [
   // ---- A3 Rune Citadel
   {
     id: 'a3_first_visit', on: 'mapEntered', match: { id: 'a3', first: true },
-    actions: [{ type: 'cutscene', title: 'RUNE CITADEL', sub: 'Route A · A3', focus: 'player', zoom: 1.3, time: 2.2 }, 'accept_quest:fallen_city'],
+    actions: [{ type: 'cutscene', title: 'RUNE CITADEL', sub: 'Route A · A3', focus: 'player', zoom: 1.3, time: 2.2 }],
   },
   { id: 'a3_winged_found', on: 'areaDiscovered', match: { name: 'Winged Plaza' }, actions: ['set_flag:wingedPlaza'] },
   {
@@ -131,7 +123,7 @@ export const WORLD_TRIGGERS = [
   // ---- City 2 Asteria (W5): the unlock itself = boss_a3 `unlocks` + City 2's map `requires`
   {
     id: 'city2_first_visit', on: 'mapEntered', match: { id: 'city2', first: true },
-    actions: [{ type: 'cutscene', title: 'ASTERIA CITY', sub: 'City 2 · Safe Zone', focus: 'player', zoom: 1.3, time: 2.4 }, 'accept_quest:asteria'],
+    actions: [{ type: 'cutscene', title: 'ASTERIA CITY', sub: 'City 2 · Safe Zone', focus: 'player', zoom: 1.3, time: 2.4 }],
   },
   { id: 'city2_plaza_found', on: 'areaDiscovered', match: { name: 'Crystal Plaza' }, actions: ['set_flag:asteriaPlaza'] },
 

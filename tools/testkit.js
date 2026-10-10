@@ -548,11 +548,11 @@ export function routeA(g, classId = 'umbral_sword') {
   }
   ok('A1: normal enemies fought (hares, wolves)', g.stats.kills > kills0, `kills=${g.stats.kills - kills0}`);
   use(g, 'npc_guide'); g.ui.panels.close(true);
-  ok('Guide quest done -> ROUTE A + optional hunts start (world triggers)', q.isDone('beyond_lumina') && q.isActive('route_a') && q.isActive('forest_hunts') && events.triggers.includes('route_a_begins'));
+  ok('Guide quest done (no route quests since Q1)', q.isDone('beyond_lumina') && !q.isActive('route_a'));
   // the river is no boss gate any more: walk across, still on A1
   goto(g, 50, 104); walk(g, 'KeyW', 2.5);
   goto(g, 53, 80); g.simulate(0.5);
-  ok('River crossed on foot: same map A1, Deep Forest reached', w.mapId === 'a1' && w.state.flags.riverCrossed && q.active.route_a.done.river, `map=${w.mapId} y=${(p.y / T).toFixed(1)}`);
+  ok('River crossed on foot: same map A1, Deep Forest reached', w.mapId === 'a1' && w.state.flags.riverCrossed, `map=${w.mapId} y=${(p.y / T).toFixed(1)}`);
   // optional mini-bosses: fight them, they unlock nothing
   const fang = g.bosses.get('mini_hollow_fang');
   goto(g, 57.5, 106.5);
@@ -565,10 +565,10 @@ export function routeA(g, classId = 'umbral_sword') {
   const grukk = g.bosses.get('mini_grukk');
   goto(g, 36.5, 64.5); walk(g, 'KeyA', 1.4);
   const r2 = bossFight(g, 'mini_grukk', { level: 10, seconds: 400 }); // slow classes (Aegis bot) need > 240 s
-  ok('Grukk: phase change + adds, defeated; hunts quest done; still no map unlocked', r2.state === 'defeated' && r2.phaseEvents.includes(2) && r2.summons > 0 && q.isDone('forest_hunts') && !wp.isMapUnlocked('a2'), JSON.stringify(r2));
+  ok('Grukk: phase change + adds, defeated; still no map unlocked', r2.state === 'defeated' && r2.phaseEvents.includes(2) && r2.summons > 0 && !wp.isMapUnlocked('a2'), JSON.stringify(r2));
   // the Ancient Forest Path is open ground inside A1 now
   goto(g, 87, 71); walk(g, 'KeyD', 3);
-  ok('Walked the Ancient Forest Path into the Ruins (still A1)', w.mapId === 'a1' && w.currentZone === 3 && q.active.route_a.done.ruins, `map=${w.mapId} zone=${w.currentZone}`);
+  ok('Walked the Ancient Forest Path into the Ruins (still A1)', w.mapId === 'a1' && w.currentZone === 3, `map=${w.mapId} zone=${w.currentZone}`);
   const hard = w.monsters.find((m) => !m.dead && w.map.zoneAt(m.home.x, m.home.y) === 3);
   ok('Ruins monsters are hardened (map monsterMods)', hard && hard.level > hard.def.level, hard && `${hard.type} Lv${hard.def.level} -> ${hard.level}`);
   ok('A1 has its hidden content registered', (w.mapDef.hiddenAreas || []).length >= 4);
@@ -589,7 +589,7 @@ export function routeA(g, classId = 'umbral_sword') {
   goto(g, 136, 13); walk(g, 'KeyW', 1.5);
   ok('Walked the north road into A2 (Ancient Valley, other grid)', w.mapId === 'a2' && w.gridId === 'ancient_valley' && events.triggers.includes('a2_first_visit'), `${w.mapId}/${w.gridId}`);
   g.simulate(0.5);
-  ok('Route A quest complete (reached A2)', q.isDone('route_a'), JSON.stringify(q.active.route_a || 'done'));
+  ok('Reached A2', g.world.mapId === 'a2', g.world.mapId);
   const st = wp.routeStatus('A');
   ok('Route status: A1 done, A2 open (its boss planned), not complete', st.steps[0].bossDefeated && st.steps[1].unlocked && !st.complete);
   // the secret city: back to A1, the Sealed Path (thorns withered with the forest)
@@ -1103,13 +1103,13 @@ export function a2BossCheck(g, classId = 'umbral_sword', { god = true, level = 2
   downBoss(g, 'boss_a1'); w.setFlag('guardianDefeated'); w.applyState();
   const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
   w.changeMap('a2', { entry: [84.5, 190] }); g.simulate(0.5);
-  ok('A2 first visit starts THE BURNING RIFT', q.isActive('burning_rift'), Object.keys(q.active).join(','));
+  ok('A2 first visit: no route quest (Q1)', !q.isActive('burning_rift'), Object.keys(q.active).join(','));
   const enc = g.bosses.get('boss_a2');
   w.transitions.autoConfirm = true; // the rift gate asks first (like A1's arena gate)
   let asked = false; const ask0 = g.ui.panels.confirm.bind(g.ui.panels);
   goto(g, 84, 48);
   for (let k = 0; k < 8 && w.mapId !== 'rift'; k++) walk(g, 'KeyW', 0.4);
-  ok('Magma Rift = its own boss-arena map (entered through the gate) · flag + quest step · boss waits', w.mapId === 'rift' && w.mapDef.type === 'boss_arena' && w.state.flags.riftFound && q.active.burning_rift.done.rift && enc.state === 'idle', `map=${w.mapId} ${enc.state} rift=${w.state.flags.riftFound}`);
+  ok('Magma Rift = its own boss-arena map (entered through the gate) · flag + quest step · boss waits', w.mapId === 'rift' && w.mapDef.type === 'boss_arena' && w.state.flags.riftFound && enc.state === 'idle', `map=${w.mapId} ${enc.state} rift=${w.state.flags.riftFound}`);
   p.setLevel(level); p.hp = p.maxHp; g.inventory.add('hp_potion', 4, true);
   goto(g, 84, 36);
   for (let k = 0; k < 10 && enc.state !== 'engaged'; k++) walk(g, 'KeyW', 0.4); // classes walk at different speeds
@@ -1139,7 +1139,7 @@ export function a2BossCheck(g, classId = 'umbral_sword', { god = true, level = 2
   ok('2 phases (MOLTEN FURY at 50%)', phases.has(1) && phases.has(2), [...phases].join(','));
   ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_a2') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
   if (enc.state === 'defeated') {
-    ok('Rewards once: Magma Heart + lore; quest done; world trigger; route status', g.inventory.count('magma_heart') === 1 && w.state.lore.magma_beast && q.isDone('burning_rift') && trig.includes('a2_boss_defeated') && wp.routeStatus('A').steps[1].bossDefeated);
+    ok('Rewards once: Magma Heart + lore; quest done; world trigger; route status', g.inventory.count('magma_heart') === 1 && w.state.lore.magma_beast && trig.includes('a2_boss_defeated') && wp.routeStatus('A').steps[1].bossDefeated);
   }
   return R;
 }
@@ -1226,9 +1226,9 @@ export function a3BossCheck(g, classId = 'umbral_sword', { god = true, level = 3
   w.setFlag('guardianDefeated'); w.applyState();
   const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
   w.changeMap('a3', { entry: [84, 58] }); g.simulate(0.5);
-  ok('A3 first visit starts THE FALLEN CITY', q.isActive('fallen_city'));
+  ok('A3 first visit: no route quest (Q1)', !q.isActive('fallen_city'));
   goto(g, 84, 118); g.simulate(0.6); goto(g, 84, 57); g.simulate(0.6); // Golden Gate seen first (entry), then the plaza: the gate step still ticks
-  ok('Quest steps: Winged Plaza + Golden Gate found', q.active.fallen_city.done.plaza && q.active.fallen_city.done.gate, JSON.stringify(q.active.fallen_city.done));
+  ok('Winged Plaza + Golden Gate found (flags)', g.world.state.flags.wingedPlaza && g.world.state.flags.goldenGate);
   w.transitions.autoConfirm = true;
   goto(g, 84, 53);
   for (let k = 0; k < 8 && w.mapId !== 'sanctum'; k++) walk(g, 'KeyW', 0.4);
@@ -1263,7 +1263,7 @@ export function a3BossCheck(g, classId = 'umbral_sword', { god = true, level = 3
   if (god) ok('Moves used (5)', ['rune_slash', 'triple_cut', 'lunge', 'shield_bash', 'rune_bolts'].every((m) => st.moves.has(m)), [...st.moves].join(','));
   ok('3 phases', [1, 2, 3].every((ph) => st.phases.has(ph)), [...st.phases].join(','));
   ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_a3') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
-  if (enc.state === 'defeated') ok('Rewards once (crest + lore) · quest done · ROUTE A COMPLETE', g.inventory.count('asterian_crest') === 1 && w.state.lore.rune_knight && q.isDone('fallen_city') && trig.includes('a3_boss_defeated') && wp.routeStatus('A').complete && !g.camera.lock);
+  if (enc.state === 'defeated') ok('Rewards once (crest + lore) · quest done · ROUTE A COMPLETE', g.inventory.count('asterian_crest') === 1 && w.state.lore.rune_knight && trig.includes('a3_boss_defeated') && wp.routeStatus('A').complete && !g.camera.lock);
   return R;
 }
 
@@ -1283,7 +1283,7 @@ export function cityCheck(g, classId = 'umbral_sword') {
   for (let k = 0; k < 20 && w.mapId !== 'city2'; k++) walk(g, 'KeyW', 0.3);
   g.simulate(3);
   ok('North road out of the Sanctum -> ASTERIA CITY (own grid)', w.mapId === 'city2' && w.gridId === 'asteria', `map=${w.mapId} grid=${w.gridId}`);
-  ok('Safe city: no hostiles · quest THE LIVING CITY started', w.mapDef.safe && w.hostiles().length === 0 && q.isActive('asteria'));
+  ok('Safe city: no hostiles · no quest (Q1)', w.mapDef.safe && w.hostiles().length === 0);
   // the gate on foot: from the bridge up the avenue to the plaza
   goto(g, 80, 146);
   for (let k = 0; k < 90 && p.y > 78 * TILE; k++) walk(g, 'KeyW', 0.25);
@@ -1301,7 +1301,7 @@ export function cityCheck(g, classId = 'umbral_sword') {
   ok('Waystone attuned · storage opens', w.state.waystones.ws_asteria && storageOpen === 'storage', `storage=${storageOpen}`);
   const gold = p.gold;
   use(g, 'npc_a_guildmaster'); g.ui.panels.close(true);
-  ok('Guildmaster Seraphine: THE LIVING CITY complete (+gold)', q.isDone('asteria') && p.gold > gold, `gold ${gold} -> ${p.gold}`);
+  ok('Guildmaster Seraphine met (flag)', g.world.state.flags.asteriaMet);
   // save / load on the city grid
   const pos = [p.x, p.y];
   g.saveGame(); g.world.changeMap('lumina'); g.simulate(0.3); const loaded = g.loadGame(); // (newGame would delete the save)
@@ -1406,7 +1406,7 @@ export function b1BossCheck(g, classId = 'umbral_sword', { god = true, level = 1
   const w = g.world, p = g.player, wp = g.worldProgress, q = g.quests;
   const trig = []; g.events.on('worldTriggerFired', (e) => trig.push(e.id));
   w.changeMap('b1', { entry: [8.5, 21] }); g.simulate(0.5);
-  ok('B1 first visit starts THE EASTERN ROAD', q.isActive('eastern_road'), Object.keys(q.active).join(','));
+  ok('B1 first visit: no route quest (Q1)', !q.isActive('eastern_road'), Object.keys(q.active).join(','));
   goto(g, 81, 57); g.simulate(0.6);
   w.transitions.autoConfirm = true;
   goto(g, 142, 119);
@@ -1450,7 +1450,7 @@ export function b1BossCheck(g, classId = 'umbral_sword', { god = true, level = 1
   if (god) ok('Every move used', Object.keys(e.def.moves).every((m) => moves.has(m)), [...moves].join(','));
   ok('2 phases (WHITEOUT at 55%) · HUD tags well-formed', phases.has(1) && phases.has(2) && !st.badTag, [...phases].join(','));
   ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_b1') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
-  if (enc.state === 'defeated') ok('Rewards once (Heart of the Winter Alpha + lore) · quest done · banner · route B step 1 done · camera free', g.inventory.count('frost_heart') === 1 && w.state.lore.hoarfang && q.isDone('eastern_road') && trig.includes('b1_boss_defeated') && wp.routeStatus('B').steps[0].bossDefeated && !g.camera.lock);
+  if (enc.state === 'defeated') ok('Rewards once (Heart of the Winter Alpha + lore) · quest done · banner · route B step 1 done · camera free', g.inventory.count('frost_heart') === 1 && w.state.lore.hoarfang && trig.includes('b1_boss_defeated') && wp.routeStatus('B').steps[0].bossDefeated && !g.camera.lock);
   return R;
 }
 
@@ -1466,12 +1466,12 @@ export function b2Check(g, classId = 'umbral_sword') {
   goto(g, 142, 162);
   for (let k = 0; k < 12 && w.mapId !== 'b2'; k++) walk(g, 'KeyS', 0.3);
   g.simulate(2.5);
-  ok('Hoarfang down: south road -> CRYSTAL CAVERNS (grid caverns) · quest THE CRYSTAL DEPTHS', w.mapId === 'b2' && w.gridId === 'caverns' && q.isActive('crystal_depths'), `map=${w.mapId} grid=${w.gridId}`);
+  ok('Hoarfang down: south road -> CRYSTAL CAVERNS (grid caverns) · quest THE CRYSTAL DEPTHS', w.mapId === 'b2' && w.gridId === 'caverns', `map=${w.mapId} grid=${w.gridId}`);
   use(g, 'ws_b2_hall'); g.ui.panels.close(true);
   ok('Glittering Hall waystone attuned', w.state.waystones.ws_b2_hall);
   for (const [x, y] of [[92, 98], [143, 78], [74, 28]]) { goto(g, x, y); g.simulate(0.6); }
-  const qd = q.active.crystal_depths && q.active.crystal_depths.done;
-  ok('Quest: lake crossed · ruins reached · the Heart found (boss step next)', qd && qd.lake && qd.ruins && qd.heart && !qd.boss, JSON.stringify(qd));
+  const qd = g.world.state.flags;
+  ok('Lake crossed · ruins reached · the Heart found (flags)', qd.b2Lake && qd.b2Ruins && qd.b2Heart);
   let asked = false; const ask0 = g.ui.panels.confirm.bind(g.ui.panels);
   g.ui.panels.confirm = (t, b, y, n, onYes, onNo) => { asked = true; g.ui.panels.confirm = ask0; onNo(); };
   goto(g, 117, 29);
@@ -1538,7 +1538,7 @@ export function b2BossCheck(g, classId = 'umbral_sword', { god = true, level = 3
   if (god) ok('Every move used', Object.keys(e.def.moves).every((m) => moves.has(m)), [...moves].join(','));
   ok('2 phases (RESONANCE at 50%) · HUD tags well-formed', phases.has(1) && phases.has(2) && !st.badTag, [...phases].join(','));
   ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_b2') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
-  if (enc.state === 'defeated') ok('Rewards once (Amethyst Core + lore) · quest done · banner · no clusters left · camera free', g.inventory.count('amethyst_core') === 1 && w.state.lore.amethyst_colossus && q.isDone('crystal_depths') && trig.includes('b2_boss_defeated') && !arm.list.length && !g.camera.lock);
+  if (enc.state === 'defeated') ok('Rewards once (Amethyst Core + lore) · quest done · banner · no clusters left · camera free', g.inventory.count('amethyst_core') === 1 && w.state.lore.amethyst_colossus && trig.includes('b2_boss_defeated') && !arm.list.length && !g.camera.lock);
   return R;
 }
 
@@ -1555,12 +1555,12 @@ export function b3Check(g, classId = 'umbral_sword') {
   goto(g, 148, 176);
   for (let k = 0; k < 12 && w.mapId !== 'b3'; k++) walk(g, 'KeyW', 0.3);
   g.simulate(2.5);
-  ok('Colossus down: through the Abyssal Arch -> FROSTPEAK (grid frostpeak) · quest THE FROZEN SUMMIT', w.mapId === 'b3' && w.gridId === 'frostpeak' && q.isActive('frostpeak_climb'), `map=${w.mapId} grid=${w.gridId}`);
+  ok('Colossus down: through the Abyssal Arch -> FROSTPEAK (grid frostpeak) · quest THE FROZEN SUMMIT', w.mapId === 'b3' && w.gridId === 'frostpeak', `map=${w.mapId} grid=${w.gridId}`);
   use(g, 'ws_b3_camp'); g.ui.panels.close(true);
   ok('Nomad Camp waystone attuned', w.state.waystones.ws_b3_camp);
   for (const [x, y] of [[66, 150], [82, 108], [84, 76]]) { goto(g, x, y); g.simulate(0.6); }
-  const qd = q.active.frostpeak_climb && q.active.frostpeak_climb.done;
-  ok('Quest: lakes · stairs · summit gate (boss step next)', qd && qd.lakes && qd.stairs && qd.summit && !qd.boss, JSON.stringify(qd));
+  const qd = g.world.state.flags;
+  ok('Lakes · stairs · summit gate (flags)', qd.b3Lakes && qd.b3Stairs && qd.b3Summit);
   let asked = false; const ask0 = g.ui.panels.confirm.bind(g.ui.panels);
   g.ui.panels.confirm = (t, b, y, n, onYes, onNo) => { asked = true; g.ui.panels.confirm = ask0; onNo(); };
   goto(g, 90, 56);
@@ -1722,7 +1722,7 @@ export function b3BossCheck(g, classId = 'umbral_sword', { god = true, level = 4
   ok('4 phases · HUD tags well-formed', [1, 2, 3, 4].every((ph) => phases.has(ph)) && !st.badTag, [...phases].join(','));
   ok(`Defeated${god ? '' : ' (no god mode)'} in ${t}s`, enc.state === 'defeated' && wp.isBossDefeated('boss_b3') && !p.dead, `state=${enc.state} dead=${p.dead} hp=${Math.round(p.hp)}/${p.maxHp}`);
   if (enc.state === 'defeated') {
-    ok('Rewards once (Warden crest + lore) · quest done · ROUTE B COMPLETE · City 2 open · no pylons left', g.inventory.count('warden_crest') === 1 && w.state.lore.crystal_warden && q.isDone('frostpeak_climb') && trig.includes('b3_boss_defeated') && wp.routeStatus('B').complete && wp.isMapUnlocked('city2') && !py.list.length);
+    ok('Rewards once (Warden crest + lore) · quest done · ROUTE B COMPLETE · City 2 open · no pylons left', g.inventory.count('warden_crest') === 1 && w.state.lore.crystal_warden && trig.includes('b3_boss_defeated') && wp.routeStatus('B').complete && wp.isMapUnlocked('city2') && !py.list.length);
     goto(g, 90, 14);
     for (let k = 0; k < 12 && w.mapId !== 'city2'; k++) walk(g, 'KeyW', 0.3);
     ok('North road from the summit -> Asteria City', w.mapId === 'city2', `map=${w.mapId}`);

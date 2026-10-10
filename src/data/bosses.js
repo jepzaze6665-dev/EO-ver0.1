@@ -56,7 +56,7 @@ export const BOSSES = {
       lunge: { kind: 'dash', guardBreak: true, range: 240, min: 90, windup: 0.85, recover: 0.8, cd: 4.5, weight: 3, power: 28, knock: 240, len: 230, width: 34, opening: 1.8 },
       howl: { kind: 'strike', range: 150, windup: 1.0, recover: 0.7, cd: 7, weight: 2, power: 18, knock: 200, dmg: 'magic', shape: { shape: 'circle', r: 118 }, status: [{ id: 'slow', dur: 2 }], opening: 1.4 },
     },
-    rewards: { exp: 150, loot: 'hollow_fang', items: { hollow_fang_pelt: 1 }, lore: 'hollow_fang' },
+    rewards: { exp: 240, gold: 60, loot: 'hollow_fang', items: { hollow_fang_pelt: 1 }, lore: 'hollow_fang' },
     unlocks: [],
   },
 
@@ -83,7 +83,7 @@ export const BOSSES = {
       spears: { kind: 'volley', range: 360, min: 90, windup: 0.8, recover: 0.6, cd: 6, weight: 2, power: 18, count: 5, spread: 0.8, speed: 260, dmg: 'magic', status: [{ id: 'poison', dur: 3 }], color: '#b060ff' },
       warcry: { kind: 'summon', range: 999, windup: 1.0, recover: 0.6, cd: 16, weight: 1.5, monster: 'leafling', count: 2, max: 2, corrupted: true },
     },
-    rewards: { exp: 300, loot: 'grukk', items: { warchief_totem: 1 }, lore: 'grukk' },
+    rewards: { exp: 390, gold: 60, loot: 'grukk', items: { warchief_totem: 1 }, lore: 'grukk' },
     unlocks: [],
   },
 
@@ -219,7 +219,7 @@ export const BOSSES = {
       { name: 'PHASE III — ENRAGED', sub: 'Combos · Nova · the Last Root', hpBelow: 0.3 },
     ],
     notes: ['Weak windows after heavy blows', 'Root patches + corruption pools (arena)', 'Summoned thornlings', 'Final attack: Last Root of the Forest'],
-    rewards: { exp: 500, loot: 'guardian', lore: 'guardian_rest' },
+    rewards: { exp: 950, gold: 150, loot: 'guardian', lore: 'guardian_rest' },
     unlocks: ['a2'],
   },
 
@@ -263,7 +263,7 @@ export const BOSSES = {
       lava_rain: { kind: 'pattern', layout: 'scatter', range: 999, windup: 1.0, recover: 0.8, cd: 7, weight: 2, power: 30, count: 10, r: 40, delay: 0.1, dmg: 'magic', status: [{ id: 'burn', dur: 2.5 }], color: '255,90,30', anim: { roar: 'eruption' } },
       magma_nova: { kind: 'nova', range: 999, windup: 1.1, recover: 0.9, cd: 9, weight: 1.5, power: 28, rings: 3, width: 48, gap: 72, dmg: 'magic', status: [{ id: 'burn', dur: 2 }], color: '255,110,40', anim: { roar: 'enrage' } },
     },
-    rewards: { exp: 800, gold: 300, loot: 'magma_beast', items: { magma_heart: 1 }, lore: 'magma_beast' },
+    rewards: { exp: 1550, gold: 500, loot: 'magma_beast', items: { magma_heart: 1 }, lore: 'magma_beast' },
     unlocks: ['a3'],
   },
   // A2 SECRET BOSS: VARKHARON, the Sealed Cinder King, on the Cinder Throne behind the dragon door of the Quiet Hollow
@@ -365,8 +365,8 @@ export const BOSSES = {
         },
       },
     ],
-    rewards: { exp: 2500, // pacing (L4): the end of Route A ≈ LV 38
-      gold: 500, loot: 'rune_knight', items: { asterian_crest: 1 }, lore: 'rune_knight' },
+    rewards: { exp: 4000, // pacing (L4) + the cut A3 / City 2 quests (Q1): the end of Route A ≈ LV 38
+      gold: 1050, loot: 'rune_knight', items: { asterian_crest: 1 }, lore: 'rune_knight' },
     unlocks: ['city2'],
   },
 
@@ -413,7 +413,7 @@ export const BOSSES = {
       { type: 'glacier', phase: 2, every: 17, count: 3, dist: 150, life: 9, windup: 3, power: 70, weak: 4, anim: 'howl', name: 'ABSOLUTE ZERO' },
       { type: 'frostbite', phase: 2, max: 5, rate: 1.1, melt: 2.2, freeze: 1.1, power: 28 },
     ],
-    rewards: { exp: 700, gold: 280, loot: 'hoarfang', items: { frost_heart: 1 }, lore: 'hoarfang' },
+    rewards: { exp: 1200, gold: 430, loot: 'hoarfang', items: { frost_heart: 1 }, lore: 'hoarfang' },
     unlocks: ['b2'],
   },
   // B2 AREA BOSS (B2b): the AMETHYST COLOSSUS in the Heart of the Caverns (maps/crystalHeart.js). Art = the owner's B2 boss
@@ -454,7 +454,7 @@ export const BOSSES = {
     mechanics: [
       { type: 'crystal_armor', armor: 2400, weak: 5, clusters: 3, clusters2: 4, hp: 260, grow: 8, delay: 5, dist: 150, per: 0.4 },
     ],
-    rewards: { exp: 1000, gold: 380, loot: 'amethyst_colossus', items: { amethyst_core: 1 }, lore: 'amethyst_colossus' },
+    rewards: { exp: 2225, gold: 580, loot: 'amethyst_colossus', items: { amethyst_core: 1 }, lore: 'amethyst_colossus' },
     unlocks: ['b3'],
   },
   // B3 MAJOR BOSS (B3b): the CRYSTAL WARDEN on the Summit Citadel (maps/summit.js). Art = the owner's multi-phase sheet
@@ -510,8 +510,8 @@ export const BOSSES = {
       { type: 'echoes', phase: 3, count: 2, life: 14, every: 22, delay: 0.3, sprite: 'crystal_warden', filter: 'brightness(1.7) saturate(1.5)', scale: 1.1 }, // pale crystal copies (no hue shift: the Warden is already blue)
       { type: 'rune_sequence', phase: 2, every: 12, count: 4, r: 56, power: 36, gap: 0.55, delay: 1.1 },
     ],
-    rewards: { exp: 2500, // pacing (L4): the end of Route B ≈ LV 45
-      gold: 500, loot: 'crystal_warden', items: { warden_crest: 1 }, lore: 'crystal_warden' },
+    rewards: { exp: 4075, // pacing (L4) + the cut B3 quest (Q1): the end of Route B ≈ LV 45
+      gold: 760, loot: 'crystal_warden', items: { warden_crest: 1 }, lore: 'crystal_warden' },
     unlocks: ['city2'],
   },
 };

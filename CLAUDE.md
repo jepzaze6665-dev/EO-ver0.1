@@ -1686,3 +1686,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   tools/tests/cosmetics.test.mjs. F5 (rig) not planned (owner: stop at F4).
   OWNER: kept, NOT LIVE yet -> COSMETIC_RULES.enabled false (data/cosmetics.js): no Wardrobe tab, nothing drawn, no look ids
   sent; `?fashion` in the URL turns it on locally to look at it. Release = enabled: true.
+- **Current: QUEST REWORK** (owner 2026-10-10): quests = TUTORIAL (beyond_lumina, first_steps) + SECRET chains (Ashen Pilgrim
+  trials, Valehaven) + CLASS-CHANGE quests (Q2+). Plan Q1 cut route quests · Q2 generic class quest (4 chapters: call at LV 30 ·
+  prove skill (trial counters + try one new-class skill) · sacred item tied to a map mechanic · duel vs SHADOW OF THE NEW CLASS,
+  retry at once) · Q3 Umbral line data · Q4 Astral + Aegis + Thai. Masters of each line live in Valehaven (secret city); NPCs in
+  the normal cities hint where it is.
+  Done Q1: route / map quests removed (route_a, burning_rift, fallen_city, eastern_road, crystal_depths, frostpeak_climb,
+  asteria, forest_hunts) + their accept_quest triggers; their EXP (scaled questExp / bossScale.exp) and gold moved into the boss
+  rewards (Guardian 950 · Magma 1550 · Rune Knight 4000 · Hoarfang 1200 · Colossus 2225 · Warden 4075 · minis Fang 240 / Grukk 390).
+  Area flags (riverCrossed, riftFound, b2Lake ...) still set by triggers. Guildmaster Seraphine = world flag asteriaMet. Old saves:
+  unknown quest ids are dropped on load. Kept: whispers (Elder Maren's A1 story quest), valley, depths. Pacing (one clear):
+  A 10 / 21 / 30 -> LV 32 · B 14 / 26 / 37 -> LV 39 (same as before). Tests moved to flags; routeA 26 · playthrough 17 ·
+  checklist 31 · b2 / b3 7 · a2Boss 12 · b2Boss 10. cityCheck "South road back to the Sanctum" fails BEFORE Q1 too (old bug).

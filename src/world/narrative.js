@@ -264,13 +264,14 @@ export function dialogueFor(id, g) {
       };
     // ---- CITY 2 ASTERIA (maps/city2.js)
     case 'a_guildmaster':
-      if (q.isDone('asteria')) return {
+      if (g.world.state.flags.asteriaMet) return {
         lines: [
           'The Guild board fills faster than we can post it. The roads east are still unsurveyed — when the Guild opens them, you will hear it first.',
           'Rest while you can. Asteria has had three hundred years of silence; it can spare you a quiet night.',
         ],
         options: [{ label: 'Farewell', action: 'close' }],
       };
+      g.world.setFlag('asteriaMet'); // first meeting (Q1: was quest 'asteria')
       return {
         lines: [
           `Seraphine, Guildmaster of Asteria. So you are the ${g.player.cls.name} who walked out of the Sanctum.`,

@@ -19,10 +19,9 @@ export const LEVEL_SCALING = {
   // QUEST / SECRET EXP (progression/rewardScaling.js): [level the reward was written for, level it is earned at now, slope]
   // slope = how many new levels one old level became on that map (A1 1.44 · A2 3 · A3 3 · B1 2 · B2 3.5 · B3 3.5)
   questLevels: {
-    beyond_lumina: [3, 4, 1.44], first_steps: [2, 3, 1.44], forest_hunts: [8, 11, 1.44], depths: [8, 11, 1.44],
-    whispers: [10, 14, 1.44], valley: [10, 14, 1.44], route_a: [10, 14, 3],
-    burning_rift: [14, 26, 3], fallen_city: [18, 38, 3], asteria: [18, 38, 1],
-    eastern_road: [10, 17, 2], crystal_depths: [14, 31, 3.5], frostpeak_climb: [18, 45, 3.5],
+    beyond_lumina: [3, 4, 1.44], first_steps: [2, 3, 1.44], depths: [8, 11, 1.44],
+    whispers: [10, 14, 1.44], valley: [10, 14, 1.44],
+    // Q1: the route quests are gone (their EXP is in the boss rewards)
   },
   hiddenLevels: {
     hidden_cave: [6, 8, 1.44], behind_waterfall: [6, 8, 1.44], moonlit_shrine: [7, 10, 1.44], sealed_archive: [8, 11, 1.44],
