@@ -11,10 +11,12 @@
 //     power?, area?, cooldown?, cost?,   // × on top of the skill level (core-applied like skill levels)
 //     flags?, values?,                   // read by class code (p.skillEvolution(id) / p.skillFlag / p.skillValue)
 //   }]
+import { PREMIUM } from '../data/premium.js';
+
 export const EVOLUTION_RULES = {
   maxOptions: 3,
-  // spec §7: reverting is only possible if a respec system allows it. Off for now (data switch, S5+ may enable).
-  respec: { allowed: false, gold: 0 },
+  // spec §7: reverting is only possible through a respec (Player.revertEvolution).
+  respec: { allowed: true, gold: 0, diamonds: PREMIUM.respec.evolution }, // owner 2026-10-10: undo costs DIAMONDS (data/premium.js)
 };
 
 export function evolutionsOf(skill) { return (skill && Array.isArray(skill.evolutions) ? skill.evolutions : []).slice(0, EVOLUTION_RULES.maxOptions); }

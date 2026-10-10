@@ -36,7 +36,7 @@ const expOf = (n) => (n > 0 ? Math.max(1, Math.round(n * DIFFICULTY.expRate)) : 
 
 // a new character = the starting kit (Player: LEVELS.start gold; Game.newGame: 3 HP potions + 1 shadow tonic)
 export const START_KIT = { gold: LEVELS.start.gold, items: { hp_potion: 3, shadow_tonic: 1 } };
-const blank = () => ({ v: 1, gold: START_KIT.gold, level: 1, exp: 0, items: { ...START_KIT.items }, gear: {}, next: SERVER_INSTANCE_BASE, unverified: 0, claims: {}, paid: {}, credit: 0, pile: null });
+const blank = () => ({ v: 1, gold: START_KIT.gold, diamonds: 0, level: 1, exp: 0, items: { ...START_KIT.items }, gear: {}, next: SERVER_INSTANCE_BASE, unverified: 0, claims: {}, paid: {}, credit: 0, pile: null });
 
 export class EconomyService {
   constructor(server, store, { scan = false } = {}) {
@@ -100,6 +100,14 @@ export class EconomyService {
     } else if (t === '$') {
       if (!Number.isInteger(a) || a === 0) return 'bad gold';
       if (a < 0 && e.gold < -a) return 'not enough gold';
+    } else if (t === 'd') {
+      // DIAMONDS (premium, src/data/premium.js): a client never gives itself any (top-up / admin only; 'dev' grants on a
+      // dev-login server); spending only on a respec, never more than the ledger holds
+      if (!Number.isInteger(a) || a === 0) return 'bad diamonds';
+      if (a > 0) return kind === 'dev' && this.server.devGrants ? true : 'diamonds come from a top-up only';
+      if (kind !== 'respec') return 'diamonds are only spent on a respec';
+      if ((e.diamonds || 0) < -a) return 'not enough diamonds';
+      return true;
     } else if (t === 'xp') {
       if (!Number.isInteger(a) || a <= 0) return 'bad exp';
     } else if (t === 'xp-') {
@@ -201,6 +209,7 @@ export class EconomyService {
     else if (t === 'g+') e.gear[a.instanceId] = a.itemId;
     else if (t === 'g-') delete e.gear[a];
     else if (t === '$') e.gold = Math.max(0, e.gold + a);
+    else if (t === 'd') e.diamonds = Math.max(0, (e.diamonds || 0) + a);
     else if (t === 'xp-') e.exp = Math.max(0, e.exp - a); // never below the start of the level (no de-level)
     else if (t === 'xp') {
       if (e.level >= LEVELS.maxLevel) return;
@@ -233,13 +242,25 @@ export class EconomyService {
       if (ops.length) s.send('econGrant', { ops, x: Math.round(ev.x || 0), y: Math.round(ev.y || 0), src: String(ev.type || ''), boss: ev.bossId || null, first });
     }
   }
+  // ---------------- DIAMONDS from the server side (the future top-up / an admin): ledger + the player's client if online
+  grantDiamonds(playerId, n) {
+    n = Math.floor(n);
+    if (!(n > 0)) return false;
+    const e = this.get(playerId);
+    e.diamonds = (e.diamonds || 0) + n;
+    this.save(playerId, e);
+    const s = this.server.sessions && this.server.sessions.get(playerId);
+    if (s) s.send('econGrant', { ops: [['d', n]], src: 'topup' });
+    return true;
+  }
+
   // ---------------- saves: an incoming save is patched to the ledger before it is stored
   patchSave(playerId, text) {
     let d;
     try { d = JSON.parse(text); } catch { return text; }
     if (!d || !d.player) return text;
     const e = this.get(playerId), inv = d.inventory = d.inventory || {};
-    d.player.gold = e.gold; d.player.level = e.level; d.player.exp = e.exp;
+    d.player.gold = e.gold; d.player.diamonds = e.diamonds || 0; d.player.level = e.level; d.player.exp = e.exp;
     // stacks: bag + storage must add up to the ledger (extra = removed from the bag first, missing = put in the bag)
     inv.items = inv.items || {}; inv.storage = inv.storage || {};
     const ids = new Set([...Object.keys(inv.items), ...Object.keys(inv.storage), ...Object.keys(e.items)]);

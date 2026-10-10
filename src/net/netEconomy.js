@@ -52,6 +52,7 @@ export class NetEconomy {
         if (add) { if (inst.itemId) inv.addItem({ instanceId: inst.instanceId, itemId: inst.itemId }, true); }
         else this.dropInstance(inst.instanceId);
       } else if (t === '$') { const n = a * sign; if (n > 0) p.addGold(n); else p.removeGold(Math.min(p.gold, -n)); }
+      else if (t === 'd') { const n = a * sign; if (n > 0) p.addDiamonds(n); else p.removeDiamonds(Math.min(p.diamonds || 0, -n)); }
       else if (t === 'xp' && sign > 0) p.gainExp(a);
       else if (t === 'xp') { p.exp = Math.max(0, p.exp - a); }
       else if (t === 'xp-') { if (sign < 0) p.exp += a; else p.exp = Math.max(0, p.exp - a); }

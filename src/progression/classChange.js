@@ -37,7 +37,7 @@ export function changeClass(game, toId, opts = {}) {
   // class progress: keep the old class's loadout + skills (now LOCKED), restore the new class's own loadout
   if (game.classProgress) { const saved = game.classProgress.switchTo(toId, old.loadout.serialize()); if (saved) p.loadout.load(saved); }
   p.x = old.x; p.y = old.y; p.facing = old.facing;
-  p.level = old.level; p.exp = old.exp; p.gold = old.gold;
+  p.level = old.level; p.exp = old.exp; p.gold = old.gold; p.diamonds = old.diamonds || 0;
   eq.enforceClass(toId); // gear the new class may not use goes back to the bag (item data allowedClasses)
   p.recomputeStats();
   p.hp = Math.max(1, Math.round(p.maxHp * (old.maxHp ? old.hp / old.maxHp : 1)));

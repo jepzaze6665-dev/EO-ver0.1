@@ -16,6 +16,7 @@ import { levelMods, maxLevel, pointsEarned, pointsSpent, upgradeCheck } from '..
 import { masteryReward } from '../progression/masterySystem.js';
 import { evolutionById, evolutionCheck, withEvolution, EVOLUTION_RULES } from '../progression/skillEvolution.js';
 import { SKILL_TREE, skillUnlockCheck } from '../data/skillTree.js';
+import { PREMIUM } from '../data/premium.js';
 import { applySkillModifiers } from '../progression/skillModifiers.js';
 import { ruleHitMult, ruleTakenMult, ruleSkillMods, ruleDodgeHp } from '../items/gearRules.js';
 import { CLASS_TREE } from '../data/classTree.js';
@@ -41,7 +42,7 @@ export class Player extends Entity {
     this.hurtRadius = CHARACTER.hurtRadius;
     this.height = CHARACTER.bodyHeight;
     this.id = 'player'; // single local player for now; a server would assign ids
-    this.level = LEVELS.start.level; this.exp = 0; this.gold = LEVELS.start.gold;
+    this.level = LEVELS.start.level; this.exp = 0; this.gold = LEVELS.start.gold; this.diamonds = 0;
     // generic resource pool — the class only names its resources, the rules live in data/resources.js
     // + 'stamina' for everyone (Combat 2.0 decision resource: dodge / guard / some skills — data/stamina.js)
     this.resources = new ResourcePool([...(classDef.resources || [classDef.resource]), STAMINA.resource], RESOURCES, {
@@ -168,6 +169,23 @@ export class Player extends Entity {
     this.gold -= n;
     this.game.online?.econ?.note(['$', -n]);
     if (this.game.events) this.game.events.emit('goldChanged', { entity: this, amount: -n, gold: this.gold });
+    return true;
+  }
+  // ---------------- DIAMONDS (premium, data/premium.js): the server ledger decides (op 'd'); never negative
+  addDiamonds(n) {
+    n = Math.floor(n);
+    if (!(n > 0)) return 0;
+    this.diamonds = (this.diamonds || 0) + n;
+    this.game.online?.econ?.note(['d', n]);
+    if (this.game.events) this.game.events.emit('diamondsChanged', { entity: this, amount: n, diamonds: this.diamonds });
+    return n;
+  }
+  removeDiamonds(n) {
+    n = Math.floor(n);
+    if (!(n >= 0) || (this.diamonds || 0) < n) return false;
+    this.diamonds -= n;
+    this.game.online?.econ?.note(['d', -n]);
+    if (this.game.events) this.game.events.emit('diamondsChanged', { entity: this, amount: -n, diamonds: this.diamonds });
     return true;
   }
   get isMaxLevel() { return this.level >= LEVELS.maxLevel; }
@@ -324,11 +342,31 @@ export class Player extends Entity {
     const rule = EVOLUTION_RULES.respec, e = this.game.classProgress.peekSkill(this.cls.id, skillId);
     if (!rule.allowed) return { ok: false, reason: 'no_respec' };
     if (!e || !e.evolution) return { ok: false, reason: 'none' };
+    if (this.game.combat && this.game.combat.inCombat) return { ok: false, reason: 'combat' };
     if (rule.gold && !this.removeGold(rule.gold)) return { ok: false, reason: 'gold' };
+    if (rule.diamonds && !this.spendDiamonds(rule.diamonds, 'evolution')) return { ok: false, reason: 'diamonds' };
     e.evolution = null;
     if (this.game.equipment) this.game.equipment.changed();
+    this.game.events.emit('evolutionReverted', { player: this, skillId });
     this.game.save.dirty = true;
     return { ok: true };
+  }
+  // SKILL RESPEC (data/premium.js): every skill of this class back to Lv 1, all points back; mastery / evolutions kept
+  resetSkillLevels() {
+    const g = this.game, c = g.classProgress && g.classProgress.classes[this.cls.id];
+    if (g.combat && g.combat.inCombat) return { ok: false, reason: 'combat' };
+    const raised = c ? Object.values(c.skills).filter((s) => s.level > 1) : [];
+    if (!raised.length) return { ok: false, reason: 'none' };
+    if (!this.spendDiamonds(PREMIUM.respec.skills, 'skills')) return { ok: false, reason: 'diamonds' };
+    for (const s of raised) s.level = 1;
+    g.events.emit('skillsReset', { player: this });
+    g.save.dirty = true;
+    return { ok: true };
+  }
+  // spend diamonds with the ledger reason 'respec' (server checks it)
+  spendDiamonds(n, what) {
+    const E = this.game.online && this.game.online.econ;
+    return E ? E.why('respec', what, () => this.removeDiamonds(n)) : this.removeDiamonds(n);
   }
   // skill level (data 'levels') + evolution (data 'evolutions') × mastery reward (data/skillMastery.js)
   skillMods(skill) {

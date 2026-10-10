@@ -1634,7 +1634,16 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   evolutions; applySkillProgression appends kits / tags (idempotent). Hit-based kits (bleed / burn / summon echo / critical /
   execute) only on skills whose own cast hits (probed in game: zones, threads, clones, links, pulls got cast-based kits
   barrier / counter / momentum / bulwark instead). Thai = one regex per kit in th/tags.js TH_TAG_PATTERNS + fixed lines.
-  archetypes.test: every class's active skills have 2+ evolutions on 2+ real archetypes. Next: owner decides — same evolutions for the other 8 classes, diamond
+  archetypes.test: every class's active skills have 2+ evolutions on 2+ real archetypes.
+  Done B8 DIAMONDS (premium, owner: respec costs diamonds = real-money top-up, top-up NOT built): `src/data/premium.js` (PREMIUM
+  respec { evolution 50, skills 100 }, devGrant 100). Player.diamonds (saved player.diamonds, kept on class change),
+  addDiamonds / removeDiamonds / spendDiamonds(n, what) (ledger reason 'respec'); revertEvolution (EVOLUTION_RULES.respec
+  allowed, diamonds 50, not in combat, event evolutionReverted) + resetSkillLevels (every raised skill of the class back to
+  Lv 1, points back, mastery / evolutions kept, 100). SERVER ledger (server/economy.js) field `diamonds`, op ['d', ±n]: client
+  gains are ALWAYS undone except kind 'dev' when GameServer.devGrants (= !requirePassword: EO_DEVLOGIN / unit tests); spends
+  only with kind 'respec' and ≤ the ledger; saves patched (player.diamonds); economy.grantDiamonds(playerId, n) = the hook for
+  a future top-up / admin (sends econGrant ['d', n]). UI: diamonds next to gold (cur_crystal icon), evolution card "Undo · 💎 50",
+  Skills tab "Reset skills · 💎 100", Dev Panel "+100 💎". economy.test +1. Next: owner decides — same evolutions for the other 8 classes, diamond
   respec currency, icon art for the 23 B3 / B4 items.
 - NPC SPRITES (owner's GPT sheets desgin/NPC, prompts docs/npc/NPC_PROMPTS.md): `node tools/build-npcs.js [--preview]` -> assets/npcs/<art>.png
   (strip front / back / left / right / walk1 / walk2, feet pivot, ~60 px) + npcs.json -> Assets.npcs; which NPC uses which = src/data/npcArt.js

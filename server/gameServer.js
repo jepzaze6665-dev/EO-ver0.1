@@ -25,6 +25,7 @@ export class GameServer extends EventEmitter {
     this.charSlots = charSlots; // CHARACTER SLOTS: on for `node server.js`; off (= straight into slot 1) in the older unit tests
     this.limits = { ...NET_LIMITS, ...limits };
     this.accounts = new Accounts(store, { requirePassword }); // H6: passwords (required on the real server)
+    this.devGrants = !requirePassword; // dev-login servers (EO_DEVLOGIN=1, unit tests) accept 'dev' diamond grants (economy.js)
     this.store = store;
     this.log = log;
     this.conns = new Set();        // every open connection (logged in or not)

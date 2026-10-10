@@ -44,7 +44,7 @@ export class SaveSystem {
       v: SAVE_VERSION,
       savedAt: Date.now(),
       playTime: g.playTime,
-      player: { classId: p.cls.id, level: p.level, exp: p.exp, gold: p.gold, hp: p.hp, shadow: p.shadow, resources: p.resources.serialize(), loadout: p.loadout.serialize(), map: g.world.mapId, x: p.x, y: p.y },
+      player: { classId: p.cls.id, level: p.level, exp: p.exp, gold: p.gold, diamonds: p.diamonds || 0, hp: p.hp, shadow: p.shadow, resources: p.resources.serialize(), loadout: p.loadout.serialize(), map: g.world.mapId, x: p.x, y: p.y },
       inventory: g.inventory.serialize(),
       equipment: g.equipment.serialize(),
       quests: g.quests.serialize(),

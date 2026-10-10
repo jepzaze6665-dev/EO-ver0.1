@@ -120,6 +120,27 @@ await test('New Game resets the ledger to the starting kit', async () => {
   await until(() => S.economy.get(a.id).gold === START_KIT.gold && JSON.stringify(S.economy.get(a.id).items) === JSON.stringify(START_KIT.items), 2000, 'back to the starting kit');
 });
 
+await test('DIAMONDS: a client gain is undone (only "dev" on a dev-login server); a respec spends from the ledger; a save cannot raise them', async () => {
+  const a = await player('Gem'), e = S.economy.get(a.id), n0 = a.undo.length;
+  a.send('econ', { ops: [['d', 500, ['other']], ['d', -5, ['respec', 'skills']]] });
+  await until(() => a.undo.length === n0 + 2, 2000, 'free gain + spending nothing both undone');
+  ok(!e.diamonds, 'still 0');
+  a.send('econ', { ops: [['d', 100, ['dev', 'diamonds']]] }); // unit-test server = dev login
+  await until(() => e.diamonds === 100, 2000, 'dev grant');
+  a.send('econ', { ops: [['d', -50, ['respec', 'evolution']], ['d', -10, ['buy', 'hp_potion']]] });
+  await until(() => a.undo.length === n0 + 3, 2000, 'diamonds spent on a shop = undone');
+  ok(e.diamonds === 50, 'respec spent: ' + e.diamonds);
+  ok(S.economy.grantDiamonds(a.id, 25) && e.diamonds === 75, 'server grant (top-up)');
+  await until(() => a.grants.some((m) => m.ops[0][0] === 'd' && m.ops[0][1] === 25), 2000, 'grant sent to the client');
+  a.send('saveWrite', { s: save({ player: { classId: 'umbral_sword', level: 1, exp: 0, gold: 0, diamonds: 99999, x: 1, y: 1 } }) });
+  await until(() => S.saves.store.get(a.id)?.main, 2000, 'stored');
+  ok(JSON.parse(S.saves.store.get(a.id).main).player.diamonds === 75, 'save patched to the ledger');
+  S.devGrants = false;
+  a.send('econ', { ops: [['d', 100, ['dev', 'diamonds']]] });
+  await until(() => a.undo.length === n0 + 4, 2000, 'dev grant refused on a real server');
+  S.devGrants = true;
+});
+
 for (const p of all) p.c.stop();
 await srv.close();
 console.log(`\n${pass} passed, ${fail} failed`);

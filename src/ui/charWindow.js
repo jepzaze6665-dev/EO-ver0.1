@@ -95,7 +95,7 @@ export function equipmentTabHTML(g, state, itemDetail) {
     <div class="cw-bagbar">
       ${pick ? `<span class="cw-picking">${tl('Choose:')} <b>${esc(tl(pick.label))}</b></span>${unequip}<button data-pick="${pick.id}">${tl('Cancel')}</button>`
         : `<div class="cw-filters">${BAG_FILTERS.map((x) => `<button data-filter="${x.id}" class="${x.id === f.id ? 'on' : ''}" title="${tl(x.label)}"><img src="${UI_ICON(x.icon)}" alt="${tl(x.label)}"></button>`).join('')}</div>`}
-      <span class="cw-gold"><img src="${UI_ICON('cur_gold')}" alt="">${p.gold.toLocaleString()}</span>
+      <span class="cw-gold"><img src="${UI_ICON('cur_gold')}" alt="">${p.gold.toLocaleString()}</span><span class="cw-gold" title="${tl('Diamonds')}"><img src="${UI_ICON('cur_crystal')}" alt="">${(p.diamonds || 0).toLocaleString()}</span>
     </div>
     <div class="grid cw-bag">${cells.join('')}${'<div class="slot cw-free"></div>'.repeat(slotsLeft)}</div>
     ${pick && !items.length ? `<div class="muted small">${tl('Nothing for this slot yet.')}</div>` : ''}

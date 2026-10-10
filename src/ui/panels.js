@@ -14,7 +14,8 @@ import { ROUTES } from '../data/routes.js';
 import { levelMods, maxLevel } from '../progression/skillLevels.js';
 import { masteryInfo, masteryReward } from '../progression/masterySystem.js';
 import { MASTERY } from '../data/skillMastery.js';
-import { evolutionsOf, evolutionById } from '../progression/skillEvolution.js';
+import { evolutionsOf, evolutionById, EVOLUTION_RULES } from '../progression/skillEvolution.js';
+import { PREMIUM } from '../data/premium.js';
 import { SKILL_TREE } from '../data/skillTree.js';
 import { describe as describeMod } from '../progression/skillModifiers.js';
 import { expToNext } from '../progression/experience.js';
@@ -412,7 +413,7 @@ export class Panels {
             ${e.archetype && ARCHETYPES[e.archetype] ? `<div class="small"><span class="arch-chip on" style="--ac:${ARCHETYPES[e.archetype].color}">${esc(tx(ARCHETYPES[e.archetype].name))} <b>+${ARCHETYPE_RULES.evolutionPoints}</b></span></div>` : ''}
             <div class="small">${CH.filter(([k]) => e.changes && e.changes[k]).map(([k, l]) => `<div><span class="muted">${l}:</span> ${esc(tx(e.changes[k]))}</div>`).join('')}</div>
             <div class="small muted">${tl('Needs: Skill Lv {lv} · Mastery {m}', { lv: req.skillLevel || 1, m: MASTERY.names[req.masteryLevel || 0] })}</div>
-            ${chosen || cur ? '' : r.ok ? `<button data-evolve="${s.id}:${e.id}">${tl('Choose {name}', { name: esc(e.name) })}</button>` : `<div class="small" style="color:#ff7070">${tl('Missing:')} ${r.missing.map((m) => esc(tx(m))).join(', ')}</div>`}
+            ${chosen ? `<button data-evo-revert="${s.id}" title="${tl('Undo this evolution')}">${tl('Undo')} · 💎 ${EVOLUTION_RULES.respec.diamonds}</button>` : cur ? '' : r.ok ? `<button data-evolve="${s.id}:${e.id}">${tl('Choose {name}', { name: esc(e.name) })}</button>` : `<div class="small" style="color:#ff7070">${tl('Missing:')} ${r.missing.map((m) => esc(tx(m))).join(', ')}</div>`}
           </div>`;
         };
         body = `<div class="evo-panel">
@@ -438,7 +439,7 @@ export class Panels {
           <div class="st-left">
             <div class="cw-lvl st-lvl" style="background-image:url(${UI_ICON('level_diamond')})"><span>${p.progressLevel ? p.progressLevel() : p.level}</span></div>
             <div class="st-cls">${esc(p.cls.name)}</div>
-            <div class="st-pts"><b>+${Math.max(0, p.skillPointsLeft())}</b> ${tl('points available')}</div>
+            <div class="st-pts"><b>+${Math.max(0, p.skillPointsLeft())}</b> ${tl('points available')}</div> <button data-skill-reset="1" class="small" title="${tl('Every skill of this class back to Lv 1, points back')}">${tl('Reset skills')} · 💎 ${PREMIUM.respec.skills}</button>
             <div class="muted small">${tl('1 point per {what} level · each class has its own points', { what: SKILL_TREE.pointsFrom === 'class' ? tl('class') : tl('character') })}</div>
             <div class="muted small" style="margin-top:4px">${tl('Class LV {n}', { n: p.classLevel() })}${p.classFollowsCharacter() ? ' ' + tl('(= character level)') : ` · ${Math.floor((g.classProgress.classes[p.cls.id] || {}).exp || 0)}/${expToNext(p.classLevel())} ${tl('class EXP')}`}</div>
             <h4>${tl('SKILL BAR')}</h4><div class="st-bar">${bar}</div>
@@ -547,7 +548,7 @@ export class Panels {
     startHeroPreview(el, g);
     this.wireTooltip(el);
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-tab],[data-cat],[data-preset-load],[data-preset-save],[data-filter],[data-tree-sel],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
+      const t = e.target.closest('[data-tab],[data-cat],[data-preset-load],[data-preset-save],[data-evo-revert],[data-skill-reset],[data-filter],[data-tree-sel],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
       if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
@@ -573,6 +574,12 @@ export class Panels {
         const [sid, eid] = t.dataset.evolve.split(':'), r = g.player.evolveSkill(sid, eid);
         if (!r.ok) g.ui.toast(r.reason === 'combat' ? tl('Cannot evolve skills in combat') : tl('Requirements not met'), 1.2);
         g.audio.sfx(r.ok ? 'levelup' : 'deny'); this.inventory();
+      }
+      else if (t.dataset.evoRevert || t.dataset.skillReset) {
+        const r = t.dataset.evoRevert ? g.player.revertEvolution(t.dataset.evoRevert) : g.player.resetSkillLevels();
+        const why = { diamonds: 'Not enough diamonds', combat: 'Not in combat', none: 'Nothing to reset', no_respec: 'Not allowed' };
+        g.ui.toast(r.ok ? tl(t.dataset.evoRevert ? 'Evolution undone' : 'Skills reset — points returned') : tl(why[r.reason] || 'Not allowed'), 1.4);
+        g.audio.sfx(r.ok ? 'equip' : 'deny'); this.inventory();
       }
       else if (t.dataset.upgrade) { const r = g.player.upgradeSkill(t.dataset.upgrade); g.audio.sfx(r.ok ? 'levelup' : 'deny'); this.inventory(); }
       else if (t.dataset.slot) { g.player.setSkillSlot(+t.dataset.slot, t.dataset.skill); this.inventory(); }

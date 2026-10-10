@@ -347,6 +347,7 @@ export class Game {
     this.playTime = d.playTime || 0;
     const p = this.player;
     p.gold = Math.max(0, d.player.gold || 0);
+    p.diamonds = Math.max(0, Math.floor(d.player.diamonds || 0)); // premium (server ledger patches it online)
     p.setLevel(d.player.level, d.player.exp); // repaired to the current level rules (old saves too)
     p.hp = Math.min(p.maxHp, d.player.hp || p.maxHp); p.shadow = d.player.shadow ?? 40;
     if (d.player.resources) p.resources.load(d.player.resources);
