@@ -49,6 +49,22 @@ const SHEETS = [
     [null, 'varkharon_seal', null],
     [null, null, null],
   ] },
+  // Character Build B3 / B4 (owner 2026-10-10, docs/items/ECLIPSE_ONLINE_Items_Build_B3B4.pdf order)
+  { file: 'image-bb51469a-cd5f-4741-90c8-a25908c9265f-0.png', rows: [ // rule runes 1-5
+    ['rune_blood_step', 'rune_overclock', 'rune_still_blade', 'rune_reckless', 'rune_desperation'],
+  ] },
+  { file: 'image-2a188095-a183-4053-bec4-c9333ce9bc8f-0.png', rows: [ // rule rune 6 + legendaries 1-4
+    ['rune_blood_pact', 'relic_crimson_rupture', 'core_wildfire_heart', 'armor_mirrorstep', 'relic_choir_shades'],
+  ] },
+  { file: 'image-9c24c92c-e0cd-4bc4-9e54-f67f523fce98-0.png', rows: [ // legendaries 5-9
+    ['armor_overflowing_ward', 'core_galeblade', 'relic_gamblers_eye', 'relic_brand_hunt', 'armor_unmoving'],
+  ] },
+  { file: 'image-7c039247-2060-4134-8990-8e96d32e6d52-0.png', rows: [ // legendary 10 + build pieces 1-4
+    ['core_headsman', 'charm_ember', 'rune_kindling', 'armor_ashen_robe', 'rune_echo_knot'],
+  ] },
+  { file: 'image-5cc465e4-507c-4224-9f29-61094349d571-0.png', rows: [ // build pieces 5-7
+    ['charm_shade_thread', 'rune_riposte', 'charm_duelist'],
+  ] },
   { file: '1. SET ITEMS IRON VIGIL ECLIPSE CONSTELLATION.png', rows: [ // last: the set pieces' matching versions win
     ['core_ironheart', 'armor_fortress', 'charm_heavy'],
     ['core_shadow_fang', 'relic_heart_eclipse', 'charm_assassin'],

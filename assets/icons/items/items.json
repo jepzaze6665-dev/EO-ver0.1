@@ -160,5 +160,74 @@
  },
  "varkharon_seal": {
   "file": "assets/icons/items/varkharon_seal.png"
+ },
+ "rune_blood_step": {
+  "file": "assets/icons/items/rune_blood_step.png"
+ },
+ "rune_overclock": {
+  "file": "assets/icons/items/rune_overclock.png"
+ },
+ "rune_still_blade": {
+  "file": "assets/icons/items/rune_still_blade.png"
+ },
+ "rune_reckless": {
+  "file": "assets/icons/items/rune_reckless.png"
+ },
+ "rune_desperation": {
+  "file": "assets/icons/items/rune_desperation.png"
+ },
+ "rune_blood_pact": {
+  "file": "assets/icons/items/rune_blood_pact.png"
+ },
+ "relic_crimson_rupture": {
+  "file": "assets/icons/items/relic_crimson_rupture.png"
+ },
+ "core_wildfire_heart": {
+  "file": "assets/icons/items/core_wildfire_heart.png"
+ },
+ "armor_mirrorstep": {
+  "file": "assets/icons/items/armor_mirrorstep.png"
+ },
+ "relic_choir_shades": {
+  "file": "assets/icons/items/relic_choir_shades.png"
+ },
+ "armor_overflowing_ward": {
+  "file": "assets/icons/items/armor_overflowing_ward.png"
+ },
+ "core_galeblade": {
+  "file": "assets/icons/items/core_galeblade.png"
+ },
+ "relic_gamblers_eye": {
+  "file": "assets/icons/items/relic_gamblers_eye.png"
+ },
+ "relic_brand_hunt": {
+  "file": "assets/icons/items/relic_brand_hunt.png"
+ },
+ "armor_unmoving": {
+  "file": "assets/icons/items/armor_unmoving.png"
+ },
+ "core_headsman": {
+  "file": "assets/icons/items/core_headsman.png"
+ },
+ "charm_ember": {
+  "file": "assets/icons/items/charm_ember.png"
+ },
+ "rune_kindling": {
+  "file": "assets/icons/items/rune_kindling.png"
+ },
+ "armor_ashen_robe": {
+  "file": "assets/icons/items/armor_ashen_robe.png"
+ },
+ "rune_echo_knot": {
+  "file": "assets/icons/items/rune_echo_knot.png"
+ },
+ "charm_shade_thread": {
+  "file": "assets/icons/items/charm_shade_thread.png"
+ },
+ "rune_riposte": {
+  "file": "assets/icons/items/rune_riposte.png"
+ },
+ "charm_duelist": {
+  "file": "assets/icons/items/charm_duelist.png"
  }
 }
