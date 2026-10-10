@@ -26,3 +26,15 @@ export const WORLD_MAP = {
   },
   routeColor: { A: '#8fd06a', B: '#8ad0ff' },
 };
+
+// POSSIBLE REWARDS on the map select (panels.dungeonGate): the field monsters + mini-bosses of each dungeon area (read from
+// the built grids once; tools/tests/worldMap.test.mjs checks the ids exist). Their loot tables (data/lootTables.js) are
+// shown first, so every area lists its own drops; the area boss's table joins once it has been beaten (it stays secret).
+export const AREA_DROPS = {
+  a1: { monsters: ['rabbit', 'wolf', 'leafling', 'treant', 'elder_treant'], minis: ['mini_hollow_fang', 'mini_grukk'] },
+  a2: { monsters: ['armadillo', 'rock_rhino', 'quill_lizard', 'burrower'], minis: ['mini_sunken_horn'] },
+  a3: { monsters: ['crystal_golem', 'bronze_hoplite', 'void_scarab', 'rune_wisp'], minis: ['mini_archive_warden'] },
+  b1: { monsters: ['snow_hare', 'rime_wolf', 'frost_harrier', 'frost_bear'], minis: ['mini_old_scarclaw'] },
+  b2: { monsters: ['crystal_slime', 'crystal_bat', 'cave_spider', 'moss_tortoise'], minis: ['mini_broodmother'] },
+  b3: { monsters: ['glacier_wolf', 'frost_imp', 'snow_eagle', 'yeti'], minis: ['mini_icebound_king'] },
+};

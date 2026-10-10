@@ -86,21 +86,20 @@ export function equipmentTabHTML(g, state, itemDetail) {
       <div class="cw-side">
         <div class="cw-gearrow">${GEAR_SLOTS.slice(0, 4).map(slot).join('')}</div>
         <div class="cw-gearrow">${GEAR_SLOTS.slice(4).map(slot).join('')}</div>
-        <div class="cw-keys">${keyStats}</div>
+        ${pick ? `<div class="cw-picker"><div class="cw-pick-h">${tl("Choose:")} <b>${esc(tl(pick.label))}</b><span>${unequip}<button data-pick="${pick.id}">${tl("Cancel")}</button></span></div><div class="cw-pick-grid">${cells.length ? cells.join("") : `<div class="muted small">${tl("Nothing for this slot yet.")}</div>`}</div></div>` : `<div class="cw-keys">${keyStats}</div>`}
       </div>
     </div>
     ${archetypeHTML(eq)}
     ${presetsHTML(p)}
     <details class="cw-more"><summary>${tl('All stats · sets · item effects')}</summary><div class="cw-all">${allStats}</div><h4>${tl('BUILD')}</h4>${archetypeHTML(eq, { full: true })}${buildSummaryHTML(eq)}<h4>${tl('SETS')}</h4>${setsHTML(eq)}${effectsHTML(g)}</details>
     <div class="cw-bagbar">
-      ${pick ? `<span class="cw-picking">${tl('Choose:')} <b>${esc(tl(pick.label))}</b></span>${unequip}<button data-pick="${pick.id}">${tl('Cancel')}</button>`
+      ${pick ? ''
         : `<div class="cw-filters">${BAG_FILTERS.map((x) => `<button data-filter="${x.id}" class="${x.id === f.id ? 'on' : ''}" title="${tl(x.label)}"><img src="${UI_ICON(x.icon)}" alt="${tl(x.label)}"></button>`).join('')}</div>`}
       <span class="cw-gold"><img src="${UI_ICON('cur_gold')}" alt="">${p.gold.toLocaleString()}</span><span class="cw-gold" title="${tl('Diamonds')}"><img src="${UI_ICON('cur_crystal')}" alt="">${(p.diamonds || 0).toLocaleString()}</span>
     </div>
-    <div class="grid cw-bag">${cells.join('')}${'<div class="slot cw-free"></div>'.repeat(slotsLeft)}</div>
-    ${pick && !items.length ? `<div class="muted small">${tl('Nothing for this slot yet.')}</div>` : ''}
+    ${pick ? '' : `<div class="grid cw-bag">${cells.join('')}${'<div class="slot cw-free"></div>'.repeat(slotsLeft)}</div>`}
     ${!pick && state.selected ? `<div class="detail cw-detail">${itemDetail(state.selected)}</div>` : ''}
-    <div class="keys"><span><kbd>${tl('Click')}</kbd>${tl('slot = choose item')}</span><span><kbd>I</kbd>${tl('Close')}</span><span><kbd>Esc</kbd>${tl('Back')}</span></div>
+    <div class="keys"><span><kbd>${tl('Click')}</kbd>${tl('slot = choose item')}</span><span><kbd>${tl('Double-click')}</kbd>${tl('item = equip')}</span><span><kbd>I</kbd>${tl('Close')}</span><span><kbd>Esc</kbd>${tl('Back')}</span></div>
   </div>`;
 }
 

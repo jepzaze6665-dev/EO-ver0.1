@@ -81,6 +81,8 @@ export const TH_WINDOWS = {
   'Choose:': 'เลือก:',
   'Nothing for this slot yet.': 'ยังไม่มีไอเทมสำหรับช่องนี้',
   'slot = choose item': 'ช่อง = เลือกไอเทม',
+  'Double-click': 'ดับเบิลคลิก',
+  'item = equip': 'ไอเทม = สวมใส่',
   'No set pieces worn.': 'ไม่ได้สวมชิ้นส่วนเซ็ตใด',
   'Select an item.': 'เลือกไอเทม',
 

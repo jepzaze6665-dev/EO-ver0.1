@@ -1,6 +1,9 @@
 // Map select data (src/data/worldMap.js). Run: node tools/tests/worldMap.test.mjs
 import { readFileSync, existsSync } from 'fs';
-import { WORLD_MAP } from '../../src/data/worldMap.js';
+import { WORLD_MAP, AREA_DROPS } from '../../src/data/worldMap.js';
+import { MONSTERS } from '../../src/monsters/monsterTypes.js';
+import { BOSSES } from '../../src/data/bosses.js';
+import { LOOT_TABLES } from '../../src/data/lootTables.js';
 import { ONLINE } from '../../src/data/online.js';
 
 let pass = 0, fail = 0;
@@ -29,6 +32,15 @@ test('roads A / B start at Lumina and end at Asteria', () => {
 
 test('the painted map exists when WORLD_MAP.image names it', () => {
   if (WORLD_MAP.image) ok(existsSync(new URL('../../' + WORLD_MAP.image, import.meta.url)), 'missing ' + WORLD_MAP.image);
+});
+
+test('AREA_DROPS: every dungeon area lists real monsters / mini-bosses with loot tables', () => {
+  for (const a of ONLINE.dungeon.areas.map((x) => x.id || x)) {
+    const d = AREA_DROPS[a];
+    if (!d) throw new Error('no AREA_DROPS for ' + a);
+    for (const m of d.monsters) if (!MONSTERS[m] || !LOOT_TABLES[MONSTERS[m].loot]) throw new Error(`${a}: monster ${m}`);
+    for (const b of d.minis) if (!BOSSES[b] || !LOOT_TABLES[BOSSES[b].rewards.loot]) throw new Error(`${a}: mini ${b}`);
+  }
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

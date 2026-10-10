@@ -26,7 +26,8 @@ import { treeHTML, nodeState } from './skillTreeUI.js';
 import { npcPanelHTML, npcRow, goldTag } from './npcPanel.js';
 import { validName } from '../net/protocol.js';
 import { ONLINE } from '../data/online.js';
-import { WORLD_MAP } from '../data/worldMap.js';
+import { WORLD_MAP, AREA_DROPS } from '../data/worldMap.js';
+import { MONSTERS } from '../monsters/monsterTypes.js';
 import { TELEGRAPH_VIEW, telegraphView, setTelegraphView } from '../combat/telegraph.js';
 import { BOSSES } from '../data/bosses.js';
 import { LOOT_TABLES } from '../data/lootTables.js';
@@ -547,6 +548,14 @@ export class Panels {
       </div>`, 'side');
     startHeroPreview(el, g);
     this.wireTooltip(el);
+    // double-click a gear item in the bag = put it on at once (its own slot; runes: the first free rune slot)
+    el.addEventListener('dblclick', (e) => {
+      const t = e.target.closest('[data-item]');
+      if (!t || !isGear(ITEMS[t.dataset.item])) return;
+      if (!g.equipment.equip(t.dataset.item)) g.ui.toast(tl(g.equipment.lastErrorText()), 1.2);
+      else { this.selected = null; g.audio.sfx('equip'); }
+      this.inventory();
+    });
     el.addEventListener('click', (e) => {
       const t = e.target.closest('[data-tab],[data-cat],[data-preset-load],[data-preset-save],[data-evo-revert],[data-skill-reset],[data-filter],[data-tree-sel],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
       if (!t) return;
@@ -703,8 +712,18 @@ export class Panels {
     const rewardIds = [];
     const addTable = (id) => { const t = LOOT_TABLES[id]; if (!t) return; for (const d of t.drops || []) rewardIds.push(d.item); for (const grp of t.oneOf || []) for (const it of grp.items || []) rewardIds.push(it.item); };
     if (boss && boss.rewards && bossDown) addTable(boss.rewards.loot); // a secret boss keeps its loot secret too
+    // this area's own drops (data/worldMap.js AREA_DROPS): its mini-bosses, then its field monsters, then elites
+    const area = AREA_DROPS[this.gateSel] || {};
+    for (const id of area.minis || []) { const b = BOSSES[id]; if (b && b.rewards) addTable(b.rewards.loot); }
+    for (const t of area.monsters || []) if (MONSTERS[t] && MONSTERS[t].loot) addTable(MONSTERS[t].loot);
     addTable('elite');
-    const rewards = [...new Set(rewardIds)].filter((id) => ITEMS[id]).slice(0, 12);
+    // the area's materials first (they are what makes each map different), then gear by rarity, potions last
+    const RANK = { mythic: 0, legendary: 1, epic: 2, rare: 3, uncommon: 4, common: 5 };
+    const common = new Set(['hp_potion', 'mp_potion', 'shadow_tonic']);
+    const uniq = [...new Set(rewardIds)].filter((id) => ITEMS[id]);
+    const mats = uniq.filter((id) => !isGear(ITEMS[id]) && !common.has(id)), gear = uniq.filter((id) => isGear(ITEMS[id]));
+    gear.sort((a, b) => (RANK[ITEMS[a].rarity] ?? 9) - (RANK[ITEMS[b].rarity] ?? 9));
+    const rewards = [...mats.slice(0, 6), ...gear, ...uniq.filter((id) => common.has(id))].slice(0, 14);
     const disc = g.discoveries && g.discoveries.of(this.gateSel);
     // party pedestals: you (solo) or every member, 4 places
     const people = pt ? pt.members.map((m) => ({ name: m.name, c: m.c, l: m.l, lead: m.id === pt.leader, off: !m.online }))

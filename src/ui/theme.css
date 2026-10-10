@@ -693,3 +693,10 @@ html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !impo
 .preset button { font-size: 11px; padding: 2px 8px; }
 .preset button[disabled] { opacity: .45; }
 .preset .preset-save { padding: 2px 5px; margin-left: 1px; }
+/* gear picker beside the slots (character window): choose an item without scrolling to the bag */
+.cw-picker { margin-top: 6px; border: 1px solid rgba(232, 215, 165, .35); border-radius: 6px; background: rgba(10, 8, 16, .55); padding: 6px; }
+.cw-pick-h { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-bottom: 5px; }
+.cw-pick-h span { margin-left: auto; display: flex; gap: 4px; }
+.cw-pick-h button { font-size: 11px; padding: 2px 8px; }
+.cw-pick-grid { display: flex; flex-wrap: wrap; gap: 4px; max-height: 150px; overflow-y: auto; }
+.cw-pick-grid .slot { width: 40px; height: 40px; }
