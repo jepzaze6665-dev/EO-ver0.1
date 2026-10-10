@@ -379,4 +379,13 @@ export const TH_WINDOWS = {
   'City 2': 'เมือง 2',
   'SECRETS': 'ความลับ',
   '✦ explored': '✦ สำรวจแล้ว',
+  // F4 wardrobe
+  'Wardrobe': 'ตู้เสื้อผ้า',
+  'Dye': 'สีย้อม',
+  'Aura': 'ออร่า',
+  'Glow': 'เรืองแสง',
+  'WORN': 'สวมอยู่',
+  'Locked': 'ล็อก',
+  'Cosmetics change your look only — no stats. Other players see them.': 'ของแต่งตัวเปลี่ยนแค่รูปลักษณ์ — ไม่มีผลกับค่าสถานะ ผู้เล่นคนอื่นก็มองเห็น',
+  'All cosmetics unlocked': 'ปลดล็อกของแต่งตัวทั้งหมดแล้ว',
 };

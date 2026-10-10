@@ -12,6 +12,7 @@ import { ITEMS } from '../items/items.js';
 import { SKILL_TREE } from '../data/skillTree.js';
 import { parseSave } from '../save/saveData.js';
 import { PREMIUM } from '../data/premium.js';
+import { COSMETICS } from '../data/cosmetics.js';
 
 export function isDevMode(loc = typeof location !== 'undefined' ? location : null) {
   if (!loc) return false;
@@ -79,7 +80,7 @@ export class DevPanel {
     if (t === 'player') {
       body = `<div>${p.cls.name} · LV ${p.level} · ${Math.round(p.hp)}/${p.maxHp} HP · ${p.gold} G</div>
       <div class="row">Level <input id="dv-lv" type="number" min="1" max="50" value="${p.level}" style="width:50px"><button data-a="level">Set</button></div>
-      <div class="row"><button data-a="gold">+1000 G</button><button data-a="diamonds">+100 💎</button><button data-a="heal">Full heal</button><button data-a="god">God: ${this.god ? 'ON' : 'off'}</button></div>
+      <div class="row"><button data-a="gold">+1000 G</button><button data-a="diamonds">+100 💎</button><button data-a="cosmetics">All cosmetics</button><button data-a="heal">Full heal</button><button data-a="god">God: ${this.god ? 'ON' : 'off'}</button></div>
       <div class="row"><button data-a="unlock">All skills unlocked: ${SKILL_TREE.unlockAll ? 'ON' : 'off'}</button></div>
       <div class="row"><select id="dv-cls">${opts(Object.values(CLASSES).map((c) => [c.id, c.name]))}</select><button data-a="cls">Change class</button></div>`;
     } else if (t === 'world') {
@@ -116,6 +117,7 @@ export class DevPanel {
       else if (a === 'level') { p.setLevel(Math.max(1, Math.min(50, +this.val('dv-lv') || 1))); p.hp = p.maxHp; this.msg(`Level ${p.level}`); }
       else if (a === 'gold') { p.addGold(1000); this.msg('+1000 gold'); }
       else if (a === 'diamonds') { const E = g.online && g.online.econ; if (E) E.why('dev', 'diamonds', () => p.addDiamonds(PREMIUM.devGrant)); else p.addDiamonds(PREMIUM.devGrant); this.msg(`+${PREMIUM.devGrant} diamonds (online: only a dev-login server keeps them)`); }
+      else if (a === 'cosmetics') { for (const id in COSMETICS) p.unlockCosmetic(id); this.msg('All cosmetics unlocked'); }
       else if (a === 'heal') { p.hp = p.maxHp; this.msg('Healed'); }
       else if (a === 'god') this.god = !this.god;
       else if (a === 'unlock') SKILL_TREE.unlockAll = !SKILL_TREE.unlockAll;

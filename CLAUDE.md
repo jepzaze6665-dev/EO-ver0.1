@@ -1675,3 +1675,12 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (additive, heartbeat pulse). Preview docs/fx/f3_preview.html (Reaper / Oathbreaker / Stormcaller good; Warden gold
   not found, Varkharon glows all over -> tune per sprite). To use later: `glow` data on class / boss / cosmetic + draw after
   the body. tools/tests/glowLayer.test.mjs.
+  Done F4 COSMETICS (looks only, no stats): `src/data/cosmetics.js` COSMETICS (slot dye = canvas filter / aura = feet ring
+  { color, ring, columns } / glow = glowLayer options; `free`, rarity, swatch), cleanLook. Player.look { dye, aura, glow } +
+  wardrobe (Set, free ones always) — ownsCosmetic / unlockCosmetic / wearCosmetic(slot, id | null) -> 'lookChanged'; saved as
+  player.look / wardrobe, kept on class change. Drawing `src/player/cosmeticDraw.js` (drawCosmeticAura under / over,
+  drawCosmeticBody = body with the dye filter + glow sheet per image cached) used by Player.draw, the character window hero
+  and remote players. ONLINE: PROTOCOL_VERSION 21, look { c, l, wd?, wa?, wg? }; server keeps presence.w and sends the looks
+  both ways after pJoin. Character window tab WARDROBE (charWindow.wardrobeTabHTML, data-wear="slot:id"). Getting
+  cosmetics (shop / rewards / premium) NOT built; Dev Panel "All cosmetics". Not on the server ledger (no stats: trusted).
+  tools/tests/cosmetics.test.mjs. F5 (rig) not planned (owner: stop at F4).

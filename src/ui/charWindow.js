@@ -13,6 +13,8 @@ import { finalStatRows, setsHTML, archetypeHTML, presetsHTML, buildSummaryHTML }
 import { expToNext } from '../progression/experience.js';
 import { meetsLevel } from '../items/itemDefs.js';
 import { t as tl, tx } from '../i18n/i18n.js';
+import { COSMETICS, COSMETIC_SLOTS } from '../data/cosmetics.js';
+import { drawCosmeticAura, drawCosmeticBody } from '../player/cosmeticDraw.js';
 
 export const UI_ICON = (name) => `assets/ui/icons/${name}.png`;
 
@@ -22,6 +24,7 @@ export const CHAR_TABS = [
   { id: 'class', label: 'Class', icon: 'menu_class' },
   { id: 'knowledge', label: 'Codex', icon: 'menu_codex' },
   { id: 'lore', label: 'Quests', icon: 'menu_quests' },
+  { id: 'wardrobe', label: 'Wardrobe', icon: 'menu_equipment' },
 ];
 
 // bag filters: item type (gear) or old category (stacks)
@@ -117,6 +120,31 @@ export function startHeroPreview(el, g) {
   if (!cv) return;
   const ctx = cv.getContext('2d');
   ctx.imageSmoothingEnabled = false;
-  ctx.clearRect(0, 0, 160, 160);
-  g.player.sprites.draw(ctx, g.player.sprites.frame('idle', 0, 0), 80, 140);
+  const p = g.player, f = p.sprites.frame('idle', 0, 0);
+  const draw = () => {   // F4: worn cosmetics (aura / dye / glow pulse) animate while the window is open
+    if (!cv.isConnected) return;
+    const t = performance.now() / 1000;
+    ctx.clearRect(0, 0, 160, 160);
+    drawCosmeticAura(ctx, 80, 140, p.look, t, 'under');
+    drawCosmeticBody(ctx, p.sprites, f, 80, 140, 1, p.look, t);
+    drawCosmeticAura(ctx, 80, 140, p.look, t, 'over');
+    if (p.look && (p.look.aura || p.look.glow)) setTimeout(draw, 60);
+  };
+  draw();
+}
+
+// F4 WARDROBE tab: the hero with the worn look + every cosmetic per slot (worn / owned / locked). data-wear="slot:id"
+export function wardrobeTabHTML(g) {
+  const p = g.player, look = p.look || {};
+  const SLOT_NAMES = { dye: 'Dye', aura: 'Aura', glow: 'Glow' };
+  const card = (id, c) => {
+    const own = p.ownsCosmetic(id), on = look[c.slot] === id;
+    return `<button class="wr-card r-${c.rarity}${on ? ' on' : ''}${own ? '' : ' locked'}" ${own ? `data-wear="${c.slot}:${on ? '' : id}"` : 'disabled'}>
+      <i style="background:${c.swatch}"></i><b>${esc(tx(c.name))}</b><span>${on ? tl('WORN') : own ? tl(c.rarity.toUpperCase()) : '🔒 ' + tl('Locked')}</span></button>`;
+  };
+  const sections = COSMETIC_SLOTS.map((s) => `<div class="wr-slot"><div class="k">${tl(SLOT_NAMES[s])}</div><div class="wr-cards">
+      ${Object.entries(COSMETICS).filter(([, c]) => c.slot === s).map(([id, c]) => card(id, c)).join('')}</div></div>`).join('');
+  return `<div class="wr-layout">
+    <div class="cw-stage"><img class="cw-pedestal" src="${UI_ICON('pedestal')}" alt=""><canvas class="cw-hero" width="160" height="160"></canvas></div>
+    <div class="wr-list"><p class="muted small">${tl('Cosmetics change your look only — no stats. Other players see them.')}</p>${sections}</div></div>`;
 }

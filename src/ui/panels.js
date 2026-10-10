@@ -21,7 +21,7 @@ import { describe as describeMod } from '../progression/skillModifiers.js';
 import { expToNext } from '../progression/experience.js';
 import { isGear } from '../items/itemDefs.js';
 import { itemTooltipHTML, swapPreview } from './itemTooltip.js';
-import { charHeaderHTML, charTabsHTML, equipmentTabHTML, startHeroPreview, UI_ICON } from './charWindow.js';
+import { charHeaderHTML, charTabsHTML, equipmentTabHTML, startHeroPreview, wardrobeTabHTML, UI_ICON } from './charWindow.js';
 import { treeHTML, nodeState } from './skillTreeUI.js';
 import { npcPanelHTML, npcRow, goldTag } from './npcPanel.js';
 import { validName } from '../net/protocol.js';
@@ -517,6 +517,8 @@ export class Panels {
           <div class="ct-info">${info}</div>
           <div class="ct-records"><div class="k">${tl('CLASS RECORDS · {name}', { name: esc(p.cls.name.toUpperCase()) })}</div><div class="ct-chips">${chips}</div></div>
         </div>`;
+    } else if (this.invTab === 'wardrobe') {
+      body = wardrobeTabHTML(g);
     } else if (this.invTab === 'knowledge') {
       const list = g.knowledge.view();
       body = `<div class="know">${list.map((e) => `
@@ -557,10 +559,11 @@ export class Panels {
       this.inventory();
     });
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-tab],[data-cat],[data-preset-load],[data-preset-save],[data-evo-revert],[data-skill-reset],[data-filter],[data-tree-sel],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
+      const t = e.target.closest('[data-wear],[data-tab],[data-cat],[data-preset-load],[data-preset-save],[data-evo-revert],[data-skill-reset],[data-filter],[data-tree-sel],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
-      if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
+      if (t.dataset.wear !== undefined) { const [slot, id] = t.dataset.wear.split(':'); if (g.player.wearCosmetic(slot, id || null)) g.audio.sfx('equip'); this.inventory(); }
+      else if (t.dataset.tab) { this.invTab = t.dataset.tab; this.inventory(); }
       else if (t.dataset.presetSave) { g.player.savePreset(+t.dataset.presetSave); g.ui.toast(tl('Build saved'), 1); g.audio.sfx('equip'); this.inventory(); }
       else if (t.dataset.presetLoad) {
         const r = g.player.applyPreset(+t.dataset.presetLoad);

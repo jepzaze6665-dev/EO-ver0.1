@@ -26,6 +26,7 @@ import { NetEconomy } from './netEconomy.js';
 import { NetRunStats } from './netRunStats.js';
 import { MapSync } from './mapSync.js';
 import { SAVE_KEY, BACKUP_KEY } from '../save/save.js';
+import { drawCosmeticAura, drawCosmeticBody } from '../player/cosmeticDraw.js';
 
 const NAME_KEY = 'eclipse_online_last_name';
 const TAB_KEY = 'eclipse_online_tab_'; // + name: '<tab id>:<time>' = which open tab of this browser played it, and when
@@ -110,7 +111,7 @@ export class OnlineSession {
     n.on('pJoin', (m) => this.remotes.join(m.p, now()));
     n.on('pLeave', (m) => this.remotes.leave(m.id, m.why, now()));
     n.on('moves', (m) => this.remotes.moves(m.ps, now()));
-    n.on('pLook', (m) => this.remotes.look(m.id, m.c, m.l));
+    n.on('pLook', (m) => this.remotes.look(m.id, m.c, m.l, { dye: m.wd, aura: m.wa, glow: m.wg }));
     n.on('error', (m) => { if (m.code === 'roomFull' || m.code === 'party' || m.code === 'dungeon') { game.ui.toast(m.text, m.code === 'dungeon' ? 4.5 : 3); if (m.code !== 'roomFull') game.audio.sfx('deny'); } });
     n.onState((s) => {
       // anything we knew about other players is stale once the line drops; after a reconnect send everything again
@@ -203,8 +204,9 @@ export class OnlineSession {
     this.pileNet.update();
     this.econ.flush();
     this.runStats.update(1 / 60);
-    const look = `${p.cls.id}:${p.level}`;
-    if (look !== this.sentLook && this.net.send('look', { c: p.cls.id, l: p.level })) this.sentLook = look;
+    const w = p.look || {}, look = `${p.cls.id}:${p.level}:${w.dye}:${w.aura}:${w.glow}`;
+    const wear = {}; if (w.dye) wear.wd = w.dye; if (w.aura) wear.wa = w.aura; if (w.glow) wear.wg = w.glow;
+    if (look !== this.sentLook && this.net.send('look', { c: p.cls.id, l: p.level, ...wear })) this.sentLook = look;
     const t = now(), m = g.world.mapId;
     if (!m) return;
     const ad = p.sprites && p.sprites.anims[p.anim];
@@ -243,6 +245,8 @@ export class OnlineSession {
     const a = r.alpha(t);
     ctx.fillStyle = `rgba(0,0,0,${0.35 * a})`;
     ctx.beginPath(); ctx.ellipse(r.x, r.y, 12, 4.5, 0, 0, TAU); ctx.fill();
-    sp.draw(ctx, f, r.x, r.y, a * (r.leaving ? 1 : 0.97));
+    drawCosmeticAura(ctx, r.x, r.y, r.look, t, 'under');
+    drawCosmeticBody(ctx, sp, f, r.x, r.y, a * (r.leaving ? 1 : 0.97), r.look, t);
+    drawCosmeticAura(ctx, r.x, r.y, r.look, t, 'over');
   }
 }

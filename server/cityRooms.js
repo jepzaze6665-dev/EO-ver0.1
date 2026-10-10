@@ -82,8 +82,8 @@ export class CityRooms {
 
   onLook(s, msg) {
     const p = this.presence(s);
-    p.c = msg.c; p.l = msg.l;
-    if (p.room) this.send(p.room, 'pLook', { id: s.id, c: p.c, l: p.l }, s);
+    p.c = msg.c; p.l = msg.l; p.w = { wd: msg.wd || null, wa: msg.wa || null, wg: msg.wg || null };
+    if (p.room) this.send(p.room, 'pLook', { id: s.id, c: p.c, l: p.l, ...p.w }, s);
   }
 
   join(s, room) {
@@ -94,6 +94,9 @@ export class CityRooms {
     p.room = room; p.dirty = false; p.snap = false;
     s.send('roomState', { room, map: p.m, players: people(set).map(entry) });
     this.send(room, 'pJoin', { p: entry(s) }, s);
+    // F4 cosmetics are not in the row: send the looks after it, both ways
+    for (const o of people(set)) if (o.presence && o.presence.w) s.send('pLook', { id: o.id, c: o.presence.c, l: o.presence.l, ...o.presence.w });
+    if (p.w) this.send(room, 'pLook', { id: s.id, c: p.c, l: p.l, ...p.w }, s);
     const fresh = !set.size;
     set.add(s);
     if (!isSharedMap(room)) {

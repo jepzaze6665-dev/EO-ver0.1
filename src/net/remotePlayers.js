@@ -3,6 +3,7 @@
 // ONLINE.interpDelay seconds in the past, interpolated between the two snapshots around that moment (smooth at 10 Hz);
 // a 'snap' snapshot (teleport) is never interpolated across. Entry rows come from server/cityRooms.js.
 import { ONLINE } from '../data/online.js';
+import { cleanLook } from '../data/cosmetics.js';
 
 const lerp = (a, b, t) => a + (b - a) * t;
 
@@ -65,7 +66,7 @@ export class RemotePlayers {
   }
   join(row, now) { this.map.set(row[0], new RemotePlayer(row, now)); }
   leave(id, why, now) { const r = this.map.get(id); if (r && !r.leaving) r.leaving = { at: now, why }; }
-  look(id, c, l) { const r = this.map.get(id); if (r) { r.cls = c; r.level = l; } }
+  look(id, c, l, w) { const r = this.map.get(id); if (r) { r.cls = c; r.level = l; if (w) r.look = cleanLook(w); } }
   moves(rows, now) {
     for (const [id, x, y, d, a, k, snap, h, dn] of rows) {
       const r = this.map.get(id);

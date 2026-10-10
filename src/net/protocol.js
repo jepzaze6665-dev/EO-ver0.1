@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 20;
+export const PROTOCOL_VERSION = 21;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -88,7 +88,7 @@ export const CLIENT_MESSAGES = {
   // N2 presence (src/net/onlineSession.js): where I am + what I look like. Shared-city positions are NOT authoritative
   // (no combat there); dungeon movement gets server checks in N7.
   pos: { m: 'slug', x: 'coord', y: 'coord', d: 'dir', a: 'slug', k: 'unit?', h: 'unit?', dn: 'bool?' },  // map, position, facing, anim, anim progress, HP share (0 = down)
-  look: { c: 'slug', l: 'level' },                       // class id + level (sent on change)
+  look: { c: 'slug', l: 'level', wd: 'slug?', wa: 'slug?', wg: 'slug?' },  // class id + level + worn cosmetics (dye / aura / glow ids, F4) (sent on change)
   leave: {},                                             // left the world (title screen)
   // N3 save on the server (src/net/serverSave.js): the client sends the whole save text; the server keeps the previous
   // one as the backup. NOT authoritative yet: boss kills / unlocks / loot move to the server in N8 / N9.

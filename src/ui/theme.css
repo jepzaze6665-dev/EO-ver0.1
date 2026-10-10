@@ -700,3 +700,19 @@ html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !impo
 .cw-pick-h button { font-size: 11px; padding: 2px 8px; }
 .cw-pick-grid { display: flex; flex-wrap: wrap; gap: 4px; max-height: 150px; overflow-y: auto; }
 .cw-pick-grid .slot { width: 40px; height: 40px; }
+
+/* F4 WARDROBE tab (charWindow.wardrobeTabHTML) */
+.wr-layout { display: grid; grid-template-columns: 200px 1fr; gap: 16px; align-items: start; }
+.wr-layout .cw-stage { position: sticky; top: 0; }
+.wr-slot { margin-bottom: 12px; }
+.wr-slot .k { font-family: var(--font-title); letter-spacing: 1px; color: var(--hl); margin-bottom: 6px; text-transform: uppercase; }
+.wr-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.wr-card { display: grid; grid-template-columns: 22px 1fr; grid-template-rows: auto auto; column-gap: 8px; text-align: left; padding: 6px 8px;
+  background: rgba(10, 8, 16, 0.6); border: 1px solid rgba(255, 240, 220, 0.18); border-radius: 6px; color: inherit; cursor: pointer; }
+.wr-card i { grid-row: span 2; width: 22px; height: 22px; border-radius: 50%; align-self: center; box-shadow: 0 0 8px currentColor; }
+.wr-card b { font-weight: 600; font-size: 13px; } .wr-card span { font-size: 11px; opacity: 0.7; }
+.wr-card:hover:not([disabled]) { border-color: var(--hl); }
+.wr-card.on { border-color: var(--hl); box-shadow: 0 0 10px rgba(255, 217, 106, 0.35); } .wr-card.on span { color: var(--hl); opacity: 1; }
+.wr-card.locked { opacity: 0.45; cursor: default; }
+.wr-card.r-epic b { color: #c08aff; } .wr-card.r-legendary b { color: #ffb050; } .wr-card.r-rare b { color: #6ab4ff; }
+@media (max-height: 520px) { .wr-layout { grid-template-columns: 1fr; } .wr-layout .cw-stage { position: static; } }

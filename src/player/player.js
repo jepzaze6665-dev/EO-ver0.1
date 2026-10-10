@@ -27,6 +27,8 @@ import { STAMINA } from '../data/stamina.js';
 import { MAGIC_DAMAGE_TYPES, COUNTER_STATUS, GEAR_SLOTS } from '../data/items/rules.js';
 import { PRESET_RULES, cleanPresets, capturePreset, buildSummary } from '../progression/buildPresets.js';
 import { expToNext, addExp, normalize as normalizeExp, levelStats } from '../progression/experience.js';
+import { COSMETICS, COSMETIC_SLOTS, FREE_COSMETICS, cleanLook } from '../data/cosmetics.js';
+import { drawCosmeticAura, drawCosmeticBody } from './cosmeticDraw.js';
 
 const WALK_MUL = 1.08; // Combat 2.0: sprint removed, base walk a little faster to compensate
 const HURT_IFRAMES = 0.55;
@@ -43,6 +45,7 @@ export class Player extends Entity {
     this.height = CHARACTER.bodyHeight;
     this.id = 'player'; // single local player for now; a server would assign ids
     this.level = LEVELS.start.level; this.exp = 0; this.gold = LEVELS.start.gold; this.diamonds = 0;
+    this.look = cleanLook(); this.wardrobe = new Set(FREE_COSMETICS); // F4 cosmetics (data/cosmetics.js): looks only, no stats
     // generic resource pool — the class only names its resources, the rules live in data/resources.js
     // + 'stamina' for everyone (Combat 2.0 decision resource: dodge / guard / some skills — data/stamina.js)
     this.resources = new ResourcePool([...(classDef.resources || [classDef.resource]), STAMINA.resource], RESOURCES, {
@@ -169,6 +172,16 @@ export class Player extends Entity {
     this.gold -= n;
     this.game.online?.econ?.note(['$', -n]);
     if (this.game.events) this.game.events.emit('goldChanged', { entity: this, amount: -n, gold: this.gold });
+    return true;
+  }
+  // ---------------- COSMETICS (F4, data/cosmetics.js): change the look only. wear(slot, null) = take off
+  ownsCosmetic(id) { return !!COSMETICS[id] && this.wardrobe.has(id); }
+  unlockCosmetic(id) { if (!COSMETICS[id] || this.wardrobe.has(id)) return false; this.wardrobe.add(id); this.game.events?.emit("cosmeticUnlocked", { entity: this, id }); return true; }
+  wearCosmetic(slot, id) {
+    if (!COSMETIC_SLOTS.includes(slot)) return false;
+    if (id && (!this.ownsCosmetic(id) || COSMETICS[id].slot !== slot)) return false;
+    this.look = { ...this.look, [slot]: id || null };
+    this.game.events?.emit("lookChanged", { entity: this, look: this.look });
     return true;
   }
   // ---------------- DIAMONDS (premium, data/premium.js): the server ledger decides (op 'd'); never negative
@@ -941,6 +954,7 @@ export class Player extends Entity {
     ctx.beginPath(); ctx.ellipse(this.x, this.y, 12, 4.5, 0, 0, TAU); ctx.fill();
     const auras = this.status.list().filter((s) => STATUSES[s.id].aura); // status data 'aura' (a mode is on)
     for (const st of auras) this.drawAura(ctx, STATUSES[st.id].aura, 'under', null, 0, st);
+    drawCosmeticAura(ctx, this.x, this.y, this.look, g.time, "under");
     if (this.markId && this.marks >= this.maxMarks) {
       ctx.fillStyle = MARKS[this.markId].display.color;
       ctx.globalAlpha = 0.3 + 0.15 * Math.sin(g.time * 8);
@@ -963,8 +977,9 @@ export class Player extends Entity {
     const flicker = this.invulnT > 0 && !this.dodging && Math.floor(g.time * 20) % 2 === 0;
     const bodyA = (flicker ? 0.45 : 1) * (1 - sk * (0.65 + 0.08 * Math.sin(g.time * 5)));
     this.drawGuardFx(ctx, 'under');
-    this.sprites.draw(ctx, f, this.x, y, bodyA);
+    drawCosmeticBody(ctx, this.sprites, f, this.x, y, bodyA, this.look, g.time);
     this.drawGuardFx(ctx, 'over');
+    drawCosmeticAura(ctx, this.x, this.y, this.look, g.time, "over");
     if (sk > 0.05) {
       // shadow-tinted shimmer over the faded body (class ghost colour)
       ctx.globalCompositeOperation = 'lighter';

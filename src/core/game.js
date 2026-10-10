@@ -59,6 +59,7 @@ import { ITEMS } from '../items/items.js';
 import { drawDebug, debugInfo } from '../ui/debugOverlay.js';
 import { OnlineSession } from '../net/onlineSession.js';
 import { getSetting } from './settings.js';
+import { COSMETICS, FREE_COSMETICS, cleanLook } from '../data/cosmetics.js';
 
 const STEP = 1 / 60;
 
@@ -348,6 +349,8 @@ export class Game {
     const p = this.player;
     p.gold = Math.max(0, d.player.gold || 0);
     p.diamonds = Math.max(0, Math.floor(d.player.diamonds || 0)); // premium (server ledger patches it online)
+    p.wardrobe = new Set([...FREE_COSMETICS, ...(Array.isArray(d.player.wardrobe) ? d.player.wardrobe.filter((id) => COSMETICS[id]) : [])]);
+    p.look = cleanLook(d.player.look); for (const s in p.look) if (p.look[s] && !p.wardrobe.has(p.look[s])) p.look[s] = null;
     p.setLevel(d.player.level, d.player.exp); // repaired to the current level rules (old saves too)
     p.hp = Math.min(p.maxHp, d.player.hp || p.maxHp); p.shadow = d.player.shadow ?? 40;
     if (d.player.resources) p.resources.load(d.player.resources);
