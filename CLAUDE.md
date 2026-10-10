@@ -1660,3 +1660,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   logo left, login (44 px fields, 16 px text so phones don't zoom, Log in / Create account side by side) + menu stacked right,
   footer hidden; class select = line tabs + compact tree left, class card right (scrolls, Begin button sticky at the bottom),
   splash faded behind. Checked at 844×390.
+- **Current: FX / FASHION TOOLS** (owner 2026-10-10, from 4 Night Camp clips: rigged paper-doll, glowing gear mask + heartbeat
+  pulse, part swap, procedural energy orb). Plan F1 VFX Lab · F2 live procedural VFX in game · F3 glow layer (emissive mask +
+  bloom + heartbeat) · F4 cosmetics (palette / glow / aura / trail, wardrobe, no stats) · F5 rig pilot (one paper-doll character).
+  Done F1: `src/vfx/proceduralFx.js` (pure, Node-safe): renderFx(params, t, layer back | front | both) = value noise -> domain
+  warp (marble) -> posterize to `colors` -> dissolve holes + bright rim -> fresnel edge; shapes orb (3-D sphere, back / front
+  halves so a body stands inside) / ring / disc / pillar; heartbeat pulse; bakeStrip = frames side by side. Presets
+  `src/data/fxPresets.js` (only fields that differ from FX_DEFAULTS). `tools/vfxlab.html` (Dev Panel World > VFX Lab): sliders,
+  colours, class sprite inside, bg, PNG strip download, Copy JSON. tools/tests/proceduralFx.test.mjs.

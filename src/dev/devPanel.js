@@ -88,7 +88,7 @@ export class DevPanel {
       <div class="row"><select id="dv-map">${opts(MAPS.map((m) => [m.id, `${m.id} — ${m.name}`]))}</select><button data-a="map">Go</button></div>
       <div class="row"><select id="dv-boss">${opts(bosses.map((b) => [b.id, b.name]))}</select><button data-a="boss">Go to arena</button><button data-a="down">Mark defeated</button></div>
       <div class="row"><button data-a="downall">Defeat every boss (open all roads)</button></div>
-      <div class="row"><button data-a="save">Save game now</button><button data-a="viewer">Sprite viewer ↗</button></div>`;
+      <div class="row"><button data-a="save">Save game now</button><button data-a="viewer">Sprite viewer ↗</button><button data-a="vfxlab">VFX Lab ↗</button></div>`;
     } else if (t === 'spawn') {
       body = `<div class="row"><select id="dv-mon">${opts(Object.keys(MONSTERS).sort().map((k) => [k, `${k} — ${MONSTERS[k].name || ''}`]))}</select></div>
       <div class="row">Count <input id="dv-n" type="number" min="1" max="10" value="1" style="width:40px"><label><input id="dv-el" type="checkbox"> elite</label><button data-a="spawn">Spawn</button></div>
@@ -126,6 +126,7 @@ export class DevPanel {
       else if (a === 'downall') { for (const b of Object.values(BOSSES)) if (!b.planned) this.downBoss(b.id); this.msg('Every boss defeated — all roads open'); }
       else if (a === 'save') g.saveGame();
       else if (a === 'viewer') window.open('/tools/viewer.html', '_blank');
+      else if (a === 'vfxlab') window.open('/tools/vfxlab.html', '_blank');
       else if (a === 'spawn') this.spawn(this.val('dv-mon'), +this.val('dv-n') || 1, this.el.querySelector('#dv-el').checked);
       else if (a === 'killall') { let n = 0; for (const m of g.world.monsters) if (!m.dead && g.world.onMap(m)) { m.hp = 0; m.onDeath(p); n++; } this.msg(`Killed ${n}`); }
       else if (a === 'ifilter') this.itemFilter = this.val('dv-if');

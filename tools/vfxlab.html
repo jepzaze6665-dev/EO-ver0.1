@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VFX Lab</title>
+<!-- VFX LAB (dev tool): make procedural effects (src/vfx/proceduralFx.js) with sliders, see them on a class sprite
+     (back layer under the body, front layer over it), export a PNG strip or copy the params as JSON for
+     src/data/fxPresets.js.  Open http://localhost:5173/tools/vfxlab.html (Dev Panel [F4] > World > VFX Lab). -->
+<style>
+:root { --bg: #14111d; --panel: #1e1a2b; --line: #4a3f6b; --text: #e8e0ff; --dim: #9a90b8; --hl: #ffd96a; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 13px 'Segoe UI', sans-serif; display: flex; height: 100vh; }
+#side { width: 330px; border-right: 1px solid var(--line); background: var(--panel); overflow: auto; padding: 8px; }
+#side h3 { margin: 10px 0 4px; font-size: 12px; color: var(--hl); text-transform: uppercase; letter-spacing: 1px; }
+.row { display: grid; grid-template-columns: 84px 1fr 52px; gap: 6px; align-items: center; margin: 3px 0; }
+.row label { color: var(--dim); }
+.row output { text-align: right; font-variant-numeric: tabular-nums; }
+select, input[type=text], textarea, button { background: #120f1c; color: var(--text); border: 1px solid var(--line); padding: 4px; font: inherit; }
+button { cursor: pointer; } button:hover { border-color: var(--hl); }
+.cols { display: flex; gap: 4px; } .cols input { width: 100%; height: 26px; padding: 0; border: 1px solid var(--line); }
+#main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#bar { display: flex; gap: 6px; padding: 8px; border-bottom: 1px solid var(--line); flex-wrap: wrap; align-items: center; }
+#stage { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+#view { image-rendering: pixelated; }
+#stripBox { overflow-x: auto; border-top: 1px solid var(--line); } #strip { image-rendering: pixelated; display: block; }
+textarea { width: 100%; height: 90px; font: 11px monospace; }
+</style>
+</head>
+<body>
+<div id="side"></div>
+<div id="main">
+  <div id="bar">
+    <select id="preset"></select>
+    <button id="rand">🎲 Seed</button>
+    <span style="color:var(--dim)">BG</span><select id="bg"><option>dark</option><option>grass</option><option>magenta</option><option>white</option></select>
+    <span style="color:var(--dim)">Hero</span><select id="hero"></select>
+    <span style="color:var(--dim)">Zoom</span><select id="zoom"><option>2</option><option selected>3</option><option>4</option></select>
+    <label><input type="checkbox" id="play" checked> play</label>
+    <span style="flex:1"></span>
+    <select id="layer"><option>both</option><option>back</option><option>front</option></select>
+    <button id="png">⬇ PNG strip</button>
+    <button id="json">📋 Copy JSON</button>
+  </div>
+  <div id="stage"><canvas id="view"></canvas></div>
+  <div id="stripBox"><canvas id="strip"></canvas></div>
+</div>
+<script type="module">
+import { FX_DEFAULTS, FX_SHAPES, fxParams, renderFx, bakeStrip } from '../src/vfx/proceduralFx.js';
+import { FX_PRESETS } from '../src/data/fxPresets.js';
+
+const SLIDERS = [
+  ['Shape'],
+  ['size', 32, 256, 8], ['radius', 0.1, 0.5, 0.01], ['thickness', 0.05, 0.8, 0.01],
+  ['Pattern'],
+  ['seed', 1, 99, 1], ['scale', 0.5, 10, 0.1], ['warp', 0, 3, 0.05], ['speed', 0, 2, 0.01], ['spin', 0, 3, 0.05],
+  ['Dissolve'],
+  ['hole', 0, 0.9, 0.01], ['holeScale', 0.5, 8, 0.1], ['rim', 0, 0.2, 0.005],
+  ['Light'],
+  ['edgeGlow', 0, 1, 0.05], ['frontAlpha', 0, 1, 0.05], ['backDark', 0, 0.9, 0.05], ['alpha', 0, 1, 0.05],
+  ['pulse', 0, 1, 0.05], ['pulseRate', 0.2, 4, 0.05],
+  ['Export'],
+  ['frames', 1, 24, 1], ['fps', 4, 30, 1],
+];
+let P = fxParams(FX_PRESETS.ember_shell);
+const $ = (id) => document.getElementById(id);
+const side = $('side');
+
+function build() {
+  let h = `<div class="row"><label>shape</label><select id="f_shape">${FX_SHAPES.map((s) => `<option ${s === P.shape ? 'selected' : ''}>${s}</option>`).join('')}</select><span></span></div>`;
+  for (const s of SLIDERS) {
+    if (s.length === 1) { if (s[0] !== 'Shape') h += `<h3>${s[0]}</h3>`; if (s[0] === 'Light') h += colorsHTML(); continue; }
+    const [k, min, max, step] = s;
+    h += `<div class="row"><label>${k}</label><input type="range" id="f_${k}" min="${min}" max="${max}" step="${step}" value="${P[k]}"><output id="o_${k}">${P[k]}</output></div>`;
+  }
+  h += `<h3>JSON</h3><textarea id="out" readonly></textarea>`;
+  side.innerHTML = h;
+  side.querySelectorAll('input,select').forEach((el) => el.addEventListener('input', read));
+  dump();
+}
+function colorsHTML() {
+  return `<h3>Colours (dark → light)</h3><div class="cols">${P.colors.map((c, i) => `<input type="color" id="c_${i}" value="${c}">`).join('')}</div>
+    <div class="row"><label>rim colour</label><input type="color" id="f_rimColor" value="${P.rimColor}"><span></span></div>`;
+}
+function read() {
+  P.shape = $('f_shape').value;
+  for (const s of SLIDERS) if (s.length > 1) { P[s[0]] = +$('f_' + s[0]).value; $('o_' + s[0]).textContent = P[s[0]]; }
+  P.colors = P.colors.map((_, i) => $('c_' + i).value);
+  P.rimColor = $('f_rimColor').value;
+  dump(); strip();
+}
+function diff() {
+  const o = {};
+  for (const k in P) if (JSON.stringify(P[k]) !== JSON.stringify(FX_DEFAULTS[k])) o[k] = P[k];
+  return o;
+}
+function dump() { $('out').value = JSON.stringify(diff()); }
+
+// presets
+$('preset').innerHTML = Object.keys(FX_PRESETS).map((k) => `<option>${k}</option>`).join('');
+$('preset').onchange = () => { P = fxParams(FX_PRESETS[$('preset').value]); build(); strip(); };
+$('rand').onclick = () => { P.seed = 1 + Math.floor(Math.random() * 99); build(); strip(); };
+
+// hero sprite: front-facing walk frame of a class preset
+const HEROES = ['ub', 'aw', 'ag', 'rp', 'dr', 'be', 'wd', 'bs', 'ok', 'sm', 'vs', 'lo', 'none'];
+$('hero').innerHTML = HEROES.map((h) => `<option>${h}</option>`).join('');
+let hero = null;
+async function loadHero() {
+  const id = $('hero').value; hero = null;
+  if (id === 'none') return;
+  try {
+    const dir = id === 'ub' ? 'assets/player' : `assets/player/${id}`;
+    const atlas = await (await fetch(`../${dir}/atlas.json`)).json();
+    const sh = atlas.sheets.walk || atlas.sheets.idle || Object.values(atlas.sheets)[0];
+    const img = new Image(); img.src = '../' + sh.file; await img.decode();
+    hero = { img, sh };
+  } catch { hero = null; }
+}
+$('hero').onchange = loadHero;
+
+// drawing
+const view = $('view'), vx = view.getContext('2d');
+const tmp = document.createElement('canvas'), tx = tmp.getContext('2d');
+function toCanvas(img) { tmp.width = img.w; tmp.height = img.h; tx.putImageData(new ImageData(img.data, img.w, img.h), 0, 0); return tmp; }
+const BG = { dark: '#0e0c16', grass: '#2c4a26', magenta: '#ff00ff', white: '#ffffff' };
+let t = 0, last = performance.now();
+function frame(now) {
+  const dt = (now - last) / 1000; last = now;
+  if ($('play').checked) t += dt;
+  const z = +$('zoom').value, S = P.size, W = Math.max(S, 160);
+  view.width = W * z; view.height = W * z;
+  vx.imageSmoothingEnabled = false;
+  vx.fillStyle = BG[$('bg').value]; vx.fillRect(0, 0, view.width, view.height);
+  const ox = (W - S) / 2 * z, oy = (W - S) / 2 * z;
+  const layer = $('layer').value;
+  const split = P.shape === 'orb' && layer === 'both';
+  const lay = (l) => vx.drawImage(toCanvas(renderFx(P, t, l)), ox, oy, S * z, S * z);
+  if (split) lay('back'); else if (layer !== 'front') lay(layer);
+  if (hero) {   // body centred: feet a bit under the effect centre
+    const { img, sh } = hero; const fx = W / 2 * z - sh.ax * z, fy = (W / 2 + S * 0.2) * z - sh.ay * z;
+    vx.drawImage(img, 0, 0, sh.fw, sh.fh, fx, fy, sh.fw * z, sh.fh * z);
+  }
+  if (split) lay('front'); else if (layer === 'front') lay('front');
+  requestAnimationFrame(frame);
+}
+
+// strip preview + export
+function strip() {
+  const s = bakeStrip(P, $('layer').value);
+  const c = $('strip'); c.width = s.w; c.height = s.h;
+  c.getContext('2d').putImageData(new ImageData(s.data, s.w, s.h), 0, 0);
+  const k = Math.min(1.5, 160 / s.h); c.style.width = s.w * k + "px"; c.style.height = s.h * k + "px";
+}
+$('layer').onchange = strip;
+$('png').onclick = () => {
+  const a = document.createElement('a');
+  a.download = `fx_${$('preset').value}_${$('layer').value}.png`;
+  a.href = $('strip').toDataURL('image/png'); a.click();
+};
+$('json').onclick = async () => { dump(); try { await navigator.clipboard.writeText($('out').value); $('json').textContent = '✓ Copied'; } catch { $('out').select(); } setTimeout(() => ($('json').textContent = '📋 Copy JSON'), 1200); };
+
+build(); strip(); await loadHero(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
