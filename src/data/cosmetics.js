@@ -33,3 +33,11 @@ export function cleanLook(w = {}) {
   for (const s of COSMETIC_SLOTS) { const c = cosmeticOf(w[s]); out[s] = c && c.slot === s ? w[s] : null; }
   return out;
 }
+
+// OWNER (2026-10-10): the system is kept but NOT live yet — off for players (no Wardrobe tab, nothing drawn or sent online).
+// Turn it on for a look with ?fashion in the URL; set `enabled: true` to release it.
+export const COSMETIC_RULES = { enabled: false };
+export function cosmeticsOn() {
+  if (COSMETIC_RULES.enabled) return true;
+  try { return typeof location !== 'undefined' && new URLSearchParams(location.search).has('fashion'); } catch { return false; }
+}

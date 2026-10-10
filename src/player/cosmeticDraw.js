@@ -1,6 +1,7 @@
 // F4: draw a character's worn cosmetics (data/cosmetics.js). Shared by the local Player and remote players (online),
 // so everyone sees the same look. Presentation only: no game state, no stats.
-import { cosmeticOf } from '../data/cosmetics.js';
+import { cosmeticOf, cosmeticsOn } from '../data/cosmetics.js';
+const ON = cosmeticsOn();   // off = draw plain (data/cosmetics.js COSMETIC_RULES)
 import { makeGlowSheet, glowAlpha } from '../vfx/glowLayer.js';
 
 const TAU = Math.PI * 2;
@@ -16,7 +17,7 @@ function glowSheetFor(img, id, opts) {
 
 // ring of light at the feet; layer 'under' = ring + columns behind the body, 'over' = faint ring in front
 export function drawCosmeticAura(ctx, x, y, look, t, layer) {
-  const c = cosmeticOf(look && look.aura);
+  const c = ON && cosmeticOf(look && look.aura);
   if (!c) return;
   const a = c.aura, col = a.color, pulse = 0.5 + 0.5 * Math.sin(t * 3), R = 26 * (a.ring || 1);
   ctx.save();
@@ -42,10 +43,10 @@ export function drawCosmeticAura(ctx, x, y, look, t, layer) {
 
 // the body with its dye, then its glow layer (same frame, same flip)
 export function drawCosmeticBody(ctx, sprites, f, x, y, alpha, look, t) {
-  const dye = cosmeticOf(look && look.dye);
+  const dye = ON && cosmeticOf(look && look.dye);
   if (dye && dye.filter) { ctx.save(); ctx.filter = dye.filter; sprites.draw(ctx, f, x, y, alpha); ctx.restore(); }
   else sprites.draw(ctx, f, x, y, alpha);
-  const gl = cosmeticOf(look && look.glow);
+  const gl = ON && cosmeticOf(look && look.glow);
   if (!gl || !f.img || alpha < 0.3) return;
   const sheet = glowSheetFor(f.img, look.glow, gl.glow);
   if (!sheet) return;

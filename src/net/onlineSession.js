@@ -27,6 +27,7 @@ import { NetRunStats } from './netRunStats.js';
 import { MapSync } from './mapSync.js';
 import { SAVE_KEY, BACKUP_KEY } from '../save/save.js';
 import { drawCosmeticAura, drawCosmeticBody } from '../player/cosmeticDraw.js';
+import { cosmeticsOn } from '../data/cosmetics.js';
 
 const NAME_KEY = 'eclipse_online_last_name';
 const TAB_KEY = 'eclipse_online_tab_'; // + name: '<tab id>:<time>' = which open tab of this browser played it, and when
@@ -205,7 +206,7 @@ export class OnlineSession {
     this.econ.flush();
     this.runStats.update(1 / 60);
     const w = p.look || {}, look = `${p.cls.id}:${p.level}:${w.dye}:${w.aura}:${w.glow}`;
-    const wear = {}; if (w.dye) wear.wd = w.dye; if (w.aura) wear.wa = w.aura; if (w.glow) wear.wg = w.glow;
+    const wear = {}; if (cosmeticsOn() && w.dye) wear.wd = w.dye; if (cosmeticsOn() && w.aura) wear.wa = w.aura; if (cosmeticsOn() && w.glow) wear.wg = w.glow;
     if (look !== this.sentLook && this.net.send('look', { c: p.cls.id, l: p.level, ...wear })) this.sentLook = look;
     const t = now(), m = g.world.mapId;
     if (!m) return;

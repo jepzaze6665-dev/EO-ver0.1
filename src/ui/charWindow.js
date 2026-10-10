@@ -13,7 +13,7 @@ import { finalStatRows, setsHTML, archetypeHTML, presetsHTML, buildSummaryHTML }
 import { expToNext } from '../progression/experience.js';
 import { meetsLevel } from '../items/itemDefs.js';
 import { t as tl, tx } from '../i18n/i18n.js';
-import { COSMETICS, COSMETIC_SLOTS } from '../data/cosmetics.js';
+import { COSMETICS, COSMETIC_SLOTS, cosmeticsOn } from '../data/cosmetics.js';
 import { drawCosmeticAura, drawCosmeticBody } from '../player/cosmeticDraw.js';
 
 export const UI_ICON = (name) => `assets/ui/icons/${name}.png`;
@@ -24,7 +24,7 @@ export const CHAR_TABS = [
   { id: 'class', label: 'Class', icon: 'menu_class' },
   { id: 'knowledge', label: 'Codex', icon: 'menu_codex' },
   { id: 'lore', label: 'Quests', icon: 'menu_quests' },
-  { id: 'wardrobe', label: 'Wardrobe', icon: 'menu_equipment' },
+  ...(cosmeticsOn() ? [{ id: 'wardrobe', label: 'Wardrobe', icon: 'menu_equipment' }] : []),   // F4: hidden until released
 ];
 
 // bag filters: item type (gear) or old category (stacks)

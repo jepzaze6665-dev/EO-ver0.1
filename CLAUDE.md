@@ -1684,3 +1684,5 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   both ways after pJoin. Character window tab WARDROBE (charWindow.wardrobeTabHTML, data-wear="slot:id"). Getting
   cosmetics (shop / rewards / premium) NOT built; Dev Panel "All cosmetics". Not on the server ledger (no stats: trusted).
   tools/tests/cosmetics.test.mjs. F5 (rig) not planned (owner: stop at F4).
+  OWNER: kept, NOT LIVE yet -> COSMETIC_RULES.enabled false (data/cosmetics.js): no Wardrobe tab, nothing drawn, no look ids
+  sent; `?fashion` in the URL turns it on locally to look at it. Release = enabled: true.
