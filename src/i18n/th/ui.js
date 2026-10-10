@@ -8,7 +8,8 @@ export const TH_UI = {
   'Graphics quality': 'คุณภาพกราฟิก', 'Auto': 'อัตโนมัติ', 'High': 'สูง', 'Medium': 'กลาง', 'FPS limit': 'จำกัด FPS',
   '60': '60', '30 (battery)': '30 (ประหยัดแบต)', 'Show FPS': 'แสดง FPS', 'Button size': 'ขนาดปุ่ม', 'Normal': 'ปกติ',
   'Large': 'ใหญ่', 'Small': 'เล็ก', 'Auto-aim': 'เล็งอัตโนมัติ', 'Off (joystick only)': 'ปิด (ตามจอยอย่างเดียว)',
-  'Vibrate when hit': 'สั่นเมื่อโดนโจมตี',
+  'Vibrate when hit': 'สั่นเมื่อโดนโจมตี', 'Lock joystick': 'ล็อกจอยสติ๊ก', 'On (fixed place)': 'เปิด (อยู่กับที่)', 'Off (under your thumb)': 'ปิด (ขึ้นตรงที่แตะ)', 'Lock joystick': 'ล็อกจอยสติ๊ก', 'On (fixed place)': 'เปิด (อยู่กับที่)',
+  'Off (under your thumb)': 'ปิด (ขึ้นตรงที่แตะ)',
   // ---- language
   'Language: {name}': 'ภาษา: {name}',
 

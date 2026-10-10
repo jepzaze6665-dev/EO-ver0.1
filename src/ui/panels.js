@@ -1069,7 +1069,7 @@ export class Panels {
       else {
         cycleSetting(k);
         if (k === 'quality') g.renderer.resize();
-        if (k === 'btnScale' && g.touch) g.touch.layout();
+        if ((k === 'btnScale' || k === 'stickLock') && g.touch) g.touch.layout();
         if (k === 'vibrate' && getSetting('vibrate') && navigator.vibrate) { try { navigator.vibrate(40); } catch (er) { /* ignore */ } }
       }
       this.settings();

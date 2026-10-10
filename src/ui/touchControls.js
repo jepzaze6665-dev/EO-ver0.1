@@ -35,8 +35,8 @@ const CSS = `
 #touch .potion .n{position:absolute;right:-4px;bottom:-4px;min-width:18px;padding:0 3px;border-radius:8px;background:#0c0914;border:1px solid rgba(240,225,200,.5);font:600 11px/16px var(--font-title,sans-serif);text-align:center}
 #touch .potion.empty{filter:grayscale(1) brightness(.5)}
 #touch .dodge{width:56px;height:56px}
-#touch .use{width:64px;height:64px;left:50%;bottom:calc(6% + 46px);transform:translateX(-50%);display:none;border-color:#9dffb4}
-#touch .use.show{display:flex}
+#touch .atk.talk{border-color:#9dffb4;color:#c8ffd6;background-color:rgba(10,40,24,.6)}
+#touch .base.fixed{display:block;opacity:.7}
 #touch .small{width:42px;height:42px;font-size:16px}
 #touch .aimline{position:absolute;height:3px;background:linear-gradient(90deg,rgba(255,210,120,.9),rgba(255,210,120,0));transform-origin:0 50%;display:none;pointer-events:none}
 #rotate{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:#07060c;color:#f0e1c8;font:16px sans-serif;text-align:center;padding:24px}
@@ -85,20 +85,19 @@ export class TouchControls {
       <div class="b atk" data-k="atk">ATK</div>
       <div class="b sk" data-k="Digit1"></div><div class="b sk" data-k="Digit2"></div><div class="b sk" data-k="Digit3"></div><div class="b sk" data-k="Digit4"></div>
       <div class="b ult" data-k="Digit5"></div><div class="b q" data-k="KeyQ"></div><div class="b dodge" data-k="Space">DODGE</div>
-      <div class="b use" data-k="KeyE">E</div>
       <div class="b small" data-k="Escape" style="left:calc(50% - 48px);top:30px">≡</div>
       <div class="b small" data-k="KeyI" style="left:calc(50% + 6px);top:30px">▣</div>
-      <div class="b potion" data-k="KeyR" data-item="hp_potion" style="left:calc(50% - 158px)"><span class="n">0</span></div>
-      <div class="b potion" data-k="KeyF" data-item="shadow_tonic" style="left:calc(50% + 112px)"><span class="n">0</span></div>`;
+      <div class="b potion" data-k="KeyR" data-item="hp_potion" style="left:calc(50% + 112px)"><span class="n">0</span></div>
+      <div class="b potion" data-k="KeyF" data-item="shadow_tonic" style="left:calc(50% - 158px)"><span class="n">0</span></div>`;
     document.body.appendChild(el);
     this.base = el.querySelector('.base'); this.knob = el.querySelector('.knob'); this.line = el.querySelector('.aimline');
-    this.layout();
+    this.layout(); this.placeStick();
     window.addEventListener('resize', () => this.layout());
     // joystick
     const zone = el.querySelector('.zone');
-    zone.addEventListener('pointerdown', (e) => { e.preventDefault(); try { zone.setPointerCapture(e.pointerId); } catch { /* synthetic / lost pointer */ } this.stick = { id: e.pointerId, x0: e.clientX, y0: e.clientY }; this.moveStick(e); });
+    zone.addEventListener('pointerdown', (e) => { e.preventDefault(); try { zone.setPointerCapture(e.pointerId); } catch { /* synthetic / lost pointer */ } const fx = this.fixedStick(); this.stick = { id: e.pointerId, x0: fx ? fx.x : e.clientX, y0: fx ? fx.y : e.clientY, fixed: !!fx }; this.moveStick(e); });
     zone.addEventListener('pointermove', (e) => { if (this.stick && e.pointerId === this.stick.id) this.moveStick(e); });
-    const endStick = (e) => { if (this.stick && e.pointerId === this.stick.id) { this.stick = null; this.input.touchMove = null; this.base.style.display = this.knob.style.display = 'none'; } };
+    const endStick = (e) => { if (this.stick && e.pointerId === this.stick.id) { this.stick = null; this.input.touchMove = null; this.knob.style.display = 'none'; this.placeStick(); } };
     zone.addEventListener('pointerup', endStick); zone.addEventListener('pointercancel', endStick);
     // buttons
     for (const b of el.querySelectorAll('.b')) {
@@ -117,6 +116,7 @@ export class TouchControls {
     const put = (sel, ang, r) => { const b = this.el.querySelector(sel); b.style.right = `${ax + Math.cos(ang) * r * s - 29}px`; b.style.bottom = `${ay + Math.sin(ang) * r * s - 29}px`; b.style.transform = `scale(${s})`; };
     // a low, tight arc: every button within reach of the right thumb (owner: skills sat too high)
 // owner: buttons spaced apart (inner ring 1-4, outer ring Q / ULT / DODGE)
+    if (this.base) this.placeStick();
     put('[data-k=Digit1]', -0.1, 128); put('[data-k=Digit2]', 0.4, 128); put('[data-k=Digit3]', 0.9, 128); put('[data-k=Digit4]', 1.4, 128);
     put('[data-k=KeyQ]', 0.1, 212); put('[data-k=Digit5]', 0.6, 212); put('[data-k=Space]', 1.1, 212);
   }
@@ -126,11 +126,20 @@ export class TouchControls {
     });
     hook(); this.vibBus = this.game.events;
   }
+  // player setting (default on): the joystick sits LOCKED at one place bottom-left; off = it appears under the thumb
+  fixedStick() { return getSetting('stickLock') ? { x: Math.max(96, innerWidth * 0.13), y: innerHeight - Math.max(96, innerHeight * 0.27) } : null; }
+  placeStick() {
+    const fx = this.fixedStick();
+    this.base.classList.toggle('fixed', !!fx);
+    if (fx) Object.assign(this.base.style, { left: fx.x + 'px', top: fx.y + 'px', display: '' });
+    else if (!this.stick) this.base.style.display = 'none';
+  }
   moveStick(e) {
     const s = this.stick, R = TOUCH_RULES.stick;
     let dx = e.clientX - s.x0, dy = e.clientY - s.y0;
     const l = Math.hypot(dx, dy);
-    if (l > R) { s.x0 += (dx / l) * (l - R); s.y0 += (dy / l) * (l - R); dx = e.clientX - s.x0; dy = e.clientY - s.y0; } // the base follows a thumb that runs off
+    if (l > R && s.fixed) { dx = (dx / l) * R; dy = (dy / l) * R; } // locked joystick: the base stays put
+    else if (l > R) { s.x0 += (dx / l) * (l - R); s.y0 += (dy / l) * (l - R); dx = e.clientX - s.x0; dy = e.clientY - s.y0; } // the base follows a thumb that runs off
     Object.assign(this.base.style, { display: 'block', left: s.x0 + 'px', top: s.y0 + 'px' });
     Object.assign(this.knob.style, { display: 'block', left: s.x0 + dx + 'px', top: s.y0 + dy + 'px' });
     const m = Math.min(1, Math.hypot(dx, dy) / R);
@@ -140,6 +149,7 @@ export class TouchControls {
   press(b, e) {
     const k = b.dataset.k, inp = this.input;
     b.classList.add('on');
+    if (k === 'atk' && this.canUse) { this.atkUse = true; inp.touchDown('KeyE'); return; } // talk / open / revive (hold)
     if (k === 'atk') { inp.mouse.left = true; inp.mouse.leftPressed = true; return; }
     if (/^Digit/.test(k)) { this.drag = { key: k, x0: e.clientX, y0: e.clientY, angle: null }; return; } // fires on release (tap or drag)
     if (k === 'KeyQ' && !(this.game.player && this.game.player.cls.guard)) { inp.touchDown('KeyQ'); return; }
@@ -159,7 +169,7 @@ export class TouchControls {
   release(b, e, cancel = false) {
     const k = b.dataset.k, inp = this.input;
     b.classList.remove('on');
-    if (k === 'atk') { inp.mouse.left = false; return; }
+    if (k === 'atk') { if (this.atkUse) { this.atkUse = false; inp.touchUp('KeyE'); } inp.mouse.left = false; return; }
     if (/^Digit/.test(k)) {
       const d = this.drag; this.drag = null; this.line.style.display = 'none';
       if (cancel || !d) return;
@@ -205,8 +215,10 @@ export class TouchControls {
         const n = g.inventory.count ? g.inventory.count(d.id) : (g.inventory.items[d.id] || 0);
         b.firstChild.textContent = n; b.classList.toggle('empty', !n);
       }
-      const use = this.el.querySelector('.use'), w = g.world;
-      use.classList.toggle('show', !!(w && w.nearest) || !!(g.party && g.party.downedNear && g.party.downedNear(p)) || !!(g.online && g.online.revive && g.online.revive.target && g.online.revive.target(p)));
+      const w = g.world;
+      this.canUse = (!!(w && w.nearest) || !!(g.party && g.party.downedNear && g.party.downedNear(p)) || !!(g.online && g.online.revive && g.online.revive.target && g.online.revive.target(p)));
+      const atk = this.el.querySelector('.atk');
+      if (atk.classList.contains('talk') !== this.canUse) { atk.classList.toggle('talk', this.canUse); atk.textContent = this.canUse ? '💬' : 'ATK'; }
     }
   }
   autoAim(p, g) {
