@@ -662,3 +662,6 @@ html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !impo
 .set-row { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; margin: 3px 0; padding: 9px 12px; text-align: left; font-size: 14px; }
 .set-row b { color: var(--hl); font: 600 13px var(--font-title); }
 @media (max-height: 520px) { .set-list { max-height: calc(100vh - 160px); } .set-row { min-height: 42px; } }
+/* side windows: the ✕ added by Panels.show */
+.overlay.side > .panel { position: relative; }
+.side-x { position: absolute !important; top: 10px; right: 10px; margin: 0 !important; padding: 4px 12px; min-width: 40px; min-height: 40px; z-index: 3; }

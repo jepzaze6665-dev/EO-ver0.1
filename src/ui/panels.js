@@ -105,6 +105,16 @@ export class Panels {
     el.innerHTML = html;
     this.root.appendChild(el);
     this.current = { name, el };
+    // SIDE windows (owner, phones): a ✕ on every side panel, and a tap on the world beside the panel closes it
+    if (cls.split(" ").includes("side")) {
+      const panel = el.querySelector('.panel');
+      if (panel && !panel.querySelector('.close, .x, .np-close')) {
+        const x = document.createElement('button'); x.className = 'close np-close side-x'; x.title = tl('Close'); x.textContent = '✕';
+        x.addEventListener('click', () => this.close());
+        panel.appendChild(x);
+      }
+      el.addEventListener('pointerdown', (e) => { if (e.target === el && this.current && this.current.el === el) { e.preventDefault(); this.close(); } });
+    }
     this.game.input.clearAll();
     return el;
   }

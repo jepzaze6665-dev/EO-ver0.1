@@ -26,7 +26,8 @@ const CSS = `
   background:rgba(12,9,20,.55) center/72% no-repeat;border:2px solid rgba(240,225,200,.45);font-size:13px;letter-spacing:1px;text-shadow:0 1px 2px #000}
 #touch .b.on{border-color:#ffd27a;background-color:rgba(60,40,10,.6)}
 #touch .b .cd{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;background:conic-gradient(rgba(0,0,0,.65) var(--p,0%),transparent 0)}
-#touch .atk{width:92px;height:92px;right:4%;bottom:7%;font-size:16px}
+#touch .atk{width:92px;height:92px;right:4%;bottom:7%;font-size:0;border:0;background:url("assets/ui/touch/attack.png") center/100% no-repeat;filter:drop-shadow(0 3px 6px rgba(0,0,0,.7))}
+#touch .atk.on{background-color:transparent;filter:drop-shadow(0 0 10px rgba(190,140,255,.9)) brightness(1.15)}
 #touch .sk,#touch .ult{background-size:cover;overflow:hidden;box-shadow:inset 0 0 0 3px rgba(8,6,14,.85),inset 0 0 10px 4px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.6)}
 #touch .sk{width:58px;height:58px}
 #touch .ult{width:64px;height:64px;border-color:#e8c060}
@@ -35,7 +36,7 @@ const CSS = `
 #touch .potion .n{position:absolute;right:-4px;bottom:-4px;min-width:18px;padding:0 3px;border-radius:8px;background:#0c0914;border:1px solid rgba(240,225,200,.5);font:600 11px/16px var(--font-title,sans-serif);text-align:center}
 #touch .potion.empty{filter:grayscale(1) brightness(.5)}
 #touch .dodge{width:56px;height:56px}
-#touch .atk.talk{border-color:#9dffb4;color:#c8ffd6;background-color:rgba(10,40,24,.6)}
+#touch .atk.talk{background-image:url("assets/ui/touch/talk.png");background-color:transparent}
 #touch .base.fixed{display:block;opacity:.7}
 #touch .small{width:42px;height:42px;font-size:16px}
 #touch .aimline{position:absolute;height:3px;background:linear-gradient(90deg,rgba(255,210,120,.9),rgba(255,210,120,0));transform-origin:0 50%;display:none;pointer-events:none}
@@ -82,7 +83,7 @@ export class TouchControls {
     const rot = document.createElement('div'); rot.id = 'rotate'; rot.textContent = 'Turn your phone sideways to play'; document.body.appendChild(rot);
     const el = this.el = document.createElement('div'); el.id = 'touch';
     el.innerHTML = `<div class="zone"></div><div class="base"></div><div class="knob"></div><div class="aimline"></div>
-      <div class="b atk" data-k="atk">ATK</div>
+      <div class="b atk" data-k="atk"></div>
       <div class="b sk" data-k="Digit1"></div><div class="b sk" data-k="Digit2"></div><div class="b sk" data-k="Digit3"></div><div class="b sk" data-k="Digit4"></div>
       <div class="b ult" data-k="Digit5"></div><div class="b q" data-k="KeyQ"></div><div class="b dodge" data-k="Space">DODGE</div>
       <div class="b small" data-k="Escape" style="left:calc(50% - 48px);top:30px">≡</div>
@@ -150,26 +151,37 @@ export class TouchControls {
     const k = b.dataset.k, inp = this.input;
     b.classList.add('on');
     if (k === 'atk' && this.canUse) { this.atkUse = true; inp.touchDown('KeyE'); return; } // talk / open / revive (hold)
-    if (k === 'atk') { inp.mouse.left = true; inp.mouse.leftPressed = true; return; }
+    if (k === 'atk') { this.atkDrag = { id: e.pointerId, x0: e.clientX, y0: e.clientY }; inp.mouse.left = true; inp.mouse.leftPressed = true; return; }
     if (/^Digit/.test(k)) { this.drag = { key: k, x0: e.clientX, y0: e.clientY, angle: null }; return; } // fires on release (tap or drag)
     if (k === 'KeyQ' && !(this.game.player && this.game.player.cls.guard)) { inp.touchDown('KeyQ'); return; }
     inp.touchDown(k);
   }
   dragMove(b, e) {
+    // ATK held + slid: attack toward the slide (turn around while swinging), aim line shown
+    if (b.dataset.k === 'atk' && this.atkDrag && e.pointerId === this.atkDrag.id && !this.atkUse) {
+      const dx = e.clientX - this.atkDrag.x0, dy = e.clientY - this.atkDrag.y0;
+      if (Math.hypot(dx, dy) < TOUCH_RULES.drag) return;
+      this.manualAim = Math.atan2(dy, dx); this.manualT = 0.25;
+      this.showAim(this.manualAim);
+      return;
+    }
     const d = this.drag;
     if (!d || d.key !== b.dataset.k) return;
     const dx = e.clientX - d.x0, dy = e.clientY - d.y0;
     if (Math.hypot(dx, dy) < TOUCH_RULES.drag) { d.angle = null; this.line.style.display = 'none'; return; }
     d.angle = Math.atan2(dy, dx);
-    // show the aim from the character's place on screen
+    this.showAim(d.angle);
+  }
+  // the aim line from the character's place on screen
+  showAim(angle) {
     const g = this.game, p = g.player, c = g.camera, r = g.renderer;
     const sx = ((p.x - c.left) * c.zoom * r.scale) / r.dpr, sy = ((p.y - 12 - c.top) * c.zoom * r.scale) / r.dpr;
-    Object.assign(this.line.style, { display: 'block', left: sx + 'px', top: sy + 'px', width: '160px', transform: `rotate(${d.angle}rad)` });
+    Object.assign(this.line.style, { display: 'block', left: sx + 'px', top: sy + 'px', width: '160px', transform: `rotate(${angle}rad)` });
   }
   release(b, e, cancel = false) {
     const k = b.dataset.k, inp = this.input;
     b.classList.remove('on');
-    if (k === 'atk') { if (this.atkUse) { this.atkUse = false; inp.touchUp('KeyE'); } inp.mouse.left = false; return; }
+    if (k === 'atk') { this.atkDrag = null; this.line.style.display = 'none'; if (this.atkUse) { this.atkUse = false; inp.touchUp('KeyE'); } inp.mouse.left = false; return; }
     if (/^Digit/.test(k)) {
       const d = this.drag; this.drag = null; this.line.style.display = 'none';
       if (cancel || !d) return;
@@ -218,7 +230,7 @@ export class TouchControls {
       const w = g.world;
       this.canUse = (!!(w && w.nearest) || !!(g.party && g.party.downedNear && g.party.downedNear(p)) || !!(g.online && g.online.revive && g.online.revive.target && g.online.revive.target(p)));
       const atk = this.el.querySelector('.atk');
-      if (atk.classList.contains('talk') !== this.canUse) { atk.classList.toggle('talk', this.canUse); atk.textContent = this.canUse ? '💬' : 'ATK'; }
+      if (atk.classList.contains('talk') !== this.canUse) { atk.classList.toggle('talk', this.canUse); }
     }
   }
   autoAim(p, g) {
