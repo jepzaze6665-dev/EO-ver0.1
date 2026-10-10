@@ -32,6 +32,8 @@ import { LOOT_TABLES } from '../data/lootTables.js';
 import { Assets } from '../core/assets.js';
 import { t as tl, tx, txBlock, getLang, nextLang, setLang } from '../i18n/i18n.js';
 import { LANG } from '../data/lang.js';
+import { SETTINGS } from '../data/settings.js';
+import { getSetting, cycleSetting } from '../core/settings.js';
 
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
@@ -981,10 +983,8 @@ export class Panels {
         <div class="np-head"><img class="np-ico" src="${UI_ICON('menu_settings')}" alt=""><div class="np-title"><b>ECLIPSE ONLINE</b><div class="np-sub">${tl('Paused')}</div></div></div>
         <div class="esc-list">
           ${[['resume', tl('Resume'), 'menu_class', ''], ['save', tl('Save'), 'menu_save', ''], ['load', tl('Load'), 'menu_save', g.save.exists() ? '' : 'disabled'],
-            ['map', tl('World Map'), 'menu_map', ''], ['party', tl('Party') + (g.online && g.online.party ? ` (${g.online.party.members.length})` : ''), 'menu_class', g.online && g.online.online ? '' : 'disabled'], ['controls', tl('Controls'), 'menu_codex', ''], ['sound', tl('Sound') + (g.audio.muted ? ' ' + tl('(muted)') : ''), 'menu_settings', ''],
-            ['layout', g.ui.hud.layout() === 'focus' ? tl('HUD: Focus (skill bar)') : tl('HUD: Classic (top-left)'), 'menu_skills', ''],
-            ['tele', tl('Warnings: {mode}', { mode: ({ all: tl('All attacks'), heavy: tl('Heavy + danger'), danger: tl('Danger only') })[telegraphView()] }), 'menu_codex', ''],
-            ['reset', tl('Reset Progress'), 'menu_quests', ''], ['lang', tl('Language: {name}', { name: LANG.names[getLang()] }), 'menu_settings', ''], ['title', tl('Title Screen'), 'menu_equipment', '']]
+            ['map', tl('World Map'), 'menu_map', ''], ['party', tl('Party') + (g.online && g.online.party ? ` (${g.online.party.members.length})` : ''), 'menu_class', g.online && g.online.online ? '' : 'disabled'], ['controls', tl('Controls'), 'menu_codex', ''], ['settings', tl('Settings'), 'menu_settings', ''],
+            ['reset', tl('Reset Progress'), 'menu_quests', ''], ['title', tl('Title Screen'), 'menu_equipment', '']]
             .map(([a, l, ic, dis]) => `<button data-a="${a}" ${dis}><img src="${UI_ICON(ic)}" alt="">${l}</button>`).join('')}
         </div>
         <div class="muted small esc-save">${g.save.info()}</div>
@@ -1005,7 +1005,7 @@ export class Panels {
         else { e.target.dataset.confirm = '1'; e.target.textContent = tl('Click again to confirm reset'); e.target.classList.add('danger'); }
       }
       if (a === 'controls') this.textPanel(tl('Controls'), controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.menu(), true);
-      if (a === 'sound') this.sound();
+      if (a === 'settings') this.settings();
       if (a === 'lang') { setLang(nextLang()); this.menu(); }
       if (a === 'tele') { const o = TELEGRAPH_VIEW.options; setTelegraphView(o[(o.indexOf(telegraphView()) + 1) % o.length]); this.menu(); }
       if (a === 'layout') { g.ui.hud.setLayout(g.ui.hud.layout() === 'focus' ? 'classic' : 'focus'); this.menu(); }
@@ -1032,7 +1032,47 @@ export class Panels {
     el.addEventListener('click', (e) => {
       const b = e.target.closest('[data-a]'); if (!b) return;
       if (b.dataset.a === 'mute') { A.setMuted(!A.muted); this.sound(); }
-      if (b.dataset.a === 'back') this.menu();
+      if (b.dataset.a === 'back') this.settings();
+    });
+  }
+  // SETTINGS (owner 2026-10-10): one place for every player option — display (shake / quality / FPS), interface (HUD,
+  // warnings, language), sound, and the touch controls on phones. Tap a row = its next choice. Rules: data/settings.js.
+  settings() {
+    const g = this.game, O = SETTINGS.options;
+    const row = (k, label, value) => `<button class="set-row" data-set="${k}"><span>${esc(label)}</span><b>${esc(value)}</b></button>`;
+    let body = '';
+    for (const gr of SETTINGS.groups) {
+      if (gr.touch && !g.touch) continue;
+      body += `<div class="pt-h">${tl(gr.title)}</div>` + gr.keys.map((k) => row(k, tl(O[k].label), tl(O[k].names[String(getSetting(k))]))).join('');
+    }
+    body += `<div class="pt-h">${tl('Interface')}</div>`
+      + row('ui:layout', tl('HUD layout'), g.ui.hud.layout() === 'focus' ? tl('Focus') : tl('Classic'))
+      + row('ui:tele', tl('Attack warnings'), ({ all: tl('All attacks'), heavy: tl('Heavy + danger'), danger: tl('Danger only') })[telegraphView()])
+      + row('ui:lang', tl('Language'), LANG.names[getLang()])
+      + row('ui:sound', tl('Sound'), g.audio.muted ? tl('(muted)') : '›');
+    const el = this.show('menu', `
+      <div class="panel menu esc-menu set-panel">
+        <div class="np-head"><img class="np-ico" src="${UI_ICON('menu_settings')}" alt=""><div class="np-title"><b>${tl('SETTINGS')}</b><div class="np-sub">${tl('Saved on this device')}</div></div></div>
+        <div class="set-list">${body}</div>
+        <div class="esc-list"><button data-set="back">${tl('Back')}</button></div>
+        <div class="keys"><span><kbd>Esc</kbd>${tl('Resume')}</span></div>
+      </div>`, 'side');
+    el.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-set]'); if (!b) return;
+      const k = b.dataset.set;
+      g.audio.sfx('ui');
+      if (k === 'back') return this.menu();
+      if (k === 'ui:sound') return this.sound();
+      if (k === 'ui:lang') setLang(nextLang());
+      else if (k === 'ui:tele') { const o = TELEGRAPH_VIEW.options; setTelegraphView(o[(o.indexOf(telegraphView()) + 1) % o.length]); }
+      else if (k === 'ui:layout') g.ui.hud.setLayout(g.ui.hud.layout() === 'focus' ? 'classic' : 'focus');
+      else {
+        cycleSetting(k);
+        if (k === 'quality') g.renderer.resize();
+        if (k === 'btnScale' && g.touch) g.touch.layout();
+        if (k === 'vibrate' && getSetting('vibrate') && navigator.vibrate) { try { navigator.vibrate(40); } catch (er) { /* ignore */ } }
+      }
+      this.settings();
     });
   }
   death() {

@@ -1,6 +1,14 @@
 // Thai UI text, keyed by the English string used in the code (src/i18n/i18n.js t()). Names of classes / bosses / skills stay transliterated.
 // Keep {param} placeholders exactly as in the English text (tools/tests/i18n.test.mjs checks it).
 export const TH_UI = {
+  // SETTINGS panel (data/settings.js)
+  'Settings': 'ตั้งค่า', 'SETTINGS': 'ตั้งค่า', 'Saved on this device': 'บันทึกในเครื่องนี้', 'HUD layout': 'รูปแบบ HUD',
+  'Focus': 'Focus', 'Classic': 'Classic', 'Attack warnings': 'วงเตือนการโจมตี', 'Language': 'ภาษา', 'Display': 'การแสดงผล',
+  'Touch controls': 'ปุ่มสัมผัส', 'Screen shake': 'จอสั่น', 'Full': 'เต็ม', 'Low': 'ต่ำ', 'Off': 'ปิด', 'On': 'เปิด',
+  'Graphics quality': 'คุณภาพกราฟิก', 'Auto': 'อัตโนมัติ', 'High': 'สูง', 'Medium': 'กลาง', 'FPS limit': 'จำกัด FPS',
+  '60': '60', '30 (battery)': '30 (ประหยัดแบต)', 'Show FPS': 'แสดง FPS', 'Button size': 'ขนาดปุ่ม', 'Normal': 'ปกติ',
+  'Large': 'ใหญ่', 'Small': 'เล็ก', 'Auto-aim': 'เล็งอัตโนมัติ', 'Off (joystick only)': 'ปิด (ตามจอยอย่างเดียว)',
+  'Vibrate when hit': 'สั่นเมื่อโดนโจมตี',
   // ---- language
   'Language: {name}': 'ภาษา: {name}',
 

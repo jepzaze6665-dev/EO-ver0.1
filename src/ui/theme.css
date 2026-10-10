@@ -657,3 +657,8 @@ html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !impo
   .rs-ok { position: sticky; bottom: 0; min-height: 48px; font-size: 16px; margin-top: auto; box-shadow: 0 -8px 12px rgba(6, 6, 10, 0.96); }
   .rs-keys { display: none; }
 }
+/* SETTINGS panel rows: label left, current choice right (tap = next) */
+.set-list { overflow-y: auto; max-height: calc(100vh - 170px); }
+.set-row { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; margin: 3px 0; padding: 9px 12px; text-align: left; font-size: 14px; }
+.set-row b { color: var(--hl); font: 600 13px var(--font-title); }
+@media (max-height: 520px) { .set-list { max-height: calc(100vh - 160px); } .set-row { min-height: 42px; } }

@@ -57,6 +57,7 @@ import { STATUSES } from '../data/statuses.js';
 import { ITEMS } from '../items/items.js';
 import { drawDebug, debugInfo } from '../ui/debugOverlay.js';
 import { OnlineSession } from '../net/onlineSession.js';
+import { getSetting } from './settings.js';
 
 const STEP = 1 / 60;
 
@@ -556,6 +557,9 @@ export class Game {
 
   // ---------------- main loop
   frame(now) {
+    // player setting: FPS limit (skip this screen refresh until the frame time is up)
+    const cap = getSetting('fpsCap');
+    if (cap && this.last && now - this.last < 1000 / cap - 2) { requestAnimationFrame((t) => this.frame(t)); return; }
     const dt = Math.min(0.1, (now - (this.last || now)) / 1000);
     this.last = now;
     this.fpsAcc += dt; this.fpsN++;
@@ -592,6 +596,7 @@ export class Game {
     const c = this.renderer.ctx;
     if (this.state === 'play') this.ui.draw(c, this.canvas.width, this.canvas.height);
     if (this.debug) this.drawDebug(c);
+    if (getSetting('showFps')) { c.save(); c.font = `600 ${Math.round(12 * this.renderer.dpr)}px sans-serif`; c.textAlign = 'right'; c.fillStyle = 'rgba(0,0,0,.6)'; c.fillText(`FPS ${this.fps}`, this.canvas.width - 7 * this.renderer.dpr, this.canvas.height - 5 * this.renderer.dpr); c.fillStyle = '#9dffb4'; c.fillText(`FPS ${this.fps}`, this.canvas.width - 8 * this.renderer.dpr, this.canvas.height - 6 * this.renderer.dpr); c.restore(); }
     requestAnimationFrame((t) => this.frame(t));
   }
 

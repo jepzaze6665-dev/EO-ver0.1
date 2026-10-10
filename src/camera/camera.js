@@ -1,4 +1,6 @@
 import { clamp, damp, rand } from '../core/math.js';
+import { getSetting } from '../core/settings.js';
+import { SETTINGS } from '../data/settings.js';
 
 // Smooth top-down follow camera with bounds, zoom punch, trauma-based shake,
 // aim look-ahead and an optional arena lock rectangle.
@@ -19,7 +21,7 @@ export class Camera {
 
   snap(x, y) { this.x = x; this.y = y; this.clampToBounds(); }
 
-  shake(amount) { this.trauma = Math.min(1, this.trauma + amount); }
+  shake(amount) { this.trauma = Math.min(1, this.trauma + amount * SETTINGS.options.shake.mult[getSetting('shake')]); } // player setting
 
   // Pixel-art rule: zoom stays an exact 1x (integer scaling only). A 'punch' is delivered
   // as a short directional screen impulse instead of a fractional zoom.

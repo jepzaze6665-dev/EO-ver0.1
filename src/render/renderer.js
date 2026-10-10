@@ -5,6 +5,8 @@ import { vnoise } from '../core/rng.js';
 import { drawSpecialProp } from './specialProps.js';
 import { drawInteractable, isAvailable } from '../exploration/interactables.js';
 import { MARKS } from '../data/marks.js';
+import { getSetting } from '../core/settings.js';
+import { SETTINGS } from '../data/settings.js';
 
 // Two-canvas pipeline:
 //  scene  — low-res pixel canvas (world, entities, VFX, lighting, fog) upscaled with nearest-neighbour
@@ -31,7 +33,8 @@ export class Renderer {
   resize() {
     // MOBILE M2: phones (coarse pointer) render at most 1.5x — 2-3x screens cost far more GPU for little gain on pixel art
     const coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
-    const dpr = Math.min(coarse ? 1.5 : 2, window.devicePixelRatio || 1);
+    const q = getSetting('quality'); // player setting: auto = 2x desktop / 1.5x phones
+    const dpr = Math.min(q === 'auto' ? (coarse ? 1.5 : 2) : SETTINGS.options.quality.dpr[q], window.devicePixelRatio || 1);
     // never 0: a hidden / minimised window reports 0x0 and drawImage() throws on empty canvases
     const W = Math.max(1, window.innerWidth), H = Math.max(1, window.innerHeight);
     this.canvas.width = Math.floor(W * dpr);

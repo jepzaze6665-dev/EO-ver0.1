@@ -11,6 +11,7 @@
 // Shown on touch devices ('(pointer: coarse)'), or with ?touch in the URL; ?notouch hides it. Hidden while a window is open.
 import { skillIconURL, itemIconURL } from './icons.js';
 import { ITEMS } from '../items/items.js';
+import { getSetting } from '../core/settings.js';
 
 export const TOUCH_RULES = { stick: 62, dead: 0.18, drag: 22, autoAim: 460 };
 
@@ -109,7 +110,7 @@ export class TouchControls {
   }
   // the skill buttons sit on an arc to the upper left of ATK (angle 0 = left of it, PI/2 = above it)
   layout() {
-    const s = Math.min(1.25, Math.max(0.8, Math.min(innerWidth, innerHeight) / 420));
+    const s = Math.min(1.25, Math.max(0.8, Math.min(innerWidth, innerHeight) / 420)) * getSetting('btnScale'); // player setting
     const atk = this.el.querySelector('.atk'), ax = innerWidth * 0.04 + 46 * s, ay = innerHeight * 0.05 + 46 * s;
     atk.style.bottom = (innerHeight * 0.05) + 'px';
     atk.style.transform = `scale(${s})`; atk.style.transformOrigin = '100% 100%';
@@ -118,6 +119,12 @@ export class TouchControls {
 // owner: buttons spaced apart (inner ring 1-4, outer ring Q / ULT / DODGE)
     put('[data-k=Digit1]', -0.1, 128); put('[data-k=Digit2]', 0.4, 128); put('[data-k=Digit3]', 0.9, 128); put('[data-k=Digit4]', 1.4, 128);
     put('[data-k=KeyQ]', 0.1, 212); put('[data-k=Digit5]', 0.6, 212); put('[data-k=Space]', 1.1, 212);
+  }
+  wireVibrate() {
+    const hook = () => this.game.events.on('damageTaken', (e) => {
+      if (e.target === this.game.player && e.amount > 0 && getSetting('vibrate') && navigator.vibrate) { try { navigator.vibrate(e.amount > this.game.player.maxHp * 0.15 ? 60 : 25); } catch (er) { /* ignore */ } }
+    });
+    hook(); this.vibBus = this.game.events;
   }
   moveStick(e) {
     const s = this.stick, R = TOUCH_RULES.stick;
@@ -169,6 +176,7 @@ export class TouchControls {
     const on = g.state === 'play' && p && !g.ui.panelOpen;
     this.el.classList.toggle('off', !on);
     if (!on) { inp.aimAngle = null; return; }
+    if (this.vibBus !== g.events) this.wireVibrate(); // the event bus is new every session; player setting: buzz when hit (Android)
     // aim: a dragged skill for a moment, else auto-aim
     if (this.manualT > 0) { this.manualT -= dt; inp.aimAngle = this.manualAim; }
     else inp.aimAngle = this.autoAim(p, g);
@@ -204,6 +212,7 @@ export class TouchControls {
   autoAim(p, g) {
     // joystick pushed: face where the thumb points; snap only to a foe inside that 50° cone (player chooses the direction)
     const mv = this.input.touchMove;
+    if (!getSetting('autoAim')) return mv && (mv.x || mv.y) ? Math.atan2(mv.y, mv.x) : p.aim; // player setting: joystick only
     if (mv && (mv.x || mv.y)) {
       const want = Math.atan2(mv.y, mv.x);
       let best = null, bd = TOUCH_RULES.autoAim;
