@@ -106,6 +106,8 @@ export const TRIGGERS = [
   'onCrit', 'onFullResource', 'onStatusApplied', 'onBossPhase',
   // I3
   'onMarksFull', 'onMarkTriggered',
+  // B4
+  'onPerfectDodge',
 ];
 
 // CONDITIONS — extra checks on an effect: { type, value } (G3: items/conditionSystem.js, one function per type)
@@ -115,4 +117,6 @@ export const CONDITIONS = ['hpBelow', 'hpAbove', 'resourceAbove', 'resourceBelow
 // EFFECTS — what an effect does (G3: items/effectSystem.js, one handler per type). Every effect needs a cooldown or
 // a duration so nothing can chain forever; `maxPerSecond` in G3 is the last safety net.
 export const EFFECT_TYPES = ['modifyStat', 'gainResource', 'reflectDamage', 'reduceCooldown', 'heal', 'barrier', 'nextHitBonus',
-  'applyStatus', 'addMark'];
+  'applyStatus', 'addMark',
+  // B4
+  'detonateStatus', 'spreadStatus', 'aftershock', 'nova', 'executeTarget'];

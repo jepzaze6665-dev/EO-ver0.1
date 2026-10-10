@@ -16,6 +16,8 @@ import { activeSetBonuses } from './setSystem.js';
 import { activeArchetypeBonuses } from './archetypeSystem.js';
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+// living foes within r px of (x, y) (World.hostiles minus breakables)
+const foesNear = (g, x, y, r) => g.world.hostiles().filter((f) => !f.isBreakable && f.status && Math.hypot(f.x - x, f.y - y) <= r);
 
 // EFFECT HANDLERS — one per effect type (data/items/rules.js EFFECT_TYPES). (fx, p, ctx, g, entry) -> true if it acted.
 export const EFFECT_HANDLERS = {
@@ -59,6 +61,60 @@ export const EFFECT_HANDLERS = {
   barrier(fx, p, ctx, g, entry) {
     if (!(fx.value > 0)) return false;
     p.status.add('shield', clamp(entry.effect.duration || 6, 0.1, L.durationMax), { amount: Math.round(p.maxHp * Math.min(fx.value, L.barrierMaxShare)), source: p, refresh: true });
+    return true;
+  },
+  // ---- Character Build B4 (build-making legendaries) ----
+  // DETONATE: a DoT status on the target bursts now: stacks × its tick damage × fx.value ticks, then is removed
+  detonateStatus(fx, p, ctx, g) {
+    const t = ctx.target, s = t && !t.dead && t.status && t.status.get(fx.status);
+    if (!s) return false;
+    const tick = s.damage || Math.max(1, ((p.stats && p.stats.atk) || 0) * 0.1);
+    const amount = Math.min(tick * (s.stacks || 1) * Math.min(fx.value || 3, L.detonateTicksMax), p.maxHp * L.burstMaxHpShare);
+    t.status.remove(fx.status);
+    g.vfx.ring(t.x, t.y, 6, 46, { life: 0.3, color: '255,80,90', width: 3 });
+    g.combat.dealDamage(p, t, { power: amount, flat: true, type: fx.dmgType || 'physical', knock: 0, itemEffect: true, color: '#ff5060' });
+    return true;
+  },
+  // SPREAD: the target's status jumps to foes within fx.radius (same stacks, its own duration)
+  spreadStatus(fx, p, ctx, g) {
+    const t = ctx.target, s = t && t.status && t.status.get(fx.status);
+    if (!s) return false;
+    let n = 0;
+    for (const f of foesNear(g, t.x, t.y, Math.min(fx.radius || 110, L.radiusMax))) {
+      if (f === t || n >= (fx.max || 4)) continue;
+      f.status.add(fx.status, Math.max(1, s.t || 3), { source: p, stacks: s.stacks || 1, damage: s.damage });
+      g.vfx.bolt ? g.vfx.bolt(t.x, t.y, f.x, f.y, { color: '255,150,60', life: 0.2 }) : 0;
+      n++;
+    }
+    return n > 0;
+  },
+  // AFTERSHOCK: a phantom strikes the same foe again fx.delay s later for fx.value × the damage of the hit
+  aftershock(fx, p, ctx, g) {
+    const t = ctx.target;
+    if (!t || t.dead || !(ctx.amount > 0) || !g.after) return false;
+    const amount = ctx.amount * Math.min(fx.value || 0.4, L.aftershockMax);
+    g.after(fx.delay || 0.6, () => {
+      if (t.dead || p.dead) return;
+      g.vfx.ring(t.x, t.y, 4, 36, { life: 0.25, color: '170,140,255', width: 2 });
+      g.combat.dealDamage(p, t, { power: amount, flat: true, type: fx.dmgType || 'shadow', knock: 0, itemEffect: true, color: '#b090ff' });
+    });
+    return true;
+  },
+  // NOVA: damage = fx.power × ATK to every foe within fx.radius of you (or of the target with at: 'target')
+  nova(fx, p, ctx, g) {
+    const c = fx.at === 'target' && ctx.target ? ctx.target : p;
+    const r = Math.min(fx.radius || 90, L.radiusMax), power = Math.min(fx.power || 1, L.novaPowerMax);
+    const list = foesNear(g, c.x, c.y, r);
+    g.vfx.ring(c.x, c.y, 8, r, { life: 0.35, color: fx.color || '255,220,140', width: 3 });
+    for (const f of list) g.combat.dealDamage(p, f, { power: ((p.stats && p.stats.atk) || 0) * power, flat: true, type: fx.dmgType || 'physical', knock: 80, itemEffect: true });
+    return list.length > 0;
+  },
+  // EXECUTE: a non-boss, non-elite foe under fx.below of its max HP dies
+  executeTarget(fx, p, ctx, g) {
+    const t = ctx.target;
+    if (!t || t.dead || t.isBoss || t.elite || !(t.maxHp > 0) || t.hp / t.maxHp >= Math.min(fx.below || 0.12, L.executeBelowMax)) return false;
+    g.vfx.text(t.x, t.y - 34, 'EXECUTED', { color: '#ff4040', size: 11 });
+    g.combat.dealDamage(p, t, { power: (t.hp + 1) * 4, flat: true, type: 'physical', knock: 0, itemEffect: true, color: '#ff4040' }); // ×4 = through armour / DEF
     return true;
   },
   // the next hit within `duration` s deals +value (Player.gearHitMult uses it up)

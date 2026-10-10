@@ -51,6 +51,8 @@ export const LOOT_TABLES = {
       { item: 'rune_red_thirst', weight: 2 }, { item: 'rune_full_moon', weight: 2 }, { item: 'rune_shadow_hunger', weight: 2 }, { item: 'charm_assassin', weight: 2 },
       { item: 'rune_comet_tail', weight: 2 }, { item: 'rune_supernova', weight: 2 }, { item: 'charm_starfocus', weight: 2 },
       { item: 'rune_second_wind', weight: 3 }, { item: 'rune_executioner', weight: 2 }, { item: 'rune_hunters_sigil', weight: 2 }, { item: 'charm_wanderer', weight: 3 },
+      // B4: pieces for the burn / summon / counter builds
+      { item: 'charm_ember', weight: 2 }, { item: 'rune_kindling', weight: 2 }, { item: 'armor_ashen_robe', weight: 1 }, { item: 'rune_echo_knot', weight: 2 }, { item: 'charm_shade_thread', weight: 2 }, { item: 'rune_riposte', weight: 2 }, { item: 'charm_duelist', weight: 2 },
     ] }] },
   // A2+ mini-bosses (data/bosses.js): the elite roll + one non-signature relic (paid once, on the first kill)
   mini_relic: { gold: [40, 60], drops: [{ item: 'hp_potion', chance: 1 }, { item: 'shadow_tonic', chance: 0.5 }],
@@ -59,6 +61,8 @@ export const LOOT_TABLES = {
       { chance: 0.25, items: [{ item: 'rune_second_wind', weight: 1 }, { item: 'rune_executioner', weight: 1 }, { item: 'charm_wanderer', weight: 1 }, { item: 'rune_full_moon', weight: 1 }, { item: 'rune_supernova', weight: 1 },
         // B3 rule runes (one worn at a time)
         { item: 'rune_blood_step', weight: 1 }, { item: 'rune_overclock', weight: 1 }, { item: 'rune_still_blade', weight: 1 }, { item: 'rune_reckless', weight: 1 }, { item: 'rune_desperation', weight: 1 }, { item: 'rune_blood_pact', weight: 1 }] },
+      // B4: build-making legendaries (rare)
+      { chance: 0.12, items: [{ item: 'relic_crimson_rupture', weight: 1 }, { item: 'core_wildfire_heart', weight: 1 }, { item: 'armor_mirrorstep', weight: 1 }, { item: 'relic_choir_shades', weight: 1 }, { item: 'armor_overflowing_ward', weight: 1 }, { item: 'core_galeblade', weight: 1 }, { item: 'relic_gamblers_eye', weight: 1 }, { item: 'relic_brand_hunt', weight: 1 }, { item: 'armor_unmoving', weight: 1 }, { item: 'core_headsman', weight: 1 }] },
     ] },
   // area bosses (data/bosses.js rewards.loot) — rolled once, on the first kill
   crystal_warden: { gold: [200, 200], drops: [{ item: 'moon_crystal', chance: 1, count: 4 }, { item: 'frost_pelt', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 4 }, { item: 'relic_warden_prism', chance: 1 }] },

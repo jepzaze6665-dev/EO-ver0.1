@@ -28,7 +28,7 @@ export const TRIGGER_TEXT = {
   onSkillCast: 'On skill cast', onSkillHit: 'On skill hit', onKill: 'On kill', onDodge: 'On dodge', onDash: 'On dash skill',
   onTaunt: 'On taunt', onBarrierCreated: 'On barrier', onResourceGain: 'On resource gain', onResourceSpend: 'On resource spend', onLowHP: 'At low HP',
   onCrit: 'On critical hit', onFullResource: 'At full resource', onStatusApplied: 'On applying a status', onBossPhase: 'On boss phase',
-  onMarksFull: 'Marks full', onMarkTriggered: 'Mark detonates',
+  onMarksFull: 'Marks full', onMarkTriggered: 'Mark detonates', onPerfectDodge: 'On Perfect Dodge',
 };
 export const TABLE_TEXT = { elite: 'Elites', mini_relic: 'Mini-bosses (A2+)', rune_knight: 'Rune Knight', amethyst_colossus: 'Amethyst Colossus', crystal_warden: 'Crystal Warden', varkharon: 'Varkharon', hollow_fang: 'Hollow Fang', grukk: 'Thornbound Elder', hoarfang: 'Hoarfang', guardian: 'Guardian', magma_beast: 'Magma Beast' };
 const sourceText = (id) => (id ? id.replace(/^boss_/, tl('Boss') + ' ').replace(/^mini_/, tl('Mini-boss') + ' ').replace(/_/g, ' ').toUpperCase() : '');

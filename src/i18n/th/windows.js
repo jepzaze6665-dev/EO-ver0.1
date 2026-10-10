@@ -156,6 +156,8 @@ export const TH_WINDOWS = {
   'On boss phase': 'เมื่อบอสเปลี่ยนเฟส',
   'Marks full': 'เมื่อรอยเต็ม',
   'Mark detonates': 'เมื่อรอยระเบิด',
+  'On Perfect Dodge': 'เมื่อ Perfect Dodge',
+  'EXECUTED': 'ปิดฉาก',
 
   // ---- skills tab
   'CD': 'คูลดาวน์',

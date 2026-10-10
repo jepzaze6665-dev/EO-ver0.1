@@ -1604,6 +1604,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   skillMods (rules last, cooldown floor ×0.4), tryDodge (HP instead of stamina). ONE rule item worn at a time (EQUIP_FAIL.oneRule).
   6 epic runes data/items/ruleRunes.js (Blood Step, Overclock, Still Blade, Reckless Oath, Desperation, Blood Pact −10% HP), drop
   from the mini_relic table (A2+ mini-bosses). No icon art yet (drawn fallback). Test gearRules.test.mjs (7).
+  Done B4 (build-making items): new generic item effects (items/effectSystem.js, limits in triggers.js EFFECT_LIMITS B4):
+  detonateStatus { status, value = ticks } · spreadStatus { status, radius, max } · aftershock { value, delay } (a phantom
+  re-hit for a share) · nova { power × ATK, radius, at: 'target'?, dmgType } · executeTarget { below } (not bosses / elites);
+  trigger onPerfectDodge. data/items/buildItems.js: one LEGENDARY per archetype (LV 25, any class): Crimson Rupture (bleed),
+  Wildfire Heart (burn + spread), Mirrorstep Mantle (counter nova), Choir of Shades (summon aftershock 45%), Overflowing Ward
+  (barrier nova), Galeblade (dash nova), Gambler's Eye (crit = cooldowns), Brand of the Hunt (mark blast), Unmoving Mountain
+  (hit = quake), Headsman's Verdict (execute < 12%) — 12% roll on mini_relic; + 7 pieces for burn / summon / counter in the
+  elite pool. Every archetype has 4+ items. Test buildItems.test.mjs (8). Gear items now ≈ 78. No icon art for B3 / B4 items.
 - NPC SPRITES (owner's GPT sheets desgin/NPC, prompts docs/npc/NPC_PROMPTS.md): `node tools/build-npcs.js [--preview]` -> assets/npcs/<art>.png
   (strip front / back / left / right / walk1 / walk2, feet pivot, ~60 px) + npcs.json -> Assets.npcs; which NPC uses which = src/data/npcArt.js
   (by NPC id; map / wanderer defs may name `art`). NPC.drawArt (faces the player on talk, walk frames toward the camera, bob otherwise);

@@ -86,6 +86,8 @@ export const TRIGGER_EVENTS = {
     ctx: (e) => ({ target: e.target, markId: e.markId }),
   },
 };
+// B4: a Perfect Dodge by the wearer (Player.onPerfectDodge emits 'perfectDodge' with the attacker; local player only)
+TRIGGER_EVENTS.onPerfectDodge = { event: 'perfectDodge', who: (e, p) => p, ctx: (e) => ({ target: e && e.team !== undefined ? e : null }) };
 export const LOW_HP_DEFAULT = 0.3;
 
 // safety limits for every item effect (effectSystem.js)
@@ -98,6 +100,8 @@ export const EFFECT_LIMITS = {
   cooldownCutMax: 10, // one cooldown cut <= 10 s
   nextHitMax: 1, // next-hit bonus <= +100%
   durationMax: 30, // temporary effects last <= 30 s
+  // B4
+  detonateTicksMax: 6, burstMaxHpShare: 3, radiusMax: 220, aftershockMax: 0.8, novaPowerMax: 3, executeBelowMax: 0.2,
   statusDurationMax: 8, // a status put on a foe by an item <= 8 s
   dotPowerMax: 0.5, // item damage-over-time per tick per stack <= 50% of the wearer's ATK
   markMax: 1, // one item effect adds <= 1 mark
