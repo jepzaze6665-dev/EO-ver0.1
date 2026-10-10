@@ -28,7 +28,8 @@ const CSS = `
 #touch .sk,#touch .ult{background-size:cover;overflow:hidden;box-shadow:inset 0 0 0 3px rgba(8,6,14,.85),inset 0 0 10px 4px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.6)}
 #touch .sk{width:58px;height:58px}
 #touch .ult{width:64px;height:64px;border-color:#e8c060}
-#touch .q{width:56px;height:56px;border-color:#b98cff}
+#touch .q{width:56px;height:56px;border-color:#b98cff;background-size:cover;box-shadow:inset 0 0 0 3px rgba(8,6,14,.85),inset 0 0 10px 4px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.6)}
+#touch .potion{width:52px;height:52px;font-size:20px;border-color:#ff8a8a}
 #touch .dodge{width:56px;height:56px}
 #touch .use{width:64px;height:64px;left:50%;bottom:calc(6% + 46px);transform:translateX(-50%);display:none;border-color:#9dffb4}
 #touch .use.show{display:flex}
@@ -79,11 +80,11 @@ export class TouchControls {
     el.innerHTML = `<div class="zone"></div><div class="base"></div><div class="knob"></div><div class="aimline"></div>
       <div class="b atk" data-k="atk">ATK</div>
       <div class="b sk" data-k="Digit1"></div><div class="b sk" data-k="Digit2"></div><div class="b sk" data-k="Digit3"></div><div class="b sk" data-k="Digit4"></div>
-      <div class="b ult" data-k="Digit5"></div><div class="b q" data-k="KeyQ">Q</div><div class="b dodge" data-k="Space">DODGE</div>
+      <div class="b ult" data-k="Digit5"></div><div class="b q" data-k="KeyQ"></div><div class="b dodge" data-k="Space">DODGE</div>
       <div class="b use" data-k="KeyE">E</div>
-      <div class="b small" data-k="Escape" style="left:calc(50% - 75px);top:30px">≡</div>
-      <div class="b small" data-k="KeyI" style="left:calc(50% - 21px);top:30px">▣</div>
-      <div class="b small" data-k="KeyR" style="left:calc(50% + 33px);top:30px">✚</div>`;
+      <div class="b small" data-k="Escape" style="left:calc(50% - 48px);top:30px">≡</div>
+      <div class="b small" data-k="KeyI" style="left:calc(50% + 6px);top:30px">▣</div>
+      <div class="b potion" data-k="KeyR">✚</div>`;
     document.body.appendChild(el);
     this.base = el.querySelector('.base'); this.knob = el.querySelector('.knob'); this.line = el.querySelector('.aimline');
     this.layout();
@@ -110,8 +111,9 @@ export class TouchControls {
     atk.style.transform = `scale(${s})`; atk.style.transformOrigin = '100% 100%';
     const put = (sel, ang, r) => { const b = this.el.querySelector(sel); b.style.right = `${ax + Math.cos(ang) * r * s - 29}px`; b.style.bottom = `${ay + Math.sin(ang) * r * s - 29}px`; b.style.transform = `scale(${s})`; };
     // a low, tight arc: every button within reach of the right thumb (owner: skills sat too high)
-    put('[data-k=Digit1]', -0.08, 106); put('[data-k=Digit2]', 0.38, 106); put('[data-k=Digit3]', 0.84, 106); put('[data-k=Digit4]', 1.30, 106);
-    put('[data-k=Digit5]', 0.62, 176); put('[data-k=KeyQ]', 0.12, 178); put('[data-k=Space]', 1.12, 176);
+// owner: buttons spaced apart (inner ring 1-4, outer ring Q / ULT / DODGE / potion)
+    put('[data-k=Digit1]', -0.1, 128); put('[data-k=Digit2]', 0.4, 128); put('[data-k=Digit3]', 0.9, 128); put('[data-k=Digit4]', 1.4, 128);
+    put('[data-k=KeyQ]', 0.1, 212); put('[data-k=Digit5]', 0.6, 212); put('[data-k=Space]', 1.1, 212); put('[data-k=KeyR]', -0.04, 292); // potion: low, left of Q
   }
   moveStick(e) {
     const s = this.stick, R = TOUCH_RULES.stick;
@@ -181,6 +183,9 @@ export class TouchControls {
         b.style.filter = locked ? 'grayscale(1) brightness(.45)' : '';
         if (cd) cd.textContent = locked ? `LV ${(s.unlock && s.unlock.classLevel) || ""}` : "";
       }
+      const q = this.el.querySelector('[data-k=KeyQ]'), sp = p.cls.special;
+      if (sp && q.dataset.sid !== sp.id) { q.dataset.sid = sp.id; q.style.backgroundImage = `url("${skillIconURL(sp)}")`; q.innerHTML = '<div class="cd"></div>'; }
+      if (sp && q.firstChild) q.firstChild.style.setProperty('--p', Math.round(p.skillSys.cooldowns.ratio(sp.id) * 100) + '%');
       const use = this.el.querySelector('.use'), w = g.world;
       use.classList.toggle('show', !!(w && w.nearest) || !!(g.party && g.party.downedNear && g.party.downedNear(p)) || !!(g.online && g.online.revive && g.online.revive.target && g.online.revive.target(p)));
     }

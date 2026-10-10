@@ -561,6 +561,8 @@ export class Game {
     this.fpsAcc += dt; this.fpsN++;
     if (this.fpsAcc > 0.5) { this.fps = Math.round(this.fpsN / this.fpsAcc); this.fpsAcc = 0; this.fpsN = 0; }
 
+    // a touch screen that slipped past wanted() / the first-touch watch: turn the controls on once the game is playing
+    if (!this.touch && this.state === 'play' && (navigator.maxTouchPoints || 0) > 0 && !/[?&]notouch\b/.test(location.search)) this.touch = new TouchControls(this);
     if (this.touch) this.touch.update(dt); // before the keys / player read the input (auto-aim, virtual keys)
     this.handleGlobalKeys();
     if (this.worldRuns()) {
