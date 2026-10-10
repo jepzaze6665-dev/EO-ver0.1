@@ -1646,7 +1646,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Skills tab "Reset skills · 💎 100", Dev Panel "+100 💎". economy.test +1.
   Item catalogue for the 23 B3 / B4 items: docs/items/ECLIPSE_ONLINE_Items_Build_B3B4.pdf (+ Thai art briefs in briefs.mjs; the
   tool got sections RULE RUNES / BUILD LEGENDARIES / BUILD PIECES, a RULE line on cards, and its own Edge profile —
-  with Edge open, headless print wrote nothing). Next: owner decides — same evolutions for the other 8 classes, diamond
+  with Edge open, headless print wrote nothing). Owner's icon art for all 23 delivered (5 sheets image-*.png in
+  desgin/ITEM/v1.0, mapped in build-item-icons SHEETS) -> 77 item icons; every gear item now has art. Next: owner decides — same evolutions for the other 8 classes, diamond
   respec currency, icon art for the 23 B3 / B4 items.
 - NPC SPRITES (owner's GPT sheets desgin/NPC, prompts docs/npc/NPC_PROMPTS.md): `node tools/build-npcs.js [--preview]` -> assets/npcs/<art>.png
   (strip front / back / left / right / walk1 / walk2, feet pivot, ~60 px) + npcs.json -> Assets.npcs; which NPC uses which = src/data/npcArt.js
