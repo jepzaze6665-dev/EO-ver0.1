@@ -12,7 +12,7 @@ export function dataPairs() {
   const out = [], add = (en, th) => { if (en && th) out.push([en, th]); };
   for (const [id, th] of Object.entries(TH_ITEMS)) {
     const d = ITEMS[id]; if (!d) continue;
-    add(d.description, th.description); add(d.desc, th.description); add(d.modText, th.modText);
+    add(d.description, th.description); add(d.desc, th.description); add(d.modText, th.modText); add(d.ruleText, th.ruleText);
     (d.effects || []).forEach((e, i) => add(e.text, (th.effects || [])[i]));
   }
   for (const [id, th] of Object.entries(TH_ARCHETYPES)) {

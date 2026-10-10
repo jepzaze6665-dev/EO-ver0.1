@@ -95,6 +95,7 @@ export const EQUIP_FAIL = {
   unknown: 'Unknown item', notGear: 'This item cannot be equipped', notOwned: 'You do not have this item',
   wrongSlot: 'It does not fit that slot', class: 'Your class cannot use this item', duplicate: 'Already equipped in another slot',
   fixed: 'This slot cannot be empty', bagFull: 'Your bag is full', level: 'Your level is too low for this item',
+  oneRule: 'Only one rule rune can be worn at a time',
 };
 
 // TRIGGERS — when an item effect may fire (G3 maps each one to a game event). onLowHP fires once per dip below the line.

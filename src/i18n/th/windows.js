@@ -47,6 +47,7 @@ export const TH_WINDOWS = {
   'All stats · sets · item effects': 'ค่าสถานะทั้งหมด · เซ็ต · เอฟเฟกต์ไอเทม',
   'SETS': 'เซ็ต',
   'BUILD': 'บิลด์',
+  'RULE — one rule rune at a time': 'กฎ — สวมรูนกฎได้ทีละชิ้น',
   'items': 'ไอเทม',
   'evolutions': 'วิวัฒนาการ',
   'No build focus yet — wear items or choose evolutions that share a style.': 'บิลด์ยังไม่มีแกนหลัก — สวมไอเทมหรือเลือกวิวัฒนาการที่อยู่สไตล์เดียวกัน',
@@ -112,6 +113,7 @@ export const TH_WINDOWS = {
   'This slot cannot be empty': 'ช่องนี้ต้องไม่ว่าง',
   'Your bag is full': 'ช่องเก็บของเต็ม',
   'Your level is too low for this item': 'เลเวลของคุณต่ำเกินไปสำหรับไอเทมนี้',
+  'Only one rule rune can be worn at a time': 'สวมรูนกฎได้ทีละชิ้นเท่านั้น',
   'Inventory full': 'ช่องเก็บของเต็ม',
 
   // ---- item tooltip

@@ -17,6 +17,7 @@ import { masteryReward } from '../progression/masterySystem.js';
 import { evolutionById, evolutionCheck, withEvolution, EVOLUTION_RULES } from '../progression/skillEvolution.js';
 import { SKILL_TREE, skillUnlockCheck } from '../data/skillTree.js';
 import { applySkillModifiers } from '../progression/skillModifiers.js';
+import { ruleHitMult, ruleTakenMult, ruleSkillMods, ruleDodgeHp } from '../items/gearRules.js';
 import { CLASS_TREE } from '../data/classTree.js';
 import { ActionRecorder } from '../combat/actionRecorder.js';
 import { evaluateBlock } from '../combat/guardSystem.js';
@@ -84,11 +85,13 @@ export class Player extends Entity {
   gearMod(type) { const eq = this.game.equipment; return eq && eq.getModifierValue ? eq.getModifierValue(type) : 0; }
   // GEAR hooks called by combat.dealDamage: damage taken × (1 - damageReduction); the pending next-hit bonus of an
   // item effect (nextHitBonus) is used up by the first real hit on a foe
-  gearDamageTakenMult() { return 1 - this.gearMod('damageReduction'); }
+  gearDamageTakenMult() { return (1 - this.gearMod('damageReduction')) * ruleTakenMult(this.gearRules ? this.gearRules() : {}); }
+  // RULE RUNES (data/items/gearRules.js): { type: params } of the worn rule item
+  gearRules() { const eq = this.game.equipment; return eq && eq.rules ? eq.rules() : {}; }
   // outgoing: magicDamage (magic damage types), counterDamage (counter strikes / foes in a Counter Window), next-hit bonus
   gearHitMult(target, opts) {
     if (!target || target.team === this.team) return 1;
-    let m = 1;
+    let m = opts.dot || !this.gearRules ? 1 : ruleHitMult(this.gearRules(), this);
     if (MAGIC_DAMAGE_TYPES.includes(opts.type)) m *= 1 + this.gearMod('magicDamage');
     if (opts.counter || (target.status && target.status.has(COUNTER_STATUS))) m *= 1 + this.gearMod('counterDamage');
     const b = this.itemNextHit;
@@ -327,7 +330,8 @@ export class Player extends Entity {
     const m = withEvolution(levelMods(skill, this.skillLevel(skill.id)), evolutionById(skill, this.skillEvolution(skill.id)));
     const r = masteryReward(this.skillMastery(skill.id));
     // + equipment / rune modifiers (items.js skillModifiers, capped in skillModifiers.js)
-    return applySkillModifiers({ ...m, cooldown: m.cooldown * r.cooldown, cost: m.cost * r.cost, skillId: skill.id }, this.mods && this.mods.skillModifiers, skill);
+    const out = applySkillModifiers({ ...m, cooldown: m.cooldown * r.cooldown, cost: m.cost * r.cost, skillId: skill.id }, this.mods && this.mods.skillModifiers, skill);
+    return ruleSkillMods(this.gearRules(), out); // rule runes last (Overclock)
   }
   skillFlag(id, flag) { const s = this.skillSys.get(id); return !!(s && this.skillMods(s).flags[flag]); }
   skillValue(id, key, dflt) { const s = this.skillSys.get(id); const v = s && this.skillMods(s).values[key]; return v ?? dflt; }
@@ -543,12 +547,15 @@ export class Player extends Entity {
     if (this.hurtT > 0 || !this.status.canMove()) return false;
     if (this.dodging || this.game.time < this.dodgeReadyAt) return false; // one dash at a time + small recovery
     if (this.action && this.action.t < (this.action.cancelAt ?? 0)) return false;
-    const cost = this.dodgeCost();
-    if (!this.resources.canAfford(STAMINA.resource, cost)) { this.game.events.emit('staminaEmpty', { entity: this, action: 'dodge' }); return false; }
+    const bloodHp = ruleDodgeHp(this.gearRules(), this); // rule rune Blood Step: HP instead of stamina
+    const cost = bloodHp ? 0 : this.dodgeCost();
+    if (bloodHp && this.hp <= 1) return false;
+    if (!bloodHp && !this.resources.canAfford(STAMINA.resource, cost)) { this.game.events.emit('staminaEmpty', { entity: this, action: 'dodge' }); return false; }
     const g = this.game, mv = g.input.moveVector();
     const ang = mv.x || mv.y ? Math.atan2(mv.y, mv.x) : this.aim;
     this.endAction(true);
-    this.resources.spend(STAMINA.resource, cost, 'dodge');
+    if (bloodHp) { this.hp = Math.max(1, this.hp - bloodHp); g.vfx.text(this.x, this.y - 40, `-${bloodHp}`, { color: '#e04050', size: 10 }); }
+    else this.resources.spend(STAMINA.resource, cost, 'dodge');
     this.beginDodge(ang);
     g.events.emit('playerDodged', { player: this });
     this.facing = ang;

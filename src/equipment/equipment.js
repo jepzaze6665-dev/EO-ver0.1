@@ -4,6 +4,7 @@ import { ModifierSet } from '../items/modifierSystem.js';
 import { activeSetBonuses } from '../items/setSystem.js';
 import { archetypePoints, activeArchetypeBonuses } from '../items/archetypeSystem.js';
 import { evolutionById } from '../progression/skillEvolution.js';
+import { rulesOf, hasRules } from '../items/gearRules.js';
 import { GEAR_SLOTS, LOADOUT_RULES, EQUIP_FAIL } from '../data/items/rules.js';
 
 const SLOT = Object.fromEntries(GEAR_SLOTS.map((s) => [s.id, s]));
@@ -60,6 +61,8 @@ export class Equipment {
     if (p && p.cls && !canClassUse(def, p.cls.id)) return { ok: false, reason: 'class' };
     if (p && !meetsLevel(def, p.level)) return { ok: false, reason: 'level' };
     if (!LOADOUT_RULES.duplicates && GEAR_SLOTS.some((s) => s.id !== to && this.slots[s.id] === id)) return { ok: false, reason: 'duplicate' };
+    // RULE RUNES (data/items/gearRules.js): one at a time
+    if (hasRules(def) && GEAR_SLOTS.some((s) => s.id !== to && hasRules(ITEMS[this.slots[s.id]]))) return { ok: false, reason: 'oneRule' };
     return { ok: true, slot: to };
   }
   // ONLINE H5a: putting gear on / taking it off does not change ownership -> quiet for the server ledger
@@ -106,6 +109,12 @@ export class Equipment {
   }
   // { id: { points, items, evolutions } } of the current build (worn items + chosen evolutions)
   archetypePoints() { return archetypePoints(this.wornIds(), this.evoArchetypes()); }
+  // rule runes worn: { type: params } (cached per slot contents)
+  rules() {
+    const key = GEAR_SLOTS.map((s) => this.slots[s.id] || '').join('|');
+    if (key !== this.rulesKey) { this.rulesCache = rulesOf(this.wornIds()); this.rulesKey = key; }
+    return this.rulesCache;
+  }
   // everything that decides the build's bonuses (slots + chosen evolutions)
   buildKey() { return GEAR_SLOTS.map((s) => this.slots[s.id] || '').join('|') + '@' + this.evoArchetypes().join(','); }
   lastErrorText() { return EQUIP_FAIL[this.lastError] || ''; }

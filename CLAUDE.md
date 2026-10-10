@@ -1597,6 +1597,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Arc execute / Warding Arc bulwark · Shadow Veil Iron Veil barrier / Fleeting Veil momentum · Phantom Edge Hunter's Edge mark /
   Keen Edge critical (+ Shadow Slash 3, Shade Step 2) = all 9 non-burn archetypes. Thai in th/classUmbral.js. archetypes.test 14.
   Checked in game (A1): bleed on hit, marks, reflex reset, Iron Veil shield.
+  Done B3 (rule runes): item field `rules: [{ type, ...params }]` + `ruleText` (tooltip "RULE" block); rule types in
+  data/items/gearRules.js (blood_dodge · overclock · stillness · reckless · desperation · blood_pact, defaults per type), handlers
+  items/gearRules.js (rulesOf / ruleHitMult / ruleTakenMult / ruleSkillMods / ruleDodgeHp / installGearRules = blood_pact
+  listener). Hooks: Player.gearRules() (Equipment.rules() cached per slots), gearHitMult (not DoT ticks), gearDamageTakenMult,
+  skillMods (rules last, cooldown floor ×0.4), tryDodge (HP instead of stamina). ONE rule item worn at a time (EQUIP_FAIL.oneRule).
+  6 epic runes data/items/ruleRunes.js (Blood Step, Overclock, Still Blade, Reckless Oath, Desperation, Blood Pact −10% HP), drop
+  from the mini_relic table (A2+ mini-bosses). No icon art yet (drawn fallback). Test gearRules.test.mjs (7).
 - NPC SPRITES (owner's GPT sheets desgin/NPC, prompts docs/npc/NPC_PROMPTS.md): `node tools/build-npcs.js [--preview]` -> assets/npcs/<art>.png
   (strip front / back / left / right / walk1 / walk2, feet pivot, ~60 px) + npcs.json -> Assets.npcs; which NPC uses which = src/data/npcArt.js
   (by NPC id; map / wanderer defs may name `art`). NPC.drawArt (faces the player on talk, walk frames toward the camera, bob otherwise);

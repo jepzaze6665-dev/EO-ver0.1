@@ -56,7 +56,9 @@ export const LOOT_TABLES = {
   mini_relic: { gold: [40, 60], drops: [{ item: 'hp_potion', chance: 1 }, { item: 'shadow_tonic', chance: 0.5 }],
     oneOf: [
       { chance: 1, items: [{ item: 'relic_heart_eclipse', weight: 1 }, { item: 'relic_bloodletter', weight: 1 }, { item: 'relic_orrery', weight: 1 }, { item: 'relic_spindle', weight: 1 }, { item: 'relic_ember_war', weight: 1 }] },
-      { chance: 0.25, items: [{ item: 'rune_second_wind', weight: 1 }, { item: 'rune_executioner', weight: 1 }, { item: 'charm_wanderer', weight: 1 }, { item: 'rune_full_moon', weight: 1 }, { item: 'rune_supernova', weight: 1 }] },
+      { chance: 0.25, items: [{ item: 'rune_second_wind', weight: 1 }, { item: 'rune_executioner', weight: 1 }, { item: 'charm_wanderer', weight: 1 }, { item: 'rune_full_moon', weight: 1 }, { item: 'rune_supernova', weight: 1 },
+        // B3 rule runes (one worn at a time)
+        { item: 'rune_blood_step', weight: 1 }, { item: 'rune_overclock', weight: 1 }, { item: 'rune_still_blade', weight: 1 }, { item: 'rune_reckless', weight: 1 }, { item: 'rune_desperation', weight: 1 }, { item: 'rune_blood_pact', weight: 1 }] },
     ] },
   // area bosses (data/bosses.js rewards.loot) — rolled once, on the first kill
   crystal_warden: { gold: [200, 200], drops: [{ item: 'moon_crystal', chance: 1, count: 4 }, { item: 'frost_pelt', chance: 1, count: 3 }, { item: 'hp_potion', chance: 1, count: 4 }, { item: 'relic_warden_prism', chance: 1 }] },

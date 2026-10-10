@@ -27,6 +27,7 @@ import { Progression } from '../progression/progression.js';
 import { ClassProgress } from '../progression/classProgress.js';
 import { MasterySystem } from '../progression/masterySystem.js';
 import { installSkillTraits } from '../progression/skillTraits.js';
+import { installGearRules } from '../items/gearRules.js';
 import { ItemEffectSystem } from '../items/effectSystem.js';
 import { ItemDebug } from '../items/itemDebug.js';
 import { DevPanel, isDevMode } from '../dev/devPanel.js';
@@ -233,6 +234,7 @@ export class Game {
     this.classProgress.switchTo(classId);
     // skill mastery XP from real use (progression/masterySystem.js, rules data/skillMastery.js)
     this.mastery = new MasterySystem(this);
+    installGearRules(this); // rule runes (Blood Pact)
     installSkillTraits(this); // generic level / evolution behaviours (echo, lifesteal, refund, reset, haste)
     // gear effects (relics / runes: trigger -> condition -> effect, items/effectSystem.js)
     this.itemEffects = new ItemEffectSystem(this);

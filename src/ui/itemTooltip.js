@@ -80,6 +80,7 @@ export function itemTooltipHTML(def, { classId = null, level = null, swap = null
     for (const e of def.effects) rows.push(`<div class="tt-effect"><span class="tt-trig">${esc(tl(TRIGGER_TEXT[e.trigger] || e.trigger))}</span> ${esc(tx(e.text))}</div>`);
     if (def.modText) rows.push(`<div class="tt-effect">${esc(tx(def.modText))}</div>`);
   }
+  if (def.ruleText) rows.push(`<div class="tt-head" style="color:#ffb060">${tl('RULE — one rule rune at a time')}</div><div class="tt-effect">${esc(tx(def.ruleText))}</div>`);
   if (def.setId && SETS[def.setId]) { // SET: pieces (worn ones lit) + bonuses (lit when on)
     const st = SETS[def.setId], pieces = setPieces(def.setId), n = pieces.filter((id) => worn.includes(id)).length;
     rows.push(`<div class="tt-head" style="color:${st.color || '#ddd'}">${tl('SET: {name} {n}/{total}', { name: esc(st.name.toUpperCase()), n, total: pieces.length })}</div>`);
