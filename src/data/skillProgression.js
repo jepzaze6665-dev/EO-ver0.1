@@ -36,6 +36,53 @@ export const SKILL_PROGRESSION = {
         { power: 1.3, flags: { reset: true }, values: { cdOnKill: 3 }, archetype: 'execute' }),
     ],
   },
+  // Character Build B2: every Umbral active has 2-3 branches, each feeding one build archetype (data/archetypes.js)
+  twin_fang: {
+    evolutions: [
+      evo('rending_fangs', 'Rending Fangs', 'Barbed fangs: every hit opens a wound that BLEEDS for 4 s. A little less upfront damage.',
+        { behavior: 'Stack bleed, then keep moving', damage: '-10% · bleed 15% ATK/s per stack', utility: 'Every hit = BLEED', resource: 'Same', cooldown: 'Same' },
+        { power: 0.9, flags: { inflict: true }, values: { inflictPower: 0.15 }, archetype: 'bleed' }),
+      evo('fang_reflex', 'Fang Reflex', 'Read and punish: a Perfect Dodge gives Twin Fang back at once, and it bites 15% harder.',
+        { behavior: 'Perfect Dodge -> Twin Fang -> Perfect Dodge...', damage: '+15%', utility: 'Perfect Dodge resets it', resource: 'Same', cooldown: '+10%' },
+        { power: 1.15, cooldown: 1.1, flags: { reflex: true }, archetype: 'counter' }),
+      evo('mirror_fangs', 'Mirror Fangs', 'A shadow copy of you repeats both fangs half a second later at 60% power.',
+        { behavior: 'Hit, step out, the copy hits again', damage: '-15%, then a 60% echo', utility: 'Delayed second strike', resource: 'Same', cooldown: 'Same' },
+        { power: 0.85, flags: { echo: true }, values: { echoPower: 0.6 }, archetype: 'summon' }),
+    ],
+  },
+  shadow_arc: {
+    evolutions: [
+      evo('crimson_arc', 'Crimson Arc', 'A wider arc that leaves every enemy it touches BLEEDING. Weaker per hit.',
+        { behavior: 'Open a whole pack', damage: '-15%', utility: '+15% area · BLEED on every hit', resource: 'Same', cooldown: 'Same' },
+        { power: 0.85, area: 1.15, flags: { inflict: true }, archetype: 'bleed' }),
+      evo('severing_arc', 'Severing Arc', 'A tight finishing arc: +70% damage on enemies below 35% HP.',
+        { behavior: 'Clean up wounded enemies', damage: '×1.7 under 35% HP', utility: '-15% area', resource: 'Same', cooldown: 'Same' },
+        { area: 0.85, flags: { execute: true }, values: { executeBelow: 0.35, executeMult: 1.7 }, archetype: 'execute' }),
+      evo('warding_arc', 'Warding Arc', 'The arc wraps you in shadow: casting it gives a shield of 10% max HP for 4 s.',
+        { behavior: 'Swing into a crowd and stay alive', damage: '-10%', utility: 'Shield 10% max HP', resource: 'Same', cooldown: '+10%' },
+        { power: 0.9, cooldown: 1.1, flags: { ward: true }, values: { wardShare: 0.1 }, archetype: 'bulwark' }),
+    ],
+  },
+  shadow_veil: {
+    evolutions: [
+      evo('iron_veil', 'Iron Veil', 'The veil hardens around you: casting it gives a shield of 15% max HP.',
+        { behavior: 'Panic button that keeps you standing', damage: 'Same', utility: 'Shield 15% max HP', resource: 'Same', cooldown: '+15%' },
+        { cooldown: 1.15, flags: { ward: true }, values: { wardShare: 0.15, wardTime: 5 }, archetype: 'barrier' }),
+      evo('fleeting_veil', 'Fleeting Veil', 'Two short veils instead of one: 2 charges, and you sprint after each.',
+        { behavior: 'Slip in and out all fight long', damage: 'Same', utility: '2 charges · haste', resource: 'Same', cooldown: '+20% per charge' },
+        { charges: 1, cooldown: 1.2, flags: { haste: true }, values: { hasteMult: 1.3 }, archetype: 'momentum' }),
+    ],
+  },
+  phantom_edge: {
+    evolutions: [
+      evo('hunters_edge', "Hunter's Edge", 'The thrown edge brands its prey: its hits add a Shadow Mark.',
+        { behavior: 'Mark from range, then close in', damage: '-10%', utility: 'Hit = +1 Mark', resource: 'Same', cooldown: 'Same' },
+        { power: 0.9, flags: { marking: true }, archetype: 'mark' }),
+      evo('keen_edge', 'Keen Edge', 'A thinner, crueller edge: +25% critical chance on its hits.',
+        { behavior: 'Fish for crits from range', damage: 'Same', utility: '+25% crit chance', resource: 'Same', cooldown: '+10%' },
+        { cooldown: 1.1, flags: { keen: true }, values: { critBonus: 0.25 }, archetype: 'critical' }),
+    ],
+  },
 
   // ======================= ASTRAL WEAVER (Class 1)
   star_needle: {

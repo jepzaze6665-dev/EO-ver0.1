@@ -25,6 +25,12 @@ export function applySkillMods(o, sizeKeys) {
   if (m.power !== 1 && Number.isFinite(o.power)) o.power *= m.power;
   if (m.area !== 1) for (const k of sizeKeys) if (Number.isFinite(o[k])) o[k] *= m.area;
   if (m.values && m.values.poiseMult && Number.isFinite(o.stagger)) o.stagger *= m.values.poiseMult; // trait: poise break
+  if (m.values && m.values.critBonus) o.critBonus = (o.critBonus || 0) + m.values.critBonus; // trait: keen
+  // trait: execute — × executeMult on foes below executeBelow of their max HP (skillTraits.js)
+  if (m.values && m.values.executeBelow > 0 && m.values.executeMult > 1) {
+    const f = o.powerFor, base = o.power, below = m.values.executeBelow, mult = m.values.executeMult;
+    o.powerFor = (t, h) => (f ? f(t, h) : base) * (t && t.maxHp > 0 && t.hp / t.maxHp < below ? mult : 1);
+  }
   return o;
 }
 

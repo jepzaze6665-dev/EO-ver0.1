@@ -11,6 +11,8 @@ import { itemArchetypes, archetypePoints, activeArchetypeBonuses, archetypeSumma
 import { CLASSES } from '../../src/skills/classes.js';
 import { evolutionsOf } from '../../src/progression/skillEvolution.js';
 import { TH_ARCHETYPES } from '../../src/i18n/th/archetypes.js';
+import { applySkillMods } from '../../src/combat/combat.js';
+import { installSkillTraits } from '../../src/progression/skillTraits.js';
 
 let pass = 0, fail = 0;
 const test = (name, fn) => { try { fn(); pass++; console.log('  ✓', name); } catch (e) { fail++; console.log('  ✗', name, '\n     ', e.message); } };
@@ -88,6 +90,45 @@ test('evolution change rebuilds the modifiers (build key)', () => {
   evos.shade_step = 'twin_shade';
   ok(g.equipment.buildKey() !== k1, 'key changes');
   eq(g.equipment.archetypePoints().momentum.points, ARCHETYPE_RULES.evolutionPoints);
+});
+
+console.log('B2: Umbral evolutions + build traits');
+test('every Umbral Sword active skill has 2+ evolutions on 2+ different archetypes', () => {
+  for (const s of CLASSES.umbral_sword.skills.filter((x) => x && x.type === 'active')) {
+    const evs = evolutionsOf(s);
+    ok(evs.length >= 2, `${s.id}: ${evs.length}`);
+    ok(new Set(evs.map((e) => e.archetype)).size >= 2, `${s.id}: one archetype only`);
+  }
+});
+test('Umbral evolutions cover 7+ archetypes', () => {
+  const a = new Set(CLASSES.umbral_sword.skills.filter(Boolean).flatMap((s) => evolutionsOf(s).map((e) => e.archetype)));
+  ok(a.size >= 7, [...a].join());
+});
+test('execute + keen: applySkillMods scales power on low-HP foes and adds crit', () => {
+  const owner = { castMods: { skillId: 'x', power: 1, area: 1, flags: {}, values: { executeBelow: 0.35, executeMult: 1.7, critBonus: 0.25 } } };
+  const o = applySkillMods({ owner, power: 2 }, ['r']);
+  eq(o.powerFor({ hp: 10, maxHp: 100 }), 3.4, 'wounded');
+  eq(o.powerFor({ hp: 90, maxHp: 100 }), 2, 'healthy');
+  eq(o.critBonus, 0.25, 'crit');
+});
+test('inflict / marking / ward / reflex run from the skill events', () => {
+  const ev = new EventBus(), mods = { flags: { inflict: true, marking: true, ward: true, reflex: true }, values: {} };
+  const statuses = [], cd = { s1: 5 };
+  const p = { maxHp: 200, stats: { atk: 20 }, markId: 'shadow', marks: 0, addMark(n) { this.marks += n; }, heal() {}, gainResource() {},
+    status: { add: (id, t, d) => statuses.push(['self', id, d.amount]) },
+    skillSys: { get: () => ({ id: 's1' }), skills: { s1: { id: 's1' } }, cooldowns: { remaining: (id) => cd[id], reduce: (id, s) => { cd[id] = Math.max(0, cd[id] - s); } } },
+    skillMods: () => mods };
+  const g = { events: ev, player: p, time: 10 };
+  installSkillTraits(g);
+  const foe = { status: { add: (id, t, d) => statuses.push(['foe', id, d.damage]) } };
+  ev.emit('skillUsed', { caster: p, skillId: 's1' });
+  ev.emit('skillHit', { source: p, target: foe, amount: 30, skillId: 's1', opts: {} });
+  ev.emit('skillHit', { source: p, target: foe, amount: 30, skillId: 's1', opts: {} }); // same moment: no second mark
+  ev.emit('perfectDodge', {});
+  ok(statuses.some((s) => s[0] === 'self' && s[1] === 'shield' && s[2] === 16), 'ward shield 8% of 200: ' + JSON.stringify(statuses));
+  eq(statuses.filter((s) => s[0] === 'foe' && s[1] === 'bleed').length, 2, 'bleed per hit');
+  eq(p.marks, 1, 'one mark per markGap');
+  eq(cd.s1, 0, 'reflex reset');
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

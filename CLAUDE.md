@@ -1588,6 +1588,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   UI: character window strip (build name + chips points/next), BUILD section in the fold, item tooltip archetype chips, evolution
   cards show "+2 <archetype>". Thai th/archetypes.js. Umbral evolutions tagged (fang execute · wave mark · phantom summon · twin_shade
   momentum · shade_reaper execute). Test tools/tests/archetypes.test.mjs (10).
+  Done B2 (Umbral pilot): new GENERIC skill traits (progression/skillTraits.js, switched on by level / evolution data): flags
+  inflict (status on every foe hit; values inflict / inflictTime / inflictPower ≤ 0.5 ATK) · reflex (Perfect Dodge cuts this
+  skill's cooldown by reflexCut 99) · ward (cast = shield wardShare ≤ 20% max HP) · marking (hit = +1 class mark, once per
+  markGap 0.4 s) · execute (values executeBelow / executeMult -> combat.applySkillMods wraps powerFor) · keen (values.critBonus
+  -> hit critBonus). Every Umbral Sword active now has 2-3 evolutions, each on its own archetype (data/skillProgression.js):
+  Twin Fang Rending Fangs bleed / Fang Reflex counter / Mirror Fangs summon (echo 60%) · Shadow Arc Crimson Arc bleed / Severing
+  Arc execute / Warding Arc bulwark · Shadow Veil Iron Veil barrier / Fleeting Veil momentum · Phantom Edge Hunter's Edge mark /
+  Keen Edge critical (+ Shadow Slash 3, Shade Step 2) = all 9 non-burn archetypes. Thai in th/classUmbral.js. archetypes.test 14.
+  Checked in game (A1): bleed on hit, marks, reflex reset, Iron Veil shield.
 - NPC SPRITES (owner's GPT sheets desgin/NPC, prompts docs/npc/NPC_PROMPTS.md): `node tools/build-npcs.js [--preview]` -> assets/npcs/<art>.png
   (strip front / back / left / right / walk1 / walk2, feet pivot, ~60 px) + npcs.json -> Assets.npcs; which NPC uses which = src/data/npcArt.js
   (by NPC id; map / wanderer defs may name `art`). NPC.drawArt (faces the player on talk, walk frames toward the camera, bob otherwise);
