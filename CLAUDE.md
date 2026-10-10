@@ -1670,3 +1670,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   colours, class sprite inside, bg, PNG strip download, Copy JSON. tools/tests/proceduralFx.test.mjs.
   F2 SKIPPED (owner, after a side-by-side preview: the AI sprite VFX look better) -> game VFX stay the sprite strips; the
   procedural FX stay a Lab tool (maybe for cosmetics later). Next: F3 glow layer.
+  F3 MADE, NOT IN THE GAME YET (owner liked the preview, wants it kept aside): `src/vfx/glowLayer.js` glowMask (bright +
+  saturated pixels in a hue range -> emissive mask), makeGlowSheet (mask + 2 blurs, same layout as the sheet), drawGlow
+  (additive, heartbeat pulse). Preview docs/fx/f3_preview.html (Reaper / Oathbreaker / Stormcaller good; Warden gold
+  not found, Varkharon glows all over -> tune per sprite). To use later: `glow` data on class / boss / cosmetic + draw after
+  the body. tools/tests/glowLayer.test.mjs.

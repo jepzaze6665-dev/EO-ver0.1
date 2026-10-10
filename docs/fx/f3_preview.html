@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>F3 Preview</title>
+<!-- F3 preview for the owner: sprite as now / lit pixels found / with the glow layer + heartbeat. Not used by the game. -->
+<style>
+body { margin: 0; background: #14111d; color: #e8e0ff; font: 13px 'Segoe UI', sans-serif; padding: 12px; }
+h1 { font-size: 16px; color: #ffd96a; margin: 0 0 8px; }
+.grid { display: grid; grid-template-columns: 150px 1fr 1fr 1fr; gap: 8px; align-items: center; }
+.hd { color: #9a90b8; font-size: 12px; } .nm b { display: block; color: #fff; } .nm span { color: #9a90b8; font-size: 12px; }
+canvas { width: 100%; image-rendering: pixelated; border: 1px solid #4a3f6b; border-radius: 4px; display: block; }
+</style></head><body>
+<h1>F3 — ชั้นเรืองแสง (glow layer + จังหวะตุบ-ตุบ)</h1>
+<div class="grid" id="g"><div class="hd">ตัวอย่าง</div><div class="hd">ตอนนี้</div><div class="hd">ส่วนที่ระบบเลือกให้เรือง</div><div class="hd">ใหม่: เรืองแสง + เต้น</div></div>
+<script type="module">
+import { makeGlowSheet, drawGlow } from '../../src/vfx/glowLayer.js';
+const P = (id) => `../../assets/player/${id}/atlas.json`;
+const ROWS = [
+  { name: 'Oathbreaker', who: 'อักขระม่วงบนชุด', atlas: P('ok'), sheet: 'walk', col: 0, glow: { hue: [260, 330], minLum: 0.4, minSat: 0.45, pulse: 0.8 } },
+  { name: 'Stormcaller', who: 'สายฟ้าที่คทา', atlas: P('sm'), sheet: 'walk', col: 0, glow: { hue: [180, 250], minLum: 0.55, pulse: 0.5, rate: 1.6 } },
+  { name: 'Warden of Dawn', who: 'ทองบนโล่', atlas: P('wd'), sheet: 'walk', col: 0, glow: { hue: [35, 60], minLum: 0.55, minSat: 0.5, pulse: 0.4 } },
+  { name: 'Nightfall Reaper', who: 'ม่วงที่เคียว', atlas: P('rp'), sheet: 'walk', col: 0, glow: { hue: [250, 320], minLum: 0.4, minSat: 0.4, pulse: 0.7 } },
+  { name: 'Varkharon', who: 'บอส: ลาวาตามตัว', monster: 'varkharon', anim: 'idle', glow: { hue: [10, 50], minLum: 0.5, minSat: 0.6, pulse: 0.9, rate: 0.9, blur: 4 } },
+];
+const load = (src) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+const g = document.getElementById('g');
+const monsters = await (await fetch('../../assets/monsters/monsters.json')).json();
+for (const r of ROWS) {
+  if (r.monster) {
+    const m = monsters[r.monster]; r.img = await load('../../' + m.file);
+    const [x, y] = m.anims[r.anim][0]; r.f = { x, y, w: m.fw, h: m.fh }; r.z = 1.1;
+  } else {
+    const a = await (await fetch(r.atlas)).json(); const sh = a.sheets[r.sheet];
+    r.img = await load('../../' + sh.file); r.f = { x: r.col * sh.fw + sh.ax - 50, y: sh.ay - 105, w: 100, h: 115 }; r.z = 4;
+  }
+  r.glowSheet = makeGlowSheet(r.img, r.glow);
+  g.insertAdjacentHTML('beforeend', `<div class="nm"><b>${r.name}</b><span>${r.who}</span></div>`);
+  r.c = [0, 1, 2].map(() => { const c = document.createElement('canvas'); c.width = r.f.w * r.z; c.height = r.f.h * r.z; g.appendChild(c); const x = c.getContext('2d'); x.imageSmoothingEnabled = false; return x; });
+}
+function bg(x) { x.fillStyle = '#1c2419'; x.fillRect(0, 0, x.canvas.width, x.canvas.height); }
+function frame() {
+  const t = performance.now() / 1000;
+  for (const r of ROWS) {
+    const { x, y, w, h } = r.f, W = w * r.z, H = h * r.z;
+    bg(r.c[0]); r.c[0].drawImage(r.img, x, y, w, h, 0, 0, W, H);
+    r.c[1].fillStyle = '#000'; r.c[1].fillRect(0, 0, W, H); r.c[1].globalAlpha = 0.25; r.c[1].drawImage(r.img, x, y, w, h, 0, 0, W, H);
+    r.c[1].globalAlpha = 1; r.c[1].drawImage(r.glowSheet, x, y, w, h, 0, 0, W, H);
+    bg(r.c[2]); r.c[2].drawImage(r.img, x, y, w, h, 0, 0, W, H); drawGlow(r.c[2], r.glowSheet, x, y, w, h, 0, 0, W, H, r.glow, t);
+  }
+  setTimeout(frame, 50);
+}
+frame();
+</script></body></html>
