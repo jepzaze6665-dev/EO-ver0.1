@@ -1643,7 +1643,10 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   gains are ALWAYS undone except kind 'dev' when GameServer.devGrants (= !requirePassword: EO_DEVLOGIN / unit tests); spends
   only with kind 'respec' and ≤ the ledger; saves patched (player.diamonds); economy.grantDiamonds(playerId, n) = the hook for
   a future top-up / admin (sends econGrant ['d', n]). UI: diamonds next to gold (cur_crystal icon), evolution card "Undo · 💎 50",
-  Skills tab "Reset skills · 💎 100", Dev Panel "+100 💎". economy.test +1. Next: owner decides — same evolutions for the other 8 classes, diamond
+  Skills tab "Reset skills · 💎 100", Dev Panel "+100 💎". economy.test +1.
+  Item catalogue for the 23 B3 / B4 items: docs/items/ECLIPSE_ONLINE_Items_Build_B3B4.pdf (+ Thai art briefs in briefs.mjs; the
+  tool got sections RULE RUNES / BUILD LEGENDARIES / BUILD PIECES, a RULE line on cards, and its own Edge profile —
+  with Edge open, headless print wrote nothing). Next: owner decides — same evolutions for the other 8 classes, diamond
   respec currency, icon art for the 23 B3 / B4 items.
 - NPC SPRITES (owner's GPT sheets desgin/NPC, prompts docs/npc/NPC_PROMPTS.md): `node tools/build-npcs.js [--preview]` -> assets/npcs/<art>.png
   (strip front / back / left / right / walk1 / walk2, feet pivot, ~60 px) + npcs.json -> Assets.npcs; which NPC uses which = src/data/npcArt.js

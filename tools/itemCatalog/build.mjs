@@ -7,6 +7,7 @@
 // PDF = headless Microsoft Edge (or Chrome) "print to PDF"; if neither is found only the HTML is written.
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { spawnSync } from 'child_process';
+import { tmpdir } from 'os';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { ITEMS, RARITY_COLOR } from '../../src/items/items.js';
@@ -18,6 +19,7 @@ import { itemSources } from '../../src/loot/lootSystem.js';
 import { CLASSES } from '../../src/skills/classes.js';
 import { modifierText, classLabel, esc } from '../../src/ui/itemTooltip.js';
 import { BRIEFS } from './briefs.mjs';
+import { BUILD_ITEMS } from '../../src/data/items/buildItems.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const outDir = join(root, 'docs', 'items');
@@ -33,6 +35,7 @@ const gear = Object.values(ITEMS).filter(isGear).filter(pick);
 const keys = Object.values(ITEMS).filter((d) => d.key).filter(pick); // KEY ITEMS (not gear): only open something
 // K1: class signature weapons / armours are CLASS KIT pieces (data/classKits.js), not items — they are not in this catalogue
 const signatureOf = {};
+const BUILD_IDS = new Set(Object.keys(BUILD_ITEMS));
 const G1 = ['core_ironheart', 'core_counter', 'core_vanguard', 'armor_fortress', 'armor_guardian', 'armor_risk', 'relic_oath_mirror',
   'relic_last_bastion', 'relic_dawn_core', 'charm_heavy', 'charm_swift', 'charm_focus', 'charm_guardian', 'rune_guarding_soul',
   'rune_iron_will', 'rune_retribution', 'rune_provocation'];
@@ -43,6 +46,9 @@ const SECTIONS = [
   ['ASTRAL LINE — สายดวงดาว / เวท', (d) => line(d, 'astral_weaver')],
   ['UNIVERSAL — ทุกคลาสใช้ได้', (d) => ['armor_pathfinder', 'relic_ember_war', 'rune_second_wind', 'rune_executioner', 'rune_hunters_sigil', 'charm_wanderer'].includes(d.id)],
   ['GUARD / COUNTER / BARRIER — ชุดแรก (G1, เหมาะกับ Aegis)', (d) => G1.includes(d.id)],
+  ['RULE RUNES — รูนเปลี่ยนกติกา (B3, สวมได้ทีละชิ้น)', (d) => Array.isArray(d.rules) && d.rules.length > 0],
+  ['BUILD LEGENDARIES — Legendary ประจำแกน Build (B4)', (d) => BUILD_IDS.has(d.id) && d.rarity === 'legendary'],
+  ['BUILD PIECES — ไอเทมเสริมแกน Burn / Summon / Counter (B4)', (d) => BUILD_IDS.has(d.id)],
   ['LEGACY ACCESSORIES — ของเก่าก่อนระบบ Item', () => true],
 ];
 const used = new Set(), groups = SECTIONS.map(([title, pick]) => {
@@ -68,6 +74,7 @@ const statLines = (d) => [
   ...d.modifiers.map((m) => `<li class="${(m.type === 'resourceCost' ? m.value < 0 : m.value > 0) ? 'up' : 'down'}">${esc(modifierText(m))}</li>`),
   ...Object.entries(d.stats || {}).filter(([, v]) => v).map(([k, v]) => `<li class="up">${esc(k)} ${v > 0 ? '+' : ''}${v}</li>`),
   ...d.effects.map((e) => `<li class="fx">✦ ${esc(e.text)}</li>`),
+  ...(d.ruleText ? [`<li class="fx" style="color:#ffb060">⚖ RULE: ${esc(d.ruleText)}</li>`] : []),
   ...(d.modText ? [`<li class="fx">✦ ${esc(d.modText)}</li>`] : []),
 ].join('');
 
@@ -154,5 +161,7 @@ const browsers = ['C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
 const exe = browsers.find((b) => existsSync(b));
 if (!exe) { console.log('No Edge / Chrome found: open the HTML and print it to PDF.'); process.exit(0); }
 const pdfPath = join(outDir, updateName ? `ECLIPSE_ONLINE_Items_${updateName}.pdf` : 'ECLIPSE_ONLINE_Items.pdf');
-const r = spawnSync(exe, ['--headless', '--disable-gpu', '--no-pdf-header-footer', `--print-to-pdf=${pdfPath}`, pathToFileURL(htmlPath).href], { stdio: 'inherit', timeout: 90000 });
+// own throw-away profile: with Edge already open, a plain --headless call hands the job to that window and writes nothing
+const profile = join(tmpdir(), 'eo-catalog-pdf-' + process.pid);
+const r = spawnSync(exe, ['--headless', '--disable-gpu', '--no-pdf-header-footer', `--user-data-dir=${profile}`, `--print-to-pdf=${pdfPath}`, pathToFileURL(htmlPath).href], { stdio: 'inherit', timeout: 90000 });
 console.log(existsSync(pdfPath) ? 'PDF: ' + pdfPath : 'PDF failed (status ' + r.status + ')');
