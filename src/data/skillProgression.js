@@ -289,12 +289,88 @@ export const SKILL_PROGRESSION = {
 };
 
 // copies progression data onto the class skills (only fields a skill does not define itself)
+// ======================= Character Build: EVOLUTION KITS — one standard branch per build archetype (data/archetypes.js),
+// built only from generic skill traits (progression/skillTraits.js), so any skill of any class can take one. The texts
+// carry the skill name; their Thai is one pattern per kit (i18n/th/tags.js).
+const KIT = {
+  bleed: { pre: 'Rending', desc: (n) => `${n} opens wounds: every hit makes the foe BLEED for 4 s. 10% less damage up front.`,
+    changes: { behavior: 'Wound, then let it bleed', damage: '-10% · bleed', utility: 'Every hit = BLEED' }, f: { power: 0.9, flags: { inflict: true } } },
+  burn: { pre: 'Burning', desc: (n) => `${n} sets foes alight: every hit makes the foe BURN for 4 s. 10% less damage up front.`,
+    changes: { behavior: 'Light them up, keep moving', damage: '-10% · burn', utility: 'Every hit = BURN' },
+    f: { power: 0.9, flags: { inflict: true }, values: { inflict: 'burn', inflictPower: 0.15 } } },
+  counter: { pre: 'Reflex', desc: (n) => `Read and punish: a Perfect Dodge gives ${n} back at once, and it hits 15% harder.`,
+    changes: { behavior: 'Perfect Dodge, then strike back', damage: '+15%', utility: 'Perfect Dodge resets it', cooldown: '+10%' },
+    f: { power: 1.15, cooldown: 1.1, flags: { reflex: true } } },
+  summon: { pre: 'Echoing', desc: (n) => `A shade repeats ${n} half a second later at 60% power.`,
+    changes: { behavior: 'Cast, step away, the shade casts again', damage: '-15%, then a 60% echo', utility: 'Delayed second cast' },
+    f: { power: 0.85, flags: { echo: true }, values: { echoPower: 0.6 } } },
+  barrier: { pre: 'Warded', desc: (n) => `Casting ${n} also gives you a shield of 12% max HP for 4 s.`,
+    changes: { behavior: 'Every cast keeps you shielded', damage: '-10%', utility: 'Shield 12% max HP', cooldown: '+10%' },
+    f: { power: 0.9, cooldown: 1.1, flags: { ward: true }, values: { wardShare: 0.12 } } },
+  bulwark: { pre: 'Ironclad', desc: (n) => `${n} lands like a wall: poise damage ×1.5, and casting it gives you a shield of 8% max HP.`,
+    changes: { behavior: 'Break their footing, hold yours', utility: 'Poise ×1.5 · shield 8% max HP', cooldown: '+15%' },
+    f: { cooldown: 1.15, flags: { ward: true }, values: { wardShare: 0.08, poiseMult: 1.5 } } },
+  momentum: { pre: 'Swift', desc: (n) => `Two lighter casts of ${n} instead of one: 2 charges, and you move faster after each.`,
+    changes: { behavior: 'Cast, move, cast again', damage: '-15%', utility: '2 charges · haste', cooldown: '+20% per charge' },
+    f: { charges: 1, power: 0.85, cooldown: 1.2, flags: { haste: true } } },
+  critical: { pre: 'Keen', desc: (n) => `A crueller ${n}: +25% critical chance on its hits.`,
+    changes: { behavior: 'Fish for crits', utility: '+25% crit chance', cooldown: '+10%' }, f: { cooldown: 1.1, flags: { keen: true }, values: { critBonus: 0.25 } } },
+  execute: { pre: 'Severing', desc: (n) => `A finishing ${n}: +50% damage on foes below 35% HP.`,
+    changes: { behavior: 'Finish wounded foes', damage: '×1.5 under 35% HP', utility: '-15% area' },
+    f: { area: 0.85, flags: { execute: true }, values: { executeBelow: 0.35, executeMult: 1.5 } } },
+};
+export const EVOLUTION_KITS = KIT;
+const SAME = { damage: 'Same', utility: 'Same', resource: 'Same', cooldown: 'Same' };
+export function kitEvolution(kit, skillId, skillName) {
+  const k = KIT[kit];
+  return evo(`${skillId}_${kit}`, `${k.pre} ${skillName}`, k.desc(skillName), { ...SAME, ...k.changes },
+    { ...k.f, flags: { ...(k.f.flags || {}) }, values: { ...(k.f.values || {}) }, archetype: kit });
+}
+// which kits each skill offers (skills that already had hand-made evolutions keep them; the kits are added after)
+export const SKILL_KITS = {
+  // Astral Weaver
+  astral_thread: ['counter', 'momentum'], comet_step: ['counter', 'barrier'], thread_burst: ['summon', 'execute'],
+  // Aegis Guardian
+  guardian_slash: ['bleed', 'execute'], guardian_challenge: ['bulwark', 'counter'], holy_barrier: ['barrier', 'momentum'],
+  // Nightfall Reaper
+  phantom_reap: ['bleed', 'counter'], shadow_doppel: ['momentum', 'barrier'], nightfall_zone: ['barrier', 'counter'],
+  // Duskrunner
+  dusk_barrage: ['bleed', 'critical'], mirage_shift: ['counter', 'barrier'], silent_run: ['barrier', 'momentum'],
+  // Blade of Echoes
+  rewind_edge: ['counter', 'barrier'], crimson_memory: ['momentum', 'barrier'], last_stand: ['bulwark', 'momentum'],
+  // Warden of Dawn
+  dawn_shield: ['barrier', 'momentum'], radiant_chain: ['bulwark', 'counter'], dawn_bastion: ['barrier', 'bulwark'], guardian_march: ['bleed', 'bulwark'],
+  // Bulwark Sentinel
+  iron_bastion: ['barrier', 'counter'], absolute_provocation: ['bulwark', 'burn'], counterweight: ['execute', 'critical'], shieldwall: ['barrier', 'momentum'],
+  // Oathbreaker
+  oath_brand: ['bleed', 'critical'], ruin_chain: ['counter', 'momentum'], oath_of_ruin: ['bulwark', 'counter'],
+  // Stormcaller
+  storm_step: ['counter', 'barrier'], chain_tempest: ['burn', 'summon'], static_thread: ['counter', 'momentum'], tempest_field: ['bulwark', 'momentum'],
+  // Void Scribe
+  void_script: ['burn', 'summon'], phantom_quill: ['critical', 'momentum'], rewrite: ['barrier', 'counter'], void_chain: ['barrier', 'counter'],
+  // Lumen Oracle
+  oracles_grace: ['barrier', 'momentum'], radiant_thread: ['bulwark', 'counter'], purifying_light: ['burn', 'summon'], divine_barrier: ['momentum', 'bulwark'],
+};
+// archetype of every hand-made evolution made before the build system (S7)
+export const EVOLUTION_ARCHETYPE = {
+  twin_needle: 'momentum', piercing_star: 'execute', shield_rush: 'momentum', punishing_bash: 'bulwark', wide_harvest: 'execute',
+  grave_echo: 'summon', twin_fangs: 'momentum', executioner_fang: 'execute', forked_lash: 'momentum', thunderhead: 'execute',
+  twin_sable: 'momentum', deep_sable: 'bulwark', twin_light: 'momentum', searing_light: 'bulwark', resonant_slash: 'summon',
+  bloodied_memory: 'bulwark', twin_grace: 'momentum', swift_grace: 'barrier', battering_step: 'momentum', iron_riposte: 'bulwark',
+  penance: 'bulwark', wrath_unbound: 'summon',
+};
+
 export function applySkillProgression(classes, table = SKILL_PROGRESSION) {
   for (const cls of Object.values(classes)) {
     for (const s of [...cls.skills, cls.special].filter(Boolean)) {
       const d = table[s.id];
-      if (!d) continue;
-      for (const k of ['category', 'unlock', 'levels', 'evolutions']) if (d[k] && s[k] === undefined) s[k] = d[k];
+      if (d) for (const k of ['category', 'unlock', 'levels', 'evolutions']) if (d[k] && s[k] === undefined) s[k] = d[k];
+      for (const e of s.evolutions || []) if (!e.archetype && EVOLUTION_ARCHETYPE[e.id]) e.archetype = EVOLUTION_ARCHETYPE[e.id];
+      const kits = SKILL_KITS[s.id];
+      if (!kits) continue;
+      const list = s.evolutions ? [...s.evolutions] : [];
+      for (const kit of kits) if (!list.some((e) => e.id === `${s.id}_${kit}`)) list.push(kitEvolution(kit, s.id, s.name));
+      s.evolutions = list;
     }
   }
   return classes;

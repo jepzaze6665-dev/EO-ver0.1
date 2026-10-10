@@ -1627,7 +1627,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (cd 2.5). Result vs the A1 Guardian at LV 25, no god, 6-8 runs (damage taken is very noisy run to run): baseline 77-83 s ·
   execute 57 · summon 58 · critical 59 · mark 60 · burn 66 · bleed 71 · counter 73 · momentum 73 · bulwark 82 (−25% dmg) ·
   barrier 92 (−40% dmg). Bot plays counter / momentum / bleed worse than a human (perfect dodges, dashes, packs): human playtest.
-  CHARACTER BUILD B1-B6 COMPLETE (Umbral pilot). Next: owner decides — same evolutions for the other 8 classes, diamond
+  CHARACTER BUILD B1-B6 COMPLETE (Umbral pilot).
+  Done B7 (every class): EVOLUTION KITS in data/skillProgression.js — KIT = one standard branch per archetype (bleed, burn,
+  counter, summon, barrier, bulwark, momentum, critical, execute; generic traits only; ids '<skill>_<kit>', name '<Pre> <Skill>'),
+  SKILL_KITS = 2 kits per active skill of the other 11 classes, EVOLUTION_ARCHETYPE = archetype of the 22 older hand-made
+  evolutions; applySkillProgression appends kits / tags (idempotent). Hit-based kits (bleed / burn / summon echo / critical /
+  execute) only on skills whose own cast hits (probed in game: zones, threads, clones, links, pulls got cast-based kits
+  barrier / counter / momentum / bulwark instead). Thai = one regex per kit in th/tags.js TH_TAG_PATTERNS + fixed lines.
+  archetypes.test: every class's active skills have 2+ evolutions on 2+ real archetypes. Next: owner decides — same evolutions for the other 8 classes, diamond
   respec currency, icon art for the 23 B3 / B4 items.
 - NPC SPRITES (owner's GPT sheets desgin/NPC, prompts docs/npc/NPC_PROMPTS.md): `node tools/build-npcs.js [--preview]` -> assets/npcs/<art>.png
   (strip front / back / left / right / walk1 / walk2, feet pivot, ~60 px) + npcs.json -> Assets.npcs; which NPC uses which = src/data/npcArt.js

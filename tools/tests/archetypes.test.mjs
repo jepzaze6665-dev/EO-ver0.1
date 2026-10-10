@@ -100,6 +100,15 @@ test('every Umbral Sword active skill has 2+ evolutions on 2+ different archetyp
     ok(new Set(evs.map((e) => e.archetype)).size >= 2, `${s.id}: one archetype only`);
   }
 });
+test('EVERY class: each active skill has 2+ evolutions on 2+ archetypes, all real, ids unique', () => {
+  for (const c of Object.values(CLASSES)) for (const s of c.skills.filter((x) => x && x.type === 'active')) {
+    const evs = evolutionsOf(s);
+    ok(evs.length >= 2, `${c.id}/${s.id}: ${evs.length}`);
+    ok(evs.every((e) => ARCHETYPES[e.archetype]), `${c.id}/${s.id}: ${evs.map((e) => e.id + ':' + e.archetype)}`);
+    ok(new Set(evs.map((e) => e.archetype)).size >= 2, `${c.id}/${s.id}: one archetype`);
+    ok(new Set(evs.map((e) => e.id)).size === evs.length, `${c.id}/${s.id}: duplicate ids`);
+  }
+});
 test('Umbral evolutions cover 7+ archetypes', () => {
   const a = new Set(CLASSES.umbral_sword.skills.filter(Boolean).flatMap((s) => evolutionsOf(s).map((e) => e.archetype)));
   ok(a.size >= 7, [...a].join());
