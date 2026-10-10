@@ -306,6 +306,7 @@ export class Player extends Entity {
     const r = this.evolutionCheck(skillId, evoId);
     if (!r.ok) return r;
     g.classProgress.skill(this.cls.id, skillId).evolution = evoId;
+    if (g.equipment) g.equipment.changed(); // build archetype points may change
     g.events.emit('skillEvolved', { player: this, skillId, evolution: evoId });
     g.save.dirty = true;
     return { ok: true };
@@ -317,6 +318,7 @@ export class Player extends Entity {
     if (!e || !e.evolution) return { ok: false, reason: 'none' };
     if (rule.gold && !this.removeGold(rule.gold)) return { ok: false, reason: 'gold' };
     e.evolution = null;
+    if (this.game.equipment) this.game.equipment.changed();
     this.game.save.dirty = true;
     return { ok: true };
   }

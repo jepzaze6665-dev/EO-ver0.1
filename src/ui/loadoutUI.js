@@ -8,6 +8,7 @@ import { iconURL, itemIconURL } from './icons.js';
 import { esc, modifierText, modValue, swapPreview } from './itemTooltip.js';
 import { meetsLevel } from '../items/itemDefs.js';
 import { setSummary } from '../items/setSystem.js';
+import { archetypeSummary, buildName } from '../items/archetypeSystem.js';
 import { t as tl, tx } from '../i18n/i18n.js';
 
 const pct = (v) => `${Math.round(v * 100)}%`;
@@ -55,6 +56,18 @@ export function buildTags(eq) {
   const n = {};
   for (const s of GEAR_SLOTS) { const d = ITEMS[eq.slots[s.id]]; if (d) for (const t of d.tags) n[t] = (n[t] || 0) + 1; }
   return Object.entries(n).sort((a, b) => b[1] - a[1]);
+}
+
+// BUILD ARCHETYPES (data/archetypes.js): a chip per archetype with points (strip) or every tier (full)
+export function archetypeHTML(eq, { full = false } = {}) {
+  const rows = archetypeSummary(eq.archetypePoints());
+  if (!rows.length) return full ? `<div class="muted small">${tl('No build focus yet — wear items or choose evolutions that share a style.')}</div>` : '';
+  const chip = (r) => `<span class="arch-chip${r.focus ? ' on' : ''}" style="--ac:${r.color}" title="${esc(tx(r.tiers.map((t) => `(${t.points}) ${t.text}`).join(' · ')))}">${esc(tx(r.name))} <b>${r.points}</b>${r.next ? `<i>/${r.next}</i>` : ''}</span>`;
+  if (!full) {
+    const name = buildName(eq.archetypePoints());
+    return `<div class="arch-strip"><span class="arch-name">${name ? esc(tx(name)) : tl('BUILD')}</span>${rows.map(chip).join('')}</div>`;
+  }
+  return rows.map((r) => `<div class="lo-set"><b style="color:${r.color}">${esc(tx(r.name))} ${r.points}</b> <span class="muted small">(${tl('items')} ${r.items} · ${tl('evolutions')} ${r.evolutions})</span>${r.tiers.map((t) => `<div class="small ${t.on ? 'set-on' : 'muted'}">(${t.points}) ${esc(tx(t.text))}</div>`).join('')}</div>`).join('');
 }
 
 // worn sets: name n/total + every bonus (lit when on)

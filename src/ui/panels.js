@@ -33,6 +33,7 @@ import { Assets } from '../core/assets.js';
 import { t as tl, tx, txBlock, getLang, nextLang, setLang } from '../i18n/i18n.js';
 import { LANG } from '../data/lang.js';
 import { SETTINGS } from '../data/settings.js';
+import { ARCHETYPES, ARCHETYPE_RULES } from '../data/archetypes.js';
 import { getSetting, cycleSetting } from '../core/settings.js';
 
 
@@ -408,6 +409,7 @@ export class Panels {
           return `<div class="evo-card${chosen ? ' on' : ''}" style="border:1px solid ${chosen ? '#ff9ad0' : '#3a2f50'};border-radius:6px;padding:8px;margin:6px 0;${cur && !chosen ? 'opacity:.55' : ''}">
             <b style="color:#ff9ad0">${esc(e.name)}</b>${chosen ? ` <span class="small" style="color:#ff9ad0">${tl('CHOSEN')}</span>` : ''}
             <div class="small" style="margin:4px 0">${esc(tx(e.desc))}</div>
+            ${e.archetype && ARCHETYPES[e.archetype] ? `<div class="small"><span class="arch-chip on" style="--ac:${ARCHETYPES[e.archetype].color}">${esc(tx(ARCHETYPES[e.archetype].name))} <b>+${ARCHETYPE_RULES.evolutionPoints}</b></span></div>` : ''}
             <div class="small">${CH.filter(([k]) => e.changes && e.changes[k]).map(([k, l]) => `<div><span class="muted">${l}:</span> ${esc(tx(e.changes[k]))}</div>`).join('')}</div>
             <div class="small muted">${tl('Needs: Skill Lv {lv} · Mastery {m}', { lv: req.skillLevel || 1, m: MASTERY.names[req.masteryLevel || 0] })}</div>
             ${chosen || cur ? '' : r.ok ? `<button data-evolve="${s.id}:${e.id}">${tl('Choose {name}', { name: esc(e.name) })}</button>` : `<div class="small" style="color:#ff7070">${tl('Missing:')} ${r.missing.map((m) => esc(tx(m))).join(', ')}</div>`}

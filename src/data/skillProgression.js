@@ -30,10 +30,10 @@ export const SKILL_PROGRESSION = {
     evolutions: [
       evo('twin_shade', 'Twin Shade', 'Two shorter shadow dashes instead of one: store 2 charges and chain them, and you move faster after each.',
         { behavior: 'Double dash for dodging combos', damage: 'Same', utility: '2 charges · haste after the dash', resource: 'Same', cooldown: '+25% per charge' },
-        { charges: 1, cooldown: 1.25, flags: { haste: true } }),
+        { charges: 1, cooldown: 1.25, flags: { haste: true }, archetype: 'momentum' }),
       evo('shade_reaper', 'Shade Reaper', 'The dash becomes an execution: it cuts 30% harder, and a kill with it instantly gives most of its cooldown back.',
         { behavior: 'Chain kills through a pack', damage: '+30%', utility: 'Kill = -3 s cooldown', resource: 'Same', cooldown: 'Same' },
-        { power: 1.3, flags: { reset: true }, values: { cdOnKill: 3 } }),
+        { power: 1.3, flags: { reset: true }, values: { cdOnKill: 3 }, archetype: 'execute' }),
     ],
   },
 

@@ -9,6 +9,8 @@ import { CLASSES } from '../skills/classes.js';
 import { itemSources } from '../loot/lootSystem.js';
 import { SETS } from '../data/items/sets.js';
 import { setPieces, activeSetBonuses } from '../items/setSystem.js';
+import { itemArchetypes } from '../items/archetypeSystem.js';
+import { ARCHETYPES } from '../data/archetypes.js';
 import { t as tl, tx } from '../i18n/i18n.js';
 import '../i18n/dataText.js'; // item / set / status Thai texts (registered for tx)
 
@@ -84,6 +86,8 @@ export function itemTooltipHTML(def, { classId = null, level = null, swap = null
     rows.push(`<div class="tt-src">${pieces.map((id) => `<span class="${worn.includes(id) ? 'set-on' : ''}">${esc(ITEMS[id].name)}</span>`).join(' · ')}</div>`);
     for (const b of st.bonuses) rows.push(`<div class="tt-mod ${n >= b.pieces ? 'good' : 'muted'}">(${b.pieces}) ${esc(tx(b.text))}</div>`);
   }
+  const arch = itemArchetypes(def);
+  if (arch.length) rows.push(`<div class="tt-tags">${arch.map((a) => `<span class="arch-chip on" style="--ac:${ARCHETYPES[a].color}">${esc(tx(ARCHETYPES[a].name))} +1</span>`).join('')}</div>`);
   if (def.tags && def.tags.length) rows.push(`<div class="tt-tags">${def.tags.map((t) => `<span>${esc(t.toUpperCase())}</span>`).join('')}</div>`);
   if (isGear(def) && !def.allowedClasses.includes(ANY_CLASS)) {
     const ok = classId && canClassUse(def, classId);

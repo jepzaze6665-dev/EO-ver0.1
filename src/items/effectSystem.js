@@ -13,6 +13,7 @@ import { checkCondition } from './conditionSystem.js';
 import { TRIGGER_EVENTS, LOW_HP_DEFAULT, EFFECT_LIMITS as L } from '../data/items/triggers.js';
 import { GEAR_SLOTS } from '../data/items/rules.js';
 import { activeSetBonuses } from './setSystem.js';
+import { activeArchetypeBonuses } from './archetypeSystem.js';
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
@@ -45,7 +46,7 @@ export const EFFECT_HANDLERS = {
     if (!(s > 0)) return false;
     let n = 0;
     for (const sk of Object.values(p.skillSys.skills)) {
-      if (fx.skillId ? sk.id !== fx.skillId : fx.tag ? !(sk.tags || []).includes(fx.tag) : false) continue;
+      if (fx.all ? false : fx.skillId ? sk.id !== fx.skillId : fx.tag ? !(sk.tags || []).includes(fx.tag) : true) continue;
       if (p.skillSys.cooldowns.remaining(sk.id) > 0) { p.skillSys.cooldowns.reduce(sk.id, s); n++; }
     }
     return n > 0;
@@ -102,7 +103,7 @@ export class ItemEffectSystem {
   // index of the worn effects, rebuilt only when the worn items changed
   index() {
     const eq = this.game.equipment;
-    const key = GEAR_SLOTS.map((s) => eq.slots[s.id] || '').join('|');
+    const key = eq.buildKey ? eq.buildKey() : GEAR_SLOTS.map((s) => eq.slots[s.id] || '').join('|');
     if (key === this.key) return this.byTrigger;
     this.byTrigger = {};
     for (const s of GEAR_SLOTS) {
@@ -116,6 +117,12 @@ export class ItemEffectSystem {
     for (const a of activeSetBonuses(eq.wornIds())) {
       (a.bonus.effects || []).forEach((effect, i) => {
         (this.byTrigger[effect.trigger] ||= []).push({ key: `${a.key}#${i}`, itemId: null, setId: a.setId, slot: null, trigger: effect.trigger, effect, name: a.set.name + ' (set)', color: a.set.color });
+      });
+    }
+    // archetype tier effects (data/archetypes.js) — on while the build has the points
+    if (eq.archetypePoints) for (const a of activeArchetypeBonuses(eq.archetypePoints())) {
+      (a.tier.effects || []).forEach((effect, i) => {
+        (this.byTrigger[effect.trigger] ||= []).push({ key: `${a.key}#${i}`, itemId: null, archetype: a.id, slot: null, trigger: effect.trigger, effect, name: a.arch.name + ' (build)', color: a.arch.color });
       });
     }
     // buffs of items no longer worn end now

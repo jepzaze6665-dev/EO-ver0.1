@@ -1575,6 +1575,19 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   skill tags and the generic level lines (patterns); names of skills / attacks / resources / phases stay English; shown via tx in the Skills tab,
   skill tooltip, class select, Class tab, codex, HUD ready text; i18n.test T5 walks CLASSES / CLASS_TREE / BOSSES / MONSTERS).
   THAI TRANSLATION COMPLETE (T1-T6). New content: add its Thai to the matching th/*.js file — i18n.test fails otherwise.
+- **Current: CHARACTER BUILD** (owner 2026-10-10: fun + varied builds; half items / half skills; respec costs DIAMONDS (premium
+  currency, not built yet); any class may play any archetype; pilot on Umbral Sword first; item target ~120-150 total, add per
+  archetype). Phases B1 archetypes · B2 evolutions for every skill · B3 rule-changing runes · B4 build-making legendaries · B5 build
+  presets + summary · B6 bot build compare. Done B1: `src/data/archetypes.js` (10: bleed burn counter summon barrier momentum
+  critical mark bulwark execute; `tags` = item tags that count, `tiers` [{ points 3 / 5, modifiers?, effects?, text }]) +
+  `src/items/archetypeSystem.js` (pure: itemArchetypes (item `archetypes` list overrides its tags), archetypePoints(worn ids,
+  evolution archetypes) = 1 per item + ARCHETYPE_RULES.evolutionPoints 2 per chosen evolution with `archetype`, activeArchetypeBonuses,
+  archetypeSummary, buildName, archetypeProblems). Equipment.evoArchetypes / archetypePoints / buildKey (slots + evolutions = cache
+  key of the ModifierSet and the effect index); tier modifiers join the item ModifierSet, tier effects are indexed by
+  ItemEffectSystem (name '<X> (build)'). evolveSkill / revertEvolution call equipment.changed(). effect reduceCooldown `all: true`.
+  UI: character window strip (build name + chips points/next), BUILD section in the fold, item tooltip archetype chips, evolution
+  cards show "+2 <archetype>". Thai th/archetypes.js. Umbral evolutions tagged (fang execute · wave mark · phantom summon · twin_shade
+  momentum · shade_reaper execute). Test tools/tests/archetypes.test.mjs (10).
 - NPC SPRITES (owner's GPT sheets desgin/NPC, prompts docs/npc/NPC_PROMPTS.md): `node tools/build-npcs.js [--preview]` -> assets/npcs/<art>.png
   (strip front / back / left / right / walk1 / walk2, feet pivot, ~60 px) + npcs.json -> Assets.npcs; which NPC uses which = src/data/npcArt.js
   (by NPC id; map / wanderer defs may name `art`). NPC.drawArt (faces the player on talk, walk frames toward the camera, bob otherwise);

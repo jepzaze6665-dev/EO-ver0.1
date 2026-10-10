@@ -2,6 +2,8 @@ import { ITEMS } from '../items/items.js';
 import { isGear, canClassUse, meetsLevel } from '../items/itemDefs.js';
 import { ModifierSet } from '../items/modifierSystem.js';
 import { activeSetBonuses } from '../items/setSystem.js';
+import { archetypePoints, activeArchetypeBonuses } from '../items/archetypeSystem.js';
+import { evolutionById } from '../progression/skillEvolution.js';
 import { GEAR_SLOTS, LOADOUT_RULES, EQUIP_FAIL } from '../data/items/rules.js';
 
 const SLOT = Object.fromEntries(GEAR_SLOTS.map((s) => [s.id, s]));
@@ -91,6 +93,21 @@ export class Equipment {
   }
   // item ids worn right now (set counts, UI)
   wornIds() { return GEAR_SLOTS.map((s) => this.slots[s.id]).filter(Boolean); }
+  // BUILD ARCHETYPES (data/archetypes.js): archetype ids of the wearer's chosen skill evolutions (`archetype` field)
+  evoArchetypes() {
+    const p = this.game.player;
+    if (!p || !p.skillSys || !p.skillEvolution) return [];
+    const out = [];
+    for (const sk of Object.values(p.skillSys.skills)) {
+      const evo = evolutionById(sk, p.skillEvolution(sk.id));
+      if (evo && evo.archetype) out.push(evo.archetype);
+    }
+    return out;
+  }
+  // { id: { points, items, evolutions } } of the current build (worn items + chosen evolutions)
+  archetypePoints() { return archetypePoints(this.wornIds(), this.evoArchetypes()); }
+  // everything that decides the build's bonuses (slots + chosen evolutions)
+  buildKey() { return GEAR_SLOTS.map((s) => this.slots[s.id] || '').join('|') + '@' + this.evoArchetypes().join(','); }
   lastErrorText() { return EQUIP_FAIL[this.lastError] || ''; }
   // takes off everything the class may not use (after a class change). Fixed slots keep their item.
   enforceClass(classId) { const E = this.game.online && this.game.online.econ; return E ? E.quiet(() => this.enforceNow(classId)) : this.enforceNow(classId); } // gear moves to the bag: still yours
@@ -110,7 +127,7 @@ export class Equipment {
   }
   // the ModifierSet of the worn items, rebuilt only when the slot contents changed (also after direct `slots` writes)
   itemModifiers() {
-    const key = GEAR_SLOTS.map((s) => this.slots[s.id] || '').join('|') + '#' + this.tempVersion;
+    const key = this.buildKey() + '#' + this.tempVersion;
     if (key !== this.modKey) {
       this.modifiers.clear();
       for (const s of GEAR_SLOTS) {
@@ -119,6 +136,8 @@ export class Equipment {
       }
       // SET BONUSES (data/items/sets.js): their modifiers join the same set, so the same caps apply
       for (const a of activeSetBonuses(this.wornIds())) for (const m of a.bonus.modifiers || []) this.modifiers.addModifier(a.key, m);
+      // ARCHETYPE TIERS (data/archetypes.js): same set, same caps
+      for (const a of activeArchetypeBonuses(this.archetypePoints())) for (const m of a.tier.modifiers || []) this.modifiers.addModifier(a.key, m);
       for (const [source, m] of this.temp) this.modifiers.addModifier(source, m);
       this.modKey = key;
     }

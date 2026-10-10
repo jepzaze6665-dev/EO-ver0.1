@@ -9,7 +9,7 @@ import { ITEMS, RARITY_COLOR } from '../items/items.js';
 import { GEAR_SLOTS } from '../data/items/rules.js';
 import { itemIconURL } from './icons.js';
 import { esc } from './itemTooltip.js';
-import { finalStatRows, setsHTML } from './loadoutUI.js';
+import { finalStatRows, setsHTML, archetypeHTML } from './loadoutUI.js';
 import { expToNext } from '../progression/experience.js';
 import { meetsLevel } from '../items/itemDefs.js';
 import { t as tl, tx } from '../i18n/i18n.js';
@@ -89,7 +89,8 @@ export function equipmentTabHTML(g, state, itemDetail) {
         <div class="cw-keys">${keyStats}</div>
       </div>
     </div>
-    <details class="cw-more"><summary>${tl('All stats · sets · item effects')}</summary><div class="cw-all">${allStats}</div><h4>${tl('SETS')}</h4>${setsHTML(eq)}${effectsHTML(g)}</details>
+    ${archetypeHTML(eq)}
+    <details class="cw-more"><summary>${tl('All stats · sets · item effects')}</summary><div class="cw-all">${allStats}</div><h4>${tl('BUILD')}</h4>${archetypeHTML(eq, { full: true })}<h4>${tl('SETS')}</h4>${setsHTML(eq)}${effectsHTML(g)}</details>
     <div class="cw-bagbar">
       ${pick ? `<span class="cw-picking">${tl('Choose:')} <b>${esc(tl(pick.label))}</b></span>${unequip}<button data-pick="${pick.id}">${tl('Cancel')}</button>`
         : `<div class="cw-filters">${BAG_FILTERS.map((x) => `<button data-filter="${x.id}" class="${x.id === f.id ? 'on' : ''}" title="${tl(x.label)}"><img src="${UI_ICON(x.icon)}" alt="${tl(x.label)}"></button>`).join('')}</div>`}

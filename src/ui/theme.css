@@ -679,3 +679,11 @@ html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !impo
 .ts-char.empty { opacity: 0.8; }
 .ts-del { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); margin: 0; padding: 4px 10px; min-width: 36px; font-size: 13px; background: rgba(0, 0, 0, 0.4); }
 @media (max-height: 520px) { .ts-chars { width: 100%; gap: 6px; margin: 0; } .ts-char { min-height: 54px; padding: 5px 12px; } .ts-char img, .ts-char .ts-plus { width: 40px; height: 40px; } }
+
+/* BUILD ARCHETYPES (Character Build B1): chips per archetype (ui/loadoutUI.js archetypeHTML) */
+.arch-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 6px 0; }
+.arch-name { font-family: var(--font-title); font-size: 12px; letter-spacing: .08em; color: var(--hl, #e8d8b0); margin-right: 4px; }
+.arch-chip { display: inline-block; padding: 1px 7px; border-radius: 9px; font-size: 11px; color: var(--ac, #ccc);
+  border: 1px solid color-mix(in srgb, var(--ac, #ccc) 45%, transparent); background: rgba(0,0,0,.25); opacity: .7; }
+.arch-chip.on { opacity: 1; background: color-mix(in srgb, var(--ac, #ccc) 16%, rgba(0,0,0,.3)); }
+.arch-chip i { font-style: normal; opacity: .6; }
