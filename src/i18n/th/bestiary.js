@@ -40,6 +40,13 @@ export const TH_BESTIARY = {
   'Yeti of the Frozen Cave': 'เยติแห่งถ้ำเยือกแข็ง',
   'Lord of the Magma Rift': 'เจ้าแห่ง Magma Rift',
   'the Sealed Cinder King': 'ราชันย์เถ้าถ่านที่ถูกผนึก',
+  // class-change shadow duels (data/shadowDuels.js)
+  'Nightfall, turned against you': 'รัตติกาลที่หันคมมาหาเจ้า',
+  'Reach the last chapter of the class trial': 'ไปให้ถึงบทสุดท้ายของบททดสอบคลาส',
+  'It moves the way you will': 'มันเคลื่อนไหวอย่างที่เจ้าจะเป็น',
+  'The dark gathers — keep moving': 'ความมืดรวมตัว — อย่าหยุดเคลื่อนที่',
+  'Read the scythe · dodge late, not early · leave the dark zone': 'อ่านเคียวให้ออก · หลบช้า อย่าหลบเร็ว · ออกจากเขตมืด',
+  'YOUR SHADOW FALLS': 'เงาของเจ้าล้มลงแล้ว',
   'Last Warden of Asteria': 'ผู้พิทักษ์คนสุดท้ายแห่ง Asteria',
   'The Winter Alpha': 'จ่าฝูงแห่งเหมันต์',
   'Heart of the Crystal Caverns': 'หัวใจแห่ง Crystal Caverns',

@@ -14,6 +14,7 @@ import { FIELD_B2 } from './fieldB2.js';
 import { CRYSTAL_HEART } from './crystalHeart.js';
 import { FIELD_B3 } from './fieldB3.js';
 import { SUMMIT } from './summit.js';
+import { PROVING_GROUND } from './provingGround.js';
 
 // Every playable map. Order = region priority when a tile of one grid could match two maps.
 //   City 1 Lumina Village -> A1 Whispering Forest (+ arena) -> A2 Ancient Valley (+ Magma Rift) -> A3 Rune Citadel (+ Sanctum) -> City 2 Asteria City
@@ -29,5 +30,5 @@ import { SUMMIT } from './summit.js';
 //   corruptedMonsters (true | { minTy, maxTy }) / monsterMods [{ zones, mod }]: how hard spawns are, by part of the map
 //   mechanics  : [{ type, ...options }] the map's signature mechanics (world/mapMechanics.js, types in world/mechanics/)
 //   exits / spawn / region / content: see maps/luminaVillage.js
-export const MAPS = [LUMINA_VILLAGE, FIELD_A1, MAJOR_BOSS_ARENA, VALEHAVEN, FIELD_A2, MAGMA_RIFT, CINDER_THRONE, FIELD_A3, SANCTUM, CITY2, FIELD_B1, FROST_ARENA_MAP, FIELD_B2, CRYSTAL_HEART, FIELD_B3, SUMMIT];
+export const MAPS = [LUMINA_VILLAGE, FIELD_A1, MAJOR_BOSS_ARENA, VALEHAVEN, FIELD_A2, MAGMA_RIFT, CINDER_THRONE, FIELD_A3, SANCTUM, CITY2, FIELD_B1, FROST_ARENA_MAP, FIELD_B2, CRYSTAL_HEART, FIELD_B3, SUMMIT, PROVING_GROUND];
 export const START_MAP = 'lumina';

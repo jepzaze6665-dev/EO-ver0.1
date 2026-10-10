@@ -2,6 +2,8 @@
 // react to what the player has discovered and to the World State change.
 
 import { PILGRIM_TRIALS } from '../data/wanderers.js';
+import { CLASS_MASTERS } from '../data/classMasters.js';
+import { CLASS_TREE, TRIALS, trialChapters } from '../data/classTree.js';
 
 export const LORE = {
   camp_journal: {
@@ -107,7 +109,26 @@ export const LORE = {
 };
 
 // returns { lines:[...], options:[{label, action}] }
+// CLASS MASTER (Quest Q2, data/classMasters.js): offers the class-change quest of its line; built from data only
+function lineOf(classId) { let c = classId; while (CLASS_TREE[c] && CLASS_TREE[c].parent) c = CLASS_TREE[c].parent; return c; }
+export function masterDialogue(m, g) {
+  const p = g.player, pr = g.progression, bye = { label: 'Farewell', action: 'close' };
+  if (lineOf(p.cls.id) !== m.line) return { lines: [...m.greet, ...m.other], options: [bye] };
+  if (p.cls.id !== m.line) return { lines: [...m.after], options: [bye] };
+  // a trial of this line in progress: where it stands
+  for (const [id, t] of Object.entries(pr.trials)) {
+    if (t.state !== 'active' || CLASS_TREE[t.node].parent !== m.line) continue;
+    const c = trialChapters(TRIALS[id])[t.step || 0];
+    return { lines: [...m.greet.slice(0, 1), `${TRIALS[id].title}: ${(c && c.text) || ''}`], options: [{ label: 'Abandon this path', action: 'abandon:' + id }, bye] };
+  }
+  const paths = pr.paths().filter((x) => !x.unlocked && x.trial && x.trial.state !== 'passed');
+  const ready = paths.filter((x) => x.ready);
+  if (!ready.length) return { lines: [...m.greet, ...m.early], options: [bye] };
+  return { lines: [...m.greet, ...m.ready], options: [...ready.map((x) => ({ label: 'Walk the path of ' + x.node.name, action: 'trial:' + x.node.id })), bye] };
+}
+
 export function dialogueFor(id, g) {
+  if (CLASS_MASTERS[id]) return masterDialogue(CLASS_MASTERS[id], g);
   const f = g.world.state.flags, q = g.quests;
   const restored = f.guardianDefeated;
   switch (id) {

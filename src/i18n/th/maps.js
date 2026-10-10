@@ -5,6 +5,10 @@ export const TH_MAPS = {
   // ---- map subtitles / prompts / locks
   'City 1 · Safe Zone': 'เมือง 1 · เขตปลอดภัย',
   'Secret City · Hidden Valley · Safe Zone': 'เมืองลับ · หุบเขาที่ซ่อนอยู่ · เขตปลอดภัย',
+  'Valehaven · Class Trial': 'Valehaven · บททดสอบคลาส',
+  'The ring answers only to a trial’s last test': 'ลานนี้เปิดรับเฉพาะบทสุดท้ายของบททดสอบคลาส',
+  'Your shadow waits in the ring.\nIt knows every move you have not learned yet.\n\nStep into the ring?': 'เงาของเจ้ารออยู่กลางลาน\nมันรู้ทุกท่าที่เจ้ายังไม่ได้เรียน\n\nก้าวเข้าสู่ลานหรือไม่?',
+  'Valehaven · face the shadow of who you will become': 'Valehaven · เผชิญเงาของตัวตนที่เจ้ากำลังจะเป็น',
   'Read Route Sign': 'อ่านป้ายเส้นทาง',
   "Read Hunter's Notice": 'อ่านประกาศนักล่า',
   'Read Warning': 'อ่านคำเตือน',

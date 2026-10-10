@@ -353,7 +353,7 @@ export function reaperChecks(g) {
   g.progression.unlock('nightfall_reaper'); g.combat.lastCombatTime = -99;
   const r = g.changeClass('nightfall_reaper');
   const np = g.player;
-  ok('Class change Umbral Sword -> Nightfall Reaper', r.ok && np.cls.id === 'nightfall_reaper' && np.sprites.preset === 'rp' && np.primaryResource === 'nightfall_gauge' && g.equipment.slots.weapon === 'reaper_scythe', `${np.cls.id} ${np.sprites.preset} ${g.equipment.slots.weapon}`);
+  ok('Class change Umbral Sword -> Nightfall Reaper', r.ok && np.cls.id === 'nightfall_reaper' && np.sprites.preset === 'rp' && np.primaryResource === 'nightfall_gauge', `${np.cls.id} ${np.sprites.preset}`); // (no class weapon item since the class kit was removed)
   releaseInput(g);
   return rows;
 }

@@ -29,7 +29,7 @@ test('every effect a live boss names exists; every mechanic type is known', () =
   }
 });
 test('every live boss has something of its own (a signature mechanic or its own fight code)', () => {
-  for (const b of liveBosses()) if (b.type !== 'mini') ok(b.impl !== 'area' || (b.mechanics || []).length, `${b.id}: no signature mechanic`);
+  for (const b of liveBosses()) if (b.type !== 'mini' && b.type !== 'trial') ok(b.impl !== 'area' || (b.mechanics || []).length, `${b.id}: no signature mechanic`);
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

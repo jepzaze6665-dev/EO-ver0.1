@@ -315,6 +315,15 @@ export class Panels {
     const g = this.game;
     if (a === 'close') return this.close();
     if (a.startsWith('quest:')) { this.close(); g.quests.accept(a.slice(6), { npc: this.dialogueNpc }); return; }
+    // class masters (Quest Q2): begin a class-change quest here — speaking to the master is its first chapter
+    if (a.startsWith('trial:')) {
+      this.close();
+      const r = g.progression.startTrial(a.slice(6));
+      if (!r.ok) g.ui.toast(r.reason === 'busy' ? tl('Finish your current trial first') : tl('Requirements not met'), 1.2);
+      else { const n = this.dialogueNpc; g.progression.onChapterEvent('talk', (c) => c.npc === n); }
+      return;
+    }
+    if (a.startsWith('abandon:')) { this.close(); g.progression.abandonTrial(a.slice(8)); return; }
     if (a === 'shop') return this.shop();
     if (a === 'smith') return this.smith();
     if (a === 'controls') return this.textPanel(tl('Controls'), controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), null, true);
@@ -462,7 +471,7 @@ export class Panels {
         const t = x.trial;
         if (!t) return '';
         if (x.unlocked || t.state === 'passed') return `<div class="trial passed">✦ ${esc(tx(t.def.title))} — ${tl('PASSED')}</div>`;
-        if (t.state === 'active') return `<div class="trial active"><b>${esc(tx(t.def.title))}</b>${t.objectives.map((o) => reqRow({ met: o.have >= o.count, label: tx(CLASS_COUNTERS[o.counter].label), have: Math.max(0, o.have), need: o.count })).join('')}<button data-abandon="${t.id}">${tl('Abandon trial')}</button></div>`;
+        if (t.state === 'active') return `<div class="trial active"><b>${esc(tx(t.def.title))}</b>${t.chapters.length > 1 ? t.chapters.map((c, i) => `<div class="small ${c.done ? 'muted' : ''}">${c.done ? '✓' : c.current ? '▸' : '•'} ${tl('Chapter')} ${i + 1}: ${esc(tx(c.text || ''))}</div>`).join('') : ''}${t.objectives.map((o) => reqRow({ met: o.have >= o.count, label: tx(CLASS_COUNTERS[o.counter].label), have: Math.max(0, o.have), need: o.count })).join('')}<button data-abandon="${t.id}">${tl('Abandon trial')}</button></div>`;
         return `<div class="trial"><b>${esc(tx(t.def.title))}</b>${t.def.objectives.map((o) => `<div class="muted small">• ${tx(CLASS_COUNTERS[o.counter].label)} ×${o.count}</div>`).join('')}<button data-trial="${x.node.id}" ${x.ready ? '' : 'disabled'}>${x.ready ? tl('Begin trial') : tl('Requirements not met')}</button></div>`;
       };
 

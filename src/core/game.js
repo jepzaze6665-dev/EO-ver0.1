@@ -199,6 +199,8 @@ export class Game {
     if (!this.spriteCache[key]) this.spriteCache[key] = new PlayerSprites(key, cls.anims, cls.theme && cls.theme.ghost);
     return this.spriteCache[key];
   }
+  // a class's sprites by class id (shadow duels draw the new class: data/shadowDuels.js look.player)
+  spritesForClass(classId) { return CLASSES[classId] ? this.spritesFor(CLASSES[classId]) : null; }
 
   setupSession(classId = this.classId) {
     if (!CLASSES[classId]) { console.warn(`Unknown class "${classId}", using ${DEFAULT_CLASS}`); classId = DEFAULT_CLASS; }

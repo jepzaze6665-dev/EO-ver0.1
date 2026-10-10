@@ -14,8 +14,9 @@ SKILL_TREE.unlockAll = true;
 export function downBoss(g, id) {
   const first = g.worldProgress.defeatBoss(id);
   g.bosses.runKills.add(id);
-  if (!g._testDownBosses) {
-    g._testDownBosses = new Set();
+  // the event bus is new every session (newGame): register the listener again for each one
+  if (!g._testDownBosses || g._testDownBus !== g.events) {
+    g._testDownBosses = new Set(); g._testDownBus = g.events;
     g.events.on('mapEntered', () => { for (const b of g._testDownBosses) if (g.worldProgress.isBossDefeated(b)) g.bosses.runKills.add(b); });
   }
   g._testDownBosses.add(id);
@@ -1305,6 +1306,7 @@ export function cityCheck(g, classId = 'umbral_sword') {
   // save / load on the city grid
   const pos = [p.x, p.y];
   g.saveGame(); g.world.changeMap('lumina'); g.simulate(0.3); const loaded = g.loadGame(); // (newGame would delete the save)
+  downBoss(g, 'boss_a3'); // the load made a new session: the Rune Knight is down in this run again (road open)
   ok('Save / load in the city (grid asteria, same spot)', loaded && g.world.mapId === 'city2' && g.world.gridId === 'asteria' && Math.hypot(g.player.x - pos[0], g.player.y - pos[1]) < 40, `map=${g.world.mapId}`);
   // back out: the south road returns to the Sanctum
   const w2 = g.world;
@@ -1412,7 +1414,7 @@ export function b1BossCheck(g, classId = 'umbral_sword', { god = true, level = 1
   goto(g, 142, 119);
   for (let k = 0; k < 10 && w.mapId !== 'frost_arena'; k++) walk(g, 'KeyS', 0.35);
   const enc = g.bosses.get('boss_b1');
-  ok('Frost Arena = its own boss-arena map up the stairs · quest steps · Hoarfang waits', w.mapId === 'frost_arena' && w.mapDef.type === 'boss_arena' && q.active.eastern_road && q.active.eastern_road.done.cross && q.active.eastern_road.done.arena && enc.state === 'idle', `map=${w.mapId} ${enc.state} ${JSON.stringify(q.active.eastern_road && q.active.eastern_road.done)}`);
+  ok('Frost Arena = its own boss-arena map up the stairs · crossroads found · Hoarfang waits', w.mapId === 'frost_arena' && w.mapDef.type === 'boss_arena' && w.state.flags.b1Crossroads && enc.state === 'idle', `map=${w.mapId} ${enc.state}`);
   p.setLevel(level); p.hp = p.maxHp; g.inventory.add('hp_potion', 5, true);
   for (let k = 0; k < 12 && enc.state !== 'engaged'; k++) walk(g, 'KeyS', 0.35);
   ok('Engaged: exits sealed, camera held on the arena', enc.state === 'engaged' && !!g.camera.lock && w.mapDef.exits.every((x) => !w.transitions.isOpen(x)), enc.state);
@@ -2537,4 +2539,45 @@ export async function randomEventCheck(g, classId = 'umbral_sword') {
   const pass = R.every((r) => r[1]);
   console.table(R.map(([step, p2, d]) => ({ step, pass: p2 ? 'PASS' : 'FAIL', detail: String(d).slice(0, 80) })));
   return { pass, R };
+}
+
+// ---------------- QUEST REWORK Q2: a class-change quest end to end (master in Valehaven -> counters -> shadow duel)
+export function classQuestCheck(g, { classId = 'umbral_sword', node = 'nightfall_reaper', god = true, level = 30, seconds = 300 } = {}) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  g.newGame(classId);
+  const pr = g.progression, p = g.player, trial = 'trial_' + node;
+  p.setLevel(level); p.hp = p.maxHp;
+  // meet the class records the node asks for (the old requirement counters)
+  for (const r of pr.paths().find((x) => x.node.id === node).node.requirements || []) if (r.type === 'counter') pr.records[classId] = { ...(pr.records[classId] || {}), [r.counter]: 999 };
+  downBoss(g, 'boss_a1');
+  g.world.changeMap('valehaven'); g.simulate(2);
+  ok('Valehaven: the line master is here', g.world.interactables.some((i) => i.id === 'npc_master_umbral'));
+  ok('The Proving Ground is sealed before the duel', !g.world.state.flags.provingOpen);
+  use(g, 'npc_master_umbral');
+  const d = g.ui.panels.current;
+  const opt = g.ui.panels.dialogueAction && d ? null : null;
+  g.ui.panels.dialogueAction('trial:' + node);
+  const t = pr.trials[trial];
+  ok('Master starts the class quest; chapter 1 (talk) done at once', t && t.state === 'active' && t.step === 1, JSON.stringify(t));
+  for (const o of pr.trialView(trial).objectives) pr.bump(classId, o.counter, o.count);
+  ok('Counters met -> duel chapter: shadow called, ring open', t.step === 2 && g.world.state.flags['duel_' + node] && g.world.state.flags.provingOpen, `step=${t.step}`);
+  g.world.transitions.autoConfirm = true;
+  goto(g, 44, 16);
+  for (let k = 0; k < 10 && g.world.mapId !== 'proving'; k++) walk(g, 'KeyD', 0.3);
+  const enc = g.bosses.get('shadow_' + node);
+  g.simulate(0.5);
+  ok('Proving Ground entered · the shadow is there', g.world.mapId === 'proving' && (enc.state === 'idle' || enc.state === 'engaged'), `map=${g.world.mapId} ${enc.state}`);
+  p.hp = p.maxHp; g.inventory.add('hp_potion', 5, true);
+  for (let k = 0; k < 12 && enc.state !== 'engaged'; k++) walk(g, 'KeyD', 0.3);
+  ok('Duel engaged', enc.state === 'engaged', enc.state);
+  const e = enc.entity, moves = new Set();
+  let tt = 0;
+  for (; tt < seconds && enc.state !== 'defeated' && !p.dead; tt += 0.5) g.simulate(0.5, (gg, i) => { bot(gg, i, { god }); if (e.curMove) moves.add(e.curMove.id); });
+  releaseInput(g); g.simulate(3);
+  ok('Shadow defeated', enc.state === 'defeated', `${enc.state} t=${tt}s hp=${Math.round(e.hp)}/${e.maxHp} playerDead=${p.dead}`);
+  ok('Moves used', moves.size >= 3, [...moves].join(','));
+  ok('Trial passed · class unlocked · shadow flag cleared', t.state === 'passed' && pr.unlocked.includes(node) && !g.world.state.flags['duel_' + node]);
+  ok('The shadow is drawn with the class sprites', !!e.playerArt);
+  R.time = tt;
+  return R;
 }

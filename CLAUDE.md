@@ -1698,3 +1698,21 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   unknown quest ids are dropped on load. Kept: whispers (Elder Maren's A1 story quest), valley, depths. Pacing (one clear):
   A 10 / 21 / 30 -> LV 32 · B 14 / 26 / 37 -> LV 39 (same as before). Tests moved to flags; routeA 26 · playthrough 17 ·
   checklist 31 · b2 / b3 7 · a2Boss 12 · b2Boss 10. cityCheck "South road back to the Sanctum" fails BEFORE Q1 too (old bug).
+  Q1b: whispers cut too (Elder Maren = flags elderMet / elderThanked; its EXP + gold -> Guardian 1525 EXP / 400 G).
+  Done Q2 (generic class quest): TRIALS may carry `chapters` (data/classTree.js trialChapters: talk { npc } · counters (the
+  trial objectives, counted from that chapter) · item { item, count } · boss { boss }); progression.js keeps trial `step`,
+  enterChapter / onChapterEvent (npcTalked / itemCollected / bossDefeated) / passTrial; a boss chapter sets flags
+  duel_<class> + provingOpen, cleared when the trial ends. CLASS MASTERS = data/classMasters.js (line, lines) + Valehaven NPCs
+  (content.npcs) -> narrative.js masterDialogue (generic): 'trial:<node>' starts the quest (talk chapter done at once),
+  'abandon:<trial>'. THE PROVING GROUND = map `proving` (maps/provingGround.js, zone Z.PROVING 21 = Valehaven's east end, ruin
+  ring r 7 with 4 crystal braziers, carved in maps/ruins.js buildValley; entry = Valehaven exit proving_ring, requires flag
+  provingOpen, confirm). SHADOW DUELS = data/shadowDuels.js shadowDuel(classId, spec) -> BOSSES (type 'trial': no rewards,
+  appear = flag duel_<class>, HUD label CLASS TRIAL, callout YOUR SHADOW FALLS); AreaBoss look.player = drawn with that
+  class's player sprites (game.spritesForClass), darkened + violet rim, move `anim` = class animation names. First data:
+  Reaper (trial_nightfall_reaper chapters talk master_umbral -> counters -> shadow_nightfall_reaper; 16000 HP, arc / reap /
+  late-3rd triple / zone leap). Class tab lists the chapters. `T.classQuestCheck(g, { node, god, level })` 10/10; no god LV 30
+  Umbral bot WIN 77-81 s (40-75% HP left). Not yet (Q3): item chapter + relic interactable + economy kind, "try a new-class
+  skill" in the counters chapter, Duskrunner / Blade of Echoes data, hint NPCs in Lumina / City 2.
+  Test fixes found on the way: testkit downBoss re-registers its listener per event bus (newGame / loadGame make a new bus;
+  mapTour lost the road bosses after entering a city); reaperChecks no longer expects the removed class weapon item.
+  cityCheck "South road back to the Sanctum" still fails (old, not quest-related).

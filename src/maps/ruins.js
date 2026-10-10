@@ -174,12 +174,20 @@ export function buildValley(b) {
   b.rect(31, 2, 41, 6, T.RUIN);
   b.rect(30, 1, 42, 1, T.RUIN_WALL);
   b.subRect(8, 1, 63, 29, va);
+  // (Proving Ground floor: painted before the edge trees so they line the ring instead of standing in it)
+  b.zoneRect(47, 6, 63, 26, Z.PROVING);
+  b.subRect(47, 6, 63, 26, m.addSubArea({ name: 'The Proving Ground', zone: Z.PROVING }));
+  b.disc(55, 16, 7, T.RUIN, { noise: 0.6 });
+  b.line([[46, 16], [49, 16]], 3, T.RUIN);
   b.subRect(30, 1, 42, 7, dg);
   b.edgeTrees(6, 0, 65, 30, ['tree_large_a', 'tree_large_b', 'tree_round_b', 'tree_ancient_c', 'tree_pine_a'], 0.8);
   b.scatter(12, 4, 58, 28, ['flower_a', 'flower_b', 'grass_a', 'grass_b', 'pebble_a'], 90, { on: [T.VALLEY] });
+  // THE PROVING GROUND (Q2): the valley's east end is its own map (maps/provingGround.js) — a round ruin floor where the
+  // class-change duels are fought; Valehaven's exit proving_ring (x 46) leads in
+  for (const [x, y] of [[50, 11], [60, 11], [50, 21], [60, 21]]) b.prop('brazier_crystal', x, y, { solid: true, light: { r: 50, color: '#b050ff', a: 0.55, oy: -30 } });
   // standing stones + distant landmark
-  for (const [x, y] of [[24, 10], [44, 9], [50, 22], [18, 20], [28, 24]]) b.prop('runestone', x, y, { solid: true, light: { r: 30, color: '#ffd080', a: 0.4, oy: -30 } });
-  b.prop('tree_ancient_b', 54, 13, { solid: true, scale: 1.5 });
+  for (const [x, y] of [[24, 10], [44, 9], [43, 23], [18, 20], [28, 24]]) b.prop('runestone', x, y, { solid: true, light: { r: 30, color: '#ffd080', a: 0.4, oy: -30 } });
+  b.prop('tree_ancient_b', 14, 9, { solid: true, scale: 1.5 });
   b.prop('gate_sealed', 36, 5, { solid: true, footprint: [[-1, 0], [0, 0], [1, 0]], light: { r: 80, color: '#b050ff', a: 0.7, oy: -40 } });
   b.prop('brazier_crystal', 32, 6, { solid: true, light: { r: 40, color: '#b050ff', a: 0.6, oy: -30 } });
   b.prop('brazier_crystal', 40, 6, { solid: true, light: { r: 40, color: '#b050ff', a: 0.6, oy: -30 } });

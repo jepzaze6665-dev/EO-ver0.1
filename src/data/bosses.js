@@ -1,3 +1,4 @@
+import { SHADOWS } from './shadowDuels.js';
 // BOSS DATA — every boss of the world is described here. boss/bossSystem.js reads it and never names a boss.
 // Add a boss = add an entry (+ its arena in a map file's region). No game-loop code changes.
 //
@@ -5,6 +6,7 @@
 //  type                     : 'area' (guards a field map, opens the next one) | 'major' (end of a route, unlocks a city)
 //                             'mini' (optional mini-boss: rewards once, gates nothing)
 //                             'secret' (hidden boss behind a quest chain: rewards once, gates nothing, own arena map)
+//                             'trial' (class-change duel: the shadow of the new class, data/shadowDuels.js; no rewards)
 //  impl                     : which code runs the fight — 'area' = generic data-driven boss (boss/areaBoss.js)
 //                             'guardian' = the V2 Guardian of the Forest (boss/guardian.js, its own 3-phase fight)
 //  route, map               : where it lives (map id from maps/mapRegistry.js)
@@ -35,7 +37,7 @@
 //  look.vfx                 : { charge, slash, impact, bolt, eruption, nova, phase, pool } VFX strips the fight uses
 //  arena.cameraLock         : hold the camera on the arena while engaged (like the Guardian's arena)
 //  mechanics                : [{ type, ... }] the boss's signature rules (boss/mechanics.js: overheat, lava_pools, ...)
-export const BOSS_TYPE = { AREA: 'area', MAJOR: 'major', MINI: 'mini', SECRET: 'secret' };
+export const BOSS_TYPE = { AREA: 'area', MAJOR: 'major', MINI: 'mini', SECRET: 'secret', TRIAL: 'trial' };
 
 export const BOSSES = {
   // ---------------- ROUTE A
@@ -515,6 +517,9 @@ export const BOSSES = {
     unlocks: ['city2'],
   },
 };
+
+// class-change duels (Quest Q2): the shadow of the new class, Valehaven's Proving Ground
+Object.assign(BOSSES, SHADOWS);
 
 // every boss that can actually spawn (planned entries are skipped)
 export const liveBosses = (data = BOSSES) => Object.values(data).filter((b) => !b.planned);

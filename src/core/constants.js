@@ -62,6 +62,7 @@ export const Z = {
   PEAK_SUMMIT: 18, // B3 major boss arena (the Summit Citadel)
   CINDER: 19, // A2 secret boss arena: the Cinder Throne (Varkharon, maps/cinderThrone.js)
   EMBER: 20, // A2 Quiet Hollow: the ash lair in front of the dragon door (part of map a2)
+  PROVING: 21, // Valehaven's Proving Ground: class-change duels vs the shadow of the new class (maps/provingGround.js)
 };
 
 export const ZONE_INFO = {
@@ -85,6 +86,7 @@ export const ZONE_INFO = {
   [Z.PEAK_SUMMIT]: { name: 'THE SUMMIT CITADEL', sub: 'Route B · B3 Major Boss', music: 'gate' },
   [Z.EMBER]: { name: 'QUIET HOLLOW', sub: 'The air tastes of ash', music: 'cave' },
   [Z.CINDER]: { name: 'THE CINDER THRONE', sub: 'Secret · where the Cinder King was sealed', music: 'gate' },
+  [Z.PROVING]: { name: 'THE PROVING GROUND', sub: 'Valehaven · face the shadow of who you will become', music: 'gate' },
 };
 
 export const TEAM = { PLAYER: 1, ENEMY: 2, NEUTRAL: 3 };

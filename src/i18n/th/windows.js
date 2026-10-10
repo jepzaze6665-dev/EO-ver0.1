@@ -254,6 +254,7 @@ export const TH_WINDOWS = {
   'CLASS RECORDS · {name}': 'บันทึกคลาส · {name}',
   'PASSED': 'ผ่านแล้ว',
   'Abandon trial': 'ยกเลิกบททดสอบ',
+  'Chapter': 'บทที่',
   'Begin trial': 'เริ่มบททดสอบ',
   'Finish your current trial first': 'ทำบททดสอบปัจจุบันให้เสร็จก่อน',
   'Cannot change class: {why}': 'เปลี่ยนคลาสไม่ได้: {why}',

@@ -103,11 +103,27 @@ export const CLASS_TREE = {
 };
 
 // ---- class trials: timed or untimed challenges measured with the same counters (progress since start)
+// CLASS QUEST (Quest rework Q2): a trial may name `chapters` = the steps of its quest, in order (progression.js):
+//   { type: 'talk', npc, text }               speak with that NPC (the line's master in Valehaven)
+//   { type: 'counters', text }                the trial's `objectives` (class records counted from this chapter on)
+//   { type: 'item', item, count, text }       carry the item (a relic: interactable kind 'trialRelic' gives it)
+//   { type: 'boss', boss, text }              defeat that boss (the shadow duel, data/shadowDuels.js)
+// A trial without chapters = one counters chapter (the old rule).
+export function trialChapters(def) {
+  return def && def.chapters && def.chapters.length ? def.chapters : [{ type: 'counters', text: '' }];
+}
 export const TRIALS = {
   trial_stormcaller: { title: 'Trial of the Gathering Storm', objectives: [{ counter: 'kills', count: 25 }, { counter: 'constellation_breaks', count: 8 }] },
   trial_void_scribe: { title: 'Trial of the Unwritten', objectives: [{ counter: 'thread_catches', count: 30 }] },
   trial_lumen_oracle: { title: 'Trial of the First Light', objectives: [{ counter: 'shield_absorbed', count: 200 }, { counter: 'kills', count: 10 }] },
-  trial_nightfall_reaper: { title: 'Trial of the Long Night', objectives: [{ counter: 'shadow_breaks', count: 8 }] },
+  trial_nightfall_reaper: {
+    title: 'Trial of the Long Night', objectives: [{ counter: 'shadow_breaks', count: 8 }],
+    chapters: [
+      { type: 'talk', npc: 'master_umbral', text: 'Speak with Master Ilsa in Valehaven' },
+      { type: 'counters', text: 'Prove the night answers you' },
+      { type: 'boss', boss: 'shadow_nightfall_reaper', text: 'Defeat your shadow in the Proving Ground' },
+    ],
+  },
   trial_duskrunner: { title: 'Trial of the Endless Road', objectives: [{ counter: 'perfect_dodges', count: 6 }] },
   trial_blade_of_echoes: { title: 'Trial of the Resounding Blade', objectives: [{ counter: 'ultimates', count: 3 }, { counter: 'kills', count: 20 }] },
   trial_warden_of_dawn: { title: 'Trial of the Rising Sun', objectives: [{ counter: 'barrier_absorbed', count: 250 }] },

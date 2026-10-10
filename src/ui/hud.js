@@ -32,7 +32,7 @@ const MINI_COLORS = {
 
 
 // boss-type label over the boss bar / idle boss (data/bosses.js `type`)
-const bossKind = (t) => ({ major: 'MAJOR BOSS', mini: 'MINI BOSS', secret: 'SECRET BOSS' })[t] || 'AREA BOSS';
+const bossKind = (t) => ({ major: 'MAJOR BOSS', mini: 'MINI BOSS', secret: 'SECRET BOSS', trial: 'CLASS TRIAL' })[t] || 'AREA BOSS';
 const bossKindColor = (t) => ({ major: '#ffd070', secret: '#ff9a50' })[t] || '#ffb0a0';
 
 export class HUD {

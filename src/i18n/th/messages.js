@@ -78,6 +78,7 @@ export const TH_MESSAGES = {
   'Adds join the fight': 'ลูกน้องเข้าร่วมการต่อสู้',
   'MAJOR BOSS DEFEATED': 'ปราบบอสใหญ่แล้ว',
   'SECRET BOSS DEFEATED': 'ปราบบอสลับแล้ว',
+  'CLASS TRIAL': 'บททดสอบคลาส',
   'AREA BOSS DEFEATED': 'ปราบบอสประจำพื้นที่แล้ว',
   'Core exposed — unleash your burst!': 'แกนกลางเปิดออก — ปล่อยพลังใส่เต็มที่!',
   'PHASE 2': 'เฟส 2',
@@ -165,6 +166,8 @@ export const TH_MESSAGES = {
 };
 
 export const TH_PATTERNS = [
+  ['^Walk the path of (.+)$', 'เดินบนเส้นทางของ $1'],
+  ['^(Trial of [^:]+): (.+)$', '$1: $2'],
   ['^(.+): inventory full$', '$1: ช่องเก็บของเต็ม'],
   ['^Not enough (.+)$', '$1 ไม่พอ'],
   ['^Need (.+)$', 'ต้องการ $1'],

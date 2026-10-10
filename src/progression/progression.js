@@ -1,4 +1,4 @@
-import { CLASS_TREE, CLASS_COUNTERS, TRIALS } from '../data/classTree.js';
+import { CLASS_TREE, CLASS_COUNTERS, TRIALS, trialChapters } from '../data/classTree.js';
 import { evaluate, evaluateAll, matches } from './requirements.js';
 
 // CLASS PROGRESSION — class records, class-tree requirements and class trials for the current character.
@@ -6,7 +6,11 @@ import { evaluate, evaluateAll, matches } from './requirements.js';
 //   records : per class, counters fed by bus events (CLASS_COUNTERS)
 //   trials  : { trialId: { state: 'active' | 'passed', base: { counter: valueAtStart } } }
 //   unlocked: class ids the character has earned (Class Change itself is Phase 13)
-// Events: trialStarted, trialProgress, trialPassed, classUnlocked
+// Events: trialStarted, trialChapter, trialProgress, trialPassed, classUnlocked
+// CLASS QUESTS (Quest rework Q2): a trial may be a chain of CHAPTERS (data/classTree.js trialChapters): talk to the
+// line's master · counters (the old trial objectives) · bring an item · defeat a boss (the shadow duel). The state keeps
+// `step`; counters measure from the moment their chapter begins. A 'boss' chapter sets flags duel_<class> (the shadow
+// appears) + provingOpen (the ring opens); they are cleared when the trial ends.
 export class Progression {
   constructor(game) {
     this.game = game;
@@ -23,6 +27,10 @@ export class Progression {
     const ev = this.game.events;
     const byEvent = {};
     for (const [id, c] of Object.entries(CLASS_COUNTERS)) (byEvent[c.event] ||= []).push([id, c]);
+    // chapter steps that wait for an event
+    ev.on('npcTalked', (e) => this.onChapterEvent('talk', (c) => c.npc === (e && e.id)));
+    ev.on('itemCollected', () => this.onChapterEvent('item', (c) => this.game.inventory.count(c.item) >= (c.count || 1)));
+    ev.on('bossDefeated', (e) => this.onChapterEvent('boss', (c) => c.boss === (e && e.bossId)));
     for (const [event, list] of Object.entries(byEvent)) {
       ev.on(event, (data) => {
         const p = this.game.player;
@@ -100,12 +108,40 @@ export class Progression {
   }
 
   // ---------------- trials
+  // { state, step, chapters: [{ ...chapter, done, current }], objectives (the counters of the current chapter) }
   trialView(id) {
-    const t = this.trials[id], def = TRIALS[id];
-    if (!t) return { state: 'locked' };
-    if (t.state === 'passed') return { state: 'passed', objectives: def.objectives.map((o) => ({ ...o, have: o.count })) };
-    const cls = this.game.player.cls.id;
-    return { state: 'active', objectives: def.objectives.map((o) => ({ ...o, have: Math.min(o.count, this.record(cls, o.counter) - (t.base[o.counter] || 0)) })) };
+    const t = this.trials[id], def = TRIALS[id], ch = trialChapters(def);
+    if (!t) return { state: 'locked', step: -1, chapters: ch.map((c) => ({ ...c, done: false, current: false })), objectives: [] };
+    if (t.state === 'passed') return { state: 'passed', step: ch.length, chapters: ch.map((c) => ({ ...c, done: true, current: false })), objectives: (def.objectives || []).map((o) => ({ ...o, have: o.count })) };
+    const step = t.step || 0, cur = ch[step], cls = this.game.player.cls.id;
+    const objectives = cur && cur.type === 'counters' ? (def.objectives || []).map((o) => ({ ...o, have: Math.min(o.count, this.record(cls, o.counter) - ((t.base || {})[o.counter] || 0)) })) : [];
+    return { state: 'active', step, chapters: ch.map((c, i) => ({ ...c, done: i < step, current: i === step })), objectives };
+  }
+  // the chapter the active trial is on
+  chapterOf(id) { const t = this.trials[id]; return t && t.state === 'active' ? trialChapters(TRIALS[id])[t.step || 0] : null; }
+  // start chapter i of trial id (counters: remember where they stand; boss: open the ring + call the shadow)
+  enterChapter(id, i) {
+    const g = this.game, t = this.trials[id], ch = trialChapters(TRIALS[id]);
+    t.step = i;
+    const c = ch[i];
+    if (!c) return this.passTrial(id);
+    if (c.type === 'counters') { t.base = {}; for (const o of TRIALS[id].objectives || []) t.base[o.counter] = this.record(g.player.cls.id, o.counter); }
+    if (c.type === 'boss' && g.world) { g.world.setFlag('duel_' + t.node); g.world.setFlag('provingOpen'); }
+    g.events.emit('trialChapter', { trial: id, node: t.node, step: i, chapter: c });
+    g.save.dirty = true;
+    // a chapter that is already met (item in the bag, master just spoken to) moves on at once
+    if (c.type === 'item' && g.inventory.count(c.item) >= (c.count || 1)) return this.enterChapter(id, i + 1);
+    if (c.type === 'counters') this.checkTrials();
+  }
+  onChapterEvent(type, ok) {
+    for (const id of Object.keys(this.trials)) {
+      const c = this.chapterOf(id);
+      if (c && c.type === type && ok(c)) this.enterChapter(id, (this.trials[id].step || 0) + 1);
+    }
+  }
+  clearDuel(id) {
+    const t = this.trials[id], w = this.game.world;
+    if (t && w && w.state.flags['duel_' + t.node]) w.setFlag('duel_' + t.node, false);
   }
   startTrial(nodeId) {
     const g = this.game, path = this.paths().find((x) => x.node.id === nodeId);
@@ -113,24 +149,31 @@ export class Progression {
     if (!path.ready) return { ok: false, reason: 'requirements' };
     if (this.trials[path.trial.id]) return { ok: false, reason: this.trials[path.trial.id].state };
     if (Object.values(this.trials).some((t) => t.state === 'active')) return { ok: false, reason: 'busy' }; // one trial at a time
-    const cls = g.player.cls.id, base = {};
-    for (const o of TRIALS[path.trial.id].objectives) base[o.counter] = this.record(cls, o.counter);
-    this.trials[path.trial.id] = { state: 'active', node: nodeId, base };
+    this.trials[path.trial.id] = { state: 'active', node: nodeId, base: {}, step: 0 };
     g.events.emit('trialStarted', { trial: path.trial.id, node: nodeId });
+    this.enterChapter(path.trial.id, 0);
     g.save.dirty = true;
     return { ok: true };
   }
-  abandonTrial(id) { if (this.trials[id] && this.trials[id].state === 'active') { delete this.trials[id]; this.game.save.dirty = true; } }
+  abandonTrial(id) { if (this.trials[id] && this.trials[id].state === 'active') { this.clearDuel(id); delete this.trials[id]; this.game.save.dirty = true; } }
   checkTrials() {
     for (const [id, t] of Object.entries(this.trials)) {
       if (t.state !== 'active') continue;
+      const c = this.chapterOf(id);
+      if (!c || c.type !== 'counters') continue;
       const v = this.trialView(id);
       if (!v.objectives.every((o) => o.have >= o.count)) continue;
-      t.state = 'passed';
-      const g = this.game;
-      g.events.emit('trialPassed', { trial: id, node: t.node });
-      this.unlock(t.node);
+      this.enterChapter(id, (t.step || 0) + 1);
     }
+  }
+  passTrial(id) {
+    const t = this.trials[id], g = this.game;
+    if (!t || t.state === 'passed') return;
+    this.clearDuel(id);
+    t.state = 'passed';
+    g.events.emit('trialPassed', { trial: id, node: t.node });
+    this.unlock(t.node);
+    g.save.dirty = true;
   }
   unlock(nodeId) {
     if (this.unlocked.includes(nodeId)) return;
@@ -143,8 +186,10 @@ export class Progression {
     const out = [];
     for (const [id, t] of Object.entries(this.trials)) {
       if (t.state !== 'active') continue;
-      const v = this.trialView(id);
-      out.push({ title: TRIALS[id].title.toUpperCase(), side: false, lines: v.objectives.map((o) => ({ text: `${CLASS_COUNTERS[o.counter].label} ${Math.max(0, Math.floor(o.have))}/${o.count}`, done: o.have >= o.count })) });
+      const v = this.trialView(id), c = v.chapters[v.step];
+      const counters = v.objectives.map((o) => ({ text: `${CLASS_COUNTERS[o.counter].label} ${Math.max(0, Math.floor(o.have))}/${o.count}`, done: o.have >= o.count }));
+      const lines = c && c.text && v.chapters.length > 1 ? [{ text: c.text, done: false }, ...counters] : counters;
+      out.push({ title: TRIALS[id].title.toUpperCase(), side: false, lines });
     }
     return out;
   }

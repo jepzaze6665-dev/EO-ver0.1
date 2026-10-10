@@ -14,8 +14,17 @@ export const VALEHAVEN = {
   requires: [{ type: 'boss_defeated', boss: 'boss_a1', label: 'The Sealed Path is overgrown — heal the forest first' }],
   exits: [
     { id: 'forest_road', rect: [29, 28, 35, 29], to: 'a1', entry: [32, 34], label: 'Sealed Path' },
+    {
+      id: 'proving_ring', rect: [46, 14, 46, 18], to: 'proving', entry: [49.5, 16], label: 'The Proving Ground',
+      requires: [{ type: 'flag', flag: 'provingOpen', label: 'The ring answers only to a trial’s last test' }],
+      confirm: { title: 'The Proving Ground', text: 'Your shadow waits in the ring.\nIt knows every move you have not learned yet.\n\nStep into the ring?', yes: 'Enter', no: 'Not yet' },
+    },
   ],
   content: {
+    // class masters (Quest Q2, data/classMasters.js): each one offers its line's class-change quest
+    npcs: [
+      { id: 'master_umbral', name: 'Master Ilsa', role: 'Umbral Blademaster', tx: 41, ty: 15, look: 'scout' },
+    ],
     interactables: [
       { id: 'ws_city2', kind: 'waystone', tx: 38, ty: 22, name: 'Valehaven', prompt: 'Waystone' },
       {

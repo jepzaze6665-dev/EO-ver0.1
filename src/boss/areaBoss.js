@@ -57,6 +57,8 @@ export class AreaBoss extends Entity {
     this.look = def.look || {};
     this.scale = this.look.scale || 2;
     this.sprites = (this.look.sprite && game.monsterSprites[this.look.sprite]) || null; // no sprite -> placeholder shape
+    // look.player = a class id: the boss is drawn with that class's player sprites, darkened (class-change shadow duels)
+    this.playerArt = this.look.player && game.spritesForClass ? game.spritesForClass(this.look.player) : null;
     this.summons = [];
     this.animT = rand(0, 2);
     for (const [id, m] of Object.entries(def.moves || {})) if (!m.id) m.id = id;
@@ -606,6 +608,7 @@ AreaBoss.prototype.draw = function draw(ctx) {
   if (Math.cos(this.facing) < 0) ctx.scale(-1, 1);
   if (this.dead && !(this.sprites && this.sprites.sheet)) ctx.rotate(Math.min(1, this.deathT * 2) * 0.35);
   const s = this.sprites;
+  if (this.playerArt) { ctx.restore(); this.drawPlayerArt(ctx, x, y, alpha); return; }
   if (s && s.sheet) {
     const fr = this.sheetFrame(s);
     const sc = this.scale * (ps.scale || 1), w = s.w * sc, h = s.h * sc, ax = s.ax * sc, ay = s.ay * sc;
@@ -658,6 +661,33 @@ AreaBoss.prototype.draw = function draw(ctx) {
     const zz = Math.floor(t * 1.5) % 3;
     ctx.fillText('z'.repeat(zz + 1), x + 26, y - this.height * this.scale * 0.6 - zz * 3);
   }
+};
+// PLAYER ART (look.player): the shadow of a class — its own sprites, the pose's class animation (move `anim` { pose: name }
+// > look.anims > idle / walk / hurt / death), facing by angle, drawn dark with a violet rim + a faint ghost trail.
+const PLAYER_POSE_ANIM = { idle: 'idle', walk: 'walk', windup: 'atk1', attack: 'atk1', hurt: 'hurt', roar: 'idle' };
+AreaBoss.prototype.drawPlayerArt = function drawPlayerArt(ctx, x, y, alpha) {
+  const ps = this.playerArt, A = ps.anims, g = this.game;
+  if (this.pose !== this.lastPose) { this.lastPose = this.pose; this.poseT0 = this.animT; }
+  const pick = (o) => o && o[this.pose] && A[o[this.pose]] ? o[this.pose] : null;
+  let name = this.dead ? 'death' : pick(this.curMove && this.curMove.anim) || pick(this.look.anims) || PLAYER_POSE_ANIM[this.pose] || 'idle';
+  if (!A[name]) name = 'idle';
+  const an = A[name], loop = !!an.loop;
+  const t = this.dead ? Math.min(1, this.deathT / 1.2) : loop ? this.animT : Math.min(1, (this.animT - (this.poseT0 || 0)) / (this.pose === 'windup' ? 0.6 : 0.4));
+  const c = Math.cos(this.facing), sn = Math.sin(this.facing);
+  const dir = Math.abs(c) >= Math.abs(sn) ? (c >= 0 ? 2 : 3) : (sn >= 0 ? 0 : 1);
+  const fr = ps.frame(name, t, dir);
+  const aura = this.look.aura || '150,90,255';
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.filter = `brightness(0.28) saturate(0.4) drop-shadow(0 0 3px rgb(${aura}))`;
+  ps.draw(ctx, fr, x, y - this.air);
+  ctx.filter = 'none';
+  if ((this.flash > 0 && !this.dead) || this.status.has('vulnerable')) {
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = this.flash > 0 ? Math.min(0.6, this.flash * 6) : 0.1 + 0.08 * Math.sin(g.time * 14);
+    ps.draw(ctx, ps.frame(name, t, dir, 'flash'), x, y - this.air);
+  }
+  ctx.restore();
 };
 // sheet art (data/monsterArt.js): which animation a pose plays. Order: the current move's `anim` { pose: anim },
 // then the phase's look.phaseAnims[phase] { pose: anim }, then look.anims { pose: anim }, then the pose name itself;

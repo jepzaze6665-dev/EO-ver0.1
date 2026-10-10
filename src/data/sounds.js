@@ -47,7 +47,7 @@ export const ZONE_MUSIC = {
   [Z.FROSTWIND]: 'field_b', [Z.CAVERNS]: 'field_b', [Z.FROSTPEAK]: 'field_b',
   [Z.CAVE]: 'dungeon_dark', [Z.EMBER]: 'dungeon_dark', [Z.ARENA]: 'dungeon_dark', [Z.RIFT]: 'dungeon_dark',
   [Z.SANCTUM]: 'dungeon_dark', [Z.FROST_ARENA]: 'dungeon_dark', [Z.CAVERN_HEART]: 'dungeon_dark',
-  [Z.PEAK_SUMMIT]: 'dungeon_dark', [Z.CINDER]: 'dungeon_dark',
+  [Z.PEAK_SUMMIT]: 'dungeon_dark', [Z.CINDER]: 'dungeon_dark', [Z.PROVING]: 'dungeon_dark',
 };
 // Ambience loops per zone (optional files).
 export const ZONE_AMBIENCE = {
@@ -55,7 +55,7 @@ export const ZONE_AMBIENCE = {
   [Z.VALLEY]: 'amb_village', [Z.CAVE]: 'amb_cave', [Z.ANCIENT]: 'amb_valley', [Z.RIFT]: 'amb_lava', [Z.CITADEL]: 'amb_ruins',
   [Z.SANCTUM]: 'amb_ruins', [Z.ASTERIA]: 'amb_city', [Z.FROSTWIND]: 'amb_wind', [Z.FROST_ARENA]: 'amb_wind',
   [Z.CAVERNS]: 'amb_cave', [Z.CAVERN_HEART]: 'amb_cave', [Z.FROSTPEAK]: 'amb_wind', [Z.PEAK_SUMMIT]: 'amb_wind',
-  [Z.EMBER]: 'amb_lava', [Z.CINDER]: 'amb_lava',
+  [Z.EMBER]: 'amb_lava', [Z.CINDER]: 'amb_lava', [Z.PROVING]: 'amb_ruins',
 };
 
 // Boss music: track '<base>_p<phase>' (phase 1..n). A missing phase file plays the highest phase below it,
