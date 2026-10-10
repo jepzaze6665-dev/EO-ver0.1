@@ -25,6 +25,7 @@ const CSS = `
 #touch .b.on{border-color:#ffd27a;background-color:rgba(60,40,10,.6)}
 #touch .b .cd{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;background:conic-gradient(rgba(0,0,0,.65) var(--p,0%),transparent 0)}
 #touch .atk{width:92px;height:92px;right:4%;bottom:7%;font-size:16px}
+#touch .sk,#touch .ult{background-size:cover;overflow:hidden;box-shadow:inset 0 0 0 3px rgba(8,6,14,.85),inset 0 0 10px 4px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.6)}
 #touch .sk{width:58px;height:58px}
 #touch .ult{width:64px;height:64px;border-color:#e8c060}
 #touch .q{width:56px;height:56px;border-color:#b98cff}
@@ -104,11 +105,13 @@ export class TouchControls {
   // the skill buttons sit on an arc to the upper left of ATK (angle 0 = left of it, PI/2 = above it)
   layout() {
     const s = Math.min(1.25, Math.max(0.8, Math.min(innerWidth, innerHeight) / 420));
-    const atk = this.el.querySelector('.atk'), ax = innerWidth * 0.04 + 46 * s, ay = innerHeight * 0.07 + 46 * s;
+    const atk = this.el.querySelector('.atk'), ax = innerWidth * 0.04 + 46 * s, ay = innerHeight * 0.05 + 46 * s;
+    atk.style.bottom = (innerHeight * 0.05) + 'px';
     atk.style.transform = `scale(${s})`; atk.style.transformOrigin = '100% 100%';
     const put = (sel, ang, r) => { const b = this.el.querySelector(sel); b.style.right = `${ax + Math.cos(ang) * r * s - 29}px`; b.style.bottom = `${ay + Math.sin(ang) * r * s - 29}px`; b.style.transform = `scale(${s})`; };
-    put('[data-k=Digit1]', 0.0, 118); put('[data-k=Digit2]', 0.5, 118); put('[data-k=Digit3]', 1.0, 118); put('[data-k=Digit4]', 1.5, 118);
-    put('[data-k=Digit5]', 0.78, 196); put('[data-k=KeyQ]', 0.2, 196); put('[data-k=Space]', 1.36, 196);
+    // a low, tight arc: every button within reach of the right thumb (owner: skills sat too high)
+    put('[data-k=Digit1]', -0.08, 106); put('[data-k=Digit2]', 0.38, 106); put('[data-k=Digit3]', 0.84, 106); put('[data-k=Digit4]', 1.30, 106);
+    put('[data-k=Digit5]', 0.62, 176); put('[data-k=KeyQ]', 0.12, 178); put('[data-k=Space]', 1.12, 176);
   }
   moveStick(e) {
     const s = this.stick, R = TOUCH_RULES.stick;
@@ -183,6 +186,18 @@ export class TouchControls {
     }
   }
   autoAim(p, g) {
+    // joystick pushed: face where the thumb points; snap only to a foe inside that 50° cone (player chooses the direction)
+    const mv = this.input.touchMove;
+    if (mv && (mv.x || mv.y)) {
+      const want = Math.atan2(mv.y, mv.x);
+      let best = null, bd = TOUCH_RULES.autoAim;
+      for (const m of (g.world ? g.world.hostiles() : [])) {
+        const d = Math.hypot(m.x - p.x, m.y - p.y);
+        const off = Math.abs(Math.atan2(Math.sin(Math.atan2(m.y - p.y, m.x - p.x) - want), Math.cos(Math.atan2(m.y - p.y, m.x - p.x) - want)));
+        if (d < bd && off < 0.44) { bd = d; best = m; }
+      }
+      return best ? Math.atan2(best.y - (best.height ? best.height * 0.4 : 12) - (p.y - 12), best.x - p.x) : want;
+    }
     const tgt = g.targets && g.targets.current;
     let best = tgt && !tgt.dead ? tgt : null;
     if (!best && g.world) {
@@ -190,8 +205,6 @@ export class TouchControls {
       for (const m of g.world.hostiles()) { const d = Math.hypot(m.x - p.x, m.y - p.y); if (d < bd) { bd = d; best = m; } }
     }
     if (best) return Math.atan2(best.y - (best.height ? best.height * 0.4 : 12) - (p.y - 12), best.x - p.x);
-    const mv = this.input.touchMove;
-    if (mv && (mv.x || mv.y)) return Math.atan2(mv.y, mv.x);
     return p.aim;
   }
 }
