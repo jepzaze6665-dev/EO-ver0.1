@@ -17,6 +17,7 @@ export class NPC {
     this.wander = (def.wander || 0) * 32;
     this.sprite = npcSprite(def.look);
     this.art = Assets.npcs && Assets.npcs[def.art || NPC_ART[def.id]]; // painted strip, else the canvas figure
+    this.tint = def.tint || null; // CSS filter: the same art recoloured (e.g. the class masters share one sprite)
     this.face = 'front'; // art view: front / back / left / right
     this.moving = false;
     this.flip = false;
@@ -70,7 +71,9 @@ export class NPC {
     ctx.save();
     ctx.translate(Math.round(this.x), Math.round(this.y));
     if (this.flip) ctx.scale(-1, 1);
+    if (this.tint) ctx.filter = this.tint;
     ctx.drawImage(fr, -s.ax, -s.ay);
+    ctx.filter = 'none';
     ctx.restore();
     this.drawNews(ctx, 58);
   }
@@ -91,7 +94,9 @@ export class NPC {
     const bob = this.moving ? -Math.abs(Math.sin(this.t * 10)) * 1.5 : Math.sin(this.t * 2) * 0.5;
     ctx.fillStyle = 'rgba(0,0,0,0.3)';
     ctx.beginPath(); ctx.ellipse(this.x, this.y, 11, 4, 0, 0, TAU); ctx.fill();
+    if (this.tint) ctx.filter = this.tint;
     ctx.drawImage(a.img, k * a.cw, 0, a.cw, a.ch, Math.round(this.x - a.ax), Math.round(this.y - a.ay + bob), a.cw, a.ch);
+    ctx.filter = 'none';
     this.drawNews(ctx, a.ch + 2);
   }
 }

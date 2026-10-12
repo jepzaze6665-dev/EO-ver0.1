@@ -23,15 +23,15 @@ export const VALEHAVEN = {
   content: {
     // class masters (Quest Q2, data/classMasters.js): each one offers its line's class-change quest
     npcs: [
-      { id: 'master_umbral', name: 'Master Ilsa', role: 'Umbral Blademaster', tx: 36, ty: 19, look: 'scout' },
-      { id: 'master_astral', name: 'Master Corvin', role: 'Astral Loremaster', tx: 28, ty: 20, look: 'scout' },
-      { id: 'master_aegis', name: 'Master Halvard', role: 'Aegis Shieldmaster', tx: 36, ty: 26, look: 'scout' },
+      { id: 'master_umbral', name: 'Master Ilsa', role: 'Class Change · Umbral', tx: 41, ty: 15, look: 'scout', art: 'wren', tint: 'hue-rotate(235deg) saturate(1.4)' },
+      { id: 'master_astral', name: 'Master Corvin', role: 'Class Change · Astral', tx: 26, ty: 13, look: 'scout', art: 'wren', tint: 'hue-rotate(170deg) saturate(1.3)' },
+      { id: 'master_aegis', name: 'Master Halvard', role: 'Class Change · Aegis', tx: 38, ty: 25, look: 'scout', art: 'wren', tint: 'hue-rotate(15deg) saturate(1.6) brightness(1.1)' },
     ],
     interactables: [
       { id: 'ws_city2', kind: 'waystone', tx: 38, ty: 22, name: 'Valehaven', prompt: 'Waystone' },
       {
         id: 'city2_notice', kind: 'sign', tx: 29, ty: 24, prompt: 'Read Guild Notice', title: 'Valehaven — Guild Notice',
-        text: 'VALEHAVEN (Guild camp — do not speak of it in Lumina)\n• The Sealed Path is the only road in. Keep it that way.\n• The Sealed Depths lie north of the standing stones. Its door answers to power not yet found.\n• Merchants and the Guild hall arrive with the next caravan.',
+        text: 'VALEHAVEN (Guild camp — do not speak of it in Lumina)\n• The Sealed Path is the only road in. Keep it that way.\n• The Sealed Depths lie north of the standing stones. Its door answers to power not yet found.\n• The masters of the three lines (Ilsa, Corvin, Halvard) teach the change of class — look for the coloured robes.\n• Merchants and the Guild hall arrive with the next caravan.',
       },
     ],
   },
