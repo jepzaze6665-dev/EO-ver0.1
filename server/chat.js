@@ -1,14 +1,14 @@
 // C1 CHAT — the server decides who hears a line: 'local' = the sender's room (city room or run-map room, server/cityRooms.js),
 // 'party' = the sender's party members who are online (server/parties.js), wherever they are. Every line is cleaned and
 // filtered here (src/net/chat.js), so a modified client cannot send raw text, flood, or pick its own listeners.
-import { CHAT_RULES, cleanChat, filterChat } from '../src/net/chat.js';
+import { CHAT_RULES, QUICK_CHAT, cleanChat, filterChat } from '../src/net/chat.js';
 import { NET_ERROR } from '../src/net/protocol.js';
 
 export class ChatService {
   constructor(server) {
     this.server = server;
     this.sent = new Map(); // player id -> times (ms) of their recent lines
-    server.handle('chat', (s, m) => this.say(s, m.ch, m.text));
+    server.handle('chat', (s, m) => this.say(s, m.ch, m.text, m.q));
     server.on('sessionClosed', (s) => this.sent.delete(s.id));
   }
 
@@ -24,9 +24,10 @@ export class ChatService {
     return true;
   }
 
-  say(s, ch, raw) {
+  say(s, ch, raw, q) {
     if (s.sim || s.lobby) return false;
-    const text = filterChat(cleanChat(raw));
+    if (q && !Object.hasOwn(QUICK_CHAT, q)) return false; // C3 quick chat: only known ids
+    const text = q ? QUICK_CHAT[q] : filterChat(cleanChat(raw));
     if (!text) return false;
     const now = Date.now();
     let to;
@@ -40,7 +41,7 @@ export class ChatService {
       to = [...p.members.keys()].map((id) => this.server.sessions.get(id)).filter(Boolean);
     }
     if (!this.allowed(s.id, now)) return this.refuse(s, 'slow down: you are sending messages too fast');
-    const line = { ch, id: s.id, from: s.name, text, at: now };
+    const line = { ch, id: s.id, from: s.name, text, at: now, ...(q ? { q } : {}) };
     for (const x of to) x.send('chat', line);
     return true;
   }

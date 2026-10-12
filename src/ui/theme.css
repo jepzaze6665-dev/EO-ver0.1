@@ -746,3 +746,15 @@ html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !impo
 body.touch .chatbox { top: 96px; bottom: auto; width: min(300px, 38vw); font-size: 12px; }
 body.touch .chatbox .chat-log { max-height: 84px; }
 body.touch .chatbox input { font-size: 16px; }
+/* C3 quick chat row (shown while the chat box is open) + ✕ */
+.chatbox .chat-quick { display: none; flex-wrap: wrap; gap: 4px; margin-top: 4px; pointer-events: auto; }
+.chatbox.typing .chat-quick { display: flex; }
+.chatbox .chat-quick button { background: rgba(8, 7, 14, 0.82); color: #f2ece0; border: 1px solid rgba(242,236,224,.3); border-radius: 12px;
+  padding: 3px 9px; font: inherit; font-size: 12px; cursor: pointer; }
+.chatbox .chat-quick button:hover { border-color: rgba(232,208,255,.85); color: #fff; }
+.chatbox .chat-x { background: rgba(8, 7, 14, 0.8); color: #f2ece0; border: 1px solid rgba(242,236,224,.3); border-radius: 5px; padding: 0 9px; cursor: pointer; font: inherit; }
+body.touch .chatbox.typing { width: min(460px, 56vw); background: rgba(8, 7, 14, 0.55); border-radius: 8px; padding: 4px; }
+body.touch .chatbox .chat-quick button { font-size: 14px; padding: 7px 12px; border-radius: 16px; } /* thumb-sized */
+/* above the touch layer (#touch z 40) while open; when closed the log lets touches through to the joystick */
+.chatbox { z-index: 45; }
+body.touch .chatbox:not(.typing) .chat-log { pointer-events: none; }

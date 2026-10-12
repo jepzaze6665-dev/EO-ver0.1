@@ -1,7 +1,9 @@
 // C1 CHAT BOX (DOM, bottom left): the chat log + a text field. [Enter] opens it (game.js), Enter sends, Esc closes,
 // Tab switches channel; "/p text" = party, "/l text" = local. While you type the game ignores your keys (input.js skips
 // text fields). Idle log fades out; in a hard fight it shows only the last lines. Online only.
-import { CHAT_RULES } from '../net/chat.js';
+// C3: QUICK CHAT row (one tap = a ready line, shown to each reader in their own language). On phones the 💬 button
+// (touchControls) opens the box WITHOUT the keyboard: quick lines first, tap the text field to type; ✕ closes.
+import { CHAT_RULES, QUICK_CHAT } from '../net/chat.js';
 import { t as tl, tx } from '../i18n/i18n.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -17,21 +19,30 @@ export class ChatBox {
     const el = this.el = document.createElement('div');
     el.className = 'chatbox hidden';
     el.innerHTML = `<div class="chat-log"></div>
-      <form class="chat-in"><button type="button" class="chat-ch"></button><input maxlength="${CHAT_RULES.maxLen}" autocomplete="off" spellcheck="false"></form>`;
+      <div class="chat-quick">${Object.keys(QUICK_CHAT).map((q) => `<button type="button" data-q="${q}"></button>`).join('')}</div>
+      <form class="chat-in"><button type="button" class="chat-ch"></button><input maxlength="${CHAT_RULES.maxLen}" autocomplete="off" spellcheck="false"><button type="button" class="chat-x">✕</button></form>`;
     document.body.appendChild(el);
     this.logEl = el.querySelector('.chat-log');
     this.input = el.querySelector('input');
     this.chBtn = el.querySelector('.chat-ch');
     el.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); this.submit(); });
-    this.chBtn.addEventListener('click', () => { this.toggleCh(); this.input.focus(); });
+    this.chBtn.addEventListener('click', () => { this.toggleCh(); if (!this.touch) this.input.focus(); });
+    el.querySelector('.chat-x').addEventListener('click', () => this.close());
+    el.querySelector('.chat-quick').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-q]');
+      if (b && this.chat) { this.chat.sendQuick(this.channel(), b.dataset.q); this.close(); }
+    });
     this.input.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { e.preventDefault(); this.close(); }
       if (e.key === 'Tab') { e.preventDefault(); this.toggleCh(); }
       e.stopPropagation();
     });
-    this.input.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== this.input) this.close(); }, 0));
-    this.logEl.addEventListener('pointerdown', () => { if (!this.typing) this.open(); }); // phones: tap the log to type
+    // PC: clicking away closes it (phones keep it open: the quick row and ✕ are tapped outside the field)
+    this.input.addEventListener('blur', () => setTimeout(() => { if (!this.touch && document.activeElement !== this.input && !this.el.matches(':hover')) this.close(); }, 0));
+    this.logEl.addEventListener('pointerdown', () => { if (!this.typing && !this.touch) this.open(); }); // PC: click the log to type (phones: the 💬 button)
   }
+  get touch() { return !!this.game.touch; }
+  toggle() { if (this.typing) this.close(); else this.open(); }
   get chat() { return this.game.online && this.game.online.chat; }
   channel() {
     const inParty = !!(this.game.online && this.game.online.party);
@@ -50,7 +61,7 @@ export class ChatBox {
     this.el.classList.add('typing');
     this.game.input.clearAll();
     this.render();
-    this.input.focus();
+    if (!this.touch) this.input.focus(); // phones: no keyboard until the field is tapped
   }
   close() {
     if (!this.typing) return;
@@ -74,6 +85,7 @@ export class ChatBox {
     const ch = this.channel();
     this.chBtn.textContent = '[' + tl(CH[ch].label) + ']';
     this.chBtn.style.color = CH[ch].color;
+    for (const b of this.el.querySelectorAll('[data-q]')) b.textContent = tx(QUICK_CHAT[b.dataset.q]);
     if (!chat) { this.logEl.innerHTML = ''; return; }
     const fight = !this.typing && this.game.ui.hud.intenseFight && this.game.ui.hud.intenseFight();
     const lines = chat.log.slice(-(this.typing ? CHAT_RULES.history : fight ? FIGHT_LINES : SHOW));
@@ -90,6 +102,7 @@ export class ChatBox {
   update() {
     const on = this.available();
     this.el.classList.toggle('hidden', !on);
+    const btn = document.querySelector('#touch [data-k=chat]'); if (btn) btn.style.display = on ? '' : 'none';
     if (!on) { if (this.typing) this.close(); return; }
     const chat = this.chat;
     if (!this.hooked || this.hooked !== chat) { this.hooked = chat; chat.onChange(() => { this.lastLine = performance.now(); this.render(); }); this.render(); }

@@ -2,7 +2,8 @@
 // Run:  node tools/tests/chat.test.mjs
 import { NetClient } from '../../src/net/client.js';
 import { NET_ERROR } from '../../src/net/protocol.js';
-import { CHAT_RULES, cleanChat, filterChat } from '../../src/net/chat.js';
+import { CHAT_RULES, QUICK_CHAT, cleanChat, filterChat } from '../../src/net/chat.js';
+import { TH_MESSAGES } from '../../src/i18n/th/messages.js';
 import { startServer } from '../../server.js';
 
 let pass = 0, fail = 0;
@@ -23,6 +24,9 @@ await test('profanity filter: English + Thai become ***, ordinary words kept (�
   ok(filterChat('ไอ้เหี้ย') === 'ไอ้*****', 'thai: ' + filterChat('ไอ้เหี้ย'));
   ok(filterChat('เปิดหีบ สัดส่วน') === 'เปิดหีบ สัดส่วน', 'game words kept');
   ok(filterChat('Dickens classic') === 'Dickens classic', 'no false hit');
+});
+await test('C3: every quick chat line has Thai', async () => {
+  for (const [id, text] of Object.entries(QUICK_CHAT)) ok(TH_MESSAGES[text], 'no Thai for quick line ' + id);
 });
 
 const srv = await startServer({ port: 0, dataDir: null, quiet: true });
@@ -80,6 +84,19 @@ await test('the server filters + refuses floods (min gap, burst)', async () => {
   a.send('chat', { ch: 'local', text: 'again' });
   await until(() => a.errors.length > e0, 2000, 'too fast');
   ok(/slow down/.test(a.errors.at(-1).text), 'slow down');
+});
+
+await test('C3 quick chat: an id becomes its English line on the server; unknown ids are dropped', async () => {
+  const a = all[0], b = all[1];
+  await wait(1100);
+  const n = b.lines.length;
+  a.send('chat', { ch: 'local', text: 'ignored text', q: 'help' });
+  await until(() => b.lines.length > n, 2000, 'quick heard');
+  ok(b.lines.at(-1).text === QUICK_CHAT.help && b.lines.at(-1).q === 'help', 'Help! with its id');
+  await wait(1000);
+  a.send('chat', { ch: 'local', text: 'x', q: 'nothere' });
+  await wait(200);
+  ok(b.lines.length === n + 1, 'unknown id dropped');
 });
 
 for (const p of all) p.c.stop();

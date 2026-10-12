@@ -9,6 +9,10 @@ export const TH_MESSAGES = {
   // ---- C1 chat (server/chat.js + net/netChat.js)
   'nobody can hear you here': 'ไม่มีใครได้ยินคุณที่นี่', 'you are not in a party': 'คุณยังไม่ได้อยู่ในปาร์ตี้',
   'slow down: you are sending messages too fast': 'ช้าลงหน่อย: ส่งข้อความเร็วเกินไป', 'Not connected': 'ยังไม่ได้เชื่อมต่อ',
+  // C3 quick chat (net/chat.js QUICK_CHAT)
+  'Help!': 'ช่วยด้วย!', 'Wait for me!': 'รอด้วย!', 'Ready!': 'พร้อมแล้ว!', "Let's go!": 'ไปกันเลย!', 'Boss here!': 'บอสอยู่นี่!',
+  'I need healing!': 'ขอฮีลหน่อย!', 'Fall back!': 'ถอยก่อน!', 'Revive me!': 'ชุบที!', 'Meet at the Dungeon Gate': 'เจอกันที่ประตูดันเจี้ยน',
+  'Thanks!': 'ขอบคุณ!', 'Good game!': 'เล่นดีมาก!', 'OK!': 'โอเค!',
   'You are not in a party — use /l for nearby players': 'คุณยังไม่ได้อยู่ในปาร์ตี้ — พิมพ์ /l เพื่อคุยกับคนรอบตัว',
   'Silenced': 'ถูกปิดผนึกสกิล',
   'Not enough STAMINA': 'สเตมินาไม่พอ',

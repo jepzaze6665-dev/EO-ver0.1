@@ -32,3 +32,10 @@ export function filterChat(text) {
   for (const re of BAD) s = s.replace(re, (m) => '*'.repeat([...m].length));
   return s;
 }
+
+// C3 QUICK CHAT: one-tap lines (phones). Sent as an id; the server turns it into this English text and each reader's
+// game shows it in their own language (i18n/th/messages.js). A new line = one entry here + its Thai.
+export const QUICK_CHAT = {
+  help: 'Help!', wait: 'Wait for me!', ready: 'Ready!', go: "Let's go!", boss: 'Boss here!', heal: 'I need healing!',
+  back: 'Fall back!', revive: 'Revive me!', gate: 'Meet at the Dungeon Gate', thanks: 'Thanks!', gg: 'Good game!', ok: 'OK!',
+};

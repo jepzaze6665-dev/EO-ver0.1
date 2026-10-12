@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 22;
+export const PROTOCOL_VERSION = 23;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -132,7 +132,7 @@ export const CLIENT_MESSAGES = {
   pileSet: { m: 'slug', x: 'coord', y: 'coord', n: 'int' },
   pileClear: {},
   pileTake: { owner: 'slug' },
-  chat: { ch: 'chatCh', text: 'chatText' },              // C1 chat: say something on 'local' (my room) or 'party' (server/chat.js)
+  chat: { ch: 'chatCh', text: 'chatText', q: 'slug?' },  // C3 q = a QUICK_CHAT id (text ignored) · C1 chat: say something on 'local' (my room) or 'party' (server/chat.js)
   runStat: { s: 'runStat' },                              // RUN SUMMARY: my damage / healing / falls / kills this run, relayed to my run's members                            // N8 host of the boss's run map: this boss died (server credits the room)
 };
 
@@ -176,7 +176,7 @@ export const SERVER_MESSAGES = {
   bossCredit: { boss: 'string', first: 'bool' },
   piles: { list: 'array' },                              // N9: party members' piles [{ owner, name, m, x, y, n }]
   pileTaken: { by: 'string' },                           // a party member carried your pile to you
-  chat: { ch: 'string', id: 'string', from: 'string', text: 'string', at: 'number' }, // C1: a chat line (cleaned + filtered by the server)
+  chat: { ch: 'string', id: 'string', from: 'string', text: 'string', at: 'number', q: 'string?' }, // C1: a chat line (cleaned + filtered by the server)
   // fx (relayed + from: player id) · boss (relayed as sent)                             // a teammate revived you (server checked it)
 };
 

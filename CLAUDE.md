@@ -1748,4 +1748,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   ui/chatBox.js (bottom left; Enter opens, Enter sends, Esc closes, Tab / button switches channel, /p /l prefixes; idle fade,
   3 lines in a hard fight; on touch under the player frame, tap the log to type), hud.chatBubble over speakers. Tests chat.test.mjs (5).
   WELCOME GUIDE: ui/welcomeGuide.js (new character chooses full / essentials / skip; ESC -> Guide; testkit sets __eoNoGuide).
-  Next chat phases: C2 whisper / block / report · C3 phone quick chat · C4 map pings + item links.
+  Done C3 QUICK CHAT: net/chat.js QUICK_CHAT (12 ids); client chat { ch, text, q } -> the server sends QUICK_CHAT[q] (unknown ids
+  dropped) with q -> each reader shows tx(text) = their language (Thai in th/messages.js). Chat box quick row (while open) + ✕; phones:
+  💬 button in the touch top row (touchControls data-k chat) opens the box WITHOUT the keyboard; box above #touch (z 45), closed log lets
+  touches through. PROTOCOL_VERSION 23. chat.test 7.
+  Next chat phases: C2 whisper / block / report · C4 map pings + item links.

@@ -88,6 +88,7 @@ export class TouchControls {
       <div class="b ult" data-k="Digit5"></div><div class="b q" data-k="KeyQ"></div><div class="b dodge" data-k="Space">DODGE</div>
       <div class="b small" data-k="Escape" style="left:calc(50% - 48px);top:30px">≡</div>
       <div class="b small" data-k="KeyI" style="left:calc(50% + 6px);top:30px">▣</div>
+      <div class="b small" data-k="chat" style="left:calc(50% + 60px);top:30px">💬</div>
       <div class="b potion" data-k="KeyR" data-item="hp_potion" style="left:calc(50% + 112px)"><span class="n">0</span></div>
       <div class="b potion" data-k="KeyF" data-item="shadow_tonic" style="left:calc(50% - 158px)"><span class="n">0</span></div>`;
     document.body.appendChild(el);
@@ -150,6 +151,7 @@ export class TouchControls {
   press(b, e) {
     const k = b.dataset.k, inp = this.input;
     b.classList.add('on');
+    if (k === 'chat') { if (this.game.ui.chat) this.game.ui.chat.toggle(); return; } // C3 chat: quick lines first, no keyboard
     if (k === 'atk' && this.canUse) { this.atkUse = true; inp.touchDown('KeyE'); return; } // talk / open / revive (hold)
     if (k === 'atk') { this.atkDrag = { id: e.pointerId, x0: e.clientX, y0: e.clientY }; inp.mouse.left = true; inp.mouse.leftPressed = true; return; }
     if (/^Digit/.test(k)) { this.drag = { key: k, x0: e.clientX, y0: e.clientY, angle: null }; return; } // fires on release (tap or drag)
