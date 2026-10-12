@@ -113,9 +113,33 @@ export function trialChapters(def) {
   return def && def.chapters && def.chapters.length ? def.chapters : [{ type: 'counters', text: '' }];
 }
 export const TRIALS = {
-  trial_stormcaller: { title: 'Trial of the Gathering Storm', objectives: [{ counter: 'kills', count: 25 }, { counter: 'constellation_breaks', count: 8 }] },
-  trial_void_scribe: { title: 'Trial of the Unwritten', objectives: [{ counter: 'thread_catches', count: 30 }] },
-  trial_lumen_oracle: { title: 'Trial of the First Light', objectives: [{ counter: 'shield_absorbed', count: 200 }, { counter: 'kills', count: 10 }] },
+  trial_stormcaller: {
+    title: 'Trial of the Gathering Storm', objectives: [{ counter: 'kills', count: 25 }, { counter: 'constellation_breaks', count: 8 }],
+    chapters: [
+      { type: 'talk', npc: 'master_astral', text: 'Speak with Master Corvin in Valehaven' },
+      { type: 'counters', text: 'Prove the storm answers you' },
+      { type: 'item', item: 'relic_storm', text: 'Find the Thunderglass Shard in Frostwind Plains (it only shows in the blizzard)' },
+      { type: 'boss', boss: 'shadow_stormcaller', text: 'Defeat your shadow in the Proving Ground' },
+    ],
+  },
+  trial_void_scribe: {
+    title: 'Trial of the Unwritten', objectives: [{ counter: 'thread_catches', count: 30 }],
+    chapters: [
+      { type: 'talk', npc: 'master_astral', text: 'Speak with Master Corvin in Valehaven' },
+      { type: 'counters', text: 'Prove the void writes through you' },
+      { type: 'item', item: 'relic_void', text: 'Find the Unwritten Page in the Scribe’s Vault of the Rune Citadel (light its rune switch)' },
+      { type: 'boss', boss: 'shadow_void_scribe', text: 'Defeat your shadow in the Proving Ground' },
+    ],
+  },
+  trial_lumen_oracle: {
+    title: 'Trial of the First Light', objectives: [{ counter: 'shield_absorbed', count: 200 }, { counter: 'kills', count: 10 }],
+    chapters: [
+      { type: 'talk', npc: 'master_astral', text: 'Speak with Master Corvin in Valehaven' },
+      { type: 'counters', text: 'Prove your light keeps others standing' },
+      { type: 'item', item: 'relic_lumen', text: 'Find the First Light Mote in the Whispering Forest (follow the fireflies)' },
+      { type: 'boss', boss: 'shadow_lumen_oracle', text: 'Defeat your shadow in the Proving Ground' },
+    ],
+  },
   trial_nightfall_reaper: {
     title: 'Trial of the Long Night', objectives: [{ counter: 'shadow_breaks', count: 8 }],
     chapters: [
@@ -143,7 +167,31 @@ export const TRIALS = {
       { type: 'boss', boss: 'shadow_blade_of_echoes', text: 'Defeat your shadow in the Proving Ground' },
     ],
   },
-  trial_warden_of_dawn: { title: 'Trial of the Rising Sun', objectives: [{ counter: 'barrier_absorbed', count: 250 }] },
-  trial_bulwark_sentinel: { title: 'Trial of the Unmoving Wall', objectives: [{ counter: 'blocks', count: 30 }] },
-  trial_oathbreaker: { title: 'Trial of the Broken Oath', objectives: [{ counter: 'judgments', count: 8 }] },
+  trial_warden_of_dawn: {
+    title: 'Trial of the Rising Sun', objectives: [{ counter: 'barrier_absorbed', count: 250 }],
+    chapters: [
+      { type: 'talk', npc: 'master_aegis', text: 'Speak with Master Halvard in Valehaven' },
+      { type: 'counters', text: 'Prove your shield shelters others' },
+      { type: 'item', item: 'relic_dawn', text: 'Find the Sunken Sunstone on the bed of Mirror Lake (drain it at the Sunken Temple)' },
+      { type: 'boss', boss: 'shadow_warden_of_dawn', text: 'Defeat your shadow in the Proving Ground' },
+    ],
+  },
+  trial_bulwark_sentinel: {
+    title: 'Trial of the Unmoving Wall', objectives: [{ counter: 'blocks', count: 30 }],
+    chapters: [
+      { type: 'talk', npc: 'master_aegis', text: 'Speak with Master Halvard in Valehaven' },
+      { type: 'counters', text: 'Prove nothing moves you' },
+      { type: 'item', item: 'relic_bulwark', text: 'Find the Bronze Phalanx Crest in the Bronze Vault of the Rune Citadel (light both rune switches)' },
+      { type: 'boss', boss: 'shadow_bulwark_sentinel', text: 'Defeat your shadow in the Proving Ground' },
+    ],
+  },
+  trial_oathbreaker: {
+    title: 'Trial of the Broken Oath', objectives: [{ counter: 'judgments', count: 8 }],
+    chapters: [
+      { type: 'talk', npc: 'master_aegis', text: 'Speak with Master Halvard in Valehaven' },
+      { type: 'counters', text: 'Prove the broken oath still burns' },
+      { type: 'item', item: 'relic_oath', text: 'Find the Frostbitten Oath in Frostwind Plains (it only shows in the blizzard)' },
+      { type: 'boss', boss: 'shadow_oathbreaker', text: 'Defeat your shadow in the Proving Ground' },
+    ],
+  },
 };

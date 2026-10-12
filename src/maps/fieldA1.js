@@ -58,6 +58,7 @@ export const FIELD_A1 = {
       { id: 'kael', name: 'Kael', role: 'Wounded Guild Scout', tx: 128, ty: 86, look: 'scout' },
     ],
     interactables: [
+      { id: 'relic_lumen', kind: 'trialRelic', trial: 'trial_lumen_oracle', item: 'relic_lumen', tx: 86, ty: 70, prompt: 'Take the First Light Mote', color: '#fff0a0' }, // class quest relic (Quest Q4)
       // class quest relic (Nightfall Reaper, Quest Q3): the fireflies lead to it while the trial waits for it
       { id: 'relic_nightfall', kind: 'trialRelic', trial: 'trial_nightfall_reaper', item: 'relic_nightfall', tx: 18, ty: 80, prompt: 'Take the Nightfall Ember', color: '#9a6aff' },
       { id: 'a1_hunters_notice', kind: 'sign', tx: 52, ty: 146, prompt: "Read Hunter's Notice", title: "Hunter's Notice", text: COMBAT_NOTICE },

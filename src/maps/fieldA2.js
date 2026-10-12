@@ -45,6 +45,7 @@ export const FIELD_A2 = {
   spawn: [84.5, 192],
   content: {
     interactables: [
+      { id: 'relic_dawn', kind: 'trialRelic', trial: 'trial_warden_of_dawn', item: 'relic_dawn', tx: 42, ty: 170, when: { mech: 'water_level', is: 'drained' }, prompt: 'Take the Sunken Sunstone', color: '#ffd870' }, // class quest relic (Quest Q4)
       // class quest relic (Blade of Echoes, Quest Q3): on the bed of Mirror Lake, reachable once the Temple Wheel drains it
       { id: 'relic_echo', kind: 'trialRelic', trial: 'trial_blade_of_echoes', item: 'relic_echo', tx: 27, ty: 172, when: { mech: 'water_level', is: 'drained' }, prompt: 'Take the Drowned Echo', color: '#ff6a7a' },
       // EXPLORATION (world/discoveries.js counts them): chests + a lore tablet off the main road

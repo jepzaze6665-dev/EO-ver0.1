@@ -37,6 +37,8 @@ export const FIELD_A3 = {
   mechanics: [{ type: 'rune_vaults', vaults: CITADEL_VAULTS.map((v) => ({ ...v, ...VAULT_RULES[v.id] })) }],
   content: {
     interactables: [
+      { id: 'relic_void', kind: 'trialRelic', trial: 'trial_void_scribe', item: 'relic_void', tx: 62, ty: 112, prompt: 'Take the Unwritten Page', color: '#b07aff' }, // class quest relic (Quest Q4)
+      { id: 'relic_bulwark', kind: 'trialRelic', trial: 'trial_bulwark_sentinel', item: 'relic_bulwark', tx: 138, ty: 76, prompt: 'Take the Bronze Phalanx Crest', color: '#e0a060' }, // class quest relic (Quest Q4)
       // EXPLORATION (world/discoveries.js): the archive's ledger tells where the vault switches are; a barracks strongbox
       { id: 'a3_lore_archive', kind: 'lore', tx: 50, ty: 81, lore: 'archive_ledger', prompt: 'Read Ledger' },
       { id: 'a3_chest_barracks', kind: 'chest', tx: 127, ty: 83, loot: [{ item: 'hp_potion', count: 3 }, { item: 'crystal_shard', count: 2 }], gold: 300 },

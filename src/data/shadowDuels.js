@@ -97,4 +97,102 @@ export const SHADOWS = {
       recollect: { kind: 'pattern', layout: 'ring', count: 8, r: 50, step: 120, delay: 0.1, range: 400, windup: 1.2, recover: 1.0, cd: 11, weight: 2, power: 36, knock: 140, opening: 1.6, anim: { windup: 'recollection', attack: 'recollection' } },
     },
   }),
+
+  // ---------------- ASTRAL LINE (Q4): casters keep their distance — close the gap after a volley
+  // STORMCALLER: bolts and sky strikes, a nova when you hug it
+  shadow_stormcaller: shadowDuel('stormcaller', {
+    name: 'SHADOW OF THE STORMCALLER', title: 'The sky that answers someone else', hp: 12500, speed: 150, aura: '120,200,255',
+    teaches: 'Dodge sideways through the bolts · the sky marks where it strikes · get close after the burst',
+    phases: [
+      { name: 'CHARGED', sub: 'Lightning seeks you', hpBelow: 1, moves: ['lash', 'strikes', 'burst'] },
+      { name: 'SUPERCHARGED', sub: 'The storm breaks', hpBelow: 0.5, moves: ['lash', 'strikes', 'burst', 'tempest'], speed: 1.1, windup: 0.9 },
+    ],
+    moves: {
+      lash: { kind: 'volley', range: 380, min: 80, windup: 0.7, recover: 0.5, cd: 2.4, weight: 4, power: 30, count: 3, spread: 0.35, speed: 360, dmg: 'magic', color: '#9ad8ff', anim: { windup: 'thunderLash', attack: 'thunderLash' } },
+      strikes: { kind: 'pattern', layout: 'scatter', count: 5, r: 48, step: 80, delay: 0.15, range: 420, windup: 1.0, recover: 0.6, cd: 6, weight: 3, power: 38, knock: 100, dmg: 'magic', opening: 1.2, anim: { windup: 'chainTempest', attack: 'chainTempest' } },
+      burst: { kind: 'strike', range: 100, windup: 0.8, recover: 1.0, cd: 7, weight: 2, power: 46, knock: 260, dmg: 'magic', opening: 1.6, shape: { shape: 'circle', r: 120 }, anim: { windup: 'stormBurst', attack: 'stormBurst' } },
+      tempest: { kind: 'nova', range: 999, windup: 1.1, recover: 0.9, cd: 11, weight: 2, power: 32, rings: 3, width: 44, gap: 70, dmg: 'magic', color: '140,210,255', opening: 1.4, anim: { windup: 'heavensTempest', attack: 'heavensTempest' } },
+    },
+  }),
+  // VOID SCRIBE: ink glyphs on the ground, slowing seals, phantom shots
+  shadow_void_scribe: shadowDuel('void_scribe', {
+    name: 'SHADOW OF THE VOID SCRIBE', title: 'The page that writes you out', hp: 13000, speed: 135, aura: '170,110,255',
+    teaches: 'Never stand in its script · the seal slows — dodge out before it closes',
+    phases: [
+      { name: 'INK', sub: 'Every glyph is a trap', hpBelow: 1, moves: ['script', 'quill', 'seal'] },
+      { name: 'ABYSSAL', sub: 'The page is almost full', hpBelow: 0.5, moves: ['script', 'quill', 'seal', 'null'], speed: 1.1, windup: 0.9 },
+    ],
+    moves: {
+      script: { kind: 'leap', range: 360, min: 60, r: 80, track: 0.4, windup: 1.0, recover: 0.6, cd: 3.5, weight: 4, power: 34, knock: 80, dmg: 'magic', status: [{ id: 'slow', dur: 2 }], anim: { windup: 'voidScript', attack: 'voidScript' } },
+      quill: { kind: 'volley', range: 380, min: 80, windup: 0.75, recover: 0.6, cd: 3, weight: 3, power: 26, count: 5, spread: 0.8, speed: 300, dmg: 'magic', color: '#b48aff', anim: { windup: 'phantomQuill', attack: 'phantomQuill' } },
+      seal: { kind: 'strike', range: 120, windup: 1.1, recover: 0.9, cd: 7, weight: 2, power: 44, knock: 140, dmg: 'magic', opening: 1.6, shape: { shape: 'circle', r: 130 }, status: [{ id: 'slow', dur: 2.5 }], anim: { windup: 'voidSeal', attack: 'voidSeal' } },
+      null: { kind: 'pattern', layout: 'cross', count: 7, r: 50, step: 70, delay: 0.1, range: 420, windup: 1.2, recover: 1.0, cd: 11, weight: 2, power: 36, knock: 120, dmg: 'magic', opening: 1.5, anim: { windup: 'finalScript', attack: 'finalScript' } },
+    },
+  }),
+  // LUMEN ORACLE: lances of light, a judgment ring — and it heals itself if you leave it alone (weak after the heal)
+  shadow_lumen_oracle: shadowDuel('lumen_oracle', {
+    name: 'SHADOW OF THE LUMEN ORACLE', title: 'The light that will not let you rest', hp: 14000, speed: 140, aura: '255,240,160',
+    teaches: 'Pressure it — a quiet shadow heals · step out of the judgment ring',
+    phases: [
+      { name: 'RADIANCE', sub: 'Light that blinds', hpBelow: 1, moves: ['bolt', 'grace', 'barrier'] },
+      { name: 'JUDGMENT', sub: 'The ring closes', hpBelow: 0.5, moves: ['bolt', 'grace', 'barrier', 'judgment'], speed: 1.1, windup: 0.9 },
+    ],
+    moves: {
+      bolt: { kind: 'volley', range: 400, min: 80, windup: 0.65, recover: 0.5, cd: 2.2, weight: 4, power: 30, count: 2, spread: 0.25, speed: 380, dmg: 'magic', color: '#fff2a0', anim: { windup: 'lumenBolt', attack: 'lumenBolt' } },
+      grace: { kind: 'pattern', layout: 'ring', count: 6, r: 46, step: 90, delay: 0.1, range: 300, windup: 1.0, recover: 0.6, cd: 6, weight: 3, power: 34, knock: 100, dmg: 'magic', anim: { windup: 'grace', attack: 'grace' } },
+      barrier: { kind: 'strike', range: 110, windup: 0.9, recover: 1.2, cd: 8, weight: 2, power: 40, knock: 220, dmg: 'magic', opening: 1.8, shape: { shape: 'circle', r: 110 }, anim: { windup: 'barrier', attack: 'lumenBurst' } },
+      judgment: { kind: 'nova', range: 999, windup: 1.2, recover: 1.0, cd: 11, weight: 2, power: 34, rings: 2, width: 52, gap: 90, dmg: 'magic', color: '255,240,170', opening: 1.5, anim: { windup: 'judgment', attack: 'judgment' } },
+    },
+  }),
+
+  // ---------------- AEGIS LINE (Q4): slow, heavy, guard-breaking blows — dodge, never trade
+  // WARDEN OF DAWN: shield bashes, holy ground, a march that pushes you out
+  shadow_warden_of_dawn: shadowDuel('warden_of_dawn', {
+    name: 'SHADOW OF THE WARDEN', title: 'The dawn that stands in your way', hp: 14500, def: 14, speed: 120, aura: '255,210,120',
+    teaches: 'Its march breaks guards · leave the holy ground · hit it after the bash',
+    phases: [
+      { name: 'DAWNLIGHT', sub: 'It holds the line', hpBelow: 1, moves: ['bash', 'march', 'bastion'] },
+      { name: 'RADIANT', sub: 'The sanctuary rises', hpBelow: 0.5, moves: ['bash', 'march', 'bastion', 'sanctuary'], speed: 1.1, windup: 0.9 },
+    ],
+    moves: {
+      bash: { kind: 'strike', range: 80, windup: 0.65, recover: 0.6, cd: 2, weight: 4, power: 40, knock: 180, opening: 1.0, shape: { shape: 'cone', r: 86, half: 0.8 }, anim: { windup: 'guard', attack: 'atk1' } },
+      march: { kind: 'dash', range: 260, min: 80, windup: 0.85, recover: 0.8, cd: 5, weight: 3, power: 46, knock: 260, len: 220, width: 40, guardBreak: true, opening: 1.4, anim: { windup: 'march', attack: 'march' } },
+      bastion: { kind: 'leap', range: 360, min: 60, r: 95, track: 0.4, windup: 1.1, recover: 0.7, cd: 7, weight: 2, power: 38, knock: 140, dmg: 'magic', status: [{ id: 'slow', dur: 2 }], anim: { windup: 'dawnBastion', attack: 'dawnBastion' } },
+      sanctuary: { kind: 'nova', range: 999, windup: 1.2, recover: 1.0, cd: 11, weight: 2, power: 34, rings: 2, width: 50, gap: 80, dmg: 'magic', color: '255,220,140', opening: 1.6, anim: { windup: 'sanctuary', attack: 'sanctuary' } },
+    },
+  }),
+  // BULWARK SENTINEL: the slowest, the toughest — a charging fortress and a counterweight slam
+  shadow_bulwark_sentinel: shadowDuel('bulwark_sentinel', {
+    name: 'SHADOW OF THE BULWARK', title: 'The wall that walks', hp: 15500, def: 18, speed: 105, aura: '220,170,110',
+    teaches: 'Never block the counterweight · circle it — it turns slowly',
+    phases: [
+      { name: 'BASTION', sub: 'Nothing moves it', hpBelow: 1, moves: ['slam', 'step', 'weight'] },
+      { name: 'CITADEL', sub: 'The fortress closes in', hpBelow: 0.5, moves: ['slam', 'step', 'weight', 'citadel'], speed: 1.1, windup: 0.9 },
+    ],
+    moves: {
+      slam: { kind: 'strike', range: 80, windup: 0.75, recover: 0.7, cd: 2.2, weight: 4, power: 44, knock: 200, opening: 1.0, shape: { shape: 'cone', r: 90, half: 0.9 }, anim: { windup: 'guard', attack: 'atk1' } },
+      step: { kind: 'dash', range: 220, min: 60, windup: 0.8, recover: 0.9, cd: 5, weight: 3, power: 48, knock: 260, len: 180, width: 44, guardBreak: true, opening: 1.4, anim: { windup: 'fortressStep', attack: 'fortressStep' } },
+      weight: { kind: 'strike', range: 110, windup: 1.4, recover: 1.1, cd: 8, weight: 2, power: 70, knock: 300, unblockable: true, opening: 2.0, shape: { shape: 'circle', r: 115 }, anim: { windup: 'counterweight', attack: 'counterweight' } },
+      citadel: { kind: 'nova', range: 999, windup: 1.2, recover: 1.0, cd: 12, weight: 2, power: 36, rings: 3, width: 46, gap: 76, color: '230,180,120', opening: 1.6, anim: { windup: 'citadel', attack: 'citadel' } },
+    },
+  }),
+  // OATHBREAKER: brands, a chain that drags, and the verdict — strongest when it is hurt
+  shadow_oathbreaker: shadowDuel('oathbreaker', {
+    name: 'SHADOW OF THE OATHBREAKER', title: 'The oath you have not broken yet', hp: 14000, def: 12, speed: 125, aura: '255,110,90',
+    teaches: 'The chain pulls you in — dodge its line · the verdict hits harder the lower it is',
+    phases: [
+      { name: 'FORSWORN', sub: 'It remembers every wound', hpBelow: 1, moves: ['cleave', 'chain', 'sinful'] },
+      { name: 'UNBOUND', sub: 'Nothing holds it now', hpBelow: 0.5, moves: ['cleave', 'chain', 'sinful', 'verdict'], speed: 1.15, windup: 0.85 },
+    ],
+    moves: {
+      cleave: { kind: 'combo', range: 90, recover: 0.7, cd: 2.4, weight: 4, power: 36, knock: 170, anim: { windup: 'atk1', attack: 'atk2' },
+        hits: [
+          { windup: 0.6, power: 36, shape: { shape: 'cone', r: 92, half: 0.85 } },
+          { windup: 0.45, power: 40, shape: { shape: 'cone', r: 96, half: 0.9 } },
+        ] },
+      chain: { kind: 'dash', range: 300, min: 90, windup: 0.8, recover: 0.7, cd: 5, weight: 3, power: 40, knock: 120, len: 280, width: 32, opening: 1.3, anim: { windup: 'ruinChain', attack: 'ruinChain' } },
+      sinful: { kind: 'strike', range: 100, windup: 1.2, recover: 1.0, cd: 7, weight: 2, power: 62, knock: 260, guardBreak: true, opening: 1.8, shape: { shape: 'circle', r: 105 }, anim: { windup: 'counter', attack: 'sinful' } },
+      verdict: { kind: 'pattern', layout: 'cross', count: 7, r: 52, step: 74, delay: 0.1, range: 420, windup: 1.3, recover: 1.1, cd: 11, weight: 2, power: 40, knock: 160, opening: 1.6, anim: { windup: 'verdict', attack: 'verdictEnd' } },
+    },
+  }),
 };

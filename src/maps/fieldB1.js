@@ -27,6 +27,8 @@ export const FIELD_B1 = {
   spawn: [8.5, 21],
   content: {
     interactables: [
+      { id: 'relic_storm', kind: 'trialRelic', trial: 'trial_stormcaller', item: 'relic_storm', tx: 70, ty: 100, when: { mech: 'blizzard', is: 'storming' }, prompt: 'Take the Thunderglass Shard', color: '#8ad8ff' }, // class quest relic (Quest Q4)
+      { id: 'relic_oath', kind: 'trialRelic', trial: 'trial_oathbreaker', item: 'relic_oath', tx: 120, ty: 140, when: { mech: 'blizzard', is: 'storming' }, prompt: 'Take the Frostbitten Oath', color: '#ff7060' }, // class quest relic (Quest Q4)
       // class quest relic (Duskrunner, Quest Q3): only surfaces while the blizzard rages
       { id: 'relic_dusk', kind: 'trialRelic', trial: 'trial_duskrunner', item: 'relic_dusk', tx: 81, ty: 60, when: { mech: 'blizzard', is: 'storming' }, prompt: 'Take the Stormrunner Sigil', color: '#7ad0ff' },
       // EXPLORATION (world/discoveries.js counts them): chests + a lore tablet off the main road

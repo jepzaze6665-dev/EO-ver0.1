@@ -4,7 +4,7 @@ const TILE = 32;
 // SKILL TREE (data/skillTree.js): regression tests / bots use every skill at any level. combatTest.js and
 // checklist.js import this file, so loading any of the dev tools switches the unlock gate off for the session.
 import { SKILL_TREE } from '../src/data/skillTree.js';
-import { CLASS_TREE } from '../src/data/classTree.js';
+import { CLASS_TREE, TRIALS, trialChapters } from '../src/data/classTree.js';
 import { GEAR_ITEMS } from '../src/data/items/index.js';
 import { MAPS } from '../src/maps/mapRegistry.js';
 import { isAvailable, interact } from '../src/exploration/interactables.js';
@@ -2544,7 +2544,7 @@ export async function randomEventCheck(g, classId = 'umbral_sword') {
 }
 
 // ---------------- QUEST REWORK Q2: a class-change quest end to end (master in Valehaven -> counters -> shadow duel)
-export function classQuestCheck(g, { classId = 'umbral_sword', node = 'nightfall_reaper', god = true, level = 30, seconds = 300 } = {}) {
+export function classQuestCheck(g, { node = 'nightfall_reaper', classId = CLASS_TREE[node].parent, god = true, level = 30, seconds = 300 } = {}) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);
   const pr = g.progression, p = g.player, trial = 'trial_' + node;
@@ -2553,9 +2553,10 @@ export function classQuestCheck(g, { classId = 'umbral_sword', node = 'nightfall
   for (const r of pr.paths().find((x) => x.node.id === node).node.requirements || []) if (r.type === 'counter') pr.records[classId] = { ...(pr.records[classId] || {}), [r.counter]: 999 };
   downBoss(g, 'boss_a1');
   g.world.changeMap('valehaven'); g.simulate(2);
-  ok('Valehaven: the line master is here', g.world.interactables.some((i) => i.id === 'npc_master_umbral'));
+  const masterId = trialChapters(TRIALS[trial])[0].npc;
+  ok('Valehaven: the line master is here', g.world.interactables.some((i) => i.id === 'npc_' + masterId), masterId);
   ok('The Proving Ground is sealed before the duel', !g.world.state.flags.provingOpen);
-  use(g, 'npc_master_umbral');
+  use(g, 'npc_' + masterId);
   g.ui.panels.dialogueAction('trial:' + node);
   const t = pr.trials[trial];
   ok('Master starts the class quest; chapter 1 (talk) done at once', t && t.state === 'active' && t.step === 1, JSON.stringify(t));

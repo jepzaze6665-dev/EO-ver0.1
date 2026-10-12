@@ -1729,3 +1729,15 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   4-chapter flow. `T.classQuestCheck(g, { node })` now walks the relic too (12 steps); no god LV 30 Umbral bot: Reaper 81-85 s ·
   Duskrunner 78-80 s · Echoes 70-74 s, all WIN with 40-70% HP. NOT done (owner to decide): "try one new-class skill" in the
   counters chapter (needs borrowing another class's skill — postponed).
+  OWNER: "try a new-class skill" in the counters chapter is CUT (not planned).
+  Done Q4 (Astral + Aegis): every Class 2 now has its 4-chapter class quest. Masters in Valehaven (data/classMasters.js + NPCs in
+  maps/valehaven.js): master_astral = Master Corvin [26,13], master_aegis = Master Halvard [38,25] (Ilsa [41,15] for Umbral).
+  Relics (items.js, key + bound; Thai th/items.js): Stormcaller relic_storm (B1 [70,100], blizzard) · Void Scribe relic_void (A3
+  Scribe's Vault [62,112], rune switch) · Lumen Oracle relic_lumen (A1 [86,70], fireflies) · Warden relic_dawn (A2 lakebed
+  [42,170], water level) · Bulwark relic_bulwark (A3 Bronze Vault [138,76], 2 switches) · Oathbreaker relic_oath (B1 [120,140],
+  blizzard). Shadows (data/shadowDuels.js, look = the class's own sprites): Stormcaller 12500 (bolt volley / sky strikes /
+  burst / tempest nova) · Void Scribe 13000 (script leap + slow / quill volley / seal / null cross) · Lumen 14000 (bolts / grace
+  ring / barrier burst / judgment nova) · Warden 14500 def 14 (bash / guard-break march / bastion / sanctuary) · Bulwark 15500 def 18
+  (slam / fortress step / UNBLOCKABLE counterweight / citadel nova) · Oathbreaker 14000 def 12 (2-hit cleave / chain / sinful
+  guard-break / verdict cross). classQuestCheck(g, { node }) plays the tier-1 parent (default classId = parent). No god LV 30:
+  Astral 56-70 s · Umbral 70-85 s · Aegis 105-109 s (slow line by design), all WIN. QUEST REWORK Q1-Q4 COMPLETE.

@@ -24,6 +24,8 @@ export const VALEHAVEN = {
     // class masters (Quest Q2, data/classMasters.js): each one offers its line's class-change quest
     npcs: [
       { id: 'master_umbral', name: 'Master Ilsa', role: 'Umbral Blademaster', tx: 41, ty: 15, look: 'scout' },
+      { id: 'master_astral', name: 'Master Corvin', role: 'Astral Loremaster', tx: 26, ty: 13, look: 'scout' },
+      { id: 'master_aegis', name: 'Master Halvard', role: 'Aegis Shieldmaster', tx: 38, ty: 25, look: 'scout' },
     ],
     interactables: [
       { id: 'ws_city2', kind: 'waystone', tx: 38, ty: 22, name: 'Valehaven', prompt: 'Waystone' },
