@@ -37,6 +37,7 @@ import { LANG } from '../data/lang.js';
 import { SETTINGS } from '../data/settings.js';
 import { ARCHETYPES, ARCHETYPE_RULES } from '../data/archetypes.js';
 import { getSetting, cycleSetting } from '../core/settings.js';
+import { openGuide } from './welcomeGuide.js';
 
 
 // class passives (class data: passives [{ name, desc }]) — codex + Skills tab
@@ -354,6 +355,9 @@ export class Panels {
     el.querySelector('.yes').onclick = () => answer(true);
     el.querySelector('.no').onclick = () => answer(false);
   }
+
+  // WELCOME GUIDE (ui/welcomeGuide.js): the player chooses full guide / essentials / skip
+  guide(opts = {}) { openGuide(this, controlsHTML, opts); }
 
   // ---------------- lore / text
   textPanel(title, body, onClose, html = false) {
@@ -1077,7 +1081,7 @@ export class Panels {
         <div class="np-head"><img class="np-ico" src="${UI_ICON('menu_settings')}" alt=""><div class="np-title"><b>ECLIPSE ONLINE</b><div class="np-sub">${tl('Paused')}</div></div></div>
         <div class="esc-list">
           ${[['resume', tl('Resume'), 'menu_class', ''], ['save', tl('Save'), 'menu_save', ''], ['load', tl('Load'), 'menu_save', g.save.exists() ? '' : 'disabled'],
-            ['map', tl('World Map'), 'menu_map', ''], ['party', tl('Party') + (g.online && g.online.party ? ` (${g.online.party.members.length})` : ''), 'menu_class', g.online && g.online.online ? '' : 'disabled'], ['controls', tl('Controls'), 'menu_codex', ''], ['settings', tl('Settings'), 'menu_settings', ''],
+            ['map', tl('World Map'), 'menu_map', ''], ['guide', tl('Guide'), 'menu_codex', ''],['party', tl('Party') + (g.online && g.online.party ? ` (${g.online.party.members.length})` : ''), 'menu_class', g.online && g.online.online ? '' : 'disabled'], ['controls', tl('Controls'), 'menu_codex', ''], ['settings', tl('Settings'), 'menu_settings', ''],
             ['reset', tl('Reset Progress'), 'menu_quests', ''], ['title', tl('Title Screen'), 'menu_equipment', '']]
             .map(([a, l, ic, dis]) => `<button data-a="${a}" ${dis}><img src="${UI_ICON(ic)}" alt="">${l}</button>`).join('')}
         </div>
@@ -1099,6 +1103,7 @@ export class Panels {
         else { e.target.dataset.confirm = '1'; e.target.textContent = tl('Click again to confirm reset'); e.target.classList.add('danger'); }
       }
       if (a === 'controls') this.textPanel(tl('Controls'), controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.menu(), true);
+      if (a === 'guide') this.guide({ onDone: () => this.menu() });
       if (a === 'settings') this.settings();
       if (a === 'lang') { setLang(nextLang()); this.menu(); }
       if (a === 'tele') { const o = TELEGRAPH_VIEW.options; setTelegraphView(o[(o.indexOf(telegraphView()) + 1) % o.length]); this.menu(); }

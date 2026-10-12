@@ -716,3 +716,11 @@ html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !impo
 .wr-card.locked { opacity: 0.45; cursor: default; }
 .wr-card.r-epic b { color: #c08aff; } .wr-card.r-legendary b { color: #ffb050; } .wr-card.r-rare b { color: #6ab4ff; }
 @media (max-height: 520px) { .wr-layout { grid-template-columns: 1fr; } .wr-layout .cw-stage { position: static; } }
+
+/* WELCOME GUIDE (ui/welcomeGuide.js): one rule per line, buttons in a row */
+.guide { max-width: 640px; }
+.guide .controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.guide .controls > div { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: start; line-height: 1.5; }
+.guide .esc-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.guide .guide-nav { flex-direction: row; justify-content: center; }
+.guide label { display: block; margin-top: 6px; cursor: pointer; }

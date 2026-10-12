@@ -9,6 +9,7 @@ import { GEAR_ITEMS } from '../src/data/items/index.js';
 import { MAPS } from '../src/maps/mapRegistry.js';
 import { isAvailable, interact } from '../src/exploration/interactables.js';
 SKILL_TREE.unlockAll = true;
+globalThis.__eoNoGuide = true; // the welcome guide window would pause the world mid-test
 
 // BOSS RUNS (boss/bossSystem.js): a test that marks a boss "down" means down for the whole test — first kill recorded AND
 // counted in the current run (its roads open). Walking through a city starts a new run; for a test-downed boss the run

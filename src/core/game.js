@@ -60,6 +60,7 @@ import { drawDebug, debugInfo } from '../ui/debugOverlay.js';
 import { OnlineSession } from '../net/onlineSession.js';
 import { getSetting } from './settings.js';
 import { COSMETICS, FREE_COSMETICS, cleanLook } from '../data/cosmetics.js';
+import { guideWanted } from '../ui/welcomeGuide.js';
 
 const STEP = 1 / 60;
 
@@ -333,6 +334,8 @@ export class Game {
     this.after(3.2, () => this.ui.banner('ECLIPSE ONLINE', 'Talk to Captain Aldric, the Village Guide  ·  [E] Interact', '#e8d0ff'));
     this.ui.notify('Tip', this.touch ? 'Left thumb: move · ATK: attack · tap a skill = auto-aim, drag = aim · DODGE' : 'WASD move · Mouse aim · LMB attack · SPACE dodge', '#9ad8ff'); // MOBILE: touch tip
     this.save.dirty = true;
+    // WELCOME GUIDE: a new character is asked how much help they want (unless "don't show again" / tests)
+    if (guideWanted()) this.after(1.2, () => { if (this.state === 'play' && !this.ui.panels.current) this.ui.panels.guide(); });
   }
 
   applySave(d) {
