@@ -6,6 +6,8 @@ const TILE = 32;
 import { SKILL_TREE } from '../src/data/skillTree.js';
 import { CLASS_TREE } from '../src/data/classTree.js';
 import { GEAR_ITEMS } from '../src/data/items/index.js';
+import { MAPS } from '../src/maps/mapRegistry.js';
+import { isAvailable, interact } from '../src/exploration/interactables.js';
 SKILL_TREE.unlockAll = true;
 
 // BOSS RUNS (boss/bossSystem.js): a test that marks a boss "down" means down for the whole test — first kill recorded AND
@@ -2554,13 +2556,23 @@ export function classQuestCheck(g, { classId = 'umbral_sword', node = 'nightfall
   ok('Valehaven: the line master is here', g.world.interactables.some((i) => i.id === 'npc_master_umbral'));
   ok('The Proving Ground is sealed before the duel', !g.world.state.flags.provingOpen);
   use(g, 'npc_master_umbral');
-  const d = g.ui.panels.current;
-  const opt = g.ui.panels.dialogueAction && d ? null : null;
   g.ui.panels.dialogueAction('trial:' + node);
   const t = pr.trials[trial];
   ok('Master starts the class quest; chapter 1 (talk) done at once', t && t.state === 'active' && t.step === 1, JSON.stringify(t));
   for (const o of pr.trialView(trial).objectives) pr.bump(classId, o.counter, o.count);
-  ok('Counters met -> duel chapter: shadow called, ring open', t.step === 2 && g.world.state.flags['duel_' + node] && g.world.state.flags.provingOpen, `step=${t.step}`);
+  // relic chapter: go to its map, meet its condition (the map mechanic), take it
+  const rc = pr.chapterOf(trial);
+  if (rc && rc.type === 'item') {
+    const relicDef = MAPS.flatMap((m) => ((m.content && m.content.interactables) || []).map((it) => ({ ...it, map: m.id }))).find((it) => it.kind === 'trialRelic' && it.item === rc.item);
+    g.world.changeMap(relicDef.map); g.simulate(0.5);
+    const relic = g.world.interactables.find((i) => i.id === relicDef.id);
+    if (relicDef.when) ok('Relic hidden until the map mechanic allows it (' + relicDef.when.mech + ')', relic && !isAvailable(g.world, relic));
+    if (relicDef.when) { const m = g.world.mapMech.get(relicDef.when.mech); if (relicDef.when.is === 'storming') m.phase = 'storm'; else m[relicDef.when.is] = true; }
+    if (relic) { const pos = g.world.map.findOpen(relic.x, relic.y, 4); g.player.x = pos.x; g.player.y = pos.y; g.simulate(0.2); interact(g.world, relic); g.ui.panels.close(true); }
+    ok('Relic taken -> duel chapter', g.inventory.count(rc.item) === 1 && relic && t.step === pr.trialView(trial).chapters.length - 1, `item=${g.inventory.count(rc.item)} step=${t.step}`);
+    g.world.changeMap('valehaven'); g.simulate(1);
+  }
+  ok('Duel chapter: shadow called, ring open', g.world.state.flags['duel_' + node] && g.world.state.flags.provingOpen, `step=${t.step}`);
   g.world.transitions.autoConfirm = true;
   goto(g, 44, 16);
   for (let k = 0; k < 10 && g.world.mapId !== 'proving'; k++) walk(g, 'KeyD', 0.3);

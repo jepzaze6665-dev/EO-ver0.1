@@ -2,7 +2,7 @@
 // Run:  node tools/tests/progression.test.mjs
 import { evaluate, allMet, matches } from '../../src/progression/requirements.js';
 import { Progression } from '../../src/progression/progression.js';
-import { CLASS_TREE, CLASS_COUNTERS, TRIALS } from '../../src/data/classTree.js';
+import { CLASS_TREE, CLASS_COUNTERS, TRIALS, trialChapters } from '../../src/data/classTree.js';
 import { CLASSES, STARTING_CLASSES } from '../../src/skills/classes.js';
 import { EventBus } from '../../src/core/events.js';
 
@@ -15,8 +15,8 @@ function fakeGame(classId = 'astral_weaver', level = 30) { // Class 2 needs LV 3
   const g = {
     events: new EventBus(), save: { dirty: false },
     player: { id: 1, level, cls: { id: classId } },
-    quests: { completed: {} }, world: { state: { flags: {} }, map: { secretsFound: new Set() } },
-    inventory: { count: () => 0 },
+    quests: { completed: {} }, world: { state: { flags: {} }, map: { secretsFound: new Set() }, setFlag(n, v = true) { this.state.flags[n] = v; } },
+    bag: {}, inventory: { count: (id) => g.bag[id] || 0 },
   };
   g.progression = new Progression(g);
   return g;
@@ -84,7 +84,7 @@ test('paths: only children of the current class, requirements with progress', ()
   ok(JSON.stringify(ids) === JSON.stringify(['bulwark_sentinel', 'oathbreaker', 'warden_of_dawn']), ids.join());
   ok(g.progression.paths().every((x) => !x.ready && x.reqs.some((r) => !r.met)), 'not ready at level 10');
 });
-test('trial flow: blocked -> start -> progress since start -> pass -> unlock (+events)', () => {
+test('class quest flow: blocked -> master -> counters since that chapter -> relic -> shadow duel -> unlock (+events)', () => {
   const g = fakeGame('umbral_sword', 13);
   const seen = []; ['trialStarted', 'trialPassed', 'classUnlocked'].forEach((n) => g.events.on(n, () => seen.push(n)));
   ok(g.progression.startTrial('duskrunner').reason === 'requirements', 'blocked without requirements');
@@ -93,10 +93,19 @@ test('trial flow: blocked -> start -> progress since start -> pass -> unlock (+e
   ok(g.progression.paths().find((x) => x.node.id === 'duskrunner').ready, 'ready after 15 perfect dodges');
   ok(g.progression.startTrial('duskrunner').ok, 'start');
   ok(g.progression.startTrial('nightfall_reaper').ok === false, 'one trial at a time');
+  const t = g.progression.trials.trial_duskrunner, ch = trialChapters(TRIALS.trial_duskrunner);
+  ok(t.step === 0 && ch[0].type === 'talk', 'chapter 1: the master');
+  g.events.emit('npcTalked', { id: 'someone_else' }); ok(t.step === 0, 'another NPC does nothing');
+  g.events.emit('npcTalked', { id: ch[0].npc }); ok(t.step === 1, 'master spoken to -> counters');
   const need = TRIALS.trial_duskrunner.objectives[0].count;
-  ok(g.progression.trialView('trial_duskrunner').objectives[0].have === 0, 'progress counts from the start of the trial');
+  ok(g.progression.trialView('trial_duskrunner').objectives[0].have === 0, 'progress counts from the start of the chapter');
   for (let i = 0; i < need; i++) g.events.emit('perfectDodge', {});
-  ok(g.progression.trials.trial_duskrunner.state === 'passed' && g.progression.unlocked.includes('duskrunner'), 'passed + unlocked');
+  ok(t.step === 2 && ch[2].type === 'item', 'counters met -> relic chapter');
+  g.bag[ch[2].item] = 1; g.events.emit('itemCollected', { id: ch[2].item });
+  ok(t.step === 3 && g.world.state.flags.duel_duskrunner && g.world.state.flags.provingOpen, 'relic carried -> duel: shadow called + ring open');
+  g.events.emit('bossDefeated', { bossId: 'not_it' }); ok(t.state === 'active', 'another boss does nothing');
+  g.events.emit('bossDefeated', { bossId: ch[3].boss });
+  ok(t.state === 'passed' && g.progression.unlocked.includes('duskrunner') && !g.world.state.flags.duel_duskrunner, 'shadow down -> passed + unlocked, flag cleared');
   ok(seen.join() === 'trialStarted,trialPassed,classUnlocked', seen.join());
   ok(g.progression.tracker().length === 0, 'tracker empty after the trial');
 });

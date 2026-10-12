@@ -1716,3 +1716,16 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Test fixes found on the way: testkit downBoss re-registers its listener per event bus (newGame / loadGame make a new bus;
   mapTour lost the road bosses after entering a city); reaperChecks no longer expects the removed class weapon item.
   cityCheck "South road back to the Sanctum" still fails (old, not quest-related).
+  Done Q3 (Umbral line): all 3 Umbral trials = 4 chapters (talk master_umbral -> counters -> relic -> shadow duel). RELIC =
+  generic interactable kind 'trialRelic' { trial, item, when?: { mech, is } } (exploration/interactables.js relicReady: only while
+  that trial is on its item chapter + not carried + the map mechanic's property is truthy; drawn as a floating shard; taken with
+  econ reason 'trial' -> server/economy.js VERIFIED kind 'trial', id '<trial>:<item>', budget from the chapter). Relic items
+  (items.js, key + bound): relic_nightfall (A1 [18,80], the FIREFLIES lead to it — fireflies.targets counts a ready relic as a
+  secret) · relic_dusk (B1 [81,60], only while the BLIZZARD storms) · relic_echo (A2 [27,172] on the bed of Mirror Lake = only
+  reachable after the WATER LEVEL lever drains it). Shadows: shadow_duskrunner (13500 HP, speed 190: blue fang / flash step
+  dashes, 4-hit flurry, phase 2 cross pattern) + shadow_blade_of_echoes (15000 HP: echo slash with a late 2nd cut, thrust, crimson
+  stance = guard-break blow, phase 2 ring of echoes). City hints: narrative.js classHint(g) (tier-1 class LV >= 25) appended to
+  Captain Aldric (Lumina) and Guildmaster Seraphine (City 2): where Valehaven is. Thai for all. progression.test = the whole
+  4-chapter flow. `T.classQuestCheck(g, { node })` now walks the relic too (12 steps); no god LV 30 Umbral bot: Reaper 81-85 s ·
+  Duskrunner 78-80 s · Echoes 70-74 s, all WIN with 40-70% HP. NOT done (owner to decide): "try one new-class skill" in the
+  counters chapter (needs borrowing another class's skill — postponed).

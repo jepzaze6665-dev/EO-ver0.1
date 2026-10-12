@@ -20,6 +20,7 @@ import { LEVELS } from '../src/data/levels.js';
 import { isSharedMap } from '../src/data/online.js';
 import { QUESTS } from '../src/data/quests.js';
 import { HIDDEN } from '../src/data/hidden.js';
+import { TRIALS, trialChapters } from '../src/data/classTree.js';
 import { questExp, hiddenExp } from '../src/progression/rewardScaling.js';
 import { EconCatalog } from './econCatalog.js';
 import { SHOPS, shopId, shopPrice } from '../src/items/items.js';
@@ -28,7 +29,7 @@ export const SERVER_INSTANCE_BASE = 5000000; // gear the server creates: item_50
 const SERVER_REASONS = new Set(['kill', 'boss']); // paid by the server in a room it hosts
 // H5b: sources checked against the game data — a claim may never pay more than the data says, and only once per character
 // (a gathering node: once per regrow time)
-const VERIFIED = new Set(['quest', 'secret', 'explore', 'chest', 'resource', 'forge', 'shrine', 'quarry']);
+const VERIFIED = new Set(['quest', 'secret', 'explore', 'chest', 'resource', 'forge', 'shrine', 'quarry', 'trial']);
 // H5c: every gain must have a checked source; anything else is refused ('unchecked source')
 const PAIRED = new Set(['buy', 'sell', 'pile']);
 export const ECON_RULES = { regrow: 110, quarryAgain: 240, exploreKeys: 600 };
@@ -175,6 +176,8 @@ export class EconomyService {
     if (kind === 'resource') { const r = C.resource[id]; return r ? { xp: 0, gold: 0, items: { [r.item]: 1 }, regrow: ECON_RULES.regrow } : null; }
     if (kind === 'forge') { const f = C.forge[id]; return f ? { xp: 0, gold: 0, items: { ...f.gives } } : null; }
     if (kind === 'shrine') return { xp: 0, gold: 0, items: { seal_fragment: 1 } };
+    // class quest relic: id = '<trial>:<item>', the trial's item chapter names it (data/classTree.js)
+    if (kind === 'trial') { const [tid, item] = String(id).split(':'); const c = trialChapters(TRIALS[tid]).find((x) => x.type === 'item' && x.item === item); return TRIALS[tid] && c ? { xp: 0, gold: 0, items: { [item]: c.count || 1 } } : null; }
     if (kind === 'quarry') { const q = C.quarry[id]; return q ? { xp: 0, gold: q.gold, items: { ...q.items }, regrow: ECON_RULES.quarryAgain } : null; }
     return null;
   }

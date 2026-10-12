@@ -27,6 +27,8 @@ export const FIELD_B1 = {
   spawn: [8.5, 21],
   content: {
     interactables: [
+      // class quest relic (Duskrunner, Quest Q3): only surfaces while the blizzard rages
+      { id: 'relic_dusk', kind: 'trialRelic', trial: 'trial_duskrunner', item: 'relic_dusk', tx: 81, ty: 60, when: { mech: 'blizzard', is: 'storming' }, prompt: 'Take the Stormrunner Sigil', color: '#7ad0ff' },
       // EXPLORATION (world/discoveries.js counts them): chests + a lore tablet off the main road
       { id: 'b1_chest_tower', kind: 'chest', tx: 92, ty: 29, loot: [{ item: 'hp_potion', count: 2 }, { item: 'frost_pelt', count: 2 }], gold: 120 },
       { id: 'b1_chest_ridge', kind: 'chest', tx: 115, ty: 19, loot: [{ item: 'crystal_shard', count: 2 }], gold: 160 },

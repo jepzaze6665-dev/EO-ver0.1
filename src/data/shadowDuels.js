@@ -53,4 +53,48 @@ export const SHADOWS = {
       zone: { kind: 'leap', range: 400, min: 60, r: 110, track: 0.6, windup: 1.2, recover: 0.6, cd: 9, weight: 2, power: 36, knock: 120, dmg: 'shadow', status: [{ id: 'slow', dur: 2 }], opening: 1.2, anim: { windup: 'nightfallZone', attack: 'nightfallZone' } },
     },
   }),
+  // DUSKRUNNER: never stands still — short dashes back to back, a flurry, faster still in phase 2. Less HP, more pressure.
+  shadow_duskrunner: shadowDuel('duskrunner', {
+    name: 'SHADOW OF THE DUSKRUNNER', title: 'The road that runs you down', hp: 13500, speed: 190, aura: '90,170,255',
+    teaches: 'Dodge the dash, then punish the stop · it is weak only after the flurry',
+    phases: [
+      { name: 'FLOW', sub: 'It never stops moving', hpBelow: 1, moves: ['fang', 'step', 'flurry'] },
+      { name: 'RUSH', sub: 'Faster — wait for it to stop', hpBelow: 0.5, moves: ['fang', 'step', 'flurry', 'endless'], speed: 1.2, windup: 0.85 },
+    ],
+    moves: {
+      fang: { kind: 'dash', range: 280, min: 70, windup: 0.55, recover: 0.45, cd: 2.2, weight: 4, power: 38, knock: 160, len: 260, width: 32, anim: { windup: 'blueFang', attack: 'blueFang' } },
+      step: { kind: 'dash', range: 200, min: 40, windup: 0.4, recover: 0.3, cd: 3.5, weight: 3, power: 28, knock: 120, len: 170, width: 30, anim: { windup: 'flashStep', attack: 'flashStep' } },
+      flurry: {
+        kind: 'combo', range: 80, recover: 1.1, cd: 6, weight: 2, power: 20, knock: 90, opening: 1.8, anim: { windup: 'barrage', attack: 'barrage' },
+        hits: [
+          { windup: 0.45, power: 20, shape: { shape: 'cone', r: 80, half: 0.9 } },
+          { windup: 0.2, power: 20, shape: { shape: 'cone', r: 80, half: 0.9 } },
+          { windup: 0.2, power: 20, shape: { shape: 'cone', r: 80, half: 0.9 } },
+          { windup: 0.55, power: 34, shape: { shape: 'circle', r: 92 } },
+        ],
+      },
+      endless: { kind: 'pattern', layout: 'cross', count: 5, r: 46, step: 70, delay: 0.12, range: 300, windup: 1.0, recover: 0.9, cd: 10, weight: 2, power: 34, knock: 120, opening: 1.4, anim: { windup: 'endlessRun', attack: 'endlessRun' } },
+    },
+  }),
+  // BLADE OF ECHOES: every cut comes back — the second hit lands late; a held stance turns into a crimson X
+  shadow_blade_of_echoes: shadowDuel('blade_of_echoes', {
+    name: 'SHADOW OF THE ECHOING BLADE', title: 'Every cut you made, returned', hp: 15000, speed: 140, aura: '255,90,110',
+    teaches: 'Every slash echoes — dodge twice · do not strike into the raised blade',
+    phases: [
+      { name: 'RESONANCE', sub: 'Every cut comes back', hpBelow: 1, moves: ['echo', 'thrust', 'crimson'] },
+      { name: 'FULL MEMORY', sub: 'It remembers your whole fight', hpBelow: 0.5, moves: ['echo', 'thrust', 'crimson', 'recollect'], speed: 1.1, windup: 0.9 },
+    ],
+    moves: {
+      echo: {
+        kind: 'combo', range: 90, recover: 0.7, cd: 2.6, weight: 4, power: 34, knock: 150, anim: { windup: 'echoSlash', attack: 'echoSlash' },
+        hits: [
+          { windup: 0.55, power: 34, shape: { shape: 'cone', r: 92, half: 0.85 } },
+          { windup: 0.9, power: 26, shape: { shape: 'cone', r: 100, half: 0.95 } },
+        ],
+      },
+      thrust: { kind: 'dash', range: 230, min: 80, windup: 0.7, recover: 0.6, cd: 4.5, weight: 3, power: 44, knock: 200, len: 210, width: 30, opening: 1.2, anim: { windup: 'atk2', attack: 'atk2' } },
+      crimson: { kind: 'strike', range: 110, windup: 1.3, recover: 0.9, cd: 7, weight: 2, power: 58, knock: 240, guardBreak: true, opening: 1.8, shape: { shape: 'circle', r: 110 }, anim: { windup: 'stance', attack: 'counterStrike' } },
+      recollect: { kind: 'pattern', layout: 'ring', count: 8, r: 50, step: 120, delay: 0.1, range: 400, windup: 1.2, recover: 1.0, cd: 11, weight: 2, power: 36, knock: 140, opening: 1.6, anim: { windup: 'recollection', attack: 'recollection' } },
+    },
+  }),
 };

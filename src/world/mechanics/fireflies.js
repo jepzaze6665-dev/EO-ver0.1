@@ -5,6 +5,7 @@
 // Presentation only (every client runs its own swarm: no online state). The first time on the map a toast explains it.
 //   options: { still: s, range: tiles, every: s between swarms, count, travel: tiles a firefly flies }
 import { registerMapMechanic, MapMechanic } from '../mapMechanics.js';
+import { relicReady } from '../../exploration/interactables.js';
 import { TILE } from '../../core/constants.js';
 import { TAU, rand } from '../../core/math.js';
 
@@ -27,6 +28,7 @@ export class Fireflies extends MapMechanic {
     for (const it of w.interactables) {
       if (!w.onMap(it)) continue;
       if (it.secret && !found.has(it.secret)) out.push({ x: it.x, y: it.y, secret: true });
+      else if (it.kind === 'trialRelic' && relicReady(w, it)) out.push({ x: it.x, y: it.y, secret: true }); // class quest relic
       else if (it.kind === 'chest' && !w.state.chests[it.id]) out.push({ x: it.x, y: it.y, secret: false });
     }
     for (const n of w.npcs) if (n.secret && !found.has(n.secret) && w.onMap(n)) out.push({ x: n.x, y: n.y, secret: true });

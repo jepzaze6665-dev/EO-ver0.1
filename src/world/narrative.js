@@ -111,6 +111,15 @@ export const LORE = {
 // returns { lines:[...], options:[{label, action}] }
 // CLASS MASTER (Quest Q2, data/classMasters.js): offers the class-change quest of its line; built from data only
 function lineOf(classId) { let c = classId; while (CLASS_TREE[c] && CLASS_TREE[c].parent) c = CLASS_TREE[c].parent; return c; }
+// city NPCs point the way to the masters (Quest Q3): a tier-1 class from LV 25 hears where Valehaven is
+export const CLASS_HINT = [
+  'You fight like someone who has outgrown their teacher. The masters of the old lines never left — they hide in Valehaven.',
+  'Take the Sealed Path in the north-west of the Whispering Forest. The thorns wither once the Guardian is at peace.',
+];
+export function classHint(g) {
+  const p = g.player, n = CLASS_TREE[p.cls.id];
+  return n && !n.parent && p.level >= 25 ? CLASS_HINT : [];
+}
 export function masterDialogue(m, g) {
   const p = g.player, pr = g.progression, bye = { label: 'Farewell', action: 'close' };
   if (lineOf(p.cls.id) !== m.line) return { lines: [...m.greet, ...m.other], options: [bye] };
@@ -224,9 +233,9 @@ export function dialogueFor(id, g) {
         options: [{ label: 'Accept: First Steps of Shadow', action: 'quest:first_steps' }, { label: 'Controls?', action: 'controls' }, { label: 'Later', action: 'close' }],
       };
       return {
-        lines: restored
+        lines: [...(restored
           ? ['Word travels fast — the Guardian is at peace! The Guild will want you for the Valley expedition.', 'Scout Wren is already up there. Look for her past the northern road.']
-          : ['Remember: enemies always show their intent — red on the ground means move, or dodge through it at the last moment.', 'Heavy attacks leave openings. That is when you break them.'],
+          : ['Remember: enemies always show their intent — red on the ground means move, or dodge through it at the last moment.', 'Heavy attacks leave openings. That is when you break them.']), ...classHint(g)],
         options: [{ label: 'Controls?', action: 'controls' }, { label: 'Thanks', action: 'close' }],
       };
     case 'smith':
@@ -289,7 +298,7 @@ export function dialogueFor(id, g) {
         lines: [
           'The Guild board fills faster than we can post it. The roads east are still unsurveyed — when the Guild opens them, you will hear it first.',
           'Rest while you can. Asteria has had three hundred years of silence; it can spare you a quiet night.',
-        ],
+        ].concat(classHint(g)),
         options: [{ label: 'Farewell', action: 'close' }],
       };
       g.world.setFlag('asteriaMet'); // first meeting (Q1: was quest 'asteria')

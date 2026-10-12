@@ -121,11 +121,28 @@ export const TRIALS = {
     chapters: [
       { type: 'talk', npc: 'master_umbral', text: 'Speak with Master Ilsa in Valehaven' },
       { type: 'counters', text: 'Prove the night answers you' },
+      { type: 'item', item: 'relic_nightfall', text: 'Find the Nightfall Ember in the Whispering Forest (follow the fireflies)' },
       { type: 'boss', boss: 'shadow_nightfall_reaper', text: 'Defeat your shadow in the Proving Ground' },
     ],
   },
-  trial_duskrunner: { title: 'Trial of the Endless Road', objectives: [{ counter: 'perfect_dodges', count: 6 }] },
-  trial_blade_of_echoes: { title: 'Trial of the Resounding Blade', objectives: [{ counter: 'ultimates', count: 3 }, { counter: 'kills', count: 20 }] },
+  trial_duskrunner: {
+    title: 'Trial of the Endless Road', objectives: [{ counter: 'perfect_dodges', count: 6 }],
+    chapters: [
+      { type: 'talk', npc: 'master_umbral', text: 'Speak with Master Ilsa in Valehaven' },
+      { type: 'counters', text: 'Prove you never stop moving' },
+      { type: 'item', item: 'relic_dusk', text: 'Find the Stormrunner Sigil in Frostwind Plains (it only shows in the blizzard)' },
+      { type: 'boss', boss: 'shadow_duskrunner', text: 'Defeat your shadow in the Proving Ground' },
+    ],
+  },
+  trial_blade_of_echoes: {
+    title: 'Trial of the Resounding Blade', objectives: [{ counter: 'ultimates', count: 3 }, { counter: 'kills', count: 20 }],
+    chapters: [
+      { type: 'talk', npc: 'master_umbral', text: 'Speak with Master Ilsa in Valehaven' },
+      { type: 'counters', text: 'Prove your blade remembers' },
+      { type: 'item', item: 'relic_echo', text: 'Find the Drowned Echo at the bottom of Mirror Lake (drain it at the Sunken Temple)' },
+      { type: 'boss', boss: 'shadow_blade_of_echoes', text: 'Defeat your shadow in the Proving Ground' },
+    ],
+  },
   trial_warden_of_dawn: { title: 'Trial of the Rising Sun', objectives: [{ counter: 'barrier_absorbed', count: 250 }] },
   trial_bulwark_sentinel: { title: 'Trial of the Unmoving Wall', objectives: [{ counter: 'blocks', count: 30 }] },
   trial_oathbreaker: { title: 'Trial of the Broken Oath', objectives: [{ counter: 'judgments', count: 8 }] },

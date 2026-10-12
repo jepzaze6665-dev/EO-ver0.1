@@ -307,6 +307,8 @@ export const TH_WINDOWS = {
   '{name} chooses the map. You will be asked to accept.': '{name} เป็นผู้เลือกแผนที่ คุณจะถูกถามให้ตอบรับ',
   'The leader': 'หัวหน้า',
   'Waiting for players to join… (or switch to Solo)': 'รอผู้เล่นเข้าร่วม… (หรือสลับเป็นเล่นคนเดียว)',
+  'Close and wait in the city': 'ปิดหน้าต่าง รอในเมือง',
+  'Your party is open — others can join it at the road out of the city': 'ปาร์ตี้เปิดอยู่ — คนอื่นเข้าร่วมได้ที่ทางออกเมือง',
   'ROUTE {r} · {name}': 'เส้นทาง {r} · {name}',
   'BOSS': 'บอส',
   '✓ Defeated': '✓ ปราบแล้ว',

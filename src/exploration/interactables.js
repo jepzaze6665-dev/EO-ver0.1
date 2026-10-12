@@ -8,6 +8,16 @@ import { Assets } from '../core/assets.js';
 // Behaviour + visuals for every interactable kind. Keeping the rules here means the
 // map files only *place* things; this file decides what they do.
 
+// CLASS QUEST RELIC (Quest Q3, kind 'trialRelic'): { trial, item, when?: { mech, is } } — shows only while that trial is on its
+// item chapter for this item, the item is not carried yet, and (when) the map mechanic of type `mech` has `is` truthy
+// (e.g. blizzard.storming, water_level.drained). Taking it = the item, reason 'trial' (server/economy.js checks it).
+export function relicReady(w, it) {
+  const pr = w.game.progression, c = pr && pr.chapterOf(it.trial);
+  if (!c || c.type !== 'item' || c.item !== it.item || w.game.inventory.count(it.item) >= (c.count || 1)) return false;
+  if (it.when) { const m = w.mapMech && w.mapMech.get(it.when.mech); if (!m || !m[it.when.is]) return false; }
+  return true;
+}
+
 export function isAvailable(w, it) {
   const f = w.state.flags;
   // secret objects become interactable once their area is discovered
@@ -24,6 +34,7 @@ export function isAvailable(w, it) {
     case 'timedRune': return w.game.quests.isActive(it.quest) && !f[it.flag];
     case 'npc': return !(it.npc && it.npc.hidden);
     case 'mech': return it.available ? it.available() : true; // owned by a map mechanic (world/mapMechanics.js)
+    case 'trialRelic': return relicReady(w, it);
   }
   return true;
 }
@@ -238,6 +249,17 @@ export function interact(w, it) {
         g.save.dirty = true;
       } else g.ui.showLore(it.title, it.locked);
       break;
+    case 'trialRelic': {
+      if (!relicReady(w, it)) break;
+      const E = g.online && g.online.econ, take = () => g.inventory.add(it.item, 1); // ONLINE: reason = trial (data-checked)
+      if (E) E.why('trial', it.trial + ':' + it.item, take); else take();
+      g.audio.sfx('chest_rare');
+      g.vfx.burst(it.x, it.y - 16, it.color || '#c9a0ff', 40, 180);
+      g.vfx.ring(it.x, it.y, 6, 80, { color: '200,160,255', life: 0.7 });
+      g.ui.banner('RELIC FOUND', (ITEMS[it.item] && ITEMS[it.item].name) || it.item, '#e0c0ff');
+      g.save.dirty = true;
+      break;
+    }
     case 'mech': // a map mechanic's object (rune switch ...): its own use() decides
       if (it.use) it.use();
       break;
@@ -272,6 +294,7 @@ export function drawInteractable(ctx, w, it, time) {
     case 'waystone': drawWaystone(ctx, x, y, !!w.state.waystones[it.id], time); break;
     case 'dungeonGate': drawDungeonGate(ctx, x, y, time); break;
     case 'mech': if (it.draw) it.draw(ctx, time); break;
+    case 'trialRelic': if (relicReady(w, it)) drawRelic(ctx, x, y, time, it.color || '#c9a0ff'); break;
     case 'cityReturn': drawCityReturn(ctx, x, y, time); break;
     case 'deathPile': drawDeathPile(ctx, x, y, time, !!it.owner); break;
     case 'lever': {
@@ -422,4 +445,18 @@ function drawWaystone(ctx, x, y, on, t) {
     ctx.beginPath(); ctx.arc(x, y - 38 + b, 12, 0, TAU); ctx.fill();
     ctx.globalCompositeOperation = 'source-over';
   }
+}
+
+// a floating relic shard with a soft glow (class quest item chapter)
+function drawRelic(ctx, x, y, time, color) {
+  const b = Math.sin(time * 2.4) * 3, yy = y - 24 + b;
+  ctx.globalCompositeOperation = 'lighter';
+  const g = ctx.createRadialGradient(x, yy, 2, x, yy, 30);
+  g.addColorStop(0, color); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.globalAlpha = 0.55 + 0.2 * Math.sin(time * 4);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, yy, 30, 0, TAU); ctx.fill();
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = color; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x, yy - 10); ctx.lineTo(x + 6, yy); ctx.lineTo(x, yy + 10); ctx.lineTo(x - 6, yy); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(x, y, 8, 3, 0, 0, TAU); ctx.fill();
 }

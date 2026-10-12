@@ -99,6 +99,10 @@ export const ITEMS = {
   cinder_shard: { name: 'Cinder Shard', cat: 'Quest Item', rarity: 'quest', maxStack: 3, icon: 'rune', color: '#ff7a30', desc: 'A splinter of black stone, warm as a coal. The Ashen Pilgrim said there are three.' },
   // KEY ITEM (owner): red MYTHIC grade, its only use = the key to the Dragon Door (kept after the door opens; no stats, no sale)
   varkharon_seal: { name: "Varkharon's Seal", cat: 'Quest Item', rarity: 'mythic', key: true, bound: true, maxStack: 1, icon: 'sigil', color: '#ff3030', desc: 'Three cinder shards fused into a dragon-headed seal. It opens the Dragon Door in the Quiet Hollow, and nothing else.' },
+  // class-change quest relics (Quest Q3, data/classTree.js item chapters; interactable kind 'trialRelic')
+  relic_nightfall: { name: 'Nightfall Ember', cat: 'Quest Item', rarity: 'epic', key: true, bound: true, maxStack: 1, icon: 'sigil', color: '#9a6aff', desc: 'A coal of black light the fireflies of the Whispering Forest would not stop circling. It is cold to the touch.' },
+  relic_dusk: { name: 'Stormrunner Sigil', cat: 'Quest Item', rarity: 'epic', key: true, bound: true, maxStack: 1, icon: 'sigil', color: '#7ad0ff', desc: 'It only surfaces in the snow when the blizzard is at its worst — the road belongs to whoever keeps moving.' },
+  relic_echo: { name: 'Drowned Echo', cat: 'Quest Item', rarity: 'epic', key: true, bound: true, maxStack: 1, icon: 'sigil', color: '#ff6a7a', desc: 'A sword-shaped shell from the bottom of Mirror Lake. Put it to your ear and you hear a fight that ended long ago.' },
   seal_fragment: { name: 'Ancient Seal Fragment', cat: 'Quest Item', rarity: 'quest', icon: 'rune', color: '#5af0ff', desc: 'Resonates with the sealed Guardian Gate.' },
 };
 for (const [id, def] of Object.entries(GEAR_ITEMS)) {

@@ -45,6 +45,8 @@ export const FIELD_A2 = {
   spawn: [84.5, 192],
   content: {
     interactables: [
+      // class quest relic (Blade of Echoes, Quest Q3): on the bed of Mirror Lake, reachable once the Temple Wheel drains it
+      { id: 'relic_echo', kind: 'trialRelic', trial: 'trial_blade_of_echoes', item: 'relic_echo', tx: 27, ty: 172, when: { mech: 'water_level', is: 'drained' }, prompt: 'Take the Drowned Echo', color: '#ff6a7a' },
       // EXPLORATION (world/discoveries.js counts them): chests + a lore tablet off the main road
       { id: 'a2_chest_arch', kind: 'chest', tx: 142, ty: 121, loot: [{ item: 'hp_potion', count: 2 }, { item: 'stone_scute', count: 2 }], gold: 180 },
       { id: 'a2_chest_upper', kind: 'chest', tx: 76, ty: 60, loot: [{ item: 'charm_focus', count: 1 }], gold: 150, rare: true },

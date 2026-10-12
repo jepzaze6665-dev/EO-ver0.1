@@ -759,7 +759,10 @@ export class Panels {
     } else {
       const lead = pt.members.find((m) => m.id === pt.leader) || {};
       act = !on.isLeader ? `<div class="muted small">${tl('{name} chooses the map. You will be asked to accept.', { name: esc(lead.name || tl('The leader')) })}</div>`
+        // owner: alone in a new party the panel looked frozen (no button) -> PLAY alone + close and wait in the city
         : pt.members.length < 2 ? `<div class="muted small">${tl('Waiting for players to join… (or switch to Solo)')}</div>`
+          + `<button class="ms-play" data-go="solo" ${selOpen ? '' : 'disabled'}>${selOpen ? tl('PLAY — {name} alone', { name: esc(sel.short) }) : tl('🔒 LOCKED')}</button>`
+          + `<button class="dg-go" data-go="wait">${tl('Close and wait in the city')}</button>`
         : `<button class="ms-play" data-go="party" ${selOpen ? '' : 'disabled'}>${selOpen ? tl('PLAY — {name} with the party', { name: esc(sel.short) }) : tl('🔒 LOCKED')}</button>`;
       act += `<button data-go="leave" class="danger ms-leave">${tl('Leave party')}</button>`;
     }
@@ -825,6 +828,7 @@ export class Panels {
       if (t.dataset.join) return on.partyAction('partyJoin', { party: t.dataset.join });
       const go = t.dataset.go;
       if (go === 'solo') { if (on && on.online) on.net.send('dungeonEnter', { area: this.gateSel }); else g.enterDungeon(this.gateSel, { mode: 'solo' }); }
+      if (go === 'wait') { this.close(true); g.ui.toast(tl('Your party is open — others can join it at the road out of the city'), 4); }
       if (go === 'road' && ex) { this.close(true); g.world.transitions.go(ex); }
       if (go === 'party') on.net.send('dungeonPropose', { area: this.gateSel });
       if (go === 'create') on.partyAction('partyCreate');
