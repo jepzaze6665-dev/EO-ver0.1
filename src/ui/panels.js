@@ -817,12 +817,13 @@ export class Panels {
     // the owner's painted map, when it exists (checked once)
     if (this.worldMapArt === undefined && !W.image) this.worldMapArt = false;
     if (this.worldMapArt === undefined) { const im = new Image(); im.onload = () => { this.worldMapArt = true; if (this.current && this.current.name === 'gate') this.dungeonGate(); }; im.onerror = () => { this.worldMapArt = false; }; im.src = W.image; }
-    if (on && on.online && tab === 'party' && !pt) { // ask for the open parties now and every 2 s while this view is up
+    // ask for the open parties once when the view opens, then every 2 s. A redraw (the answer redraws this window) must NOT
+    // ask again: that was an endless ask -> answer -> redraw loop that rebuilt the window nonstop (clicks never landed)
+    if (on && on.online && tab === 'party' && !pt && !this.gatePoll) {
       on.net.send('partyList', {});
-      clearInterval(this.gatePoll);
       this.gatePoll = setInterval(() => {
         const c = this.current;
-        if (!c || c.name !== 'gate' || on.party || this.npcTab('gate') !== 'party' || !on.online) return clearInterval(this.gatePoll);
+        if (!c || c.name !== 'gate' || on.party || this.npcTab('gate') !== 'party' || !on.online) { clearInterval(this.gatePoll); this.gatePoll = null; return; }
         on.net.send('partyList', {});
       }, 2000);
     }
