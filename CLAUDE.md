@@ -1741,3 +1741,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (slam / fortress step / UNBLOCKABLE counterweight / citadel nova) · Oathbreaker 14000 def 12 (2-hit cleave / chain / sinful
   guard-break / verdict cross). classQuestCheck(g, { node }) plays the tier-1 parent (default classId = parent). No god LV 30:
   Astral 56-70 s · Umbral 70-85 s · Aegis 105-109 s (slow line by design), all WIN. QUEST REWORK Q1-Q4 COMPLETE.
+- CHAT C1 (owner 2026-10-12: no world channel yet, profanity filter on): src/net/chat.js (CHAT_RULES, cleanChat, filterChat EN + TH
+  with lookaheads for หีบ / สัดส่วน) · server/chat.js ChatService: 'local' = sender's room (city / run map), 'party' = online party
+  members anywhere; the server cleans + filters, flood guard minGap 0.8 s + 5 per 10 s -> error code 'chat'. PROTOCOL_VERSION 22
+  chat { ch, text } / server chat { ch, id, from, text, at }. Browser: net/netChat.js (game.online.chat: log, bubbles, system lines),
+  ui/chatBox.js (bottom left; Enter opens, Enter sends, Esc closes, Tab / button switches channel, /p /l prefixes; idle fade,
+  3 lines in a hard fight; on touch under the player frame, tap the log to type), hud.chatBubble over speakers. Tests chat.test.mjs (5).
+  WELCOME GUIDE: ui/welcomeGuide.js (new character chooses full / essentials / skip; ESC -> Guide; testkit sets __eoNoGuide).
+  Next chat phases: C2 whisper / block / report · C3 phone quick chat · C4 map pings + item links.

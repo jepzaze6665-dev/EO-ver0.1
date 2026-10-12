@@ -724,3 +724,25 @@ html[lang="th"] .overlay *, html[lang="th"] #loading * { letter-spacing: 0 !impo
 .guide .esc-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
 .guide .guide-nav { flex-direction: row; justify-content: center; }
 .guide label { display: block; margin-top: 6px; cursor: pointer; }
+
+/* C1 CHAT BOX (ui/chatBox.js): bottom left, see-through; fades when idle; full log while typing */
+.chatbox { position: fixed; left: 12px; bottom: 14px; width: min(380px, 40vw); z-index: 30; font-family: var(--font-body, 'Segoe UI', sans-serif);
+  font-size: 13px; pointer-events: none; transition: opacity .6s; }
+.chatbox.hidden { display: none; }
+.chatbox.idle { opacity: 0.25; }
+.chatbox .chat-log { max-height: 150px; overflow: hidden; padding: 4px 6px; pointer-events: auto; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
+.chatbox .chat-line { line-height: 1.35; word-break: break-word; }
+.chatbox .chat-line b { font-weight: 600; }
+.chatbox .chat-tag { opacity: .8; }
+.chatbox .chat-in { display: none; gap: 6px; margin-top: 4px; pointer-events: auto; }
+.chatbox.typing { opacity: 1; }
+.chatbox.typing .chat-log { max-height: 260px; overflow-y: auto; background: rgba(8, 7, 14, 0.62); border-radius: 6px; }
+.chatbox.typing .chat-in { display: flex; }
+.chatbox .chat-ch { background: rgba(8, 7, 14, 0.8); border: 1px solid rgba(242,236,224,.3); border-radius: 5px; font: inherit; font-weight: 700; padding: 0 8px; cursor: pointer; }
+.chatbox input { flex: 1; min-width: 0; background: rgba(8, 7, 14, 0.85); color: #f2ece0; border: 1px solid rgba(242,236,224,.35); border-radius: 5px;
+  padding: 6px 8px; font: inherit; font-size: 14px; outline: none; }
+.chatbox input:focus { border-color: rgba(232,208,255,.8); }
+/* phones: under the player frame (the bottom left belongs to the joystick); 16 px text so the phone does not zoom */
+body.touch .chatbox { top: 96px; bottom: auto; width: min(300px, 38vw); font-size: 12px; }
+body.touch .chatbox .chat-log { max-height: 84px; }
+body.touch .chatbox input { font-size: 16px; }

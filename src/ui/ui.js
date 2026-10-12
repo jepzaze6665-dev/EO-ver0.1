@@ -1,5 +1,6 @@
 import { HUD } from './hud.js';
 import { Panels } from './panels.js';
+import { ChatBox } from './chatBox.js';
 
 // Facade used by gameplay code: HUD messages + DOM panels behind one small API.
 export class UI {
@@ -7,6 +8,7 @@ export class UI {
     this.game = game;
     this.hud = new HUD(game);
     this.panels = new Panels(game);
+    this.chat = typeof document !== 'undefined' && document.body && document.body.appendChild ? new ChatBox(game) : null; // C1 chat box (browser only)
   }
   get panelOpen() { return this.panels.open; }
 
@@ -27,7 +29,7 @@ export class UI {
   openStorage() { this.panels.storage(); }
   showEnding() { this.panels.ending(this.game.endingStats()); this.game.audio.sfx('victory'); }
 
-  update(dt) { this.hud.update(dt); }
+  update(dt) { this.hud.update(dt); if (this.chat) this.chat.update(); }
   draw(ctx, W, H) { this.hud.draw(ctx, W, H); }
 
   // keyboard routing while panels are open

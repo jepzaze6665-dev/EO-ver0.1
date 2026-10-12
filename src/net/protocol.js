@@ -6,7 +6,7 @@
 // A new message = one entry in CLIENT_MESSAGES / SERVER_MESSAGES. The server validates EVERY client message with
 // validateClientMessage before it looks at it; unknown types / wrong fields are refused, never guessed.
 
-export const PROTOCOL_VERSION = 21;
+export const PROTOCOL_VERSION = 22;
 
 export const NET_LIMITS = {
   maxMessageBytes: 4096,     // largest ordinary client message
@@ -49,6 +49,8 @@ const FIELD = {
   fxShots: (v) => Array.isArray(v) && v.length <= 16 && v.every((s) => s && typeof s === 'object' && !Array.isArray(s) && validActData(s, 1)),
   actData: (v) => validActData(v),
   econOps: (v) => Array.isArray(v) && v.length >= 1 && v.length <= 64 && v.every((o) => Array.isArray(o) && o.length >= 2 && o.length <= 5 && typeof o[0] === 'string' && validActData(o, 1)),
+  chatCh: (v) => v === 'local' || v === 'party',
+  chatText: (v) => typeof v === 'string' && v.length >= 1 && v.length <= 600,
   runStat: (v) => v && typeof v === 'object' && !Array.isArray(v) && ['dmg', 'heal', 'deaths', 'kills'].every((k) => Number.isInteger(v[k]) && v[k] >= 0 && v[k] <= 1e9) && Object.keys(v).length <= 4,
 };
 
@@ -130,6 +132,7 @@ export const CLIENT_MESSAGES = {
   pileSet: { m: 'slug', x: 'coord', y: 'coord', n: 'int' },
   pileClear: {},
   pileTake: { owner: 'slug' },
+  chat: { ch: 'chatCh', text: 'chatText' },              // C1 chat: say something on 'local' (my room) or 'party' (server/chat.js)
   runStat: { s: 'runStat' },                              // RUN SUMMARY: my damage / healing / falls / kills this run, relayed to my run's members                            // N8 host of the boss's run map: this boss died (server credits the room)
 };
 
@@ -173,6 +176,7 @@ export const SERVER_MESSAGES = {
   bossCredit: { boss: 'string', first: 'bool' },
   piles: { list: 'array' },                              // N9: party members' piles [{ owner, name, m, x, y, n }]
   pileTaken: { by: 'string' },                           // a party member carried your pile to you
+  chat: { ch: 'string', id: 'string', from: 'string', text: 'string', at: 'number' }, // C1: a chat line (cleaned + filtered by the server)
   // fx (relayed + from: player id) · boss (relayed as sent)                             // a teammate revived you (server checked it)
 };
 
@@ -194,6 +198,7 @@ export const NET_ERROR = {
   locked: 'locked',       // H6: too many wrong passwords, wait
   noAccount: 'noAccount', // H6: no account with that name (create one)
   account: 'account',     // H6: setPassword refused (text says why)
+  chat: 'chat',           // C1: a chat message was refused (too fast, no party, ... — text says why)
 };
 
 // null = ok, else a short reason

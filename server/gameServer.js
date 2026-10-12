@@ -15,6 +15,7 @@ import { ProgressService } from './progress.js';
 import { PileService } from './piles.js';
 import { EconomyService } from './economy.js';
 import { CombatGuard } from './combatGuard.js';
+import { ChatService } from './chat.js';
 import { SimHostService } from './simHosts.js';
 import { MemoryStore } from './store.js';
 import { PROTOCOL_VERSION, NET_LIMITS, NET_ERROR, validateClientMessage, encode } from '../src/net/protocol.js';
@@ -44,6 +45,7 @@ export class GameServer extends EventEmitter {
     this.economy = new EconomyService(this, saveStore, { scan: simHosts }); // H5a what each player owns (ledger); H5b checks
     this.piles = new PileService(this);              // N9 death piles shown to the party
     this.combatGuard = new CombatGuard(this);        // H3a limits on the damage players report
+    this.chat = new ChatService(this);               // C1 chat (local room + party)
     this.simHosts = new SimHostService(this, { enabled: simHosts }); // H2 the server hosts dungeon map rooms
   }
 

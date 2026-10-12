@@ -23,6 +23,7 @@ import { NetSummons } from './netSummons.js';
 import { NetProgress } from './netProgress.js';
 import { NetPiles } from './netPiles.js';
 import { NetEconomy } from './netEconomy.js';
+import { NetChat } from './netChat.js';
 import { NetRunStats } from './netRunStats.js';
 import { MapSync } from './mapSync.js';
 import { SAVE_KEY, BACKUP_KEY } from '../save/save.js';
@@ -54,6 +55,7 @@ export class OnlineSession {
     this.runStats = new NetRunStats(this); // RUN SUMMARY: the run members' damage / healing / falls / kills
     this.pileNet = new NetPiles(this);     // N9 death piles (party members' piles: this.piles)
     this.econ = new NetEconomy(this);      // H5a ownership changes -> the server's ledger
+    this.chat = new NetChat(this);         // C1 chat: local room + party lines, speech bubbles
     this.saves.beforeSend = () => this.econ.flush(); // the ledger is never behind the save it patches
     this.saves.onRemove = () => this.progress.clear();
     this.fx.install();

@@ -31,6 +31,7 @@ export const TH_UI = {
   'New Game': 'เริ่มเกมใหม่',
   'Controls': 'ปุ่มควบคุม',
   'Install App': 'ติดตั้งแอป',
+  'Local': 'รอบตัว',
   // ---- WELCOME GUIDE (ui/welcomeGuide.js)
   'Guide': 'คู่มือ', 'Welcome to Eclipse Online': 'ยินดีต้อนรับสู่ Eclipse Online',
   'How much help would you like?': 'อยากได้คำแนะนำแค่ไหน?',

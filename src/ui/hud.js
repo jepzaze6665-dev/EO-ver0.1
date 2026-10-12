@@ -18,6 +18,7 @@ import { MAP_MARKERS } from '../data/mapMarkers.js';
 import { ONLINE } from '../data/online.js';
 import { CLASSES } from '../skills/classes.js';
 import { t as tl, tx, wrapLines } from '../i18n/i18n.js';
+import { CHAT_RULES } from '../net/chat.js';
 
 const FONT = '"Segoe UI", "Noto Sans Thai", sans-serif'; // body text (theme.css --font-body)
 const TITLE = 'Kanit, "Segoe UI", sans-serif'; // titles / numbers (theme.css --font-title)
@@ -172,6 +173,25 @@ export class HUD {
   }
 
   // rounded-rect path (skill slots)
+  // C1 chat bubble: word-wrapped (Thai too), at most 3 lines, fades in its last second; party lines get a blue edge
+  chatBubble(ctx, u, x, y, b) {
+    const left = b.until - performance.now() / 1000, a = clamp(left, 0, 1);
+    const font = `500 ${Math.round(11 * u)}px ${FONT}`;
+    let lines = wrap(ctx, b.text, 180 * u, font);
+    if (lines.length > 3) { lines = lines.slice(0, 3); lines[2] = lines[2].replace(/.?$/, '…'); }
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.font = font;
+    const lh = 14 * u, w = Math.max(...lines.map((l) => ctx.measureText(l).width)) + 14 * u, h = lines.length * lh + 8 * u;
+    const bx = x - w / 2, by = y - h;
+    this.rrect(ctx, bx, by, w, h, 6 * u);
+    ctx.fillStyle = 'rgba(12,10,18,0.82)'; ctx.fill();
+    ctx.strokeStyle = b.ch === 'party' ? 'rgba(143,216,255,0.85)' : 'rgba(242,236,224,0.55)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x - 5 * u, by + h); ctx.lineTo(x, by + h + 6 * u); ctx.lineTo(x + 5 * u, by + h); ctx.closePath(); ctx.fillStyle = 'rgba(12,10,18,0.82)'; ctx.fill();
+    lines.forEach((l, i) => this.text(ctx, l, x, by + 4 * u + (i + 0.5) * lh + 4 * u, 11 * u, b.ch === 'party' ? '#bfe8ff' : '#f2ece0', { align: 'center', weight: 500 }));
+    ctx.restore();
+  }
+
   rrect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
@@ -942,6 +962,17 @@ export class HUD {
         if ((r.h ?? 1) <= 0) this.text(ctx, tl('DOWN'), s.x, s.y + 12 * u, 9 * u, '#ff8a7a', { align: 'center' });
         else this.bar(ctx, s.x - 26 * u, s.y + 4 * u, 52 * u, 4 * u, r.h ?? 1, '#7dff9a', '#1f5a2c');
       }
+    }
+    // C1 chat: speech bubbles over the speaker (remote players + you)
+    if (g.online && g.online.chat) {
+      const chat = g.online.chat;
+      for (const r of g.online.remotes.list) {
+        if (r.leaving || !g.online.remotes.here(g.world.mapId) || Math.hypot(r.x - p.x, r.y - p.y) > CHAT_RULES.bubbleRange) continue;
+        const b = chat.bubble(r.id);
+        if (b) { const s = this.toScreen(r.x, r.y - 66); this.chatBubble(ctx, u, s.x, s.y - 24 * u, b); }
+      }
+      const mine = chat.bubble(g.online.playerId);
+      if (mine) { const s = this.toScreen(p.x, p.y - 66); this.chatBubble(ctx, u, s.x, s.y - 4 * u, mine); }
     }
     for (const n of g.world.npcs) {
       if (n.secret && !g.world.map.secretsFound.has(n.secret)) continue;
