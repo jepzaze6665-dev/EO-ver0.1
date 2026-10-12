@@ -194,7 +194,8 @@ export class Progression {
         const row = { text: `${def.label} ${Math.max(0, Math.floor(o.have))}/${o.count}`, done };
         return !done && def.hint ? [row, { text: def.hint, hint: true }] : [row];
       }) : [];
-      const lines = c && c.text && v.chapters.length > 1 ? [{ text: c.text, done: false }, ...counters] : counters;
+      const head = c && c.text && v.chapters.length > 1 ? [{ text: c.text, done: false }, ...(c.where ? [{ text: c.where, hint: true }] : [])] : [];
+      const lines = [...head, ...counters];
       out.push({ title: TRIALS[id].title.toUpperCase(), side: false, lines });
     }
     return out;

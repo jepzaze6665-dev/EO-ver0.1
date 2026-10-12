@@ -111,8 +111,28 @@ export const CLASS_TREE = {
 //   { type: 'boss', boss, text }              defeat that boss (the shadow duel, data/shadowDuels.js)
 // A trial without chapters = one counters chapter (the old rule).
 export function trialChapters(def) {
-  return def && def.chapters && def.chapters.length ? def.chapters : [{ type: 'counters', text: '' }];
+  if (!(def && def.chapters && def.chapters.length)) return [{ type: 'counters', text: '' }];
+  return def.chapters.map((c) => c.where ? c : { ...c, where: (c.type === 'item' ? RELIC_WHERE[c.item] : CHAPTER_WHERE[c.type]) || '' });
 }
+// where = how to find it (quest tracker + Class tab). A chapter may carry its own `where`; else these.
+const BLIZZARD = 'It only appears while the blizzard blows (about every 2 minutes, for about 30 seconds): wait by a campfire, then run to it.';
+const FIREFLIES = 'Stand still out of combat and the fireflies will fly toward it.';
+const DRAIN = 'First turn the Temple Wheel inside the Sunken Temple (west side of the valley): Mirror Lake drains. Then walk down onto the lakebed in the south-west. The water comes back when you leave the map.';
+export const CHAPTER_WHERE = {
+  talk: "Valehaven is a hidden city: in the Whispering Forest (A1) go to the far north-west and take the Sealed Path (its thorns wither once the A1 Guardian is defeated). A '!' floats over the master you need.",
+  boss: 'Go back to Valehaven: the Proving Ground is the stone ring at the east end of the city, open now. Your shadow waits inside.',
+};
+export const RELIC_WHERE = {
+  relic_storm: 'Frostwind Plains (B1): walk south from the Frostwind Crossroads toward the Frozen Mere; it lies on the open snow between them. ' + BLIZZARD,
+  relic_dusk: 'Frostwind Plains (B1): at the Frostwind Crossroads, where the roads meet in the middle of the plains. ' + BLIZZARD,
+  relic_oath: 'Frostwind Plains (B1): the far south-east, just west of the Frost Arena stairs. ' + BLIZZARD,
+  relic_nightfall: 'Whispering Forest (A1): just south of the Elder Tree on the west side. ' + FIREFLIES,
+  relic_lumen: 'Whispering Forest (A1): about 20 steps east of the Stone Circle, north of the river. ' + FIREFLIES,
+  relic_echo: 'Ancient Valley (A2): on the west part of the Mirror Lake bed. ' + DRAIN,
+  relic_dawn: 'Ancient Valley (A2): on the east part of the Mirror Lake bed. ' + DRAIN,
+  relic_void: "Rune Citadel (A3): the Scribe's Vault is the walled room just east of the Crystal Shrine (west side of the city). Light the rune switch south of the Crystal Shrine [E], then run to the vault door: it stays open only a few seconds.",
+  relic_bulwark: 'Rune Citadel (A3): the Bronze Vault is just east of the Bronze Barracks (north-east). Its TWO rune switches must burn at the same time: one north of the Well Court, one between the Golden Gate and the Barracks. Light one and run to the other (16 seconds), or have a party member light the second.',
+};
 export const TRIALS = {
   trial_stormcaller: {
     title: 'Trial of the Gathering Storm', objectives: [{ counter: 'kills', count: 25 }, { counter: 'constellation_breaks', count: 8 }],

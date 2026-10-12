@@ -680,8 +680,10 @@ export class HUD {
     for (const q0 of list) {
       // hint lines (how to do it: class trial counters) are wrapped to the panel, smaller, under their line
       const hintFont = `500 ${Math.round(10 * u)}px ${FONT}`;
-      ctx.font = hintFont;
-      const q = { ...q0, lines: q0.lines.flatMap((l) => l.hint ? wrap(ctx, tx(l.text), w - 34 * u, hintFont).map((s) => ({ text: s, hint: true, raw: true })) : [l]) };
+      const lineFont = `500 ${Math.round(11 * u)}px ${FONT}`;
+      const q = { ...q0, lines: q0.lines.flatMap((l) => l.hint
+        ? wrap(ctx, tx(l.text), w - 34 * u, hintFont).map((s) => ({ text: s, hint: true }))
+        : wrap(ctx, tx(l.text), w - 32 * u, lineFont).map((s, i) => ({ text: s, done: l.done, cont: i > 0 }))) };
       const h = (28 + q.lines.length * 17) * u, col = q.side ? '#9ad8ff' : '#e8d7a5';
       const gr = ctx.createLinearGradient(x, 0, x + w, 0); gr.addColorStop(0, 'rgba(6,6,10,0)'); gr.addColorStop(0.25, 'rgba(6,6,10,0.4)'); gr.addColorStop(1, 'rgba(6,6,10,0.55)');
       ctx.fillStyle = gr; ctx.fillRect(x, y, w, h);
@@ -692,8 +694,8 @@ export class HUD {
       q.lines.forEach((l, i) => {
         const ly = y + (36 + i * 17) * u;
         if (l.hint) { this.text(ctx, l.text, x + 26 * u, ly - 3 * u, 10 * u, '#a99f8c', { weight: 500 }); return; }
-        this.text(ctx, l.done ? '✓' : '•', x + 12 * u, ly, 11 * u, l.done ? '#8af0a0' : '#cfc7b4');
-        this.text(ctx, tx(l.text), x + 26 * u, ly, 11 * u, l.done ? '#7a9a80' : '#ece4d2', { weight: 500 });
+        if (!l.cont) this.text(ctx, l.done ? '✓' : '•', x + 12 * u, ly, 11 * u, l.done ? '#8af0a0' : '#cfc7b4');
+        this.text(ctx, l.text, x + 26 * u, ly, 11 * u, l.done ? '#7a9a80' : '#ece4d2', { weight: 500 });
       });
       y += h + 8 * u;
     }

@@ -128,7 +128,7 @@ export function masterDialogue(m, g) {
   for (const [id, t] of Object.entries(pr.trials)) {
     if (t.state !== 'active' || CLASS_TREE[t.node].parent !== m.line) continue;
     const c = trialChapters(TRIALS[id])[t.step || 0];
-    return { lines: [...m.greet.slice(0, 1), `${TRIALS[id].title}: ${(c && c.text) || ''}`], options: [{ label: 'Abandon this path', action: 'abandon:' + id }, bye] };
+    return { lines: [...m.greet.slice(0, 1), `${TRIALS[id].title}: ${(c && c.text) || ''}`, ...(c && c.where && c.type !== 'talk' ? [c.where] : [])], options: [{ label: 'Abandon this path', action: 'abandon:' + id }, bye] };
   }
   const paths = pr.paths().filter((x) => !x.unlocked && x.trial && x.trial.state !== 'passed');
   const ready = paths.filter((x) => x.ready);

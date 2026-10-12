@@ -1,7 +1,28 @@
 // Thai for the STORY (T3): quests, lore fragments, NPC dialogue (world/narrative.js), quest board, shrine / gate texts,
 // wanderer banners. Keyed by the English text (shown through tx(), so dialogue built by code needs no ids).
 // Names of people / places / bosses stay in English letters (owner).
+import { CHAPTER_WHERE as CW, RELIC_WHERE as RW } from '../../data/classTree.js';
+
+// class quest "where" guides (data/classTree.js): keyed by the same English text the data builds
+const TH_BLIZZARD = 'มันโผล่เฉพาะตอนพายุหิมะ (ประมาณทุก 2 นาที นานราว 30 วินาที): รอข้างกองไฟ แล้ววิ่งไปหยิบ';
+const TH_FIREFLIES = 'ยืนนิ่งๆ ตอนไม่ได้สู้ แล้วหิ่งห้อยจะบินนำไปหามัน';
+const TH_DRAIN = 'ก่อนอื่นไปหมุนวงล้อ Temple Wheel ข้างใน Sunken Temple (ฝั่งตะวันตกของหุบเขา) น้ำใน Mirror Lake จะลดลง แล้วเดินลงไปที่ก้นทะเลสาบทางตะวันตกเฉียงใต้ น้ำจะกลับมาเมื่อออกจากแมพ';
+const TH_WHERE = {
+  [CW.talk]: "Valehaven เป็นเมืองลับ: ใน Whispering Forest (A1) ไปสุดทางตะวันตกเฉียงเหนือ แล้วเข้า Sealed Path (หนามจะเหี่ยวไปเมื่อปราบ Guardian ของ A1 แล้ว) อาจารย์ที่ต้องคุยด้วยจะมีเครื่องหมาย '!' ลอยอยู่",
+  [CW.boss]: 'กลับไปที่ Valehaven: ลานทดสอบ (Proving Ground) คือวงหินทางปลายตะวันออกของเมือง ตอนนี้เปิดแล้ว เงาของเจ้ารออยู่ข้างใน',
+  [RW.relic_storm]: 'Frostwind Plains (B1): เดินลงใต้จาก Frostwind Crossroads ไปทาง Frozen Mere ของอยู่บนลานหิมะระหว่างสองที่นั้น ' + TH_BLIZZARD,
+  [RW.relic_dusk]: 'Frostwind Plains (B1): ตรง Frostwind Crossroads จุดที่ถนนมาบรรจบกันกลางทุ่ง ' + TH_BLIZZARD,
+  [RW.relic_oath]: 'Frostwind Plains (B1): สุดทางตะวันออกเฉียงใต้ ทางตะวันตกของบันได Frost Arena ' + TH_BLIZZARD,
+  [RW.relic_nightfall]: 'Whispering Forest (A1): ทางใต้ของ Elder Tree ฝั่งตะวันตกนิดเดียว ' + TH_FIREFLIES,
+  [RW.relic_lumen]: 'Whispering Forest (A1): ทางตะวันออกของ Stone Circle ราว 20 ก้าว เหนือแม่น้ำ ' + TH_FIREFLIES,
+  [RW.relic_echo]: 'Ancient Valley (A2): ทางฝั่งตะวันตกของก้นทะเลสาบ Mirror Lake ' + TH_DRAIN,
+  [RW.relic_dawn]: 'Ancient Valley (A2): ทางฝั่งตะวันออกของก้นทะเลสาบ Mirror Lake ' + TH_DRAIN,
+  [RW.relic_void]: 'Rune Citadel (A3): Scribe\'s Vault คือห้องมีกำแพงล้อมทางตะวันออกของ Crystal Shrine (ฝั่งตะวันตกของเมือง) จุดสวิตช์รูนทางใต้ของ Crystal Shrine [E] แล้ววิ่งไปที่ประตูห้อง มันเปิดอยู่แค่ไม่กี่วินาที',
+  [RW.relic_bulwark]: 'Rune Citadel (A3): Bronze Vault อยู่ทางตะวันออกของ Bronze Barracks (ตะวันออกเฉียงเหนือ) ต้องจุดสวิตช์รูน 2 อันให้ติดพร้อมกัน: อันหนึ่งทางเหนือของ Well Court อีกอันระหว่าง Golden Gate กับ Barracks จุดอันแรกแล้ววิ่งไปอีกอัน (16 วินาที) หรือให้เพื่อนในปาร์ตี้ช่วยจุด',
+};
+
 export const TH_STORY = {
+  ...TH_WHERE,
   // ================= QUESTS (data/quests.js)
   'FIRST STEPS BEYOND LUMINA': 'ก้าวแรกนอก LUMINA',
   'Captain Aldric of the Adventurer Guild wants proof you can survive beyond the village gate.': 'Captain Aldric แห่งกิลด์นักผจญภัยต้องการหลักฐานว่าคุณเอาตัวรอดนอกประตูหมู่บ้านได้',
