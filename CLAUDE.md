@@ -1364,7 +1364,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (`synth(name)`); `sfx(name, { x, y })` positional (monster sounds pass the monster; listener = player); music API
   zone(z, info) (world.js) · screen('title', 'village') · bossMusic(id, phase) (AreaBoss / Guardian intro, bossPhaseChanged,
   guest bossSync phase) · endBoss(next) (BossSystem.restoreMusic, Guardian reset, victory); a boss track blocks zone music.
-  ESC menu Sound panel (panels.sound: sliders + mute). Prompts for the owner: docs/audio/AUDIO_PROMPTS.md (music 14, boss phases,
+  ESC menu Sound panel (panels.sound: sliders + mute). MUSIC FILES IN (2026-10-12): owner videos desgin/song/*.mkv (gitignored, 250 MB) -> `node tools/mkv-audio.js` (pure Node Matroska reader, AAC -> ADTS) -> desgin/SOUND/music/*.aac -> build-audio. 7 tracks (no boss *_p2 yet: phase 2 keeps p1). SYNTH MUSIC REMOVED (no file = silence); synth SFX kept until sfx files exist. Prompts for the owner: docs/audio/AUDIO_PROMPTS.md (music 14, boss phases,
   ambience 8, combat / UI sfx 40). Test tools/tests/audio.test.mjs. No sound files exist yet (everything still synth).
 - **Current: MAP MECHANICS** (owner 2026-10-03: every field map gets ONE signature mechanic that changes play + secrets /
   challenges / puzzles / random events built on it; owner chose the "real mechanic" route). Plan: M0 core · A1 fireflies

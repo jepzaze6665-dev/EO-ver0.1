@@ -204,7 +204,6 @@ export class Audio {
     }
   }
 
-  // Generative ambient music per zone: slow pads + occasional notes.
   // ---- music. A boss track stays while that boss rules (bossMusic / endBoss); zone music waits under it.
   zone(z, info) {
     this.zoneWant = { track: ZONE_MUSIC[z], synth: info && info.music };
@@ -213,14 +212,14 @@ export class Audio {
   }
   // a fixed screen track (title): file when there is one, else the synth theme
   screen(track, synth) { this.boss = null; this.zoneWant = { track, synth }; this.ambience(null); this.music(this.zoneTrack); }
-  get zoneTrack() { const w = this.zoneWant; return w ? (w.track && this.hasMusic(w.track) ? w.track : w.synth) : null; }
+  get zoneTrack() { const w = this.zoneWant; return w && w.track && this.hasMusic(w.track) ? w.track : null; } // owner: no synth music any more
   bossMusic(bossId, phase = 1) {
     if (this.boss && this.boss.id === bossId && this.boss.phase === phase) return;
     this.boss = { id: bossId, phase };
     const t = bossTrack(bossId, phase, (n) => this.hasMusic(n));
-    this.music(t || 'boss', { fade: phase > 1 ? SOUND_RULES.phaseFade : SOUND_RULES.musicFade, force: true });
+    this.music(t, { fade: phase > 1 ? SOUND_RULES.phaseFade : SOUND_RULES.musicFade, force: true });
   }
-  endBoss(next) { this.boss = null; this.music(next || this.zoneTrack); }
+  endBoss(next) { this.boss = null; this.music(next && this.hasMusic(next) ? next : this.zoneTrack, { force: true }); }
   music(name, { fade = SOUND_RULES.musicFade, force = false } = {}) {
     if (!name) return;
     if (!force && this.boss) return; // zone changes inside an arena keep the boss track
@@ -235,60 +234,7 @@ export class Audio {
       this.musicNode = null;
     }
     const files = this.manifest.music[name];
-    if (files && files.length) { this.playTrack(name, files[0], fade); return; }
-    const SCALES = {
-      village: { root: 196, notes: [0, 2, 4, 7, 9, 12], pad: 'triangle', tempo: 1.4, bright: 1 },
-      forest: { root: 147, notes: [0, 3, 5, 7, 10, 12], pad: 'sine', tempo: 2.2, bright: 0.6 },
-      ruins: { root: 131, notes: [0, 1, 5, 7, 8, 12], pad: 'sine', tempo: 2.6, bright: 0.5 },
-      gate: { root: 110, notes: [0, 1, 6, 7], pad: 'sawtooth', tempo: 3, bright: 0.3 },
-      arena: { root: 110, notes: [0, 3, 7, 10], pad: 'sine', tempo: 3, bright: 0.4 },
-      boss: { root: 110, notes: [0, 3, 5, 6, 7, 10, 12], pad: 'sawtooth', tempo: 0.28, bright: 0.8, boss: true },
-      cave: { root: 123, notes: [0, 2, 3, 7, 8], pad: 'sine', tempo: 2.4, bright: 0.5 },
-      ancient: { root: 165, notes: [0, 2, 3, 7, 9, 10, 12], pad: 'triangle', tempo: 2.1, bright: 0.75 },
-      peak: { root: 165, notes: [0, 2, 5, 7, 9, 12, 14], pad: 'triangle', tempo: 2.2, bright: 0.95 },
-      caverns: { root: 139, notes: [0, 2, 3, 7, 8, 12], pad: 'sine', tempo: 2.8, bright: 0.6 },
-      frost: { root: 185, notes: [0, 2, 3, 7, 9, 12, 14], pad: 'sine', tempo: 2.4, bright: 0.9 },
-      asteria: { root: 208, notes: [0, 2, 4, 5, 7, 9, 12], pad: 'triangle', tempo: 1.5, bright: 1.1 },
-      valley: { root: 175, notes: [0, 2, 4, 7, 9, 11, 12], pad: 'triangle', tempo: 1.8, bright: 1 },
-      victory: { root: 196, notes: [0, 4, 7, 12, 16], pad: 'triangle', tempo: 1.2, bright: 1 },
-    };
-    const S = SCALES[name] || SCALES.forest;
-    const c = this.ctx;
-    const gain = c.createGain();
-    gain.gain.value = 0;
-    gain.gain.linearRampToValueAtTime(1, c.currentTime + 2);
-    gain.connect(this.musicBus);
-    const filt = c.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 500 + S.bright * 1200; filt.connect(gain);
-    const oscs = [];
-    for (const [mul, v] of [[0.5, 0.25], [0.75, 0.12], [1, 0.1]]) {
-      const o = c.createOscillator(); o.type = S.pad; o.frequency.value = S.root * mul;
-      const g = c.createGain(); g.gain.value = v * (S.pad === 'sawtooth' ? 0.35 : 1);
-      const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = 0.07 + Math.random() * 0.1; lg.gain.value = v * 0.4;
-      lfo.connect(lg); lg.connect(g.gain); lfo.start();
-      o.connect(g); g.connect(filt); o.start();
-      oscs.push(o, lfo);
-    }
-    let alive = true, step = 0;
-    const tick = () => {
-      if (!alive) return;
-      const t = c.currentTime;
-      if (S.boss) {
-        // driving pulse for the boss
-        const f = S.root * (step % 8 < 6 ? 0.5 : 0.5 * Math.pow(2, 3 / 12));
-        this.tone(f, 0.22, { type: 'square', vol: 0.12, bus: gain });
-        if (step % 4 === 0) this.noise(0.12, { freq: 120, vol: 0.2, type: 'lowpass' });
-        if (step % 8 === 4) this.noise(0.08, { freq: 3000, vol: 0.05 });
-        if (step % 16 === 0) this.tone(S.root * Math.pow(2, S.notes[Math.floor(Math.random() * S.notes.length)] / 12) * 2, 1.2, { type: 'triangle', vol: 0.07, bus: gain, attack: 0.05 });
-      } else if (Math.random() < 0.75) {
-        const n = S.notes[Math.floor(Math.random() * S.notes.length)];
-        const f = S.root * Math.pow(2, n / 12) * (Math.random() < 0.5 ? 2 : 4);
-        this.tone(f, 2.5, { type: 'triangle', vol: 0.05 * S.bright + 0.02, attack: 0.3, bus: gain });
-      }
-      step++;
-      setTimeout(tick, S.tempo * 1000 * (S.boss ? 1 : 0.6 + Math.random() * 0.8));
-    };
-    tick();
-    this.musicNode = { gain, stop: () => { alive = false; oscs.forEach((o) => { try { o.stop(); } catch (e) {} }); gain.disconnect(); } };
+    if (files && files.length) this.playTrack(name, files[0], fade); // no file = silence (the synth music was removed, owner 2026-10-12)
   }
   // a looping file on a bus with a fade-in; loop points from the manifest (seconds) when given
   playTrack(name, file, fade, bus = this.musicBus, slot = 'musicNode') {

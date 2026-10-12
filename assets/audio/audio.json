@@ -1,6 +1,28 @@
 {
  "sfx": {},
- "music": {},
+ "music": {
+  "boss_common_p1": [
+   "music/boss_common_p1.aac"
+  ],
+  "boss_final_p1": [
+   "music/boss_final_p1.aac"
+  ],
+  "dungeon_dark": [
+   "music/dungeon_dark.aac"
+  ],
+  "field_a": [
+   "music/field_a.aac"
+  ],
+  "field_b": [
+   "music/field_b.aac"
+  ],
+  "title": [
+   "music/title.aac"
+  ],
+  "town": [
+   "music/town.aac"
+  ]
+ },
  "amb": {},
  "loops": {}
 }

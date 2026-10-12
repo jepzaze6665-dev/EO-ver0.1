@@ -10,7 +10,7 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const SRC = path.join(ROOT, 'desgin', 'SOUND');
 const OUT = path.join(ROOT, 'assets', 'audio');
-const EXT = /\.(mp3|ogg|wav|m4a)$/i;
+const EXT = /\.(mp3|ogg|wav|m4a|aac)$/i;
 const KINDS = ['sfx', 'music', 'amb'];
 
 // every sfx name the code calls (audio.sfx('name' ...)) + the synth list in audio.js

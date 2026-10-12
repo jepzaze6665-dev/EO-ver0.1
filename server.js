@@ -9,7 +9,7 @@ import { GameServer } from './server/gameServer.js';
 import { JsonFileStore, JsonDirStore, MemoryStore } from './server/store.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.css': 'text/css', '.md': 'text/plain', '.woff2': 'font/woff2', '.ttf': 'font/ttf' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.css': 'text/css', '.md': 'text/plain', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.aac': 'audio/aac', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.wav': 'audio/wav', '.m4a': 'audio/mp4' };
 // never served: server code + its data (player records), git internals
 const PRIVATE = ['/server/', '/.git/', '/.claude/'];
 
