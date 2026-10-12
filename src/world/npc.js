@@ -2,6 +2,8 @@ import { npcSprite } from '../monsters/monsterSprites.js';
 import { rand, TAU } from '../core/math.js';
 import { Assets } from '../core/assets.js';
 import { NPC_ART } from '../data/npcArt.js';
+import { CLASS_MASTERS } from '../data/classMasters.js';
+import { CLASS_TREE } from '../data/classTree.js';
 
 // Town / field NPCs. Lightweight: idle bob, optional wandering, faces the player when talked to.
 export class NPC {
@@ -27,7 +29,14 @@ export class NPC {
   }
   faceTo(p) { this.flip = p.x < this.x; this.face = viewToward(p.x - this.x, p.y - this.y); this.talkT = 3; }
   hasNews() {
-    return this.game.quests.npcHasNews(this.id); // quest data decides (giver / turn-in), not the NPC
+    return this.game.quests.npcHasNews(this.id) || this.masterNews(); // quest data decides (giver / turn-in), not the NPC
+  }
+  // a class master (data/classMasters.js) shows "!" when it can start a class quest for you (Quest Q2-Q4)
+  masterNews() {
+    const m = CLASS_MASTERS[this.id], g = this.game, p = g.player, pr = g.progression;
+    if (!m || !p || !pr || p.cls.id !== m.line) return false;
+    if (Object.values(pr.trials).some((t) => t.state === 'active' && CLASS_TREE[t.node] && CLASS_TREE[t.node].parent === m.line)) return false;
+    return pr.paths().some((x) => x.ready && !x.unlocked && x.trial && x.trial.state !== 'passed');
   }
   update(dt) {
     this.t += dt;
