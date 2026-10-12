@@ -43,6 +43,16 @@ export class SimHostService {
     if (!def) throw new Error('unknown map ' + entry.map);
     // the host's own character: a ghost that never fights and is never targeted
     g.players = () => [];
+    // nobody reads windows here: a text / lore panel opened by the game (e.g. on the Guardian's wake) must never pause
+    // the room host's world (it froze the Guardian in its roar for the whole party)
+    g.worldRuns = () => g.state === 'play';
+    // its world starts fresh: a player standing in this room already met what this map's bosses need to appear
+    // (the A1 Guardian waits for flag gateOpened — without it the server's Guardian never woke and stood still)
+    const { BOSSES } = await import('../src/data/bosses.js');
+    for (const b of Object.values(BOSSES)) {
+      if (b.map !== entry.map) continue;
+      for (const r of b.appear || []) if (r && r.type === 'flag' && r.flag) w.state.flags[r.flag] = true;
+    }
     w.changeMap(entry.map, { entry: def.spawn, silent: true });
     g.player.invulnT = 1e9;
     // bosses already down in this run stay down
