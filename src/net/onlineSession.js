@@ -79,7 +79,8 @@ export class OnlineSession {
     });
     n.on('party', (m) => { this.party = m.party; this.refreshParty(); });
     this.openParties = [];     // open parties at this city's gate (server 'partyListData', asked by panels.dungeonGate)
-    n.on('partyListData', (m) => { this.openParties = m.parties; this.refreshParty(); });
+    // redraw only when the list changed: a redraw every 2 s swapped the buttons under a finger mid-tap (phones)
+    n.on('partyListData', (m) => { const was = JSON.stringify(this.openParties); this.openParties = m.parties; if (JSON.stringify(m.parties) !== was) this.refreshParty(); });
     n.on('partyInvite', (m) => {
       this.invites = this.invites.filter((i) => i.party !== m.party).concat([{ party: m.party, from: m.from, size: m.size }]);
       game.ui.notify('Party invite', `${m.from} invites you  ·  [P] Party`, '#9ad8ff');
