@@ -30,6 +30,7 @@ export const TH_UI = {
   'Continue': 'เล่นต่อ',
   'New Game': 'เริ่มเกมใหม่',
   'Controls': 'ปุ่มควบคุม',
+  'Install App': 'ติดตั้งแอป',
   'Dark Fantasy Action RPG · Prototype': 'แอคชั่น RPG ดาร์กแฟนตาซี · เวอร์ชันต้นแบบ',
   'Name: {why}': 'ชื่อ: {why}',
   'Password: at least 6 characters': 'รหัสผ่าน: อย่างน้อย 6 ตัวอักษร',

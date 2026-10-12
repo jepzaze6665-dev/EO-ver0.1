@@ -233,6 +233,9 @@
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
       window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
     }
+    // DESKTOP PWA: keep the browser's install offer (Chrome / Edge) for the title screen's "Install App" button
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.__installPrompt = e; window.dispatchEvent(new Event('eo-install')); });
+    window.addEventListener('appinstalled', () => { window.__installPrompt = null; window.dispatchEvent(new Event('eo-install')); });
   </script>
 </body>
 </html>

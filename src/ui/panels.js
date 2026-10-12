@@ -194,10 +194,15 @@ export class Panels {
           ${!devOffline ? "" : `<button data-a="new" ${ready ? '' : 'disabled'}>${tl('New Game')}</button>`}
           <button data-a="controls">${tl('Controls')}</button>
           <button data-a="lang">${tl('Language: {name}', { name: LANG.names[getLang()] })}</button>
+          ${window.__installPrompt ? `<button data-a="install">${tl('Install App')}</button>` : ''}
         </nav>
         <div class="ts-foot">${tl('Dark Fantasy Action RPG · Prototype')}</div>
       </div>`, 'title ts');
     this.titleHasSave = hasSave;
+    if (!this.installHook) { // the browser's install offer can arrive after the title is drawn: redraw to show / hide the button
+      this.installHook = () => { if (this.current && this.current.name === 'title') this.title(this.titleHasSave); };
+      window.addEventListener('eo-install', this.installHook);
+    }
     startEmbers(el.querySelector('.ts-embers'));
     const form = el.querySelector('form.ts-net[data-a="login"]');
     if (form) {
@@ -233,6 +238,10 @@ export class Panels {
       }
       if (a === 'logout') { on.logout(); this.title(hasSave); }
       if (a === 'lang') { setLang(nextLang()); this.title(hasSave); }
+      if (a === 'install' && window.__installPrompt) {
+        const ask = window.__installPrompt; window.__installPrompt = null;
+        ask.prompt(); ask.userChoice.finally(() => this.title(hasSave));
+      }
       if (a === 'new') this.classSelect(hasSave);
       if (a === 'continue') this.game.continueGame();
       if (a === 'controls') this.textPanel(tl('Controls'), controlsHTML(this.game.player ? this.game.player.cls : undefined, this.game.player), () => this.title(hasSave), true);
