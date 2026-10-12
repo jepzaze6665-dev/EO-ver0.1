@@ -187,7 +187,13 @@ export class Progression {
     for (const [id, t] of Object.entries(this.trials)) {
       if (t.state !== 'active') continue;
       const v = this.trialView(id), c = v.chapters[v.step];
-      const counters = v.objectives.map((o) => ({ text: `${CLASS_COUNTERS[o.counter].label} ${Math.max(0, Math.floor(o.have))}/${o.count}`, done: o.have >= o.count }));
+      // only while the counters are what this chapter asks for: each one + how to earn it (hint) until it is done
+      const counting = !c || c.type === 'counters';
+      const counters = counting ? v.objectives.flatMap((o) => {
+        const def = CLASS_COUNTERS[o.counter], done = o.have >= o.count;
+        const row = { text: `${def.label} ${Math.max(0, Math.floor(o.have))}/${o.count}`, done };
+        return !done && def.hint ? [row, { text: def.hint, hint: true }] : [row];
+      }) : [];
       const lines = c && c.text && v.chapters.length > 1 ? [{ text: c.text, done: false }, ...counters] : counters;
       out.push({ title: TRIALS[id].title.toUpperCase(), side: false, lines });
     }

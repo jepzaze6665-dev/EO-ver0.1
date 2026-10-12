@@ -11,19 +11,20 @@
 
 // ---- class records: counted from game events, stored per class (event -> match -> +1 or +field)
 // '$player' in a match means "the player entity"
+// hint = how to earn it (shown under the counter in the quest tracker and the Class tab)
 export const CLASS_COUNTERS = {
-  kills: { label: 'Enemies defeated', event: 'enemyKilled', match: { source: '$player' } },
-  constellation_breaks: { label: 'Constellation Breaks', event: 'markTriggered', match: { markId: 'star_mark', source: '$player' } },
-  thread_catches: { label: 'Foes caught by threads', event: 'threadTouched', match: { owner: '$player', first: true } },
-  shield_absorbed: { label: 'Damage absorbed by shields', event: 'shieldAbsorbed', match: { target: '$player' }, sum: 'amount' },
-  shadow_breaks: { label: 'Shadow Breaks', event: 'skillUsed', match: { skillId: 'shadow_break', caster: '$player' } },
-  perfect_dodges: { label: 'Perfect Dodges', event: 'perfectDodge' },
-  ambushes: { label: 'Ambushes', event: 'statusRemoved', match: { id: 'veiled', target: '$player' } },
-  ultimates: { label: 'Ultimates unleashed', event: 'skillUsed', match: { caster: '$player', 'skill.ultimate': true } },
-  blocks: { label: 'Attacks blocked', event: 'guardBlocked', match: { player: '$player' } },
-  perfect_guards: { label: 'Perfect Guards', event: 'perfectGuard', match: { player: '$player' } },
-  judgments: { label: 'Judgments', event: 'markConsumed', match: { markId: 'guardian_mark' } },
-  barrier_absorbed: { label: 'Damage absorbed by barriers', event: 'shieldAbsorbed', match: { target: '$player', statusSource: '$player' }, sum: 'amount' },
+  kills: { label: 'Enemies defeated', hint: 'Defeat any monsters yourself, on any field map', event: 'enemyKilled', match: { source: '$player' } },
+  constellation_breaks: { label: 'Constellation Breaks', hint: 'The 3rd hit of your basic combo puts a Star Mark on a foe; 3 Star Marks on one foe burst into a Constellation Break', event: 'markTriggered', match: { markId: 'star_mark', source: '$player' } },
+  thread_catches: { label: 'Foes caught by threads', hint: 'Lay an Astral Thread (skill 2) where foes will walk across it', event: 'threadTouched', match: { owner: '$player', first: true } },
+  shield_absorbed: { label: 'Damage absorbed by shields', hint: 'Let a shield or barrier on you soak enemy hits', event: 'shieldAbsorbed', match: { target: '$player' }, sum: 'amount' },
+  shadow_breaks: { label: 'Shadow Breaks', hint: 'Fill 3 Shadow Marks, then press Q for Shadow Break', event: 'skillUsed', match: { skillId: 'shadow_break', caster: '$player' } },
+  perfect_dodges: { label: 'Perfect Dodges', hint: 'Dodge (Space) just before an enemy attack lands', event: 'perfectDodge' },
+  ambushes: { label: 'Ambushes', hint: 'Hide with Shadow Veil, then strike a foe out of it', event: 'statusRemoved', match: { id: 'veiled', target: '$player' } },
+  ultimates: { label: 'Ultimates unleashed', hint: 'Use your ultimate skill (key 5)', event: 'skillUsed', match: { caster: '$player', 'skill.ultimate': true } },
+  blocks: { label: 'Attacks blocked', hint: 'Hold your guard toward an enemy attack', event: 'guardBlocked', match: { player: '$player' } },
+  perfect_guards: { label: 'Perfect Guards', hint: 'Raise your guard just before an enemy attack lands', event: 'perfectGuard', match: { player: '$player' } },
+  judgments: { label: 'Judgments', hint: 'Mark a foe with your basic attacks, then hit it with Guardian Slash', event: 'markConsumed', match: { markId: 'guardian_mark' } },
+  barrier_absorbed: { label: 'Damage absorbed by barriers', hint: 'Let barriers you cast yourself soak enemy hits', event: 'shieldAbsorbed', match: { target: '$player', statusSource: '$player' }, sum: 'amount' },
 };
 
 // shared by every Class 2 path: the story so far proves the character is ready

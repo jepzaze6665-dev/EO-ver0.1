@@ -29,6 +29,19 @@ export const TH_BESTIARY = {
   'Attacks blocked': 'การโจมตีที่บล็อก',
   'Perfect Guards': 'Perfect Guard',
   'Damage absorbed by barriers': 'ดาเมจที่บาเรียดูดซับ',
+  // counter hints (how to earn each one)
+  'Defeat any monsters yourself, on any field map': 'ปราบมอนสเตอร์ด้วยตัวเอง ที่แมพไหนก็ได้',
+  'The 3rd hit of your basic combo puts a Star Mark on a foe; 3 Star Marks on one foe burst into a Constellation Break': 'การโจมตีปกติจังหวะที่ 3 ของคอมโบจะติด Star Mark ให้ศัตรู ติดครบ 3 อันบนศัตรูตัวเดียวจะระเบิดเป็น Constellation Break',
+  'Lay an Astral Thread (skill 2) where foes will walk across it': 'วาง Astral Thread (สกิล 2) ตรงทางที่ศัตรูจะเดินผ่าน',
+  'Let a shield or barrier on you soak enemy hits': 'ให้โล่หรือบาเรียบนตัวรับการโจมตีของศัตรู',
+  'Fill 3 Shadow Marks, then press Q for Shadow Break': 'สะสม Shadow Mark ให้ครบ 3 แล้วกด Q เพื่อใช้ Shadow Break',
+  'Dodge (Space) just before an enemy attack lands': 'กดหลบ (Space) ก่อนการโจมตีของศัตรูจะโดนนิดเดียว',
+  'Hide with Shadow Veil, then strike a foe out of it': 'ซ่อนตัวด้วย Shadow Veil แล้วออกมาโจมตีศัตรู',
+  'Use your ultimate skill (key 5)': 'ใช้สกิลอัลติเมท (ปุ่ม 5)',
+  'Hold your guard toward an enemy attack': 'กดป้องกันค้างไว้หันไปทางการโจมตีของศัตรู',
+  'Raise your guard just before an enemy attack lands': 'ยกป้องกันก่อนการโจมตีของศัตรูจะโดนนิดเดียว',
+  'Mark a foe with your basic attacks, then hit it with Guardian Slash': 'ติดมาร์กให้ศัตรูด้วยการโจมตีปกติ แล้วฟันด้วย Guardian Slash',
+  'Let barriers you cast yourself soak enemy hits': 'ให้บาเรียที่ร่ายเองรับการโจมตีของศัตรู',
 
   // ---- boss epithets (data/bosses.js title)
   'Alpha of the Whispering Forest': 'จ่าฝูงแห่ง Whispering Forest',
