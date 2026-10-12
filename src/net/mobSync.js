@@ -273,6 +273,7 @@ export class MobSync {
   // our hit on a puppet: the host applies it (the local number already showed)
   reportHit(m, amount, opts = {}, src, ang) {
     if (!src || src.team !== TEAM.PLAYER || src.remote) return;
+    m.netHitBy = src; m.netHitT = this.game.time; // our hit: its death (decided by the host) counts as our kill
     this.session.net.send('mobHit', { id: m.netId, dmg: Math.max(0, Math.round(amount)), st: Math.round(opts.stagger || 0), kb: Math.round(opts.knock || 0), ang: Math.round((ang || 0) * 100) / 100, crit: !!opts.crit });
   }
 
@@ -283,5 +284,11 @@ export class MobSync {
     m.dead = true; m.deathT = 0; m.hp = 0; m.state = 'dead';
     this.game.combat.telegraphs.cancelOwner(m);
     this.world.onMonsterKilled(m, null); // shared kill: EXP / quest credit / loot for this member (N8 / N9: server)
+    // we hit it in the last few seconds: 'enemyKilled' from us (combat.dealDamage never says it on a puppet — the host
+    // decides the death) -> class trial / record counters, item onKill effects and on-kill skill traits work online too
+    const src = m.netHitBy;
+    if (src && this.game.time - (m.netHitT || 0) < 8) {
+      this.game.events.emit('enemyKilled', { source: src, target: m, amount: 0, crit: false, killed: true, tags: [], opts: { net: true } });
+    }
   }
 }
