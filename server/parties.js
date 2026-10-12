@@ -34,7 +34,9 @@ export class PartyService {
   refuse(s, text) { s.send('error', { code: NET_ERROR.party, text }); return false; }
 
   create(s) {
-    if (this.partyOf(s.id)) return this.refuse(s, 'you are already in a party');
+    // already in one (the client lost its copy: back to the character list / reconnect) -> send it again instead of refusing
+    const had = this.partyOf(s.id);
+    if (had) { had.members.get(s.id).online = true; s.send('party', { party: this.view(had) }); return had; }
     const p = { id: 'pt' + (++this.counter).toString(36) + Date.now().toString(36).slice(-4), leader: s.id, members: new Map() };
     this.parties.set(p.id, p);
     this.addMember(p, s);
@@ -62,7 +64,8 @@ export class PartyService {
   join(s, { party }) {
     const city = this.cityOf(s.id);
     if (!city) return this.refuse(s, 'join a party at a Dungeon Gate in a city');
-    if (this.partyOf(s.id)) return this.refuse(s, 'leave your party first');
+    const had = this.partyOf(s.id);
+    if (had) { s.send('party', { party: this.view(had) }); return this.refuse(s, 'leave your party first'); }
     const p = this.parties.get(party);
     if (!p || !this.openParties(city).includes(p)) return this.refuse(s, 'that party is not open here any more');
     this.addMember(p, s);
