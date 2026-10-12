@@ -13,19 +13,33 @@ export const Assets = {
   tiles: {}, // skin -> {img, tile, variants, rows} (ground skins built by tools/build-tiles.js, used per grid)
 };
 
-export function loadImage(src) {
+// over the internet one of ~100 MB of files can drop: retry a few times before giving up
+const RETRIES = 3;
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function loadImageOnce(src, bust) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('Failed to load ' + src));
-    img.src = src;
+    img.src = bust ? src + (src.includes('?') ? '&' : '?') + 'r=' + bust : src;
   });
 }
 
+export async function loadImage(src) {
+  for (let i = 0; ; i++) {
+    try { return await loadImageOnce(src, i); } catch (e) { if (i >= RETRIES) throw e; await wait(500 * (i + 1)); }
+  }
+}
+
 export async function loadJSON(src) {
-  const r = await fetch(src);
-  if (!r.ok) throw new Error('Failed to load ' + src);
-  return r.json();
+  for (let i = 0; ; i++) {
+    try {
+      const r = await fetch(src);
+      if (!r.ok) throw new Error('Failed to load ' + src);
+      return await r.json();
+    } catch (e) { if (i >= RETRIES) throw e; await wait(500 * (i + 1)); }
+  }
 }
 
 // class presets (character sheets). Each preset = one atlas built by tools/build-player.js
