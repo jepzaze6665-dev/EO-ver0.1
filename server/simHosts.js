@@ -9,6 +9,7 @@
 // room just keeps its player host. The last player leaving the room stops it. Bosses already killed in this run
 // (instance.kills, server/progress.js) stay dead in a new SimGame of that run.
 import crypto from 'crypto';
+import { TRIALS, trialChapters } from '../src/data/classTree.js';
 
 export class SimHostService {
   constructor(server, { enabled = false } = {}) {
@@ -50,9 +51,10 @@ export class SimHostService {
     // (the A1 Guardian waits for flag gateOpened — without it the server's Guardian never woke and stood still)
     const { BOSSES } = await import('../src/data/bosses.js');
     for (const b of Object.values(BOSSES)) {
-      if (b.map !== entry.map) continue;
+      if (b.map !== entry.map || b.type === 'trial') continue; // class-trial shadows: only the ones the players are on (duelFlags)
       for (const r of b.appear || []) if (r && r.type === 'flag' && r.flag) w.state.flags[r.flag] = true;
     }
+    this.duelFlags(entry, w);
     w.changeMap(entry.map, { entry: def.spawn, silent: true });
     g.player.invulnT = 1e9;
     // bosses already down in this run stay down
@@ -69,11 +71,31 @@ export class SimHostService {
     entry.timer = setInterval(() => {
       const now = Date.now();
       acc += Math.min(0.1, (now - last) / 1000); last = now;
+      if (now - (entry.duelT || 0) > 3000) { entry.duelT = now; this.duelFlags(entry, w); } // a member reaching / leaving the duel chapter
       for (let n = 0; acc >= SIM_STEP && n < 6; n++) { g.player.invulnT = 1e9; sim.tick(SIM_STEP); acc -= SIM_STEP; }
       g.online.update(); // snapshots to the room (throttled by real time inside)
     }, 1000 / 60);
     entry.timer.unref?.();
     this.log(`[server] room host started for ${entry.room} (${Date.now() - t0} ms)`);
+  }
+
+  // class-trial shadows (Proving Ground): flag duel_<class> only for a member of this run whose saved class trial is on its
+  // duel chapter — the room's fresh world knew none (no shadow) and setting every boss's flag called all 9 shadows
+  duelFlags(entry, w) {
+    if (!entry.duelClasses) entry.duelClasses = new Set();
+    const inst = this.server.dungeons.instances.get(entry.inst), want = new Set();
+    for (const id of (inst && inst.members) || []) {
+      let d = null;
+      try { const r = this.server.saves.store.get(id); d = r && r.main ? JSON.parse(r.main) : null; } catch { d = null; }
+      const trials = d && d.progression && d.progression.trials;
+      for (const [tid, t] of Object.entries(trials || {})) {
+        const ch = t && t.state === 'active' && TRIALS[tid] ? trialChapters(TRIALS[tid])[t.step || 0] : null;
+        if (ch && ch.type === 'boss' && t.node) want.add(t.node);
+      }
+    }
+    for (const c of entry.duelClasses) if (!want.has(c)) w.state.flags['duel_' + c] = false;
+    for (const c of want) w.state.flags['duel_' + c] = true;
+    entry.duelClasses = want;
   }
 
   // GameServer.login: a hello carrying { sim: '<key>|<room>' }
