@@ -27,6 +27,13 @@
   #login input { width: 100%; margin: 6px 0 12px; padding: 8px; background: #0d0c14; color: var(--text); border: 1px solid var(--line); border-radius: 6px; font: inherit; }
   .err { color: var(--bad); min-height: 1.5em; }
   .dim { color: var(--dim); }
+  .on { color: #6fd18a; }
+  .warn { color: #e0a33a; }
+  th.sort { cursor: pointer; user-select: none; }
+  th.sort:hover { color: var(--hl); }
+  .tools { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .tools #pq { flex: 1; min-width: 200px; padding: 8px; background: #0d0c14; color: var(--text); border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+  #pt { font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
@@ -40,7 +47,7 @@
 <div id="app" hidden>
   <header>
     <b>ECLIPSE ADMIN</b>
-    <nav id="nav"><button data-v="home" class="on">ภาพรวม</button> <button data-v="audit">บันทึกแอดมิน</button></nav>
+    <nav id="nav"><button data-v="home" class="on">ภาพรวม</button> <button data-v="players">ผู้เล่น</button> <button data-v="audit">บันทึกแอดมิน</button></nav>
     <span class="sp"></span>
     <span class="dim" id="who"></span>
     <button id="out">ออกจากระบบ</button>
@@ -67,8 +74,19 @@ const VIEWS = {
     return `<div class="card stats">
       <div class="stat"><div class="n">${s.online}</div><div class="l">ออนไลน์ตอนนี้</div></div>
       <div class="stat"><div class="n">${s.accounts}</div><div class="l">บัญชีทั้งหมด</div></div>
+      <div class="stat"><div class="n">${s.runs}</div><div class="l">ดันเจี้ยนที่เปิดอยู่</div></div>
+      <div class="stat"><div class="n">${s.parties}</div><div class="l">ปาร์ตี้</div></div>
       <div class="stat"><div class="n">${new Date(s.serverTime).toLocaleTimeString()}</div><div class="l">เวลาเซิร์ฟเวอร์</div></div>
-    </div><div class="card dim">รายชื่อผู้เล่น (AD2) · รายละเอียดผู้เล่น (AD3) · log เฝ้าระวัง (AD4) · คำสั่งแอดมิน (AD5) — กำลังจะมา</div>`;
+    </div><div class="card dim">รายละเอียดผู้เล่น (AD3) · log เฝ้าระวัง (AD4) · คำสั่งแอดมิน (AD5) — กำลังจะมา</div>`;
+  },
+  async players() {
+    PL.list = (await api('players')).list;
+    setTimeout(drawPlayers);
+    return `<div class="card tools">
+      <input id="pq" placeholder="ค้นหาชื่อ / คลาส / แผนที่" value="${esc(PL.q)}">
+      <label><input type="checkbox" id="po" ${PL.onlineOnly ? 'checked' : ''}> ออนไลน์เท่านั้น</label>
+      <span class="dim" id="pc"></span> <button id="pr">รีเฟรช</button>
+    </div><div class="card"><table id="pt"></table></div>`;
   },
   async audit() {
     const { list } = await api('audit');
@@ -76,6 +94,40 @@ const VIEWS = {
       `<tr><td>${new Date(r.at).toLocaleString()}</td><td>${esc(r.admin)}</td><td>${esc(r.action)}</td><td class="dim">${r.data ? esc(JSON.stringify(r.data)) : ''}</td></tr>`).join('')}</table></div>`;
   },
 };
+// AD2 player table: search, online filter, click a header to sort
+const PL = { list: [], q: '', onlineOnly: false, sort: 'lastLogin', dir: -1 };
+const nice = (id) => id ? id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : '—';
+const when = (t) => {
+  if (!t) return '—';
+  const s = (Date.now() - t) / 1000;
+  return s < 60 ? 'เมื่อกี้' : s < 3600 ? Math.floor(s / 60) + ' นาที' : s < 86400 ? Math.floor(s / 3600) + ' ชม.' : Math.floor(s / 86400) + ' วัน';
+};
+const COLS = [
+  ['online', 'สถานะ', (r) => r.online ? `<span class="on">● ${esc(r.where)}</span>` : '<span class="dim">ออฟไลน์</span>'],
+  ['account', 'บัญชี', (r) => esc(r.account) + (r.slot > 1 ? ` <span class="dim">#${r.slot}</span>` : '') + (r.hasPw ? '' : ' <span class="warn" title="ไม่มีรหัสผ่าน">⚠</span>')],
+  ['classId', 'คลาส', (r) => nice(r.classId)],
+  ['level', 'LV', (r) => r.level],
+  ['gold', 'ทอง', (r) => r.gold.toLocaleString()],
+  ['diamonds', '💎', (r) => r.diamonds],
+  ['map', 'แผนที่', (r) => esc(r.map || '—')],
+  ['bosses', 'บอส', (r) => r.bosses],
+  ['unverified', 'ไม่ได้ตรวจ', (r) => r.unverified ? `<span class="warn">${r.unverified}</span>` : 0],
+  ['lastLogin', 'ล็อกอินล่าสุด', (r) => when(r.lastLogin)],
+  ['created', 'สร้างเมื่อ', (r) => when(r.created)],
+];
+function drawPlayers() {
+  const t = $('pt'); if (!t) return;
+  const q = PL.q.toLowerCase();
+  const rows = PL.list.filter((r) => (!PL.onlineOnly || r.online) && (!q || [r.account, r.classId, r.map].some((x) => String(x || '').toLowerCase().includes(q))))
+    .sort((a, b) => { const x = a[PL.sort], y = b[PL.sort]; return (x > y ? 1 : x < y ? -1 : 0) * PL.dir; });
+  $('pc').textContent = `${rows.length} / ${PL.list.length} ตัวละคร`;
+  t.innerHTML = `<tr>${COLS.map(([k, l]) => `<th data-s="${k}" class="sort">${l}${PL.sort === k ? (PL.dir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr>` +
+    rows.map((r) => `<tr class="${r.deleted ? 'dim' : ''}">${COLS.map(([, , f]) => `<td>${f(r)}</td>`).join('')}</tr>`).join('');
+  t.onclick = (e) => { const k = e.target.dataset.s; if (!k) return; PL.dir = PL.sort === k ? -PL.dir : -1; PL.sort = k; drawPlayers(); };
+  $('pq').oninput = (e) => { PL.q = e.target.value; drawPlayers(); };
+  $('po').onchange = (e) => { PL.onlineOnly = e.target.checked; drawPlayers(); };
+  $('pr').onclick = () => show('players');
+}
 async function show(v) {
   document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.v === v));
   try { $('view').innerHTML = await VIEWS[v](); } catch (e) { if (e.message !== 'login') $('view').innerHTML = `<div class="card err">${esc(e.message)}</div>`; }

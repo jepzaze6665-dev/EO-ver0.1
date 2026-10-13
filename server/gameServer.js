@@ -6,7 +6,7 @@
 import { EventEmitter } from 'events';
 import { acceptUpgrade } from './ws.js';
 import { Accounts } from './accounts.js';
-const CHAR_SLOTS = 3; // characters per account (owner)
+export const CHAR_SLOTS = 3; // characters per account (owner)
 import { CityRooms } from './cityRooms.js';
 import { SaveService } from './saves.js';
 import { PartyService } from './parties.js';

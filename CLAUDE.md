@@ -1833,3 +1833,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   { name, role } (one 'admin' / 'owner' now). POST /admin/api/login -> HttpOnly SameSite=Strict cookie (8 h); every POST needs
   header X-EO-Admin: 1; 5 wrong -> 60 s lock. Routes via admin.route(method, path, fn, { write }) (write = audited);
   audit = JSON lines in <dataDir>/admin_audit.log. API so far: me, summary, audit, logout. tools/tests/admin.test.mjs (8).
+  Done AD2: GET /admin/api/players = one row per CHARACTER (account × slot with a save / ledger; read only, never seeds):
+  class, level / gold / diamonds from the econ ledger (else the save), map, online + where (city / lobby / solo run / party run),
+  party size, bosses (server progress), econ.unverified, password set?, created / last login / last save. summary + runs / parties.
+  Page tab "ผู้เล่น": search, online-only filter, sort by any column. CHAR_SLOTS exported from gameServer.js.
+  `node tools/adminDemo.mjs` (launch config eclipse-admin-demo, port 5199, admin / devadmin) = the back office with 14 fake
+  players in memory. admin.test 9.

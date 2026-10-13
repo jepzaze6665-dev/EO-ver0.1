@@ -9,6 +9,7 @@
 import fs from 'fs';
 import path from 'path';
 import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
+import { CHAR_SLOTS } from './gameServer.js';
 
 export const ADMIN_RULES = { sessionHours: 8, fails: 5, lockSeconds: 60, bodyMax: 64 * 1024, auditKeep: 500 };
 const LOCAL = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
@@ -28,6 +29,7 @@ export class AdminService {
     this.route('GET', '/admin/api/me', (ctx) => ({ name: ctx.admin.name, role: ctx.admin.role }));
     this.route('GET', '/admin/api/audit', () => ({ list: this.recentAudit(100) }));
     this.route('GET', '/admin/api/summary', () => this.summary());
+    this.route('GET', '/admin/api/players', () => ({ list: this.players() }));
   }
   addAdmin(name, pw, role = 'owner') {
     const salt = randomBytes(16).toString('hex');
@@ -109,11 +111,49 @@ export class AdminService {
     } catch { /* no file yet */ }
     return this.auditMem.slice(-n).reverse();
   }
-  // AD1 header numbers (AD2 adds the player list)
+  // header numbers
   summary() {
     const g = this.game;
     const people = [...(g?.sessions?.values?.() || [])].filter((s) => !s.sim);
-    return { online: people.length, accounts: g?.accounts?.store?.all?.().length ?? 0, serverTime: Date.now() };
+    const runs = g?.dungeons?.instances?.list?.size ?? 0;
+    const parties = g?.parties?.parties?.size ?? 0;
+    return { online: people.length, accounts: g?.accounts?.store?.all?.().length ?? 0, runs, parties, serverTime: Date.now() };
+  }
+  // AD2: one row per CHARACTER (account × slot that has a save or a ledger). Read only: never seeds or writes a record.
+  // Numbers: the server ledger (econ) when it exists — that is what the player really owns — else the save text.
+  players() {
+    const g = this.game, out = [];
+    if (!g) return out;
+    for (const acc of g.accounts.store.all()) {
+      for (let slot = 1; slot <= CHAR_SLOTS; slot++) {
+        const id = g.charId(acc.id, slot);
+        let r;
+        try { r = g.saves.store.get(id); } catch { r = null; }
+        if (!r || (!r.main && !r.econ)) continue;
+        let d = null;
+        try { d = r.main ? JSON.parse(r.main) : null; } catch { d = null; }
+        const p = (d && d.player) || {}, e = r.econ || {};
+        const s = g.sessions.get(id), pr = s && s.presence;
+        const inst = g.dungeons?.instances?.of?.(id), party = g.parties?.partyOf?.(id);
+        out.push({
+          id, account: acc.name, accountId: acc.id, slot,
+          classId: p.classId || null,
+          level: e.level ?? p.level ?? 1,
+          gold: e.gold ?? p.gold ?? 0,
+          diamonds: e.diamonds ?? p.diamonds ?? 0,
+          map: (pr && pr.m) || p.map || null,
+          online: !!s,
+          where: !s ? null : inst ? (inst.mode === 'party' ? 'party run' : 'solo run') : pr && pr.room ? 'city' : 'lobby',
+          party: party ? party.members?.size ?? party.members?.length ?? null : null,
+          bosses: Object.keys(r.progress?.bosses || {}).length,
+          unverified: e.unverified ?? 0,
+          hasPw: !!acc.pwHash,
+          created: acc.createdAt || null, lastLogin: acc.lastLogin || null, lastSave: r.at || null,
+          deleted: !r.main && !!r.deleted,
+        });
+      }
+    }
+    return out;
   }
   page(res) {
     fs.readFile(new URL('./adminPage.html', import.meta.url), (err, data) => {

@@ -4,9 +4,19 @@
     {
       "name": "eclipse-online",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["server.js"],
+      "runtimeArgs": [
+        "server.js"
+      ],
       "port": 5173,
       "autoPort": true
+    },
+    {
+      "name": "eclipse-admin-demo",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tools/adminDemo.mjs"
+      ],
+      "port": 5199
     }
   ]
 }

@@ -47,6 +47,25 @@ await test(`${ADMIN_RULES.fails} wrong passwords lock the login, even the right 
   ok((await post(base, '/admin/api/login', { name: 'admin', pw: 'boss-secret' })).status === 429, 'locked');
   s.admin.fails.until = 0;
 });
+await test('AD2 player list: one row per character, ledger numbers win over the save, online + where, read only', async () => {
+  const g = s.game;
+  const acc = g.accounts.login('Aria', null, { pw: 'secret1', create: true }).account;
+  const main = JSON.stringify({ v: 6, player: { classId: 'umbral_sword', level: 12, gold: 999, map: 'a1' } });
+  g.saves.store.set(acc.id, { main, at: Date.now(), econ: { gold: 340, level: 14, diamonds: 50, unverified: 2 }, progress: { bosses: { boss_a1: 1 } } });
+  g.saves.store.set(g.charId(acc.id, 2), { main: JSON.stringify({ v: 6, player: { classId: 'astral_weaver', level: 3, gold: 10, map: 'lumina' } }), at: 1 });
+  g.accounts.login('Empty', null, { pw: 'secret2', create: true }); // no character yet -> no row
+  g.sessions.set(acc.id, { id: acc.id, presence: { m: 'lumina', room: 'lumina' } });
+  const before = JSON.stringify(g.saves.store.get(acc.id));
+  const { list } = await (await fetch(base + '/admin/api/players', { headers: { cookie } })).json();
+  g.sessions.delete(acc.id);
+  ok(list.length === 2, 'rows ' + list.length);
+  const a = list.find((r) => r.slot === 1), b = list.find((r) => r.slot === 2);
+  ok(a.account === 'Aria' && a.classId === 'umbral_sword' && a.level === 14 && a.gold === 340 && a.diamonds === 50, 'ledger numbers ' + JSON.stringify(a));
+  ok(a.online && a.where === 'city' && a.map === 'lumina' && a.bosses === 1 && a.unverified === 2 && a.hasPw, 'online row');
+  ok(!b.online && b.classId === 'astral_weaver' && b.level === 3 && b.map === 'lumina', 'slot 2 from its save');
+  ok(JSON.stringify(g.saves.store.get(acc.id)) === before, 'nothing written');
+  ok((await fetch(base + '/admin/api/players')).status === 401, 'needs login');
+});
 await test('logout ends the session', async () => {
   ok((await post(base, '/admin/api/logout', {}, { ...H, cookie })).status === 200, 'logout');
   ok((await fetch(base + '/admin/api/me', { headers: { cookie } })).status === 401, 'me after logout');
