@@ -35,6 +35,12 @@ const CLASS2_BASE = [
   { type: 'level', min: 30 },
 ];
 
+// SECRET CLASSES not released yet (owner 2026-10-13): live false = they stay invisible to every player even after
+// Varkharon falls (an extra reveal condition: world flag secret_classes_live, which no game event sets — the Dev Panel /
+// a test may set it to look at them). Release = live: true.
+export const SECRET_CLASS_RULES = { live: false };
+const SECRET_GATE = SECRET_CLASS_RULES.live ? [] : [{ type: 'flag', flag: 'secret_classes_live' }];
+
 export const CLASS_TREE = {
   // ---------------- tier 1 (playable starting classes)
   astral_weaver: { id: 'astral_weaver', name: 'Astral Weaver', tier: 1, playable: true },
@@ -104,7 +110,7 @@ export const CLASS_TREE = {
   // Class 2 of that line at LV 50 carrying the Heart of Varkharon (the class quest comes in a later phase)
   wyrmblood_reaver: {
     id: 'wyrmblood_reaver', name: 'Wyrmblood Reaver', tier: 4, parent: 'umbral_sword', playable: true, resource: 'Wyrm Fury', hidden: true,
-    reveal: [{ type: 'flag', flag: 'dragon_slain' }],
+    reveal: [{ type: 'flag', flag: 'dragon_slain' }, ...SECRET_GATE],
     role: 'Secret Class · Blood Duelist · Sustain DPS', description: 'Pays for every skill with his own blood, and drinks it back from every wound he deals.',
     requirements: [
       { type: 'level', min: 50 },
