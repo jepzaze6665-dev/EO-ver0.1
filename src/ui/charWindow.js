@@ -12,7 +12,7 @@ import { itemIconURL } from './icons.js';
 import { esc } from './itemTooltip.js';
 import { finalStatRows, setsHTML, archetypeHTML, presetsHTML, buildSummaryHTML } from './loadoutUI.js';
 import { expToNext } from '../progression/experience.js';
-import { meetsLevel } from '../items/itemDefs.js';
+import { meetsLevel, isGear } from '../items/itemDefs.js';
 import { t as tl, tx } from '../i18n/i18n.js';
 import { COSMETICS, COSMETIC_SLOTS, cosmeticsOn } from '../data/cosmetics.js';
 import { drawCosmeticAura, drawCosmeticBody } from '../player/cosmeticDraw.js';
@@ -67,9 +67,15 @@ export function equipmentTabHTML(g, state, itemDetail) {
   // GEAR ENHANCEMENT: "+N" badge (top left) on worn gear and on bag gear (best copy of that item)
   const plusTag = (n) => (n > 0 ? `<span class="cw-plus">+${n}</span>` : '');
   const bestPlus = (id) => Math.max(0, ...inv.instancesOf(id).map(plusOf));
+  // DUNGEON RUN: items gained in this run are lost on death until you return to a city -> red frame + "!" badge
+  const run = g.run && g.run.active && g.run.enabled() ? g.run.gained() : null;
+  const runGear = new Set(run ? run.gear.map((x) => x.inst.instanceId) : []);
+  const atRisk = (id, def) => (!run ? 0 : isGear(def) ? inv.instancesOf(id).filter((x) => runGear.has(x.instanceId)).length : run.items[id] || 0);
+  const riskTag = (r, n) => (r > 0 ? `<span class="cw-risk" title="${tl('From this run: dropped if you die')}">${r < n ? r : '!'}</span>` : '');
   const slot = (s) => {
     const id = eq.slots[s.id], d = ITEMS[id], pl = d ? plusOf(eq.inst[s.id]) : 0;
-    return `<div class="slot cw-gear${state.pickSlot === s.id ? ' sel' : ''}" data-pick="${s.id}" title="${esc(tl(s.label))}"${d ? ` data-tip="${id}" data-tip-eq="1" data-tip-plus="${pl}" style="border-color:${RARITY_COLOR[d.rarity]}"` : ''}>
+    const wr = d && eq.inst[s.id] && runGear.has(eq.inst[s.id].instanceId) ? ' cw-run' : '';
+    return `<div class="slot cw-gear${wr}${state.pickSlot === s.id ? ' sel' : ''}" data-pick="${s.id}" title="${esc(tl(s.label))}"${d ? ` data-tip="${id}" data-tip-eq="1" data-tip-plus="${pl}" style="border-color:${RARITY_COLOR[d.rarity]}"` : ''}>
       ${d ? `<img src="${itemIconURL(d)}">${plusTag(pl)}` : `<img class="cw-empty" src="${UI_ICON(SLOT_ICON[s.type])}">`}</div>`;
   };
   const rows = finalStatRows(p);
@@ -83,7 +89,8 @@ export function equipmentTabHTML(g, state, itemDetail) {
   const items = inv.list('All').filter(({ def }) => (pick ? def.type === pick.type : f.test(def)));
   const cells = items.map(({ id, n, def }) => {
     const act = pick ? `data-equip-to="${id}:${pick.id}"` : `data-item="${id}"`, low = pick && !meetsLevel(def, p.level) ? ' cw-low' : '';
-    return `<div class="slot${state.selected === id ? ' sel' : ''}${low}" ${act} data-tip="${id}" data-tip-plus="${bestPlus(id)}" style="border-color:${RARITY_COLOR[def.rarity]}"><img src="${itemIconURL(def)}">${plusTag(bestPlus(id))}<span class="n">${n > 1 ? n : ''}</span></div>`;
+    const r = atRisk(id, def), rc = r >= n ? ' cw-run' : r > 0 ? ' cw-runpart' : '';
+    return `<div class="slot${rc}${state.selected === id ? ' sel' : ''}${low}" ${act} data-tip="${id}" data-tip-plus="${bestPlus(id)}" style="border-color:${RARITY_COLOR[def.rarity]}"><img src="${itemIconURL(def)}">${plusTag(bestPlus(id))}${riskTag(r, n)}<span class="n">${n > 1 ? n : ''}</span></div>`;
   });
   const slotsLeft = Math.max(0, 32 - cells.length);
   const unequip = pick && eq.slots[pick.id] ? `<button data-unequip="${pick.id}">${tl('Unequip')}</button>` : '';
@@ -104,6 +111,7 @@ export function equipmentTabHTML(g, state, itemDetail) {
         : `<div class="cw-filters">${BAG_FILTERS.map((x) => `<button data-filter="${x.id}" class="${x.id === f.id ? 'on' : ''}" title="${tl(x.label)}"><img src="${UI_ICON(x.icon)}" alt="${tl(x.label)}"></button>`).join('')}</div>`}
       <span class="cw-gold"><img src="${UI_ICON('cur_gold')}" alt="">${p.gold.toLocaleString()}</span><span class="cw-gold" title="${tl('Diamonds')}"><img src="${UI_ICON('cur_crystal')}" alt="">${(p.diamonds || 0).toLocaleString()}</span>
     </div>
+    ${run && !pick ? `<div class="cw-runnote"><span class="cw-risk">!</span>${tl('Red = found in this run: dropped where you fall if you die. Return to a city to keep it.')}</div>` : ''}
     ${pick ? '' : `<div class="grid cw-bag">${cells.join('')}${'<div class="slot cw-free"></div>'.repeat(slotsLeft)}</div>`}
     ${!pick && state.selected ? `<div class="detail cw-detail">${itemDetail(state.selected)}</div>` : ''}
     <div class="keys"><span><kbd>${tl('Click')}</kbd>${tl('slot = choose item')}</span><span><kbd>${tl('Double-click')}</kbd>${tl('item = equip')}</span><span><kbd>I</kbd>${tl('Close')}</span><span><kbd>Esc</kbd>${tl('Back')}</span></div>

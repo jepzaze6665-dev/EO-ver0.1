@@ -775,3 +775,10 @@ body.touch .chatbox:not(.typing) .chat-log { pointer-events: none; }
 .ms-pips { display: flex; gap: 3px; } .ms-pips img, .ms-pips i { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.25); }
 .ms-pips i.on { background: var(--hl); } .ms-pips img { object-fit: contain; background: rgba(0, 0, 0, 0.4); }
 .ms-finder .ms-open button { padding: 5px 14px; border-color: var(--hl); }
+
+/* DUNGEON RUN: bag items gained this run (lost on death until banked in a city) */
+.slot.cw-run { box-shadow: inset 0 0 0 2px #e0443c, 0 0 8px rgba(224,68,60,.55); background: rgba(120,20,20,.35); }
+.slot.cw-runpart { box-shadow: inset 0 0 0 2px rgba(224,68,60,.6); }
+.slot .cw-risk, .cw-runnote .cw-risk { position: absolute; right: 2px; top: 1px; min-width: 13px; height: 13px; padding: 0 2px; border-radius: 7px; background: #e0443c; color: #fff; font: 700 10px/13px var(--font-title); text-align: center; pointer-events: none; }
+.cw-runnote { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #f0a49e; margin: -2px 0 6px; }
+.cw-runnote .cw-risk { position: static; }

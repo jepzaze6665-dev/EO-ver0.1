@@ -10,6 +10,8 @@ export const TH_WINDOWS = {
   'Use': 'ใช้',
   'Equip': 'สวมใส่',
   'Unequip': 'ถอดออก',
+  'From this run: dropped if you die': 'ได้จากรอบนี้: ตายแล้วจะตกอยู่ที่จุดที่ตาย',
+  'Red = found in this run: dropped where you fall if you die. Return to a city to keep it.': 'กรอบแดง = ของที่ได้ในดันรอบนี้ ถ้าตายจะตกอยู่ที่จุดที่ตาย กลับเข้าเมืองเพื่อเก็บถาวร',
   'None': 'ไม่มี',
   'Empty': 'ว่างเปล่า',
   'MAX': 'สูงสุด',
