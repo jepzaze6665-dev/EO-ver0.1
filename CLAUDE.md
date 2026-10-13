@@ -1839,3 +1839,6 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   Page tab "ผู้เล่น": search, online-only filter, sort by any column. CHAR_SLOTS exported from gameServer.js.
   `node tools/adminDemo.mjs` (launch config eclipse-admin-demo, port 5199, admin / devadmin) = the back office with 14 fake
   players in memory. admin.test 9.
+  WR walk centring (owner: "side walk: the body leads the legs"): build-player sheet option `centerFeet` = side-row frames moved
+  sideways so the feet centroid sits on the pivot; the walk v2 side row drew head + feet ~3 px ahead of the pivot (= ahead of the
+  shadow). Measured after: head -0.3 / feet -0.1 px.

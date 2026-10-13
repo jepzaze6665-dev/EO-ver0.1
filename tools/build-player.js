@@ -117,7 +117,7 @@ const WR = 'desgin/class cr/UB/WR/';
 // headMatch: the attack / skill sheets were drawn with a bigger head than the walk -> sized by head width, not body height
 PRESETS.wr = { out: 'assets/player/wr', nearestBody: true, headMatch: { ref: 1.08 }, // WALK v2 (2026-10-13): its head is drawn smaller vs the body -> ref 1.08 keeps the other sheets at their old size
    opaque: { min: 150, haze: 60 }, sheets: {
-  walk: [WR + 'WALK.png', 4, { facing: { right: 3, left: 3, flipRight: true } }], // walk v2: the right row is drawn ~10% shorter -> mirror the left row
+  walk: [WR + 'WALK.png', 4, { facing: { right: 3, left: 3, flipRight: true }, centerFeet: true }], // walk v2 (centerFeet: the body sat ~3 px ahead of its feet): the right row is drawn ~10% shorter -> mirror the left row
   atk1: [WR + 'ATK1.png', 4, { facing: { right: 3, left: 3, flipLeft: true } }], // owner: the left row slashes left with the face looking right -> mirror the right row
   atk2: [WR + 'ATK2.png', 4],
   dash: [WR + 'DASH.png', 4, { facing: { right: 2, left: 2, flipLeft: true } }], // every row of this sheet dashes RIGHT -> mirror it for the left
@@ -935,6 +935,18 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
   for (const c of opt.swapSides || []) for (let base = 0; base < rows; base += 4) for (let y = 0; y < CH; y++) {
     const a = ((base + 2) * CH + y) * sheet.width * 4 + c * CW * 4, b = ((base + 3) * CH + y) * sheet.width * 4 + c * CW * 4;
     const tmp = Buffer.from(sheet.data.subarray(a, a + CW * 4)); sheet.data.copy(sheet.data, a, b, b + CW * 4); tmp.copy(sheet.data, b);
+  }
+  // centerFeet: side-row frames are moved sideways so the feet sit on the pivot (the 'wr' walk drew the whole body ~3 px
+  // ahead of its shadow -> it looked like the body led the legs)
+  if (opt.centerFeet) for (let base = 0; base < rows; base += 4) for (const r of [base + 2, base + 3]) for (let c = 0; c < COLS; c++) {
+    const at = (x, y) => ((r * CH + y) * sheet.width + c * CW + x) * 4, d = sheet.data;
+    let s = 0, k = 0;
+    for (let y = PY - 12; y <= PY; y++) for (let x = 0; x < CW; x++) { const i = at(x, y); if (d[i + 3] > 200 && d[i] + d[i + 1] + d[i + 2] < 200) { s += x; k++; } }
+    const dx = k ? Math.round(PX - s / k) : 0;
+    if (!dx) continue;
+    const copy = Buffer.alloc(CW * CH * 4);
+    for (let y = 0; y < CH; y++) d.copy(copy, y * CW * 4, at(0, y), at(0, y) + CW * 4);
+    for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) { const sx = x - dx, i = at(x, y); if (sx < 0 || sx >= CW) { d[i + 3] = 0; continue; } copy.copy(d, i, (y * CW + sx) * 4, (y * CW + sx) * 4 + 4); }
   }
   if (opt.bodyOnly) bodyOnly(sheet, opt.bodyOnly);
   const sides = [];
