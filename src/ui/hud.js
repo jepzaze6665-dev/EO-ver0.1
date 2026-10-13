@@ -3,7 +3,7 @@ import { START_GRID, LEVELS } from '../world/levels/index.js';
 import { COMBAT_UI } from '../data/combatUI.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
-import { icon, skillIcon } from './icons.js';
+import { icon, skillIcon, itemIconImage } from './icons.js';
 import { TILE, T, Z } from '../core/constants.js';
 import { clamp, TAU, easeOutCubic } from '../core/math.js';
 import { Assets, makeCanvas } from '../core/assets.js';
@@ -343,7 +343,7 @@ export class HUD {
       if (sl.potion) {
         const n = g.inventory.count(sl.potion);
         ctx.imageSmoothingEnabled = true;
-        ctx.drawImage(icon('potion', sl.potion === 'hp_potion' ? '#e05060' : '#a060ff'), ix + 2 * u, iy + 2 * u, is - 4 * u, is - 4 * u);
+        ctx.drawImage(itemIconImage(sl.potion) || icon('potion', sl.potion === 'hp_potion' ? '#e05060' : '#a060ff'), ix + 2 * u, iy + 2 * u, is - 4 * u, is - 4 * u);
         this.text(ctx, String(n), ix + is - 1 * u, iy + is - 2 * u, 12 * u, n ? '#fff' : '#888', { align: 'right' });
         const left = g.run ? g.run.potionsLeft(sl.potion) : null; // POTION LIMIT: uses left this run
         if (left != null) this.text(ctx, `${left}/${g.run.potionLimit(sl.potion)}`, ix + 2 * u, iy + 10 * u, 10 * u, left ? '#ffd27a' : '#ff5050');

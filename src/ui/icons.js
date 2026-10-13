@@ -366,6 +366,16 @@ export function itemIconURL(def) {
   return art ? art.file : iconURL(def.icon, def.color);
 }
 
+// an ITEM's art as an Image for canvas drawing (HUD potion slots): loaded once on first ask, null until it is ready / without art
+const itemImgs = {};
+export function itemIconImage(id) {
+  const art = Assets.itemIcons && Assets.itemIcons[id];
+  if (!art) return null;
+  let img = itemImgs[id];
+  if (!img && typeof Image !== 'undefined') { img = itemImgs[id] = new Image(); img.src = art.file; }
+  return img && img.complete && img.naturalWidth ? img : null;
+}
+
 // a SKILL's icon: the owner's art when data/skillIcons.js names one that was built, else the drawn placeholder
 function skillArt(skill) {
   const a = skill && Assets.icons[SKILL_ICONS[skill.id]];
