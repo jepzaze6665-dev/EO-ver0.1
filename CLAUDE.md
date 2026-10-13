@@ -1762,7 +1762,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   gates where the boss roads arrive. testkit `goto` switches to A1 for coordinates outside the loaded grid; tests leave a city by
   `g.enterDungeon(area, { mode: 'solo' })`; TransitionSystem.autoConfirmCity (tests only). Art wishlist for the owner:
   docs/map/ECLIPSE_ONLINE_City_Art_Prompts.pdf (`node tools/cityArt/build.mjs`). Next: decorate with the owner's new sprites.
-  CITY ART (owner's sheets desgin/Map/City/{SHARED,LUMINA,ASTERIA CITY}, README there): extract-props CITY_SCALE per sheet, pure
+  Lumina's Dungeon Gate stands on the north road [48,22] (owner: not in the square). CITY ART (owner's sheets desgin/Map/City/{SHARED,LUMINA,ASTERIA CITY}, README there): extract-props CITY_SCALE per sheet, pure
   black bg, props gate_d0-6 (Lumina Dungeon Gate, 0 = dormant) · ac_gate0-6 (Asteria gate, interactable `art: 'city'`) · gate_ret0-3
   (return stone) · gate_board · lc_* (houses, guild, smithy, stalls, village props, forest gate) · ac_* (fountain0-3, shops, city
   props). Interactables draw them via drawPropFrames (code drawing = fallback); map props may carry `anim: { frames, fps }`

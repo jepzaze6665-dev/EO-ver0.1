@@ -25,7 +25,7 @@ export const QUESTS = {
     description: 'Captain Aldric of the Adventurer Guild wants proof you can survive beyond the village gate.',
     objectives: [
       { id: 'talk', text: 'Talk to Village Guide', type: 'talk', npc: 'guide', marker: [35, 47] },
-      { id: 'exit', text: 'Enter the Whispering Forest by the Dungeon Gate', type: 'reach', map: 'a1', marker: [48, 43] },
+      { id: 'exit', text: 'Enter the Whispering Forest by the Dungeon Gate', type: 'reach', map: 'a1', marker: [48, 22] },
       { id: 'hunt', text: 'Defeat Monsters', type: 'kill', target: 'any', count: 5, marker: [38, 121], markerMap: 'a1' },
       { id: 'return', text: 'Return to Village Guide', type: 'talk', npc: 'guide', marker: [35, 47] },
     ],

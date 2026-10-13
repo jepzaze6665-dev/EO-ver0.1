@@ -14,7 +14,7 @@ export const LUMINA_VILLAGE = {
   exits: [],
   content: {
     interactables: [
-      { id: 'lumina_gate', kind: 'dungeonGate', tx: 48, ty: 43, prompt: 'Dungeon Gate' },
+      { id: 'lumina_gate', kind: 'dungeonGate', tx: 48, ty: 22, prompt: 'Dungeon Gate' },
       {
         id: 'lumina_route_sign', kind: 'sign', tx: 52, ty: 44, prompt: 'Read Route Sign', title: 'Roads from Lumina',
         text: 'ROADS FROM LUMINA VILLAGE\n↑ ROUTE A — The Forest Road: Whispering Forest (A1) → Ancient Valley (A2) → Rune Citadel (A3) → City 2 Asteria\n→ ROUTE B — The Eastern Road: Frostwind Plains (B1) → Crystal Caverns (B2) → Frostpeak (B3) → City 2 Asteria\n\n"Each forest keeps a guardian. The road past it stays shut until the guardian falls." — Guild notice',

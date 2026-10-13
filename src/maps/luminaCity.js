@@ -2,6 +2,7 @@ import { T, Z, TILE } from '../core/constants.js';
 
 // LUMINA VILLAGE — City 1 on its OWN grid (world/levels/lumina.js, 96 × 96), laid out as an online HUB (owner 2026-10-13):
 //   centre : TOWN SQUARE (fountain) — spawn, waystone, storage, quest board + Elder: everyone meets here
+//   north  : the DUNGEON GATE on the north road (the only way out), the barred Forest Gate behind it
 //   ring   : services within ~15 tiles of the square — Adventurer Guild + training yard (W), Blacksmith (NE),
 //            Item Shop (SE), Bell Shrine (far W)
 //   NO EXITS (owner): the DUNGEON GATE in the square (maps/luminaVillage.js) is the only way out; the old Forest Gate
@@ -58,6 +59,7 @@ export function buildLuminaCity(b) {
   }
   b.prop('lc_bench', 44, 55, { scale: 0.75 }); b.prop('lc_bench', 52, 55, { flip: true, scale: 0.75 });
   b.prop('lc_pot_lavender', 44, 41, {}); b.prop('lc_pot_barrel', 52, 41, {});
+  b.prop('lc_flower_arch', 48, 40, {}); // the square's north entrance (the old gate spot)
   b.interact({ id: 'ws_village', kind: 'waystone', tx: 43, ty: 50, name: 'Lumina Village', prompt: 'Waystone' });
   b.prop('lc_crates', 54, 50, { solid: true });
   b.interact({ id: 'storage', kind: 'storage', tx: 54, ty: 50, prompt: 'Open Storage' });
@@ -86,6 +88,12 @@ export function buildLuminaCity(b) {
   b.prop('lc_stall_cloth', 67, 61, { solid: true, footprint: [[-1, 0], [0, 0], [1, 0]] });
   b.prop('lc_goods', 65, 58, {}); b.prop('lc_sacks', 69, 58, {});
   b.npc({ id: 'merchant', name: 'Lysa', role: 'Item Merchant', tx: 62, ty: 58, look: 'merchant' });
+
+  // ---------------- Dungeon Gate (owner: on the north road, the road out to adventure; the square stays open)
+  b.disc(48, 22, 3.5, T.COBBLE, { noise: 0.4 });
+  b.prop('lc_lamp_post', 45, 23, { light: { r: 60, color: '#b070ff', a: 0.6, flicker: true, oy: -40 } });
+  b.prop('lc_lamp_post', 52, 23, { flip: true, light: { r: 60, color: '#b070ff', a: 0.6, flicker: true, oy: -40 } });
+  b.light(48, 21, 90, '#9a60ff', { a: 0.35 });
 
   // ---------------- Forest Gate (north): barred and chained — the way out is the Dungeon Gate now
   b.prop('lc_forest_gate', 48, 10, { dy: 8 });
