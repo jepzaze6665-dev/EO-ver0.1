@@ -179,7 +179,7 @@ export function buildForest(b) {
   b.prop('giant_tree', 18, 73, { solid: true, scale: 1.4, footprint: [[-1, 0], [0, 0], [1, 0], [0, -1]], light: { r: 50, color: '#6aff9a', a: 0.35, oy: -60 } });
   b.prop('mush_cyan', 14, 76, { light: { r: 22, color: '#5af0ff', a: 0.5 } }); b.prop('mush_blue', 22, 77, { light: { r: 22, color: '#5ab0ff', a: 0.5 } });
   b.interact({ id: 'lore_elder', kind: 'lore', tx: 19, ty: 75, lore: 'elder_tree', prompt: 'Touch the Elder Tree' });
-  b.interact({ id: 'ws_forest', kind: 'waystone', tx: 55, ty: 106, name: 'River Crossing', prompt: 'Waystone' });
+  b.interact({ id: 'ws_forest', kind: 'waystone', tx: 55, ty: 106, name: 'River Crossing', prompt: 'Checkpoint' });
 
   // ---- Thornwood Glade
   b.prop('crate_a', 24, 57, { solid: true }); b.prop('barrel_b', 34, 55, { solid: true }); b.prop('firewood', 33, 64, {});

@@ -988,15 +988,6 @@ export class Panels {
       if (t.dataset.wd) { inv.withdraw(t.dataset.wd, 1); this.storage(); }
     });
   }
-  teleport(fromId) {
-    const g = this.game, w = g.world;
-    const stones = w.interactables.filter((it) => it.kind === 'waystone');
-    const body = `<p class="muted small">${tl("Your wounds close in the waystone's light. Travel to any attuned waystone.")}</p>` + stones.map((s) => npcRow({ img: UI_ICON('npc_waystone'), name: s.name,
-      text: s.id === fromId ? tl('You are here') : w.state.waystones[s.id] ? '' : tl('Not attuned'), cls: s.id === fromId ? 'np-here' : '',
-      right: w.state.waystones[s.id] && s.id !== fromId ? `<button data-tp="${s.id}">${tl('Travel')}</button>` : '' })).join('');
-    const el = this.show('teleport', npcPanelHTML({ icon: 'npc_waystone', title: tl('Waystone Network'), sub: tl('Travel'), body, keys: [[tl('Click'), tl('Travel')]] }), 'side');
-    this.wireNpc(el, 'teleport', () => this.teleport(fromId), (t) => { if (t.dataset.tp) { this.close(); g.teleportTo(t.dataset.tp); } });
-  }
 
   // ---------------- world map
   worldMap() {

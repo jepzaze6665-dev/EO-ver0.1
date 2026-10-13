@@ -44,7 +44,7 @@ export const FIELD_A3 = {
       { id: 'a3_chest_barracks', kind: 'chest', tx: 127, ty: 83, loot: [{ item: 'hp_potion', count: 3 }, { item: 'crystal_shard', count: 2 }], gold: 300 },
       ...CITADEL_VAULTS.map((v) => ({ id: `chest_vault_${v.id}`, kind: 'chest', tx: v.chest[0], ty: v.chest[1], ...VAULT_CHESTS[v.id] })),
       { id: 'a3_gate_plaque', kind: 'sign', tx: 90, ty: 194, prompt: 'Read Plaque', title: 'Gate Ward', text: PLAQUE },
-      { id: 'ws_a3_gate', kind: 'waystone', tx: 77, ty: 194, name: 'Gate Ward', prompt: 'Waystone' },
+      { id: 'ws_a3_gate', kind: 'waystone', tx: 77, ty: 194, name: 'Gate Ward', prompt: 'Checkpoint' },
       // the Ashen Pilgrim's third trial (quest ember_trial_a3): a stone dragon that listens only while its runes burn
       {
         id: 'a3_rune_dragon', kind: 'timedRune', tx: 52, ty: 118, prompt: 'Touch the Stone Dragon', quest: 'ember_trial_a3', flag: 'runeDragonAwake',

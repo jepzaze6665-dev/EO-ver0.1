@@ -26,7 +26,6 @@ export const CITY2 = {
     ],
     interactables: [
       { id: 'asteria_gate', kind: 'dungeonGate', tx: 56, ty: 47, prompt: 'Dungeon Gate', art: 'city' },
-      { id: 'ws_asteria', kind: 'waystone', tx: 51, ty: 63, name: 'Asteria City', prompt: 'Waystone' },
       { id: 'a_storage', kind: 'storage', tx: 62, ty: 64, prompt: 'Open Storage' },
       {
         id: 'a_notice', kind: 'sign', tx: 52, ty: 94, prompt: 'Read Notice', title: 'Asteria City — South Gate',

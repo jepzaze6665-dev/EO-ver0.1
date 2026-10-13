@@ -60,7 +60,7 @@ export function buildLuminaCity(b) {
   b.prop('lc_bench', 44, 55, { scale: 0.75 }); b.prop('lc_bench', 52, 55, { flip: true, scale: 0.75 });
   b.prop('lc_pot_lavender', 44, 41, {}); b.prop('lc_pot_barrel', 52, 41, {});
   b.prop('lc_flower_arch', 48, 40, {}); // the square's north entrance (the old gate spot)
-  b.interact({ id: 'ws_village', kind: 'waystone', tx: 43, ty: 50, name: 'Lumina Village', prompt: 'Waystone' });
+  b.prop('lc_lamp_post', 43, 50, { light: { r: 60, color: '#ffb050', a: 0.6, flicker: true, oy: -40 } });
   b.prop('lc_crates', 54, 50, { solid: true });
   b.interact({ id: 'storage', kind: 'storage', tx: 54, ty: 50, prompt: 'Open Storage' });
   b.prop('gate_board', 45, 39, { solid: true, footprint: [[-1, 0], [0, 0], [1, 0]] });

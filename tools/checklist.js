@@ -114,7 +114,7 @@ export function runChecklist(g, classId = 'umbral_sword') {
   ok('Boss reward received (once)', ev.enemyDefeated.filter((e) => e.boss && e.type === 'guardian').length === 1 && g.inventory.has('guardian_heart') && p.gold > goldBefore, `gold +${p.gold - goldBefore}`);
 
   // 27-28 back to Lumina (waystone teleport), report
-  g.teleportTo('ws_village'); g.simulate(0.3);
+  g.world.changeMap('lumina', { entry: g.world.mapManager.get('lumina').spawn }); g.simulate(0.3); // (waystones are field checkpoints now)
   ok('Return to Lumina Village', w().mapId === 'lumina', w().mapId);
   use(g, 'npc_elder'); g.ui.panels.close(true); use(g, 'npc_guide'); g.ui.panels.close(true);
   ok('Quests complete (+ Elder thanks you)', w().state.flags.elderThanked && g.quests.isDone('beyond_lumina'), Object.keys(g.quests.completed).join(','));

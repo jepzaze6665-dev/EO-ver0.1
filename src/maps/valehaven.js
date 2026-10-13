@@ -28,7 +28,6 @@ export const VALEHAVEN = {
       { id: 'master_aegis', name: 'Master Halvard', role: 'Class Change · Aegis', tx: 38, ty: 25, look: 'scout', art: 'wren', tint: 'hue-rotate(15deg) saturate(1.6) brightness(1.1)' },
     ],
     interactables: [
-      { id: 'ws_city2', kind: 'waystone', tx: 38, ty: 22, name: 'Valehaven', prompt: 'Waystone' },
       {
         id: 'city2_notice', kind: 'sign', tx: 29, ty: 24, prompt: 'Read Guild Notice', title: 'Valehaven — Guild Notice',
         text: 'VALEHAVEN (Guild camp — do not speak of it in Lumina)\n• The Sealed Path is the only road in. Keep it that way.\n• The Sealed Depths lie north of the standing stones. Its door answers to power not yet found.\n• The masters of the three lines (Ilsa, Corvin, Halvard) teach the change of class — look for the coloured robes.\n• Merchants and the Guild hall arrive with the next caravan.',

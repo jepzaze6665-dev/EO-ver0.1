@@ -35,7 +35,7 @@ export const FIELD_B3 = {
       { id: 'b3_chest_fortress', kind: 'chest', tx: 148, ty: 157, loot: [{ item: 'hp_potion', count: 2 }, { item: 'crystal_shard', count: 2 }], gold: 280 },
       { id: 'b3_lore_hermit', kind: 'lore', tx: 23, ty: 36, lore: 'hermit_notes', prompt: 'Read Notes' },
       { id: 'b3_gate_notice', kind: 'sign', tx: 76, ty: 196, prompt: 'Read Banner', title: 'Frostpeak — South Gate', text: NOTICE },
-      { id: 'ws_b3_camp', kind: 'waystone', tx: 128, ty: 118, name: 'Nomad Camp', prompt: 'Waystone' },
+      { id: 'ws_b3_camp', kind: 'waystone', tx: 128, ty: 118, name: 'Nomad Camp', prompt: 'Checkpoint' },
       { id: 'b3_summit_sign', kind: 'sign', tx: 86, ty: 60, prompt: 'Read Inscription', title: 'The Summit Gate', text: 'Beyond the gate something vast is breathing.\nThe Crystal Warden has kept this summit since the eclipse was young.' },
     ],
     spawns: [

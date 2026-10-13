@@ -55,7 +55,7 @@ export const FIELD_A2 = {
       { id: 'a2_lake_sign', kind: 'sign', tx: 42, ty: 161, prompt: 'Read Weathered Sign', title: 'Mirror Lake',
         text: '"The priests\' Lower Hall lies under this water. They let the lake in from the temple above —\nand only the temple wheel can send it away again."' },
       { id: 'a2_gate_plaque', kind: 'sign', tx: 88, ty: 191, prompt: 'Read Plaque', title: 'Valley Gate', text: PLAQUE },
-      { id: 'ws_a2_gate', kind: 'waystone', tx: 79, ty: 194, name: 'Valley Gate', prompt: 'Waystone' },
+      { id: 'ws_a2_gate', kind: 'waystone', tx: 79, ty: 194, name: 'Valley Gate', prompt: 'Checkpoint' },
       // QUIET HOLLOW (secret lair): the rumour gargoyle + the sealed dragon door (generic `sealDoor`: item -> flag)
       // the gargoyle = rumour + the FORGE where three Cinder Shards become Varkharon's Seal (generic `forge`)
       {

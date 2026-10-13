@@ -1309,9 +1309,8 @@ export function cityCheck(g, classId = 'umbral_sword') {
   use(g, 'npc_a_smith'); g.ui.panels.dialogueAction('smith');
   ok('Forge: the smith opens the forge', g.ui.panels.current && g.ui.panels.current.name === 'smith', g.ui.panels.current && g.ui.panels.current.name);
   g.ui.panels.close(true);
-  use(g, 'ws_asteria'); g.ui.panels.close(true);
   use(g, 'a_storage'); const storageOpen = g.ui.panels.current && g.ui.panels.current.name; g.ui.panels.close(true);
-  ok('Waystone attuned · storage opens', w.state.waystones.ws_asteria && storageOpen === 'storage', `storage=${storageOpen}`);
+  ok('No waystone in the city · storage opens', !w.interactables.some((i) => i.kind === 'waystone') && storageOpen === 'storage', `storage=${storageOpen}`);
   const gold = p.gold;
   use(g, 'npc_a_guildmaster'); g.ui.panels.close(true);
   ok('Guildmaster Seraphine met (flag)', g.world.state.flags.asteriaMet);

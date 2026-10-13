@@ -86,13 +86,15 @@ export function interact(w, it) {
         g.audio.sfx('waystone');
         g.vfx.ring(it.x, it.y, 4, 60, { color: '120,240,255', life: 0.6 });
         g.vfx.burst(it.x, it.y - 30, '#9af8ff', 30, 120);
-        g.ui.banner('WAYSTONE ATTUNED', it.name, '#9af8ff');
-        w.state.lastWaystone = it.id;
-        g.save.dirty = true;
+        g.ui.banner('CHECKPOINT SET', it.name, '#9af8ff');
+      } else {
+        g.vfx.ring(it.x, it.y, 4, 50, { color: '120,240,255', life: 0.5 });
+        g.ui.toast('Checkpoint saved · HP restored', 1.6);
       }
+      // owner 2026-10-13: a waystone is a CHECKPOINT (respawn point + heal), the travel network is gone (the Dungeon Gate picks maps)
       w.state.lastWaystone = it.id;
       p.hp = p.maxHp;
-      g.ui.openTeleport(it.id);
+      g.save.dirty = true;
       break;
     case 'storage':
       g.ui.openStorage();

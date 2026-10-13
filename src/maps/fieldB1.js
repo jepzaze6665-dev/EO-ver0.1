@@ -38,7 +38,7 @@ export const FIELD_B1 = {
       { id: 'b1_chest_cave_s', kind: 'chest', tx: 71, ty: 185, loot: [{ item: 'hp_potion', count: 3 }], gold: 220, rare: true },
       { id: 'b1_lore_trapper', kind: 'lore', tx: 37, ty: 65, lore: 'trapper_journal', prompt: 'Read Journal' },
       { id: 'b1_lodge_notice', kind: 'sign', tx: 10, ty: 24, prompt: 'Read Notice', title: "Hunter's Lodge", text: NOTICE },
-      { id: 'ws_b1_lodge', kind: 'waystone', tx: 14, ty: 18, name: "Hunter's Lodge", prompt: 'Waystone' },
+      { id: 'ws_b1_lodge', kind: 'waystone', tx: 14, ty: 18, name: "Hunter's Lodge", prompt: 'Checkpoint' },
       { id: 'b1_cross_sign', kind: 'sign', tx: 83, ty: 60, prompt: 'Read Sign', title: 'Frostwind Crossroads', text: "↑ Old Watchtower\n→ Nomad Camp · the arena road (south-east)\n← Trapper's Ruins\n↓ the Frozen Mere" },
     ],
     // hares near the lodge, wolves in packs on the roads, harriers over the open snow, bears at the ruins and the camp

@@ -544,19 +544,6 @@ export class Game {
     }, true);
   }
 
-  teleportTo(id) {
-    const it = this.world.interactables.find((i) => i.id === id);
-    if (!it) return;
-    const pos = this.world.map.findOpen(it.x, it.y + 36, 3);
-    this.vfx.burst(this.player.x, this.player.y - 20, '#9af8ff', 30, 140);
-    this.player.x = pos.x; this.player.y = pos.y;
-    this.world.state.lastWaystone = id;
-    this.camera.snap(pos.x, pos.y);
-    this.vfx.flash('150,240,255', 0.6, 2);
-    this.vfx.ring(pos.x, pos.y, 4, 70, { color: '120,240,255', life: 0.6 });
-    this.audio.sfx('waystone');
-  }
-
   endingStats() {
     const s = Math.floor(this.playTime);
     return {

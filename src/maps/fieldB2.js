@@ -38,7 +38,7 @@ export const FIELD_B2 = {
       { id: 'b2_chest_gallery', kind: 'chest', tx: 74, ty: 25, loot: [{ item: 'crystal_shard', count: 3 }], gold: 200 },
       { id: 'b2_lore_gallery', kind: 'lore', tx: 70, ty: 30, lore: 'gallery_scratching', prompt: 'Read Scratching' },
       { id: 'b2_tunnel_notice', kind: 'sign', tx: 12, ty: 15, prompt: 'Read Marker', title: 'Frozen Tunnel', text: NOTICE },
-      { id: 'ws_b2_hall', kind: 'waystone', tx: 36, ty: 36, name: 'Glittering Hall', prompt: 'Waystone' },
+      { id: 'ws_b2_hall', kind: 'waystone', tx: 36, ty: 36, name: 'Glittering Hall', prompt: 'Checkpoint' },
       { id: 'b2_arch_sign', kind: 'sign', tx: 144, ty: 168, prompt: 'Read Inscription', title: 'The Abyssal Arch', text: 'Beyond the arch the road climbs to Frostpeak (B3).\nThe frost that sealed it melted when the Heart fell silent.' },
     ],
     spawns: [

@@ -25,7 +25,6 @@ export class UI {
 
   openDialogue(npc) { this.panels.dialogue(npc); }
   showLore(title, text, onClose) { this.panels.textPanel(title, text, onClose); }
-  openTeleport(id) { this.panels.teleport(id); }
   openStorage() { this.panels.storage(); }
   showEnding() { this.panels.ending(this.game.endingStats()); this.game.audio.sfx('victory'); }
 

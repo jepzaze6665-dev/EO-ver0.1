@@ -64,7 +64,7 @@ export function buildRuins(b) {
   b.prop('brazier_blue', 131, 94, { solid: true, light: { r: 60, color: '#5ab8ff', a: 0.7, flicker: true, oy: -20 } });
   b.prop('brazier_blue', 141, 94, { solid: true, light: { r: 60, color: '#5ab8ff', a: 0.7, flicker: true, oy: -20 } });
   b.prop('ruin_statue_c', 127, 104, { solid: true }); b.prop('ruin_statue_b', 145, 104, { solid: true });
-  b.interact({ id: 'ws_ruins', kind: 'waystone', tx: 136, ty: 110, name: 'Ruin Courtyard', prompt: 'Waystone' });
+  b.interact({ id: 'ws_ruins', kind: 'waystone', tx: 136, ty: 110, name: 'Ruin Courtyard', prompt: 'Checkpoint' });
   b.interact({ id: 'lore_court', kind: 'lore', tx: 127, ty: 105, lore: 'court_tablet', prompt: 'Read Tablet' });
   b.interact({ id: 'chest_court', kind: 'chest', tx: 148, ty: 90, loot: [{ item: 'hp_potion', count: 2 }, { item: 'shadow_tonic', count: 1 }], gold: 90 });
 

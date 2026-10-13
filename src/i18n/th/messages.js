@@ -39,6 +39,8 @@ export const TH_MESSAGES = {
   'RARE TREASURE': 'สมบัติหายาก',
   'A hidden reward for the curious': 'รางวัลลับสำหรับผู้ช่างสงสัย',
   'WAYSTONE ATTUNED': 'ผูกพลัง Waystone แล้ว',
+  'CHECKPOINT SET': 'บันทึกจุดเกิดแล้ว',
+  'Checkpoint saved · HP restored': 'บันทึกจุดเกิดแล้ว · ฟื้นพลังชีวิตเต็ม',
   'THE GUARDIAN GATE OPENS': 'ประตูของ Guardian เปิดออก',
   'Something vast breathes beyond': 'มีบางสิ่งมหึมาหายใจอยู่เบื้องหลัง',
   'SHORTCUT OPENED': 'เปิดทางลัดแล้ว',
