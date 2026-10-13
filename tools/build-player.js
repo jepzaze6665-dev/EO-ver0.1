@@ -114,7 +114,8 @@ PRESETS.be = { out: 'assets/player/be', nearestBody: true, sheets: {
 // Two kinds of source: WALK / HIT / DASH / ATK1 / ATK2 have real alpha (the body left ~90% opaque + a faint red haze),
 // the skill sheets are opaque fake checkerboard. opaque: alpha >= min -> fully opaque, below `haze` -> gone.
 const WR = 'desgin/class cr/UB/WR/';
-PRESETS.wr = { out: 'assets/player/wr', nearestBody: true, opaque: { min: 150, haze: 60 }, sheets: {
+// headMatch: the attack / skill sheets were drawn with a bigger head than the walk -> sized by head width, not body height
+PRESETS.wr = { out: 'assets/player/wr', nearestBody: true, headMatch: true, opaque: { min: 150, haze: 60 }, sheets: {
   walk: [WR + 'WALK.png', 4],
   atk1: [WR + 'ATK1.png', 4],
   atk2: [WR + 'ATK2.png', 4],
@@ -850,8 +851,19 @@ function liftFx(target, rows, sides, { rule = 'sat', fringe = 2, minFx = 25, str
   fs.writeFileSync(metaFile, JSON.stringify(meta, null, 1));
   console.log('   fx strip', strip.name, 'cols', cols.join(','), 'from row', rightRow);
 }
+// widest opaque run in the top 22% of a frame's body (the hair / head) — a size measure that ignores the pose below
+function headWidth(f) {
+  const d = f.data, W = f.width;
+  let top = -1, bot = -1;
+  for (let y = 0; y < f.height; y++) for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; if (d[i + 3] > 200 && d[i] + d[i + 1] + d[i + 2] < 150) { if (top < 0) top = y; bot = y; } }
+  if (top < 0) return 0;
+  let best = 0;
+  for (let y = top; y < top + (bot - top) * 0.22; y++) { let a = -1, b = -1; for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 200) { if (a < 0) a = x; b = x; } best = Math.max(best, b - a); }
+  return best;
+}
 function buildPreset(key) {
-const { out: outRel, sheets: SHEETS, facing: FACING, nearestBody, bg, edgeFade, splitFeather, cutFeather, opaque } = PRESETS[key];
+const { out: outRel, sheets: SHEETS, facing: FACING, nearestBody, bg, edgeFade, splitFeather, cutFeather, opaque, headMatch } = PRESETS[key];
+let headRef = null; // headMatch: the first sheet's head width (output px)
 FEATHER = cutFeather || 4;
 const OUT = path.join(ROOT, outRel);
 fs.mkdirSync(OUT, { recursive: true });
@@ -885,7 +897,15 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
   }
   // one measured factor per sheet: the neutral body always becomes STD.bodyHeight
   neutral.sort((p, q) => p - q);
-  const scale = STD.bodyHeight / neutral[neutral.length >> 1];
+  let scale = STD.bodyHeight / neutral[neutral.length >> 1];
+  // headMatch: AI sheets draw the same character with a different head / body ratio per sheet (the attack sheets of
+  // 'wr' looked ~20% bigger than the walk). Size every sheet so its neutral HEAD WIDTH equals the first sheet's.
+  if (headMatch) {
+    const heads = cells.filter((a, idx) => a && idx % COLS === 0 && Math.floor(idx / COLS) % 4 < 2).map((a) => headWidth(a.img)).filter((w) => w > 0).sort((p, q) => p - q);
+    const src = heads[heads.length >> 1];
+    // blend: body height alone made the attack poses ~10-20% too big, head width alone ~10% too small -> geometric mean
+    if (src) { if (headRef === null) headRef = src * scale; else scale = Math.sqrt(scale * (headRef / src)); }
+  }
   const sheet = png.create(CW * COLS, CH * rows);
   cells.forEach((a, idx) => {
     if (!a) return;

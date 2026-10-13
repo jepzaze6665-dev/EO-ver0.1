@@ -1817,3 +1817,8 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   116.5 s, all WIN. Fixes (owner): WR basic slash drawn further out (44 / 50 px); WR DASH sheet dashes RIGHT in every row -> preset
   facing right 2 / left 2 mirrored; return stone props gate_ret* had black patches (glow painted on the black sheet) ->
   extract-props GLOW_FROM_BLACK (near-black / warm-dark halo -> colour-to-alpha against black, soft alpha, no drawn outline).
+  WR polish 2 (owner: "bigger when attacking"): build-player preset option `headMatch` — every sheet's scale = geometric mean of
+  the body-height scale and the scale that makes its neutral HEAD WIDTH equal the first sheet's (walk). The AI attack / skill sheets
+  draw a bigger head on a shorter body: body height alone made them 10-20% too big (ATK1 head 29 px vs walk 24), head width alone too
+  small. Used by 'wr'. Basic attacks draw no extra slash strip; walk / run have a step bounce (bob 2 / 3) — the AI walk sheet moves
+  the legs ~1/3 as much as the other Umbral classes (a new WALK sheet from the owner would fix it properly).

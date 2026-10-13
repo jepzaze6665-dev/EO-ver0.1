@@ -48,7 +48,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.251,
+   "sourceScale": 0.2265,
    "emptyFrames": []
   },
   "atk2": {
@@ -67,7 +67,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2752,
+   "sourceScale": 0.2619,
    "emptyFrames": []
   },
   "dash": {
@@ -86,7 +86,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.262,
+   "sourceScale": 0.2518,
    "emptyFrames": []
   },
   "hit": {
@@ -105,7 +105,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2326,
+   "sourceScale": 0.2255,
    "emptyFrames": []
   },
   "sk1": {
@@ -124,7 +124,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1993,
+   "sourceScale": 0.1918,
    "emptyFrames": []
   },
   "sk2": {
@@ -143,7 +143,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1935,
+   "sourceScale": 0.1837,
    "emptyFrames": []
   },
   "sk3": {
@@ -162,7 +162,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1796,
+   "sourceScale": 0.1733,
    "emptyFrames": []
   },
   "sk4": {
@@ -181,7 +181,7 @@
      "flipRight": true
     }
    ],
-   "sourceScale": 0.2076,
+   "sourceScale": 0.2018,
    "emptyFrames": []
   },
   "sk5": {
@@ -200,7 +200,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2,
+   "sourceScale": 0.1901,
    "emptyFrames": []
   },
   "sk6": {
@@ -219,7 +219,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.1942,
+   "sourceScale": 0.1846,
    "emptyFrames": []
   },
   "sk7": {
@@ -238,7 +238,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2326,
+   "sourceScale": 0.2235,
    "emptyFrames": []
   },
   "ult": {
@@ -257,7 +257,7 @@
      "flipRight": false
     }
    ],
-   "sourceScale": 0.2679,
+   "sourceScale": 0.2694,
    "emptyFrames": []
   }
  },
@@ -270,84 +270,94 @@
    "issues": []
   },
   "atk1": {
-   "bodyHeight": 58,
+   "bodyHeight": 52,
    "feetMaxOffset": 1,
-   "centerOffset": 0,
-   "ok": true,
-   "issues": []
+   "centerOffset": -1,
+   "ok": false,
+   "issues": [
+    "Scale Difference"
+   ]
   },
   "atk2": {
-   "bodyHeight": 58,
+   "bodyHeight": 55,
    "feetMaxOffset": 1,
    "centerOffset": 0,
-   "ok": true,
-   "issues": []
+   "ok": false,
+   "issues": [
+    "Scale Difference"
+   ]
   },
   "dash": {
-   "bodyHeight": 58,
+   "bodyHeight": 56,
    "feetMaxOffset": 1,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "hit": {
-   "bodyHeight": 58,
+   "bodyHeight": 56,
    "feetMaxOffset": 1,
    "centerOffset": 1,
    "ok": true,
    "issues": []
   },
   "sk1": {
-   "bodyHeight": 58,
+   "bodyHeight": 56,
    "feetMaxOffset": 1,
    "centerOffset": -1,
    "ok": true,
    "issues": []
   },
   "sk2": {
-   "bodyHeight": 58,
+   "bodyHeight": 55,
    "feetMaxOffset": 1,
    "centerOffset": 0,
-   "ok": true,
-   "issues": []
+   "ok": false,
+   "issues": [
+    "Scale Difference"
+   ]
   },
   "sk3": {
-   "bodyHeight": 58,
+   "bodyHeight": 56,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "sk4": {
-   "bodyHeight": 58,
+   "bodyHeight": 56,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "sk5": {
-   "bodyHeight": 58,
+   "bodyHeight": 55,
    "feetMaxOffset": 1,
    "centerOffset": 0,
-   "ok": true,
-   "issues": []
+   "ok": false,
+   "issues": [
+    "Scale Difference"
+   ]
   },
   "sk6": {
-   "bodyHeight": 58,
+   "bodyHeight": 55,
    "feetMaxOffset": 1,
    "centerOffset": 0,
-   "ok": true,
-   "issues": []
+   "ok": false,
+   "issues": [
+    "Scale Difference"
+   ]
   },
   "sk7": {
-   "bodyHeight": 59,
+   "bodyHeight": 56,
    "feetMaxOffset": 1,
    "centerOffset": 0,
    "ok": true,
    "issues": []
   },
   "ult": {
-   "bodyHeight": 58,
+   "bodyHeight": 59,
    "feetMaxOffset": 0,
    "centerOffset": 0,
    "ok": true,
