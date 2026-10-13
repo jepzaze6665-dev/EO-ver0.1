@@ -33,6 +33,8 @@ if (only) for (const id of only) if (!ITEMS[id]) { console.error('unknown item: 
 const pick = (d) => !only || only.has(d.id);
 const gear = Object.values(ITEMS).filter(isGear).filter(pick);
 const keys = Object.values(ITEMS).filter((d) => d.key).filter(pick); // KEY ITEMS (not gear): only open something
+// --only may also name potions / materials / trophies (not gear, not key): own section
+const misc = only ? Object.values(ITEMS).filter((d) => !isGear(d) && !d.key).filter(pick) : [];
 // K1: class signature weapons / armours are CLASS KIT pieces (data/classKits.js), not items — they are not in this catalogue
 const signatureOf = {};
 const BUILD_IDS = new Set(Object.keys(BUILD_ITEMS));
@@ -136,7 +138,7 @@ h2 { font-size: 15px; letter-spacing: 1.5px; color: #d8c0ff; border-bottom: 1px 
 <div class="cover">
   <h1>ECLIPSE ONLINE</h1>
   <div style="font-size:15px;color:#c8b0ff;letter-spacing:2px">ITEM CATALOGUE${only ? ` — UPDATE ${esc(updateName)} (เฉพาะไอเทมใหม่ / ที่เปลี่ยน)` : ''} — สำหรับทำกราฟิก / ไอคอน</div>
-  <p>สร้างจากข้อมูลในเกมโดยตรง (src/data/items, src/items/items.js) วันที่ ${today} · ${only ? `ไอเทมในอัปเดตนี้ ${gear.length + keys.length} ชิ้น (ไอเทมสวมใส่ ${gear.length} · กุญแจ ${keys.length}) — ไม่รวมของใน PDF ชุดแรก` : `ไอเทมสวมใส่ทั้งหมด ${gear.length} ชิ้น · ไอเทมกุญแจ ${keys.length} · เซ็ต ${Object.keys(SETS).length} ชุด`}<br>${only && arg('--note') ? `<b style="color:#ff8080">${esc(arg('--note'))}</b><br>` : ''}
+  <p>สร้างจากข้อมูลในเกมโดยตรง (src/data/items, src/items/items.js) วันที่ ${today} · ${only ? `ไอเทมในอัปเดตนี้ ${gear.length + keys.length + misc.length} ชิ้น (ไอเทมสวมใส่ ${gear.length} · กุญแจ ${keys.length} · ยา / วัตถุดิบ / ของรางวัล ${misc.length}) — ไม่รวมของใน PDF ชุดแรก` : `ไอเทมสวมใส่ทั้งหมด ${gear.length} ชิ้น · ไอเทมกุญแจ ${keys.length} · เซ็ต ${Object.keys(SETS).length} ชุด`}<br>${only && arg('--note') ? `<b style="color:#ff8080">${esc(arg('--note'))}</b><br>` : ''}
   สร้างใหม่ได้ทุกเมื่อด้วย <code>node tools/itemCatalog/build.mjs</code></p>
   <div class="guide"><b>แนวทางทำไอคอน</b><ul>
     <li><b>ไอเทมไม่เปลี่ยนหน้าตาตัวละคร</b> — กราฟิกที่ต้องทำคือ <b>ไอคอนไอเทม</b> (ช่อง Loadout, กระเป๋า, tooltip) ไม่ใช่สไปรต์บนตัว</li>
@@ -149,6 +151,7 @@ h2 { font-size: 15px; letter-spacing: 1.5px; color: #d8c0ff; border-bottom: 1px 
   </ul></div>
 </div>
 ${only ? '' : `<h2>SETS — เซ็ตไอเทม</h2>${setsHTML}`}
+${misc.length ? `<h2>CONSUMABLES / MATERIALS / TROPHIES — ยา วัตถุดิบ ของรางวัล (${misc.length})</h2><div class="grid">${misc.map(card).join('')}</div>` : ''}
 ${keys.length ? `<h2>KEY ITEMS — ไอเทมกุญแจ (ใช้เปิดทางเข้าเท่านั้น)</h2><div class="grid">${keys.map(card).join('')}</div>` : ''}
 ${groups.filter(([, items]) => items.length).map(([title, items], i) => `<h2 class="${i === 0 ? 'pb' : ''}">${esc(title)} (${items.length})</h2><div class="grid">${items.map(card).join('')}</div>`).join('')}
 </body></html>`;

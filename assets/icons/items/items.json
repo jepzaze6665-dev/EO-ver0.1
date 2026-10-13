@@ -229,5 +229,110 @@
  },
  "charm_duelist": {
   "file": "assets/icons/items/charm_duelist.png"
+ },
+ "hp_potion": {
+  "file": "assets/icons/items/hp_potion.png"
+ },
+ "shadow_tonic": {
+  "file": "assets/icons/items/shadow_tonic.png"
+ },
+ "bronze_plate": {
+  "file": "assets/icons/items/bronze_plate.png"
+ },
+ "stone_scute": {
+  "file": "assets/icons/items/stone_scute.png"
+ },
+ "hare_pelt": {
+  "file": "assets/icons/items/hare_pelt.png"
+ },
+ "crag_horn": {
+  "file": "assets/icons/items/crag_horn.png"
+ },
+ "wolf_fang": {
+  "file": "assets/icons/items/wolf_fang.png"
+ },
+ "frost_pelt": {
+  "file": "assets/icons/items/frost_pelt.png"
+ },
+ "hollow_fang_pelt": {
+  "file": "assets/icons/items/hollow_fang_pelt.png"
+ },
+ "goblin_iron": {
+  "file": "assets/icons/items/goblin_iron.png"
+ },
+ "rune_crystal": {
+  "file": "assets/icons/items/rune_crystal.png"
+ },
+ "ember_core": {
+  "file": "assets/icons/items/ember_core.png"
+ },
+ "crystal_shard": {
+  "file": "assets/icons/items/crystal_shard.png"
+ },
+ "moon_crystal": {
+  "file": "assets/icons/items/moon_crystal.png"
+ },
+ "amethyst_core": {
+  "file": "assets/icons/items/amethyst_core.png"
+ },
+ "magma_heart": {
+  "file": "assets/icons/items/magma_heart.png"
+ },
+ "frost_heart": {
+  "file": "assets/icons/items/frost_heart.png"
+ },
+ "warden_crest": {
+  "file": "assets/icons/items/warden_crest.png"
+ },
+ "guardian_heartwood": {
+  "file": "assets/icons/items/guardian_heartwood.png"
+ },
+ "heart_of_varkharon": {
+  "file": "assets/icons/items/heart_of_varkharon.png"
+ },
+ "relic_lumen": {
+  "file": "assets/icons/items/relic_lumen.png"
+ },
+ "relic_dawn": {
+  "file": "assets/icons/items/relic_dawn.png"
+ },
+ "relic_bulwark": {
+  "file": "assets/icons/items/relic_bulwark.png"
+ },
+ "relic_oath": {
+  "file": "assets/icons/items/relic_oath.png"
+ },
+ "asterian_crest": {
+  "file": "assets/icons/items/asterian_crest.png"
+ },
+ "relic_nightfall": {
+  "file": "assets/icons/items/relic_nightfall.png"
+ },
+ "relic_storm": {
+  "file": "assets/icons/items/relic_storm.png"
+ },
+ "relic_echo": {
+  "file": "assets/icons/items/relic_echo.png"
+ },
+ "relic_dusk": {
+  "file": "assets/icons/items/relic_dusk.png"
+ },
+ "relic_void": {
+  "file": "assets/icons/items/relic_void.png"
+ },
+ "warchief_totem": {
+  "file": "assets/icons/items/warchief_totem.png"
+ },
+ "cinder_shard": {
+  "file": "assets/icons/items/cinder_shard.png"
+ },
+ "seal_fragment": {
+  "file": "assets/icons/items/seal_fragment.png"
+ },
+ "charm_swift": {
+  "file": "assets/icons/items/charm_swift.png"
+ },
+ "charm_focus": {
+  "file": "assets/icons/items/charm_focus.png"
  }
 }

@@ -1,0 +1,436 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><title>ECLIPSE ONLINE — Item Catalogue</title><style>
+@page { size: A4; margin: 11mm; }
+* { box-sizing: border-box; }
+body { font-family: 'Leelawadee UI', 'Segoe UI', Tahoma, sans-serif; color: #e8e4f0; background: #14111c; margin: 0; font-size: 10.5px;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+h1 { font-size: 26px; letter-spacing: 3px; margin: 0 0 2px; color: #f0d8ff; }
+h2 { font-size: 15px; letter-spacing: 1.5px; color: #d8c0ff; border-bottom: 1px solid #4a3a66; padding-bottom: 4px; margin: 16px 0 8px; break-after: avoid; }
+.cover p, .guide li { font-size: 11.5px; line-height: 1.55; }
+.guide { background: #1d1828; border: 1px solid #3a2f50; border-radius: 6px; padding: 8px 14px; }
+.rar { display: inline-block; border: 1px solid var(--rc); color: var(--rc); border-radius: 3px; padding: 1px 6px; margin: 2px 4px 2px 0; font-weight: 700; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.card, .set, .brief, .st li { overflow-wrap: anywhere; }
+@media screen { body { padding: 16px; max-width: 900px; margin: 0 auto; } }
+.card, .set { background: #1d1828; border: 1px solid #3a2f50; border-left: 4px solid var(--rc, var(--ic)); border-radius: 6px; padding: 8px 10px; break-inside: avoid; }
+.set { margin-bottom: 8px; border-left-color: var(--ic); }
+.top { display: flex; gap: 9px; align-items: center; }
+.sw { width: 42px; height: 42px; flex: none; border-radius: 6px; background: radial-gradient(circle at 35% 30%, #fff8, var(--ic) 45%, #000a 100%); border: 2px solid var(--rc);
+  display: flex; align-items: flex-end; justify-content: center; }
+.sw span { font-size: 6.5px; color: #000c; background: #fffb; border-radius: 2px; padding: 0 2px; margin-bottom: 2px; }
+.nm { font-size: 13.5px; font-weight: 700; }
+.sub { font-size: 10px; color: #b8b0c8; }
+.id { font-size: 9px; color: #8a809c; font-family: Consolas, monospace; }
+.desc { font-style: italic; color: #c8c0d8; margin: 5px 0 3px; }
+.st { margin: 2px 0 4px; padding-left: 14px; }
+.st li { margin: 1px 0; } .st .up { color: #8fe0a0; } .st .down { color: #ff8a80; } .st .fx { color: #ffd88a; list-style: none; margin-left: -12px; }
+.meta { font-size: 9.5px; color: #a8a0b8; margin-top: 2px; }
+.tags span { display: inline-block; font-size: 8.5px; background: #2c2440; border-radius: 3px; padding: 0 5px; margin: 3px 3px 0 0; color: #cfc4e8; }
+.brief { margin-top: 5px; padding: 4px 6px; background: #261f36; border-radius: 4px; color: #efe8ff; font-size: 10.5px; }
+.brief b { color: #c8a0ff; }
+.pb { break-before: page; }
+</style></head><body>
+<div class="cover">
+  <h1>ECLIPSE ONLINE</h1>
+  <div style="font-size:15px;color:#c8b0ff;letter-spacing:2px">ITEM CATALOGUE — UPDATE Missing_Icons (เฉพาะไอเทมใหม่ / ที่เปลี่ยน) — สำหรับทำกราฟิก / ไอคอน</div>
+  <p>สร้างจากข้อมูลในเกมโดยตรง (src/data/items, src/items/items.js) วันที่ 2026-10-13 · ไอเทมในอัปเดตนี้ 35 ชิ้น (ไอเทมสวมใส่ 2 · กุญแจ 9 · ยา / วัตถุดิบ / ของรางวัล 24) — ไม่รวมของใน PDF ชุดแรก<br><b style="color:#ff8080">ไอเทม 35 ชิ้นที่ยังวาดด้วยโค้ด (ยังไม่มีภาพ)</b><br>
+  สร้างใหม่ได้ทุกเมื่อด้วย <code>node tools/itemCatalog/build.mjs</code></p>
+  <div class="guide"><b>แนวทางทำไอคอน</b><ul>
+    <li><b>ไอเทมไม่เปลี่ยนหน้าตาตัวละคร</b> — กราฟิกที่ต้องทำคือ <b>ไอคอนไอเทม</b> (ช่อง Loadout, กระเป๋า, tooltip) ไม่ใช่สไปรต์บนตัว</li>
+    <li>สไตล์: pixel-art / dark fantasy ให้เข้ากับ UI kit และไอคอนสกิล · พื้นหลังโปร่งใส · ของอยู่กลางภาพ เว้นขอบเล็กน้อย</li>
+    <li>ขนาดที่แนะนำ: วาดสี่เหลี่ยมจัตุรัส 1024×1024 (แบบเดียวกับ ICON SKILL) แล้วย่อเหลือ 64 px ในเกม — ต้องยังอ่านรูปทรงออกตอนเล็ก</li>
+    <li>ตั้งชื่อไฟล์ตาม <b>id</b> ของไอเทม เช่น <code>desgin/ICON ITEM/core_shadow_fang.png</code> (ระบบตัดไอคอนไอเทมยังไม่ได้สร้าง — ทำได้เมื่อมีภาพ)</li>
+    <li><b>กรอบสีตาม Rarity</b> (เกมวาดกรอบเอง ไม่ต้องใส่ในภาพ): <span class="rar" style="--rc:#c8c8d0">COMMON</span><span class="rar" style="--rc:#7ad8a0">UNCOMMON</span><span class="rar" style="--rc:#6aa8ff">RARE</span><span class="rar" style="--rc:#c080ff">EPIC</span><span class="rar" style="--rc:#ffb040">LEGENDARY</span><span class="rar" style="--rc:#ff3030">MYTHIC</span></li>
+    <li>"สี" ในการ์ด = สีหลักของไอเทมในเกมตอนนี้ (ใช้เป็นโทนหลักของไอคอน) · ช่องสี่เหลี่ยมซ้ายบน = ตัวอย่างโทนสี + ชนิดไอคอนชั่วคราว</li>
+    <li>LEGENDARY / ของบอส ควรมีแสง/ออร่าชัดกว่าชิ้นอื่น · ชิ้นในเซ็ตเดียวกันควรมีสัญลักษณ์ร่วมกัน</li>
+  </ul></div>
+</div>
+
+<h2>CONSUMABLES / MATERIALS / TROPHIES — ยา วัตถุดิบ ของรางวัล (24)</h2><div class="grid"><div class="card" style="--rc:#c8c8d0;--ic:#e05060">
+    <div class="top"><div class="sw" title="item colour"><span>POTION</span></div>
+      <div><div class="nm">Healing Draught</div>
+      <div class="sub"><b style="color:#c8c8d0">COMMON</b> · consumable ()</div>
+      <div class="id">hp_potion · สี #e05060</div></div></div>
+    <div class="desc">Restores 40% HP. [R]</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: crystal_golem 12% · bronze_hoplite 12% · armadillo 8% · rock_rhino 12% · leafling 12% · quill_lizard 10% · burrower 12% · yeti 18% · snow_eagle 10% · crystal_slime 8% · moss_tortoise 15% · frost_harrier 8% · frost_bear 15% · elite 50% · mini_relic 100% · crystal_warden 100% · amethyst_colossus 100% · hoarfang 100% · rune_knight 100% · varkharon 100% · magma_beast 100% · hollow_fang 100% · grukk 100% · chest_1 70% · chest_2 80% · chest_3 90% · chest_rare_1 60% · chest_rare_3 80%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Healing Draught: Restores 40% HP. [R]</div>
+  </div><div class="card" style="--rc:#c8c8d0;--ic:#a060ff">
+    <div class="top"><div class="sw" title="item colour"><span>POTION</span></div>
+      <div><div class="nm">Shadow Tonic</div>
+      <div class="sub"><b style="color:#c8c8d0">COMMON</b> · consumable ()</div>
+      <div class="id">shadow_tonic · สี #a060ff</div></div></div>
+    <div class="desc">Restores 50 class resource (SHADOW / ASTRAL). [F]</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: rune_wisp 12% · frost_imp 10% · crystal_bat 8% · elite 25% · mini_relic 50% · amethyst_colossus 100% · hoarfang 100% · varkharon 100% · magma_beast 100% · grukk 100% · chest_2 30% · chest_3 40% · chest_rare_2 60%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Shadow Tonic: Restores 50 class resource (SHADOW / ASTRAL). [F]</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#9ad8ff">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Asterian Crest</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · material ()</div>
+      <div class="id">asterian_crest · สี #9ad8ff</div></div></div>
+    <div class="desc">The crest of the last Warden of Asteria. It still hums with runes.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Asterian Crest: The crest of the last Warden of Asteria. It still hums with runes.</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#8ab8ff">
+    <div class="top"><div class="sw" title="item colour"><span>SHARD</span></div>
+      <div><div class="nm">Rune Crystal</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · material ()</div>
+      <div class="id">rune_crystal · สี #8ab8ff</div></div></div>
+    <div class="desc">A chest crystal of a Citadel golem, still humming.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: crystal_golem 55% · void_scarab 30% · rune_wisp 50% · rune_knight 100% · chest_3 40%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Rune Crystal: A chest crystal of a Citadel golem, still humming.</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#d0a060">
+    <div class="top"><div class="sw" title="item colour"><span>SHIELD</span></div>
+      <div><div class="nm">Bronze Plate</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · material ()</div>
+      <div class="id">bronze_plate · สี #d0a060</div></div></div>
+    <div class="desc">A dented plate from a Bronze Hoplite's armour.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: bronze_hoplite 55% · rune_knight 100%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Bronze Plate: A dented plate from a Bronze Hoplite's armour.</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#ff7a30">
+    <div class="top"><div class="sw" title="item colour"><span>HEART</span></div>
+      <div><div class="nm">Magma Heart</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · material ()</div>
+      <div class="id">magma_heart · สี #ff7a30</div></div></div>
+    <div class="desc">Still warm. Trophy of the Magma Beast of the Ancient Valley.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Magma Heart: Still warm. Trophy of the Magma Beast of the Ancient Valley.</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#ff9a40">
+    <div class="top"><div class="sw" title="item colour"><span>SHARD</span></div>
+      <div><div class="nm">Ember Core</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · material ()</div>
+      <div class="id">ember_core · สี #ff9a40</div></div></div>
+    <div class="desc">A cooling ember from the Magma Rift.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: varkharon 100% · magma_beast 100%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Ember Core: A cooling ember from the Magma Rift.</div>
+  </div><div class="card" style="--rc:#c8c8d0;--ic:#b09a78">
+    <div class="top"><div class="sw" title="item colour"><span>ORE</span></div>
+      <div><div class="nm">Stone Scute</div>
+      <div class="sub"><b style="color:#c8c8d0">COMMON</b> · material ()</div>
+      <div class="id">stone_scute · สี #b09a78</div></div></div>
+    <div class="desc">A plate of an Ancient Valley armadillo's shell.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: armadillo 60% · rock_rhino 30% · quill_lizard 50% · burrower 40% · moss_tortoise 50%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Stone Scute: A plate of an Ancient Valley armadillo's shell.</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#d8c8a0">
+    <div class="top"><div class="sw" title="item colour"><span>FANG</span></div>
+      <div><div class="nm">Crag Horn</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · material ()</div>
+      <div class="id">crag_horn · สี #d8c8a0</div></div></div>
+    <div class="desc">The stone horn of a Crag Rhino.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: rock_rhino 45% · burrower 40%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Crag Horn: The stone horn of a Crag Rhino.</div>
+  </div><div class="card" style="--rc:#c8c8d0;--ic:#e8dcc8">
+    <div class="top"><div class="sw" title="item colour"><span>CLOAK</span></div>
+      <div><div class="nm">Hare Pelt</div>
+      <div class="sub"><b style="color:#c8c8d0">COMMON</b> · material ()</div>
+      <div class="id">hare_pelt · สี #e8dcc8</div></div></div>
+    <div class="desc">Soft pelt of a Whisper Hare.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: rabbit 50% · snow_hare 50%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Hare Pelt: Soft pelt of a Whisper Hare.</div>
+  </div><div class="card" style="--rc:#ffb040;--ic:#bfe6ff">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Crest of the Crystal Warden</div>
+      <div class="sub"><b style="color:#ffb040">LEGENDARY</b> · material ()</div>
+      <div class="id">warden_crest · สี #bfe6ff</div></div></div>
+    <div class="desc">Trophy of the Crystal Warden, B3 Major Boss. The summit is quiet.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Crest of the Crystal Warden: Trophy of the Crystal Warden, B3 Major Boss. The summit is quiet.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#c89aff">
+    <div class="top"><div class="sw" title="item colour"><span>SHARD</span></div>
+      <div><div class="nm">Amethyst Core</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · material ()</div>
+      <div class="id">amethyst_core · สี #c89aff</div></div></div>
+    <div class="desc">Trophy of the Amethyst Colossus, B2 boss. It still hums.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Amethyst Core: Trophy of the Amethyst Colossus, B2 boss. It still hums.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#bfe6ff">
+    <div class="top"><div class="sw" title="item colour"><span>SHARD</span></div>
+      <div><div class="nm">Heart of the Winter Alpha</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · material ()</div>
+      <div class="id">frost_heart · สี #bfe6ff</div></div></div>
+    <div class="desc">Trophy of Hoarfang, B1 boss. Cold enough to burn.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Heart of the Winter Alpha: Trophy of Hoarfang, B1 boss. Cold enough to burn.</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#cfe4ff">
+    <div class="top"><div class="sw" title="item colour"><span>CLOAK</span></div>
+      <div><div class="nm">Frost Pelt</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · material ()</div>
+      <div class="id">frost_pelt · สี #cfe4ff</div></div></div>
+    <div class="desc">Thick white fur from the Frostwind Plains. Never quite thaws.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: glacier_wolf 50% · yeti 80% · rime_wolf 20% · frost_bear 70% · crystal_warden 100% · hoarfang 100%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Frost Pelt: Thick white fur from the Frostwind Plains. Never quite thaws.</div>
+  </div><div class="card" style="--rc:#c8c8d0;--ic:#d8d0c0">
+    <div class="top"><div class="sw" title="item colour"><span>FANG</span></div>
+      <div><div class="nm">Wolf Fang</div>
+      <div class="sub"><b style="color:#c8c8d0">COMMON</b> · material ()</div>
+      <div class="id">wolf_fang · สี #d8d0c0</div></div></div>
+    <div class="desc">Dropped by Forest Wolves.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: wolf 60% · glacier_wolf 40% · rime_wolf 60% · hollow_fang 100%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Wolf Fang: Dropped by Forest Wolves.</div>
+  </div><div class="card" style="--rc:#c8c8d0;--ic:#8a7a60">
+    <div class="top"><div class="sw" title="item colour"><span>ORE</span></div>
+      <div><div class="nm">Ironbark Splinter</div>
+      <div class="sub"><b style="color:#c8c8d0">COMMON</b> · material ()</div>
+      <div class="id">goblin_iron · สี #8a7a60</div></div></div>
+    <div class="desc">Bark hard as iron, shed by the forest spirits.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: leafling 50% · treant 30% · grukk 100%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Ironbark Splinter: Bark hard as iron, shed by the forest spirits.</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#5af0ff">
+    <div class="top"><div class="sw" title="item colour"><span>SHARD</span></div>
+      <div><div class="nm">Crystal Shard</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · material ()</div>
+      <div class="id">crystal_shard · สี #5af0ff</div></div></div>
+    <div class="desc">Humming shard of forest crystal.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: treant 75% · elder_treant 100% · snow_eagle 50% · crystal_slime 50% · cave_spider 40% · crystal_bat 45% · frost_harrier 50% · amethyst_colossus 100% · chest_1 50% · chest_2 60%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Crystal Shard: Humming shard of forest crystal.</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#d0a0ff">
+    <div class="top"><div class="sw" title="item colour"><span>SHARD</span></div>
+      <div><div class="nm">Moonlit Crystal</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · material ()</div>
+      <div class="id">moon_crystal · สี #d0a0ff</div></div></div>
+    <div class="desc">Rare crystal grown in darkness.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elder_treant 100% · frost_imp 20% · cave_spider 12% · moss_tortoise 40% · crystal_warden 100% · amethyst_colossus 100% · chest_1 15% · chest_2 25% · chest_3 40% · chest_rare_1 80% · chest_rare_2 100% · chest_rare_3 100%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Moonlit Crystal: Rare crystal grown in darkness.</div>
+  </div><div class="card" style="--rc:#ffb040;--ic:#7af0c0">
+    <div class="top"><div class="sw" title="item colour"><span>ORE</span></div>
+      <div><div class="nm">Guardian Heartwood</div>
+      <div class="sub"><b style="color:#ffb040">LEGENDARY</b> · material ()</div>
+      <div class="id">guardian_heartwood · สี #7af0c0</div></div></div>
+    <div class="desc">Living wood from the Guardian. A smith in the Valley may know its use.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: guardian 100%</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Guardian Heartwood: Living wood from the Guardian. A smith in the Valley may know its use.</div>
+  </div><div class="card" style="--rc:#6aa8ff;--ic:#ffb070">
+    <div class="top"><div class="sw" title="item colour"><span>FANG</span></div>
+      <div><div class="nm">Hollow Fang Pelt</div>
+      <div class="sub"><b style="color:#6aa8ff">RARE</b> · material ()</div>
+      <div class="id">hollow_fang_pelt · สี #ffb070</div></div></div>
+    <div class="desc">Trophy of Hollow Fang, the alpha that denned by the River Crossing.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Hollow Fang Pelt: Trophy of Hollow Fang, the alpha that denned by the River Crossing.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#b060ff">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Thornbound Totem</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · material ()</div>
+      <div class="id">warchief_totem · สี #b060ff</div></div></div>
+    <div class="desc">Trophy of the Thornbound Elder. Its thorns still twitch toward the ruins.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Thornbound Totem: Trophy of the Thornbound Elder. Its thorns still twitch toward the ruins.</div>
+  </div><div class="card" style="--rc:#ffb040;--ic:#ff5a20">
+    <div class="top"><div class="sw" title="item colour"><span>HEART</span></div>
+      <div><div class="nm">Heart of Varkharon</div>
+      <div class="sub"><b style="color:#ffb040">LEGENDARY</b> · material ()</div>
+      <div class="id">heart_of_varkharon · สี #ff5a20</div></div></div>
+    <div class="desc">It still beats, slow and furious. The fire of a sealed king — something may be born from it one day.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Heart of Varkharon: It still beats, slow and furious. The fire of a sealed king — something may be born from it one day.</div>
+  </div><div class="card" style="--rc:#5af0ff;--ic:#ff7a30">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Cinder Shard</div>
+      <div class="sub"><b style="color:#5af0ff">QUEST</b> · quest_item ()</div>
+      <div class="id">cinder_shard · สี #ff7a30</div></div></div>
+    <div class="desc">A splinter of black stone, warm as a coal. The Ashen Pilgrim said there are three.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Cinder Shard: A splinter of black stone, warm as a coal. The Ashen Pilgrim said there are three.</div>
+  </div><div class="card" style="--rc:#5af0ff;--ic:#5af0ff">
+    <div class="top"><div class="sw" title="item colour"><span>RUNE</span></div>
+      <div><div class="nm">Ancient Seal Fragment</div>
+      <div class="sub"><b style="color:#5af0ff">QUEST</b> · quest_item ()</div>
+      <div class="id">seal_fragment · สี #5af0ff</div></div></div>
+    <div class="desc">Resonates with the sealed Guardian Gate.</div>
+    <ul class="st"></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">—</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Ancient Seal Fragment: Resonates with the sealed Guardian Gate.</div>
+  </div></div>
+<h2>KEY ITEMS — ไอเทมกุญแจ (ใช้เปิดทางเข้าเท่านั้น)</h2><div class="grid"><div class="card" style="--rc:#c080ff;--ic:#9a6aff">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Nightfall Ember</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Key Item (ไอเทมกุญแจ)</div>
+      <div class="id">relic_nightfall · สี #9a6aff</div></div></div>
+    <div class="desc">A coal of black light the fireflies of the Whispering Forest would not stop circling. It is cold to the touch.</div>
+    <ul class="st"></ul>
+    <div class="meta"><b style="color:var(--rc)">KEY ITEM — ใช้เปิดประตู ไม่มีค่าสถานะ ขาย / ฝากไม่ได้</b></div>
+    <div class="meta">ได้จากเควสต์ / การตีขึ้นรูป (ไม่ดรอป)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Nightfall Ember: A coal of black light the fireflies of the Whispering Forest would not stop circling. It is cold to the touch.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#7ad0ff">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Stormrunner Sigil</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Key Item (ไอเทมกุญแจ)</div>
+      <div class="id">relic_dusk · สี #7ad0ff</div></div></div>
+    <div class="desc">It only surfaces in the snow when the blizzard is at its worst — the road belongs to whoever keeps moving.</div>
+    <ul class="st"></ul>
+    <div class="meta"><b style="color:var(--rc)">KEY ITEM — ใช้เปิดประตู ไม่มีค่าสถานะ ขาย / ฝากไม่ได้</b></div>
+    <div class="meta">ได้จากเควสต์ / การตีขึ้นรูป (ไม่ดรอป)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Stormrunner Sigil: It only surfaces in the snow when the blizzard is at its worst — the road belongs to whoever keeps moving.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#ff6a7a">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Drowned Echo</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Key Item (ไอเทมกุญแจ)</div>
+      <div class="id">relic_echo · สี #ff6a7a</div></div></div>
+    <div class="desc">A sword-shaped shell from the bottom of Mirror Lake. Put it to your ear and you hear a fight that ended long ago.</div>
+    <ul class="st"></ul>
+    <div class="meta"><b style="color:var(--rc)">KEY ITEM — ใช้เปิดประตู ไม่มีค่าสถานะ ขาย / ฝากไม่ได้</b></div>
+    <div class="meta">ได้จากเควสต์ / การตีขึ้นรูป (ไม่ดรอป)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Drowned Echo: A sword-shaped shell from the bottom of Mirror Lake. Put it to your ear and you hear a fight that ended long ago.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#8ad8ff">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Thunderglass Shard</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Key Item (ไอเทมกุญแจ)</div>
+      <div class="id">relic_storm · สี #8ad8ff</div></div></div>
+    <div class="desc">Sand that lightning turned to glass, still crackling. The blizzard throws it up from under the snow.</div>
+    <ul class="st"></ul>
+    <div class="meta"><b style="color:var(--rc)">KEY ITEM — ใช้เปิดประตู ไม่มีค่าสถานะ ขาย / ฝากไม่ได้</b></div>
+    <div class="meta">ได้จากเควสต์ / การตีขึ้นรูป (ไม่ดรอป)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Thunderglass Shard: Sand that lightning turned to glass, still crackling. The blizzard throws it up from under the snow.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#b07aff">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Unwritten Page</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Key Item (ไอเทมกุญแจ)</div>
+      <div class="id">relic_void · สี #b07aff</div></div></div>
+    <div class="desc">A page with no ink that every reader sees a different word on. It was locked in a vault for a reason.</div>
+    <ul class="st"></ul>
+    <div class="meta"><b style="color:var(--rc)">KEY ITEM — ใช้เปิดประตู ไม่มีค่าสถานะ ขาย / ฝากไม่ได้</b></div>
+    <div class="meta">ได้จากเควสต์ / การตีขึ้นรูป (ไม่ดรอป)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Unwritten Page: A page with no ink that every reader sees a different word on. It was locked in a vault for a reason.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#fff0a0">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">First Light Mote</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Key Item (ไอเทมกุญแจ)</div>
+      <div class="id">relic_lumen · สี #fff0a0</div></div></div>
+    <div class="desc">A mote of the first light, kept alive by the fireflies of the old forest. It warms the hand that holds it.</div>
+    <ul class="st"></ul>
+    <div class="meta"><b style="color:var(--rc)">KEY ITEM — ใช้เปิดประตู ไม่มีค่าสถานะ ขาย / ฝากไม่ได้</b></div>
+    <div class="meta">ได้จากเควสต์ / การตีขึ้นรูป (ไม่ดรอป)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> First Light Mote: A mote of the first light, kept alive by the fireflies of the old forest. It warms the hand that holds it.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#ffd870">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Sunken Sunstone</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Key Item (ไอเทมกุญแจ)</div>
+      <div class="id">relic_dawn · สี #ffd870</div></div></div>
+    <div class="desc">A stone that held the dawn for the valley kings. The lake drowned it; it has been glowing under the water ever since.</div>
+    <ul class="st"></ul>
+    <div class="meta"><b style="color:var(--rc)">KEY ITEM — ใช้เปิดประตู ไม่มีค่าสถานะ ขาย / ฝากไม่ได้</b></div>
+    <div class="meta">ได้จากเควสต์ / การตีขึ้นรูป (ไม่ดรอป)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Sunken Sunstone: A stone that held the dawn for the valley kings. The lake drowned it; it has been glowing under the water ever since.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#e0a060">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Bronze Phalanx Crest</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Key Item (ไอเทมกุญแจ)</div>
+      <div class="id">relic_bulwark · สี #e0a060</div></div></div>
+    <div class="desc">The crest of the last bronze line that held the citadel. Its owners never stepped back; neither did the vault door.</div>
+    <ul class="st"></ul>
+    <div class="meta"><b style="color:var(--rc)">KEY ITEM — ใช้เปิดประตู ไม่มีค่าสถานะ ขาย / ฝากไม่ได้</b></div>
+    <div class="meta">ได้จากเควสต์ / การตีขึ้นรูป (ไม่ดรอป)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Bronze Phalanx Crest: The crest of the last bronze line that held the citadel. Its owners never stepped back; neither did the vault door.</div>
+  </div><div class="card" style="--rc:#c080ff;--ic:#ff7060">
+    <div class="top"><div class="sw" title="item colour"><span>SIGIL</span></div>
+      <div><div class="nm">Frostbitten Oath</div>
+      <div class="sub"><b style="color:#c080ff">EPIC</b> · Key Item (ไอเทมกุญแจ)</div>
+      <div class="id">relic_oath · สี #ff7060</div></div></div>
+    <div class="desc">An oath scroll frozen into a block of ice by someone who meant to break it. The storm digs it up every winter.</div>
+    <ul class="st"></ul>
+    <div class="meta"><b style="color:var(--rc)">KEY ITEM — ใช้เปิดประตู ไม่มีค่าสถานะ ขาย / ฝากไม่ได้</b></div>
+    <div class="meta">ได้จากเควสต์ / การตีขึ้นรูป (ไม่ดรอป)</div>
+    
+    <div class="brief"><b>ART BRIEF:</b> Frostbitten Oath: An oath scroll frozen into a block of ice by someone who meant to break it. The storm digs it up every winter.</div>
+  </div></div>
+<h2 class="pb">GUARD / COUNTER / BARRIER — ชุดแรก (G1, เหมาะกับ Aegis) (2)</h2><div class="grid"><div class="card" style="--rc:#c8c8d0;--ic:#7ad8a0">
+    <div class="top"><div class="sw" title="item colour"><span>CHARM</span></div>
+      <div><div class="nm">Swift Charm</div>
+      <div class="sub"><b style="color:#c8c8d0">COMMON</b> · Charm (ชาร์ม)</div>
+      <div class="id">charm_swift · สี #7ad8a0</div></div></div>
+    <div class="desc">A feather that never stops moving.</div>
+    <ul class="st"><li class="up">+8% Movement Speed</li><li class="down">-8% Defense</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 1.3% · chest_2 0.4% · chest_3 0.6% · chest_rare_1 6% · chest_rare_2 3.9% · chest_rare_3 4.4%</div>
+    <div class="tags"><span>MOBILITY</span></div>
+    <div class="brief"><b>ART BRIEF:</b> ขนนกสีเขียวอ่อนผูกกับลูกปัดไม้ มีเส้นลมพัดผ่าน</div>
+  </div><div class="card" style="--rc:#7ad8a0;--ic:#8ab8ff">
+    <div class="top"><div class="sw" title="item colour"><span>CHARM</span></div>
+      <div><div class="nm">Focus Charm</div>
+      <div class="sub"><b style="color:#7ad8a0">UNCOMMON</b> · Charm (ชาร์ม)</div>
+      <div class="id">charm_focus · สี #8ab8ff</div></div></div>
+    <div class="desc">A cold bead that quiets the mind.</div>
+    <ul class="st"><li class="up">+8% Cooldown Reduction</li><li class="down">-6% Max HP</li></ul>
+    <div class="meta">ทุกคลาส</div>
+    <div class="meta">ดรอป: elite 0.9% · chest_2 0.4% · chest_3 0.6% · chest_rare_1 6% · chest_rare_2 3.9% · chest_rare_3 4.4%</div>
+    <div class="tags"><span>COOLDOWN</span></div>
+    <div class="brief"><b>ART BRIEF:</b> เลนส์แก้วกลมสีฟ้าในกรอบทองเหลือง มีจุดแสงตรงกลาง</div>
+  </div></div>
+</body></html>

@@ -65,6 +65,28 @@ const SHEETS = [
   { file: 'image-5cc465e4-507c-4224-9f29-61094349d571-0.png', rows: [ // build pieces 5-7
     ['charm_shade_thread', 'rune_riposte', 'charm_duelist'],
   ] },
+  // 2026-10-13: the 35 icons that were still code-drawn (catalogue docs/items/ECLIPSE_ONLINE_Items_Missing_Icons.pdf)
+  { file: 'image-0874ae4c-3286-4114-a9ca-11eedc7a75b9-0.png', rows: [ // potions + materials
+    ['hp_potion', 'shadow_tonic', 'bronze_plate', 'stone_scute', 'hare_pelt'],
+  ] },
+  { file: 'image-883897ee-7033-4eef-8d2f-2652287f6018-0.png', rows: [ // horns / pelts
+    ['crag_horn', 'wolf_fang', 'frost_pelt', 'hollow_fang_pelt', 'goblin_iron'],
+  ] },
+  { file: 'image-1dfc002f-893c-4b28-8ab1-79179c37b4bd-0.png', rows: [ // crystals
+    ['rune_crystal', 'ember_core', 'crystal_shard', 'moon_crystal', 'amethyst_core'],
+  ] },
+  { file: 'image-055e1e05-51c5-4951-af4c-32164f597e52-0.png', checker: true, rows: [ // boss hearts
+    ['magma_heart', 'frost_heart', 'warden_crest', 'guardian_heartwood', 'heart_of_varkharon'],
+  ] },
+  { file: 'image-292f1515-790b-45e9-85c2-b019447cdbd1-0.png', rows: [ // relics + crest
+    ['relic_lumen', 'relic_dawn', 'relic_bulwark', 'relic_oath', 'asterian_crest'],
+  ] },
+  { file: 'image-4527340d-4c58-4250-8990-cdbfd380ebe6-0.png', rows: [ // class relics
+    ['relic_nightfall', 'relic_storm', 'relic_echo', 'relic_dusk', 'relic_void'],
+  ] },
+  { file: 'image-40184f32-facf-4f85-883e-f218e0d8cfb6-0.png', rows: [ // quest + charms
+    ['warchief_totem', 'cinder_shard', 'seal_fragment', 'charm_swift', 'charm_focus'],
+  ] },
   { file: '1. SET ITEMS IRON VIGIL ECLIPSE CONSTELLATION.png', rows: [ // last: the set pieces' matching versions win
     ['core_ironheart', 'armor_fortress', 'charm_heavy'],
     ['core_shadow_fang', 'relic_heart_eclipse', 'charm_assassin'],
