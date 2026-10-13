@@ -55,6 +55,8 @@ export function matches(match, data, player) {
   for (const [path, want] of Object.entries(match || {})) {
     let v = data;
     for (const k of path.split('.')) v = v == null ? undefined : v[k];
+    // { below: n } / { above: n }: a number compared instead of equal (e.g. 'source.hpRatio': { below: 0.4 })
+    if (want && typeof want === 'object') { if (!(typeof v === 'number' && (want.below === undefined || v < want.below) && (want.above === undefined || v > want.above))) return false; continue; }
     const expected = want === '$player' ? player : want;
     if (v !== expected) return false;
   }

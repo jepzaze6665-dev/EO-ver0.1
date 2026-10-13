@@ -14,6 +14,16 @@ export const CLASS_MASTERS = {
     ready: ['Every Umbral blade becomes something else in the end. Choose what yours becomes — and then face it.'],
     after: ['Your shadow fell to you. Now it walks behind you instead of against you.'],
   },
+  // SECRET master (secret classes): `nodes` = the secret classes he offers (any line whose node is listed); the dialogue
+  // speaks to a Class 2 of that line (the normal masters only speak to the tier-1 class)
+  master_dragon: {
+    nodes: ['wyrmblood_reaver'], name: 'The Ashen Pilgrim', role: 'Keeper of the Cinder Blood',
+    greet: ['So. The King is ash, and his heart beats in your pack. I told you fire finds the ones who stand still.'],
+    other: ['The blood in that heart does not answer your kind of weapon. Not yet. Perhaps not ever.'],
+    early: ['The heart is too hot for you. Come back stronger (LV 50), a master of your own path (Class 2), with the Heart of Varkharon in your pack.'],
+    ready: ["Drink the King's blood and it will ask a price: your own. Learn to fight bleeding — and then face what you become."],
+    after: ["The Cinder King's blood runs in you now. Try not to let it run out."],
+  },
   master_astral: {
     line: 'astral_weaver', name: 'Master Corvin', role: 'Astral Loremaster',
     greet: ['Corvin. I read the threads between the stars when the eclipse was still a rumour.'],

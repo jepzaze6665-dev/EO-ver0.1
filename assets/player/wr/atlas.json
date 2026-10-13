@@ -81,8 +81,8 @@
    "sides": [
     {
      "right": 2,
-     "left": 3,
-     "flipLeft": false,
+     "left": 2,
+     "flipLeft": true,
      "flipRight": false
     }
    ],

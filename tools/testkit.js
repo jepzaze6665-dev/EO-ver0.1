@@ -2552,6 +2552,62 @@ export async function randomEventCheck(g, classId = 'umbral_sword') {
 }
 
 // ---------------- QUEST REWORK Q2: a class-change quest end to end (master in Valehaven -> counters -> shadow duel)
+// SECRET CLASS QUEST (WR2): an Umbral Class 2 meets the Ashen Pilgrim in the Cinder Throne after the King falls ->
+// 30 kills below 40% HP (counted from real kills) -> the shadow duel in the Proving Ground -> unlocked -> class change
+export function secretQuestCheck(g, { node = 'wyrmblood_reaver', from = 'nightfall_reaper', god = true, level = 50, seconds = 400 } = {}) {
+  const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
+  const line = CLASS_TREE[node].parent, trial = 'trial_' + node;
+  g.newGame(line); releaseInput(g);
+  const pr = g.progression;
+  pr.unlock(from); g.combat.lastCombatTime = -99; g.changeClass(from, { force: true });
+  const p = () => g.player;
+  p().setLevel(level); p().hp = p().maxHp;
+  ok('Hidden before the dragon falls', !pr.paths().some((x) => x.node.id === node));
+  g.world.setFlag('dragon_slain');
+  ok('Revealed after (flag dragon_slain)', pr.paths().some((x) => x.node.id === node));
+  g.world.changeMap('cinder'); g.simulate(2);
+  const npc = g.world.interactables.find((i) => i.id === 'npc_master_dragon');
+  ok('Cinder Throne: the Ashen Pilgrim waits', !!npc);
+  const noHeart = pr.paths().find((x) => x.node.id === node);
+  ok('Without the Heart: not ready (no path offered)', noHeart && !noHeart.ready, noHeart && noHeart.reqs.filter((r) => !r.met).map((r) => r.label).join(' · '));
+  g.inventory.add('heart_of_varkharon', 1, true);
+  use(g, 'npc_master_dragon');
+  g.ui.panels.dialogueAction('trial:' + node);
+  const t = pr.trials[trial];
+  ok('With the Heart: he starts the quest; chapter 1 (talk) done at once', t && t.state === 'active' && t.step === 1, JSON.stringify(t));
+  // chapter 2 = real kills: a kill at full HP does not count, one under 40% does
+  g.world.changeMap('a1'); g.simulate(1);
+  const victim = () => g.world.monsters.find((m) => !m.dead && m.hurtable);
+  const count = () => pr.record(from, 'blood_kills'); // the class record (the chapter's objective view empties once it is done)
+  const kill = (share) => { const m = victim(); p().hp = Math.round(p().maxHp * share); g.combat.dealDamage(p(), m, { power: 99999, type: 'physical', flat: true }); g.simulate(0.1); };
+  const c0 = count(); kill(1); const c1 = count(); kill(0.3); const c2 = count();
+  ok('Low-HP kills count, healthy kills do not', c1 === c0 && c2 === c0 + 1, `${c0} -> ${c1} (full HP) -> ${c2} (30% HP)`);
+  for (let k = 0; k < 40 && t.step === 1; k++) kill(0.3);
+  ok('30 low-HP kills -> duel chapter, the ring opens', t.step === 2 && g.world.state.flags['duel_' + node] && g.world.state.flags.provingOpen, `step=${t.step} kills=${count()}`);
+  // chapter 3: the duel in the Proving Ground (fought as the Class 2)
+  g.world.changeMap('valehaven'); g.simulate(1);
+  g.world.transitions.autoConfirm = true;
+  goto(g, 44, 16);
+  for (let k = 0; k < 10 && g.world.mapId !== 'proving'; k++) walk(g, 'KeyD', 0.3);
+  const enc = g.bosses.get('shadow_' + node);
+  g.simulate(0.5);
+  ok('Proving Ground · the shadow is there', g.world.mapId === 'proving' && enc && (enc.state === 'idle' || enc.state === 'engaged'), `map=${g.world.mapId} ${enc && enc.state}`);
+  p().hp = p().maxHp; g.inventory.add('hp_potion', 5, true);
+  for (let k = 0; k < 12 && enc.state !== 'engaged'; k++) walk(g, 'KeyD', 0.3);
+  const e = enc.entity, moves = new Set();
+  let tt = 0;
+  for (; tt < seconds && enc.state !== 'defeated' && !p().dead; tt += 0.5) g.simulate(0.5, (gg, i) => { bot(gg, i, { god }); if (e.curMove) moves.add(e.curMove.id); });
+  releaseInput(g); g.simulate(3);
+  ok('Shadow defeated', enc.state === 'defeated', `${enc.state} t=${tt}s hp=${Math.round(e.hp)}/${e.maxHp} playerDead=${p().dead}`);
+  ok('Moves used', moves.size >= 3, [...moves].join(','));
+  ok('Trial passed · class unlocked · drawn with the class sprites', t.state === 'passed' && pr.unlocked.includes(node) && !!e.playerArt);
+  g.combat.lastCombatTime = -99;
+  const r = g.changeClass(node);
+  ok('Class change ' + from + ' -> ' + node, r.ok && g.player.cls.id === node, r.ok ? g.player.cls.id : r.reason);
+  R.time = tt;
+  return R;
+}
+
 export function classQuestCheck(g, { node = 'nightfall_reaper', classId = CLASS_TREE[node].parent, god = true, level = 30, seconds = 300 } = {}) {
   const R = [], ok = (step, pass, detail = '') => R.push([step, !!pass, detail]);
   g.newGame(classId);

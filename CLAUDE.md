@@ -21,6 +21,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   `T.dodgeCheck(__game, classId)` / `T.counterCheck(__game, classId)` / `T.poiseCheck(__game)` / `T.enemyCheck(__game)` / `T.slotCheck(__game)` / `await T.tierCheck(__game)` / `T.uiCheck(__game)` / `await T.partyCheck(__game)` / `T.tankCheck(__game)` (Combat 2.0),
   `T.gridCheck(__game)` (W1 multi-grid: lock/unlock, load/unload + cleanup, save/load + fog on another grid, no leaks, respawn),
   `T.cityCheck(__game)` (City 2: unlock, north road, services, quest, save/load), `T.a3BossCheck(__game, classId)`,
+  `T.secretQuestCheck(__game, { from, god })` (secret class quest: Ashen Pilgrim -> low-HP kills -> shadow duel -> class change),
   `await T.pilgrimCheck(__game)` (A2 secret boss chain: Ashen Pilgrim, 3 trials, forge, dragon door),
   `T.varkharonCheck(__game, classId, { god, level })` (A2 secret boss fight: lava rings + reset, sky chains, embers, last breath),
   and `T.mapTour(__game)` (every map exit both ways, locks, no transition loops, everything reachable on foot from
@@ -1806,3 +1807,13 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   C.wyrmChecks (14). Bot balance (dummies, damage loadout, HP pinned): full HP 127 · 45% HP 140 · 25% HP 161 vs Umbral Class 2 average
   ≈ 155 (RP 188 / DR 157 / BE 120) = the "higher ceiling" target; Guardian LV 13 WIN 140 s (651 taken, 3 potions); Varkharon LV 50 no
   god 12/12 in 239.5 s. Human playtest needed (the bot never plays at low HP on purpose).
+  Done WR2 = SECRET CLASS QUEST: class tree node field `from` (other classes that may take a path besides its parent; progression
+  paths / lineage read it) -> the Wyrmblood node is taken FROM an Umbral Class 2. Secret master = data/classMasters.js entry with
+  `nodes` (master_dragon "The Ashen Pilgrim", NPC in the Cinder Throne by the stairs, maps/cinderThrone.js content.npcs; narrative.js
+  secretMasterDialogue; normal masters never offer secret nodes). Trial trial_wyrmblood_reaver: talk -> counters blood_kills 30
+  (class counter on enemyKilled with match 'source.hpRatio': { below: 0.4 } — NEW generic match operators { below / above },
+  Player getter hpRatio) -> shadow duel shadow_wyrmblood_reaver (Proving Ground, LV 50, 30000 HP: fang dash + bleed, guard-break
+  cleave, burning cone, late-3rd combo, phase 2 blood nova). `T.secretQuestCheck` 12/12; no god LV 50: RP 100 s · DR 88.5 s · BE
+  116.5 s, all WIN. Fixes (owner): WR basic slash drawn further out (44 / 50 px); WR DASH sheet dashes RIGHT in every row -> preset
+  facing right 2 / left 2 mirrored; return stone props gate_ret* had black patches (glow painted on the black sheet) ->
+  extract-props GLOW_FROM_BLACK (near-black / warm-dark halo -> colour-to-alpha against black, soft alpha, no drawn outline).

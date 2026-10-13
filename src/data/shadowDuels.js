@@ -195,4 +195,28 @@ export const SHADOWS = {
       verdict: { kind: 'pattern', layout: 'cross', count: 7, r: 52, step: 74, delay: 0.1, range: 420, windup: 1.3, recover: 1.1, cd: 11, weight: 2, power: 40, knock: 160, opening: 1.6, anim: { windup: 'verdict', attack: 'verdictEnd' } },
     },
   }),
+  // SECRET — WYRMBLOOD REAVER (LV 50): a crimson fang dash, a crushing cleave, a burning cone; it grows stronger as it
+  // bleeds (phase 2 faster + blood nova). A long fight at end-game numbers: learn to fight while hurt.
+  shadow_wyrmblood_reaver: shadowDuel('wyrmblood_reaver', {
+    name: 'SHADOW OF THE DRAGON BLOOD', title: 'The Cinder King, wearing your face', hp: 30000, level: 50, def: 14, aura: '255,40,30', poise: 1100,
+    teaches: 'Dodge the fang late · step out of the burning cone · it hits harder once it bleeds',
+    phases: [
+      { name: 'BLOOD PRICE', sub: 'It pays with its own blood', hpBelow: 1, moves: ['fang', 'rend', 'cinder', 'triple'] },
+      { name: 'DRAGON BLOOD', sub: 'Wounded — and deadlier for it', hpBelow: 0.5, moves: ['fang', 'rend', 'cinder', 'triple', 'burst'], speed: 1.15, windup: 0.85 },
+    ],
+    moves: {
+      fang: { kind: 'dash', range: 280, min: 80, windup: 0.6, recover: 0.6, cd: 3, weight: 4, power: 70, knock: 170, len: 250, width: 34, status: [{ id: 'bleed', dur: 4 }], anim: { windup: 'crimsonFang', attack: 'crimsonFang' } },
+      rend: { kind: 'strike', range: 95, windup: 0.9, recover: 0.8, cd: 4.5, weight: 3, power: 95, knock: 220, guardBreak: true, opening: 1.5, shape: { shape: 'cone', r: 100, half: 0.85 }, anim: { windup: 'wyrmRend', attack: 'wyrmRend' } },
+      cinder: { kind: 'strike', range: 140, windup: 0.75, recover: 0.6, cd: 5, weight: 3, power: 55, knock: 90, dmg: 'fire', status: [{ id: 'burn', dur: 4 }], shape: { shape: 'cone', r: 140, half: 0.6 }, anim: { windup: 'cinderVein', attack: 'cinderVein' } },
+      triple: {
+        kind: 'combo', range: 90, recover: 0.9, cd: 6, weight: 2, power: 50, knock: 160, opening: 1.6, anim: { windup: 'atk1', attack: 'atk3' },
+        hits: [
+          { windup: 0.45, power: 45, shape: { shape: 'cone', r: 92, half: 0.9 } },
+          { windup: 0.3, power: 45, shape: { shape: 'cone', r: 92, half: 0.9 } },
+          { windup: 0.85, power: 75, shape: { shape: 'circle', r: 100 } },
+        ],
+      },
+      burst: { kind: 'strike', range: 130, windup: 1.2, recover: 1.0, cd: 9, weight: 2, power: 90, knock: 260, opening: 1.8, shape: { shape: 'circle', r: 130 }, anim: { windup: 'veinBurst', attack: 'veinBurst' } },
+    },
+  }),
 };

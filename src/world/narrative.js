@@ -122,6 +122,7 @@ export function classHint(g) {
 }
 export function masterDialogue(m, g) {
   const p = g.player, pr = g.progression, bye = { label: 'Farewell', action: 'close' };
+  if (m.nodes) return secretMasterDialogue(m, g, bye);
   if (lineOf(p.cls.id) !== m.line) return { lines: [...m.greet, ...m.other], options: [bye] };
   if (p.cls.id !== m.line) return { lines: [...m.after], options: [bye] };
   // a trial of this line in progress: where it stands
@@ -130,8 +131,25 @@ export function masterDialogue(m, g) {
     const c = trialChapters(TRIALS[id])[t.step || 0];
     return { lines: [...m.greet.slice(0, 1), `${TRIALS[id].title}: ${(c && c.text) || ''}`, ...(c && c.where && c.type !== 'talk' ? [c.where] : [])], options: [{ label: 'Abandon this path', action: 'abandon:' + id }, bye] };
   }
-  const paths = pr.paths().filter((x) => !x.unlocked && x.trial && x.trial.state !== 'passed');
+  const paths = pr.paths().filter((x) => !x.unlocked && x.trial && x.trial.state !== 'passed' && !secretNode(x.node.id)); // secret classes = the secret master
   const ready = paths.filter((x) => x.ready);
+  if (!ready.length) return { lines: [...m.greet, ...m.early], options: [bye] };
+  return { lines: [...m.greet, ...m.ready], options: [...ready.map((x) => ({ label: 'Walk the path of ' + x.node.name, action: 'trial:' + x.node.id })), bye] };
+}
+
+// a node offered by a secret master (data/classMasters.js `nodes`)
+function secretNode(id) { return Object.values(CLASS_MASTERS).some((m) => m.nodes && m.nodes.includes(id)); }
+// SECRET MASTER: offers his secret classes to a Class 2 of their line (requirements: the node's own, e.g. LV 50 + item)
+function secretMasterDialogue(m, g, bye) {
+  const p = g.player, pr = g.progression, mine = m.nodes.filter((n) => CLASS_TREE[n] && CLASS_TREE[n].parent === lineOf(p.cls.id));
+  if (!mine.length) return { lines: [...m.greet, ...m.other], options: [bye] };
+  if (mine.includes(p.cls.id)) return { lines: [...m.after], options: [bye] };
+  for (const [id, t] of Object.entries(pr.trials)) {
+    if (t.state !== 'active' || !mine.includes(t.node)) continue;
+    const c = trialChapters(TRIALS[id])[t.step || 0];
+    return { lines: [...m.greet.slice(0, 1), `${TRIALS[id].title}: ${(c && c.text) || ''}`, ...(c && c.where && c.type !== 'talk' ? [c.where] : [])], options: [{ label: 'Abandon this path', action: 'abandon:' + id }, bye] };
+  }
+  const ready = pr.paths().filter((x) => mine.includes(x.node.id) && !x.unlocked && x.trial && x.trial.state !== 'passed' && x.ready);
   if (!ready.length) return { lines: [...m.greet, ...m.early], options: [bye] };
   return { lines: [...m.greet, ...m.ready], options: [...ready.map((x) => ({ label: 'Walk the path of ' + x.node.name, action: 'trial:' + x.node.id })), bye] };
 }

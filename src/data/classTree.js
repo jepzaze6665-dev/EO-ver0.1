@@ -2,7 +2,8 @@
 // Adding Class 2, an Awakening or a Secret Class = adding a node here (+ its class data file when it
 // becomes playable). progression/progression.js and progression/requirements.js never name a class.
 //
-// Node:   { id, name, tier, parent, role, resource, description, playable, trial, requirements, hidden, hint }
+// Node:   { id, name, tier, parent, role, resource, description, playable, trial, requirements, hidden, hint, from }
+//   from       : other classes that may take this path besides its parent (a secret class: the line's Class 2s)
 //   tier       : 1 starting class · 2 Class 2 · 3 Awakening · 4 Secret (any tier may be hidden)
 //   playable   : false until the class data exists in skills/classes.js (Nightfall Reaper: playable since Phase 15-16)
 //   hidden     : not shown (not even as "???") until `reveal` requirements are met -> secret classes
@@ -24,6 +25,7 @@ export const CLASS_COUNTERS = {
   blocks: { label: 'Attacks blocked', hint: 'Hold your guard toward an enemy attack', event: 'guardBlocked', match: { player: '$player' } },
   perfect_guards: { label: 'Perfect Guards', hint: 'Raise your guard just before an enemy attack lands', event: 'perfectGuard', match: { player: '$player' } },
   judgments: { label: 'Judgments', hint: 'Mark a foe with your basic attacks, then hit it with Guardian Slash', event: 'markConsumed', match: { markId: 'guardian_mark' } },
+  blood_kills: { label: 'Kills below 40% HP', hint: 'Defeat monsters yourself while your HP is under 40% (pay for skills with HP, then keep fighting)', event: 'enemyKilled', match: { source: '$player', 'source.hpRatio': { below: 0.4 } } },
   barrier_absorbed: { label: 'Damage absorbed by barriers', hint: 'Let barriers you cast yourself soak enemy hits', event: 'shieldAbsorbed', match: { target: '$player', statusSource: '$player' }, sum: 'amount' },
 };
 
@@ -109,6 +111,8 @@ export const CLASS_TREE = {
       { type: 'item', item: 'heart_of_varkharon', label: 'Carry the Heart of Varkharon' },
       { type: 'any', of: [{ type: 'class', id: 'nightfall_reaper' }, { type: 'class', id: 'duskrunner' }, { type: 'class', id: 'blade_of_echoes' }], label: 'Be an Umbral Class 2 (Nightfall Reaper, Duskrunner or Blade of Echoes)' },
     ],
+    from: ['nightfall_reaper', 'duskrunner', 'blade_of_echoes'], // taken from a Class 2 of the line (progression.paths)
+    trial: 'trial_wyrmblood_reaver',
   },
 };
 
@@ -177,6 +181,15 @@ export const TRIALS = {
       { type: 'counters', text: 'Prove the night answers you' },
       { type: 'item', item: 'relic_nightfall', text: 'Find the Nightfall Ember in the Whispering Forest (follow the fireflies)' },
       { type: 'boss', boss: 'shadow_nightfall_reaper', text: 'Defeat your shadow in the Proving Ground' },
+    ],
+  },
+  // SECRET: Wyrmblood Reaver — given by the Ashen Pilgrim who waits in the Cinder Throne after the King falls
+  trial_wyrmblood_reaver: {
+    title: 'Trial of the Cinder Blood', objectives: [{ counter: 'blood_kills', count: 30 }],
+    chapters: [
+      { type: 'talk', npc: 'master_dragon', text: 'Speak with the Ashen Pilgrim in the Cinder Throne', where: 'The Cinder Throne: through the dragon door in the Quiet Hollow (A2). He waits by the stairs.' },
+      { type: 'counters', text: 'Defeat 30 monsters while your HP is below 40%', where: 'Any field map. Pay for skills with HP and keep fighting: the kill counts only while you are under 40% HP.' },
+      { type: 'boss', boss: 'shadow_wyrmblood_reaver', text: 'Defeat the shadow of the dragon blood in the Proving Ground' },
     ],
   },
   trial_duskrunner: {

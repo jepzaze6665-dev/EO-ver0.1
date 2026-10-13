@@ -42,6 +42,35 @@ const NAVY_DEEP = (r, g, b) => r <= 20 && g >= 20 && g <= 42 && b >= 46 && b <= 
 const NEAR_BLACK = (r, g, b) => Math.max(r, g, b) <= 15 && b >= r;
 const WATER_NAVY = (r, g, b) => r <= 26 && g >= 12 && g <= 38 && b >= 36 && b <= 62 && b - g >= 18; // A2 water sheets (6,20,45 / 16,27,51)
 const SHEET_BG = { ...Object.fromEntries(CITY_SHEETS.map((k) => [k, PURE_BLACK])), [CP]: GREY_BG, [B3P]: NAVY_DEEP, [DRP]: NEAR_BLACK, [WP]: WATER_NAVY, [WF]: WATER_NAVY };
+// GLOW_FROM_BLACK: props whose glow / light rays were painted onto the BLACK sheet (owner: the return stone showed black
+// patches around its rays and inside its ring). Pixels reached from outside through glow-ish pixels (warm light or near
+// black, not touching the grey stone; pockets enclosed by the ring included) become "colour to alpha" against black: the darkness turns into
+// transparency, the light keeps its tint. Kept soft (no crisp alpha / no drawn outline).
+const GLOW_FROM_BLACK = new Set(['gate_ret0', 'gate_ret1', 'gate_ret2', 'gate_ret3']);
+function glowFromBlack(im) {
+  const { width: w, height: h, data: d } = im, N = w * h;
+  const neutral = (p) => { const i = p * 4, mx = Math.max(d[i], d[i + 1], d[i + 2]); return d[i + 3] > 0 && mx >= 45 && mx <= 210 && Math.abs(d[i] - d[i + 2]) < 22; };
+  const nearStone = (p, R = 2) => { const x = p % w, y = (p / w) | 0; for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) { const X = x + dx, Y = y + dy; if (X >= 0 && Y >= 0 && X < w && Y < h && neutral(Y * w + X)) return true; } return false; };
+  const glowish = (p) => { const i = p * 4; if (!d[i + 3]) return false; const mx = Math.max(d[i], d[i + 1], d[i + 2]); return mx < 100 && d[i] - d[i + 2] > 15 && !nearStone(p); }; // reached from outside: the warm dark halo round the rays // dark warm halo or pure black only (the lit stone face stays)
+  const seen = new Uint8Array(N), q = [];
+  for (let p = 0; p < N; p++) { const x = p % w, y = (p / w) | 0; if (!d[p * 4 + 3] || x === 0 || y === 0 || x === w - 1 || y === h - 1) { seen[p] = 1; q.push(p); } }
+  for (let k = 0; k < q.length; k++) {
+    const p = q[k], x = p % w, y = (p / w) | 0;
+    for (const n of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, y > 0 ? p - w : -1, y < h - 1 ? p + w : -1]) {
+      if (n < 0 || seen[n] || !glowish(n)) continue;
+      seen[n] = 2; q.push(n);
+    }
+  }
+  const black = (p) => { const i = p * 4; return d[i + 3] > 0 && Math.max(d[i], d[i + 1], d[i + 2]) < 34 && !nearStone(p, 4); };
+  for (let p = 0; p < N; p++) if (seen[p] !== 2 && black(p)) seen[p] = 2; // near-black anywhere (pockets enclosed by the ring), away from the stone
+  for (let p = 0; p < N; p++) if (seen[p] === 2) {
+    const i = p * 4, a = Math.max(d[i], d[i + 1], d[i + 2]) / 255;
+    if (a < 0.06) { d[i + 3] = 0; continue; }
+    for (let c = 0; c < 3; c++) d[i + c] = Math.min(255, Math.round(d[i + c] / a));
+    d[i + 3] = Math.round(a * 255);
+  }
+  return im;
+}
 const FILL_HOLES = new Set([CP, DRP, WP, WF, ...CITY_SHEETS]);
 const MANIFEST = {
   w_sluice_closed: [WP, 30, 40, 450, 362], w_sluice_open: [WP, 470, 40, 872, 362],
@@ -467,7 +496,7 @@ function loadSheet(name) {
   return (cache[name] = { img, fg: clean, lab });
 }
 
-function extract(entry) {
+function extract(entry, name) {
   const [sheet, ...nums] = entry;
   const S = loadSheet(sheet);
   const { img, fg, lab } = S, w = img.width;
@@ -518,11 +547,12 @@ function extract(entry) {
     const r = img.data[p * 4], g = img.data[p * 4 + 1], b = img.data[p * 4 + 2];
     out.data[o + 3] = (r + g + b) / 3 < 40 ? 200 : 255;
   }
-  return SCALE[sheet] ? shrink(out, SCALE[sheet]) : out;
+  if (GLOW_FROM_BLACK.has(name)) glowFromBlack(out);
+  return SCALE[sheet] ? shrink(out, SCALE[sheet], GLOW_FROM_BLACK.has(name)) : out;
 }
 
 // area-average downscale (alpha weighted) for the 2048 px sheets
-function shrink(im, s) {
+function shrink(im, s, soft = false) {
   const w = Math.max(1, Math.round(im.width * s)), h = Math.max(1, Math.round(im.height * s)), o = png.create(w, h), inv = 1 / s;
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     let r = 0, g = 0, b = 0, a = 0, n = 0;
@@ -532,7 +562,7 @@ function shrink(im, s) {
     }
     const i = (y * w + x) * 4;
     if (a) { o.data[i] = r / a; o.data[i + 1] = g / a; o.data[i + 2] = b / a; }
-    o.data[i + 3] = n && a / n > 60 ? 255 : 0; // crisp edges
+    o.data[i + 3] = soft ? (n ? Math.round(a / n) : 0) : n && a / n > 60 ? 255 : 0; // crisp edges (soft: glow keeps its alpha)
   }
   return o;
 }
@@ -572,11 +602,11 @@ function outline(im) {
 // simple shelf packing
 const items = [];
 for (const [name, entry] of Object.entries(MANIFEST)) {
-  const im = extract(entry);
+  const im = extract(entry, name);
   if (!im) { console.warn('MISSING', name); continue; }
   items.push({ name, im });
 }
-for (const it of items) { grade(it.im); it.im = outline(it.im); }
+for (const it of items) { grade(it.im); if (!GLOW_FROM_BLACK.has(it.name)) it.im = outline(it.im); }
 items.sort((a, b) => b.im.height - a.im.height);
 const ATLAS_W = 1024;
 let x = 0, y = 0, rowH = 0;

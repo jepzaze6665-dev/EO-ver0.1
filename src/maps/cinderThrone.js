@@ -12,6 +12,10 @@ export const CINDER_THRONE = {
   requires: [],
   region: { zones: [Z.CINDER] },
   spawn: [148, 165],
+  // the Ashen Pilgrim (secret master, data/classMasters.js master_dragon): offers the secret class quest after the King falls
+  content: {
+    npcs: [{ id: 'master_dragon', name: 'The Ashen Pilgrim', role: 'Secret Class', tx: 150, ty: 165, look: 'pilgrim', art: 'pilgrim' }],
+  },
   exits: [
     { id: 'throne_stairs', rect: [146, 167, 150, 167], to: 'a2', entry: [148, 174], label: 'Quiet Hollow' },
   ],

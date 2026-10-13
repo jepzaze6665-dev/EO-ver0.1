@@ -75,7 +75,7 @@ export class Progression {
     const g = this.game, cur = g.player.cls.id;
     const ctx = this.context(cur);
     return Object.values(CLASS_TREE)
-      .filter((n) => n.parent === cur)
+      .filter((n) => n.parent === cur || (n.from && n.from.includes(cur))) // from: other classes that may take this path (secret classes: the line's Class 2)
       .filter((n) => !n.hidden || (n.reveal && evaluateAll(n.reveal, ctx).every((r) => r.met))) // secret nodes stay invisible
       .map((n) => {
         const reqs = evaluateAll(n.requirements, ctx);
@@ -99,7 +99,7 @@ export class Progression {
       if (!n) return;
       if (n.hidden && !(n.reveal && evaluateAll(n.reveal, ctx).every((r) => r.met))) return;
       const state = id === cur ? 'current' : this.owns(id) ? (n.playable ? 'owned' : 'unlocked')
-        : readyIds.has(id) ? 'ready' : n.parent === cur ? 'locked' : 'future';
+        : readyIds.has(id) ? 'ready' : n.parent === cur || (n.from && n.from.includes(cur)) ? 'locked' : 'future';
       out.push({ node: n, depth, state });
       for (const c of Object.values(CLASS_TREE)) if (c.parent === id) visit(c.id, depth + 1);
     };

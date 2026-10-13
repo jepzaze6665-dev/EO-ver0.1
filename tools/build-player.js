@@ -118,7 +118,7 @@ PRESETS.wr = { out: 'assets/player/wr', nearestBody: true, opaque: { min: 150, h
   walk: [WR + 'WALK.png', 4],
   atk1: [WR + 'ATK1.png', 4],
   atk2: [WR + 'ATK2.png', 4],
-  dash: [WR + 'DASH.png', 4],
+  dash: [WR + 'DASH.png', 4, { facing: { right: 2, left: 2, flipLeft: true } }], // every row of this sheet dashes RIGHT -> mirror it for the left
   hit: [WR + 'HIT.png', 4],
   sk1: [WR + 'SK1.png', 4],
   sk2: [WR + 'SK2.png', 4],
