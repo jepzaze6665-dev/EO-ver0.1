@@ -782,3 +782,4 @@ body.touch .chatbox:not(.typing) .chat-log { pointer-events: none; }
 .slot .cw-risk, .cw-runnote .cw-risk { position: absolute; right: 2px; top: 1px; min-width: 13px; height: 13px; padding: 0 2px; border-radius: 7px; background: #e0443c; color: #fff; font: 700 10px/13px var(--font-title); text-align: center; pointer-events: none; }
 .cw-runnote { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #f0a49e; margin: -2px 0 6px; }
 .cw-runnote .cw-risk { position: static; }
+.ms-warn { font-size: 12px; line-height: 1.4; color: #f0a49e; background: rgba(120,20,20,.25); border-left: 2px solid #e0443c; padding: 5px 8px; margin: 8px 0 4px; }

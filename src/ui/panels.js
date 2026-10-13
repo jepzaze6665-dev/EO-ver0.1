@@ -821,6 +821,7 @@ export class Panels {
         <div class="pt-h">${tl('POSSIBLE REWARDS')}</div>
         <div class="ms-rewards">${rewards.map((id) => `<span class="slot" data-tip="${id}" style="border-color:${RARITY_COLOR[ITEMS[id].rarity]}"><img src="${itemIconURL(ITEMS[id])}" alt=""></span>`).join('')}</div>
         <div class="ms-peds">${slots}</div>
+        <div class="ms-warn">⚠ ${tl('Death in a dungeon: -50% of the monster EXP of the run, and everything found in the run drops where you fall. Return to a city to keep it.')}</div>
         <div class="ms-act">${act}</div>
         <div class="keys"><span><kbd>Q</kbd><kbd>E</kbd>${tl('Map')}</span><span><kbd>F</kbd>${tl('Play')}</span><span><kbd>Esc</kbd>${tl('Back')}</span></div>
       </div></div>`, 'ms-ov');

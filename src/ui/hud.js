@@ -531,7 +531,9 @@ export class HUD {
   // ---------------- minimap
   refreshMini() {
     const map = this.game.world.map;
-    if (!this.mini) { this.mini = makeCanvas(map.w, map.h); this.miniData = this.mini.getContext('2d').createImageData(map.w, map.h); }
+    // grids differ in size (Lumina 96², Asteria 112², fields 168×208): an image made for another grid
+    // wrote every row at the wrong width -> slanted black stripes on the minimap
+    if (!this.mini || this.mini.width !== map.w || this.mini.height !== map.h) { this.mini = makeCanvas(map.w, map.h); this.miniData = this.mini.getContext('2d').createImageData(map.w, map.h); }
     const d = this.miniData.data;
     const cache = this.colCache || (this.colCache = {});
     for (let i = 0; i < map.w * map.h; i++) {
@@ -631,7 +633,7 @@ export class HUD {
   drawMinimap(ctx, W, u) {
     const g = this.game, p = g.player, map = g.world.map;
     this.miniT -= 1 / 60;
-    if (!this.mini || this.miniT <= 0) { this.miniT = 0.4; this.refreshMini(); }
+    if (!this.mini || this.miniT <= 0 || this.mini.width !== map.w || this.mini.height !== map.h) { this.miniT = 0.4; this.refreshMini(); }
     const size = 190 * u, x = W - size - 18 * u, y = 18 * u;
     const zoomTiles = 56, scale = size / zoomTiles;
     const ptx = p.x / TILE, pty = p.y / TILE;
@@ -670,13 +672,17 @@ export class HUD {
     this.text(ctx, md ? md.name + (ex && ex[1] ? `  ✦ ${ex[0]}/${ex[1]}` : '') : '', x + size / 2, y + size + 18 * u, 12 * u, ex && ex[1] && ex[0] === ex[1] ? '#ffe08a' : '#e8dcff', { align: 'center' });
     this.text(ctx, sa && (!md || sa.name.toUpperCase() !== md.name) ? sa.name : '', x + size / 2, y + size + 31 * u, 9 * u, '#b8acd8', { align: 'center' });
     this.text(ctx, tl('[M] Map   [I] Inventory'), x + size / 2, y + size + 44 * u, 9 * u, '#8a80a8', { align: 'center' });
+    // DUNGEON RUN: how many items would drop on a death (red frames in the bag); checked twice a second
+    const run = g.run, now = performance.now();
+    if (!this.riskAt || now - this.riskAt > 500) { this.riskAt = now; this.risk = run && run.active && run.enabled() ? run.pileCount(run.gained()) : 0; }
+    if (this.risk) this.text(ctx, tl('⚠ {n} item(s) at risk — return to a city', { n: this.risk }), x + size / 2, y + size + 58 * u, 10 * u, '#ff8a80', { align: 'center' });
   }
 
   drawQuests(ctx, W, u) {
     const g = this.game;
     // MOBILE: the right side belongs to the skill buttons -> one quest, on the left where the route panel was
     const list = g.touch ? g.quests.tracker().slice(0, 1) : g.quests.tracker();
-    let y = g.touch ? 120 * u : 18 * u + 190 * u + 56 * u;
+    let y = g.touch ? 120 * u : 18 * u + 190 * u + (this.risk ? 72 : 56) * u; // room for the run-risk line under the minimap
     const w = 250 * u, x = g.touch ? 18 * u : W - w - 18 * u;
     ctx.globalAlpha = this.questA ?? 1; // fades during intense fights
     for (const q0 of list) {
