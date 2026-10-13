@@ -244,6 +244,69 @@
   "frames": 6,
   "set": "be"
  },
+ "wr_slash": {
+  "file": "assets/vfx/wr_slash.png",
+  "fw": 140,
+  "fh": 118,
+  "frames": 6,
+  "set": "wr"
+ },
+ "wr_fang": {
+  "file": "assets/vfx/wr_fang.png",
+  "fw": 168,
+  "fh": 108,
+  "frames": 6,
+  "set": "wr"
+ },
+ "wr_rend": {
+  "file": "assets/vfx/wr_rend.png",
+  "fw": 154,
+  "fh": 118,
+  "frames": 6,
+  "set": "wr"
+ },
+ "wr_pact": {
+  "file": "assets/vfx/wr_pact.png",
+  "fw": 128,
+  "fh": 252,
+  "frames": 6,
+  "set": "wr"
+ },
+ "wr_scale": {
+  "file": "assets/vfx/wr_scale.png",
+  "fw": 132,
+  "fh": 172,
+  "frames": 6,
+  "set": "wr"
+ },
+ "wr_cinder": {
+  "file": "assets/vfx/wr_cinder.png",
+  "fw": 128,
+  "fh": 108,
+  "frames": 6,
+  "set": "wr"
+ },
+ "wr_hemo": {
+  "file": "assets/vfx/wr_hemo.png",
+  "fw": 166,
+  "fh": 206,
+  "frames": 6,
+  "set": "wr"
+ },
+ "wr_burst": {
+  "file": "assets/vfx/wr_burst.png",
+  "fw": 176,
+  "fh": 194,
+  "frames": 6,
+  "set": "wr"
+ },
+ "wr_dragon": {
+  "file": "assets/vfx/wr_dragon.png",
+  "fw": 192,
+  "fh": 236,
+  "frames": 6,
+  "set": "wr"
+ },
  "dw_shield": {
   "file": "assets/vfx/dw_shield.png",
   "fw": 122,

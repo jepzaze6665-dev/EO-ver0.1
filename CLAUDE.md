@@ -58,7 +58,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   grid (`idAt(x, y, gridId?)`); quest tile markers are on START_GRID unless they name `map`. Secrets are world-wide
   (`world.secretsFound`); fog per grid (`revealed` + `revealedGrids` in the save); respawn = `world.checkpoint()`.
   Grids: `whispering` (A1 + Lumina + Valehaven), `ancient_valley` (A2 + Magma Rift), `citadel` (A3 + Sanctum), `asteria` (City 2), `frostwind` (B1 + Frost Arena), `caverns` (B2 + Heart), `frostpeak` (B3).
-- Don't build yet (spec): guild, trading, PvP, real secret classes / secret bosses, world events.
+- Don't build yet (spec): guild, trading, PvP, world events. (Secret classes: being built — see SECRET CLASSES in Status.)
 - ONLINE (owner 2026-10-02): the game is ONLINE-ONLY (no offline mode for players). Shared cities, dungeon instances
   (enter at an unlocked map, continue through its exits after the boss, return to the city from the map's start point),
   parties. Death in a dungeon = 50% of the EXP earned from monsters in that run lost + ALL items gained in the run dropped as
@@ -1779,3 +1779,14 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   minus ones unchanged), pure maths items/enhance.js, action equipment/enhancer.js (econ reason 'enhance' = losses only).
   Equipment.itemModifiers uses enhancedModifiers + buildKey includes the plus. Server does NOT check `plus` yet (save text).
   tools/tests/enhance.test.mjs.
+- **Current: SECRET CLASSES** (owner 2026-10-13, Varkharon's fire-dragon theme, one per line: UB -> WYRMBLOOD REAVER (HP-cost skills +
+  WYRM FURY), AW -> PYRE SAGE (HEAT / Overheat / Vent), AG -> MAGMAHEART JUGGERNAUT (MOLTEN CORE + 3 magma plates, no guard / dodge).
+  Power = "higher ceiling" (~90% of Class 2 for an average player, ~105% played perfectly, more risk); unlock = that line's CLASS 2 +
+  LV 50 + Heart of Varkharon (4-chapter quest); switching back allowed. Design + art prompts: docs/classes/ECLIPSE_ONLINE_Secret_Class_
+  Prompts.pdf (source secret_class_prompts.html). Skills SK1-6 = keys 1-4, SK7 = Q, UT = ult.
+  Done WR0 (Wyrmblood art in): desgin/class cr/UB/WR (WALK HIT DASH ATK1 ATK2 SK1-7 UT; twin curved Cinderfang blades), VFX/UB/WR
+  (ATK SK1-7 UT), ICON SKILL/UB/WR (SK1-7 UT + P1 / P2 passives). build-player preset 'wr' (new preset option `opaque { min, haze }`:
+  AI alpha sheets left the body ~90% opaque + a red haze) -> assets/player/wr; build-vfx set 'wr' -> wr_slash / wr_fang / wr_rend /
+  wr_pact / wr_scale / wr_cinder / wr_hemo / wr_burst / wr_dragon (new set options `oneRow` = whole sheet is one row, `valleys` = cut
+  unevenly spaced frames at the emptiest columns); build-icons: passive files P1..P9 -> '<class>_p1', `RECOLOR` (wr_sk7 was violet ->
+  hue +85). Sprite Viewer lists 'wr'. Not playable yet (class code = next phase).

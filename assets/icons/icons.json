@@ -250,5 +250,35 @@
  },
  "ub_ut": {
   "file": "assets/icons/ub_ut.png"
+ },
+ "wr_p1": {
+  "file": "assets/icons/wr_p1.png"
+ },
+ "wr_p2": {
+  "file": "assets/icons/wr_p2.png"
+ },
+ "wr_sk1": {
+  "file": "assets/icons/wr_sk1.png"
+ },
+ "wr_sk2": {
+  "file": "assets/icons/wr_sk2.png"
+ },
+ "wr_sk3": {
+  "file": "assets/icons/wr_sk3.png"
+ },
+ "wr_sk4": {
+  "file": "assets/icons/wr_sk4.png"
+ },
+ "wr_sk5": {
+  "file": "assets/icons/wr_sk5.png"
+ },
+ "wr_sk6": {
+  "file": "assets/icons/wr_sk6.png"
+ },
+ "wr_sk7": {
+  "file": "assets/icons/wr_sk7.png"
+ },
+ "wr_ut": {
+  "file": "assets/icons/wr_ut.png"
  }
 }

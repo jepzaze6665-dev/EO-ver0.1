@@ -2,7 +2,7 @@
 // into clean alpha sprite strips + an atlas description consumed by src/player/playerSprites.js.
 // Every class preset is normalised to the SAME visual standard (body height, canvas, pivot).
 // Usage: node tools/build-player.js            (all classes)
-//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wd | bs | ok | sm | vs | lo)
+//        node tools/build-player.js aw         (one class: ub | aw | ag | rp | dr | be | wr | wd | bs | ok | sm | vs | lo)
 const fs = require('fs');
 const path = require('path');
 const png = require('./png.js');
@@ -109,6 +109,25 @@ PRESETS.be = { out: 'assets/player/be', nearestBody: true, sheets: {
   sk5: [BE + 'sk5', 4],
   sk6: [BE + 'sk6', 4],
   ult: [BE + 'ut', 4],
+} };
+// Wyrmblood Reaver (secret class of the Umbral line): twin curved Cinderfang blades, black / crimson coat.
+// Two kinds of source: WALK / HIT / DASH / ATK1 / ATK2 have real alpha (the body left ~90% opaque + a faint red haze),
+// the skill sheets are opaque fake checkerboard. opaque: alpha >= min -> fully opaque, below `haze` -> gone.
+const WR = 'desgin/class cr/UB/WR/';
+PRESETS.wr = { out: 'assets/player/wr', nearestBody: true, opaque: { min: 150, haze: 60 }, sheets: {
+  walk: [WR + 'WALK.png', 4],
+  atk1: [WR + 'ATK1.png', 4],
+  atk2: [WR + 'ATK2.png', 4],
+  dash: [WR + 'DASH.png', 4],
+  hit: [WR + 'HIT.png', 4],
+  sk1: [WR + 'SK1.png', 4],
+  sk2: [WR + 'SK2.png', 4],
+  sk3: [WR + 'SK3.png', 4],
+  sk4: [WR + 'SK4.png', 4],
+  sk5: [WR + 'SK5.png', 4],
+  sk6: [WR + 'SK6.png', 4],
+  sk7: [WR + 'SK7.png', 4],
+  ult: [WR + 'UT.png', 4],
 } };
 // Warden of Dawn (Class 2 of Aegis Guardian): silver plate, white / blue dawn shield, holy sword. Same flat white
 // sheets + silver armour as AG -> the same tight background rule.
@@ -832,7 +851,7 @@ function liftFx(target, rows, sides, { rule = 'sat', fringe = 2, minFx = 25, str
   console.log('   fx strip', strip.name, 'cols', cols.join(','), 'from row', rightRow);
 }
 function buildPreset(key) {
-const { out: outRel, sheets: SHEETS, facing: FACING, nearestBody, bg, edgeFade, splitFeather, cutFeather } = PRESETS[key];
+const { out: outRel, sheets: SHEETS, facing: FACING, nearestBody, bg, edgeFade, splitFeather, cutFeather, opaque } = PRESETS[key];
 FEATHER = cutFeather || 4;
 const OUT = path.join(ROOT, outRel);
 fs.mkdirSync(OUT, { recursive: true });
@@ -842,6 +861,10 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
   const n = opt.frames || COLS; // frames actually drawn per row in the source (output is always COLS wide)
   const img = png.read(path.join(ROOT, file));
   removeBackground(img, bg);
+  if (opaque) for (let i = 3; i < img.data.length; i += 4) {
+    const a = img.data[i];
+    img.data[i] = a >= opaque.min ? 255 : a < opaque.haze ? 0 : a;
+  }
   const py = projection(img, true);
   const ys = blobSplits(py, rows, img.height) || splits(py, rows, img.height);
   const cells = [], neutral = [];

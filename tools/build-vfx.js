@@ -41,6 +41,17 @@ const SETS = {
     // flip them so the arc leads the swing
     mirrorFrames: { sk1: [0, 1, 2, 3, 4, 5], sk3: [0, 1, 2, 3, 4, 5], ut: [0, 1, 2, 3, 4, 5] },
   },
+  // Wyrmblood Reaver (secret class, crimson blood-fire). SK3 / SK4 / SK6 / SK7 / UT are one front-view row; SK1 draws
+  // its side views on rows 0-1 (row 0 points right). ATK has an opaque fake checker background.
+  wr: {
+    src: 'desgin/VFX/UB/WR', detectRows: true, clean: true,
+    names: { ATK: 'wr_slash', SK1: 'wr_fang', SK2: 'wr_rend', SK3: 'wr_pact', SK4: 'wr_scale', SK5: 'wr_cinder', SK6: 'wr_hemo', SK7: 'wr_burst', UT: 'wr_dragon' },
+    rows: { SK1: 0, SK3: 0, SK4: 0, SK6: 0, SK7: 0, UT: 0 },
+    checker: { ATK: true },
+    recenter: { SK3: true, SK4: true, SK6: true, SK7: true, UT: true },
+    oneRow: { SK3: true, SK4: true, SK6: true, SK7: true, UT: true },
+    valleys: { SK3: true, SK4: true, SK6: true, SK7: true, UT: true }, // unevenly spaced frames (UT frame 3 sits on a grid line)
+  },
   // Warden of Dawn (blue dawn shield + gold holy light). Caster / ally-centred effects use the front view (row 0);
   // dw_crest (the Guardian March shove) is the side view
   dw: {
@@ -172,7 +183,10 @@ function extractRow(img, file, set) {
     const a = x < strip ? 0 : d[p * 4 + 3];
     A[p] = a <= SOFT_FLOOR ? 0 : Math.round(((a - SOFT_FLOOR) / (255 - SOFT_FLOOR)) * 255);
   }
-  const runs = detectRows(img), rowC = runs.map(([a, b]) => (a + b) / 2);
+  // oneRow: the whole sheet is ONE row (floating sparks above a tall aura must not count as a row of their own)
+  let runs = detectRows(img);
+  if (set.oneRow && set.oneRow[file]) runs = [[Math.min(...runs.map((r) => r[0])), Math.max(...runs.map((r) => r[1]))]];
+  const rowC = runs.map(([a, b]) => (a + b) / 2);
   const nearestRow = (y) => { let k = 0; rowC.forEach((c, i) => { if (Math.abs(c - y) < Math.abs(rowC[k] - y)) k = i; }); return k; };
   // label blobs (8-connected)
   const lab = new Int32Array(W * H).fill(-1), comps = [];
@@ -199,7 +213,15 @@ function extractRow(img, file, set) {
   const proj = new Float64Array(W);
   for (let p = 0; p < W * H; p++) { const l = lab[p]; if (l >= 0 && inRow(l, (p / W) | 0)) proj[p % W] += A[p]; }
   const cuts = [0];
-  for (let k = 1; k < COLS; k++) {
+  if (set.valleys && set.valleys[file]) {
+    // valleys: frames laid out unevenly (one sits on a grid line) -> cut at the COLS-1 emptiest columns (smoothed),
+    // at least 0.55 of a cell apart and away from the sheet edges
+    const sm = new Float64Array(W), R = 12;
+    for (let x = 0; x < W; x++) { let s = 0; for (let k = -R; k <= R; k++) s += proj[Math.max(0, Math.min(W - 1, x + k))]; sm[x] = s; }
+    const order = [...sm.keys()].filter((x) => x > 0.3 * cw && x < W - 0.3 * cw).sort((a, b) => sm[a] - sm[b] || a - b), pick = [];
+    for (const x of order) { if (pick.length === COLS - 1) break; if (pick.every((q) => Math.abs(q - x) >= 0.55 * cw)) pick.push(x); }
+    cuts.push(...pick.sort((a, b) => a - b));
+  } else for (let k = 1; k < COLS; k++) {
     let best = Math.round(k * cw), bv = Infinity;
     for (let x = Math.round((k - 0.35) * cw); x <= Math.round((k + 0.35) * cw); x++) { const v = proj[x] * 1000 + Math.abs(x - k * cw); if (v < bv) { bv = v; best = x; } }
     cuts.push(best);
