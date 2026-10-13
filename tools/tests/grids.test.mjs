@@ -28,7 +28,8 @@ test('exits between grids exist both ways', () => {
   const byId = Object.fromEntries(MAPS.map((d) => [d.id, d]));
   for (const d of MAPS) for (const e of d.exits || []) {
     ok(byId[e.to], `${d.id}.${e.id} -> unknown ${e.to}`);
-    if (byId[e.to].grid !== d.grid) ok(byId[e.to].exits.some((b) => b.to === d.id), `${d.id}.${e.id}: no way back from ${e.to}`);
+    // a city is left only by its Dungeon Gate (owner 2026-10-13): one-way roads INTO a city are fine
+    if (byId[e.to].grid !== d.grid && byId[e.to].type !== 'city') ok(byId[e.to].exits.some((b) => b.to === d.id), `${d.id}.${e.id}: no way back from ${e.to}`);
   }
 });
 test('map lookup by position is per grid (same tile, different maps on different grids)', () => {

@@ -15,6 +15,6 @@ export const SANCTUM = {
   ],
   exits: [
     { id: 'sanctum_gate', rect: [81, 44, 87, 44], to: 'a3', entry: [84, 52], label: 'Golden Gate' },
-    { id: 'north_road', rect: [83, 2, 85, 2], to: 'city2', entry: [80, 154], label: 'Asteria City' },
+    { id: 'north_road', rect: [83, 2, 85, 2], to: 'city2', entry: [56.5, 95], label: 'Asteria City' },
   ],
 };

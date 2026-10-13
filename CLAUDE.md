@@ -1753,3 +1753,12 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   💬 button in the touch top row (touchControls data-k chat) opens the box WITHOUT the keyboard; box above #touch (z 45), closed log lets
   touches through. PROTOCOL_VERSION 23. chat.test 7.
   Next chat phases: C2 whisper / block / report · C4 map pings + item links.
+- **CITY REWORK** (owner 2026-10-13: cities = online hubs, "players get confused by roads"): NO ROAD EXITS out of a city — the
+  DUNGEON GATE (interactable kind 'dungeonGate') in each plaza is the only way out (map select), the return stone at every area's
+  start the way back; boss roads INTO City 2 (Sanctum / Summit north roads) stay one-way (grids.test + mapTour allow one-way roads
+  into a `type: 'city'` map). LUMINA = own grid `lumina` 96×96 (world/levels/lumina.js, terrain maps/luminaCity.js; START_GRID =
+  'lumina', the save's plain `revealed` fog stays the forest grid = FOG_GRID 'whispering'; the old village corner of the forest is
+  canopy). ASTERIA shrunk 160 -> 112×112 (maps/asteriaCity.js): Crystal Plaza hub, services within ~16 tiles, closed South / East
+  gates where the boss roads arrive. testkit `goto` switches to A1 for coordinates outside the loaded grid; tests leave a city by
+  `g.enterDungeon(area, { mode: 'solo' })`; TransitionSystem.autoConfirmCity (tests only). Art wishlist for the owner:
+  docs/map/ECLIPSE_ONLINE_City_Art_Prompts.pdf (`node tools/cityArt/build.mjs`). Next: decorate with the owner's new sprites.

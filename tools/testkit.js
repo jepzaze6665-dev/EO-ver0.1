@@ -336,7 +336,8 @@ export function mapTour(g, classId = 'umbral_sword') {
   ok(`All exits work both ways (${total})`, !bad.length, bad.join(' | '));
   ok('mapEntered events', events.length >= total, `events=${events.length}`);
   // every exit leads to a map that has an exit back
-  const noBack = mm.list.flatMap((d) => d.exits.filter((e) => !mm.get(e.to).exits.some((b) => b.to === d.id)).map((e) => `${d.id}.${e.id}`));
+  // a city is left only by its Dungeon Gate: one-way roads into a city are fine
+  const noBack = mm.list.flatMap((d) => d.exits.filter((e) => mm.get(e.to).type !== 'city' && !mm.get(e.to).exits.some((b) => b.to === d.id)).map((e) => `${d.id}.${e.id}`));
   ok('Every exit has a way back', !noBack.length, noBack.join(','));
   // on foot: from each map's spawn every exit and every visible object must be reachable (flags above all open)
   const unreachable = [];
@@ -1296,10 +1297,10 @@ export function cityCheck(g, classId = 'umbral_sword') {
   g.simulate(3);
   ok('North road out of the Sanctum -> ASTERIA CITY (own grid)', w.mapId === 'city2' && w.gridId === 'asteria', `map=${w.mapId} grid=${w.gridId}`);
   ok('Safe city: no hostiles · no quest (Q1)', w.mapDef.safe && w.hostiles().length === 0);
-  // the gate on foot: from the bridge up the avenue to the plaza
-  goto(g, 80, 146);
-  for (let k = 0; k < 90 && p.y > 78 * TILE; k++) walk(g, 'KeyW', 0.25);
-  ok('Through the South Gate on foot to the Crystal Plaza', p.y <= 78 * TILE && w.state.flags.asteriaPlaza, `pos=${(p.x / TILE).toFixed(1)},${(p.y / TILE).toFixed(1)}`);
+  // from the South Gate (the Sanctum road arrives inside it) up the avenue to the plaza
+  goto(g, 56.5, 95);
+  for (let k = 0; k < 90 && p.y > 68 * TILE; k++) walk(g, 'KeyW', 0.25);
+  ok('From the South Gate on foot to the Crystal Plaza', p.y <= 68 * TILE && w.state.flags.asteriaPlaza, `pos=${(p.x / TILE).toFixed(1)},${(p.y / TILE).toFixed(1)}`);
   // services
   use(g, 'npc_a_merchant'); g.ui.panels.dialogueAction('shop');
   const shopEl = document.querySelector('.panel .np-title b, .panel h2');
@@ -1319,11 +1320,11 @@ export function cityCheck(g, classId = 'umbral_sword') {
   g.saveGame(); g.world.changeMap('lumina'); g.simulate(0.3); const loaded = g.loadGame(); // (newGame would delete the save)
   downBoss(g, 'boss_a3'); // the load made a new session: the Rune Knight is down in this run again (road open)
   ok('Save / load in the city (grid asteria, same spot)', loaded && g.world.mapId === 'city2' && g.world.gridId === 'asteria' && Math.hypot(g.player.x - pos[0], g.player.y - pos[1]) < 40, `map=${g.world.mapId}`);
-  // back out: the south road returns to the Sanctum
+  // no road out (owner 2026-10-13): the Dungeon Gate in the plaza is the way out
   const w2 = g.world;
-  goto(g, 80, 150);
-  for (let k = 0; k < 20 && w2.mapId !== 'sanctum'; k++) walk(g, 'KeyS', 0.3);
-  ok('South road back to the Sanctum', w2.mapId === 'sanctum', `map=${w2.mapId}`);
+  ok('No road exits: the Dungeon Gate is the way out', !w2.mapDef.exits.length);
+  use(g, 'asteria_gate'); const gate = g.ui.panels.current && g.ui.panels.current.name; g.ui.panels.close(true);
+  ok('Dungeon Gate opens the map select', gate === 'gate', `panel=${gate}`);
   return R;
 }
 
