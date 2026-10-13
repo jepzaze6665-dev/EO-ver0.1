@@ -117,7 +117,7 @@ const WR = 'desgin/class cr/UB/WR/';
 // headMatch: the attack / skill sheets were drawn with a bigger head than the walk -> sized by head width, not body height
 PRESETS.wr = { out: 'assets/player/wr', nearestBody: true, headMatch: { ref: 1.08 }, // WALK v2 (2026-10-13): its head is drawn smaller vs the body -> ref 1.08 keeps the other sheets at their old size
    opaque: { min: 150, haze: 60 }, sheets: {
-  walk: [WR + 'WALK.png', 4],
+  walk: [WR + 'WALK.png', 4, { facing: { right: 3, left: 3, flipRight: true } }], // walk v2: the right row is drawn ~10% shorter -> mirror the left row
   atk1: [WR + 'ATK1.png', 4, { facing: { right: 3, left: 3, flipLeft: true } }], // owner: the left row slashes left with the face looking right -> mirror the right row
   atk2: [WR + 'ATK2.png', 4],
   dash: [WR + 'DASH.png', 4, { facing: { right: 2, left: 2, flipLeft: true } }], // every row of this sheet dashes RIGHT -> mirror it for the left

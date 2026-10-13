@@ -23,10 +23,10 @@
    "ay": 140,
    "sides": [
     {
-     "right": 2,
+     "right": 3,
      "left": 3,
      "flipLeft": false,
-     "flipRight": false
+     "flipRight": true
     }
    ],
    "sourceScale": 0.131,
