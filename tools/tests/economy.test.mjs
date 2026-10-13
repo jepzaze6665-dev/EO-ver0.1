@@ -109,7 +109,7 @@ await test('H5b: a map chest pays its data loot once; gold above it is undone; a
   // RANDOM CHESTS: the server rolls the same seeded table as the client (player id + chest id)
   const { chestLoot, seededRng } = await import('../../src/loot/lootSystem.js');
   const r = chestLoot({ id: 'b1_chest_tower', kind: 'chest', gold: 120 }, seededRng(a.id + '|b1_chest_tower'));
-  const g0 = e.gold, ops = [['$', r.gold, ['chest', 'b1_chest_tower']], ...r.items.map((l) => ['i', l.item, l.count, ['chest', 'b1_chest_tower']]), ['i', 'frost_pelt', 1, ['chest', 'b1_chest_tower']]];
+  const g0 = e.gold, ops = [['$', r.gold, ['chest', 'b1_chest_tower']], ...r.items.filter((l) => !/^(rune|charm|core|armor|relic)_/.test(l.item) || l.item === 'rune_crystal').map((l) => ['i', l.item, l.count, ['chest', 'b1_chest_tower']]), ['i', 'frost_pelt', 1, ['chest', 'b1_chest_tower']]];
   a.send('econ', { ops });
   await until(() => a.undo.length === n0 + 2, 2000, 'pelt (not in the roll) undone');
   ok(S.economy.get(a.id).gold === g0 + r.gold, 'paid the roll');

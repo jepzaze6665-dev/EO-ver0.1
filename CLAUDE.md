@@ -1773,3 +1773,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   A2 drowned chest, B2 hoards). Online the roll is seeded (seededRng(playerId + '|' + chestId)) and the server rolls the same in
   economy.expected. Chest gold ~25 / 55 / 85 avg (was 40-300). oneOf picks: gear locked to another class line × LOOT_RULES.otherLineWeight 0.2.
   Gold sink: owner decides.
+- GEAR ENHANCEMENT = the gold sink (owner chose it): smith panel tab "Enhance" (panels.enhance) raises ONE gear instance +0..+10
+  (instance field `plus`, saved, sanitizeInstance clamps). Rules data/enhance.js (gold = base[rarity] × (plus+1)^1.6 -> legendary
+  +10 ≈ 10k G; materials crystal_shard / moon_crystal; chance 100% -> 30%; fail at +5+ = -1 level; each + = good modifiers +5%,
+  minus ones unchanged), pure maths items/enhance.js, action equipment/enhancer.js (econ reason 'enhance' = losses only).
+  Equipment.itemModifiers uses enhancedModifiers + buildKey includes the plus. Server does NOT check `plus` yet (save text).
+  tools/tests/enhance.test.mjs.

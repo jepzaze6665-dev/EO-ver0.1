@@ -1,4 +1,8 @@
 import { PARTY } from '../data/party.js';
+import { enhanceable, canEnhance, enhanceGear } from '../equipment/enhancer.js';
+import { plusOf } from '../items/enhance.js';
+import { ENHANCE } from '../data/enhance.js';
+const SMITH_MENU = () => [{ id: 'forge', label: tl('Forge') }, { id: 'enhance', label: tl('Enhance') }];
 import { AUDIO_BUSES } from '../data/sounds.js';
 import { SKILL_TIERS, staminaCost } from '../data/skillTiers.js';
 import { ITEMS, RARITY_COLOR, CATEGORIES, RECIPES, SHOPS, shopId, shopPrice } from '../items/items.js';
@@ -956,6 +960,7 @@ export class Panels {
     });
   }
   smith() {
+    if (this.npcTab('smith', 'forge') === 'enhance') return this.enhance();
     const g = this.game, p = g.player, inv = g.inventory;
     const can = (r) => p.canAfford(r.gold) && inv.canAdd(r.out) && Object.entries(r.mats).every(([m, n]) => inv.has(m, n));
     const owned = (id) => inv.has(id) || Object.values(g.equipment.slots).includes(id);
@@ -964,7 +969,7 @@ export class Panels {
         <div>${Object.entries(r.mats).map(([m, n]) => `<span class="${inv.has(m, n) ? 'ok' : 'bad'}">${esc(ITEMS[m].name)} ${inv.count(m)}/${n}</span>`).join(' · ')} · ${goldTag(r.gold, p.gold >= r.gold)}</div>`,
       right: `<button data-craft="${i}" ${can(r) && !owned(r.out) ? '' : 'disabled'}>${owned(r.out) ? tl('Owned') : tl('Forge')}</button>` }); }).join('')
       + `<p class="muted small">${tl('Materials drop from monsters and resource nodes.')}</p>`;
-    const el = this.show('smith', npcPanelHTML({ icon: 'npc_smith', title: tl("Borin's Forge"), sub: tl('Forge'), gold: p.gold, body, keys: [[tl('Click'), tl('Forge')]] }), 'side');
+    const el = this.show('smith', npcPanelHTML({ icon: 'npc_smith', title: tl("Borin's Forge"), sub: tl('Forge'), gold: p.gold, body, menu: SMITH_MENU(), tab: 'forge', keys: [[tl('Click'), tl('Forge')]] }), 'side');
     this.wireNpc(el, 'smith', () => this.smith(), (t) => {
       if (t.dataset.craft === undefined) return;
       const r = RECIPES[+t.dataset.craft];
@@ -973,6 +978,29 @@ export class Panels {
       inv.add(r.out, 1);
       g.audio.sfx('levelup');
       g.ui.banner(tl('FORGED'), ITEMS[r.out].name, '#ffd98a');
+      this.smith();
+    });
+  }
+  // GEAR ENHANCEMENT (data/enhance.js): +1..+10 on one gear copy, worn or in the bag
+  enhance() {
+    const g = this.game, p = g.player, inv = g.inventory;
+    const rows = enhanceable(g).map(({ inst, slot }) => {
+      const d = ITEMS[inst.itemId], plus = plusOf(inst), c = canEnhance(g, inst), cost = c.cost;
+      const name = `${d.name}${plus ? ' +' + plus : ''}${slot ? ' · ' + tl('Worn') : ''}`;
+      const text = cost ? `<div>${Object.entries(cost.mats).map(([m, n]) => `<span class="${inv.has(m, n) ? 'ok' : 'bad'}">${esc(ITEMS[m].name)} ${inv.count(m)}/${n}</span>`).join(' · ')} · ${goldTag(cost.gold, p.gold >= cost.gold)}</div>
+        <div class="muted small">${tl('Success {n}%', { n: Math.round(cost.chance * 100) })}${plus >= ENHANCE.failDropFrom ? ' · ' + tl('fail = -1 level') : ''} · ${tl('good modifiers +{n}%', { n: Math.round(ENHANCE.perPlus * (plus + 1) * 100) })}</div>`
+        : `<div class="muted small">${tl('Maximum level')}</div>`;
+      return npcRow({ img: itemIconURL(d), color: RARITY_COLOR[d.rarity], name, nameColor: RARITY_COLOR[d.rarity], tip: inst.itemId, cls: 'recipe', text,
+        right: `<button data-enh="${inst.instanceId}" ${c.ok ? '' : 'disabled'}>+${Math.min(ENHANCE.max, plus + 1)}</button>` });
+    }).join('') || `<div class="muted small">${tl('No gear to enhance.')}</div>`;
+    const el = this.show('smith', npcPanelHTML({ icon: 'npc_smith', title: tl("Borin's Forge"), sub: tl('Enhance'), gold: p.gold, menu: SMITH_MENU(), tab: 'enhance',
+      body: rows + `<p class="muted small">${tl("Each + makes the item's good modifiers stronger. Materials drop from monsters and resource nodes.")}</p>`, keys: [[tl('Click'), tl('Enhance')]] }), 'side');
+    this.wireNpc(el, 'smith', () => this.smith(), (t) => {
+      if (!t.dataset.enh) return;
+      const r = enhanceGear(g, t.dataset.enh);
+      if (!r) return;
+      if (r.ok) { g.audio.sfx('levelup'); g.ui.banner(tl('ENHANCED'), '+' + r.plus, '#ffd98a'); }
+      else { g.audio.sfx('deny'); g.ui.toast(r.dropped ? tl('Enhancement failed — the item fell to +{n}', { n: r.plus }) : tl('Enhancement failed')); }
       this.smith();
     });
   }

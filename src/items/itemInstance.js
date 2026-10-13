@@ -6,6 +6,7 @@
 // counter and checks every instance; the client only keeps what it was given.
 import { ITEMS } from './items.js';
 import { isGear } from './itemDefs.js';
+import { ENHANCE } from '../data/enhance.js';
 
 export const formatInstanceId = (n) => `item_${String(n).padStart(6, '0')}`;
 
@@ -32,5 +33,8 @@ export function sanitizeInstance(raw, ids, used = new Set()) {
   if (!id || used.has(id)) id = null;
   if (id) ids.seen(id); else id = ids.take();
   used.add(id);
-  return { instanceId: id, itemId: raw.itemId };
+  const out = { instanceId: id, itemId: raw.itemId };
+  const plus = Math.floor(raw.plus || 0);
+  if (plus > 0) out.plus = Math.min(ENHANCE.max, plus); // GEAR ENHANCEMENT (data/enhance.js)
+  return out;
 }

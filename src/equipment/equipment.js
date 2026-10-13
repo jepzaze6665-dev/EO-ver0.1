@@ -1,4 +1,5 @@
 import { ITEMS } from '../items/items.js';
+import { plusOf, enhancedModifiers } from '../items/enhance.js';
 import { isGear, canClassUse, meetsLevel } from '../items/itemDefs.js';
 import { ModifierSet } from '../items/modifierSystem.js';
 import { activeSetBonuses } from '../items/setSystem.js';
@@ -116,7 +117,7 @@ export class Equipment {
     return this.rulesCache;
   }
   // everything that decides the build's bonuses (slots + chosen evolutions)
-  buildKey() { return GEAR_SLOTS.map((s) => this.slots[s.id] || '').join('|') + '@' + this.evoArchetypes().join(','); }
+  buildKey() { return GEAR_SLOTS.map((s) => (this.slots[s.id] || '') + (this.inst[s.id] && this.inst[s.id].plus ? '+' + this.inst[s.id].plus : '')).join('|') + '@' + this.evoArchetypes().join(','); }
   lastErrorText() { return EQUIP_FAIL[this.lastError] || ''; }
   // takes off everything the class may not use (after a class change). Fixed slots keep their item.
   enforceClass(classId) { const E = this.game.online && this.game.online.econ; return E ? E.quiet(() => this.enforceNow(classId)) : this.enforceNow(classId); } // gear moves to the bag: still yours
@@ -141,7 +142,7 @@ export class Equipment {
       this.modifiers.clear();
       for (const s of GEAR_SLOTS) {
         const def = ITEMS[this.slots[s.id]];
-        if (def) for (const m of def.modifiers) this.modifiers.addModifier(s.id, m);
+        if (def) for (const m of enhancedModifiers(def.modifiers, plusOf(this.inst[s.id]))) this.modifiers.addModifier(s.id, m); // + enhancement
       }
       // SET BONUSES (data/items/sets.js): their modifiers join the same set, so the same caps apply
       for (const a of activeSetBonuses(this.wornIds())) for (const m of a.bonus.modifiers || []) this.modifiers.addModifier(a.key, m);
@@ -203,6 +204,7 @@ export class Equipment {
         && !Object.values(this.inst).some((y) => y.instanceId === x.instanceId)) {
         inv.ids.seen(x.instanceId);
         this.inst[slot] = { instanceId: x.instanceId, itemId: x.itemId };
+        if (plusOf(x)) this.inst[slot].plus = plusOf(x);
       }
     }
     this.modKey = null;
