@@ -115,9 +115,10 @@ PRESETS.be = { out: 'assets/player/be', nearestBody: true, sheets: {
 // the skill sheets are opaque fake checkerboard. opaque: alpha >= min -> fully opaque, below `haze` -> gone.
 const WR = 'desgin/class cr/UB/WR/';
 // headMatch: the attack / skill sheets were drawn with a bigger head than the walk -> sized by head width, not body height
-PRESETS.wr = { out: 'assets/player/wr', nearestBody: true, headMatch: true, opaque: { min: 150, haze: 60 }, sheets: {
+PRESETS.wr = { out: 'assets/player/wr', nearestBody: true, headMatch: { ref: 1.08 }, // WALK v2 (2026-10-13): its head is drawn smaller vs the body -> ref 1.08 keeps the other sheets at their old size
+   opaque: { min: 150, haze: 60 }, sheets: {
   walk: [WR + 'WALK.png', 4],
-  atk1: [WR + 'ATK1.png', 4],
+  atk1: [WR + 'ATK1.png', 4, { facing: { right: 3, left: 3, flipLeft: true } }], // owner: the left row slashes left with the face looking right -> mirror the right row
   atk2: [WR + 'ATK2.png', 4],
   dash: [WR + 'DASH.png', 4, { facing: { right: 2, left: 2, flipLeft: true } }], // every row of this sheet dashes RIGHT -> mirror it for the left
   hit: [WR + 'HIT.png', 4],
@@ -904,7 +905,8 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
     const heads = cells.filter((a, idx) => a && idx % COLS === 0 && Math.floor(idx / COLS) % 4 < 2).map((a) => headWidth(a.img)).filter((w) => w > 0).sort((p, q) => p - q);
     const src = heads[heads.length >> 1];
     // blend: body height alone made the attack poses ~10-20% too big, head width alone ~10% too small -> geometric mean
-    if (src) { if (headRef === null) headRef = src * scale; else scale = Math.sqrt(scale * (headRef / src)); }
+    // headMatch { ref }: multiplies the reference (a new walk sheet drawn with a bigger head keeps the other sheets at their old size)
+    if (src) { if (headRef === null) headRef = src * scale * ((headMatch && headMatch.ref) || 1); else scale = Math.sqrt(scale * (headRef / src)); }
   }
   const sheet = png.create(CW * COLS, CH * rows);
   cells.forEach((a, idx) => {

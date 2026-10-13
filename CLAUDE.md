@@ -1817,6 +1817,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   116.5 s, all WIN. Fixes (owner): WR basic slash drawn further out (44 / 50 px); WR DASH sheet dashes RIGHT in every row -> preset
   facing right 2 / left 2 mirrored; return stone props gate_ret* had black patches (glow painted on the black sheet) ->
   extract-props GLOW_FROM_BLACK (near-black / warm-dark halo -> colour-to-alpha against black, soft alpha, no drawn outline).
+  WR WALK v2 (owner 2026-10-13): new walk sheet (black bg) cut to alpha by build-title cutBlack (bg 3, erode 4, gap 0.8) -> WALK.png
+  (raw = WALK_src.png, old walk = WALK_old.png); headMatch { ref: 1.08 } keeps the other sheets at their old size; ATK1 left row
+  had the face turned away from the slash -> facing right 3 mirrored.
   WR polish 2 (owner: "bigger when attacking"): build-player preset option `headMatch` — every sheet's scale = geometric mean of
   the body-height scale and the scale that makes its neutral HEAD WIDTH equal the first sheet's (walk). The AI attack / skill sheets
   draw a bigger head on a shorter body: body height alone made them 10-20% too big (ATK1 head 29 px vs walk 24), head width alone too
