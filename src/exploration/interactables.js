@@ -292,10 +292,11 @@ export function drawInteractable(ctx, w, it, time) {
       }
       break;
     case 'waystone': drawWaystone(ctx, x, y, !!w.state.waystones[it.id], time); break;
-    case 'dungeonGate': drawDungeonGate(ctx, x, y, time); break;
+    // the owner's art (props gate_d* = Lumina stone gate, ac_gate* = Asteria marble gate; frame 0 = dormant), else drawn
+    case 'dungeonGate': if (!drawPropFrames(ctx, it.art === 'city' ? 'ac_gate' : 'gate_d', 1, 6, 8, x, y + 10, time)) drawDungeonGate(ctx, x, y, time); break;
     case 'mech': if (it.draw) it.draw(ctx, time); break;
     case 'trialRelic': if (relicReady(w, it)) drawRelic(ctx, x, y, time, it.color || '#c9a0ff'); break;
-    case 'cityReturn': drawCityReturn(ctx, x, y, time); break;
+    case 'cityReturn': if (!drawPropFrames(ctx, 'gate_ret', 0, 4, 5, x, y + 10, time)) drawCityReturn(ctx, x, y, time); break;
     case 'deathPile': drawDeathPile(ctx, x, y, time, !!it.owner); break;
     case 'lever': {
       ctx.fillStyle = '#4a4a52'; ctx.fillRect(x - 5, y - 14, 10, 14);
@@ -372,6 +373,16 @@ function drawChest(ctx, x, y, open, rare, t) {
 }
 
 // RETURN STONE (online N6): a low stone with a pale gold rune circle — the way back to the city
+// an animated prop strip from the props atlas: names <prefix><from> .. <prefix><from + n - 1>, feet at (x, y);
+// false = the art is missing (callers draw their code fallback)
+export function drawPropFrames(ctx, prefix, from, n, fps, x, y, t, scale = 1) {
+  const d = Assets.props && Assets.props[prefix + (from + (Math.floor(t * fps) % n))];
+  if (!d) return false;
+  const w = d.w * scale, h = d.h * scale;
+  ctx.drawImage(d.img, d.x, d.y, d.w, d.h, Math.round(x - w / 2), Math.round(y - h), w, h);
+  return true;
+}
+
 function drawCityReturn(ctx, x, y, t) {
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';

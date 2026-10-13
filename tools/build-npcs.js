@@ -24,13 +24,15 @@ const SHEETS = [
   { file: 'image-865cdf86-de45-4f39-9e21-59f058765d38-0.png', rows: ['kael', 'wren', 'pilgrim'] },
   { file: 'image-9ababaa3-042f-43a5-8a4d-a2bc3f8ea70d-0.png', rows: ['seraphine', 'odo', 'hilde'] },
   { file: 'image-a1da1ef6-3344-4aa8-9a47-31e40b7757c6-0.png', rows: ['callum', 'imre', 'marrow'] },
+  // city rework (2026-10-13): Lumina villagers (old woman = spare look, Maren keeps her first sheet)
+  { file: 'lumina_villagers.png', rows: ['granny', 'tomas', 'pip', 'hanna'] },
   // waystone keeper: 4 direction rows × 8 poses (front, right, back, left) -> one character
   { file: 'image-b78139fa-49da-431a-94f7-999f50442342-0.png', single: 'keeper', cols: 8,
     pick: { front: [0, 0], back: [2, 0], left: [3, 0], right: [1, 0], walk1: [0, 2], walk2: [0, 5] } },
 ];
 
 // characters whose 3rd column faces RIGHT (GPT mixed the two side poses): their left / right are exchanged
-const SWAP_SIDES = new Set(['aldric', 'borin', 'kael', 'wren', 'seraphine', 'odo', 'hilde']);
+const SWAP_SIDES = new Set(['aldric', 'borin', 'kael', 'wren', 'seraphine', 'odo', 'hilde', 'granny', 'tomas', 'pip', 'hanna']);
 
 const SOLID = 40; // alpha that counts as content for the grid search
 const dark = (d, i) => Math.max(d[i], d[i + 1], d[i + 2]) < 22;

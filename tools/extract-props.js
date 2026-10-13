@@ -25,15 +25,24 @@ const DRP = '../A/a2/SC/DRAGON/image-1e3f0fef-1571-4868-b296-d7673ea2e55d-0'; //
 // A2 water-level art (world/mechanics/waterLevel.js): props of the drained river (1254 px sheet) + the waterfall in 3 states (1024 px)
 const WP = '../A/a2/water/image-fb49acbd-d88c-4dc3-a28d-d133e8bc77e3-0';
 const WF = '../A/a2/water/image-d226c3dd-a2f5-45df-83a3-59d131251238-0';
-const SCALE = { [WP]: 0.8, [WF]: 0.62, [DRP]: 0.5, [A2P]: 0.5, [A3P]: 0.5, [B1P]: 0.5, [B2P]: 0.5, [B3P]: 0.5 }; // the city sheet (CP) stays full size: its buildings are drawn large
+// CITY REWORK (owner's city sprites, pure black background): desgin/Map/City/{SHARED,LUMINA,ASTERIA CITY}. Names: gate_* =
+// shared (Dungeon Gate frames, return stone frames, quest board), lc_* = Lumina, ac_* = Asteria (animated = numbered frames)
+const CG = '../City/SHARED/dungeon_gate.png', CR = '../City/SHARED/return_stone.png', CQ = '../City/SHARED/quest_board.png';
+const LH = '../City/LUMINA/houses.png', LG = '../City/LUMINA/guild.png', LS = '../City/LUMINA/smithy.png', LM = '../City/LUMINA/market_stalls.png';
+const LV = '../City/LUMINA/village_props.png', LF = '../City/LUMINA/forest_gate.png';
+const AF = '../City/ASTERIA CITY/crystal_fountain.png', AG = '../City/ASTERIA CITY/city_gate.png', AP = '../City/ASTERIA CITY/city_props.png', AS = '../City/ASTERIA CITY/shops.png';
+const PURE_BLACK = (r, g, b) => Math.max(r, g, b) <= 22;
+const CITY_SCALE = { [CG]: 0.36, [CR]: 0.22, [CQ]: 0.1, [LH]: 0.38, [LG]: 0.21, [LS]: 0.2, [LM]: 0.33, [LV]: 0.3, [LF]: 0.36, [AF]: 0.34, [AG]: 0.36, [AP]: 0.3, [AS]: 0.3 };
+const CITY_SHEETS = Object.keys(CITY_SCALE);
+const SCALE = { ...CITY_SCALE, [WP]: 0.8, [WF]: 0.62, [DRP]: 0.5, [A2P]: 0.5, [A3P]: 0.5, [B1P]: 0.5, [B2P]: 0.5, [B3P]: 0.5 }; // the city sheet (CP) stays full size: its buildings are drawn large
 // sheets whose background is not the navy of the old sets: their own background test. `fillHoles` = box mode keeps
 // background-coloured pixels enclosed by the prop (dark grey stone inside the city buildings)
 const GREY_BG = (r, g, b) => { const l = (r + g + b) / 3; return l >= 24 && l <= 58 && Math.max(r, g, b) - Math.min(r, g, b) <= 8; };
 const NAVY_DEEP = (r, g, b) => r <= 20 && g >= 20 && g <= 42 && b >= 46 && b <= 66 && b - g >= 14;
 const NEAR_BLACK = (r, g, b) => Math.max(r, g, b) <= 15 && b >= r;
 const WATER_NAVY = (r, g, b) => r <= 26 && g >= 12 && g <= 38 && b >= 36 && b <= 62 && b - g >= 18; // A2 water sheets (6,20,45 / 16,27,51)
-const SHEET_BG = { [CP]: GREY_BG, [B3P]: NAVY_DEEP, [DRP]: NEAR_BLACK, [WP]: WATER_NAVY, [WF]: WATER_NAVY };
-const FILL_HOLES = new Set([CP, DRP, WP, WF]);
+const SHEET_BG = { ...Object.fromEntries(CITY_SHEETS.map((k) => [k, PURE_BLACK])), [CP]: GREY_BG, [B3P]: NAVY_DEEP, [DRP]: NEAR_BLACK, [WP]: WATER_NAVY, [WF]: WATER_NAVY };
+const FILL_HOLES = new Set([CP, DRP, WP, WF, ...CITY_SHEETS]);
 const MANIFEST = {
   w_sluice_closed: [WP, 30, 40, 450, 362], w_sluice_open: [WP, 470, 40, 872, 362],
   w_lever_off: [WP, 895, 112, 1032, 352], w_lever_on: [WP, 1072, 112, 1212, 352],
@@ -60,6 +69,79 @@ const MANIFEST = {
   dr_rocks_a: [DRP, 15, 1800, 140, 1930], dr_rocks_b: [DRP, 140, 1800, 290, 1930],
   dr_skeleton: [DRP, 850, 1838, 1137, 2025], dr_brazier_bowl: [DRP, 1377, 1818, 1475, 1912],
   dr_cage_a: [DRP, 1500, 1800, 1588, 2025], dr_cage_b: [DRP, 1608, 1800, 1705, 2025], dr_cage_c: [DRP, 1740, 1800, 1843, 2025], dr_chains_hang: [DRP, 1874, 1800, 2038, 2025],
+  // ---- CITY REWORK sheets (boxes = tools probe of each sheet, reading order)
+  gate_d0: [CG, 372, 28, 652, 324],
+  gate_d1: [CG, 44, 356, 320, 648],
+  gate_d2: [CG, 380, 356, 656, 652],
+  gate_d3: [CG, 720, 356, 996, 652],
+  gate_d4: [CG, 36, 688, 316, 984],
+  gate_d5: [CG, 380, 692, 656, 988],
+  gate_d6: [CG, 720, 692, 1000, 996],
+  gate_ret0: [CR, 132, 116, 392, 420],
+  gate_ret1: [CR, 600, 116, 880, 420],
+  gate_ret2: [CR, 124, 576, 416, 904],
+  gate_ret3: [CR, 620, 604, 872, 904],
+  gate_board: [CQ, 228, 148, 1040, 1092],
+  lc_forest_gate: [LF, 20, 128, 1004, 836],
+  lc_guild: [LG, 60, 128, 1192, 1116],
+  lc_house_red: [LH, 36, 188, 412, 600],
+  lc_house_blue: [LH, 436, 188, 804, 596],
+  lc_house_moss: [LH, 832, 144, 1228, 604],
+  lc_house_grey: [LH, 28, 684, 408, 1064],
+  lc_house_straw: [LH, 428, 672, 812, 1064],
+  lc_house_brown: [LH, 832, 672, 1232, 1064],
+  lc_stall_potion: [LM, 20, 264, 312, 660],
+  lc_stall_food: [LM, 360, 284, 660, 692],
+  lc_stall_cloth: [LM, 716, 300, 1008, 724],
+  lc_smithy: [LS, 36, 60, 988, 1032],
+  lc_weapon_rack: [LS, 976, 580, 1232, 940],
+  lc_ingot_tub: [LS, 872, 892, 1144, 1088],
+  lc_fence_rail: [LV, 56, 60, 324, 172],
+  lc_fence_picket: [LV, 388, 36, 608, 176],
+  lc_fence_corner: [LV, 656, 28, 916, 208],
+  lc_fence_gate: [LV, 952, 24, 1204, 208],
+  lc_garden: [LV, 24, 196, 404, 440],
+  lc_hay: [LV, 432, 224, 656, 404],
+  lc_cart: [LV, 680, 220, 952, 436],
+  lc_water_barrel: [LV, 1040, 248, 1200, 436],
+  lc_well: [LV, 60, 456, 296, 748],
+  lc_lamp_post: [LV, 356, 448, 528, 740],
+  lc_tree_apple: [LV, 612, 464, 884, 764],
+  lc_tree_pear: [LV, 944, 464, 1192, 784],
+  lc_pot_lavender: [LV, 72, 804, 188, 984],
+  lc_pot_barrel: [LV, 220, 836, 340, 988],
+  lc_flower_arch: [LV, 416, 736, 716, 1036],
+  lc_bench: [LV, 860, 808, 1136, 1028],
+  lc_crates: [LV, 80, 1032, 384, 1200],
+  lc_sacks: [LV, 476, 1036, 708, 1220],
+  lc_goods: [LV, 832, 1044, 1148, 1196],
+  ac_fountain0: [AF, 64, 36, 564, 580],
+  ac_fountain1: [AF, 692, 20, 1188, 580],
+  ac_fountain2: [AF, 64, 660, 564, 1208],
+  ac_fountain3: [AF, 692, 648, 1188, 1208],
+  ac_gate0: [AG, 128, 32, 420, 420],
+  ac_gate1: [AG, 84, 420, 368, 796],
+  ac_gate2: [AG, 484, 416, 768, 796],
+  ac_gate3: [AG, 896, 420, 1180, 796],
+  ac_gate4: [AG, 84, 828, 368, 1204],
+  ac_gate5: [AG, 488, 832, 768, 1204],
+  ac_gate6: [AG, 896, 832, 1180, 1204],
+  ac_lamp3: [AP, 28, 20, 164, 368],
+  ac_lamp: [AP, 236, 52, 300, 360],
+  ac_banner: [AP, 372, 24, 472, 368],
+  ac_banner2: [AP, 540, 32, 700, 372],
+  ac_bench: [AP, 740, 140, 984, 372],
+  ac_planter: [AP, 32, 412, 228, 600],
+  ac_urn: [AP, 280, 412, 412, 608],
+  ac_stall: [AP, 472, 388, 704, 644],
+  ac_crates: [AP, 772, 436, 984, 616],
+  ac_statue: [AP, 20, 616, 176, 964],
+  ac_bell: [AP, 248, 644, 388, 972],
+  ac_hedge: [AP, 436, 704, 696, 948],
+  ac_fountain_s: [AP, 752, 684, 1008, 964],
+  ac_shop_potion: [AS, 44, 72, 568, 620],
+  ac_shop_smith: [AS, 668, 36, 1212, 656],
+  ac_shop_guild: [AS, 585, 900],
   // ---- forest
   tree_small_a: [F, 35, 90], tree_small_b: [F, 78, 88],
   tree_pine_a: [F, 140, 90], tree_round_a: [F, 190, 85], tree_round_b: [F, 240, 90], tree_teal_a: [F, 240, 145],

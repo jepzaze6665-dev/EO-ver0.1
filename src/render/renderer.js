@@ -218,6 +218,8 @@ export class Renderer {
 
   drawProp(ctx, p, game, ground) {
     const t = game.time;
+    // animated prop (opts.anim = { frames: [prop names], fps }): swap the frame by time
+    if (p.anim && Assets.props) { const f = Assets.props[p.anim.frames[Math.floor(t * (p.anim.fps || 6) + (p.anim.phase || 0)) % p.anim.frames.length]]; if (f) p.def = f; }
     if (!p.def) {
       if (p.canvas) {
         ctx.drawImage(p.canvas, Math.round(p.x - p.canvas.width / 2), Math.round(p.y - p.canvas.height));

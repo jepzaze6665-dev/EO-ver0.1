@@ -179,6 +179,66 @@
    "walk2"
   ]
  },
+ "granny": {
+  "file": "assets/npcs/granny.png",
+  "cw": 45,
+  "ch": 60,
+  "ax": 22,
+  "ay": 59,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "tomas": {
+  "file": "assets/npcs/tomas.png",
+  "cw": 46,
+  "ch": 76,
+  "ax": 23,
+  "ay": 75,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "pip": {
+  "file": "assets/npcs/pip.png",
+  "cw": 32,
+  "ch": 53,
+  "ax": 16,
+  "ay": 52,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
+ "hanna": {
+  "file": "assets/npcs/hanna.png",
+  "cw": 39,
+  "ch": 59,
+  "ax": 19,
+  "ay": 58,
+  "frames": [
+   "front",
+   "back",
+   "left",
+   "right",
+   "walk1",
+   "walk2"
+  ]
+ },
  "keeper": {
   "file": "assets/npcs/keeper.png",
   "cw": 42,

@@ -59,7 +59,7 @@ export function buildAsteriaTerrain(b) {
     for (let dx = -Math.floor(w / 2); dx <= Math.floor(w / 2); dx++) for (let dy = -(opts.depth || 2) + 1; dy <= 0; dy++) fp.push([dx, dy]);
     return b.prop(name, x, y, { solid: true, footprint: fp, ...opts });
   };
-  const lamp = (x, y, color = '#9ac8ff') => { b.prop('a_lamp_a', x, y, { solid: true, scale: 0.7 }); b.light(x, y - 1, 64, color, { a: 0.5, flicker: true }); };
+  const lamp = (x, y, color = '#9ac8ff') => { b.prop('ac_lamp', x, y, { solid: true }); b.light(x, y - 1, 64, color, { a: 0.5, flicker: true }); };
   const row = (names, xs, y, opts = {}) => {
     for (let x = xs[0] - 3; x <= xs[xs.length - 1] + 3; x++) if (m.get(x, y + 1) === G) m.set(x, y + 1, C);
     xs.forEach((x, i) => bld(names[(i + (opts.shift || 0)) % names.length], x, y, opts.w || 5, { scale: opts.scale || 0.9, depth: opts.depth || 3, flip: opts.flip ? r.chance(0.5) : false }));
@@ -86,13 +86,15 @@ export function buildAsteriaTerrain(b) {
   bld('a_spire_blue', 67, 42, 3, { scale: 0.8 });
 
   // CRYSTAL PLAZA: fountain, lamps, benches (Dungeon Gate / waystone / storage = maps/city2.js content)
-  bld('a_crystal_fountain', ...P.plaza, 5, { depth: 2, scale: 0.8, light: { r: 150, color: '#7ab8ff', a: 0.6, oy: -60, flicker: true } });
+  bld('ac_fountain0', ...P.plaza, 5, { depth: 3, dy: 10, anim: { frames: ['ac_fountain0', 'ac_fountain1', 'ac_fountain2', 'ac_fountain3'], fps: 5 }, light: { r: 150, color: '#7ab8ff', a: 0.6, oy: -60, flicker: true } });
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
     lamp(Math.round(P.plaza[0] + Math.cos(a) * 10), Math.round(P.plaza[1] + Math.sin(a) * 10));
   }
-  for (const [x, y] of [[49, 51], [63, 51], [49, 61], [63, 61]]) b.prop('a_bench', x, y, { scale: 0.7 });
-  b.prop('a_crate', 62, 64, { solid: true, scale: 0.7 });
+  for (const [x, y] of [[49, 51], [63, 51], [49, 61], [63, 61]]) b.prop('ac_bench', x, y, { flip: x > 56 });
+  for (const [x, y] of [[46, 46], [66, 46]]) b.prop('ac_planter', x, y, { solid: true });
+  for (const x of [52, 60]) b.prop('ac_banner2', x, 45, { solid: true });
+  b.prop('ac_crates', 62, 64, { solid: true });
 
   // Noble Quarter (NW) + Rosewall Homes (NE)
   const noble = ['a_manor_blue_a', 'a_house_blue_a', 'a_manor_blue_b', 'a_hall_blue', 'a_house_blue_b', 'a_manor_blue_c'];
@@ -105,16 +107,19 @@ export function buildAsteriaTerrain(b) {
   const tents = ['a_tent_purple', 'a_tent_gold', 'a_tent_white', 'a_tent_gold_b', 'a_tent_red', 'a_tent_blue', 'a_tent_purple_b', 'a_tent_red_b', 'a_tent_yellow'];
   let k = 0;
   for (const y of [63, 68]) for (let x = 13; x <= 31; x += 4) bld(tents[k++ % tents.length], x, y, 1, { depth: 1, scale: 0.75 });
-  bld('a_stall_house', 42, 61, 1, { depth: 1, scale: 0.8 });
+  bld('ac_shop_potion', 42, 60, 5, { depth: 3, dy: 6, light: { r: 70, color: '#ffc870', a: 0.45, oy: -40 } });
+  bld('ac_stall', 30, 72, 3, { depth: 1 });
   b.prop('a_barrel', 45, 62, { solid: true, scale: 0.7 });
 
   // Adventurer Guild (E of the plaza)
   bld('a_guild_hall', 85, 49, 9, { scale: 0.75, depth: 3, light: { r: 100, color: '#ffc870', a: 0.5, oy: -40 } });
-  for (const x of [79, 91]) b.prop('a_banner_stand_b', x, 51, { solid: true, scale: 0.8 });
+  for (const x of [79, 91]) b.prop('ac_banner', x, 52, { solid: true });
+  bld('ac_shop_guild', 71, 50, 5, { depth: 3, dy: 6 });
   bld('a_cathedral', 92, 70, 5, { scale: 0.7, depth: 3 });
 
   // Forge Row (SW) + Hall of Records (SE)
-  for (const [n, x] of [['a_forge_a', 16], ['a_forge_b', 24], ['a_forge_c', 44]]) bld(n, x, 76, 5, { scale: 0.7, depth: 3, light: { r: 80, color: '#ff7a30', a: 0.8, flicker: true, oy: -30 } });
+  bld('ac_shop_smith', 44, 75, 5, { depth: 3, dy: 6, light: { r: 80, color: '#ff7a30', a: 0.8, flicker: true, oy: -30 } });
+  for (const [n, x] of [['a_forge_a', 16], ['a_forge_b', 24]]) bld(n, x, 76, 5, { scale: 0.7, depth: 3, light: { r: 80, color: '#ff7a30', a: 0.8, flicker: true, oy: -30 } });
   bld('a_arena_hall', 68, 74, 5, { scale: 0.55, depth: 3 });
   bld('a_dome_blue', 86, 76, 5, { scale: 0.65, depth: 3 });
   b.prop('a_cry_blue', 48, 72, { solid: true, scale: 0.7, light: { r: 90, color: '#7ab8ff', a: 0.55, oy: -40, flicker: true } });
@@ -127,7 +132,11 @@ export function buildAsteriaTerrain(b) {
   const green = ['a_houses_green', 'a_house_green_a', 'a_house_green_b', 'a_house_green_c', 'a_house_green_d', 'a_house_green_e'];
   [88, 97].forEach((y, i) => row(green, [83, 90, 97], y, { shift: i * 2 }));
   // fountain garden: statues + trees on the south avenue
-  b.prop('a_statue_s', 50, 89, { solid: true, scale: 0.8 }); b.prop('a_statue_s', 62, 89, { solid: true, flip: true, scale: 0.8 });
+  b.prop('ac_statue', 50, 89, { solid: true }); b.prop('ac_statue', 62, 89, { solid: true, flip: true });
+  b.prop('ac_fountain_s', 47, 97, { solid: true, footprint: [[-1, 0], [0, 0], [1, 0]] });
+  b.prop('ac_bell', 61, 64, { solid: true });
+  for (const [x, y] of [[44, 86], [68, 86]]) b.prop('ac_hedge', x, y, { solid: true, footprint: [[-1, 0], [0, 0], [1, 0]] });
+  b.prop('ac_crates', 46, 63, { solid: true }); b.prop('ac_urn', 38, 63, { solid: true });
   for (const [x, y] of [[48, 84], [64, 93], [48, 93]]) b.prop(r.pick(['a_tree_c', 'a_tree_d', 'a_tree_e']), x, y, { solid: true, scale: 0.8 });
 
   // avenue lamps

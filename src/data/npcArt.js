@@ -1,6 +1,6 @@
 // Which NPC uses which sprite (assets/npcs/<art>.png, built by tools/build-npcs.js from desgin/NPC).
 // Keyed by NPC id (looks are shared between NPCs, art is not). NPCs not listed keep the canvas figure (monsterSprites npcSprite).
-// 'keeper' (Waystone Keeper) is built but no NPC uses it yet.
+// 'keeper' (Waystone Keeper) and 'granny' (spare old woman) are built but no NPC uses them yet.
 export const NPC_ART = {
   guide: 'aldric',          // Captain Aldric, Lumina
   elder: 'maren',           // Elder Maren, Lumina
@@ -14,4 +14,7 @@ export const NPC_ART = {
   a_smith: 'hilde',
   a_gate_guard: 'callum',
   a_scholar: 'imre',
+  guard: 'tomas',           // Tomas, Lumina gate guard
+  child: 'pip',             // Pip, Lumina
+  villager: 'hanna',        // Hanna, Lumina
 };
