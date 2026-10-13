@@ -33,7 +33,7 @@ export class WaterLevel extends MapMechanic {
       draw: (ctx) => this.sprite(ctx, this.drained ? 'w_lever_on' : 'w_lever_off', this.lever.x, this.lever.y, 0.55) });
     if (o.sluice) { const s = at(o.sluice.at); add({ id: 'water_sluice', ...s, radius: 0, available: () => false, draw: (ctx) => this.sprite(ctx, this.drained ? 'w_sluice_open' : 'w_sluice_closed', s.x, s.y, o.sluice.scale || 0.6) }); }
     if (o.chest) {
-      const c = at(o.chest.at), chest = { id: o.chest.id, kind: 'chest', ...c, radius: 34, rare: true, loot: o.chest.loot, gold: o.chest.gold };
+      const c = at(o.chest.at), chest = { id: o.chest.id, kind: 'chest', ...c, radius: 34, rare: true, fixed: true, loot: o.chest.loot, gold: o.chest.gold };
       add({ id: 'water_chest', ...c, radius: 38, prompt: 'Open Drowned Chest', available: () => this.drained && !w.state.chests[chest.id], use: () => interact(w, chest),
         draw: (ctx) => { if (this.drained) this.sprite(ctx, w.state.chests[chest.id] ? 'w_chest_open' : 'w_chest_closed', c.x, c.y + 6, 0.32); } });
     }

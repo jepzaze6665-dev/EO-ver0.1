@@ -6,7 +6,10 @@
 // `full` = the grid scan ran: a chest / node id missing from the catalog is then refused instead of trusted.
 import { MAPS } from '../src/maps/mapRegistry.js';
 
-const chestOf = (it) => ({ gold: it.gold || 0, items: Object.fromEntries((it.loot || []).map((l) => [l.item, l.count || 1])) });
+import { chestTable } from '../src/loot/lootSystem.js';
+
+// RANDOM CHESTS: a chest with a loot table keeps the chest def (economy.expected rolls it with the player's seed)
+const chestOf = (it) => (chestTable(it) ? { def: { ...it, loot: undefined } } : { gold: it.gold || 0, items: Object.fromEntries((it.loot || []).map((l) => [l.item, l.count || 1])) });
 
 export class EconCatalog {
   constructor() {
@@ -22,7 +25,7 @@ export class EconCatalog {
       }
     }
     // a corrupted totem's chest appears in the world once its event is done (world/world.js)
-    this.chest.chest_totem = { gold: 80, items: { umbral_band: 1, hp_potion: 2 } };
+    this.chest.chest_totem = chestOf({ id: 'chest_totem', kind: 'chest', gold: 80 });
   }
   add(it) {
     if (!it || !it.id) return;

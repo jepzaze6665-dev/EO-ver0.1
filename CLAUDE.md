@@ -1767,3 +1767,9 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   (return stone) · gate_board · lc_* (houses, guild, smithy, stalls, village props, forest gate) · ac_* (fountain0-3, shops, city
   props). Interactables draw them via drawPropFrames (code drawing = fallback); map props may carry `anim: { frames, fps }`
   (Renderer.drawProp swaps the frame). NPC art tomas / pip / hanna (+ spare granny) from desgin/NPC/lumina_villagers.png.
+- RANDOM CHESTS + LOOT BALANCE (owner 2026-10-13: too much gold, fixed chest contents, too many Umbral items): ordinary chests
+  roll a table (lootSystem chestTable: `table`, else tier from the old gold number ≤100 / ≤200 / more -> chest_1-3, ornate =
+  chest_rare_1-3; gear pool = only all-class items, data/lootTables.js CHEST_GEAR); designed chests carry `fixed: true` (A3 vaults,
+  A2 drowned chest, B2 hoards). Online the roll is seeded (seededRng(playerId + '|' + chestId)) and the server rolls the same in
+  economy.expected. Chest gold ~25 / 55 / 85 avg (was 40-300). oneOf picks: gear locked to another class line × LOOT_RULES.otherLineWeight 0.2.
+  Gold sink: owner decides.

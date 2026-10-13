@@ -42,7 +42,7 @@ export class Darkness extends MapMechanic {
   placeChest(z) {
     if (this.chests.some((c) => c.zone === z.id)) return;
     const pos = this.world.map.findOpen(z.x, z.y, 3);
-    const it = { id: `chest_hoard_${z.id}`, kind: 'chest', x: pos.x, y: pos.y, radius: 34, mapId: this.mapId, rare: true, zone: z.id, ...z.chest };
+    const it = { id: `chest_hoard_${z.id}`, kind: 'chest', x: pos.x, y: pos.y, radius: 34, mapId: this.mapId, rare: true, fixed: true, zone: z.id, ...z.chest };
     this.chests.push(it);
     this.world.interactables.push(it);
   }

@@ -4,6 +4,7 @@ import { ITEMS } from '../items/items.js';
 import { LORE, BOARD_TEXT, BOARD_TEXT_AFTER } from '../world/narrative.js';
 import { Monster } from '../monsters/monster.js';
 import { Assets } from '../core/assets.js';
+import { chestLoot, seededRng } from '../loot/lootSystem.js';
 
 // Behaviour + visuals for every interactable kind. Keeping the rules here means the
 // map files only *place* things; this file decides what they do.
@@ -60,9 +61,11 @@ export function interact(w, it) {
       g.audio.sfx(it.rare ? 'chest_rare' : 'chest');
       g.vfx.burst(it.x, it.y - 10, it.rare ? '#e0a0ff' : '#ffd070', it.rare ? 40 : 20, 140);
       if (it.rare) { g.vfx.ring(it.x, it.y, 6, 70, { color: '220,160,255', life: 0.6 }); g.ui.banner('RARE TREASURE', 'A hidden reward for the curious', '#e0b0ff'); }
-      const E = g.online && g.online.econ, take = () => { for (const l of it.loot || []) g.inventory.add(l.item, l.count); if (it.gold) p.addGold(it.gold); }; // ONLINE H5: chest = the reason
+      // RANDOM CHESTS (loot/lootSystem.js chestLoot): online the roll is seeded by player + chest id so the server rolls the same
+      const pid = g.online && g.online.playerId, got = chestLoot(it, pid ? seededRng(pid + '|' + it.id) : Math.random);
+      const E = g.online && g.online.econ, take = () => { for (const l of got.items) g.inventory.add(l.item, l.count); if (got.gold) p.addGold(got.gold); }; // ONLINE H5: chest = the reason
       if (E) E.why('chest', it.id, take); else take();
-      if (it.gold) { g.ui.pickup({ name: 'Gold', color: '#ffd24a', icon: 'coin' }, it.gold); }
+      if (got.gold) { g.ui.pickup({ name: 'Gold', color: '#ffd24a', icon: 'coin' }, got.gold); }
       g.events.emit('chestOpened', it.id);
       g.save.dirty = true;
       break;

@@ -1,5 +1,32 @@
-import { LOOT_TABLES, REPEAT_KILL } from '../data/lootTables.js';
+import { LOOT_TABLES, REPEAT_KILL, fillChestPools } from '../data/lootTables.js';
 import { GEAR_ITEMS } from '../data/items/index.js';
+import { canClassUse } from '../items/itemDefs.js';
+
+fillChestPools(Object.fromEntries(Object.entries(GEAR_ITEMS).map(([id, d]) => [id, d.rarity])));
+
+// owner 2026-10-13 ("too many Umbral items"): gear locked to ANOTHER class line is rarer in a oneOf pick for you
+export const LOOT_RULES = { otherLineWeight: 0.2 };
+
+// RANDOM CHESTS: an ordinary chest names `table`, else its tier comes from its old gold number (≤ 100 / ≤ 200 / more);
+// chests with `fixed: true` (designed rewards: vaults, hoards, drowned chest) keep their own loot + gold.
+export function chestTable(it) {
+  if (!it || it.fixed) return null;
+  if (it.table) return it.table;
+  const tier = (it.gold || 0) <= 100 ? 1 : (it.gold || 0) <= 200 ? 2 : 3;
+  return (it.rare ? 'chest_rare_' : 'chest_') + tier;
+}
+// same seed = same roll: the client and the server roll a chest identically (seed = player id + chest id)
+export function seededRng(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return () => { h = (h + 0x6D2B79F5) | 0; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+// what a chest gives: { gold, items: [{ item, count }] }
+export function chestLoot(it, rng = Math.random) {
+  const table = chestTable(it);
+  if (!table) return { gold: it.gold || 0, items: (it.loot || []).map((l) => ({ item: l.item, count: l.count || 1 })) };
+  return rollLoot(table, rng);
+}
 
 // a repeat boss kill: a signature item drops by REPEAT_KILL chance (by its rarity) instead of the table's own chance
 export function repeatChance(itemId, chance) {
@@ -16,7 +43,8 @@ export function repeatChance(itemId, chance) {
 export const getLootTable = (tableId) => LOOT_TABLES[tableId] || null;
 
 // one weighted pick from a oneOf group (null = empty group)
-function pickOne(items, rng) {
+function pickOne(items, rng, classId) {
+  if (classId) items = items.map((x) => (GEAR_ITEMS[x.item] && !canClassUse(GEAR_ITEMS[x.item], classId) ? { ...x, weight: (x.weight ?? 1) * LOOT_RULES.otherLineWeight } : x));
   const total = items.reduce((s, x) => s + Math.max(0, x.weight ?? 1), 0);
   if (!(total > 0)) return null;
   let r = rng() * total;
@@ -33,7 +61,7 @@ export function rollLoot(tableId, rng = Math.random, opts = {}) {
   for (const d of t.drops || []) if (rng() < (opts.repeat ? repeatChance(d.item, d.chance) : d.chance)) items.push({ item: d.item, count: Math.max(1, d.count || 1) });
   for (const grp of t.oneOf || []) {
     if (!(rng() < grp.chance)) continue;
-    const x = pickOne(grp.items || [], rng);
+    const x = pickOne(grp.items || [], rng, opts.classId);
     if (x) items.push({ item: x.item, count: Math.max(1, x.count || 1) });
   }
   return { gold, items };
@@ -81,7 +109,7 @@ export class LootSystem {
   }
   rollFor(e) {
     const g = this.game, r = { gold: 0, items: [] };
-    for (const id of [].concat(e.loot)) { const x = rollLoot(id, this.rng, { repeat: !!e.repeat }); r.gold += x.gold; r.items.push(...x.items); } // elites roll 2 tables
+    for (const id of [].concat(e.loot)) { const x = rollLoot(id, this.rng, { repeat: !!e.repeat, classId: g.player && g.player.classId }); r.gold += x.gold; r.items.push(...x.items); } // elites roll 2 tables
     if (r.gold) g.player.addGold(r.gold);
     for (const it of r.items) g.inventory.add(it.item, it.count);
     g.events.emit('lootDropped', { x: e.x, y: e.y, source: e.type, bossId: e.bossId || null, gold: r.gold, items: r.items });

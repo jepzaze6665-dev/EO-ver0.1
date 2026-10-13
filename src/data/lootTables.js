@@ -78,5 +78,39 @@ export const LOOT_TABLES = {
     oneOf: [{ chance: 1, items: [{ item: 'core_ironheart', weight: 1 }, { item: 'core_counter', weight: 1 }, { item: 'core_vanguard', weight: 1 }, { item: 'core_shadow_fang', weight: 1 }, { item: 'core_star_loom', weight: 1 }] }] },
   grukk: { gold: [150, 150], drops: [{ item: 'goblin_iron', chance: 1, count: 4 }, { item: 'shadow_tonic', chance: 1 }, { item: 'hp_potion', chance: 1, count: 2 }],
     oneOf: [{ chance: 1, items: [{ item: 'armor_fortress', weight: 1 }, { item: 'armor_guardian', weight: 1 }, { item: 'armor_risk', weight: 1 }, { item: 'armor_duskweave', weight: 1 }, { item: 'armor_starveil', weight: 1 }, { item: 'armor_pathfinder', weight: 1 }] }] },
+  // RANDOM CHESTS (owner 2026-10-13: chests were fixed + paid too much gold). Ordinary map chests roll one of these
+  // (lootSystem.chestTable: `table` on the chest, else tier from its old gold number, rare = ornate). Gear = CHEST_GEAR,
+  // the same weight for every class line.
+  chest_1: { gold: [15, 35], drops: [{ item: 'hp_potion', chance: 0.7 }, { item: 'crystal_shard', chance: 0.5, count: 2 }, { item: 'moon_crystal', chance: 0.15 }] },
+  chest_2: { gold: [35, 70], drops: [{ item: 'hp_potion', chance: 0.8, count: 2 }, { item: 'crystal_shard', chance: 0.6, count: 2 }, { item: 'shadow_tonic', chance: 0.3 }, { item: 'moon_crystal', chance: 0.25 }],
+    oneOf: [{ chance: 0.08, items: [] }] },
+  chest_3: { gold: [60, 110], drops: [{ item: 'hp_potion', chance: 0.9, count: 2 }, { item: 'moon_crystal', chance: 0.4 }, { item: 'shadow_tonic', chance: 0.4 }, { item: 'rune_crystal', chance: 0.4, count: 2 }],
+    oneOf: [{ chance: 0.12, items: [] }] },
+  chest_rare_1: { gold: [30, 60], drops: [{ item: 'moon_crystal', chance: 0.8 }, { item: 'hp_potion', chance: 0.6, count: 2 }], oneOf: [{ chance: 0.6, items: [] }] },
+  chest_rare_2: { gold: [60, 100], drops: [{ item: 'moon_crystal', chance: 1, count: 2 }, { item: 'shadow_tonic', chance: 0.6 }], oneOf: [{ chance: 0.75, items: [] }] },
+  chest_rare_3: { gold: [90, 150], drops: [{ item: 'moon_crystal', chance: 1, count: 2 }, { item: 'hp_potion', chance: 0.8, count: 2 }], oneOf: [{ chance: 0.9, items: [] }] },
   guardian: { gold: [300, 300], drops: [{ item: 'guardian_heart', chance: 1 }, { item: 'guardian_heartwood', chance: 1 }, { item: 'relic_oath_mirror', chance: 1 }] },
 };
+
+// RANDOM CHEST gear pools: only items EVERY class can wear (a chest must not favour one class line), no signatures.
+// tier 1 = common / uncommon, 2 = + rare, 3 = + epic. Weight by rarity.
+const CHEST_GEAR = {
+  1: ['charm_heavy', 'charm_swift', 'charm_wanderer', 'charm_focus', 'charm_guardian', 'rune_guarding_soul', 'rune_iron_will', 'rune_second_wind', 'core_vanguard', 'armor_pathfinder'],
+  2: ['core_ironheart', 'core_counter', 'armor_fortress', 'armor_guardian', 'rune_retribution', 'rune_provocation', 'rune_executioner', 'rune_hunters_sigil', 'charm_ember', 'rune_kindling', 'rune_echo_knot', 'charm_shade_thread', 'rune_riposte', 'charm_duelist'],
+  3: ['armor_risk', 'armor_ashen_robe', 'relic_ember_war'],
+};
+const CHEST_WEIGHT = { common: 3, uncommon: 3, rare: 2, epic: 1 };
+function chestPool(tier) {
+  const ids = [];
+  for (let t = 1; t <= tier; t++) ids.push(...CHEST_GEAR[t]);
+  return ids.map((item) => ({ item, weight: CHEST_WEIGHT[t2r(item)] || 1 }));
+}
+let RARITY_OF = null; // filled by setChestRarities (lootSystem: GEAR_ITEMS would be a circular import here)
+const t2r = (id) => (RARITY_OF && RARITY_OF[id]) || 'rare';
+export function fillChestPools(rarityOf) {
+  RARITY_OF = rarityOf;
+  for (const tier of [1, 2, 3]) {
+    const pool = chestPool(tier);
+    for (const id of [`chest_${tier}`, `chest_rare_${tier}`]) for (const g of LOOT_TABLES[id].oneOf || []) g.items = pool;
+  }
+}

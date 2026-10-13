@@ -13,7 +13,7 @@
 import { ITEMS } from '../src/items/items.js';
 import { isGear } from '../src/items/itemDefs.js';
 import { addExp } from '../src/progression/experience.js';
-import { rollLoot } from '../src/loot/lootSystem.js';
+import { rollLoot, chestLoot, seededRng } from '../src/loot/lootSystem.js';
 import { DIFFICULTY } from '../src/data/difficulty.js';
 import { BOSSES } from '../src/data/bosses.js';
 import { LEVELS } from '../src/data/levels.js';
@@ -116,7 +116,7 @@ export class EconomyService {
     } else return 'unknown op';
     // spends that open a paired gain (shop, death pile)
     if (!gain) { const r = this.pair(e, op, kind, id); if (r !== true) return r; }
-    if (gain && VERIFIED.has(kind)) return this.claim(e, op, kind, id);
+    if (gain && VERIFIED.has(kind)) return this.claim(e, op, kind, id, s.id);
     if (gain && PAIRED.has(kind)) return this.paired(e, op, kind, id);
     if (gain && SERVER_REASONS.has(kind)) { e.unverified++; return true; } // a room the server does not host yet (its first second)
     if (gain) return 'unchecked source: ' + kind;
@@ -167,12 +167,16 @@ export class EconomyService {
   }
 
   // ---------------- H5b: what a data source pays (null = unknown source)
-  expected(kind, id) {
+  expected(kind, id, pid) {
     const C = this.catalog;
     if (kind === 'quest') { const q = QUESTS[id]; return q ? { xp: expOf(questExp(q)), gold: (q.rewards && q.rewards.gold) || 0, items: { ...((q.rewards && q.rewards.items) || {}) } } : null; }
     if (kind === 'secret') { const h = HIDDEN[id]; return h ? { xp: expOf(hiddenExp(h)), gold: (h.reward && h.reward.gold) || 0, items: { ...((h.reward && h.reward.items) || {}) } } : null; }
     if (kind === 'explore') { const src = LEVELS.expSources[id.split(':')[0]]; return src ? { xp: expOf(src), gold: 0, items: {} } : null; }
-    if (kind === 'chest') { const c = C.chest[id]; return c ? { xp: 0, gold: c.gold, items: { ...c.items } } : null; }
+    if (kind === 'chest') {
+      const c = C.chest[id];
+      if (c && c.def) { const r = chestLoot(c.def, seededRng(pid + '|' + id)), items = {}; for (const l of r.items) items[l.item] = (items[l.item] || 0) + l.count; return { xp: 0, gold: r.gold, items }; }
+      return c ? { xp: 0, gold: c.gold, items: { ...c.items } } : null;
+    }
     if (kind === 'resource') { const r = C.resource[id]; return r ? { xp: 0, gold: 0, items: { [r.item]: 1 }, regrow: ECON_RULES.regrow } : null; }
     if (kind === 'forge') { const f = C.forge[id]; return f ? { xp: 0, gold: 0, items: { ...f.gives } } : null; }
     if (kind === 'shrine') return { xp: 0, gold: 0, items: { seal_fragment: 1 } };
@@ -181,12 +185,12 @@ export class EconomyService {
     if (kind === 'quarry') { const q = C.quarry[id]; return q ? { xp: 0, gold: q.gold, items: { ...q.items }, regrow: ECON_RULES.quarryAgain } : null; }
     return null;
   }
-  claim(e, op, kind, id) {
+  claim(e, op, kind, id, pid) {
     const key = kind + ':' + id, claims = e.claims || (e.claims = {}), now = Date.now();
     let b = claims[key];
     if (b && b.regrow && now - b.at > b.regrow * 1000) b = null; // the node grew back / the hare may run again
     if (!b) {
-      const exp = this.expected(kind, id);
+      const exp = this.expected(kind, id, pid);
       if (!exp) {
         // grid-built chests / nodes are only known after the scan: until then (or without one, e.g. unit tests) trust them
         if (!this.catalog.full && (kind === 'chest' || kind === 'resource' || kind === 'forge')) { e.unverified++; return true; }

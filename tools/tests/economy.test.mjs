@@ -106,10 +106,13 @@ await test('H5b: a map chest pays its data loot once; gold above it is undone; a
   const a = all.at(-1), e = S.economy.get(a.id), n0 = a.undo.length;
   a.send('econ', { ops: [['$', 999, ['chest', 'b1_chest_tower']]] });
   await until(() => a.undo.length === n0 + 1, 2000, 'too much gold undone');
-  const g0 = e.gold;
-  a.send('econ', { ops: [['$', 120, ['chest', 'b1_chest_tower']], ['i', 'frost_pelt', 2, ['chest', 'b1_chest_tower']], ['i', 'frost_pelt', 1, ['chest', 'b1_chest_tower']]] });
-  await until(() => a.undo.length === n0 + 2, 2000, 'third pelt undone');
-  ok(S.economy.get(a.id).gold === g0 + 120 && S.economy.get(a.id).items.frost_pelt === 2, 'paid once');
+  // RANDOM CHESTS: the server rolls the same seeded table as the client (player id + chest id)
+  const { chestLoot, seededRng } = await import('../../src/loot/lootSystem.js');
+  const r = chestLoot({ id: 'b1_chest_tower', kind: 'chest', gold: 120 }, seededRng(a.id + '|b1_chest_tower'));
+  const g0 = e.gold, ops = [['$', r.gold, ['chest', 'b1_chest_tower']], ...r.items.map((l) => ['i', l.item, l.count, ['chest', 'b1_chest_tower']]), ['i', 'frost_pelt', 1, ['chest', 'b1_chest_tower']]];
+  a.send('econ', { ops });
+  await until(() => a.undo.length === n0 + 2, 2000, 'pelt (not in the roll) undone');
+  ok(S.economy.get(a.id).gold === g0 + r.gold, 'paid the roll');
   a.send('econ', { ops: [['xp', 5, ['explore', 'areaDiscovered:Old Ford']], ['xp', 5, ['explore', 'areaDiscovered:Old Ford']]] });
   await until(() => a.undo.length === n0 + 3, 2000, 'second discovery undone');
 });
