@@ -13,4 +13,6 @@ export const RUN_RULES = {
   keepTypes: ['quest_item'],
   pileRadius: 40,   // E range at the pile
   helpRange: 120,   // server check for a party member carrying it (px, from the presence position)
+  // POTION LIMIT (owner 2026-10-13): healing potions usable per run (dying does not refill; going back to a city does).
+  potionLimit: { hp_potion: 5 },
 };

@@ -107,6 +107,8 @@ export class Inventory {
   use(id) {
     const g = this.game, p = g.player, def = ITEMS[id];
     if (!def || !def.use || !this.has(id)) return false;
+    const run = g.run, left = run ? run.potionsLeft(id) : null;
+    if (left === 0) { g.ui.toast(`No ${def.name} uses left this run (${run.potionLimit(id)} max)`, 1.2); return false; }
     if (def.use === 'heal') {
       if (p.hp >= p.maxHp) { g.ui.toast('HP is full', 0.8); return false; }
       p.heal(p.maxHp * 0.4, 'potion');
@@ -115,6 +117,7 @@ export class Inventory {
       p.gainResource(50, true); // the class's primary resource (Shadow / Astral / ...)
       g.vfx.burst(p.x, p.y - 20, RESOURCES[p.primaryResource].colors[0], 16, 70);
     }
+    if (run) run.notePotion(id);
     g.audio.sfx('potion');
     const E = econ(g);
     if (E) E.why('use', id, () => this.remove(id, 1)); else this.remove(id, 1);

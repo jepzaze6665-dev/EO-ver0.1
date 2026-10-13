@@ -25,6 +25,7 @@ export class RunSystem {
     this.monsterExp = 0;    // EXP earned from monsters in this run
     this.pile = null;       // { map, x, y, items: { id: n }, gear: [instances], at }
     this.stats = null;      // RUN SUMMARY: { dmg, heal, deaths, kills, bosses: [ids], gold, exp, startLevel, startExp, area, maps, t0 }
+    this.potions = {};      // POTION LIMIT: { itemId: used this run } (RUN_RULES.potionLimit)
     const ev = game.events;
     const mine = (x) => x && x === game.player;
     ev.on('damageDealt', (e) => { const st = this.stats; if (!st || !e.amount) return; const src = e.source && (e.source.owner || e.source); if (mine(src) && e.target && !e.target.isAlly && e.target !== game.player) st.dmg += e.amount; });
@@ -69,9 +70,13 @@ export class RunSystem {
   bank() {
     if (!this.active && !this.stats) return;
     const sum = this.summary();
-    this.active = false; this.start = null; this.monsterExp = 0; this.stats = null; this.dirty();
+    this.active = false; this.start = null; this.monsterExp = 0; this.stats = null; this.potions = {}; this.dirty();
     if (sum && (sum.kills || sum.dmg || sum.exp || sum.bosses.length || sum.gold)) this.game.events.emit('runSummary', sum);
   }
+  // POTION LIMIT: null = no limit for this item / not in a run, else uses left this run
+  potionLimit(id) { const lim = RUN_RULES.potionLimit && RUN_RULES.potionLimit[id]; return lim && this.active ? lim : null; }
+  potionsLeft(id) { const lim = this.potionLimit(id); return lim == null ? null : Math.max(0, lim - (this.potions[id] || 0)); }
+  notePotion(id) { if (this.potionLimit(id) != null) { this.potions[id] = (this.potions[id] || 0) + 1; this.dirty(); } }
   dirty() { if (this.game.save) this.game.save.dirty = true; }
 
   // what this run has gained so far (never key / quest items): { items: { id: n }, gear: [{ inst, slot|null }] }
@@ -146,13 +151,15 @@ export class RunSystem {
   }
 
   // ---------------- save
-  serialize() { return { v: 1, active: this.active, start: this.start, monsterExp: this.monsterExp, pile: this.pile, stats: this.stats }; }
+  serialize() { return { v: 1, active: this.active, start: this.start, monsterExp: this.monsterExp, pile: this.pile, stats: this.stats, potions: { ...this.potions } }; }
   load(d) {
     if (!d || typeof d !== 'object') return;
     this.active = !!d.active;
     this.start = d.start && typeof d.start === 'object' ? { items: { ...(d.start.items || {}) }, gear: [...(d.start.gear || [])] } : null;
     if (this.active && !this.start) this.start = this.carried();
     this.monsterExp = Math.max(0, d.monsterExp || 0);
+    this.potions = this.active && d.potions && typeof d.potions === 'object'
+      ? Object.fromEntries(Object.entries(d.potions).filter(([id, n]) => ITEMS[id] && n > 0).map(([id, n]) => [id, Math.floor(n)])) : {};
     const st = d.stats;
     this.stats = this.active && st && typeof st === 'object' ? { dmg: +st.dmg || 0, heal: +st.heal || 0, deaths: +st.deaths || 0, kills: +st.kills || 0, bosses: Array.isArray(st.bosses) ? st.bosses.filter((x) => typeof x === 'string') : [],
       gold: +st.gold || 0, exp: +st.exp || 0, startLevel: +st.startLevel || 1, startExp: +st.startExp || 0, area: st.area || null, maps: Array.isArray(st.maps) ? st.maps.filter((x) => typeof x === 'string') : [], t0: +st.t0 || Date.now() } : null;

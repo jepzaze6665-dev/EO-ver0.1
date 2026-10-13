@@ -345,7 +345,9 @@ export class HUD {
         ctx.imageSmoothingEnabled = true;
         ctx.drawImage(icon('potion', sl.potion === 'hp_potion' ? '#e05060' : '#a060ff'), ix + 2 * u, iy + 2 * u, is - 4 * u, is - 4 * u);
         this.text(ctx, String(n), ix + is - 1 * u, iy + is - 2 * u, 12 * u, n ? '#fff' : '#888', { align: 'right' });
-        ready = n > 0 && g.inventory.potionCd <= 0;
+        const left = g.run ? g.run.potionsLeft(sl.potion) : null; // POTION LIMIT: uses left this run
+        if (left != null) this.text(ctx, `${left}/${g.run.potionLimit(sl.potion)}`, ix + 2 * u, iy + 10 * u, 10 * u, left ? '#ffd27a' : '#ff5050');
+        ready = n > 0 && left !== 0 && g.inventory.potionCd <= 0;
       } else {
         const s = sl.s;
         ctx.imageSmoothingEnabled = true;

@@ -768,12 +768,8 @@ export class Panels {
     if ((!on || !on.online) && tab !== 'solo') act = `<div class="muted">${tl('Not connected to the server — parties need the online server. Solo works.')}</div>`;
     else if (tab === 'solo') act = `<button class="ms-play" data-go="solo" ${selOpen ? '' : 'disabled'}>${selOpen ? tl('PLAY — {name} alone', { name: esc(sel.short) }) : tl('🔒 LOCKED')}</button>`
       + (ex && exDef && !exIsArea ? `<button class="dg-go" data-go="road">${tl('Take the road to {name} alone', { name: esc(exDef.name) })}</button>` : '');
-    else if (!pt) {
-      const list = on.openParties || [];
-      act = `<button class="ms-play" data-go="create">${tl('CREATE PARTY')}</button><div class="pt-h">${tl('OPEN PARTIES HERE')}</div>`
-        + (list.length ? list.map((p) => `<div class="ms-open"><span>♛ ${esc(p.leader)} · ${p.size}/${p.max}${p.level ? ' · Lv.' + p.level : ''}</span><button data-join="${esc(p.id)}">${tl('Join')}</button></div>`).join('')
-          : `<div class="muted small">${tl('No open party here yet — create one, others can join it here.')}</div>`);
-    } else {
+    else if (!pt) act = `<button class="ms-play" data-go="create">${tl('CREATE PARTY')}</button>`;
+    else {
       const lead = pt.members.find((m) => m.id === pt.leader) || {};
       act = !on.isLeader ? `<div class="muted small">${tl('{name} chooses the map. You will be asked to accept.', { name: esc(lead.name || tl('The leader')) })}</div>`
         // owner: alone in a new party the panel looked frozen (no button) -> PLAY alone + close and wait in the city
@@ -783,6 +779,15 @@ export class Panels {
         : `<button class="ms-play" data-go="party" ${selOpen ? '' : 'disabled'}>${selOpen ? tl('PLAY — {name} with the party', { name: esc(sel.short) }) : tl('🔒 LOCKED')}</button>`;
       act += `<button data-go="leave" class="danger ms-leave">${tl('Leave party')}</button>`;
     }
+    // PARTY FINDER (owner: the open-party list sat at the bottom and nobody saw it) = a box at the TOP of the side panel
+    // in the Party tab; the Party tab button carries a count badge (the list is polled on both tabs while not in a party)
+    const openList = (on && on.online && !pt && on.openParties) || [];
+    const finder = tab === 'party' && on && on.online && !pt ? `<div class="ms-finder"><div class="ms-fh">${tl('OPEN PARTIES HERE')}<span>${openList.length}</span></div>`
+      + (openList.length ? openList.map((p) => {
+        const cls = p.classes || [];
+        const pips = Array.from({ length: p.max }, (_, i) => (i < p.size ? (cls[i] ? `<img src="assets/ui/class/${cls[i]}_emblem.png" alt="">` : '<i class="on"></i>') : '<i></i>')).join('');
+        return `<div class="ms-open"><div class="ms-ol"><b>♛ ${esc(p.leader)}</b><small>${p.level ? 'Lv.' + p.level + ' · ' : ''}${p.size}/${p.max}</small></div><div class="ms-pips">${pips}</div><button data-join="${esc(p.id)}">${tl('Join')}</button></div>`;
+      }).join('') : `<div class="muted small">${tl('No open party here yet — create one, others can join it here.')}</div>`) + '</div>' : '';
     // the map: picture (if the owner's art exists) or the drawn map, roads, cities, pins
     const pts = (r) => W.roads[r].map(([x, y]) => `${x},${y}`).join(' ');
     const pins = areas.map((a) => {
@@ -802,8 +807,9 @@ export class Panels {
       </div>
       <div class="ms-top"><kbd>Q</kbd>${strip}<kbd>E</kbd></div>
       <div class="ms-side">
-        <div class="ms-tabs"><button data-npc-tab="solo" class="${tab === 'solo' ? 'on' : ''}">${tl('Solo')}</button><button data-npc-tab="party" class="${tab === 'party' ? 'on' : ''}">${tl('Party')}</button>
+        <div class="ms-tabs"><button data-npc-tab="solo" class="${tab === 'solo' ? 'on' : ''}">${tl('Solo')}</button><button data-npc-tab="party" class="${tab === 'party' ? 'on' : ''}${openList.length && tab !== 'party' ? ' ms-glow' : ''}">${tl('Party')}${openList.length ? `<span class="ms-badge">${openList.length}</span>` : ''}</button>
           <button class="close ms-x" title="${tl('Close')}">✕</button></div>
+        ${finder}
         <div class="ms-head"><span class="ms-dia big" style="--rc:${routeCol(sel.route)}">${portrait((W.pins[this.gateSel] || {}).boss, 70, !bossDown && !!boss)}</span>
           <button class="ms-info" data-info="1" title="${tl('Details')}">i</button>
           <div class="ms-route" style="color:${routeCol(sel.route)}">${tl('ROUTE {r} · {name}', { r: esc(sel.route || ''), name: esc(sel.short) })}</div>
@@ -823,11 +829,11 @@ export class Panels {
     if (this.worldMapArt === undefined) { const im = new Image(); im.onload = () => { this.worldMapArt = true; if (this.current && this.current.name === 'gate') this.dungeonGate(); }; im.onerror = () => { this.worldMapArt = false; }; im.src = W.image; }
     // ask for the open parties once when the view opens, then every 2 s. A redraw (the answer redraws this window) must NOT
     // ask again: that was an endless ask -> answer -> redraw loop that rebuilt the window nonstop (clicks never landed)
-    if (on && on.online && tab === 'party' && !pt && !this.gatePoll) {
+    if (on && on.online && !pt && !this.gatePoll) {
       on.net.send('partyList', {});
       this.gatePoll = setInterval(() => {
         const c = this.current;
-        if (!c || c.name !== 'gate' || on.party || this.npcTab('gate') !== 'party' || !on.online) { clearInterval(this.gatePoll); this.gatePoll = null; return; }
+        if (!c || c.name !== 'gate' || on.party || !on.online) { clearInterval(this.gatePoll); this.gatePoll = null; return; }
         on.net.send('partyList', {});
       }, 2000);
     }

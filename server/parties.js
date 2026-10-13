@@ -57,7 +57,7 @@ export class PartyService {
   list(s) {
     const city = this.cityOf(s.id);
     const parties = city ? this.openParties(city).map((p) => ({ id: p.id, leader: p.members.get(p.leader).name, size: p.members.size, max: this.rules.maxSize,
-      members: [...p.members.values()].map((m) => m.name), level: this.session(p.leader)?.presence?.l || null })) : [];
+      members: [...p.members.values()].map((m) => m.name), classes: [...p.members.keys()].map((id) => this.session(id)?.presence?.c || null), level: this.session(p.leader)?.presence?.l || null })) : [];
     s.send('partyListData', { city: city || '', parties });
   }
 
