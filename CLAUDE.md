@@ -1842,3 +1842,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   WR walk centring (owner: "side walk: the body leads the legs"): build-player sheet option `centerFeet` = side-row frames moved
   sideways so the feet centroid sits on the pivot; the walk v2 side row drew head + feet ~3 px ahead of the pivot (= ahead of the
   shadow). Measured after: head -0.3 / feet -0.1 px.
+- CLASS 2 CHOICE + SECRET DISPLAY (owner 2026-10-13): ONE Class 2 per line (progression.js class2Of / needsReclass / reclass):
+  the first is free; another Class 2's trial asks for a RECLASS (PREMIUM.reclass 300 diamonds, ledger reason 'respec' what
+  'reclass'; progression.reclassReady, saved) — startTrial reason 'reclass'; when the new Class 2 unlocks the old one of that line is
+  given up (not owned, its trial forgotten; event 'classGivenUp'). Older saves owning several keep them. Class tab path card shows
+  "Reclass · 💎 300". SECRET classes (tier 4) are always listed in the class select and the Class tab as a LOCKED emblem only
+  ("SECRET CLASS ???", darkened, not clickable) until owned or their quest is active — the other session's SECRET_CLASS_RULES.live
+  false (reveal flag secret_classes_live) still keeps their paths closed; tests set that flag. Wyrmblood splash / emblem = owner's
+  art (desgin/UI/ตัวละคร/WR.png, desgin/UI/ICON CLASS/UB/WR.png, normal black cut).

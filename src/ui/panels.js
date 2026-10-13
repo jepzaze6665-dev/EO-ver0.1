@@ -260,6 +260,8 @@ export class Panels {
     const lines = STARTING_CLASSES;
     if (!lines.includes(this.csLine)) this.csLine = lines[0];
     const base = this.csLine, kids = Object.values(CLASS_TREE).filter((n) => n.parent === base && !n.hidden).map((n) => n.id);
+    // SECRET classes (owner): shown as a locked emblem only — no name, no preview, not clickable
+    const secrets = Object.values(CLASS_TREE).filter((n) => n.parent === base && n.tier === 4).map((n) => n.id);
     if (this.csSel !== base && !kids.includes(this.csSel)) this.csSel = base;
     const sel = this.csSel, c = CLASSES[sel], node = CLASS_TREE[sel] || {}, isBase = sel === base;
     const color = (id) => (CLASSES[id] && CLASSES[id].theme && CLASSES[id].theme.color) || '#b070ff';
@@ -270,12 +272,15 @@ export class Panels {
     const row = (id, kind) => `<button class="cs-node ${kind}${id === sel ? ' sel' : ''}" data-cs-sel="${id}" style="--cc:${color(id)}">
         <span class="cs-emb"><img src="${emblem(id)}" alt="">${kind === 'mastery' ? '<i class="cs-lock">🔒</i>' : ''}</span>
         <span class="cs-txt"><small>${kind === 'base' ? tl('BASE CLASS') : tl('CLASS 2')}</small><b>${esc(CLASSES[id] ? CLASSES[id].name : CLASS_TREE[id].name)}</b></span></button>`;
+    const secretRow = (id) => `<div class="cs-node mastery secret" style="--cc:${color(id)};cursor:default;opacity:.75" title="${esc(tl('SECRET CLASS'))}">
+        <span class="cs-emb"><img src="${emblem(id)}" alt="" style="filter:brightness(.55)"><i class="cs-lock">🔒</i></span>
+        <span class="cs-txt"><small>${tl('SECRET CLASS')}</small><b>???</b></span></div>`;
     const el = this.show('title', `
       <div class="cs-bg" style="--cc:${color(sel)}"></div>
       <img class="cs-splash" src="assets/ui/class/${sel}_splash.png" alt="" style="--cc:${color(sel)}">
       <div class="cs-wrap">
         <div class="cs-lines">${lines.map((id) => `<button data-cs-line="${id}" class="${id === base ? 'on' : ''}" title="${esc(CLASSES[id].name)}" style="--cc:${color(id)}"><img src="${emblem(id)}" alt=""><span>${esc(CLASSES[id].name)}</span></button>`).join('')}</div>
-        <div class="cs-tree">${row(base, 'base')}<div class="cs-kids">${kids.map((id) => row(id, 'mastery')).join('')}</div></div>
+        <div class="cs-tree">${row(base, 'base')}<div class="cs-kids">${kids.map((id) => row(id, 'mastery')).join('')}${secrets.map((id) => secretRow(id)).join('')}</div></div>
         <div class="cs-info" style="--cc:${color(sel)}">
           <div class="cs-role">${esc(tx(c.role || ''))}</div>
           ${c.identity ? `<div class="cs-quote">“${esc(tx(c.identity))}”</div>` : ''}
@@ -333,7 +338,7 @@ export class Panels {
     if (a.startsWith('trial:')) {
       this.close();
       const r = g.progression.startTrial(a.slice(6));
-      if (!r.ok) g.ui.toast(r.reason === 'busy' ? tl('Finish your current trial first') : tl('Requirements not met'), 1.2);
+      if (!r.ok) g.ui.toast(r.reason === 'busy' ? tl('Finish your current trial first') : r.reason === 'reclass' ? tl('You already have a Class 2 — buy a Reclass in the Class tab first') : tl('Requirements not met'), 1.2);
       else { const n = this.dialogueNpc; g.progression.onChapterEvent('talk', (c) => c.npc === n); }
       return;
     }
@@ -480,7 +485,12 @@ export class Panels {
       // CLASS UI (generic): lineage tree + codex of the selected class + path card (requirements / trial)
       const p = g.player, prog = g.progression, rec = prog.records[p.cls.id] || {};
       const tree = prog.lineage();
-      if (!this.classSel || !tree.some((t) => t.node.id === this.classSel)) this.classSel = p.cls.id;
+      // SECRET classes (owner): always listed, but only as a locked emblem until they are yours or their quest has begun
+      const rootId = (tree.find((t) => t.depth === 0) || { node: { id: p.cls.id } }).node.id;
+      const secretOpen = (id) => prog.owns(id) || Object.values(prog.trials).some((t) => t.node === id && t.state === 'active');
+      for (const n of Object.values(CLASS_TREE)) if (n.tier === 4 && n.parent === rootId && !tree.some((t) => t.node.id === n.id)) tree.push({ node: n, depth: 1, state: 'future' });
+      for (const t of tree) if (t.node.tier === 4 && !secretOpen(t.node.id)) t.secret = true;
+      if (!this.classSel || !tree.some((t) => t.node.id === this.classSel && !t.secret)) this.classSel = p.cls.id;
       const selId = this.classSel, selNode = CLASS_TREE[selId], selCls = CLASSES[selId];
       const bar = (have, need) => need ? `<span class="req-bar"><i style="width:${Math.min(100, (have / need) * 100)}%"></i></span><span class="muted small">${Math.floor(have)}/${need}</span>` : '';
       const reqRow = (r) => `<div class="req ${r.met ? 'ok' : ''}">${r.met ? '✓' : '○'} ${esc(tx(r.label))} ${r.need ? bar(r.have, r.need) : ''}</div>`;
@@ -489,6 +499,7 @@ export class Panels {
         if (!t) return '';
         if (x.unlocked || t.state === 'passed') return `<div class="trial passed">✦ ${esc(tx(t.def.title))} — ${tl('PASSED')}</div>`;
         if (t.state === 'active') return `<div class="trial active"><b>${esc(tx(t.def.title))}</b>${t.chapters.length > 1 ? t.chapters.map((c, i) => `<div class="small ${c.done ? 'muted' : ''}">${c.done ? '✓' : c.current ? '▸' : '•'} ${tl('Chapter')} ${i + 1}: ${esc(tx(c.text || ''))}</div>${c.current && c.where ? `<div class="muted small">↳ ${esc(tx(c.where))}</div>` : ''}`).join('') : ''}${t.objectives.map((o) => reqRow({ met: o.have >= o.count, label: tx(CLASS_COUNTERS[o.counter].label), have: Math.max(0, o.have), need: o.count }) + (o.have < o.count && CLASS_COUNTERS[o.counter].hint ? `<div class="muted small">↳ ${esc(tx(CLASS_COUNTERS[o.counter].hint))}</div>` : '')).join('')}<button data-abandon="${t.id}">${tl('Abandon trial')}</button></div>`;
+        if (x.reclass) return `<div class="trial"><b>${esc(tx(t.def.title))}</b><div class="muted small">${tl('You already have a Class 2 of this line. A Reclass lets you choose another one — the current one is given up when the new one unlocks.')}</div><button data-reclass="1">${tl('Reclass · 💎 {n}', { n: PREMIUM.reclass })}</button></div>`;
         return `<div class="trial"><b>${esc(tx(t.def.title))}</b>${t.def.objectives.map((o) => `<div class="muted small">• ${tx(CLASS_COUNTERS[o.counter].label)} ×${o.count}</div>`).join('')}<button data-trial="${x.node.id}" ${x.ready ? '' : 'disabled'}>${x.ready ? tl('Begin trial') : tl('Requirements not met')}</button></div>`;
       };
 
@@ -508,6 +519,7 @@ export class Panels {
       const root = tree.find((t) => t.depth === 0) || tree[0], kids = tree.filter((t) => t.depth > 0);
       const node = (t, kind) => {
         const id = t.node.id, pr = progressOf(id, t.state), dim = t.state === 'locked' || t.state === 'future';
+        if (t.secret) return `<div class="ct-node mastery dim secret" style="--cc:${colorOf(id)};cursor:default" title="${esc(tl('SECRET CLASS'))}"><img class="ct-emb" src="assets/ui/class/${id}_emblem.png" alt="" style="filter:brightness(.55)"><span class="ct-txt"><small>${tl('SECRET CLASS')}</small><b>???</b> ${badge('locked')}</span></div>`;
         return `<button class="ct-node ${kind}${id === selId ? ' sel' : ''}${dim ? ' dim' : ''}" data-node="${id}" style="--cc:${colorOf(id)};${t.depth > 1 ? `margin-left:${(t.depth - 1) * 26}px` : ''}">
           <img class="ct-emb" src="assets/ui/class/${id}_emblem.png" alt="">
           <span class="ct-txt"><small>${kind === 'base' ? tl('BASE CLASS') : tl('CLASS {n}', { n: t.node.tier })}</small><b>${esc(t.node.name)}</b> ${badge(t.state)}
@@ -585,7 +597,7 @@ export class Panels {
       this.inventory();
     });
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-wear],[data-tab],[data-cat],[data-preset-load],[data-preset-save],[data-evo-revert],[data-skill-reset],[data-filter],[data-tree-sel],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-abandon],[data-change],[data-node],.x');
+      const t = e.target.closest('[data-wear],[data-tab],[data-cat],[data-preset-load],[data-preset-save],[data-evo-revert],[data-skill-reset],[data-filter],[data-tree-sel],[data-item],[data-use],[data-equip],[data-equip-to],[data-unequip],[data-pick],[data-slot],[data-upgrade],[data-evo-open],[data-evolve],[data-trial],[data-reclass],[data-abandon],[data-change],[data-node],.x');
       if (!t) return;
       if (t.classList.contains('x')) return this.close();
       if (t.dataset.wear !== undefined) { const [slot, id] = t.dataset.wear.split(':'); if (g.player.wearCosmetic(slot, id || null)) g.audio.sfx('equip'); this.inventory(); }
@@ -621,8 +633,9 @@ export class Panels {
       }
       else if (t.dataset.upgrade) { const r = g.player.upgradeSkill(t.dataset.upgrade); g.audio.sfx(r.ok ? 'levelup' : 'deny'); this.inventory(); }
       else if (t.dataset.slot) { g.player.setSkillSlot(+t.dataset.slot, t.dataset.skill); this.inventory(); }
-      else if (t.dataset.trial) { const r = g.progression.startTrial(t.dataset.trial); if (!r.ok) g.ui.toast(r.reason === 'busy' ? tl('Finish your current trial first') : tl('Requirements not met'), 1.2); this.inventory(); }
+      else if (t.dataset.trial) { const r = g.progression.startTrial(t.dataset.trial); if (!r.ok) g.ui.toast(r.reason === 'busy' ? tl('Finish your current trial first') : r.reason === 'reclass' ? tl('You already have a Class 2 — buy a Reclass in the Class tab first') : tl('Requirements not met'), 1.2); this.inventory(); }
       else if (t.dataset.abandon) { g.progression.abandonTrial(t.dataset.abandon); this.inventory(); }
+      else if (t.dataset.reclass) { const r = g.progression.reclass(); g.ui.toast(r.ok ? tl('Reclass ready: choose your new Class 2') : r.reason === 'diamonds' ? tl('Not enough diamonds') : tl('Not possible'), 1.4); this.inventory(); }
       else if (t.dataset.node) { this.classSel = t.dataset.node; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.change) { const r = g.changeClass(t.dataset.change); if (r.ok) this.close(); else g.ui.toast(tl('Cannot change class: {why}', { why: r.reason }), 1.4); }
     });

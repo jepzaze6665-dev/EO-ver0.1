@@ -523,7 +523,7 @@ export function wyrmChecks(g) {
   g.newGame('umbral_sword'); releaseInput(g);
   g.progression.unlock('nightfall_reaper'); g.combat.lastCombatTime = -99; g.changeClass('nightfall_reaper');
   const hiddenBefore = !g.progression.isRevealed || !g.progression.isRevealed('wyrmblood_reaver');
-  g.player.setLevel(50); g.inventory.add('heart_of_varkharon', 1); g.world.setFlag('dragon_slain');
+  g.player.setLevel(50); g.inventory.add('heart_of_varkharon', 1); g.world.setFlag('dragon_slain'); g.world.setFlag('secret_classes_live');
   g.progression.unlock('wyrmblood_reaver');
   const r = g.changeClass('wyrmblood_reaver'), np = g.player;
   ok('Class change Nightfall Reaper -> Wyrmblood Reaver', r.ok && np.cls.id === 'wyrmblood_reaver' && np.sprites.preset === 'wr' && np.primaryResource === WF, `${np.cls.id} ${np.sprites.preset} hiddenBefore=${hiddenBefore}`);
@@ -1261,7 +1261,7 @@ export function classChangeChecks(g) {
   const base = CLASSES.umbral_sword;
   CLASSES.mock_class2 = { ...base, id: 'mock_class2', stableId: 'class_mock_class2', name: 'Mock Class 2' };
   CLASS_TREE.mock_class2 = { id: 'mock_class2', name: 'Mock Class 2', tier: 2, parent: 'astral_weaver', playable: true, requirements: [], trial: null };
-  CLASS_TREE.mock_unbuilt = { id: 'mock_unbuilt', name: 'Mock Unbuilt', tier: 2, parent: 'astral_weaver', playable: false, requirements: [], trial: null }; // a node whose class data does not exist yet
+  CLASS_TREE.mock_unbuilt = { id: 'mock_unbuilt', name: 'Mock Unbuilt', tier: 3, parent: 'astral_weaver', playable: false, requirements: [], trial: null }; // a node whose class data does not exist yet (tier 3: one Class 2 per line would give up mock_class2)
   try {
     let { p, d } = atDummy(g, 'astral_weaver');
     p.level = 14; p.exp = 33; p.gold = 777; p.recomputeStats(); p.hp = Math.round(p.maxHp / 2);

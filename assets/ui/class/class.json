@@ -73,8 +73,8 @@
  },
  "wyrmblood_reaver": {
   "splash": "assets/ui/class/wyrmblood_reaver_splash.png",
-  "sw": 900,
-  "sh": 821,
+  "sw": 592,
+  "sh": 900,
   "emblem": "assets/ui/class/wyrmblood_reaver_emblem.png"
  }
 }

@@ -51,4 +51,11 @@ export const TH_CLASS_SECRET = {
   "Drink the King's blood and it will ask a price: your own. Learn to fight bleeding — and then face what you become.": 'ดื่มเลือดของราชา แล้วมันจะเรียกค่าตอบแทน: เลือดของเจ้าเอง เรียนรู้ที่จะสู้ทั้งที่เลือดไหล — แล้วเผชิญหน้ากับสิ่งที่เจ้ากลายเป็น',
   "The Cinder King's blood runs in you now. Try not to let it run out.": 'เลือดของราชาเถ้าถ่านไหลอยู่ในตัวเจ้าแล้ว พยายามอย่าให้มันไหลหมดล่ะ',
   'SHADOW OF THE DRAGON BLOOD': 'SHADOW OF THE DRAGON BLOOD',
+  // ---- secret class display + reclass (UI)
+  'SECRET CLASS': 'คลาสลับ',
+  'You already have a Class 2 — buy a Reclass in the Class tab first': 'คุณมี Class 2 แล้ว — ซื้อ Reclass ในแท็บคลาสก่อน',
+  'You already have a Class 2 of this line. A Reclass lets you choose another one — the current one is given up when the new one unlocks.': 'คุณมี Class 2 ของสายนี้แล้ว ใช้ Reclass เพื่อเลือกคลาสใหม่ได้ — คลาสเดิมจะหายไปเมื่อคลาสใหม่ปลดล็อก',
+  'Reclass · 💎 {n}': 'Reclass · 💎 {n}',
+  'Reclass ready: choose your new Class 2': 'Reclass พร้อมแล้ว: เลือก Class 2 ใหม่ของคุณ',
+  'Not possible': 'ทำไม่ได้',
 };

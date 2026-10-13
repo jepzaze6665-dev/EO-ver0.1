@@ -2563,7 +2563,7 @@ export function secretQuestCheck(g, { node = 'wyrmblood_reaver', from = 'nightfa
   const p = () => g.player;
   p().setLevel(level); p().hp = p().maxHp;
   ok('Hidden before the dragon falls', !pr.paths().some((x) => x.node.id === node));
-  g.world.setFlag('dragon_slain');
+  g.world.setFlag('dragon_slain'); g.world.setFlag('secret_classes_live'); // secret classes are not released yet (SECRET_CLASS_RULES.live)
   ok('Revealed after (flag dragon_slain)', pr.paths().some((x) => x.node.id === node));
   g.world.changeMap('cinder'); g.simulate(2);
   const npc = g.world.interactables.find((i) => i.id === 'npc_master_dragon');

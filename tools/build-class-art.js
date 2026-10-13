@@ -22,9 +22,7 @@ const SPLASH = {
   umbral_sword: 'UB', nightfall_reaper: 'RP', duskrunner: 'DR', blade_of_echoes: 'BE',
   astral_weaver: 'AW', stormcaller: 'SM', void_scribe: 'VS', lumen_oracle: 'LO',
   aegis_guardian: 'AG', warden_of_dawn: 'WD', bulwark_sentinel: 'BS', oathbreaker: 'OK',
-  // secret class: no splash painting yet -> WR.png is the front ultimate frame (dragon behind the hero) on black, cut from
-  // desgin/class cr/UB/WR/UT.png. Replace it with real splash art when the owner makes one.
-  wyrmblood_reaver: 'WR',
+  wyrmblood_reaver: 'WR', // secret class (owner's splash 2026-10-13)
 };
 // class id -> emblem file (identified by eye from the owner's sheet, 2026-10-02)
 const EMBLEMS = {
@@ -40,13 +38,13 @@ const EMBLEMS = {
   bulwark_sentinel: 'AG/image-6f059803-0be6-4d33-b646-cb2f79ff3759-0.png',
   warden_of_dawn: 'AG/image-b4bd3a37-eebd-4dc0-af1f-75699234d299-0.png',
   oathbreaker: 'AG/image-c462c400-5f50-44df-83c1-0d9142ef7bc0-0.png',
-  wyrmblood_reaver: '../../ICON SKILL/UB/WR/UT.png', // secret class: its ultimate icon (dragon head) until an emblem exists
+  wyrmblood_reaver: 'UB/WR.png',
 };
 // splash cut: dark costumes (black shins / cloaks reach values 4-12) need a LOW threshold; gaps must be almost all pure black
 const SPLASH_CUT = { bg: 3, soft: 3, softLum: 30, hole: 0, erode: 4, gap: 0.8, gapMin: 400 };
 // per-class overrides: bright armour + AI grey noise around the head (Aegis) -> a higher threshold is safe there
 // cut: false = the source already has a transparent background (no black cut; small sources are scaled up pixel-sharp)
-const SPLASH_CUT_BY = { wyrmblood_reaver: { cut: false }, aegis_guardian: { bg: 12, erode: 5, gap: 0.5 }, warden_of_dawn: { bg: 10, erode: 5, gap: 0.6 }, lumen_oracle: { bg: 10, erode: 5, gap: 0.6 }, oathbreaker: { bg: 6, gap: 0.4 } };
+const SPLASH_CUT_BY = { aegis_guardian: { bg: 12, erode: 5, gap: 0.5 }, warden_of_dawn: { bg: 10, erode: 5, gap: 0.6 }, lumen_oracle: { bg: 10, erode: 5, gap: 0.6 }, oathbreaker: { bg: 6, gap: 0.4 } };
 const EMBLEM_CUT = { bg: 18, soft: 5, softLum: 70, hole: 0 };
 
 // drop small DARK islands left floating in the background (AI noise specks); bright sparks / magic motes are art: kept
@@ -80,7 +78,7 @@ function main() {
   for (const [id, rel] of Object.entries(EMBLEMS)) {
     const f = path.join(EMBLEM_DIR, rel);
     if (!fs.existsSync(f)) { console.log('missing emblem', id); continue; }
-    const im = shrink(crop(id === 'wyrmblood_reaver' ? png.read(f) : cutBlack(png.read(f), EMBLEM_CUT), 4), EMBLEM); // secret class: its icon already has alpha
+    const im = shrink(crop(cutBlack(png.read(f), EMBLEM_CUT), 4), EMBLEM);
     png.write(path.join(OUT, id + '_emblem.png'), im);
     (meta[id] ||= {}).emblem = `assets/ui/class/${id}_emblem.png`;
   }

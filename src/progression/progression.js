@@ -1,5 +1,6 @@
 import { CLASS_TREE, CLASS_COUNTERS, TRIALS, trialChapters } from '../data/classTree.js';
 import { evaluate, evaluateAll, matches } from './requirements.js';
+import { PREMIUM } from '../data/premium.js';
 
 // CLASS PROGRESSION — class records, class-tree requirements and class trials for the current character.
 // Everything comes from data/classTree.js; this file never names a class.
@@ -19,6 +20,7 @@ export class Progression {
     this.unlocked = [];
     this.startingClass = null; // chosen at character creation
     this.history = [];        // class changes: { from, to, level }
+    this.reclassReady = false; // a Reclass was bought: the next Class 2 may replace the current one (see needsReclass)
     this.wire();
   }
 
@@ -81,7 +83,7 @@ export class Progression {
         const reqs = evaluateAll(n.requirements, ctx);
         const trial = n.trial ? { id: n.trial, def: TRIALS[n.trial], ...this.trialView(n.trial) } : null;
         const ready = reqs.every((r) => r.met);
-        return { node: n, reqs, ready, trial, unlocked: this.unlocked.includes(n.id) };
+        return { node: n, reqs, ready, trial, unlocked: this.unlocked.includes(n.id), reclass: this.needsReclass(n.id) };
       });
   }
 
@@ -147,6 +149,7 @@ export class Progression {
     const g = this.game, path = this.paths().find((x) => x.node.id === nodeId);
     if (!path || !path.trial) return { ok: false, reason: 'unknown' };
     if (!path.ready) return { ok: false, reason: 'requirements' };
+    if (this.needsReclass(nodeId)) return { ok: false, reason: 'reclass' }; // another Class 2 of this line is yours: Reclass first
     if (this.trials[path.trial.id]) return { ok: false, reason: this.trials[path.trial.id].state };
     if (Object.values(this.trials).some((t) => t.state === 'active')) return { ok: false, reason: 'busy' }; // one trial at a time
     this.trials[path.trial.id] = { state: 'active', node: nodeId, base: {}, step: 0 };
@@ -175,8 +178,33 @@ export class Progression {
     this.unlock(t.node);
     g.save.dirty = true;
   }
+  // ---------------- CLASS 2 CHOICE (owner 2026-10-13): ONE Class 2 per line. Taking another one needs a RECLASS first
+  // (diamonds, PREMIUM.reclass); when the new Class 2 unlocks, the old one of that line is given up (no longer owned, its
+  // trial forgotten — choosing it again = another Reclass + its trial). Older saves that own several keep them.
+  lineOf(id) { let c = id; while (CLASS_TREE[c] && CLASS_TREE[c].parent) c = CLASS_TREE[c].parent; return c; }
+  class2Of(line, except = null) { return this.unlocked.find((id) => id !== except && CLASS_TREE[id] && CLASS_TREE[id].tier === 2 && this.lineOf(id) === line) || null; }
+  needsReclass(nodeId) {
+    const n = CLASS_TREE[nodeId];
+    return !!(n && n.tier === 2 && !this.unlocked.includes(nodeId) && !this.reclassReady && this.class2Of(this.lineOf(nodeId), nodeId));
+  }
+  reclass() {
+    if (this.reclassReady) return { ok: false, reason: 'ready' };
+    if (!Object.values(CLASS_TREE).some((n) => n.tier === 2 && this.unlocked.includes(n.id))) return { ok: false, reason: 'none' };
+    if (!this.game.player.spendDiamonds(PREMIUM.reclass, 'reclass')) return { ok: false, reason: 'diamonds' };
+    this.reclassReady = true;
+    this.game.events.emit('reclassBought', { player: this.game.player });
+    this.game.save.dirty = true;
+    return { ok: true };
+  }
   unlock(nodeId) {
     if (this.unlocked.includes(nodeId)) return;
+    const n = CLASS_TREE[nodeId], old = n && n.tier === 2 ? this.class2Of(this.lineOf(nodeId), nodeId) : null;
+    if (old) { // the Reclass is spent: the previous Class 2 of this line is given up
+      this.unlocked = this.unlocked.filter((id) => id !== old);
+      for (const [tid, t] of Object.entries(this.trials)) if (t.node === old) delete this.trials[tid];
+      this.reclassReady = false;
+      this.game.events.emit('classGivenUp', { classId: old, for: nodeId });
+    }
     this.unlocked.push(nodeId);
     this.game.events.emit('classUnlocked', { classId: nodeId, node: CLASS_TREE[nodeId] });
     this.game.save.dirty = true;
@@ -204,7 +232,7 @@ export class Progression {
   // classes this character may change into: its starting class + everything unlocked
   owns(classId) { return classId === this.startingClass || this.unlocked.includes(classId); }
 
-  serialize() { return { records: this.records, trials: this.trials, unlocked: this.unlocked, startingClass: this.startingClass, history: this.history }; }
+  serialize() { return { records: this.records, trials: this.trials, unlocked: this.unlocked, startingClass: this.startingClass, history: this.history, reclassReady: !!this.reclassReady }; }
   load(d) {
     if (!d) return;
     this.records = JSON.parse(JSON.stringify(d.records || {}));
@@ -212,6 +240,7 @@ export class Progression {
     this.unlocked = (d.unlocked || []).filter((id) => CLASS_TREE[id]);
     this.startingClass = CLASS_TREE[d.startingClass] ? d.startingClass : null;
     this.history = Array.isArray(d.history) ? d.history.slice(-50) : [];
+    this.reclassReady = !!d.reclassReady;
   }
 }
 export { evaluate };

@@ -153,3 +153,20 @@ Pixel art class emblem icon: a cracked shield split by a jagged violet blade wit
 - ทำ **Umbral Sword ก่อน** เลือกรูปที่ชอบที่สุด แล้วใช้เป็นภาพอ้างอิงสไตล์ให้ทุกคลาสที่เหลือ (Midjourney: `--sref <ลิงก์รูปนั้น>`; เครื่องมืออื่น: ใส่เป็น reference image)
 - class 2 ของแต่ละสายควรมีหน้าตาเป็น "คนเดิมที่อัปเกรด" (ผมดำ ชุดโทนเดียวกับ base) แบบในภาพที่ส่งมา
 - ถ้าตัวละครออกมาไม่เต็มตัว (เท้าขาด) ให้เพิ่ม `full body visible from head to boots`
+
+---
+
+## คลาสลับ (SECRET · เลือดมังกรไฟ)
+
+### 13. Wyrmblood Reaver — `wyrmblood_reaver` (Secret · สาย Umbral)
+วางไฟล์ splash ทับ `desgin/UI/ตัวละคร/WR.png` (ตอนนี้เป็นภาพชั่วคราวที่ตัดจากท่า Ult) · emblem วางที่ `desgin/UI/ICON CLASS/UB/WR.png`
+อัปโหลดภาพ `desgin/class cr/UB/WR/WALK.png` เป็น reference ด้วย เพื่อให้หน้าตา / ชุด / ดาบตรงกับตัวในเกม
+
+**Splash**
+```text
+Full-body pixel art character splash of a feral blood-fire swordsman with messy black hair and glowing orange-red eyes, long black leather coat with dark crimson dragon-scale shoulders and a tattered black-red half cape shaped like a torn dragon wing, glowing molten-red vein lines running along both arms and the neck, holding twin curved black swords with crimson edges and thin lines of molten lava flowing along the blades, low predatory stance with blades held low, a faint giant crimson dragon silhouette made of blood-fire rising behind him, dark fantasy anime style, crisp detailed pixels, strong crimson and molten-orange rim light, embers and small blood droplets floating around, isolated on a plain pure black background, no text, no frame, character fills 85% of the image height
+```
+**Emblem**
+```text
+Pixel art class emblem icon: a crimson dragon head in profile with an open fanged jaw, two curved black blades crossed behind it, a drop of glowing molten blood at the center, dark iron crest with glowing crimson and molten-orange edges, centered, isolated on plain pure black background, no text, crisp pixels, high resolution
+```

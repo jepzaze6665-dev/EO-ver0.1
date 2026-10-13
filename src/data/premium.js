@@ -7,5 +7,7 @@ export const PREMIUM = {
     evolution: 50, // undo one skill evolution (Player.revertEvolution)
     skills: 100,   // reset every skill level of the current class, points back (Player.resetSkillLevels)
   },
+  // RECLASS (owner 2026-10-13): one Class 2 per line; choosing another one needs a Reclass first (progression.reclass)
+  reclass: 300,
   devGrant: 100,   // Dev Panel button (dev mode only)
 };
