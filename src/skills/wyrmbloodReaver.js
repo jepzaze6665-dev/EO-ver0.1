@@ -16,8 +16,9 @@ const F = 'wyrm_fury';
 // 1 = wind-up, 2-4 = action, 5 = recovery. No idle sheet: idle = the walk sheet's first pose.
 export const WR_ANIMS = {
   idle: { sheet: 'walk', cols: [0], fps: 2, loop: true },
-  walk: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 10, loop: true },
-  run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 14, loop: true },
+  // bob: the AI walk sheet barely moves the legs (about 1/3 of the other Umbral classes) -> a step bounce sells the step
+  walk: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 9, loop: true, bob: 2 },
+  run: { sheet: 'walk', cols: [0, 1, 2, 3, 4, 5], fps: 12, loop: true, bob: 3 },
   atk1: { sheet: 'atk1', cols: [1, 2, 3, 4] },
   atk2: { sheet: 'atk2', cols: [1, 2, 3, 4] },
   atk3: { sheet: 'sk2', cols: [1, 3, 4] },                 // heavy cleave finisher
@@ -126,7 +127,6 @@ export const WyrmbloodReaver = {
       lunge: { dist: d.lunge, t0: 0, t1: 0.1 },
       events: [[d.at, () => {
         g.audio.sfx(d.combo ? 'slash_heavy' : 'swing');
-        g.vfx.sprite('wr_slash', p.x + Math.cos(a) * (d.combo ? 50 : 44), p.y - 14 + Math.sin(a) * (d.combo ? 50 : 44), a, { scale: d.combo ? 0.8 : 0.55, life: 0.2, flipY: step === 1, glow: 0.35 });
         g.combat.spawnHitbox({
           owner: p, x: p.x, y: p.y - 10, ang: a, shape: 'cone', r: d.r, half: d.half, power: d.power, type: 'physical',
           knock: d.knock ?? 60, stagger: 8 + step * 7, hitStop: d.combo ? 0.07 : 0.035, shake: d.combo ? 0.15 : 0.07,
