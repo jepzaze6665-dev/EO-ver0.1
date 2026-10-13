@@ -580,7 +580,7 @@ export class Panels {
     el.addEventListener('dblclick', (e) => {
       const t = e.target.closest('[data-item]');
       if (!t || !isGear(ITEMS[t.dataset.item])) return;
-      if (!g.equipment.equip(t.dataset.item)) g.ui.toast(tl(g.equipment.lastErrorText()), 1.2);
+      if (!g.equipment.equip(t.dataset.item)) g.ui.toast(tl(g.equipment.lastErrorText()), 3);
       else { this.selected = null; g.audio.sfx('equip'); }
       this.inventory();
     });
@@ -603,9 +603,9 @@ export class Panels {
       else if (t.dataset.cat) { this.invCat = t.dataset.cat; this.inventory(); }
       else if (t.dataset.item) { this.selected = t.dataset.item; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.use) { g.inventory.use(t.dataset.use); this.inventory(); }
-      else if (t.dataset.equip) { if (!g.equipment.equip(t.dataset.equip)) g.ui.toast(tl(g.equipment.lastErrorText()), 1.2); if (!g.inventory.has(this.selected)) this.selected = null; this.inventory(); }
-      else if (t.dataset.unequip) { if (!g.equipment.unequip(t.dataset.unequip)) g.ui.toast(tl(g.equipment.lastErrorText()), 1.2); else this.pickSlot = null; this.inventory(); }
-      else if (t.dataset.equipTo) { const [id, slot] = t.dataset.equipTo.split(':'); if (!g.equipment.equip(id, slot)) g.ui.toast(tl(g.equipment.lastErrorText()), 1.2); else this.pickSlot = null; this.inventory(); }
+      else if (t.dataset.equip) { if (!g.equipment.equip(t.dataset.equip)) g.ui.toast(tl(g.equipment.lastErrorText()), 3); if (!g.inventory.has(this.selected)) this.selected = null; this.inventory(); }
+      else if (t.dataset.unequip) { if (!g.equipment.unequip(t.dataset.unequip)) g.ui.toast(tl(g.equipment.lastErrorText()), 3); else this.pickSlot = null; this.inventory(); }
+      else if (t.dataset.equipTo) { const [id, slot] = t.dataset.equipTo.split(':'); if (!g.equipment.equip(id, slot)) g.ui.toast(tl(g.equipment.lastErrorText()), 3); else this.pickSlot = null; this.inventory(); }
       else if (t.dataset.pick) { this.pickSlot = this.pickSlot === t.dataset.pick ? null : t.dataset.pick; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.evoOpen !== undefined) { this.evoSel = t.dataset.evoOpen || null; this.inventory(); g.audio.sfx('ui'); }
       else if (t.dataset.evolve) {

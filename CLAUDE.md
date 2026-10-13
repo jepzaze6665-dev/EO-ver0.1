@@ -1602,7 +1602,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   items/gearRules.js (rulesOf / ruleHitMult / ruleTakenMult / ruleSkillMods / ruleDodgeHp / installGearRules = blood_pact
   listener). Hooks: Player.gearRules() (Equipment.rules() cached per slots), gearHitMult (not DoT ticks), gearDamageTakenMult,
   skillMods (rules last, cooldown floor ×0.4), tryDodge (HP instead of stamina). ONE rule item worn at a time (EQUIP_FAIL.oneRule).
-  6 epic runes data/items/ruleRunes.js (Blood Step, Overclock, Still Blade, Reckless Oath, Desperation, Blood Pact −10% HP), drop
+  (owner 2026-10-13: a second rule rune now REPLACES the worn one instead of being refused.) 6 epic runes data/items/ruleRunes.js (Blood Step, Overclock, Still Blade, Reckless Oath, Desperation, Blood Pact −10% HP), drop
   from the mini_relic table (A2+ mini-bosses). No icon art yet (drawn fallback). Test gearRules.test.mjs (7).
   Done B4 (build-making items): new generic item effects (items/effectSystem.js, limits in triggers.js EFFECT_LIMITS B4):
   detonateStatus { status, value = ticks } · spreadStatus { status, radius, max } · aftershock { value, delay } (a phantom

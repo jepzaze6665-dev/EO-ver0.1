@@ -44,15 +44,14 @@ test('overclock: cost ×1.8, cooldown ×0.6 (floor 0.4)', () => {
   eq(ruleSkillMods(rulesOf(['rune_overclock']), { cost: 1, cooldown: 0.5 }).cooldown, 0.4, 'floor');
 });
 test('blood step: 5% max HP per dodge', () => { eq(ruleDodgeHp(rulesOf(['rune_blood_step']), { maxHp: 300 }), 15); });
-test('only one rule rune worn at a time', () => {
+test('only one rule rune worn at a time: a new one replaces it', () => {
   const g = { time: 0, events: new EventBus(), audio: { sfx() {} }, vfx: { text() {} }, player: { level: 50, cls: { id: 'umbral_sword' }, recomputeStats() {} } };
   g.inventory = new Inventory(g); g.equipment = new Equipment(g);
   for (const id of ['rune_reckless', 'rune_overclock', 'rune_guarding_soul']) g.inventory.add(id);
   ok(g.equipment.equip('rune_reckless', 'rune1'), 'first ' + g.equipment.lastError);
-  ok(!g.equipment.equip('rune_overclock', 'rune2'), 'second refused');
-  eq(g.equipment.lastError === 'oneRule' ? 1 : 0, 1, 'reason');
+  ok(g.equipment.equip('rune_overclock', 'rune2'), 'a second rule rune replaces the first ' + g.equipment.lastError);
+  ok(g.equipment.slots.rune1 === 'rune_overclock' && !g.equipment.slots.rune2 && g.inventory.has('rune_reckless'), 'swapped into the old slot, old one in the bag');
   ok(g.equipment.equip('rune_guarding_soul', 'rune2'), 'a normal rune still fits');
-  ok(g.equipment.equip('rune_overclock', 'rune1'), 'swap in the same slot');
   ok(g.equipment.rules().overclock && !g.equipment.rules().reckless, 'cache follows the slots');
 });
 test('blood pact heals from hits, capped per hit', () => {

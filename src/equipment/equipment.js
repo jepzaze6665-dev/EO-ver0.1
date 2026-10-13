@@ -55,8 +55,12 @@ export class Equipment {
     const def = ITEMS[id];
     if (!def) return { ok: false, reason: 'unknown' };
     if (!isGear(def)) return { ok: false, reason: 'notGear' };
-    const to = this.slotFor(def, slot);
+    let to = this.slotFor(def, slot);
     if (!to) return { ok: false, reason: 'wrongSlot' };
+    // RULE RUNES (data/items/gearRules.js): one at a time — a new one REPLACES the worn one (owner 2026-10-13: refusing it
+    // looked like a bug), whatever slot was picked
+    const ruleSlot = hasRules(def) && GEAR_SLOTS.find((s) => s.id !== to && hasRules(ITEMS[this.slots[s.id]]));
+    if (ruleSlot) to = ruleSlot.id;
     if (!this.game.inventory.findItem(id)) return { ok: false, reason: 'notOwned' };
     const p = this.game.player;
     if (p && p.cls && !canClassUse(def, p.cls.id)) return { ok: false, reason: 'class' };
