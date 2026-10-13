@@ -1825,3 +1825,11 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   draw a bigger head on a shorter body: body height alone made them 10-20% too big (ATK1 head 29 px vs walk 24), head width alone too
   small. Used by 'wr'. Basic attacks draw no extra slash strip; walk / run have a step bounce (bob 2 / 3) — the AI walk sheet moves
   the legs ~1/3 as much as the other Umbral classes (a new WALK sheet from the owner would fix it properly).
+- **Current: ADMIN BACK OFFICE** (owner 2026-10-13: AD1-AD5, opened ONLY from the owner's computer, one admin now / maybe more
+  later). Phases AD1 shell + login · AD2 player list · AD3 player detail (save vs ledger) · AD4 logs (logins, combat guard, econ
+  refusals, chat) · AD5 actions (kick / ban / mute / reset pw / grant / restore save, all confirmed + audited).
+  Done AD1: `server/admin.js` AdminService (startServer `adminPassword` = env EO_ADMIN_PW; none = /admin is 404) + page
+  `server/adminPage.html` (served only by admin.js; /server/ stays private). Localhost only (allowRemote false). Admins map
+  { name, role } (one 'admin' / 'owner' now). POST /admin/api/login -> HttpOnly SameSite=Strict cookie (8 h); every POST needs
+  header X-EO-Admin: 1; 5 wrong -> 60 s lock. Routes via admin.route(method, path, fn, { write }) (write = audited);
+  audit = JSON lines in <dataDir>/admin_audit.log. API so far: me, summary, audit, logout. tools/tests/admin.test.mjs (8).

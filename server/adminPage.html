@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eclipse Admin</title>
+<style>
+  :root { --bg: #0d0c14; --panel: #17151f; --line: #2c2838; --text: #e9e4d8; --dim: #8d8698; --hl: #d9b45a; --bad: #e05a5a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 'Segoe UI', 'Noto Sans Thai', sans-serif; }
+  header { display: flex; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  header b { color: var(--hl); letter-spacing: .08em; }
+  header .sp { flex: 1; }
+  nav button, button { background: #241f30; color: var(--text); border: 1px solid var(--line); padding: 6px 12px; border-radius: 6px; cursor: pointer; font: inherit; }
+  nav button.on { border-color: var(--hl); color: var(--hl); }
+  button:hover { border-color: var(--hl); }
+  main { padding: 20px; max-width: 1200px; margin: 0 auto; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .stat { flex: 1; min-width: 140px; }
+  .stat .n { font-size: 28px; color: var(--hl); font-weight: 600; }
+  .stat .l { color: var(--dim); }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-weight: 500; }
+  #login { max-width: 320px; margin: 15vh auto; }
+  #login input { width: 100%; margin: 6px 0 12px; padding: 8px; background: #0d0c14; color: var(--text); border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+  .err { color: var(--bad); min-height: 1.5em; }
+  .dim { color: var(--dim); }
+</style>
+</head>
+<body>
+<div id="login" class="card" hidden>
+  <h2>Eclipse Admin</h2>
+  <label>ชื่อ<input id="ln" value="admin" autocomplete="username"></label>
+  <label>รหัสผ่าน<input id="lp" type="password" autocomplete="current-password"></label>
+  <div class="err" id="le"></div>
+  <button id="lb">เข้าสู่ระบบ</button>
+</div>
+<div id="app" hidden>
+  <header>
+    <b>ECLIPSE ADMIN</b>
+    <nav id="nav"><button data-v="home" class="on">ภาพรวม</button> <button data-v="audit">บันทึกแอดมิน</button></nav>
+    <span class="sp"></span>
+    <span class="dim" id="who"></span>
+    <button id="out">ออกจากระบบ</button>
+  </header>
+  <main id="view"></main>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+async function api(path, body) {
+  const r = await fetch('/admin/api/' + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-EO-Admin': '1' }, body: JSON.stringify(body) } : {});
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && path !== 'login') { showLogin(); throw new Error('login'); }
+  if (!r.ok) throw new Error(j.error || r.status);
+  return j;
+}
+function showLogin() { $('app').hidden = true; $('login').hidden = false; $('lp').focus(); }
+async function start() {
+  try { const me = await api('me'); $('who').textContent = me.name + ' · ' + me.role; $('login').hidden = true; $('app').hidden = false; show('home'); } catch { showLogin(); }
+}
+const VIEWS = {
+  async home() {
+    const s = await api('summary');
+    return `<div class="card stats">
+      <div class="stat"><div class="n">${s.online}</div><div class="l">ออนไลน์ตอนนี้</div></div>
+      <div class="stat"><div class="n">${s.accounts}</div><div class="l">บัญชีทั้งหมด</div></div>
+      <div class="stat"><div class="n">${new Date(s.serverTime).toLocaleTimeString()}</div><div class="l">เวลาเซิร์ฟเวอร์</div></div>
+    </div><div class="card dim">รายชื่อผู้เล่น (AD2) · รายละเอียดผู้เล่น (AD3) · log เฝ้าระวัง (AD4) · คำสั่งแอดมิน (AD5) — กำลังจะมา</div>`;
+  },
+  async audit() {
+    const { list } = await api('audit');
+    return `<div class="card"><table><tr><th>เวลา</th><th>แอดมิน</th><th>การกระทำ</th><th>ข้อมูล</th></tr>${list.map((r) =>
+      `<tr><td>${new Date(r.at).toLocaleString()}</td><td>${esc(r.admin)}</td><td>${esc(r.action)}</td><td class="dim">${r.data ? esc(JSON.stringify(r.data)) : ''}</td></tr>`).join('')}</table></div>`;
+  },
+};
+async function show(v) {
+  document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.v === v));
+  try { $('view').innerHTML = await VIEWS[v](); } catch (e) { if (e.message !== 'login') $('view').innerHTML = `<div class="card err">${esc(e.message)}</div>`; }
+}
+$('nav').onclick = (e) => { if (e.target.dataset.v) show(e.target.dataset.v); };
+$('lb').onclick = async () => {
+  $('le').textContent = '';
+  try { await api('login', { name: $('ln').value, pw: $('lp').value }); $('lp').value = ''; start(); } catch (e) { $('le').textContent = e.message; }
+};
+$('lp').onkeydown = (e) => { if (e.key === 'Enter') $('lb').click(); };
+$('out').onclick = async () => { await api('logout', {}).catch(() => {}); showLogin(); };
+start();
+</script>
+</body>
+</html>

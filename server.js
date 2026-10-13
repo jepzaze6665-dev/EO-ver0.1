@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { GameServer } from './server/gameServer.js';
 import { JsonFileStore, JsonDirStore, MemoryStore } from './server/store.js';
+import { AdminService } from './server/admin.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.css': 'text/css', '.md': 'text/plain', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.aac': 'audio/aac', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.wav': 'audio/wav', '.m4a': 'audio/mp4' };
@@ -16,16 +17,19 @@ const PRIVATE = ['/server/', '/.git/', '/.claude/'];
 // dataDir null = in-memory store (tests); quiet = no logs; simHosts = H2: the server runs every dungeon map room itself
 // (server/simHosts.js — off in the unit tests unless they ask, on for `node server.js` unless EO_SIM=0)
 // requirePassword = H6 accounts need a password (on for `node server.js` unless EO_DEVLOGIN=1; off in the unit tests)
-export function startServer({ port = 5173, dataDir = path.join(ROOT, 'server', 'data'), quiet = false, limits, simHosts = false, requirePassword = false, charSlots = false } = {}) {
+export function startServer({ port = 5173, dataDir = path.join(ROOT, 'server', 'data'), quiet = false, limits, simHosts = false, requirePassword = false, charSlots = false, adminPassword = null } = {}) {
   const log = quiet ? {} : console;
   const store = dataDir ? new JsonFileStore(dataDir, 'accounts') : new MemoryStore();
   const saveStore = dataDir ? new JsonDirStore(path.join(dataDir, 'saves')) : new MemoryStore();
   const game = new GameServer({ store, saveStore, limits, log, simHosts, requirePassword, charSlots });
+  // ADMIN: back office at /admin (server/admin.js) — this computer only, on when an admin password is given (env EO_ADMIN_PW)
+  const admin = new AdminService({ game, password: adminPassword, dataDir, log });
   const httpServer = http.createServer((req, res) => {
     let p;
     try { p = decodeURIComponent(req.url.split('?')[0]); } catch { res.writeHead(400); return res.end(); }
     // DEV: tools/recorder.js uploads finished promo clips here (localhost only) -> recordings/<name>.mp4
     if (req.method === 'POST' && p.startsWith('/dev/recording/')) return saveRecording(req, res, p);
+    if (admin.handle(req, res, p)) return;
     if (p === '/') p = '/index.html';
     const norm = path.posix.normalize(p.replace(/\\/g, '/'));
     if (PRIVATE.some((x) => norm.toLowerCase().startsWith(x))) { res.writeHead(403); return res.end(); }
@@ -42,7 +46,7 @@ export function startServer({ port = 5173, dataDir = path.join(ROOT, 'server', '
   return new Promise((resolve) => httpServer.listen(port, () => {
     const close = () => new Promise((r) => { game.close(); httpServer.close(() => r()); httpServer.closeAllConnections?.(); });
     game.port = httpServer.address().port; // the room hosts connect back to it (server/simHosts.js)
-    resolve({ http: httpServer, game, port: game.port, close });
+    resolve({ http: httpServer, game, admin, port: game.port, close });
   }));
 }
 
@@ -61,8 +65,9 @@ function saveRecording(req, res, p) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const s = await startServer({ port: Number(process.env.PORT) || 5173, dataDir: process.env.EO_DATA || undefined, simHosts: process.env.EO_SIM !== '0', requirePassword: process.env.EO_DEVLOGIN !== '1', charSlots: true });
+  const s = await startServer({ port: Number(process.env.PORT) || 5173, dataDir: process.env.EO_DATA || undefined, simHosts: process.env.EO_SIM !== '0', requirePassword: process.env.EO_DEVLOGIN !== '1', charSlots: true, adminPassword: process.env.EO_ADMIN_PW || null });
   console.log(`ECLIPSE ONLINE running at http://localhost:${s.port}  (game server: ws://localhost:${s.port}/ws)`);
+  console.log(s.admin.enabled ? `  admin: http://localhost:${s.port}/admin  (this computer only)` : '  admin: off (set EO_ADMIN_PW to turn it on)');
   // other computers on the same network (N10 multi-client tests): open one of these in their browser
   const { networkInterfaces } = await import('os');
   for (const list of Object.values(networkInterfaces())) for (const a of list || []) if (a.family === 'IPv4' && !a.internal) console.log(`  same network: http://${a.address}:${s.port}`);
