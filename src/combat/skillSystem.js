@@ -21,7 +21,7 @@ import { Cooldowns } from './cooldownSystem.js';
 // Caster interface (duck-typed): resources (ResourcePool), stats.cdr, primaryResource,
 //   canAct(skill) -> bool, and whatever fields REQUIREMENTS read.
 export const SKILL_FAIL = {
-  UNKNOWN: 'unknown', LOCKED: 'locked', BUSY: 'busy', SILENCED: 'silenced', COOLDOWN: 'cooldown', REQUIREMENT: 'requirement', RESOURCE: 'resource', STAMINA: 'stamina',
+  UNKNOWN: 'unknown', LOCKED: 'locked', BUSY: 'busy', SILENCED: 'silenced', COOLDOWN: 'cooldown', REQUIREMENT: 'requirement', RESOURCE: 'resource', STAMINA: 'stamina', HP: 'hp',
 };
 
 // Requirement checks are data -> predicate. New condition types register here, not in the pipeline.
@@ -71,6 +71,9 @@ export class SkillSystem {
   maxCharges(skill) { return Math.max(1, (skill.charges || 1) + (this.mods(skill).charges || 0)); }
   syncCharges() { for (const s of Object.values(this.skills)) this.cooldowns.setMax(s.id, this.maxCharges(s)); }
   costFor(skill) { return skill.cost ? Math.round(skill.cost * this.mods(skill).cost) : 0; }
+  // HP COST (secret class Wyrmblood Reaver): skill data `hpCost` = share of max HP paid to cast (caster.spendHp). A cast never
+  // kills: it needs more HP than it costs.
+  hpCostFor(skill) { return skill.hpCost && this.caster.maxHp ? Math.round(this.caster.maxHp * skill.hpCost * this.mods(skill).cost) : 0; }
 
   canUse(id) {
     const s = this.skills[id];
@@ -90,6 +93,8 @@ export class SkillSystem {
     if (s.cost && !this.caster.resources.canAfford(this.costResource(s), this.costFor(s))) {
       return { ok: false, reason: SKILL_FAIL.RESOURCE, skill: s, resource: this.costResource(s) };
     }
+    const hpc = this.hpCostFor(s);
+    if (hpc && !(this.caster.hp > hpc + 1)) return { ok: false, reason: SKILL_FAIL.HP, skill: s };
     // COMBAT 2.0: stamina (skill.stamina, else its tier's default — data/skillTiers.js) on top of the class resource cost
     const sta = staminaCost(s);
     if (sta && this.caster.resources.has(STAMINA.resource) && !this.caster.resources.canAfford(STAMINA.resource, sta)) {
@@ -114,6 +119,8 @@ export class SkillSystem {
       return { ok: true, skill: s, result, recast: true };
     }
     if (s.cost) this.caster.resources.spend(this.costResource(s), this.costFor(s), 'skill:' + id);
+    const hpc = this.hpCostFor(s);
+    if (hpc && this.caster.spendHp) this.caster.spendHp(hpc, 'skill:' + id);
     const sta = staminaCost(s);
     if (sta && this.caster.resources.has(STAMINA.resource)) this.caster.resources.spend(STAMINA.resource, sta, 'skill:' + id);
     this.cooldowns.start(id, this.cooldownFor(s));

@@ -133,9 +133,16 @@ function crop(img, pad = 6) {
   return out;
 }
 
-// area-average downscale, premultiplied alpha
+// area-average downscale, premultiplied alpha (a source smaller than S is scaled UP pixel-sharp: nearest neighbour)
 function shrink(img, S) {
   const k = Math.max(img.width, img.height) / S, W = Math.round(img.width / k), H = Math.round(img.height / k), out = png.create(W, H);
+  if (k < 1) {
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = (Math.min(img.height - 1, Math.floor(y * k)) * img.width + Math.min(img.width - 1, Math.floor(x * k))) * 4;
+      out.data.set(img.data.subarray(i, i + 4), (y * W + x) * 4);
+    }
+    return out;
+  }
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     let r = 0, g = 0, b = 0, a = 0, n = 0;
     for (let yy = Math.floor(y * k); yy < Math.min(img.height, Math.floor((y + 1) * k)); yy++) for (let xx = Math.floor(x * k); xx < Math.min(img.width, Math.floor((x + 1) * k)); xx++) {

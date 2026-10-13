@@ -16,6 +16,7 @@ export const TH_MESSAGES = {
   'You are not in a party — use /l for nearby players': 'คุณยังไม่ได้อยู่ในปาร์ตี้ — พิมพ์ /l เพื่อคุยกับคนรอบตัว',
   'Silenced': 'ถูกปิดผนึกสกิล',
   'Not enough STAMINA': 'สเตมินาไม่พอ',
+  'Not enough HP': 'HP ไม่พอ',
   'Cannot change skills in combat': 'เปลี่ยนสกิลระหว่างต่อสู้ไม่ได้',
   'HP is full': 'HP เต็มแล้ว',
 

@@ -8,6 +8,9 @@ export const SKILL_ICONS = {
   // Nightfall Reaper (rp_sk6 = the unused harvest art)
   reapers_arc: 'rp_sk1', phantom_reap: 'rp_sk2', shadow_doppel: 'rp_sk3', nightfall_zone: 'rp_sk4', reapers_step: 'rp_sk5',
   funeral_eclipse: 'rp_sk7',
+  // Wyrmblood Reaver (secret class)
+  crimson_fang: 'wr_sk1', wyrm_rend: 'wr_sk2', blood_pact: 'wr_sk3', scale_shed: 'wr_sk4', cinder_vein: 'wr_sk5', hemorrhage: 'wr_sk6',
+  vein_burst: 'wr_sk7', dragon_blood_awakening: 'wr_ut',
   // Duskrunner (dr_sk6 = Ghost Step art, a passive)
   blue_fang: 'dr_sk1', flash_step: 'dr_sk2', dusk_barrage: 'dr_sk3', mirage_shift: 'dr_sk4', silent_run: 'dr_sk5',
   endless_run: 'dr_sk7',

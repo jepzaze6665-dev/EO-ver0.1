@@ -98,9 +98,18 @@ export const CLASS_TREE = {
     requirements: [...CLASS2_BASE, { type: 'counter', counter: 'judgments', min: 15 }],
     trial: 'trial_oathbreaker',
   },
-  // Secret classes / Awakenings are added the same way, e.g.
-  //   eclipse_herald: { tier: 4, hidden: true, reveal: [{ type: 'flag', flag: '...' }], requirements: [...], ... }
-  // (none exist yet — the unit tests register a mock one to prove the path works)
+  // ---------------- tier 4 — SECRET classes (Varkharon's blood): hidden until the Cinder King falls, then open to a
+  // Class 2 of that line at LV 50 carrying the Heart of Varkharon (the class quest comes in a later phase)
+  wyrmblood_reaver: {
+    id: 'wyrmblood_reaver', name: 'Wyrmblood Reaver', tier: 4, parent: 'umbral_sword', playable: true, resource: 'Wyrm Fury', hidden: true,
+    reveal: [{ type: 'flag', flag: 'dragon_slain' }],
+    role: 'Secret Class · Blood Duelist · Sustain DPS', description: 'Pays for every skill with his own blood, and drinks it back from every wound he deals.',
+    requirements: [
+      { type: 'level', min: 50 },
+      { type: 'item', item: 'heart_of_varkharon', label: 'Carry the Heart of Varkharon' },
+      { type: 'any', of: [{ type: 'class', id: 'nightfall_reaper' }, { type: 'class', id: 'duskrunner' }, { type: 'class', id: 'blade_of_echoes' }], label: 'Be an Umbral Class 2 (Nightfall Reaper, Duskrunner or Blade of Echoes)' },
+    ],
+  },
 };
 
 // ---- class trials: timed or untimed challenges measured with the same counters (progress since start)

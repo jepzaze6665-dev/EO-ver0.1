@@ -54,6 +54,10 @@ export const STATUSES = {
   silent_run: { id: 'silent_run', category: 'buff', maxStacks: 1, stacking: 'refresh', flags: ['stealth'], modifiers: { moveMult: 1.35, damageMult: 1.5 }, display: { label: 'SILENT RUN', color: '#9ad8ff' } },
   // Duskrunner ultimate ENDLESS RUN: momentum never falls (class code), faster attacks / feet, half-price dodges
   overdrive: { id: 'overdrive', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { moveMult: 1.15, attackSpeedMult: 1.3, dodgeCostMult: 0.5 }, display: { label: 'OVERDRIVE', color: '#5ab8ff' } },
+  // Wyrmblood Reaver: BLOOD PACT (faster blows; basic attacks drain — the class reads it) and DRAGON BLOOD AWAKENING
+  // (flag 'deathless' = HP never falls below 1, Player.endure; damage dealt heals — the class reads it)
+  blood_pact: { id: 'blood_pact', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { attackSpeedMult: 1.3 }, aura: { color: '220,30,30', ring: 1.1, sprite: { key: 'wr_pact', loop: [3, 4], fps: 9, scale: 0.42, lift: 0.04, alpha: 0.75 } }, display: { label: 'BLOOD PACT', color: '#ff4040' } },
+  blood_awaken: { id: 'blood_awaken', category: 'buff', maxStacks: 1, stacking: 'refresh', flags: ['deathless', 'unshakable'], modifiers: { damageMult: 1.15 }, aura: { color: '255,40,30', ring: 1.5, motes: 1, sprite: { key: 'wr_dragon', loop: [3, 4], fps: 6, scale: 0.5, lift: 0.04, alpha: 0.7 } }, display: { label: 'DRAGON BLOOD', color: '#ff2020' } },
   // Blade of Echoes: LAST STAND (HP under 40%): takes 40% less damage; the class reads it for counter / echo bonuses
   last_stand: { id: 'last_stand', category: 'buff', maxStacks: 1, stacking: 'refresh', modifiers: { damageTakenMult: 0.6 }, display: { label: 'LAST STAND', color: '#ff6a6a' } },
   // Stormcaller: SHOCK (lightning debuff, up to 3 stacks: each takes 3% more damage + a small lightning tick; the class

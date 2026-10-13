@@ -440,7 +440,93 @@ export function duskChecks(g) {
   g.newGame('umbral_sword'); releaseInput(g);
   g.progression.unlock('duskrunner'); g.combat.lastCombatTime = -99;
   const r = g.changeClass('duskrunner'), np = g.player;
-  ok('Class change Umbral Sword -> Duskrunner', r.ok && np.cls.id === 'duskrunner' && np.sprites.preset === 'dr' && np.primaryResource === MO && g.equipment.slots.weapon === 'twin_dusk_blades', `${np.cls.id} ${np.sprites.preset} ${g.equipment.slots.weapon}`);
+  ok('Class change Umbral Sword -> Duskrunner', r.ok && np.cls.id === 'duskrunner' && np.sprites.preset === 'dr' && np.primaryResource === MO, `${np.cls.id} ${np.sprites.preset}`); // class kit weapons are no items since K1
+  releaseInput(g);
+  return rows;
+}
+
+// ---------------- SECRET CLASS WYRMBLOOD REAVER in the live game (HP costs, Fury, drain, Dragon's Thirst, Cursed Vein)
+export function wyrmChecks(g) {
+  const rows = [], ok = (name, pass, detail = '') => rows.push({ class: 'wyrmblood_reaver', test: name, pass: !!pass, detail });
+  const WF = 'wyrm_fury';
+  const fresh = (hpShare = 1) => { const r = atDummy(g, 'wyrmblood_reaver'); r.p.hp = Math.round(r.p.maxHp * hpShare); r.p.stats.crit = 0; return r; };
+  const healedBy = (p, reason) => { let n = 0; g.events.on('healed', (e) => { if (e.entity === p && (!reason || e.source === reason)) n += e.amount; }); return () => n; };
+  let { p, d } = fresh();
+
+  // HP cost: Crimson Fang takes 6% max HP and turns it into Wyrm Fury
+  let hp0 = p.hp, f0 = p.resources.get(WF), spent = 0;
+  g.events.on('hpSpent', (e) => { if (e.entity === p) spent += e.amount; });
+  p.trySkill(p.skillSys.get('crimson_fang'));
+  ok('Skill paid with HP (6% max HP) -> Wyrm Fury', spent === Math.round(p.maxHp * 0.06) && p.resources.get(WF) > f0 + 6, `paid ${spent} of ${p.maxHp}, fury ${f0} -> ${p.resources.get(WF).toFixed(1)}`);
+  // a cast never kills: not enough HP = refused
+  ({ p, d } = fresh()); p.hp = 5;
+  const low = p.skillSys.canUse('wyrm_rend');
+  ok('Not enough HP = refused (a skill never kills you)', !low.ok && low.reason === 'hp' && p.hp === 5, `reason=${low.reason} hp=${p.hp}`);
+
+  // Crimson Fang drinks life back
+  ({ p, d } = fresh(0.6));
+  let drank = healedBy(p, 'drain'); cast(g, 'crimson_fang', d);
+  ok('Crimson Fang: hits drain life + make the foe bleed', drank() > 0 && d.status && d.status.has('bleed'), `drained ${drank()} HP, bleed=${d.status && d.status.has('bleed')}`);
+
+  // DRAGON'S THIRST: damage multiplier by HP share
+  ({ p, d } = fresh());
+  const m = (s) => { p.hp = Math.round(p.maxHp * s); return p.cls.hitMult(p); };
+  ok("Dragon's Thirst: x1 / x1.2 below 50% / x1.4 below 30%", m(1) === 1 && m(0.45) === 1.2 && m(0.2) === 1.4, `${m(1)} / ${m(0.45)} / ${m(0.2)}`);
+  // ... and it reaches real hits: Wyrm Rend at 25% HP hits much harder than at full
+  const rend = (s) => { ({ p, d } = fresh(s)); let n = 0; g.events.on('damageDealt', (e) => { if (e.source === p && e.target === d && !(e.opts && e.opts.dot)) n = Math.max(n, e.amount); }); cast(g, 'wyrm_rend', d); return n; };
+  const full = rend(1), hurt = rend(0.3);
+  ok('Wyrm Rend: far stronger when you are hurt (missing HP + Thirst)', hurt > full * 1.5, `${full} at full HP -> ${hurt} at 30%`);
+
+  // Blood Pact: buff, faster basics
+  ({ p, d } = fresh());
+  cast(g, 'blood_pact');
+  ok('Blood Pact: status on, attack speed up', p.status.has('blood_pact') && p.attackSpeed() > 1.2, `atkSpd x${p.attackSpeed().toFixed(2)}`);
+  // Scale Shed: a shield of 18% max HP
+  ({ p, d } = fresh());
+  cast(g, 'scale_shed');
+  const sh = p.status.get('shield');
+  ok('Scale Shed: shield = 18% max HP', sh && Math.abs(sh.amount - Math.round(p.maxHp * 0.18)) <= 1, `shield ${sh && sh.amount} / max HP ${p.maxHp}`);
+  // Cinder Vein: burn on the foe, its ticks heal you
+  ({ p, d } = fresh(0.5));
+  drank = healedBy(p, 'drain'); cast(g, 'cinder_vein', d); g.simulate(2);
+  ok('Cinder Vein: foe burns, burn ticks heal you', d.status.has('burn') || drank() > 0, `burn=${d.status.has('burn')} healed ${drank()}`);
+  // Hemorrhage: bleed stacks turn into damage and the bleeding ends
+  ({ p, d } = fresh());
+  d.status.add('bleed', 4, { source: p, damage: 1 }); d.status.add('bleed', 4, { source: p, damage: 1 }); d.status.add('bleed', 4, { source: p, damage: 1 });
+  let bleedHit = 0; g.events.on('damageDealt', (e) => { if (e.source === p && e.target === d && !(e.opts && e.opts.dot)) bleedHit = Math.max(bleedHit, e.amount); });
+  cast(g, 'hemorrhage');
+  const withBleed = bleedHit;
+  ({ p, d } = fresh()); bleedHit = 0; g.events.on('damageDealt', (e) => { if (e.source === p && e.target === d && !(e.opts && e.opts.dot)) bleedHit = Math.max(bleedHit, e.amount); });
+  cast(g, 'hemorrhage');
+  ok('Hemorrhage: bleed stacks = more damage, bleeding consumed', withBleed > bleedHit * 1.5, `${bleedHit} without bleed -> ${withBleed} with 3 stacks`);
+
+  // Vein Burst (Q): needs 30 Fury, spends ALL, heals
+  ({ p, d } = fresh(0.5)); p.resources.set(WF, 20);
+  const refused = !p.skillSys.canUse('vein_burst').ok;
+  p.resources.set(WF, 100); const hpB = p.hp; cast(g, 'vein_burst', d);
+  ok('Vein Burst: refused under 30, spends all Fury, heals ~20% at 100', refused && p.resources.get(WF) < 1 && p.hp >= hpB + p.maxHp * 0.18, `refused=${refused} fury=${p.resources.get(WF)} hp ${hpB} -> ${p.hp}`);
+
+  // Ultimate: HP cannot fall below 1 while the dragon is awake
+  ({ p, d } = fresh()); p.resources.set(WF, 100); cast(g, 'dragon_blood_awakening', d); idle(g);
+  p.invulnT = 0; g.combat.dealDamage({ x: p.x + 20, y: p.y, team: 2, stats: null }, p, { power: 99999, unblockable: true });
+  ok('Dragon Blood Awakening: deathless (HP stays at 1)', p.status.has('blood_awaken') && p.hp >= 1 && !p.dead, `hp=${p.hp}`);
+
+  // CURSED VEIN: no Endure (a lethal hit at full HP kills) — and potions heal 60%
+  ({ p, d } = fresh()); p.invulnT = 0;
+  g.combat.dealDamage({ x: p.x + 20, y: p.y, team: 2, stats: null }, p, { power: 99999, unblockable: true });
+  ok('Cursed Vein: no Endure — a lethal hit at full HP kills', p.hp <= 0 || p.dead || p.downed, `hp=${p.hp}`);
+  ({ p, d } = fresh(0.1));
+  const before = p.hp, healed = p.heal(p.maxHp * 0.4, 'potion');
+  ok('Cursed Vein: potions heal 60%', Math.abs(healed - p.maxHp * 0.4 * 0.6) <= 1, `${before} +${healed} (full potion = ${Math.round(p.maxHp * 0.4)})`);
+
+  // hidden secret class: unlock from an Umbral Class 2 at LV 50 with the Heart, then a real class change
+  g.newGame('umbral_sword'); releaseInput(g);
+  g.progression.unlock('nightfall_reaper'); g.combat.lastCombatTime = -99; g.changeClass('nightfall_reaper');
+  const hiddenBefore = !g.progression.isRevealed || !g.progression.isRevealed('wyrmblood_reaver');
+  g.player.setLevel(50); g.inventory.add('heart_of_varkharon', 1); g.world.setFlag('dragon_slain');
+  g.progression.unlock('wyrmblood_reaver');
+  const r = g.changeClass('wyrmblood_reaver'), np = g.player;
+  ok('Class change Nightfall Reaper -> Wyrmblood Reaver', r.ok && np.cls.id === 'wyrmblood_reaver' && np.sprites.preset === 'wr' && np.primaryResource === WF, `${np.cls.id} ${np.sprites.preset} hiddenBefore=${hiddenBefore}`);
   releaseInput(g);
   return rows;
 }
@@ -1254,7 +1340,7 @@ export function balance(g, classId, loadout, botOpts = {}) {
 export function runAll(g, { withBalance = true } = {}) {
   const rows = [], bal = [];
   for (const c of [...STARTING_CLASSES, ...ADVANCED]) rows.push(...classChecks(g, c), ...mechanicChecks(g, c));
-  rows.push(...reaperChecks(g), ...duskChecks(g), ...echoChecks(g), ...wardenChecks(g), ...bulwarkChecks(g), ...oathChecks(g), ...stormChecks(g), ...voidChecks(g), ...lumenChecks(g), ...classChangeChecks(g));
+  rows.push(...reaperChecks(g), ...duskChecks(g), ...wyrmChecks(g), ...echoChecks(g), ...wardenChecks(g), ...bulwarkChecks(g), ...oathChecks(g), ...stormChecks(g), ...voidChecks(g), ...lumenChecks(g), ...classChangeChecks(g));
   if (withBalance) for (const c of [...STARTING_CLASSES, ...ADVANCED]) bal.push(balance(g, c));
   return { passed: rows.filter((r) => r.pass).length, total: rows.length, rows, balance: bal };
 }

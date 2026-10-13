@@ -156,6 +156,16 @@ export const SKILL_PROGRESSION = {
   endless_run: { category: 'BURST' },
   flash_step: { category: 'MOBILITY' },
 
+  // ======================= WYRMBLOOD REAVER (secret class of the Umbral line)
+  crimson_fang: { category: 'MOBILITY', levels: damage(TRAIT_TEXT.reset, T('reset')) },
+  wyrm_rend: { category: 'OFFENSE', levels: damage(TRAIT_TEXT.lifesteal, T('lifesteal')) },
+  blood_pact: { category: 'UTILITY', levels: support(TRAIT_TEXT.haste, T('haste')) },
+  scale_shed: { category: 'UTILITY', levels: support('SCALE ARMOUR: +1 charge', { charges: 1 }) },
+  cinder_vein: { category: 'OFFENSE', levels: damage(TRAIT_TEXT.echo, T('echo')) },
+  hemorrhage: { category: 'BURST', levels: damage(TRAIT_TEXT.lifesteal, T('lifesteal')) },
+  dragon_blood_awakening: { category: 'BURST' },
+  vein_burst: { category: 'RESOURCE' },
+
   // ======================= STORMCALLER (Class 2 of Astral Weaver)
   thunder_lash: {
     category: 'OFFENSE', levels: damage(TRAIT_TEXT.echo, T('echo')),
@@ -344,6 +354,9 @@ export const SKILL_KITS = {
   iron_bastion: ['barrier', 'counter'], absolute_provocation: ['bulwark', 'burn'], counterweight: ['execute', 'critical'], shieldwall: ['barrier', 'momentum'],
   // Oathbreaker
   oath_brand: ['bleed', 'critical'], ruin_chain: ['counter', 'momentum'], oath_of_ruin: ['bulwark', 'counter'],
+  // Wyrmblood Reaver
+  crimson_fang: ['bleed', 'momentum'], wyrm_rend: ['execute', 'critical'], blood_pact: ['momentum', 'counter'], scale_shed: ['barrier', 'bulwark'],
+  cinder_vein: ['burn', 'summon'], hemorrhage: ['bleed', 'execute'],
   // Stormcaller
   storm_step: ['counter', 'barrier'], chain_tempest: ['burn', 'summon'], static_thread: ['counter', 'momentum'], tempest_field: ['bulwark', 'momentum'],
   // Void Scribe

@@ -10,7 +10,7 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   The same process is the online game server (WebSocket `/ws`); player data in `server/data/` (gitignored, never served).
 - Unit tests: `node tools/tests/run.mjs` (must print `ALL TEST FILES PASSED`).
 - In-game (browser console, page loaded): `const C = await import('/tools/combatTest.js'); C.runAll(__game)`
-  (combat / mechanics / Reaper / Duskrunner / Echoes / Warden / Bulwark / Oath / Storm / Void / Lumen / class-change checks; `C.duskChecks(__game)` /
+  (combat / mechanics / Reaper / Duskrunner / Wyrmblood (C.wyrmChecks) / Echoes / Warden / Bulwark / Oath / Storm / Void / Lumen / class-change checks; `C.duskChecks(__game)` /
   `C.echoChecks(__game)` alone). runAll now takes > 45 s: from the preview tool run it in parts (classChecks +
   mechanicChecks per 2 classes, then reaper/dusk/classChange, then echo) or the call times out and hangs the page,
   `const L = await import('/tools/checklist.js'); L.runChecklist(__game, classId)` (spec TEST 1-31),
@@ -1790,3 +1790,19 @@ Push to GitHub (`origin` = github.com/jepzaze6665-dev/EO-ver0.1, branch `main`) 
   wr_pact / wr_scale / wr_cinder / wr_hemo / wr_burst / wr_dragon (new set options `oneRow` = whole sheet is one row, `valleys` = cut
   unevenly spaced frames at the emptiest columns); build-icons: passive files P1..P9 -> '<class>_p1', `RECOLOR` (wr_sk7 was violet ->
   hue +85). Sprite Viewer lists 'wr'. Not playable yet (class code = next phase).
+  Done WR1 = WYRMBLOOD REAVER playable (`src/skills/wyrmbloodReaver.js`, preset 'wr', VFX wr_*, icons wr_sk1-7 / wr_ut / wr_p1-2;
+  class tree tier 4 node `hidden` + reveal flag dragon_slain, requirements LV 50 + item heart_of_varkharon + being an Umbral Class 2;
+  quest = later phase). NEW GENERIC CORE: skill data `hpCost` (share of max HP; SkillSystem.hpCostFor, SKILL_FAIL.HP 'hp' = "Not
+  enough HP", never kills) -> Player.spendHp(amount, reason) (never below 1, event 'hpSpent') · status flag `deathless` (Player.endure:
+  HP never below 1) · class data `noEndure` / `potionMult` (Player.endure / Player.heal source 'potion') · class hook
+  `hitMult(p, target, opts)` (Player.gearHitMult, direct hits). Resource WYRM FURY (1.2 per 1% max HP paid, tiers BLOODBOIL 50 /
+  DRAGONBLOOD 90). Skills: Crimson Fang (6% HP, dash-through, drain 40%, bleed) · Wyrm Rend (10%, +1% dmg per 1% HP missing, max
+  +70%) · Blood Pact (20%, status blood_pact: +30% attack speed, basics drain 15%) · Scale Shed (10%, shield 18%) · Cinder Vein (8%,
+  burn; your burn ticks heal 30%) · Hemorrhage (12%, r 140, +0.6 power per bleed stack, consumes bleed) · Q Vein Burst (needs 30, spends
+  ALL Fury: nova + heal 0.2% max HP per Fury) · ult Dragon Blood Awakening (90 Fury: status blood_awaken 6 s deathless + unshakable,
+  +15% dmg, hits heal 30%, finale blast). Passives Dragon's Thirst (<50% HP x1.2 dmg / drain x1.4, <30% x1.4 / x2) + Cursed Vein (no
+  Endure, potions 60%). Splash = the front ultimate frame (desgin/UI/ตัวละคร/WR.png, build-class-art SPLASH_CUT_BY cut:false; shared
+  build-title shrink() now scales UP pixel-sharp), emblem = its UT icon. Thai = src/i18n/th/classSecret.js. Tests wyrmblood.test.mjs (6),
+  C.wyrmChecks (14). Bot balance (dummies, damage loadout, HP pinned): full HP 127 · 45% HP 140 · 25% HP 161 vs Umbral Class 2 average
+  ≈ 155 (RP 188 / DR 157 / BE 120) = the "higher ceiling" target; Guardian LV 13 WIN 140 s (651 taken, 3 potions); Varkharon LV 50 no
+  god 12/12 in 239.5 s. Human playtest needed (the bot never plays at low HP on purpose).

@@ -70,6 +70,21 @@ export const RESOURCES = {
     ],
     colors: ['#5ab8ff', '#123a7a'],
   },
+  // Wyrmblood Reaver (secret class): WYRM FURY — the dragon blood you have burned. Skills cost HP (skill hpCost); every
+  // 1% max HP paid gives Fury (class furyPerHpPct). Spent by Vein Burst (Q, all of it) and the ultimate. Tiers = passive
+  // DRAGON'S BLOOD. Fades out of combat.
+  wyrm_fury: {
+    id: 'wyrm_fury', name: 'Wyrm Fury', label: 'WYRM FURY',
+    max: 100, start: 0, respawn: 0,
+    regen: { inCombat: 0, outOfCombat: 0 },
+    decay: { inCombat: 0, outOfCombat: 10, delay: 3 },
+    gainStat: 'furyGain',
+    tiers: [
+      { at: 50, label: 'BLOODBOIL', stats: { attackSpeed: 0.1, physicalDmg: 0.05 } },
+      { at: 90, label: 'DRAGONBLOOD', stats: { attackSpeed: 0.15, physicalDmg: 0.1, crit: 0.05 } },
+    ],
+    colors: ['#ff3030', '#5a0a0a'],
+  },
   // Blade of Echoes: ECHO — the pain and the blows it remembers. Built by TAKING hits, perfect counters and echo
   // skills; spent on Crimson Memory / Rewind heal / the ultimate. Tiers = passive PAIN REMEMBERS (echoPower is read by
   // the class: counter + echo damage). Fades out of combat.

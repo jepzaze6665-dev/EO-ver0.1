@@ -70,5 +70,11 @@
   "sw": 606,
   "sh": 900,
   "emblem": "assets/ui/class/oathbreaker_emblem.png"
+ },
+ "wyrmblood_reaver": {
+  "splash": "assets/ui/class/wyrmblood_reaver_splash.png",
+  "sw": 900,
+  "sh": 821,
+  "emblem": "assets/ui/class/wyrmblood_reaver_emblem.png"
  }
 }

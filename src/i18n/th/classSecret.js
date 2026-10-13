@@ -1,0 +1,33 @@
+// Thai for the SECRET classes (Varkharon's blood): Wyrmblood Reaver so far.
+// Skill / passive / resource NAMES stay English (owner); descriptions, roles, tutorials are Thai.
+export const TH_CLASS_SECRET = {
+  // ---- Wyrmblood Reaver
+  'Secret Class · Blood Duelist · Sustain DPS': 'คลาสลับ · นักดวลเลือด · ดาเมจที่ยืนระยะได้',
+  "An Umbral blade who drank the Cinder King's blood: every skill is paid with his own life, and every wound he deals pays it back.": 'นักดาบ Umbral ผู้ดื่มเลือดของราชาเถ้าถ่าน ทุกสกิลต้องจ่ายด้วยชีวิตของตัวเอง และทุกบาดแผลที่ฟันลงไปจะคืนชีวิตกลับมา',
+  'Bleed to win. The closer to death, the deadlier.': 'ยอมเสียเลือดเพื่อชนะ ยิ่งใกล้ตาย ยิ่งอันตราย',
+  'Heals himself with every hit — long fights without potions': 'ฟื้นเลือดตัวเองทุกครั้งที่ตีโดน — สู้ยาวได้โดยไม่ต้องใช้ยา',
+  "Low HP = more damage and more life drain (Dragon's Thirst)": "HP ต่ำ = ดาเมจแรงขึ้นและดูดเลือดมากขึ้น (Dragon's Thirst)",
+  'Strong single-target pressure on bosses': 'กดดันเป้าเดี่ยวอย่างบอสได้ดี',
+  'Skills cost HP: a missed combo leaves you weak': 'สกิลใช้ HP: คอมโบพลาดเมื่อไหร่ คุณจะอ่อนแอทันที',
+  'No Endure — a big hit at low HP kills outright': 'ไม่มี Endure — โดนตีแรงตอน HP ต่ำตายทันที',
+  'Potions heal only 60%': 'ยาฟื้นเลือดได้แค่ 60%',
+  'Below 50% HP your hits deal +20% damage and drain 40% more life; below 30% HP +40% damage and double drain.': 'เมื่อ HP ต่ำกว่า 50% การโจมตีแรงขึ้น +20% และดูดเลือดมากขึ้น 40% ต่ำกว่า 30% แรงขึ้น +40% และดูดเลือดเป็นสองเท่า',
+  'The dragon blood has a price: no Endure (a hit at full health can kill you) and potions heal only 60%.': 'เลือดมังกรมีราคาที่ต้องจ่าย: ไม่มี Endure (โดนตีตอนเลือดเต็มก็ตายได้) และยาฟื้นเลือดได้แค่ 60%',
+  'Your skills cost HP, not mana. Every 1% of HP you pay becomes WYRM FURY. Your hits drink life back — keep attacking to stay alive.': 'สกิลของคุณใช้ HP ไม่ใช่มานา ทุก 1% ของ HP ที่จ่ายไปจะกลายเป็น WYRM FURY การโจมตีจะดูดเลือดกลับมา — ตีต่อเนื่องไว้เพื่อรอดชีวิต',
+  "Below 50% HP you hit harder and drink more (DRAGON'S THIRST). [Q] VEIN BURST spends all Fury in a blast that heals you. Watch out: no Endure, potions heal only 60%.": 'เมื่อ HP ต่ำกว่า 50% คุณจะตีแรงขึ้นและดูดเลือดได้มากขึ้น (DRAGON\'S THIRST) [Q] VEIN BURST ใช้ Fury ทั้งหมดระเบิดรอบตัวและฟื้นเลือดให้คุณ ระวัง: ไม่มี Endure และยาฟื้นเลือดได้แค่ 60%',
+  'Reach 50 Wyrm Fury (BLOODBOIL)': 'สะสม Wyrm Fury ให้ถึง 50 (BLOODBOIL)',
+  'Use Vein Burst': 'ใช้ Vein Burst',
+  'Pay 6% HP: dash THROUGH enemies with a blood-red bite. Drinks back 40% of the damage dealt and makes every foe hit bleed.': 'จ่าย 6% HP: พุ่งทะลุศัตรูด้วยการกัดสีเลือด ดูดเลือดกลับ 40% ของดาเมจ และทำให้ศัตรูที่โดนเลือดไหล',
+  'Pay 10% HP: a crushing overhead cleave. +1% damage for every 1% HP you are missing (up to +70%), drinks back 25%.': 'จ่าย 10% HP: ฟันจากเหนือหัวอย่างรุนแรง ดาเมจ +1% ต่อทุก 1% ของ HP ที่หายไป (สูงสุด +70%) ดูดเลือดกลับ 25%',
+  'Pay 20% HP: blood turns to flame for 6 s — +30% attack speed and your basic attacks drink back 15% of their damage.': 'จ่าย 20% HP: เลือดกลายเป็นเปลวไฟ 6 วินาที — โจมตีเร็วขึ้น +30% และตีปกติดูดเลือดกลับ 15% ของดาเมจ',
+  'Pay 10% HP: crimson dragon scales lock around you — a shield of 18% max HP for 5 s.': 'จ่าย 10% HP: เกล็ดมังกรสีเลือดหุ้มตัวคุณ — ได้โล่ 18% ของ HP สูงสุด นาน 5 วินาที',
+  'Pay 8% HP: fling a cone of burning blood. Every foe hit BURNS for 4 s, and each burn tick you caused heals you for 30% of it.': 'จ่าย 8% HP: สะบัดเลือดไฟเป็นรูปกรวย ศัตรูที่โดนจะติดไฟ 4 วินาที และทุกครั้งที่ไฟของคุณเผา คุณจะฟื้นเลือด 30% ของดาเมจนั้น',
+  'Pay 12% HP: rip the blood out of every foe around you. Each one takes more damage for every BLEED stack it carries (the bleeding ends), and you drink back 30%.': 'จ่าย 12% HP: กระชากเลือดออกจากศัตรูทุกตัวรอบตัว แต่ละตัวโดนแรงขึ้นตามจำนวนชั้น BLEED ที่ติดอยู่ (เลือดหยุดไหล) และคุณดูดเลือดกลับ 30%',
+  'ULTIMATE (90 Wyrm Fury). The dragon wakes in your blood for 6 s: your HP cannot fall below 1, +15% damage, your hits heal 30% of the damage. It ends in a blood-fire blast around you.': 'ท่าไม้ตาย (Wyrm Fury 90) มังกรตื่นขึ้นในเลือดของคุณ 6 วินาที: HP ไม่ลดต่ำกว่า 1 ดาเมจ +15% และการโจมตีฟื้นเลือด 30% ของดาเมจ จบด้วยระเบิดไฟเลือดรอบตัว',
+  '30 Wyrm Fury': 'Wyrm Fury 30',
+  'Needs 30 Wyrm Fury, spends it all: a nova of blood-fire around you (stronger with more Fury) that heals you 0.2% max HP per Fury spent (100 Fury = 20%).': 'ต้องมี Wyrm Fury 30 และใช้หมดทั้งหมด: ระเบิดไฟเลือดรอบตัว (ยิ่งมี Fury มากยิ่งแรง) และฟื้นเลือด 0.2% ของ HP สูงสุดต่อ Fury 1 หน่วย (100 Fury = 20%)',
+  'Pays for every skill with his own blood, and drinks it back from every wound he deals.': 'จ่ายค่าทุกสกิลด้วยเลือดของตัวเอง และดูดมันกลับมาจากทุกบาดแผลที่ฟันลงไป',
+  'Carry the Heart of Varkharon': 'มี Heart of Varkharon อยู่ในกระเป๋า',
+  'Be an Umbral Class 2 (Nightfall Reaper, Duskrunner or Blade of Echoes)': 'เป็น Class 2 สาย Umbral (Nightfall Reaper, Duskrunner หรือ Blade of Echoes)',
+  'SCALE ARMOUR: +1 charge': 'SCALE ARMOUR: +1 ชาร์จ',
+};

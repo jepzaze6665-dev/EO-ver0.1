@@ -97,6 +97,7 @@ export class Player extends Entity {
   gearHitMult(target, opts) {
     if (!target || target.team === this.team) return 1;
     let m = opts.dot || !this.gearRules ? 1 : ruleHitMult(this.gearRules(), this);
+    if (this.cls?.hitMult) m *= this.cls.hitMult(this, target, opts); // class hook (Wyrmblood: Dragon's Thirst)
     if (MAGIC_DAMAGE_TYPES.includes(opts.type)) m *= 1 + this.gearMod('magicDamage');
     if (opts.counter || (target.status && target.status.has(COUNTER_STATUS))) m *= 1 + this.gearMod('counterDamage');
     const b = this.itemNextHit;
@@ -150,11 +151,20 @@ export class Player extends Entity {
   // every heal goes through here: clamped to max HP, reported as 'healed' (UI shows +N HP)
   heal(amount, source = null) {
     if (this.dead || !(amount > 0)) return 0;
+    if (source === 'potion' && this.cls.potionMult !== undefined) amount *= this.cls.potionMult; // class data (Wyrmblood: Cursed Vein)
     const before = this.hp;
     this.hp = Math.min(this.maxHp, this.hp + amount);
     const healed = Math.round(this.hp - before);
     if (healed > 0 && this.game.events) this.game.events.emit('healed', { entity: this, amount: healed, source });
     return healed;
+  }
+  // HP spent as a cost (skill hpCost, class code): never below 1, no hurt reaction, reported as 'hpSpent'
+  spendHp(amount, reason = null) {
+    const paid = Math.max(0, Math.min(Math.round(amount), Math.floor(this.hp) - 1));
+    if (!(paid > 0) || this.dead) return 0;
+    this.hp -= paid;
+    if (this.game.events) this.game.events.emit('hpSpent', { entity: this, amount: paid, reason });
+    return paid;
   }
   // ---------------- gold (never negative; 'goldChanged' for the UI / quests / a future server)
   addGold(n) {
@@ -561,6 +571,8 @@ export class Player extends Entity {
   }
   // ENDURE (data/antiTank.js): a hit taken while healthy never kills outright
   endure(amount) {
+    if (this.status.flag('deathless')) return Math.min(amount, this.hp - 1); // status flag: HP cannot fall below 1
+    if (this.cls.noEndure) return amount; // class data: no safety net
     if (this.hp >= this.maxHp * ANTI_TANK.endure.fromHp && amount >= this.hp) return this.hp - 1;
     return amount;
   }
