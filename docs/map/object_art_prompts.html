@@ -1,0 +1,73 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><title>Object Art Prompts</title><style>
+@font-face{font-family:Kanit;src:url(file:///D:/EO/assets/fonts/Kanit-SemiBold.ttf)}
+@font-face{font-family:Thai;src:url(file:///D:/EO/assets/fonts/NotoSansThai.ttf)}
+@page{size:A4;margin:14mm}
+body{font-family:Thai,'Segoe UI',sans-serif;color:#222;font-size:11.5px;line-height:1.55}
+h1{font-family:Kanit;font-size:26px;margin:0;color:#2a1f44}
+.sub{color:#666;margin:2px 0 14px}
+h2{font-family:Kanit;font-size:17px;border-bottom:2px solid #7a5cc8;padding-bottom:3px;margin:18px 0 4px;color:#3a2a66;break-after:avoid}
+.folder{color:#555;margin-bottom:8px}
+code{background:#eee;padding:1px 5px;border-radius:3px}
+.card{border:1px solid #ccc;border-radius:6px;padding:8px 10px;margin:8px 0;break-inside:avoid}
+.head{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.num{background:#3a2a66;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.pri{color:#fff;font-size:10px;padding:1px 7px;border-radius:9px}
+.id{margin-left:auto;color:#888;font-family:monospace}
+.note{color:#444;margin:3px 0}
+.label{font-size:9.5px;color:#7a5cc8;font-weight:bold;margin-top:4px}
+.prompt{background:#f4f1fb;border-left:3px solid #7a5cc8;padding:6px 8px;font-family:Consolas,monospace;font-size:10.5px}
+.rules li{margin:2px 0}
+</style></head><body>
+<h1>ECLIPSE ONLINE — Object Art Prompts</h1>
+<div class="sub">วัตถุที่ตอนนี้เกมยังวาดด้วยโค้ด (2026-10-13) — ไม่มีรูปก็ยังเล่นได้ ส่งมาเมื่อพร้อม</div>
+<ul class="rules">
+<li><b>กติกาทุกภาพ:</b> pixel art มุมบน 3/4 แสงจากซ้ายบน <b>พื้นหลังดำล้วน</b> ห้ามมีตัวอักษร / ตาราง / ลายหมากรุก</li>
+<li>1 ช่องในเกม = 32 px — ขนาดในการ์ดเป็นขนาด "ในเกม" ภาพต้นฉบับใหญ่กว่าได้ (ชีต 2048×2048)</li>
+<li>1 ไฟล์ = 1 วัตถุ ตั้งชื่อไฟล์ตามมุมขวาของการ์ด; เฟรมห่างกัน ไม่แตะกัน พื้น (เท้า) อยู่ระดับเดียวกันทุกเฟรม</li>
+<li>ภาพเคลื่อนไหว: เรียงเฟรมเป็นแถวเดียว ซ้ายไปขวา ขนาดเท่ากัน</li>
+<li>ส่งมาแล้วบอก Claude ว่าไฟล์อยู่โฟลเดอร์ไหน</li></ul>
+
+  <h2>กล่องสมบัติ — สำคัญที่สุด (ตอนนี้ของในกล่องสุ่มแล้ว)</h2><div class="folder">ใส่ไฟล์ที่: <code>desgin/Map/SHARED/objects/</code></div>
+  
+    <div class="card"><div class="head"><span class="num">1</span><b>กล่องธรรมดา</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">chest_normal.png</span></div>
+      <div class="note">~1.3 ช่อง แถวเดียว 6 เฟรม: ปิด -> แง้ม -> ครึ่ง -> เปิดสุดเรืองทอง -> แสงจาง -> เปิดว่าง</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">A sturdy wooden treasure chest with dark iron bands and a round iron lock. ONE ROW of 6 frames: 1 closed, 2 lid lifts slightly with a thin warm gold glow from the gap, 3 lid half open with gold light spilling up, 4 lid fully open with a bright gold glow and sparkles rising, 5 fully open with the glow fading, 6 open and empty (dark inside, no glow). pixel art game object sprite sheet, top-down 3/4 view RPG, dark fantasy, light from the top-left, crisp 1-px dark outline, limited palette that fits a dark navy / violet night world, every frame the same size on the same ground line, evenly spaced, solid pure black background (#000000), no text, no labels, no grid, no checkerboard, no drop shadow.</div></div>
+    <div class="card"><div class="head"><span class="num">2</span><b>กล่องหายาก (Ornate)</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">chest_rare.png</span></div>
+      <div class="note">ใหญ่กว่ากล่องธรรมดาเล็กน้อย แถว 1 = เปิด 6 เฟรม, แถว 2 = ปิดอยู่ คริสตัลเรืองหายใจ 4 เฟรม</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">An ornate treasure chest of dark violet-black wood with polished gold trim, a glowing purple crystal set in the lid and small runes on the front. Row 1, 6 frames: closed with a faint violet glow, lid lifts with violet-white light leaking out, half open with a violet light beam, fully open with a burst of violet and gold sparkles, glow fading, open and empty. Row 2, 4 frames: the closed chest, the lid crystal slowly pulsing brighter and dimmer. pixel art game object sprite sheet, top-down 3/4 view RPG, dark fantasy, light from the top-left, crisp 1-px dark outline, limited palette that fits a dark navy / violet night world, every frame the same size on the same ground line, evenly spaced, solid pure black background (#000000), no text, no labels, no grid, no checkerboard, no drop shadow.</div></div>
+  <h2>วัตถุในแผนที่ field / ดันเจี้ยน</h2><div class="folder">ใส่ไฟล์ที่: <code>desgin/Map/SHARED/objects/</code></div>
+  
+    <div class="card"><div class="head"><span class="num">3</span><b>Waystone (จุดเช็คพอยต์)</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">waystone.png</span></div>
+      <div class="note">~1×2 ช่อง แถวเดียว 5 เฟรม: 1 = ยังไม่เปิด, 2-5 = เปิดแล้วเรืองฟ้าลูป</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">A waist-high ancient standing stone with a carved rune circle on its face. ONE ROW of 5 frames: 1 dormant (dark grey stone, runes unlit), 2-5 activated loop with the runes glowing soft cyan, small light motes floating around it, the glow pulsing brighter and dimmer. pixel art game object sprite sheet, top-down 3/4 view RPG, dark fantasy, light from the top-left, crisp 1-px dark outline, limited palette that fits a dark navy / violet night world, every frame the same size on the same ground line, evenly spaced, solid pure black background (#000000), no text, no labels, no grid, no checkerboard, no drop shadow.</div></div>
+    <div class="card"><div class="head"><span class="num">4</span><b>กองของตอนตาย</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">death_pile.png</span></div>
+      <div class="note">~1 ช่อง แถว 1 = ของเรา (แดง) 4 เฟรม, แถว 2 = ของเพื่อน (ฟ้า) 4 เฟรม</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">A small pile of a fallen adventurer's belongings on the ground: a dropped backpack, a torn cloak, a few coins and a broken sword. Row 1, 4 frames: a ghostly red glow with tiny embers slowly rising (loop). Row 2: the same 4 frames with a pale blue glow instead. pixel art game object sprite sheet, top-down 3/4 view RPG, dark fantasy, light from the top-left, crisp 1-px dark outline, limited palette that fits a dark navy / violet night world, every frame the same size on the same ground line, evenly spaced, solid pure black background (#000000), no text, no labels, no grid, no checkerboard, no drop shadow.</div></div>
+    <div class="card"><div class="head"><span class="num">5</span><b>ป้ายเรื่องราว (Lore)</b>
+      <span class="pri" style="background:#d29a3a">ควรมี</span><span class="id">lore_scroll.png</span></div>
+      <div class="note">~0.7 ช่อง 4 เฟรม ลอยขึ้นลง</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">A small parchment scroll tied with a ribbon, glowing warm gold, floating above a tiny stone pedestal. ONE ROW of 4 frames: the scroll bobs up and down and its glow pulses (loop). pixel art game object sprite sheet, top-down 3/4 view RPG, dark fantasy, light from the top-left, crisp 1-px dark outline, limited palette that fits a dark navy / violet night world, every frame the same size on the same ground line, evenly spaced, solid pure black background (#000000), no text, no labels, no grid, no checkerboard, no drop shadow.</div></div>
+    <div class="card"><div class="head"><span class="num">6</span><b>ชิ้นส่วนเควสเปลี่ยนอาชีพ</b>
+      <span class="pri" style="background:#d29a3a">ควรมี</span><span class="id">trial_relic.png</span></div>
+      <div class="note">~1 ช่อง 6 เฟรม สีม่วง (เกมย้อมสีตามอาชีพเอง)</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">A floating crystal shard relic, sharp and elegant, pale violet with a white core, circled by a thin ring of light, hovering above a soft glow on the ground. ONE ROW of 6 frames: the shard slowly rotates and the light ring pulses (loop). pixel art game object sprite sheet, top-down 3/4 view RPG, dark fantasy, light from the top-left, crisp 1-px dark outline, limited palette that fits a dark navy / violet night world, every frame the same size on the same ground line, evenly spaced, solid pure black background (#000000), no text, no labels, no grid, no checkerboard, no drop shadow.</div></div>
+    <div class="card"><div class="head"><span class="num">7</span><b>กองไฟ (B1 พายุหิมะ / B3 ภูเขา)</b>
+      <span class="pri" style="background:#d29a3a">ควรมี</span><span class="id">campfire.png</span></div>
+      <div class="note">~1 ช่อง 6 เฟรม ไฟลุกลูป</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">A small campfire of logs ringed with stones, sitting on snow. ONE ROW of 6 frames: lively orange-yellow flames flickering with a few sparks rising (loop). pixel art game object sprite sheet, top-down 3/4 view RPG, dark fantasy, light from the top-left, crisp 1-px dark outline, limited palette that fits a dark navy / violet night world, every frame the same size on the same ground line, evenly spaced, solid pure black background (#000000), no text, no labels, no grid, no checkerboard, no drop shadow.</div></div>
+    <div class="card"><div class="head"><span class="num">8</span><b>คันโยก / สวิตช์รูน / แท่นบูชา</b>
+      <span class="pri" style="background:#6a8a6a">ไม่รีบ</span><span class="id">switches.png</span></div>
+      <div class="note">3 แถว: คันโยก 2 เฟรม · สวิตช์รูน A3 4 เฟรม · แท่นบูชา 4 เฟรม</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">Three rows of dungeon interaction objects. Row 1, 2 frames: an old iron wall lever on a stone base, lever up and lever down. Row 2, 4 frames: a waist-high white stone rune pillar with bronze trim, unlit, then 3 frames of its rune glowing bright blue (loop). Row 3, 4 frames: a small old stone altar with an empty brazier, cold, then 3 frames of a violet flame burning in it (loop). pixel art game object sprite sheet, top-down 3/4 view RPG, dark fantasy, light from the top-left, crisp 1-px dark outline, limited palette that fits a dark navy / violet night world, every frame the same size on the same ground line, evenly spaced, solid pure black background (#000000), no text, no labels, no grid, no checkerboard, no drop shadow.</div></div></body></html>
