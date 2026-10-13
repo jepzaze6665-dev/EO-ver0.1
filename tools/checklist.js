@@ -41,7 +41,7 @@ export function runChecklist(g, classId = 'umbral_sword') {
   ok('Quest accepted (+ Elder Maren met)', g.quests.isActive('beyond_lumina') && g.quests.active.beyond_lumina.done.talk && w().state.flags.elderMet);
 
   // 7 walk out to A1
-  goto(g, 48.5, 6); hold(g, 'KeyW', 1.6);
+  use(g, 'lumina_gate'); const gp = g.ui.panels.current && g.ui.panels.current.name; g.ui.panels.close(true); g.enterDungeon('a1', { mode: 'solo' }); g.simulate(0.5); // [E] at the Dungeon Gate -> Solo PLAY
   ok('Walk out to A1', w().mapId === 'a1', w().mapId);
 
   // 8-18 first fight in A1

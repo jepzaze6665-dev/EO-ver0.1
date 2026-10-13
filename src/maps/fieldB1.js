@@ -60,7 +60,6 @@ export const FIELD_B1 = {
     ],
   },
   exits: [
-    { id: 'eastern_road', rect: [2, 19, 2, 23], to: 'lumina', entry: [90.5, 48], label: 'Lumina Village' },
     {
       id: 'arena_stairs', rect: [140, 123, 144, 123], to: 'frost_arena', entry: [142, 131], label: 'The Frost Arena',
       confirm: {

@@ -5,8 +5,8 @@ import { makeHouse, makeWell } from './villageArt.js';
 //   centre : TOWN SQUARE (fountain) — spawn, waystone, storage, quest board + Elder: everyone meets here
 //   ring   : services within ~15 tiles of the square — Adventurer Guild + training yard (W), Blacksmith (NE),
 //            Item Shop (SE), Bell Shrine (far W)
-//   roads  : straight from the square to the gates — Forest Gate (N, -> A1), Bramble Lane (NE, -> A1 shortcut),
-//            Eastern Road (E, -> B1)
+//   NO EXITS (owner): the DUNGEON GATE in the square (maps/luminaVillage.js) is the only way out; the old Forest Gate
+//            (N) is a closed gate at the end of the north road, the lanes end at the woods
 //   outside: Residential Quarter (S), Farmstead (SW), orchard (NW) — for walking around, never on the way
 // The old village (tiles 24..71 × 158..205 of the whispering grid) is forest now (maps/worldGen.js).
 export const LUMINA_PLACES = {
@@ -33,10 +33,9 @@ export function buildLuminaCity(b) {
   b.subRect(0, 0, m.w - 1, m.h - 1, AR.res);
 
   // ---------------- roads: straight from the square to every gate
-  b.rect(46, 0, 50, 40, T.DIRT);                               // north road -> Forest Gate -> A1
-  b.line([[55, 42], [64, 32], [70, 18], [70, 0]], 3, T.DIRT);  // north-east lane -> Bramble Lane (A1 shortcut)
-  b.rect(69, 0, 71, 6, T.DIRT);
-  b.rect(57, 47, m.w - 1, 49, T.DIRT);                          // eastern road -> B1
+  b.rect(46, 11, 50, 40, T.DIRT);                              // north road -> the (closed) Forest Gate
+  b.line([[55, 42], [64, 32], [70, 18]], 3, T.DIRT);           // north-east lane (ends in the woods)
+  b.rect(57, 47, 84, 49, T.DIRT);                               // east road (ends at the woods)
   b.rect(20, 47, 39, 49, T.DIRT);                               // west road -> guild + shrine
   b.rect(47, 57, 49, 66, T.DIRT);                               // south road -> homes
   b.line([[34, 66], [34, 80], [48, 84], [62, 80], [62, 66], [48, 66], [34, 66]], 2.4, T.DIRT); // residential loop
@@ -47,7 +46,7 @@ export function buildLuminaCity(b) {
   b.subRect(40, 0, 56, 16, AR.gate);
   b.subRect(20, 38, 38, 56, AR.guild);
   b.subRect(56, 50, 70, 64, AR.market);
-  b.subRect(72, 40, m.w - 1, 56, AR.east);
+  b.subRect(72, 40, 88, 56, AR.east);
   b.subRect(8, 68, 30, 90, AR.farm);
 
   b.edgeTrees(0, 0, m.w - 1, m.h - 1, ['tree_round_a', 'tree_round_b', 'tree_pine_a', 'tree_round_c', 'tree_large_a', 'tree_small_a', 'bush_a'], 0.75);
@@ -96,15 +95,14 @@ export function buildLuminaCity(b) {
 
   // ---------------- Forest Gate (north) + Bramble Lane
   b.prop('village_gate', 48, 10, { dy: 6, scale: 0.55 });
-  b.rect(43, 9, 45, 10, T.BUILDING); b.rect(51, 9, 53, 10, T.BUILDING);
+  b.rect(43, 9, 53, 10, T.BUILDING); // closed: the gate is a backdrop now
   b.prop('lantern_post', 44, 11, { light: { r: 60, color: '#ffb050', a: 0.7, flicker: true, oy: -40 } });
   b.prop('lantern_post', 52, 11, { light: { r: 60, color: '#ffb050', a: 0.7, flicker: true, oy: -40 } });
   b.npc({ id: 'guard', name: 'Tomas', role: 'Gate Guard', tx: 52, ty: 13, look: 'guard' });
   b.prop('signpost', 44, 14, {});
   b.interact({ id: 'sign_gate', kind: 'sign', tx: 44, ty: 14, prompt: 'Read Sign', text: 'NORTH — Whispering Forest\nSOUTH — Lumina Village\n"Travelers: stay on the path after dusk."' });
-  b.prop('lantern_post', 71, 8, { light: { r: 50, color: '#ffb050', a: 0.6, flicker: true, oy: -40 } });
 
-  // ---------------- Eastern Road (Route B)
+  // ---------------- east road end
   b.prop('signpost', 84, 46, {});
   b.prop('lantern_post', 80, 46, { light: { r: 55, color: '#ffb050', a: 0.65, flicker: true, oy: -40 } });
   b.prop('cart', 88, 51, { solid: true });

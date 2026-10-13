@@ -91,8 +91,6 @@ export const FIELD_A1 = {
     ],
   },
   exits: [
-    { id: 'to_lumina', rect: [44, 156, 51, 157], to: 'lumina', entry: [48.5, 6], label: 'Lumina Village' },
-    { id: 'to_lumina_lane', rect: [63, 156, 67, 157], to: 'lumina', entry: [70.5, 6], label: 'Lumina Village' },
     // the Sealed Path (hidden road, north-west): Valehaven, the secret city — open once the forest heals
     { id: 'valley_road', rect: [29, 30, 35, 31], to: 'valehaven', entry: [32, 25], label: 'Sealed Path' },
     {

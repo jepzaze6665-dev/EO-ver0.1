@@ -9,7 +9,7 @@ import { T, Z, SOLID_TILES } from '../core/constants.js';
 export function buildWhisperingTerrain(b) {
   buildForest(b);
   // the old Lumina corner (City 1 has its own grid now: world/levels/lumina.js) = deep forest; the two lanes north of
-  // it keep one open row so the A1 exits to Lumina (to_lumina / to_lumina_lane) stay walkable
+  // it keep one open row (the old exits to Lumina are gone: the city is reached by its Dungeon Gate)
   b.rect(18, 158, 77, 207, T.CANOPY);
   b.rect(64, 157, 65, 157, T.DIRT);
   b.edgeTrees(18, 150, 77, 165, ['tree_round_a', 'tree_round_b', 'tree_pine_a', 'tree_large_a'], 0.8);

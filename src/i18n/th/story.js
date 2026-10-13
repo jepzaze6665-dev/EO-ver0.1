@@ -27,7 +27,7 @@ export const TH_STORY = {
   'FIRST STEPS BEYOND LUMINA': 'ก้าวแรกนอก LUMINA',
   'Captain Aldric of the Adventurer Guild wants proof you can survive beyond the village gate.': 'Captain Aldric แห่งกิลด์นักผจญภัยต้องการหลักฐานว่าคุณเอาตัวรอดนอกประตูหมู่บ้านได้',
   'Talk to Village Guide': 'คุยกับผู้นำทางหมู่บ้าน',
-  'Exit Lumina Village': 'ออกจากหมู่บ้าน Lumina',
+  'Enter the Whispering Forest by the Dungeon Gate': 'เข้าป่า Whispering Forest ผ่าน Dungeon Gate',
   'Defeat Monsters': 'ปราบมอนสเตอร์',
   'Return to Village Guide': 'กลับไปหาผู้นำทางหมู่บ้าน',
   'FIRST STEPS OF SHADOW': 'ก้าวแรกแห่งเงา',

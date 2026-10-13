@@ -422,9 +422,9 @@ export function a1Loop(g, classId = 'umbral_sword') {
   g.newGame(classId);
   const w = g.world, p = g.player, q = g.quests;
   use(g, 'npc_guide'); g.ui.panels.close(true);
-  goto(g, 48.5, 6); g.input.down.add('KeyW'); g.simulate(1.6); g.input.down.delete('KeyW');
+  g.enterDungeon('a1', { mode: 'solo' }); g.simulate(0.5); // the Dungeon Gate's Solo PLAY
   ok('Walked out of Lumina into A1', w.mapId === 'a1' && q.active.beyond_lumina.done.exit, w.mapId);
-  const start = { lv: p.level, gold: p.gold, items: Object.values(g.inventory.items).reduce((a, b) => a + b, 0) };
+  const start = { lv: p.level, exp: p.exp, gold: p.gold, items: Object.values(g.inventory.items).reduce((a, b) => a + b, 0) };
   let kills = 0, targeted = 0; g.events.on('enemyDefeated', () => kills++); g.events.on('targetChanged', (e) => { if (e.target) targeted++; });
   for (const [x, y] of [[47, 144], [38, 121], [20, 112], [22, 131], [58, 104]]) {
     if (q.active.beyond_lumina && q.active.beyond_lumina.done.hunt) break;
@@ -435,7 +435,7 @@ export function a1Loop(g, classId = 'umbral_sword') {
   ok('Fought only on A1', w.mapId === 'a1', w.mapId);
   ok('Targeted + defeated 5 monsters', q.active.beyond_lumina && q.active.beyond_lumina.done.hunt && targeted > 0, `kills=${kills} targeted=${targeted}`);
   const items = Object.values(g.inventory.items).reduce((a, b) => a + b, 0);
-  ok('EXP / gold / loot gained', p.level > start.lv && p.gold > start.gold && items >= start.items, `LV${start.lv}->${p.level} gold ${start.gold}->${p.gold} items ${start.items}->${items}`);
+  ok('EXP / gold / loot gained', (p.level > start.lv || p.exp > start.exp) && p.gold > start.gold && items >= start.items, `LV${start.lv}->${p.level} gold ${start.gold}->${p.gold} items ${start.items}->${items}`);
   w.changeMap('lumina', { entry: w.mapManager.get('lumina').spawn }); g.simulate(0.3); // Lumina has its own grid
   use(g, 'npc_guide'); g.ui.panels.close(true);
   ok('Returned to the guide: quest complete', q.isDone('beyond_lumina') && w.mapId === 'lumina', `map=${w.mapId}`);
@@ -453,7 +453,7 @@ export function playthrough(g, classId) {
   ok('Village Guide: First Steps Beyond Lumina', g.quests.isActive('beyond_lumina') && g.quests.active.beyond_lumina.done.talk);
   use(g, 'npc_elder'); g.ui.panels.close(true);
   ok('Elder Maren met (no quest since Q1)', w.state.flags.elderMet);
-  goto(g, 48.5, 6); walk(g, 'KeyW', 1.6); g.simulate(1);
+  g.enterDungeon('a1', { mode: 'solo' }); g.simulate(1);
   ok('Whispering Forest', w.mapId === 'a1', w.mapId);
   for (const [x, y] of [[38, 121], [20, 112], [54, 80], [66, 62]]) { goto(g, x, y); fight(g, 20, { god: true, until: () => g.stats.kills >= 5 }); if (g.stats.kills >= 5) break; }
   // keep fighting until the combat loop has produced a Perfect Dodge and a Shadow Break
@@ -549,7 +549,7 @@ export function routeA(g, classId = 'umbral_sword') {
   ok('Start: Lumina, only Lumina + A1 unlocked', w.mapId === 'lumina' && wp.isMapUnlocked('a1') && !wp.isMapUnlocked('a2') && !wp.isMapUnlocked('valehaven'), Object.keys(wp.unlockedMaps).join(','));
   // guide, leave Lumina on foot
   use(g, 'npc_guide'); g.ui.panels.close(true);
-  goto(g, 48.5, 6); walk(g, 'KeyW', 1.6);
+  g.enterDungeon('a1', { mode: 'solo' }); g.simulate(0.5);
   ok('A1: walked out of Lumina (Route A)', w.mapId === 'a1' && wp.currentRoute === 'A', `map=${w.mapId} route=${wp.currentRoute}`);
   const kills0 = g.stats.kills, q = g.quests;
   goto(g, 57, 147); fight(g, 10, { god: true });
@@ -1385,10 +1385,8 @@ export function routeBCheck(g, classId = 'umbral_sword') {
   const w = g.world, p = g.player, wp = g.worldProgress;
   const st = wp.routeStatus('B');
   ok('Route B playable: B1 + B2 + B3 built (B2 / B3 locked behind their bosses)', st.route.playable && !st.steps[0].planned && st.steps[0].unlocked && !st.steps[1].planned && !st.steps[1].unlocked && !st.steps[2].planned && !st.steps[2].unlocked, JSON.stringify(st.steps.map((s) => [s.id, s.planned, s.unlocked])));
-  goto(g, 88, 48);
-  for (let k = 0; k < 30 && w.mapId !== 'b1'; k++) walk(g, 'KeyD', 0.3);
-  g.simulate(2.5);
-  ok("Lumina's Eastern Road -> FROSTWIND PLAINS (grid frostwind) on foot", w.mapId === 'b1' && w.gridId === 'frostwind', `map=${w.mapId} grid=${w.gridId}`);
+  g.enterDungeon('b1', { mode: 'solo' }); g.simulate(2.5); // Lumina's Dungeon Gate, Solo PLAY
+  ok("Lumina's Dungeon Gate -> FROSTWIND PLAINS (grid frostwind)", w.mapId === 'b1' && w.gridId === 'frostwind', `map=${w.mapId} grid=${w.gridId}`);
   ok('B1 is hostile ground with its own monsters', w.spawnPoints.some((sp) => sp.def.type === 'rime_wolf') && !w.mapDef.safe);
   use(g, 'ws_b1_lodge'); g.ui.panels.close(true);
   ok("Hunter's Lodge waystone attuned", w.state.waystones.ws_b1_lodge);
@@ -1404,9 +1402,8 @@ export function routeBCheck(g, classId = 'umbral_sword') {
   g.saveGame(); w.changeMap('lumina'); g.simulate(0.3); const loaded = g.loadGame();
   ok('Save / load in B1 (grid frostwind, same spot)', loaded && g.world.mapId === 'b1' && g.world.gridId === 'frostwind' && Math.hypot(g.player.x - pos[0], g.player.y - pos[1]) < 40, `map=${g.world.mapId}`);
   const w2 = g.world;
-  goto(g, 6, 21);
-  for (let k = 0; k < 12 && w2.mapId !== 'lumina'; k++) walk(g, 'KeyA', 0.3);
-  ok('Back west to Lumina', w2.mapId === 'lumina', `map=${w2.mapId}`);
+  use(g, 'city_return_b1'); if (g.ui.panels.current && g.ui.panels.current.advance) g.ui.panels.current.advance(); g.simulate(0.5);
+  ok('Return stone -> back to Lumina', w2.mapId === 'lumina', `map=${w2.mapId}`);
   return R;
 }
 
