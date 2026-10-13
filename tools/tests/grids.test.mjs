@@ -19,7 +19,9 @@ test('every map names a grid that exists', () => {
   for (const d of MAPS) ok(d.grid && LEVELS[d.grid], `${d.id}: grid '${d.grid}'`);
 });
 test('field grids keep a similar physical scale (A1 / A2 / A3 principle: depth grows, not size)', () => {
-  const areas = Object.values(LEVELS).map((L) => L.size[0] * L.size[1]);
+  // cities (every map on the grid is a city) are smaller by design: hubs, not fields
+  const cityGrids = new Set(Object.keys(LEVELS).filter((id) => MAPS.filter((d) => d.grid === id).every((d) => d.type === 'city')));
+  const areas = Object.values(LEVELS).filter((L) => !cityGrids.has(L.id)).map((L) => L.size[0] * L.size[1]);
   ok(Math.max(...areas) / Math.min(...areas) <= 1.5, 'sizes ' + areas.join(', '));
 });
 test('exits between grids exist both ways', () => {

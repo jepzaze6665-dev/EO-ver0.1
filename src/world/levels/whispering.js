@@ -1,10 +1,9 @@
 import { TILE, T } from '../../core/constants.js';
 import { Assets } from '../../core/assets.js';
 import { Breakable } from '../../exploration/breakable.js';
-import { TrainingDummy } from '../../entities/trainingDummy.js';
 import { buildWhisperingTerrain } from '../../maps/worldGen.js';
 
-// WHISPERING grid — the original connected world (Lumina, the forest, ruins, Guardian Arena, Valehaven).
+// WHISPERING grid — the original connected world (the forest, ruins, Guardian Arena, Valehaven).
 // Everything here is specific to this grid's terrain; the World calls it through the level hooks
 // (world/levels/index.js): generate (terrain), setup (objects placed once), apply (world flags -> terrain / props).
 export const WHISPERING = {
@@ -16,7 +15,7 @@ export const WHISPERING = {
     ['Abandoned Camp', 20, 132], ['Ancient Shrine', 136, 69], ['Guardian Gate', 136, 57], ['Ruin Courtyard', 136, 99], ['Ancient Valley', 36, 6],
   ],
 
-  // breakable secrets, the training yard, examine prompts
+  // breakable secrets, examine prompts (the training yard moved to the Lumina grid)
   setup(w, L) {
     const g = w.game, pb = L.propById;
     L.interactables.push({ id: 'crack_info', kind: 'crackInfo', x: 70.5 * TILE, y: 55.6 * TILE, radius: 40, prompt: 'Examine Cracked Stone' });
@@ -36,11 +35,6 @@ export const WHISPERING = {
       canHit: () => !w.state.flags.bramble && g.player.y < 147.6 * TILE,
       onBreak: () => { w.setFlag('bramble'); w.applyState(); g.ui.banner('SHORTCUT OPENED', 'Bramble Lane → Lumina Village', '#ffd98a'); },
     }));
-    // training yard beside the Adventurer Guild (class / combat testing)
-    L.dummies = [[29, 186], [32, 187.5], [35, 186]].map(([tx, ty]) => {
-      const pos = L.map.findOpen(tx * TILE, ty * TILE, 3);
-      return new TrainingDummy(g, pos.x, pos.y);
-    });
   },
 
   // world flags -> this grid's terrain / props (idempotent; World.applyState runs it while the grid is loaded)

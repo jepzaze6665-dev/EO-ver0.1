@@ -29,10 +29,10 @@ export function runChecklist(g, classId = 'umbral_sword') {
   releaseInput(g);
   const x0 = p.x; hold(g, 'KeyD', 0.5);
   ok('Player walks', Math.abs(p.x - x0) > 20, `moved ${Math.round(p.x - x0)} px`);
-  goto(g, 33, 177); // south of the Adventurer Guild (building tiles 31-35 × 171-174)
+  goto(g, 30, 48); // south of the Adventurer Guild (building tiles 27-33 × 42-45)
   let inWall = false;
   hold(g, 'KeyW', 1.5, () => { if (w().map.isSolid(Math.floor(p.x / TILE), Math.floor(p.y / TILE))) inWall = true; });
-  ok('Collision stops the player at a wall', !inWall && p.y > 174.5 * TILE, `y=${(p.y / TILE).toFixed(1)}`);
+  ok('Collision stops the player at a wall', !inWall && p.y > 45.5 * TILE, `y=${(p.y / TILE).toFixed(1)}`);
 
   // 5-6 guide + quest
   use(g, 'npc_guide'); g.ui.panels.close(true);
@@ -41,7 +41,7 @@ export function runChecklist(g, classId = 'umbral_sword') {
   ok('Quest accepted (+ Elder Maren met)', g.quests.isActive('beyond_lumina') && g.quests.active.beyond_lumina.done.talk && w().state.flags.elderMet);
 
   // 7 walk out to A1
-  goto(g, 47.5, 163); hold(g, 'KeyW', 1.6);
+  goto(g, 48.5, 6); hold(g, 'KeyW', 1.6);
   ok('Walk out to A1', w().mapId === 'a1', w().mapId);
 
   // 8-18 first fight in A1

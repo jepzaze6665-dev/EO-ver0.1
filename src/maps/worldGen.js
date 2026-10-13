@@ -1,4 +1,3 @@
-import { buildLumina } from './lumina.js';
 import { buildForest, buildHowlingDen } from './forest.js';
 import { buildRuins, buildGateAndArena, buildValley } from './ruins.js';
 import { T, Z, SOLID_TILES } from '../core/constants.js';
@@ -9,7 +8,11 @@ import { T, Z, SOLID_TILES } from '../core/constants.js';
 // `b` = Builder over an empty WorldMap made by World.buildLevel.
 export function buildWhisperingTerrain(b) {
   buildForest(b);
-  buildLumina(b);
+  // the old Lumina corner (City 1 has its own grid now: world/levels/lumina.js) = deep forest; the two lanes north of
+  // it keep one open row so the A1 exits to Lumina (to_lumina / to_lumina_lane) stay walkable
+  b.rect(18, 158, 77, 207, T.CANOPY);
+  b.rect(64, 157, 65, 157, T.DIRT);
+  b.edgeTrees(18, 150, 77, 165, ['tree_round_a', 'tree_round_b', 'tree_pine_a', 'tree_large_a'], 0.8);
   buildRuins(b);
   buildGateAndArena(b);
   buildValley(b);

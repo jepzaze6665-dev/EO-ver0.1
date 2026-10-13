@@ -3,7 +3,7 @@ import { WorldMap } from '../maps/worldMap.js';
 import { Builder } from '../maps/builder.js';
 import { buildTileset } from '../maps/tiles.js';
 import { skinnedTileset } from '../maps/tileSkins.js';
-import { LEVELS, START_GRID } from './levels/index.js';
+import { LEVELS, START_GRID, FOG_GRID } from './levels/index.js';
 import { Monster } from '../monsters/monster.js';
 import { MONSTERS } from '../monsters/monsterTypes.js';
 import { Guardian } from '../boss/guardian.js';
@@ -625,18 +625,20 @@ export class World {
   }
 
   // ---------------- save/load
-  // fog of war: `revealed` = the start grid (as before grids existed), `revealedGrids` = every other grid seen so far
+  // fog of war: `revealed` = the FOG_GRID (whispering: the start grid before grids existed), `revealedGrids` = every other grid
   serialize() {
     const other = { ...this.pendingReveal };
-    for (const [id, L] of Object.entries(this.levels)) if (id !== START_GRID) other[id] = rle(L.map.revealed);
-    return { ...this.state, nodes: {}, secrets: [...this.secretsFound], revealed: rle(this.levels[START_GRID].map.revealed), revealedGrids: other };
+    for (const [id, L] of Object.entries(this.levels)) other[id] = rle(L.map.revealed);
+    const revealed = other[FOG_GRID] || null;
+    delete other[FOG_GRID];
+    return { ...this.state, nodes: {}, secrets: [...this.secretsFound], revealed, revealedGrids: other };
   }
   load(d) {
     const { revealed, revealedGrids, ...rest } = d;
     this.state = { ...this.freshState(), ...rest, flags: { ...(d.flags || {}) }, nodes: {} };
     this.secretsFound.clear();
     for (const id of d.secrets || []) this.secretsFound.add(id);
-    const fog = { ...(revealedGrids || {}), ...(revealed ? { [START_GRID]: revealed } : {}) };
+    const fog = { ...(revealedGrids || {}), ...(revealed ? { [FOG_GRID]: revealed } : {}) };
     if (fog.ashen) { fog.ancient_valley = fog.ancient_valley || fog.ashen; delete fog.ashen; } // W1/W2 name of the A2 grid
     this.pendingReveal = {};
     for (const [id, r] of Object.entries(fog)) {

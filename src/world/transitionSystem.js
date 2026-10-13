@@ -7,7 +7,7 @@ import { isSharedMap } from '../data/online.js';
 //   Progression) · exit.requires: a requirement list (or the V2.1 form { flag }) · every exit is closed during a boss fight.
 //   Standing in a locked exit tells the player why ("THE WAY IS BLOCKED" + the first unmet requirement).
 //   exit.confirm { title, text, yes, no }: ask first (boss entrance). "No" puts the player back where they
-//   stood before stepping in. Tests set `autoConfirm`.
+//   stood before stepping in. Tests set `autoConfirm` (`autoConfirmCity` = only the city map select).
 //   No loops: entry points are outside the target map's exits (checked by tests) + a short cooldown.
 export class TransitionSystem {
   constructor(world, { cooldown = 0.6 } = {}) {
@@ -64,7 +64,7 @@ export class TransitionSystem {
     // — create / join a party, ready check, or go alone. Closing it puts you back where you stood.
     const on = g.online;
     // offline (DEV ?offline) opens it too: Solo PLAY then simply walks you into the chosen area
-    if (isSharedMap(w.mapId) && !isSharedMap(exit.to) && !this.autoConfirm && on) {
+    if (isSharedMap(w.mapId) && !isSharedMap(exit.to) && !this.autoConfirm && !this.autoConfirmCity && on) {
       const back = this.lastSafe, map = w.mapId;
       this.pending = exit;
       g.ui.panels.dungeonGate(exit);

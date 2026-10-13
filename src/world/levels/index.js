@@ -1,4 +1,5 @@
 import { WHISPERING } from './whispering.js';
+import { LUMINA } from './lumina.js';
 import { ANCIENT_VALLEY } from './ancientValley.js';
 import { RUNE_CITADEL } from './runeCitadel.js';
 import { ASTERIA } from './asteria.js';
@@ -20,5 +21,7 @@ import { FROSTPEAK } from './frostpeak.js';
 //  skin     : ground art for this grid (maps/tileSkins.js, built by tools/build-tiles.js); none = painted tiles
 //  landmarks: [[name, tx, ty]] minimap / world map markers (name = a sub-area: shown once that area was discovered)
 // A new grid = one module + one line here + maps naming it. The World never names a grid.
-export const LEVELS = { whispering: WHISPERING, ancient_valley: ANCIENT_VALLEY, citadel: RUNE_CITADEL, asteria: ASTERIA, frostwind: FROSTWIND, caverns: CAVERNS, frostpeak: FROSTPEAK };
-export const START_GRID = 'whispering';
+export const LEVELS = { lumina: LUMINA, whispering: WHISPERING, ancient_valley: ANCIENT_VALLEY, citadel: RUNE_CITADEL, asteria: ASTERIA, frostwind: FROSTWIND, caverns: CAVERNS, frostpeak: FROSTPEAK };
+export const START_GRID = 'lumina'; // City 1 (own grid since 2026-10-13; it was 'whispering')
+// the save's plain `revealed` fog field belongs to this grid (it was the start grid when the field was made)
+export const FOG_GRID = 'whispering';
