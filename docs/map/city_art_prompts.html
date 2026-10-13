@@ -1,0 +1,112 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><title>City Art Prompts</title><style>
+@font-face{font-family:Kanit;src:url(file:///D:/EO/assets/fonts/Kanit-SemiBold.ttf)}
+@font-face{font-family:Thai;src:url(file:///D:/EO/assets/fonts/NotoSansThai.ttf)}
+@page{size:A4;margin:14mm}
+body{font-family:Thai,'Segoe UI',sans-serif;color:#222;font-size:11.5px;line-height:1.55}
+h1{font-family:Kanit;font-size:26px;margin:0;color:#2a1f44}
+.sub{color:#666;margin:2px 0 14px}
+h2{font-family:Kanit;font-size:17px;border-bottom:2px solid #7a5cc8;padding-bottom:3px;margin:18px 0 4px;color:#3a2a66;break-after:avoid}
+.folder{color:#555;margin-bottom:8px}
+code{background:#eee;padding:1px 5px;border-radius:3px}
+.card{border:1px solid #ccc;border-radius:6px;padding:8px 10px;margin:8px 0;break-inside:avoid}
+.head{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.num{background:#3a2a66;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.pri{color:#fff;font-size:10px;padding:1px 7px;border-radius:9px}
+.id{margin-left:auto;color:#888;font-family:monospace}
+.note{color:#444;margin:3px 0}
+.label{font-size:9.5px;color:#7a5cc8;font-weight:bold;margin-top:4px}
+.prompt{background:#f4f1fb;border-left:3px solid #7a5cc8;padding:6px 8px;font-family:Consolas,monospace;font-size:10.5px}
+.rules li{margin:2px 0}
+</style></head><body>
+<h1>ECLIPSE ONLINE — City Art Prompts</h1>
+<div class="sub">ภาพ sprite สำหรับเมือง Lumina + Asteria (City rework, 2026-10-13)</div>
+<ul class="rules">
+<li><b>กติกาทุกภาพ:</b> pixel art มุมบน 3/4 แสงจากซ้ายบน <b>พื้นหลังดำล้วน</b> ห้ามมีตัวอักษร / ตาราง / ลายหมากรุก</li>
+<li>1 ช่องในเกม = 32 px — ขนาดในการ์ดเป็นขนาด "ในเกม" ภาพต้นฉบับใหญ่กว่าได้ (ชีต 2048×2048)</li>
+<li>วางแต่ละชิ้นห่างกัน ไม่ให้แตะกัน — เครื่องมือตัดภาพแยกชิ้นจากช่องว่าง</li>
+<li>ภาพเคลื่อนไหว: เรียงเฟรมเป็นแถวเดียว ซ้ายไปขวา ขนาดเท่ากัน</li>
+<li>ส่งมาแล้วบอก Claude ว่าไฟล์อยู่โฟลเดอร์ไหน</li></ul>
+
+  <h2>ทั้งสองเมือง — สำคัญที่สุด</h2><div class="folder">ใส่ไฟล์ที่: <code>desgin/Map/City/SHARED/</code></div>
+  
+    <div class="card"><div class="head"><span class="num">1</span><b>Dungeon Gate (ประตูดันเจี้ยน)</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">gate.png</span></div>
+      <div class="note">ทางออกเดียวของเมือง ใหญ่ ~3×4 ช่อง (96×128 px ในเกม). แถว 1 = ปิด (หินมืด), แถว 2 = 6 เฟรมวังวนม่วงหมุนวนลูป</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">An ancient standing stone portal arch, two carved rune pillars and a cracked lintel with an eclipse emblem, inside the arch a swirling violet energy vortex. Row 1: the gate dormant (dark stone, faint runes). Row 2: 6 animation frames of the vortex spinning and glowing, runes lit violet. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+    <div class="card"><div class="head"><span class="num">2</span><b>Return Stone (หินกลับเมือง)</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">return.png</span></div>
+      <div class="note">จุดเริ่มทุกแมพ ~1×2 ช่อง. 4 เฟรมเรืองแสงทอง</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">A small waist-high rune stone on a round stone base, a golden rune ring floating around it, 4 animation frames of the ring pulsing gold light. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+    <div class="card"><div class="head"><span class="num">3</span><b>กระดานเควส</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">board.png</span></div>
+      <div class="note">~2×2 ช่อง ตั้งกลางลาน</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">A wooden quest notice board with a little roof, pinned parchment notes and a wanted poster, a lantern hanging on one side. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+  <h2>Lumina Village — หมู่บ้านขอบป่า อบอุ่น</h2><div class="folder">ใส่ไฟล์ที่: <code>desgin/Map/City/LUMINA/</code></div>
+  
+    <div class="card"><div class="head"><span class="num">4</span><b>บ้าน 6 หลัง</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">houses.png</span></div>
+      <div class="note">กว้าง 4-5 ช่อง มีประตูหน้าตรงกลาง หลังคาสีแดง / ฟ้า / เขียว / เทา / ฟาง / ไม้</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">Six small village cottages for a forest village, timber frame and stone base, front door facing the viewer, roofs: red tiles, blue slate, green moss, grey stone, straw thatch, wooden shingles; window light warm yellow, chimneys on some. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+    <div class="card"><div class="head"><span class="num">5</span><b>Adventurer Guild</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">guild.png</span></div>
+      <div class="note">~7×5 ช่อง อาคารใหญ่สุดของหมู่บ้าน</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">A two-storey adventurers' guild hall, stone ground floor, timber upper floor, big double door, blue banners with a sword-and-shield crest, a sign board over the door. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+    <div class="card"><div class="head"><span class="num">6</span><b>โรงตีเหล็ก</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">smith.png</span></div>
+      <div class="note">~5×4 ช่อง หลังคาเปิดด้านหน้า เห็นเตาไฟ</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">An open-front blacksmith workshop, stone forge with glowing orange fire, chimney with smoke, anvil, tool rack and weapon rack under a wooden roof. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+    <div class="card"><div class="head"><span class="num">7</span><b>แผงตลาด 3 แบบ</b>
+      <span class="pri" style="background:#d29a3a">ควรมี</span><span class="id">market.png</span></div>
+      <div class="note">~3×2 ช่อง ผ้าใบสีต่างกัน</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">Three market stalls with striped canvas awnings (red, teal, purple): a potion stall with bottles, a food stall with bread and fruit, a cloth stall with folded fabric. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+    <div class="card"><div class="head"><span class="num">8</span><b>ของตกแต่งหมู่บ้าน</b>
+      <span class="pri" style="background:#d29a3a">ควรมี</span><span class="id">props.png</span></div>
+      <div class="note">ชิ้นละ 1-2 ช่อง</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">Village props set: wooden fence pieces (horizontal, vertical, corner, gate), vegetable garden patch, hay bales, wooden cart, water barrel, well, hanging lantern post, two fruit trees, flower pots, flower arch, wooden bench, crates, sacks. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+    <div class="card"><div class="head"><span class="num">9</span><b>ประตูป่าที่ปิดตาย</b>
+      <span class="pri" style="background:#6a8a6a">ไม่รีบ</span><span class="id">forestgate.png</span></div>
+      <div class="note">~5×3 ช่อง ฉากหลังทิศเหนือ</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">A big closed wooden palisade gate between two log watchtowers, the doors chained and barred, ivy growing over it. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+  <h2>Asteria City — เมืองหลวงหินขาว + บรอนซ์</h2><div class="folder">ใส่ไฟล์ที่: <code>desgin/Map/City/ASTERIA CITY/</code></div>
+  
+    <div class="card"><div class="head"><span class="num">10</span><b>น้ำพุคริสตัล (กลางลาน)</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">fountain.png</span></div>
+      <div class="note">~5×5 ช่อง เรืองแสงฟ้า 4 เฟรม</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">A grand round fountain of white marble with bronze trim, a large floating blue crystal in the centre, water falling in tiers, 4 animation frames of the water and the crystal glow. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+    <div class="card"><div class="head"><span class="num">11</span><b>Dungeon Gate แบบเมืองหลวง</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">citygate.png</span></div>
+      <div class="note">เหมือนข้อ Dungeon Gate แต่หินขาวขอบทอง</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">An ornate portal arch of white marble with gold and bronze trim and winged statues on both pillars, inside a swirling violet vortex. Row 1 dormant, row 2: 6 frames of the vortex spinning. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+    <div class="card"><div class="head"><span class="num">12</span><b>อาคารร้านค้า 3 หลัง (มีป้าย)</b>
+      <span class="pri" style="background:#d24a4a">สำคัญมาก</span><span class="id">shops.png</span></div>
+      <div class="note">~5×4 ช่อง ป้ายเป็นรูป ไม่มีตัวอักษร</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">Three city shop buildings of white stone with bronze roofs, hanging signs with pictures only: a potion shop (bottle sign), a blacksmith (hammer and anvil sign), an adventurers guild (shield sign), awnings over the doors. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+    <div class="card"><div class="head"><span class="num">13</span><b>ของตกแต่งเมือง</b>
+      <span class="pri" style="background:#d29a3a">ควรมี</span><span class="id">cityprops.png</span></div>
+      <div class="note">ชิ้นละ 1-2 ช่อง</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">City props set: bronze street lamps, marble benches, flower planters, banners on poles (blue and gold), market crates, a statue of a knight, a bronze bell post, hedges, a small marble fountain. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+  <h2>ไม่ต้องรีบ</h2><div class="folder">ใส่ไฟล์ที่: <code>desgin/NPC/</code></div>
+  
+    <div class="card"><div class="head"><span class="num">14</span><b>NPC ใน Lumina</b>
+      <span class="pri" style="background:#6a8a6a">ไม่รีบ</span><span class="id">npcs.png</span></div>
+      <div class="note">แบบเดียวกับ docs/npc/NPC_PROMPTS.md (front / back / left / right / walk1 / walk2)</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">Character sprite sheet, 6 poses in one row: front, back, left, right, walk 1, walk 2 — make one sheet each for: an old village elder woman with a staff, a gate guard in leather and a spear, a small village boy, a village woman with a basket. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div>
+    <div class="card"><div class="head"><span class="num">15</span><b>สัตว์ในเมือง</b>
+      <span class="pri" style="background:#6a8a6a">ไม่รีบ</span><span class="id">animals.png</span></div>
+      <div class="note">2 เฟรมเดิน</div>
+      <div class="label">PROMPT (คัดลอกทั้งกล่อง)</div>
+      <div class="prompt">Small town animals, 2 walking frames each, 4 directions: a grey cat, a pigeon, a brown dog. pixel art, top-down 3/4 view RPG (like Stardew Valley / Eastward), light from the top-left, crisp 1-px dark outline, muted dark-fantasy palette, every object separate with clear empty space between them, solid pure black background (#000000), no text, no labels, no grid.</div></div></body></html>
