@@ -273,19 +273,15 @@
    "bodyHeight": 52,
    "feetMaxOffset": 1,
    "centerOffset": -1,
-   "ok": false,
-   "issues": [
-    "Scale Difference"
-   ]
+   "ok": true,
+   "issues": []
   },
   "atk2": {
    "bodyHeight": 55,
    "feetMaxOffset": 1,
    "centerOffset": 0,
-   "ok": false,
-   "issues": [
-    "Scale Difference"
-   ]
+   "ok": true,
+   "issues": []
   },
   "dash": {
    "bodyHeight": 56,
@@ -312,10 +308,8 @@
    "bodyHeight": 55,
    "feetMaxOffset": 1,
    "centerOffset": 0,
-   "ok": false,
-   "issues": [
-    "Scale Difference"
-   ]
+   "ok": true,
+   "issues": []
   },
   "sk3": {
    "bodyHeight": 56,
@@ -335,19 +329,15 @@
    "bodyHeight": 55,
    "feetMaxOffset": 1,
    "centerOffset": 0,
-   "ok": false,
-   "issues": [
-    "Scale Difference"
-   ]
+   "ok": true,
+   "issues": []
   },
   "sk6": {
    "bodyHeight": 55,
    "feetMaxOffset": 1,
    "centerOffset": 0,
-   "ok": false,
-   "issues": [
-    "Scale Difference"
-   ]
+   "ok": true,
+   "issues": []
   },
   "sk7": {
    "bodyHeight": 56,

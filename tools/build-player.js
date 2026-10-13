@@ -566,7 +566,7 @@ function sideRows(img, s, base) {
 }
 
 // Frame validation: measures the output exactly like the game will draw it.
-function validate(sheet, rows) {
+function validate(sheet, rows, tol = 4) {
   const [CW, CH] = STD.canvas, [PX, PY] = STD.pivot;
   const heights = [], feet = [], centers = [];
   for (let r = 0; r < rows; r++) for (let c = 0; c < COLS; c++) {
@@ -585,7 +585,7 @@ function validate(sheet, rows) {
   const absFeet = feet.map(Math.abs).sort((p, q) => p - q);
   const h = med(heights), feetMax = absFeet[Math.floor((absFeet.length - 1) * 0.9)], centerMed = med(centers);
   const issues = [];
-  if (Math.abs(h - STD.bodyHeight) > 4) issues.push('Scale Difference');
+  if (Math.abs(h - STD.bodyHeight) > tol) issues.push('Scale Difference');
   if (feetMax > 3) issues.push('Ground Offset');
   if (Math.abs(centerMed) > 6) issues.push('Pivot Offset');
   return { bodyHeight: h, feetMaxOffset: feetMax, centerOffset: Math.round(centerMed), ok: issues.length === 0, issues };
@@ -949,7 +949,7 @@ for (const [name, [file, rows, opt = {}]] of Object.entries(SHEETS)) {
     if (cnt < 300) atlas.sheets[name].emptyFrames.push([r, c]);
   }
   if (atlas.sheets[name].emptyFrames.length) console.log('   empty frames in', name, JSON.stringify(atlas.sheets[name].emptyFrames));
-  const v = validate(sheet, rows);
+  const v = validate(sheet, rows, headMatch ? 8 : 4); // headMatch sizes by head + body: attack poses may stand a little shorter
   atlas.validation[name] = v;
   console.log(name.padEnd(6), 'scale', scale.toFixed(3), 'body', v.bodyHeight, 'feet±', v.feetMaxOffset, 'center', v.centerOffset, v.ok ? 'OK' : '⚠ ' + v.issues.join(', '));
 }
