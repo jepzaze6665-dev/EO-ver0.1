@@ -5,6 +5,7 @@
 //   then the bag (filter tabs with the owner's icons, rarity-coloured slots) and the selected item.
 // Reads the game, changes nothing: clicks go through panels.js data-attributes (data-pick, data-equip-to, data-unequip,
 // data-item, data-filter, data-tab, data-use, data-equip).
+import { plusOf } from '../items/enhance.js';
 import { ITEMS, RARITY_COLOR } from '../items/items.js';
 import { GEAR_SLOTS } from '../data/items/rules.js';
 import { itemIconURL } from './icons.js';
@@ -63,10 +64,13 @@ export function charTabsHTML(cur) {
 export function equipmentTabHTML(g, state, itemDetail) {
   const p = g.player, eq = g.equipment, inv = g.inventory;
   const pick = state.pickSlot ? GEAR_SLOTS.find((s) => s.id === state.pickSlot) : null;
+  // GEAR ENHANCEMENT: "+N" badge (top left) on worn gear and on bag gear (best copy of that item)
+  const plusTag = (n) => (n > 0 ? `<span class="cw-plus">+${n}</span>` : '');
+  const bestPlus = (id) => Math.max(0, ...inv.instancesOf(id).map(plusOf));
   const slot = (s) => {
-    const id = eq.slots[s.id], d = ITEMS[id];
-    return `<div class="slot cw-gear${state.pickSlot === s.id ? ' sel' : ''}" data-pick="${s.id}" title="${esc(tl(s.label))}"${d ? ` data-tip="${id}" data-tip-eq="1" style="border-color:${RARITY_COLOR[d.rarity]}"` : ''}>
-      ${d ? `<img src="${itemIconURL(d)}">` : `<img class="cw-empty" src="${UI_ICON(SLOT_ICON[s.type])}">`}</div>`;
+    const id = eq.slots[s.id], d = ITEMS[id], pl = d ? plusOf(eq.inst[s.id]) : 0;
+    return `<div class="slot cw-gear${state.pickSlot === s.id ? ' sel' : ''}" data-pick="${s.id}" title="${esc(tl(s.label))}"${d ? ` data-tip="${id}" data-tip-eq="1" data-tip-plus="${pl}" style="border-color:${RARITY_COLOR[d.rarity]}"` : ''}>
+      ${d ? `<img src="${itemIconURL(d)}">${plusTag(pl)}` : `<img class="cw-empty" src="${UI_ICON(SLOT_ICON[s.type])}">`}</div>`;
   };
   const rows = finalStatRows(p);
   const key = ['HP', 'Attack', 'Defense', 'Critical Chance', 'Attack Speed', 'Cooldown Reduction'];
@@ -79,7 +83,7 @@ export function equipmentTabHTML(g, state, itemDetail) {
   const items = inv.list('All').filter(({ def }) => (pick ? def.type === pick.type : f.test(def)));
   const cells = items.map(({ id, n, def }) => {
     const act = pick ? `data-equip-to="${id}:${pick.id}"` : `data-item="${id}"`, low = pick && !meetsLevel(def, p.level) ? ' cw-low' : '';
-    return `<div class="slot${state.selected === id ? ' sel' : ''}${low}" ${act} data-tip="${id}" style="border-color:${RARITY_COLOR[def.rarity]}"><img src="${itemIconURL(def)}"><span class="n">${n > 1 ? n : ''}</span></div>`;
+    return `<div class="slot${state.selected === id ? ' sel' : ''}${low}" ${act} data-tip="${id}" data-tip-plus="${bestPlus(id)}" style="border-color:${RARITY_COLOR[def.rarity]}"><img src="${itemIconURL(def)}">${plusTag(bestPlus(id))}<span class="n">${n > 1 ? n : ''}</span></div>`;
   });
   const slotsLeft = Math.max(0, 32 - cells.length);
   const unequip = pick && eq.slots[pick.id] ? `<button data-unequip="${pick.id}">${tl('Unequip')}</button>` : '';

@@ -758,3 +758,6 @@ body.touch .chatbox .chat-quick button { font-size: 14px; padding: 7px 12px; bor
 /* above the touch layer (#touch z 40) while open; when closed the log lets touches through to the joystick */
 .chatbox { z-index: 45; }
 body.touch .chatbox:not(.typing) .chat-log { pointer-events: none; }
+
+/* GEAR ENHANCEMENT: +N badge on item slots */
+.slot .cw-plus { position: absolute; left: 3px; top: 1px; font-family: var(--font-title); font-weight: 700; font-size: 12px; color: #ffd98a; text-shadow: 0 0 3px #000, 0 0 2px #000; pointer-events: none; }

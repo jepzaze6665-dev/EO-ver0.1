@@ -1,6 +1,7 @@
 // ITEM TOOLTIP (UI only) — builds the HTML that explains one item. Reads item data, never changes the game.
 //   itemTooltipHTML(def, { classId, level, swap })  -> name, rarity, type, level need, description, modifiers, unique effects, tags, source
 //   swapPreview(equipment, itemId)            -> what equipping it would change (pure: a copy of the modifier set)
+import { enhancedModifiers } from '../items/enhance.js';
 import { ITEMS, RARITY_COLOR } from '../items/items.js';
 import { TYPE_LABEL, MODIFIER_TYPES, GEAR_SLOTS, ANY_CLASS, UNIQUE_RARITIES, LINE_PREFIX } from '../data/items/rules.js';
 import { ModifierSet } from '../items/modifierSystem.js';
@@ -59,8 +60,9 @@ export function swapPreview(eq, itemId) {
   return { slot, replaces: eq.slots[slot], changes, gained, lost };
 }
 
-export function itemTooltipHTML(def, { classId = null, level = null, swap = null, equipped = false, worn = [] } = {}) {
+export function itemTooltipHTML(def, { classId = null, level = null, swap = null, equipped = false, worn = [], plus = 0 } = {}) {
   if (!def) return '';
+  if (plus > 0) def = { ...def, name: `${def.name} +${plus}`, modifiers: enhancedModifiers(def.modifiers || [], plus) }; // GEAR ENHANCEMENT
   const color = RARITY_COLOR[def.rarity] || '#ccc';
   const rows = [];
   rows.push(`<div class="tt-name" style="color:${color}">${esc(def.name.toUpperCase())}</div>`);

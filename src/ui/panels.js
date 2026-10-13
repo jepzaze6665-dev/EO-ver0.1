@@ -644,10 +644,10 @@ export class Panels {
     el.addEventListener('mousemove', (e) => {
       const t = e.target.closest('[data-tip]');
       if (!t || !ITEMS[t.dataset.tip]) { tip.style.display = 'none'; return; }
-      if (tip.dataset.id !== t.dataset.tip) {
+      if (tip.dataset.id !== t.dataset.tip + (t.dataset.tipPlus || '')) {
         const id = t.dataset.tip, worn = !!t.dataset.tipEq;
-        tip.innerHTML = itemTooltipHTML(ITEMS[id], { classId: g.player.cls.id, level: g.player.level, worn: g.equipment.wornIds(), equipped: worn, swap: worn ? null : swapPreview(g.equipment, id) });
-        tip.dataset.id = id;
+        tip.innerHTML = itemTooltipHTML(ITEMS[id], { classId: g.player.cls.id, level: g.player.level, worn: g.equipment.wornIds(), equipped: worn, swap: worn ? null : swapPreview(g.equipment, id), plus: +(t.dataset.tipPlus || 0) });
+        tip.dataset.id = id + (t.dataset.tipPlus || '');
       }
       tip.style.display = 'block';
       const w = tip.offsetWidth, h = tip.offsetHeight;
@@ -661,7 +661,7 @@ export class Panels {
       const t = e.target.closest('[data-tip]');
       if (!t || !ITEMS[t.dataset.tip]) { tip.style.display = 'none'; return; }
       const id = t.dataset.tip, worn = !!t.dataset.tipEq;
-      tip.innerHTML = itemTooltipHTML(ITEMS[id], { classId: g.player.cls.id, level: g.player.level, worn: g.equipment.wornIds(), equipped: worn, swap: worn ? null : swapPreview(g.equipment, id) });
+      tip.innerHTML = itemTooltipHTML(ITEMS[id], { classId: g.player.cls.id, level: g.player.level, worn: g.equipment.wornIds(), equipped: worn, swap: worn ? null : swapPreview(g.equipment, id), plus: +(t.dataset.tipPlus || 0) });
       tip.dataset.id = id; tip.style.display = 'block';
       const w = tip.offsetWidth, h = tip.offsetHeight, left = e.clientX > window.innerWidth / 2;
       tip.style.left = Math.max(8, left ? e.clientX - w - 24 : Math.min(window.innerWidth - w - 8, e.clientX + 24)) + 'px';
